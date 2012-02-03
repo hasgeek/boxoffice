@@ -1,0 +1,11 @@
+.DS_Store
+*.pyc
+settings.py
+test.db
+*.wpr
+.project
+.pydevproject
+.settings
+.sass-cache
+geekup/static/img/uploads
+error.log
