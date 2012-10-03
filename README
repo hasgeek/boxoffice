@@ -1,1 +1,3 @@
-Box Office. HasGeek's ticketing system.
+BoxOffice. HasGeek's ticketing system.
+
+Set invoice title passed to BillGate in settings.py using property TICKET_INVOICE_TITLE
