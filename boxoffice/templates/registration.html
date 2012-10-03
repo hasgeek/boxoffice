@@ -1,0 +1,64 @@
+{% extends "layout.html" %}
+{% block title %} Registration {% endblock %}
+{% block headline %}{% endblock %}
+
+{% block content %}
+  <div class="row section span8">
+    <div class="page-header">
+        <h1>
+          {{ self.title() }}
+        </h1>
+    </div>
+    {%-if message %}
+      <div class="alert alert-error">{{ message }}</div>
+    {%- endif %}
+  </div>
+  <div class="row section span8">
+    <form method='POST' class="span8 reg-form">
+      {{ form.hidden_tag() }}
+      {%- if form.errors %}
+        <div class="alert alert-error">Please correct the indicated errors</div>
+      {%- endif %}
+      <table class="table reg-table">
+        <thead>
+          <tr>
+            <th class="span2">Attendee</th>
+            <th class="span6">Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for attendee in form.attendees %}
+            <tr>
+              <td class="span2">{{ attendee.name }}</td>
+              <td class="span6">
+                {{ attendee.hidden_tag() }}
+                {%- if attendee.errors %}
+                  <div class="alert alert-error">Please correct the indicated errors</div>
+                {%- endif %}
+                <span class="control-group{% if attendee.fullname.errors %} error{% endif %}">{{ attendee.fullname(placeholder="Full Name (required)", class="span2") }}</span>
+                <span class="control-group{% if attendee.email.errors %} error{% endif %}">{{ attendee.email(placeholder="Your Email (required)", class="span2") }}</span>
+                <span class="control-group{% if attendee.phone.errors %} error{% endif %}">{{ attendee.phone (placeholder="Cell Number (required)", class="span2") }}</span><br/>
+                <span class="control-group{% if attendee.company.errors %} error{% endif %}">{{ attendee.company (placeholder="Company (optional)", class="span2") }}</span>
+                <span class="control-group{% if attendee.jobtitle.errors %} error{% endif %}">{{ attendee.jobtitle (placeholder="Job Title (optional)",class="span2") }}</span>
+                <span class="control-group{% if attendee.twitterhandle.errors %} error{% endif %}">{{ attendee.twitterhandle(placeholder="TwitterHandle (optional)", class="span2") }}</span>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div class="form-actions span7">
+        <button type="submit" class="btn btn-primary btn-wide push-right">Place Order</button>
+      </div>
+    </form>
+  </div>
+  <div class="span2 order-details">
+    <h4>Order Summary</h4>
+    <ul class="order-details">
+      {% for l in order.lineitems %}
+        <li>{{ l.category.event.title}}:{{ l.category.title }} ({{ l.quantity }}) <span>Rs. {{ l.total|format_currency }}</span></li>
+      {% endfor %}
+    </ul>
+    <h4>Total: Rs. {{ order.total|format_currency }}</h4>
+  </div>
+
+{% endblock %}

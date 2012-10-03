@@ -1,8 +1,9 @@
 Flask
-Flask-Sqlalchemy
+Flask-SQLAlchemy
 Flask-Assets
 Flask-Mail
 Flask-WTF
 https://github.com/hasgeek/coaster/zipball/master
 https://github.com/hasgeek/flask-lastuser/zipball/master
 jsmin
+pytz

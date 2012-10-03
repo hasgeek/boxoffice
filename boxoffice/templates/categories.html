@@ -1,0 +1,50 @@
+{% extends "layout.html" %}
+{% block title %}{{ event.title }}{% endblock %}
+{% block headline %}{% endblock %}
+
+{% block content %}
+  <div class="row section">
+    <div class="span6 print-span8">
+      <div class="page-header">
+        <h1>
+          {{ self.title() }}
+        </h1>
+      </div>
+    </div>
+  </div>
+  <h3> All Item Categories</h3>
+  {%- if categories %}
+    <table class="table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Title</th>
+          <th class="num">Price Before Tax</th>
+          <th class="num">Tax Rate</th>
+          <th class="num">No. Available</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for i in categories %}
+          <tr>
+            <td>#{{ i.url_id }}</td>
+            <td>{{ i.title }}</td>
+            <td class="num">{{ i.price_before_tax }}</td>
+            <td class="num">{{ i.tax_rate }}</td>
+            <td class="num">{{ i.nos_available }}</td>
+            <td>{{ i.status }}</td>
+            <td><a href="{{ url_for('category_edit', event=event.name, category=i.name) }}"><span class="icon-pencil">Edit</span></a> <a href="{{url_for('category_delete', event=event.name, category=i.name) }}"><span class="icon-trash"> Delete</span></a></td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="7"><em>(No categories recorded)</em></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {%- else %}
+    <p><em>There are no item categories in this workspace.</em></p>
+  {%- endif %}
+{% endblock %}

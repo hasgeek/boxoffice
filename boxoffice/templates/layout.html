@@ -1,0 +1,15 @@
+{% extends "baseframe.html" %}
+{% from "baseframe/components.html" import flash_messages with context %}
+{% block messages %}{# Don't use baseframe's messages #}{% endblock %}
+{% block baseheadline %}{# Don't use baseframe's headline #}{% endblock %}
+{% block basecontent %}
+
+  <div class="row">
+    <div class="span11 print-span12 push-right">
+      {{ flash_messages() }}
+      {% block headline %}<div class="page-header"><h1>{{ self.title() }}</h1></div>{% endblock %}
+      {% block content %}{% endblock %}
+    </div>
+    
+  </div>
+{% endblock %}

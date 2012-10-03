@@ -1,0 +1,109 @@
+{% extends "layout.html" %}
+{% block title %}{{ event.title }}{% endblock %}
+{% block content %}
+
+
+
+<div class="row section span8 event-desc">
+	<div> {{ event.description|safe }}</div>
+</div>
+
+<div class="row section span8 tickets">
+	<h3>Tickets Available</h3>
+	<form method='POST'>
+		{{ form.hidden_tag() }}
+		{%- if form.errors %}
+            <div class="alert alert-error">Please correct the indicated errors</div>
+        {%- endif %}
+		<table class="table">
+			<thead>
+				<tr>
+					<th class="span3">Available</th>
+					<th class="num span1">Rate</th>
+					<th class="num span1">Select</th>
+				</tr>
+			</thead>
+			<tbody>
+			{% for i in live_categories %}
+				<tr>
+					<td class="span3">{{ i.title }} </td>
+					<td class="num span1">{{ i.price_after_tax|format_currency }}<span>&nbsp;x</span</td>
+					<td class="num"> {{ form[i.name] }}</td>
+				</tr>
+			{% else %}
+				<tr>
+					<td colspan="3"><em>(No ticket categories recorded)</em></td>
+				</tr>
+			{% endfor %}
+			</tbody>
+		</table>
+		<div class="form-actions">
+	        <button type="submit" class="btn btn-primary btn-wide push-right">Register</button>
+	    </div>
+    </form>
+	
+</div>
+<div class="span3">
+	<h4>Day</h4>
+	<p>{{ event.date|longdate }}</p>
+	<h4>Schedule</h4>
+	<p><a href="{{ event.funnel_link }}">Propose a talk/vote on the funnel</a></p>
+	<h4>Event Website</h4>
+	<p><a href="{{ event.website }}">{{event.title}}</a></p>
+	<h4>Venue</h4>
+	<p> {{ event.venue|safe }} </p>
+	<h4>Contact</h4>
+	<p> {{ event.contact_name }}<br/> {{ event.contact_email }}</p>
+</div>
+
+
+{% if 'siteadmin' in permissions -%}
+<div class="row section">
+	<div class="span8 print-span8">
+		<h3>Event Admin</h3> 
+		<div class="row section">
+			<h4 class="span1">Overview</h4>
+		    <a href="{{ url_for('event_edit', event=event.name)}}"><span class="icon-pencil">Edit Event</span></a>
+		</div>
+		<div class="row section">
+			<h4 class="span1">Ticketing</h4>
+		    <a href="{{ url_for('category_new', event=event.name) }}"><span class="icon-pencil">Add a new ticket</span></a>
+	    </div>
+		{%- if categories %}
+	    <table class="table">
+	      <thead>
+	        <tr>
+	          <th>#</th>
+	          <th>Title</th>
+	          <th class="num">Price After Tax</th>
+	          <th class="num">Tax Rate</th>
+	          <th class="num">No. Available</th>
+	          <th>Status</th>
+	          <th>Actions</th>
+	        </tr>
+	      </thead>
+	      <tbody>
+	        {% for i in categories %}
+	          <tr>
+	            <td>#{{ i.url_id }}</td>
+	            <td>{{ i.title }}</td>
+	            <td class="num">{{ i.price_after_tax }}</td>
+	            <td class="num">{{ i.tax_rate }}</td>
+	            <td class="num">{{ i.nos_available }}</td>
+	            <td>{{ i.status }}</td>
+	            <td><a href="{{ url_for('category_edit', event=event.name, category=i.name) }}"><span class="icon-pencil">Edit</span></a> <a href="{{url_for('category_delete', event=event.name, category=i.name) }}"><span class="icon-trash"> Delete</span></a></td>
+	          </tr>
+	        {% else %}
+	          <tr>
+	            <td colspan="7"><em>(No ticket categories recorded)</em></td>
+	          </tr>
+	        {% endfor %}
+	      </tbody>
+	    </table>
+	  	{%- else %}
+	    	<p><em>There are no item ticket categories in this event.</em></p>
+	  	{%- endif %}
+	</div>
+</div>
+{%- endif %}
+{% endblock %}
