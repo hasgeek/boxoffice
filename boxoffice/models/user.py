@@ -7,7 +7,7 @@ from boxoffice.models import db
 __all__ = ['User']
 
 
-class User(db.Model, UserBase):
+class User(UserBase, db.Model):
 
     __tablename__ = 'user'
 
