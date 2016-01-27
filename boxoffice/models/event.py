@@ -1,27 +1,33 @@
 from datetime import datetime
-from boxoffice.models import db, BaseNameMixin
+from boxoffice.models import db, BaseScopedNameMixin, Organization
 
 __all__ = ['Event']
 
-class Event(db.Model, BaseNameMixin):
-    __tablename__ = 'event'
 
+class Event(BaseScopedNameMixin, db.Model):
     """
-    An Event is the top level model. 
-    An Item Category can exist only in relation to an Event.
-    An Order can be initiated only in relation to an Event.
+    An Event is the top level model.
     """
+    __tablename__ = 'event'
+    __uuid_primary_key__ = True
 
     description = db.Column(db.Unicode(2500), default=u'', nullable=True)
-    date = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
-    short_venue = db.Column(db.Unicode(250), default=u'', nullable=True)
-    venue = db.Column(db.Unicode(1200), default=u'', nullable=True)
-    
+
     website = db.Column(db.Unicode(100), default=u'', nullable=True)
     funnel_link = db.Column(db.Unicode(250), default=u'', nullable=True)
-    
-    contact_name = db.Column(db.Unicode(250), default=u'', nullable=True)
-    contact_email = db.Column(db.Unicode(80), default=u'', nullable=True)
+
+    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'), nullable=False)
+    organization = db.relationship(Organization,
+        backref=db.backref('events', cascade='all, delete-orphan'))
+
+    parent = db.synonym('organization')
 
     def __repr__(self):
         return self.name
+
+
+event_item = db.Table('event_item', db.Model.metadata,
+    db.Column('event_id', None, db.ForeignKey('event.id'), primary_key=True),
+    db.Column('item_id', None, db.ForeignKey('item.id'), primary_key=True),
+    db.Column('created_at', db.DateTime, default=datetime.utcnow, nullable=False)
+    )

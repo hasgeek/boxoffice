@@ -29,7 +29,7 @@ def init_for(env):
     app.config['tz'] = timezone(app.config['TIMEZONE'])
 
 app.register_blueprint(baseframe)
-import boxoffice.models
+from boxoffice.models import db
 import boxoffice.views
 
 EMAIL_RE = re.compile(r'\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b', re.I)
