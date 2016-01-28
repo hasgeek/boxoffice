@@ -7,4 +7,3 @@ https://github.com/hasgeek/coaster/zipball/master
 https://github.com/hasgeek/flask-lastuser/zipball/master
 jsmin
 pytz
-sqlalchemy-utils
