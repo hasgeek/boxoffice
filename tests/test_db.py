@@ -2,4 +2,4 @@
 
 import unittest
 from boxoffice import *
-from .fixtures import make_fixtures
+from fixtures import make_fixtures

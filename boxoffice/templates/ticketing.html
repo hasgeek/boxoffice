@@ -11,10 +11,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 
   <title>Boxoffice Ticketing</title>
-  <link rel="stylesheet" type="text/css" href="static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />
   <link rel="stylesheet" type="text/css" href="static/css/font-awesome.min.css">
   <link rel="stylesheet" type="text/css" href="static/css/progress-wizard.min.css">
-  <link rel="stylesheet" type="text/css" href="static/css/app.css" />
+  <link rel="stylesheet" type="text/css" href="static/css/ticketing.css" />
 </head>
 
 <body>
@@ -23,6 +23,7 @@
     <div id="payment-wrapper">
 
       <div class="payment-progress-wrapper" id="payment-stages">
+        {% raw %}
         <script id="payment-stages-template" type="text/ractive">
           <ul class="progress-indicator">
             <li {{#selectTicketActive}}class="active"{{/selectTicketActive}} {{#selectTicketCompleted}}class="completed"{{/selectTicketCompleted}} data-target=".ticket-selection-content">
@@ -267,16 +268,17 @@
     </div><!--payment-wrapper-->
   </div><!--boxoffice-ticketing-wrapper-->
   
+  {% endraw %}
   <!-- Included JS Files -->
   <!--[if lt IE 9]>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
   <![endif]-->
   <!--[if gte IE 9]><!-->
       <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-      <script src="static/js/bootstrap.min.js"></script>
-      <script src="static/js/ractive.js"></script>
-      <script src="static/js/app.js"></script>
-      <script src="static/js/amplify.min.js"></script>
+      <script src="static/js/libs/bootstrap.min.js"></script>
+      <script src="static/js/libs/ractive.js"></script>
+      <script src="static/js/ticketing.js"></script>
+      <script src="static/js/libs/amplify.min.js"></script>
   <!--<![endif]-->
 
 </body>

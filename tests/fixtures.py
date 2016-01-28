@@ -8,4 +8,3 @@ def make_fixtures():
 
     """
     pass
-
