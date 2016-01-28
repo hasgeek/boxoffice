@@ -1,9 +1,11 @@
 from pytz import utc, timezone
 from boxoffice import app
-from flask import redirect, url_for, render_template
+from flask import redirect, url_for, render_template, request
 from coaster.views import load_models, jsonp
 
-from boxoffice.models import Organization, Item
+from boxoffice.models import Organization, Item, Category, Event
+
+#U3_JesHfQ2OUmdihAXaAGQ
 
 
 @app.route('/')
@@ -20,13 +22,21 @@ def favicon():
 def temp_items():
     return render_template('items.json')
 
-@app.route('/<organization>/inventory')
+
+@app.route('/<organization>/inventory', methods=['GET'])
 @load_models(
-    (Organization, 'organization'),
+    (Organization, {'buid': 'organization'}, 'organization'),
     )
 def get_inventory(organization):
-    items = Item.query.filter_by(organization=organization, )
-    return jsonp(items)
+    eventsargs = request.args.getlist('events')
+    events = Event.query.filter(Event.name.in_(eventsargs))
+    items = Item.query.filter_by(organization=organization)
+    categories = Category.query.filter_by(organization=organization)
+    return jsonp(**{
+        'items': [i for i in items],
+        'categories': [c for c in categories],
+        'events': [e for e in events]
+        })
 
 
 @app.template_filter('shortdate')
