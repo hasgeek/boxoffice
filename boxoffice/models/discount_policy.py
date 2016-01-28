@@ -6,7 +6,7 @@ from coaster.utils import LabeledEnum
 import string
 import random
 
-__all__ = ['DiscountPolicy', 'DiscountCoupon']
+__all__ = ['DiscountPolicy', 'DiscountCoupon', 'item_discount_policy']
 
 
 def generate_coupon_code(size=6, chars=string.ascii_uppercase + string.digits):
@@ -16,6 +16,13 @@ def generate_coupon_code(size=6, chars=string.ascii_uppercase + string.digits):
 class DISCOUNTTYPES(LabeledEnum):
     AUTOMATIC = (0, __("Automatic"))
     COUPON = (1, __("Coupon"))
+
+
+item_discount_policy = db.Table('item_discount_policy', db.Model.metadata,
+    db.Column('item_id', None, db.ForeignKey('item.id'), primary_key=True),
+    db.Column('discount_policy_id', None, db.ForeignKey('discount_policy.id'), primary_key=True),
+    db.Column('created_at', db.DateTime, default=datetime.utcnow, nullable=False)
+    )
 
 
 class DiscountPolicy(BaseNameMixin, db.Model):
@@ -32,14 +39,10 @@ class DiscountPolicy(BaseNameMixin, db.Model):
 
     percentage = db.Column(db.Integer, nullable=False)
 
+    items = db.relationship('Item', secondary=item_discount_policy)
+
     __table_args__ = (db.CheckConstraint('percentage <= 100', 'percentage_bound_upper'), db.CheckConstraint('percentage > 0', 'percentage_bound_lower'))
 
-
-item_discount_policy = db.Table('item_discount_policy', db.Model.metadata,
-    db.Column('item_id', None, db.ForeignKey('item.id'), primary_key=True),
-    db.Column('discount_policy_id', None, db.ForeignKey('discount_policy.id'), primary_key=True),
-    db.Column('created_at', db.DateTime, default=datetime.utcnow, nullable=False)
-    )
 
 
 class DiscountCoupon(IdMixin, db.Model):

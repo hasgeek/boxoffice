@@ -1,6 +1,7 @@
 from boxoffice.models import db, BaseNameMixin
 from boxoffice.models.category import Category
 from boxoffice.models.event import event_item
+from boxoffice.models.discount_policy import item_discount_policy
 
 __all__ = ['Item']
 
@@ -21,3 +22,4 @@ class Item(BaseNameMixin, db.Model):
     quantity_total = db.Column(db.Integer, default=0, nullable=False)
 
     events = db.relationship('Event', secondary=event_item)
+    discount_policies = db.relationship('DiscountPolicy', secondary=item_discount_policy)
