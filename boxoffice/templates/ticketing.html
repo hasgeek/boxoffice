@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js lt-ie9 lt-ie8" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js lt-ie9" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html lang="en" class="no-js"> <!--<![endif]-->
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+  <!-- Set the viewport width to device width for mobile -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+  <title>Boxoffice Ticketing</title>
+  <link rel="stylesheet" type="text/css" href="static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="static/css/font-awesome.min.css">
+  <link rel="stylesheet" type="text/css" href="static/css/progress-wizard.min.css">
+  <link rel="stylesheet" type="text/css" href="static/css/app.css" />
+</head>
+
+<body>
+
+  <div id="boxoffice-ticketing-wrapper" class="container">
+    <div id="payment-wrapper">
+
+      <div class="payment-progress-wrapper" id="payment-stages">
+        <script id="payment-stages-template" type="text/ractive">
+          <ul class="progress-indicator">
+            <li {{#selectTicketActive}}class="active"{{/selectTicketActive}} {{#selectTicketCompleted}}class="completed"{{/selectTicketCompleted}} data-target=".ticket-selection-content">
+              <span class="bubble"></span>Select Tickets <br>
+              {{#selectTicketActive}}<small>(active)</small>{{/selectTicketActive}} 
+              {{#selectTicketCompleted}}<small>(completed)</small>{{/selectTicketCompleted}}
+            </li>
+            <li {{#buyerDetailsActive}}class="active"{{/buyerDetailsActive}} {{#buyerDetailsCompleted}}class="completed"{{/buyerDetailsCompleted}} data-target=".buyer-details-content">
+              <span class="bubble"></span>Buyer Form <br>
+              {{#buyerDetailsActive}}<small>(active)</small>{{/buyerDetailsActives}} 
+              {{#buyerFormCompleted}}<small>(completed)</small>{{/buyerFormCompleted}}
+            </li>
+            <li {{#paymentDetailsActive}}class="active"{{/paymentDetailsActive}} {{#paymentDetailsCompleted}}class="completed"{{/paymentDetailsCompleted}} data-target=".payment-details-content">
+              <span class="bubble"></span>Payment <br>
+              {{#paymentDetailsActive}}<small>(active)</small>{{/paymentDetailsActive}} 
+              {{#paymentDetailsCompleted}}<small>(completed)</small>{{/paymentDetailsCompleted}}
+            </li>
+            <li {{#attendeeDetailsActive}}class="active"{{/attendeeDetailsActive}} {{#attendeeDetailsCompleted}}class="completed"{{/attendeeDetailsCompleted}} data-target=".attendee-details-content">
+              <span class="bubble"></span>Attendee Details <br>
+              {{#attendeeDetailsActive}}<small>(active)</small>{{/attendeeDetailsActive}} 
+              {{#attendeeDetailsCompleted}}<small>(completed)</small>{{/attendeeDetailsCompleted}}
+            </li>
+          </ul>
+        </script>
+      </div><!--eof payment-box-progress-wrapper -->
+
+      <div class="payment-stages-wrapper">
+
+        <div id="ticket-selection">
+          <script id="ticket-selection-template" type="text/ractive">
+            <div class="ticket-selection-wrapper active">
+
+              <div class="ticket-selection-header">
+                <h3 class="toggle-content" on-click="toggle-content"><i class="icon {{#visible}}icon-chevron-down{{else}}icon-chevron-up{{/visible}}"></i>Ticket Information for {{ eventName }}</h3>
+              </div>
+
+              <div class="ticket-selection-content clearfix">
+                <!-- Nav tabs -->
+                <ul class="nav nav-tabs {{#if items.length > 4}}width-4{{else}}width-{{items.length}}{{/if}}" role="tablist">
+                  {{#items}}
+                    <li role="presentation" {{#if @index === 0}}class="active"{{/if}}><a href="#{{category}}" aria-controls="{{category}}" role="tab" data-toggle="tab">{{category}}</a></li>
+                  {{/items}}
+                </ul>
+                <div class="tab-content" id="items">
+                  {{#items}}
+                    <div role="tabpanel" class="tab-pane fade {{#if @index === 0}}active in{{/if}}" id="{{category}}">
+                      {{#tickets}}
+                        {{#if open }}
+                        <div class="ticket-box">
+                          <div class="ticket-booking clearfix">
+                            <div class="ticket-details">
+                              <h5 class="ticket-title text-primary">{{ title }}</h5>
+                              {{#type}}
+                              <p><i class="icon icon-tags"></i>{{ type }}</p>
+                              {{/type}}
+                              {{#date}}
+                              <p><i class="icon icon-calendar"></i>{{ date }}</p>
+                              {{/date}}
+                              {{#venue}}
+                              <p><i class="icon icon-map-marker"></i>{{ venue }}</p>
+                              {{/venue}}
+                              <p>{{{package}}}</p>
+                            </div>
+                            <div class="ticket-price-qty">
+                              <p class="ticket-price"><i class="icon icon-inr"></i>{{ price }}</p> 
+                              <span class="multiplier">X</span>
+                              <select class="ticket-qty" id="{{ id }}" data-ticketprice="{{ price }}">
+                                {{#each availableTickets(quantity)}}
+                                  <option value="{{.}}">{{.}}</option>
+                                {{/each}}
+                              </select>
+                            </div> 
+                          </div>
+                        </div>
+                        {{/if}}
+                      {{/tickets}}
+                    </div>
+                  {{/items}}
+                </div>
+                <hr>
+                <form class="discount-code">
+                  <input type="text" placeholder="Enter your discount code" name="discount-code" id="discountCode"/>
+                  <submit class="btn btn-info" on-click="activate-discount">Apply</submit>
+                  {{#discountCodeLoading}}
+                    <i class="icon icon-spinner icon-spin icon-2x"></i>
+                  {{/discountCodeLoading}}
+                  <p class="discount-code-msg {{#discountCodeError}}text-danger{{else}}text-info{{/discountCodeError}}">{{ discountCodeMessage }}</p>
+                </form>
+                <div class="ticket-total">
+                  <p class="service-tax">Service Tax : <span class="pull-right"><i class="icon icon-inr"></i> {{ serviceTax }}</span></p>
+                  <p>Total : <span class="pull-right"><i class="icon icon-inr"></i> {{ totalPrice }}</span></p>
+                </div>
+                <div class="proceed-button-wrapper">
+                  <button id="stage1-proceed" class="btn btn-success" on-click='continue'>Continue</button>
+                </div>
+                <p class="stage-error-msg text-danger">{{errorMsg}}</p>
+              </div>
+            </div>
+          </script>
+        </div><!--ticket-selection-->
+
+        <div id="buyer-details">
+          <script id="buyer-details-template" type="text/ractive">
+            <div class="buyer-details-wrapper {{#active}}active{{/active}}">
+              <div class="buyer-details-header">
+                <h3 class="toggle-content" on-click="toggle-content"><i class="icon {{#visible}}icon-chevron-down{{else}}icon-chevron-up{{/visible}}"></i>Buyer Form</h3>
+              </div>
+              <div class="buyer-details-content clearfix">
+                <form class="form-horizontal" role="form" id="buyer-details-form">
+                  <div class="form-group">
+                    <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
+                      <input type="text" class="form-control secondary" name="name" required placeholder="Name"/>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
+                      <input type="text" class="form-control secondary" name="email" required placeholder="Email"/>
+                    </div>
+                  </div>
+                  <div class="form-group phone-number-wrapper">
+                    <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
+                      <input type="text" class="form-control secondary" name="phone-number" required placeholder="Phone number" value="+91"/>
+                    </div>
+                  </div>
+                  <div class="checkout-confirmation col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
+                    <h4>Booking Summary</h4>
+                    <p><b>{{totalTickets}}</b> {{#if totalTickets > 1}}tickets{{else}} ticket {{/if}}</p>
+                    <hr>
+                    <p>Service Tax: <i class="icon icon-inr"></i> {{serviceTax}}</p>
+                    <hr>
+                    <p>Amount Payable: <b><i class="icon icon-inr"></i> {{totalPrice}}</b></p>
+                  </div>
+                  <div class="proceed-button-wrapper">
+                    <button class="btn btn-success" on-click='continue'>Proceed to payment</button>
+                  </div>
+                  <p class="stage-error-msg text-danger">{{errorMsg}}</p>
+                </form> 
+              </div>
+            </div>
+          </script>
+        </div><!--buyer-details-->
+
+        <div id="payment-details">
+          <script id="payment-details-template" type="text/ractive">
+            <div class="payment-details-wrapper {{#active}}active{{/active}}">
+              <div class="payment-details-header">
+                <h3 class="toggle-content" on-click="toggle-content"><i class="icon {{#visible}}icon-chevron-down{{else}}icon-chevron-up{{/visible}}"></i>Payment</h3>
+            </div>
+
+            <div class="payment-details-content clearfix">
+              <p class="text-center">Thank you. Your payment is done &#33;</p>
+              <p>We have send you a email with ticket details. You could use the links provided in the email to fill attendee details later.</p>
+              <div class="proceed-button-wrapper">
+                <button class="btn btn-success" on-click='continue'>Fill attendee details now</button>
+              </div>
+            </div>
+          </script>
+        </div><!--payment-->
+
+        <div id="attendee-details">
+          <script id="attendee-details-template" type="text/ractive">
+            <div class="attendee-details-wrapper {{#active}}active{{/active}}">
+              <div class="attendee-details-header">
+                <h3 class="toggle-content" on-click="toggle-content"><i class="icon {{#visible}}icon-chevron-down{{else}}icon-chevron-up{{/visible}}"></i>Attendee Details</h3>
+            </div>
+            <div class="attendee-details-content clearfix">
+              <form class="form-horizontal" role="form" id="attendee-details-form">
+                {{#each attendees(2)}}
+                  <div>
+                  <h4 class="text-center">Attendee details for ticket {{@index}}</h4>
+                  <div class="form-group">
+                    <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
+                      <input type="text" class="form-control secondary" name="name" required placeholder="Name"/>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
+                      <input type="text" class="form-control secondary" name="email" required placeholder="Email"/>
+                    </div>
+                  </div>
+                  <div class="form-group phone-number-wrapper">
+                    <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
+                      <input type="text" class="form-control secondary" name="phone-number" required placeholder="Phone number" value="+91"/>
+                    </div>
+                  </div>
+                  <div class="form-group phone-number-wrapper">
+                    <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
+                      <input type="text" class="form-control secondary" name="company" placeholder="Company"/>
+                    </div>
+                  </div>
+                  <div class="form-group phone-number-wrapper">
+                    <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
+                      <input type="text" class="form-control secondary" name="twitter" placeholder="@ twitter handle"/>
+                    </div>
+                  </div>
+                  <div class="form-group phone-number-wrapper">
+                    <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
+                      <input type="text" class="form-control secondary" name="designation" placeholder="Designation"/>
+                    </div>
+                  </div>
+                  <div class="form-group phone-number-wrapper">
+                    <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
+                      <input type="text" class="form-control secondary" name="city" placeholder="City, State"/>
+                    </div>
+                  </div>
+                  <div class="form-group phone-number-wrapper">
+                    <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
+                    <p>Food preference</p>
+                    <label class="radio-inline">
+                      <input type="radio" name="foodchoice" id="veg" value="veg">
+                      Veg
+                    </label>
+                    <label class="radio-inline">
+                      <input type="radio" name="foodchoice" id="nonveg" value="non-veg">
+                      Non-Veg
+                    </label>
+                    </div>
+                    <label>
+                  </div>
+                  <div class="form-group phone-number-wrapper">
+                    <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
+                      <label>How did you hear about {{eventName}}</label>
+                      <textarea class="form-control"></textarea>
+                    </div>
+                  </div>
+                  <div class="form-group phone-number-wrapper">
+                    <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
+                      <label>Comments</label>
+                      <textarea class="form-control"></textarea>
+                    </div>
+                  </div>
+                </div>
+                {{/each}}
+                <p class="stage-error-msg text-danger">{{errorMsg}}</p>
+              </form> 
+            </div>
+          </script>
+        </div><!--attendee-details-->
+
+      </div><!--payment-stages-wrapper-->  
+
+    </div><!--payment-wrapper-->
+  </div><!--boxoffice-ticketing-wrapper-->
+  
+  <!-- Included JS Files -->
+  <!--[if lt IE 9]>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+  <![endif]-->
+  <!--[if gte IE 9]><!-->
+      <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+      <script src="static/js/bootstrap.min.js"></script>
+      <script src="static/js/ractive.js"></script>
+      <script src="static/js/app.js"></script>
+      <script src="static/js/amplify.min.js"></script>
+  <!--<![endif]-->
+
+</body>
+</html>
