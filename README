@@ -1,3 +1,11 @@
 BoxOffice. HasGeek's ticketing system.
 
 Set invoice title passed to BillGate in settings.py using property TICKET_INVOICE_TITLE
+
+### Tests
+
+To run tests:
+
+1. `createdb boxoffice_testing`
+2. Add `postgres://@localhost:5432/boxoffice` to `instance/testing.py`
+3. `nosetests`

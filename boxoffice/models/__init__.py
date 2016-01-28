@@ -1,13 +1,12 @@
 from flask.ext.sqlalchemy import SQLAlchemy
 from boxoffice import app
-from coaster.sqlalchemy import BaseMixin, BaseNameMixin, BaseScopedNameMixin, BaseScopedIdNameMixin, BaseScopedIdMixin
+from coaster.sqlalchemy import BaseMixin, BaseNameMixin, BaseScopedNameMixin, BaseScopedIdNameMixin, BaseScopedIdMixin, IdMixin
 
-db = SQLAlchemy(app)
+from coaster.db import db
 
 from boxoffice.models.user import *
 from boxoffice.models.category import *
 from boxoffice.models.event import *
-from boxoffice.models.line_item import *
-from boxoffice.models.attendee import *
-from boxoffice.models.order import *
-
+from boxoffice.models.item import *
+from boxoffice.models.price import *
+from boxoffice.models.discount_policy import *
