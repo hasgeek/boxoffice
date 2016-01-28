@@ -1,5 +1,6 @@
 from boxoffice.models import db, BaseNameMixin
 from boxoffice.models.category import Category
+from boxoffice.models.event import event_item
 
 __all__ = ['Item']
 
@@ -18,3 +19,5 @@ class Item(BaseNameMixin, db.Model):
 
     quantity_available = db.Column(db.Integer, default=0, nullable=False)
     quantity_total = db.Column(db.Integer, default=0, nullable=False)
+
+    events = db.relationship('Event', secondary=event_item)

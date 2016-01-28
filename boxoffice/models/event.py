@@ -1,7 +1,14 @@
 from datetime import datetime
 from boxoffice.models import db, BaseScopedNameMixin, Organization
 
-__all__ = ['Event']
+__all__ = ['Event', 'event_item']
+
+
+event_item = db.Table('event_item', db.Model.metadata,
+    db.Column('event_id', None, db.ForeignKey('event.id'), primary_key=True),
+    db.Column('item_id', None, db.ForeignKey('item.id'), primary_key=True),
+    db.Column('created_at', db.DateTime, default=datetime.utcnow, nullable=False)
+    )
 
 
 class Event(BaseScopedNameMixin, db.Model):
@@ -21,13 +28,7 @@ class Event(BaseScopedNameMixin, db.Model):
         backref=db.backref('events', cascade='all, delete-orphan'))
 
     parent = db.synonym('organization')
+    items = db.relationship('Item', secondary=event_item)
 
     def __repr__(self):
         return self.name
-
-
-event_item = db.Table('event_item', db.Model.metadata,
-    db.Column('event_id', None, db.ForeignKey('event.id'), primary_key=True),
-    db.Column('item_id', None, db.ForeignKey('item.id'), primary_key=True),
-    db.Column('created_at', db.DateTime, default=datetime.utcnow, nullable=False)
-    )

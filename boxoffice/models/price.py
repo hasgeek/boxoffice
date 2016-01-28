@@ -1,4 +1,4 @@
-from boxoffice.models import db, BaseNameMixin, Organization
+from boxoffice.models import db, BaseNameMixin, Item
 from datetime import datetime
 
 __all__ = ['Price']
@@ -9,8 +9,7 @@ class Price(BaseNameMixin, db.Model):
     __uuid_primary_key__ = True
 
     item_id = db.Column(None, db.ForeignKey('item.id'), nullable=False)
-    item = db.relationship(Organization,
-        backref=db.backref('price', cascade='all, delete-orphan'))
+    item = db.relationship(Item, backref=db.backref('prices', cascade='all, delete-orphan'))
     valid_from = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     valid_upto = db.Column(db.DateTime, nullable=True)
 

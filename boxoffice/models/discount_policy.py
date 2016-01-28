@@ -6,7 +6,7 @@ from coaster.utils import LabeledEnum
 import string
 import random
 
-__all__ = ['DiscountPolicy']
+__all__ = ['DiscountPolicy', 'DiscountCoupon']
 
 
 def generate_coupon_code(size=6, chars=string.ascii_uppercase + string.digits):
