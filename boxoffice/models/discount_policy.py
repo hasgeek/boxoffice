@@ -42,6 +42,7 @@ class DiscountPolicy(BaseNameMixin, db.Model):
     items = db.relationship('Item', secondary=item_discount_policy)
 
     __table_args__ = (db.CheckConstraint('percentage <= 100', 'percentage_bound_upper'), db.CheckConstraint('percentage > 0', 'percentage_bound_lower'))
+    # add check constraint quantity_from <= quantity_to
 
 
 
@@ -51,9 +52,10 @@ class DiscountCoupon(IdMixin, db.Model):
 
     discount_policy_id = db.Column(None, db.ForeignKey('discount_policy.id'), nullable=False)
     discount_policy = db.relationship(DiscountPolicy,
-        backref=db.backref('discount_coupon', cascade='all, delete-orphan'))
+        backref=db.backref('discount_coupons', cascade='all, delete-orphan'))
 
     quantity_available = db.Column(db.Integer, default=0, nullable=False)
     quantity_total = db.Column(db.Integer, default=0, nullable=False)
 
     __table_args__ = (db.UniqueConstraint('code', 'discount_policy_id'),)
+    # add check constraint quantity_available <= quantity_total
