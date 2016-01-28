@@ -12,6 +12,6 @@ class Category(BaseScopedNameMixin, db.Model):
 
     organization_id = db.Column(None, db.ForeignKey('organization.id'), nullable=False)
     organization = db.relationship(Organization,
-        backref=db.backref('category', cascade='all, delete-orphan'))
+        backref=db.backref('categories', cascade='all, delete-orphan'))
 
     parent = db.synonym('organization')
