@@ -6,7 +6,12 @@ db.create_all()
 
 # Seed with sample data
 with app.test_request_context():
-    if not models.Organization.query.notempty():
+
+    if False:  # change to false to reset database
+        db.drop_all()
+        db.session.commit()
+        db.create_all()
+
         hg = Organization(title="HasGeek", userid="U3_JesHfQ2OUmdihAXaAGQ", status=0)
         db.session.add(hg)
         db.session.commit()
@@ -21,7 +26,7 @@ with app.test_request_context():
         db.session.add(event)
         db.session.commit()
 
-        item = Item(title='Rootconf Conference', description='Rootconf', category=Category.query.filter_by(name='conference').first(), quantity_available=100, quantity_total=1000, events=Event.query.all())
+        item = Item(title='Rootconf Conference', description='Rootconf', organization=hg, category=Category.query.filter_by(name='conference').first(), quantity_available=100, quantity_total=1000, events=Event.query.all())
         db.session.add(item)
         db.session.commit()
 
