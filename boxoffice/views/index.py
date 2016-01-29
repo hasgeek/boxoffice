@@ -11,19 +11,22 @@ from boxoffice.models import Organization, Item, Category, Event
 def item_json(item):
     return {
         'title': item.title,
+        'id': item.id,
         'description': item.description,
         'quantity_available': item.quantity_available,
         'quantity_total': item.quantity_total,
         'category_id': item.category_id,
-        'organization_id': item.organization_id
+        'organization_id': item.organization_id,
+        'price': "3500"
     }
 
 
-def category_json(category):
+def category_json(category, items):
     return {
         'id': category.id,
         'title': category.title,
-        'organization_id': category.organization_id
+        'organization_id': category.organization_id,
+        'items': [item_json(i) for i in items]
     }
 
 
@@ -33,7 +36,7 @@ def event_json(event):
         'website': event.website,
         'funnel_link': event.funnel_link,
         'organization_id': event.organization_id,
-        'items': [i.buid for i in event.items]
+        'items': [i.id for i in event.items]
     }
 
 
@@ -62,8 +65,7 @@ def get_inventory(organization):
     items = Item.query.filter_by(organization=organization)
     categories = Category.query.filter_by(organization=organization)
     return jsonp(**{
-        'items': [item_json(i) for i in items],
-        'categories': [category_json(c) for c in categories],
+        'categories': [category_json(c, Item.query.filter_by(category=c)) for c in categories],
         'events': [event_json(e) for e in events]
         })
 

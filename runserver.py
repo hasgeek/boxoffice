@@ -7,7 +7,7 @@ db.create_all()
 # Seed with sample data
 with app.test_request_context():
 
-    if False:  # change to false to reset database
+    if True:  # change to false to reset database
         db.drop_all()
         db.session.commit()
         db.create_all()
@@ -16,17 +16,41 @@ with app.test_request_context():
         db.session.add(hg)
         db.session.commit()
 
-        category_merch = Category(title='Merch', organization=hg)
-        db.session.add(category_merch)
         category_conference = Category(title='Conference', organization=hg)
         db.session.add(category_conference)
+        category_workshop = Category(title='Workshop', organization=hg)
+        db.session.add(category_workshop)
+        category_merch = Category(title='Merchandise', organization=hg)
+        db.session.add(category_merch)
         db.session.commit()
 
         event = Event(title='Rootconf', organization=hg)
         db.session.add(event)
         db.session.commit()
 
-        item = Item(title='Rootconf Conference', description='Rootconf', organization=hg, category=Category.query.filter_by(name='conference').first(), quantity_available=100, quantity_total=1000, events=Event.query.all())
+        item = Item(title='Conference', description='Rootconf', organization=hg, category=Category.query.filter_by(name='conference').first(), quantity_available=100, quantity_total=1000, events=Event.query.all())
+        price = Price(item=item, title='Super Early Geek', valid_from='2016-02-01', valid_upto='2016-03-01', amount=3500)
+        db.session.add(item)
+        db.session.add(price)
+        db.session.commit()
+
+        item = Item(title='Single Day', description='Rootconf', organization=hg, category=Category.query.filter_by(name='conference').first(), quantity_available=100, quantity_total=1000, events=Event.query.all())
+        db.session.add(item)
+        db.session.commit()
+
+        price = Price(item=item, title='Super Early Geek', valid_from='2016-02-01', valid_upto='2016-03-01', amount=3500)
+        db.session.add(price)
+        db.session.commit()
+
+        item = Item(title='T-shirt', description='Rootconf', organization=hg, category=Category.query.filter_by(name='merchandise').first(), quantity_available=100, quantity_total=1000, events=Event.query.all())
+        db.session.add(item)
+        db.session.commit()
+
+        price = Price(item=item, title='Super Early Geek', valid_from='2016-02-01', valid_upto='2016-03-01', amount=3500)
+        db.session.add(price)
+        db.session.commit()
+
+        item = Item(title='DNSSEC workshop', description='Rootconf', organization=hg, category=Category.query.filter_by(name='workshop').first(), quantity_available=100, quantity_total=1000, events=Event.query.all())
         db.session.add(item)
         db.session.commit()
 
