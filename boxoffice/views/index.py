@@ -8,6 +8,35 @@ from boxoffice.models import Organization, Item, Category, Event
 #U3_JesHfQ2OUmdihAXaAGQ
 
 
+def item_json(item):
+    return {
+        'title': item.title,
+        'description': item.description,
+        'quantity_available': item.quantity_available,
+        'quantity_total': item.quantity_total,
+        'category_id': item.category_id,
+        'organization_id': item.organization_id
+    }
+
+
+def category_json(category):
+    return {
+        'id': category.id,
+        'title': category.title,
+        'organization_id': category.organization_id
+    }
+
+
+def event_json(event):
+    return {
+        'title': event.title,
+        'website': event.website,
+        'funnel_link': event.funnel_link,
+        'organization_id': event.organization_id,
+        'items': [i.buid for i in event.items]
+    }
+
+
 @app.route('/')
 def index():
     return render_template('ticketing.html')
@@ -25,7 +54,7 @@ def temp_items():
 
 @app.route('/<organization>/inventory', methods=['GET'])
 @load_models(
-    (Organization, {'buid': 'organization'}, 'organization'),
+    (Organization, {'name': 'organization'}, 'organization'),
     )
 def get_inventory(organization):
     eventsargs = request.args.getlist('events')
@@ -33,9 +62,9 @@ def get_inventory(organization):
     items = Item.query.filter_by(organization=organization)
     categories = Category.query.filter_by(organization=organization)
     return jsonp(**{
-        'items': [i for i in items],
-        'categories': [c for c in categories],
-        'events': [e for e in events]
+        'items': [item_json(i) for i in items],
+        'categories': [category_json(c) for c in categories],
+        'events': [event_json(e) for e in events]
         })
 
 
