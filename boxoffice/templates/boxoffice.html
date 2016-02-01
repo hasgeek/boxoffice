@@ -1,7 +1,7 @@
 {%raw%}
 <div class="payment-progress-wrapper" id="payment-stages">
   <ul class="progress-indicator">
-    {{#tabs}}
+    {{#tabs:tab}}
       <li {{#if active}}class="active"{{/if}}{{#if completed}}class="completed"{{/if}}>
         {{label}}
       </li>
@@ -9,9 +9,9 @@
   </ul>
 </div><!--eof payment-box-progress-wrapper -->
 <div class="payment-stages-wrapper">
-  {{#tabs}}
+  {{#tabs:tab}}
     <div id='{{id}}' class='boxoffice-section'>
-      {{#if id === 'selectItems' && active}}
+      {{#if id === 'boxoffice-selectItems' && active}}
         <div class="ticket-selection-content clearfix">
           <ul class="nav nav-tabs {{#if section.categories.length > 4}}width-4{{else}}width-{{section.categories.length}}{{/if}}" role="tablist">
             {{#section.categories}}
@@ -52,10 +52,13 @@
               </div>
             {{/section.categories}}
           </div>
+          <div class="proceed-button-wrapper">
+            <button id="stage1-proceed" class="btn btn-success" on-click='continue'>Continue to checkout</button>
+          </div>
         </div>
-      {{elseif id === 'payment' && active}}
+      {{elseif id === 'boxoffice-payment' && active}}
         Payment
-      {{elseif id === 'attendee-details' && active}}
+      {{elseif id === 'boxoffice-attendee-details' && active}}
         Attendee Details        
       {{/if}}
     </div>
