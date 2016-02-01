@@ -1,0 +1,72 @@
+{%raw%}
+<div class="payment-progress-wrapper" id="payment-stages">
+  <ul class="progress-indicator">
+    {{#tabs}}
+      <li {{#if active}}class="active"{{/if}}{{#if completed}}class="completed"{{/if}}>
+        {{label}}
+      </li>
+    {{/}}
+  </ul>
+</div><!--eof payment-box-progress-wrapper -->
+<div class="payment-stages-wrapper">
+  {{#tabs}}
+    <div id='{{id}}' class='boxoffice-section'>
+      {{#if id === 'selectItems' && active}}
+        <div class="ticket-selection-content clearfix">
+          <ul class="nav nav-tabs {{#if section.categories.length > 4}}width-4{{else}}width-{{section.categories.length}}{{/if}}" role="tablist">
+            {{#section.categories}}
+              <li role="presentation" {{#if @index === 0}}class="active"{{/if}}><a href="#{{title}}" aria-controls="{{title}}" role="tab" data-toggle="tab">{{title}}</a></li>
+            {{/}}
+          </ul>
+          <div class="tab-content">
+            {{#section.categories}}
+              <div role="tabpanel" class="tab-pane fade {{#if @index === 0}}active in{{/if}}" id="{{title}}">
+                {{#items}}
+                  <div class="ticket-box">
+                    <div class="ticket-booking clearfix">
+                      <div class="ticket-details">
+                        <h5 class="ticket-title text-primary">{{ title }}</h5>
+                        {{#type}}
+                        <p><i class="icon icon-tags"></i>{{ type }}</p>
+                        {{/type}}
+                        {{#date}}
+                        <p><i class="icon icon-calendar"></i>{{ date }}</p>
+                        {{/date}}
+                        {{#venue}}
+                        <p><i class="icon icon-map-marker"></i>{{ venue }}</p>
+                        {{/venue}}
+                        <p>{{{description}}}</p>
+                      </div>
+                    </div>
+                    <div class="ticket-price-qty">
+                      <p class="ticket-price"><i class="icon icon-inr"></i>{{ price }}</p> 
+                      <span class="multiplier">X</span>
+                      <select class="ticket-qty" id="{{ id }}" data-ticketprice="{{ price }}">
+                        {{#each availableTickets(quantity_available)}}
+                          <option value="{{.}}">{{.}}</option>
+                        {{/each}}
+                      </select>
+                    </div> 
+                  </div>
+                {{/items}}
+              </div>
+            {{/section.categories}}
+          </div>
+        </div>
+      {{elseif id === 'payment' && active}}
+        Payment
+      {{elseif id === 'attendee-details' && active}}
+        Attendee Details        
+      {{/if}}
+    </div>
+  {{/}}
+</div>
+{%endraw%}
+<style>
+  .payment-progress-wrapper {
+    background-color: #463850;
+    padding: 20px;
+    border: 2px solid #ccc;
+    border-radius: 15px;
+  }
+</style>

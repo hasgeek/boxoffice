@@ -55,16 +55,18 @@ def temp_items():
     return render_template('items.json')
 
 
-@app.route('/<organization>/inventory', methods=['GET'])
+@app.route('/<organization>/inventory')
 @load_models(
     (Organization, {'name': 'organization'}, 'organization'),
     )
 def get_inventory(organization):
+    print "Hello"
     eventsargs = request.args.getlist('events')
     events = Event.query.filter(Event.name.in_(eventsargs))
-    items = Item.query.filter_by(organization=organization)
-    categories = Category.query.filter_by(organization=organization)
+    items = organization.items
+    categories = organization.categories
     return jsonp(**{
+        'html': render_template('boxoffice.html'),
         'categories': [category_json(c, Item.query.filter_by(category=c)) for c in categories],
         'events': [event_json(e) for e in events]
         })
