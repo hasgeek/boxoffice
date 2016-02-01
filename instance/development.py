@@ -5,6 +5,7 @@ TYPEKIT_CODE = ''
 #: Database backend
 #: Secret key
 SECRET_KEY = 'make this something random'
+SQLALCHEMY_DATABASE_URI = 'postgresql://dev:dev@localhost:5434/boxoffice'
 #: Timezone for displayed datetimes
 TIMEZONE = 'Asia/Calcutta'
 SERVER_NAME = 'shreyas-wlan.dev:6500'
