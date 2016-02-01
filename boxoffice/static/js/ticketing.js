@@ -31,15 +31,9 @@ Boxoffice.PaymentProgress = {
           paymentprogress.ractive.set('buyerDetailsActive', true);
         });
 
-        amplify.subscribe('payment-details-activate', function() {
+        amplify.subscribe('attendee-details-activate', function() {
           paymentprogress.ractive.set('buyerDetailsActive', false);
           paymentprogress.ractive.set('buyerDetailsCompleted', true);
-          paymentprogress.ractive.set('paymentDetailsActive', true);
-        });
-
-        amplify.subscribe('attendee-details-activate', function() {
-          paymentprogress.ractive.set('paymentDetailsActive', false);
-          paymentprogress.ractive.set('paymentDetailsCompleted', true);
           paymentprogress.ractive.set('attendeeDetailsActive', true);
         });
 
@@ -66,7 +60,7 @@ Boxoffice.TicketSelection = {
       template: '#ticket-selection-template',
       data: { 
         eventName: '',
-        items: '',
+        categories: '',
         serviceTax: 0,
         totalPrice: 0,
         discountCodeLoading: false,
@@ -90,13 +84,13 @@ Boxoffice.TicketSelection = {
       requestItems: function() {
         $.ajax({
           type: 'GET',
-          url: '/items.json',
+          url: '/hasgeek/inventory?events=rootconf',
           dataType: 'json',
           timeout: 5000,
           success: function(data) {
-            ticketSelection.ractive.set('eventName', data.event);
-            window.Boxoffice.Config.event = data.event;
-            ticketSelection.ractive.set('items', data.items);
+            ticketSelection.ractive.set('eventName', "Rootconf");
+            window.Boxoffice.Config.event = "Rootconf";
+            ticketSelection.ractive.set('categories', data.categories);
             ticketSelection.ractive.set('errorMsg', '');
           },
           error: function() {
@@ -257,7 +251,7 @@ Boxoffice.BuyerDetails = {
         totalTickets: [],
         active: false,
         visible: false,
-        errorMsg: "",
+        errorMsg: ""
       },
       oncomplete: function() {
 
@@ -288,7 +282,7 @@ Boxoffice.BuyerDetails = {
       }
     });
 
-    buyerDetails.ractive.on('continue', function(event) {
+    buyerDetails.ractive.on('submit', function(event) {
       event.original.preventDefault();
       //Cancel TicketSelection.refresh timer
       var formElements = $('#buyer-details-form').serializeArray();
@@ -306,55 +300,56 @@ Boxoffice.BuyerDetails = {
         buyerDetails.ractive.set('errorMsg', '');
         $('.buyer-details-content').slideUp();
         buyerDetails.ractive.set('visible', false);
-        amplify.publish('payment-details-activate');
+        var razorPayOptions = {
+          "key": "rzp_test_zQVCK9beh4cNp3",
+          //Razorpay expects amount in paisa
+          "amount": buyerDetails.ractive.get('totalPrice') * 100,
+          "name": "HasGeek",
+          "description": "Rootconf 2016 Tickets",
+          "image": "https://hasgeek.com/static/img/hg-banner.png",
+          "handler": function (response) {
+            amplify.publish('attendee-details-activate');
+          },
+          "prefill": {
+            "name": formData["name"],
+            "email": formData["email"],
+            "contact": formData["number"]
+          },
+          "notes": {
+            "address": "Hello World"
+          },
+          "theme": {
+            "color": "#F37254"
+          }
+        };
+
+        //Stub code
+        var razorpay = new Razorpay(razorPayOptions);
+        razorpay.open();
+
+        /*
+        $.ajax({
+          type: 'POST',
+          url: '',
+          data: {
+            tickets: ticketSelection.ractive.get('selectedTickets'),
+             user: user
+          },
+          dataType: 'json',
+          timeout: 5000,
+          success: function() {
+            var razorpay = new Razorpay(razorPayOptions);
+            razorpay.open();
+          }
+          error: function() {
+            ticketSelection.ractive.set('errorMsg', 'Error, try again.');
+          }
+        }); */
       }
     });
 
   }
 };
-
-Boxoffice.PaymentDetails = {
-  init: function() {
-    var paymentDetails = this;
-
-    paymentDetails.ractive = new Ractive ({
-      el: 'payment-details',
-      template: '#payment-details-template',
-      data: {
-        active: false,
-        visible: false,
-        errorMsg: "",
-      },
-      oncomplete: function() {
-        amplify.subscribe('payment-details-activate', function(data) {
-          paymentDetails.ractive.set('active', true);
-          paymentDetails.ractive.set('visible', true);
-          var sectionPos = $("#payment-details").offset().top;
-          $('html,body').animate({scrollTop:sectionPos}, '900');
-        });
-      }
-    });
-
-    paymentDetails.ractive.on('toggle-content', function() {
-      if(paymentDetails.ractive.get('visible')) {
-        $('.payment-details-content').slideUp();
-        paymentDetails.ractive.set('visible', false);
-      }
-      else {
-        $('.payment-details-content').slideDown();
-        paymentDetails.ractive.set('visible', true);
-      }
-    });
-
-    paymentDetails.ractive.on('continue', function(event) {
-      event.original.preventDefault();
-      $('.payment-details-content').slideUp();
-      paymentDetails.ractive.set('visible', false);
-      amplify.publish('attendee-details-activate');
-      return false;
-    });
-  }
-} 
 
 Boxoffice.AttendeeDetails = {
   init: function() {
@@ -405,6 +400,5 @@ $(function() {
   Boxoffice.TicketSelection.init();
   Boxoffice.TicketSelection.refresh();
   Boxoffice.BuyerDetails.init();
-  Boxoffice.PaymentDetails.init();
   Boxoffice.AttendeeDetails.init();
 });

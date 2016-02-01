@@ -90,6 +90,7 @@
 .payment-details-content .nav-tabs > li {
   width: 50%;
   text-align: center;
+  margin-top: 10px;
 }
 
 @media (min-width: 768px) {
@@ -139,6 +140,8 @@
 .payment-details-content .nav > li > a:focus, 
 .payment-details-content .nav > li > a:hover {
   background-color: rgba(238, 238, 255, 0.4);
+  border-color: transparent;
+  border-radius: 0;
 }
 
 .ticket-selection-content .nav-tabs > li.active > a, 
@@ -273,19 +276,9 @@
   margin: 0px 0 10px;
 }
 
-.payment-details-wrapper {
-  display: none;
-  position: relative;
-  top: -40px;
-}
-
-.payment-details-content {
-  height: 360px;
-}
-
 .attendee-details-wrapper {
   display: none;
   position: relative;
-  top: -60px;
+  top: -40px;
 }
 
