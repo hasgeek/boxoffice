@@ -9,6 +9,7 @@ window.Boxoffice = {};
 
 $(function(){
   var boxoffice = window.Boxoffice;
+  var boxofficeBaseURL = "http://0.0.0.0:6500/"
 
   var handleRazorpay = function(){
     var options = {
@@ -77,9 +78,9 @@ $(function(){
                     tickets.push(ticket);
                   }
                   return tickets;
-                },
-                errorMsg: ''
-              }
+                }
+              },
+              errorMsg: ''
             },
             payment: {
               id: 'boxoffice-payment',
@@ -107,8 +108,7 @@ $(function(){
           },
         },
         calculateOrder: function() {                  
-          $('.payment-stages-wrapper').on('change', '.ticket-qty', function() {
-            console.log("calculate order");  
+          $('.payment-stages-wrapper').on('change', '.ticket-qty', function() { 
             var lineItems = [];
             var totalPrice = 0;
             var serviceTax = 0;
@@ -124,40 +124,47 @@ $(function(){
               }
             });
 
-            console.log("totalPrice", totalPrice);
             //Request server to purchase order
             if(totalPrice > 0) {
               serviceTax = Math.round(0.145 * totalPrice);
-              console.log("tax", serviceTax);
-              boxoffice.ractive.set('order.lineItems', lineItems);
-              console.log('Purchase order send to server', boxoffice.ractive.get('order'));
+              boxoffice.ractive.set({
+                'order.tax' : serviceTax,
+                'order.price' : totalPrice,
+                'order.lineItems' : lineItems });
               boxoffice.ractive.set('tabs.selectItems.complete', true);
             }
             else {
+              boxoffice.ractive.set({
+                'order.tax' : 0,
+                'order.price' : 0,
+                'order.lineItems' : [] });
               boxoffice.ractive.set('tabs.selectItems.complete', false);
-              ticketSelection.ractive.set('order.tax', 0);
-              ticketSelection.ractive.set('order.price', 0);
             }
           });
         },
-        oncomplete: function(){
-          
-          boxoffice.ractive.calculateOrder();
-
-          boxoffice.ractive.on('continue', function() {
-            console.log('Purchase order', boxoffice.ractive.get('order'));
+        checkout: function() {
+          if(boxoffice.ractive.get('tabs.selectItems.complete')) {
+            boxoffice.ractive.set('tabs.selectItems.errorMsg', '');
             $.ajax({
               type: 'POST',
-              url: '/purchase_order',
+              url: boxofficeBaseURL + 'purchase_order',
               data: boxoffice.ractive.get('order'),
               dataType: 'json',
-              timeout: 5000,
-              success: function(data) {
-                console.log('data recd', data)
-                boxoffice.ractive.set('order', data);                                  
-              }
+              timeout: 5000
+            }).done(function(data) {
+              console.log('data recd', data)
+              boxoffice.ractive.set('order', data);  
+              boxoffice.ractive.set('tabs.selectItems.active', false);
+              boxoffice.ractive.set('tabs.payment.active', true);
             });
-          });
+          }
+          else {
+            boxoffice.ractive.set('tabs.selectItems.errorMsg', 'Please select a ticket');
+          }
+        },
+        oncomplete: function() {
+          
+          boxoffice.ractive.calculateOrder();
           // on proceed to payment
           // update the status of the order to 'Sales Order'
           // start the razorpay widget

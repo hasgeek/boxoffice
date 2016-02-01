@@ -9,7 +9,7 @@
   </ul>
 </div><!--eof payment-box-progress-wrapper -->
 <div class="payment-stages-wrapper">
-  {{#tabs:tab}}
+  {{#tabs:tab, order}}
     {{#if id === 'boxoffice-selectItems' && active}}
       <div id='{{id}}' class="boxoffice-section ticket-selection-content clearfix active">
         <ul class="nav nav-tabs {{#if section.categories.length > 4}}width-4{{else}}width-{{section.categories.length}}{{/if}}" role="tablist">
@@ -49,12 +49,12 @@
             </div>
           {{/section.categories}}
           <div class="ticket-total">
-            <p class="service-tax">Service Tax : <span class="pull-right"><i class="icon icon-inr"></i> {{ ../order.tax }}</span></p>
-            <p>Total : <span class="pull-right"><i class="icon icon-inr"></i> {{ ../order.price }}</span></p>
+            <p class="service-tax">Service Tax : <span class="pull-right"><i class="icon icon-inr"></i> {{ order.tax }}</span></p>
+            <p>Total : <span class="pull-right"><i class="icon icon-inr"></i> {{ order.price }}</span></p>
           </div>
         </div>
         <div class="proceed-button-wrapper">
-          <button id="stage1-proceed" class="btn btn-success" on-click='continue'>Continue to checkout</button>
+          <button id="stage1-proceed" class="btn btn-success" on-click='checkout()'>Continue to checkout</button>
         </div>
         <p class="stage-error-msg text-danger">{{errorMsg}}</p>
       </div>
