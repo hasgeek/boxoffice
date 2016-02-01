@@ -38,8 +38,8 @@
                   <div class="ticket-price-qty">
                     <p class="ticket-price"><i class="icon icon-inr"></i>{{ price }}</p> 
                     <span class="multiplier">X</span>
-                    <select class="ticket-qty" id="{{ id }}" data-ticketprice="{{ price }}">
-                      {{#each availableTickets(quantity_available)}}
+                    <select class="ticket-qty" id="{{ id }}" data-ticketprice="{{ price }}" on-change="calculateOrder">
+                      {{#each section.availableTickets(quantity_available)}}
                         <option value="{{.}}">{{.}}</option>
                       {{/each}}
                     </select>
@@ -48,10 +48,15 @@
               {{/items}}
             </div>
           {{/section.categories}}
+          <div class="ticket-total">
+            <p class="service-tax">Service Tax : <span class="pull-right"><i class="icon icon-inr"></i> {{ ../order.tax }}</span></p>
+            <p>Total : <span class="pull-right"><i class="icon icon-inr"></i> {{ ../order.price }}</span></p>
+          </div>
         </div>
         <div class="proceed-button-wrapper">
           <button id="stage1-proceed" class="btn btn-success" on-click='continue'>Continue to checkout</button>
         </div>
+        <p class="stage-error-msg text-danger">{{errorMsg}}</p>
       </div>
     {{elseif id === 'boxoffice-payment' && active}}
       Payment

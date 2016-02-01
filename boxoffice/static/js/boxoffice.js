@@ -51,10 +51,14 @@ $(function(){
         template: data.html,
         data: {
           order: {
-            //{item_id: 1, quantity: 4, price: xx, discount, tax: xxxx}
+            //{item_id: 1, quantity: 4}
             id: '',
             lineItems:[],
-            user_id: ''
+            user_id: '',
+            discount: '',
+            discountMsg: '',
+            tax: 0,
+            price: 0
           },
           tabs: {
             selectItems: {
@@ -63,7 +67,18 @@ $(function(){
               active: true,
               complete: false,
               section: {
-                categories: data.categories
+                categories: data.categories,
+                availableTickets: function(qty) {
+                  var tickets = [];
+                  if(qty > 10) {
+                    qty = 10;
+                  }
+                  for(var ticket = 0; ticket <= qty; ticket ++ ) {
+                    tickets.push(ticket);
+                  }
+                  return tickets;
+                },
+                errorMsg: ''
               }
             },
             payment: {
@@ -91,10 +106,58 @@ $(function(){
             }
           },
         },
+        calculateOrder: function() {                  
+          $('.payment-stages-wrapper').on('change', '.ticket-qty', function() {
+            console.log("calculate order");  
+            var lineItems = [];
+            var totalPrice = 0;
+            var serviceTax = 0;
+            $.each($('.ticket-qty'), function(index, ticketSelectElem) {
+              var ticketCatgeoryQty = {}
+              var ticketQty =  parseInt($(ticketSelectElem).val(), 10);
+              if(ticketQty > 0) {
+                ticketCatgeoryQty['item_id'] = $(ticketSelectElem).attr('id');
+                ticketCatgeoryQty['quantity'] = ticketQty;
+                totalPrice = totalPrice + (ticketQty * $(ticketSelectElem).data('ticketprice'));
+                console.log("totalPrice", totalPrice);
+                lineItems.push(ticketCatgeoryQty);
+              }
+            });
+
+            console.log("totalPrice", totalPrice);
+            //Request server to purchase order
+            if(totalPrice > 0) {
+              serviceTax = Math.round(0.145 * totalPrice);
+              console.log("tax", serviceTax);
+              boxoffice.ractive.set('order.lineItems', lineItems);
+              console.log('Purchase order send to server', boxoffice.ractive.get('order'));
+              boxoffice.ractive.set('tabs.selectItems.complete', true);
+            }
+            else {
+              boxoffice.ractive.set('tabs.selectItems.complete', false);
+              ticketSelection.ractive.set('order.tax', 0);
+              ticketSelection.ractive.set('order.price', 0);
+            }
+          });
+        },
         oncomplete: function(){
-          // on checkout
-          // add/remove line items when somebody hits continue
           
+          boxoffice.ractive.calculateOrder();
+
+          boxoffice.ractive.on('continue', function() {
+            console.log('Purchase order', boxoffice.ractive.get('order'));
+            $.ajax({
+              type: 'POST',
+              url: '/purchase_order',
+              data: boxoffice.ractive.get('order'),
+              dataType: 'json',
+              timeout: 5000,
+              success: function(data) {
+                console.log('data recd', data)
+                boxoffice.ractive.set('order', data);                                  
+              }
+            });
+          });
           // on proceed to payment
           // update the status of the order to 'Sales Order'
           // start the razorpay widget
