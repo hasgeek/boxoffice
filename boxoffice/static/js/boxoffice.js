@@ -9,7 +9,7 @@ window.Boxoffice = {};
 
 $(function(){
   var boxoffice = window.Boxoffice;
-  var boxofficeBaseURL = "http://0.0.0.0:6500/"
+  var boxofficeBaseUrl = 'http://shreyas-wlan.dev:6500/'
 
   var handleRazorpay = function(){
     var options = {
@@ -142,29 +142,25 @@ $(function(){
             }
           });
         },
-        checkout: function() {
-          if(boxoffice.ractive.get('tabs.selectItems.complete')) {
-            boxoffice.ractive.set('tabs.selectItems.errorMsg', '');
-            $.ajax({
-              type: 'POST',
-              url: boxofficeBaseURL + 'purchase_order',
-              data: boxoffice.ractive.get('order'),
-              dataType: 'json',
-              timeout: 5000
-            }).done(function(data) {
-              console.log('data recd', data)
-              boxoffice.ractive.set('order', data);  
-              boxoffice.ractive.set('tabs.selectItems.active', false);
-              boxoffice.ractive.set('tabs.payment.active', true);
-            });
-          }
-          else {
-            boxoffice.ractive.set('tabs.selectItems.errorMsg', 'Please select a ticket');
-          }
+        checkout: function(){
+          console.log('Purchase order', boxoffice.ractive.get('order'));
+          $.post({
+            url: boxofficeBaseUrl + 'purchase_order',
+            crossDomain: true,
+            data: boxoffice.ractive.get('order'),
+            contentType: 'application/x-www-form-urlencoded',
+            timeout: 5000
+          }).done(function(data){
+            console.log(data);
+            // boxoffice.ractive.set('order.id', data.id);                                  
+          });
         },
-        oncomplete: function() {
+        oncomplete: function(){
           
           boxoffice.ractive.calculateOrder();
+
+          // boxoffice.ractive.on('checkout', function() {
+          // });
           // on proceed to payment
           // update the status of the order to 'Sales Order'
           // start the razorpay widget

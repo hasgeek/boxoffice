@@ -10,3 +10,4 @@ from boxoffice.models.event import *
 from boxoffice.models.item import *
 from boxoffice.models.price import *
 from boxoffice.models.discount_policy import *
+from boxoffice.models.order import *

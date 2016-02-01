@@ -3,6 +3,7 @@ GA_CODE = 'UA-XXXXXXX-X'
 #: Typekit font code, from the embed URL: http://use.typekit.com/(code).js
 TYPEKIT_CODE = ''
 #: Database backend
+SQLALCHEMY_DATABASE_URI = 'postgresql://dev:dev@localhost:5434/boxoffice'
 #: Secret key
 SECRET_KEY = 'make this something random'
 SQLALCHEMY_DATABASE_URI = 'postgresql://dev:dev@localhost:5434/boxoffice'

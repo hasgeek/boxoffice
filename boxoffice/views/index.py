@@ -60,7 +60,6 @@ def temp_items():
     (Organization, {'name': 'organization'}, 'organization'),
     )
 def get_inventory(organization):
-    print "Hello"
     eventsargs = request.args.getlist('events')
     events = Event.query.filter(Event.name.in_(eventsargs))
     items = organization.items
