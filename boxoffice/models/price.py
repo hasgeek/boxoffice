@@ -11,10 +11,11 @@ class Price(BaseNameMixin, db.Model):
     item_id = db.Column(None, db.ForeignKey('item.id'), nullable=False)
     item = db.relationship(Item, backref=db.backref('prices', cascade='all, delete-orphan'))
     valid_from = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    valid_upto = db.Column(db.DateTime, nullable=True)
+    valid_upto = db.Column(db.DateTime, nullable=False)
 
-    amount = db.Column(db.Float, default=0.0, nullable=False)
-    __table_args__ = (db.CheckConstraint('valid_from < valid_upto', 'valid_bound'), db.CheckConstraint('amount >= 0', 'amount_bound_lower'))
+    amount = db.Column(db.Numeric, default=0.0, nullable=False)
+    currency = db.Column(db.Unicode(3), nullable=False, default=u'INR')
+    __table_args__ = (db.CheckConstraint('valid_from < valid_upto', 'valid_bound'),)
 
     def __repr__(self):
         return u'<Price "{price}" for item "{item}">'.format(price=self.title, item=self.item.title)
@@ -23,4 +24,4 @@ class Price(BaseNameMixin, db.Model):
     @classmethod
     def current(cls):
         now = datetime.utcnow()
-        return cls.query.filter(cls.valid_from <= now, cls.valid_upto >= now).first()
+        return cls.query.filter(cls.valid_from <= now, cls.valid_upto >= now).order('created_at desc').first()
