@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-from boxoffice import app, init_for
-from boxoffice.models import db
+from boxoffice import app, init_for, models
+from boxoffice.models import *
 init_for('dev')
-db.create_all()
+
 app.run('0.0.0.0', 6500, debug=True)
