@@ -18,7 +18,7 @@ $(function(){
 
   boxoffice.init = function(config) {
     var boxofficeBaseUrl = config.url;
-    var eventName = config.eventName;
+    var inventory = config.inventory;
 
     $.ajax({
       url: config.url,
@@ -113,7 +113,7 @@ $(function(){
               var ticketCatgeoryQty = {}
               var ticketQty =  parseInt($(ticketSelectElem).val(), 10);
               if(ticketQty > 0) {
-                ticketCatgeoryQty['item_id'] = $(ticketSelectElem).attr('id');
+                ticketCatgeoryQty['name'] = $(ticketSelectElem).attr('id');
                 ticketCatgeoryQty['quantity'] = ticketQty;
                 totalPrice = totalPrice + (ticketQty * $(ticketSelectElem).data('ticketprice'));
                 console.log("totalPrice", totalPrice);
@@ -146,9 +146,11 @@ $(function(){
         checkout: function() {
           console.log('Purchase order', boxoffice.ractive.get('order'));
           console.log('order url', boxofficeBaseUrl + '/order');
-          $.post(boxofficeBaseUrl + '/order', {
+          $.ajax({
+            type: 'POST',
+            url: boxofficeBaseUrl + '/order',
             crossDomain: true,
-            data: boxoffice.ractive.get('order.lineItems'),
+            data: boxoffice.ractive.get('order'),
             contentType: 'application/x-www-form-urlencoded',
             timeout: 5000
           }).done(function(data){
@@ -159,7 +161,7 @@ $(function(){
             });                                   
           });
 
-          //Stub code. Once Purchase order is complete, this can be removed.
+          // Stub code. Once Purchase order is complete, this can be removed.
           // boxoffice.ractive.set('tabs.selectItems.active', false).then(function() {
           //   boxoffice.ractive.set('tabs.payment.active', true); 
           // }); 
@@ -186,7 +188,7 @@ $(function(){
               //Razorpay expects amount in paisa
               "amount": boxoffice.ractive.get('order.price') * 100,
               "name": "HasGeek",
-              "description": eventName,
+              "description": inventory,
               "image": "https://hasgeek.com/static/img/hg-banner.png",
               "handler": function (response) {
                 
