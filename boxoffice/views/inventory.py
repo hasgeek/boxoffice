@@ -1,11 +1,7 @@
-from pytz import utc, timezone
-from boxoffice import app
 from flask import redirect, url_for, render_template, request
 from coaster.views import load_models, jsonp
-
+from boxoffice import app
 from boxoffice.models import Organization, Item, Category, Inventory, Price
-
-#U3_JesHfQ2OUmdihAXaAGQ
 
 
 def item_json(item):
@@ -23,12 +19,12 @@ def item_json(item):
         }
 
 
-def category_json(category, items):
+def category_json(category):
     return {
         'id': category.id,
         'title': category.title,
         'inventory_id': category.inventory_id,
-        'items': [item_json(i) for i in items]
+        'items': [item_json(item) for item in category.items]
     }
 
 
@@ -42,5 +38,5 @@ def inventory(organization, inventory):
     categories = inventory.categories
     return jsonp(**{
         'html': render_template('boxoffice.html'),
-        'categories': [category_json(c, Item.query.filter_by(category=c)) for c in categories]
+        'categories': [category_json(category) for category in inventory.categories]
         })

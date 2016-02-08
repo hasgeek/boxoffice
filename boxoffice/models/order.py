@@ -1,5 +1,5 @@
 from sqlalchemy import event
-from boxoffice.models import db, BaseMixin, User, Item
+from boxoffice.models import db, BaseMixin, User, Item, Inventory
 from coaster.utils import LabeledEnum
 from coaster.sqlalchemy import JsonDict
 from baseframe import __
@@ -18,7 +18,13 @@ class Order(BaseMixin, db.Model):
     __uuid_primary_key__ = True
     user_id = db.Column(None, db.ForeignKey('user.id'))
     user = db.relationship(User, backref=db.backref('orders', cascade='all, delete-orphan'))
+    inventory_id = db.Column(None, db.ForeignKey('inventory.id'), nullable=False)
+    inventory = db.relationship(Inventory,
+        backref=db.backref('orders', cascade='all, delete-orphan'))
     status = db.Column(db.Integer, default=ORDER_STATUS.PURCHASE_ORDER, nullable=False)
+    base_amount = db.Column(db.Numeric, default=0.0, nullable=False)
+    discounted_amount = db.Column(db.Numeric, default=0.0, nullable=False)
+    final_amount = db.Column(db.Numeric, default=0.0, nullable=False)
 
 
 class LINE_ITEM_STATUS(LabeledEnum):
@@ -38,6 +44,7 @@ class LineItem(BaseMixin, db.Model):
     quantity = db.Column(db.Integer, nullable=False)
     base_amount = db.Column(db.Numeric, default=0.0, nullable=False)
     discounted_amount = db.Column(db.Numeric, default=0.0, nullable=False)
+    final_amount = db.Column(db.Numeric, default=0.0, nullable=False)
     status = db.Column(db.Integer, default=LINE_ITEM_STATUS.CONFIRMED, nullable=False)
     # tax_amount = db.Column(db.Numeric, default=0.0, nullable=False)
 
