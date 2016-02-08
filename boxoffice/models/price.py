@@ -22,6 +22,6 @@ class Price(BaseNameMixin, db.Model):
 
 
     @classmethod
-    def current(cls):
+    def current(cls, item):
         now = datetime.utcnow()
-        return cls.query.filter(cls.valid_from <= now, cls.valid_upto >= now).order('created_at desc').first()
+        return cls.query.filter(cls.item == item, cls.valid_from <= now, cls.valid_upto >= now).order_by('created_at desc').first()

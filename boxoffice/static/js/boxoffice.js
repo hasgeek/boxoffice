@@ -9,37 +9,104 @@ window.Boxoffice = {};
 
 $(function(){
   var boxoffice = window.Boxoffice;
-  var boxofficeBaseUrl = 'http://shreyas-wlan.dev:6500/'
+  var boxofficeBaseUrl = 'http://shreyas-wlan.dev:6500/';
 
-  var handleRazorpay = function(){
-    var options = {
-      "key": "YOUR_KEY_ID",
-      "amount": "2000",
-      "name": "Merchant Name",
-      "description": "Purchase Description",
-      "image": "/your_logo.png",
-      "handler": function (response){
-        console.log(response.razorpay_payment_id);
+  // var handleRazorpay = function(){
+  //   var options = {
+  //     "key": "YOUR_KEY_ID",
+  //     "amount": "2000",
+  //     "name": "Merchant Name",
+  //     "description": "Purchase Description",
+  //     "image": "/your_logo.png",
+  //     "handler": function (response){
+  //       console.log(response.razorpay_payment_id);
+  //     },
+  //     "prefill": {
+  //       "name": "Harshil Mathur",
+  //       "email": "harshil@razorpay.com"
+  //     },
+  //     "notes": {
+  //       "address": "Hello World"
+  //     },
+  //     "theme": {
+  //       "color": "#F37254"
+  //     }
+  //   };
+
+  //   var rzp1 = new Razorpay(options);
+
+  //   $("#rzp-button1").click(function(e){
+  //     rzp1.open();
+  //     e.preventDefault();
+  //   });
+  // }
+
+  boxoffice.buildModel = function(data){
+    return {
+      order: {
+        id: '',
+        lineItems:[],
+        user_id: '',
+        discount: '',
+        discountMsg: '',
+        tax: 0,
+        price: 0
       },
-      "prefill": {
-        "name": "Harshil Mathur",
-        "email": "harshil@razorpay.com"
-      },
-      "notes": {
-        "address": "Hello World"
-      },
-      "theme": {
-        "color": "#F37254"
+      tabs: {
+        selectItems: {
+          id: 'boxoffice-selectItems',
+          label: 'Select Tickets',
+          active: true,
+          complete: false,
+          section: {
+            categories: data.categories
+          },
+          errorMsg: ''
+        },
+        payment: {
+          id: 'boxoffice-payment',
+          label: 'Payment',
+          active: false,
+          complete: false,
+          section: {
+            buyer: {
+              email: '',
+              fullname: '',
+              phone: ''
+            }
+          }
+        },
+        attendees: {
+          id: 'boxoffice-attendee-details',
+          label: 'Attendee Details',
+          active: false,
+          complete: false,
+          section: {
+            attendees: [
+            ]
+          }
+        }
       }
     };
-    
-    var rzp1 = new Razorpay(options);
-
-    $("#rzp-button1").click(function(e){
-      rzp1.open();
-      e.preventDefault();
-    });
   }
+
+  boxoffice.reducer = function(state, action){
+    state = state || boxoffice.model;
+    switch(action.type) {
+      case 'UPDATE_ORDER':
+        var updatedOrder = {}
+        for (prop in state) {
+          updatedOrder = state[prop];
+          if (prop === 'order') {
+            updatedOrder['order'].lineItems = action.lineItems;
+          }
+        }
+        return updatedOrder;
+      default:
+        return state
+    }
+  }
+
 
   boxoffice.init = function(config){
     $.ajax({
@@ -47,118 +114,33 @@ $(function(){
       crossDomain: true,
       dataType: 'jsonp'
     }).done(function(data){
+      boxoffice.model = boxoffice.buildModel(data);
+      boxoffice.store = Redux.createStore(boxoffice.reducer);
       boxoffice.ractive = new Ractive({
         el: 'boxoffice-widget',
         template: data.html,
-        data: {
-          order: {
-            //{item_id: 1, quantity: 4}
-            id: '',
-            lineItems:[],
-            user_id: '',
-            discount: '',
-            discountMsg: '',
-            tax: 0,
-            price: 0
-          },
-          tabs: {
-            selectItems: {
-              id: 'boxoffice-selectItems',
-              label: 'Select Tickets',
-              active: true,
-              complete: false,
-              section: {
-                categories: data.categories,
-                availableTickets: function(qty) {
-                  var tickets = [];
-                  if(qty > 10) {
-                    qty = 10;
-                  }
-                  for(var ticket = 0; ticket <= qty; ticket ++ ) {
-                    tickets.push(ticket);
-                  }
-                  return tickets;
-                }
-              },
-              errorMsg: ''
-            },
-            payment: {
-              id: 'boxoffice-payment',
-              label: 'Payment',
-              active: false,
-              complete: false,
-              section: {
-                buyer: {
-                  email: '',
-                  fullname: '',
-                  phone: ''
-                }
-              }
-            },
-            attendees: {
-              id: 'boxoffice-attendee-details',
-              label: 'Attendee Details',
-              active: false,
-              complete: false,
-              section: {
-                attendees: [
-                ]
-              }
-            }
-          },
-        },
-        calculateOrder: function() {                  
-          $('.payment-stages-wrapper').on('change', '.ticket-qty', function() { 
-            var lineItems = [];
-            var totalPrice = 0;
-            var serviceTax = 0;
-            $.each($('.ticket-qty'), function(index, ticketSelectElem) {
-              var ticketCatgeoryQty = {}
-              var ticketQty =  parseInt($(ticketSelectElem).val(), 10);
-              if(ticketQty > 0) {
-                ticketCatgeoryQty['item_id'] = $(ticketSelectElem).attr('id');
-                ticketCatgeoryQty['quantity'] = ticketQty;
-                totalPrice = totalPrice + (ticketQty * $(ticketSelectElem).data('ticketprice'));
-                console.log("totalPrice", totalPrice);
-                lineItems.push(ticketCatgeoryQty);
-              }
-            });
-
-            //Request server to purchase order
-            if(totalPrice > 0) {
-              serviceTax = Math.round(0.145 * totalPrice);
-              boxoffice.ractive.set({
-                'order.tax' : serviceTax,
-                'order.price' : totalPrice,
-                'order.lineItems' : lineItems });
-              boxoffice.ractive.set('tabs.selectItems.complete', true);
-            }
-            else {
-              boxoffice.ractive.set({
-                'order.tax' : 0,
-                'order.price' : 0,
-                'order.lineItems' : [] });
-              boxoffice.ractive.set('tabs.selectItems.complete', false);
-            }
-          });
-        },
+        data: boxoffice.store.getState(),
         checkout: function(){
-          console.log('Purchase order', boxoffice.ractive.get('order'));
           $.post({
             url: boxofficeBaseUrl + 'purchase_order',
             crossDomain: true,
-            data: boxoffice.ractive.get('order'),
+            data: boxoffice.store.getState(),
             contentType: 'application/x-www-form-urlencoded',
             timeout: 5000
           }).done(function(data){
             console.log(data);
-            // boxoffice.ractive.set('order.id', data.id);                                  
+            // show razorpay widget
+            // create payment object
+            // boxoffice.ractive.set('order.id', data.id);
+          }).done(function(){
+              // show attendee details after payment
           });
         },
         oncomplete: function(){
-          
-          boxoffice.ractive.calculateOrder();
-
+          boxoffice.store.subscribe(function(){
+            boxoffice.ractive.set(boxoffice.store.getState());
+          });
+          // boxoffice.ractive.calculateOrder();
           // boxoffice.ractive.on('checkout', function() {
           // });
           // on proceed to payment

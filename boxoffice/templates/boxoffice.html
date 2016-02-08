@@ -1,0 +1,372 @@
+{%raw%}
+<div class="payment-progress-wrapper" id="payment-stages">
+  <ul class="progress-indicator">
+    {{#tabs:tab}}
+      <li {{#if active}}class="active"{{/if}}{{#if completed}}class="completed"{{/if}}>
+        <span class="bubble"></span>{{label}} <br>
+      </li>
+    {{/}}
+  </ul>
+</div><!--eof payment-box-progress-wrapper -->
+<div class="payment-stages-wrapper">
+  {{#tabs:tab, order}}
+    {{#if id === 'boxoffice-selectItems' && active}}
+      <div id='{{id}}' class="boxoffice-section ticket-selection-content clearfix active">
+        <ul class="nav nav-tabs {{#if section.categories.length > 4}}width-4{{else}}width-{{section.categories.length}}{{/if}}" role="tablist">
+          {{#section.categories}}
+            <li role="presentation" {{#if @index === 0}}class="active"{{/if}}><a href="#{{title}}" aria-controls="{{title}}" role="tab" data-toggle="tab">{{title}}</a></li>
+          {{/}}
+        </ul>
+        <div class="tab-content">
+          {{#section.categories}}
+            <div role="tabpanel" class="tab-pane fade {{#if @index === 0}}active in{{/if}}" id="{{title}}">
+              {{#items}}
+                <div class="ticket-booking clearfix">
+                  <div class="ticket-details">
+                    <h5 class="ticket-title text-primary">{{ title }}</h5>
+                    {{#type}}
+                    <p><i class="icon icon-tags"></i>{{ type }}</p>
+                    {{/type}}
+                    {{#date}}
+                    <p><i class="icon icon-calendar"></i>{{ date }}</p>
+                    {{/date}}
+                    {{#venue}}
+                    <p><i class="icon icon-map-marker"></i>{{ venue }}</p>
+                    {{/venue}}
+                    <p>{{{description}}}</p>
+                  </div>
+                  <div class="ticket-price-qty">
+                    <p class="ticket-price"><i class="icon icon-inr"></i>{{ price }}</p>
+                    <span class="multiplier">X</span>
+                    <select class="ticket-qty" id="{{ id }}" data-ticketprice="{{ price }}" on-change="calculateOrder">
+                      {{#each section.availableTickets(quantity_available)}}
+                        <option value="{{.}}">{{.}}</option>
+                      {{/each}}
+                    </select>
+                  </div>
+                </div>
+              {{/items}}
+            </div>
+          {{/section.categories}}
+          <div class="ticket-total">
+            <p class="service-tax">Service Tax : <span class="pull-right"><i class="icon icon-inr"></i> {{ order.tax }}</span></p>
+            <p>Total : <span class="pull-right"><i class="icon icon-inr"></i> {{ order.price }}</span></p>
+          </div>
+        </div>
+        <div class="proceed-button-wrapper">
+          <button id="stage1-proceed" class="btn btn-success" on-click='checkout()'>Continue to checkout</button>
+        </div>
+        <p class="stage-error-msg text-danger">{{errorMsg}}</p>
+      </div>
+    {{elseif id === 'boxoffice-payment' && active}}
+      Payment
+    {{elseif id === 'boxoffice-attendee-details' && active}}
+      Attendee Details
+    {{/if}}
+  {{/}}
+</div>
+{%endraw%}
+<style>
+  .payment-progress-wrapper {
+    background-color: #463850;
+    padding: 20px;
+    border: 2px solid #ccc;
+    border-radius: 15px 15px 0 0;
+  }
+  .progress-indicator {
+      display: -webkit-box;
+      display: -moz-box;
+      display: -ms-flexbox;
+      display: -webkit-flex;
+      display: flex
+  }
+  .progress-indicator>li {
+      -ms-flex: 1;
+      -webkit-flex: 1;
+      -moz-flex: 1;
+      flex: 1
+  }
+  .progress-indicator {
+      margin: 0 0 1em;
+      padding: 0;
+      font-size: 80%;
+      text-transform: uppercase
+  }
+  .progress-indicator>li {
+      list-style: none;
+      text-align: center;
+      width: auto;
+      padding: 0;
+      margin: 0;
+      position: relative;
+      text-overflow: ellipsis;
+      color: #bbb;
+      display: block
+  }
+  .progress-indicator>li:hover {
+      color: #6f6f6f
+  }
+  .progress-indicator>li.completed,
+  .progress-indicator>li.completed .bubble {
+      color: #65d074
+  }
+  .progress-indicator>li .bubble {
+      border-radius: 1000px;
+      width: 20px;
+      height: 20px;
+      background-color: #bbb;
+      display: block;
+      margin: 0 auto .5em;
+      border-bottom: 1px solid #888
+  }
+
+  .progress-indicator>li .bubble:after,
+  .progress-indicator>li .bubble:before {
+      display: block;
+      position: absolute;
+      top: 9px;
+      width: 100%;
+      height: 3px;
+      content: '';
+      background-color: #bbb
+  }
+
+  .progress-indicator>li.completed .bubble,
+  .progress-indicator>li.completed .bubble:after,
+  .progress-indicator>li.completed .bubble:before {
+      background-color: #65d074;
+      border-color: #247830
+  }
+
+  .progress-indicator>li .bubble:before {
+      left: 0
+  }
+
+  .progress-indicator>li .bubble:after {
+      right: 0
+  }
+
+  .progress-indicator>li.active,
+  .progress-indicator>li.active .bubble {
+      color: #337AB7
+  }
+
+  .progress-indicator>li.active .bubble,
+  .progress-indicator>li.active .bubble:after,
+  .progress-indicator>li.active .bubble:before {
+      background-color: #337AB7;
+      border-color: #122a3f
+  }
+
+  .progress-indicator>li a:hover .bubble,
+  .progress-indicator>li a:hover .bubble:after,
+  .progress-indicator>li a:hover .bubble:before {
+      background-color: #5671d0;
+      border-color: #1f306e
+  }
+
+  .progress-indicator>li a:hover .bubble {
+      color: #5671d0
+  }
+  @media handheld,
+  screen and (max-width:400px) {
+      .progress-indicator {
+          font-size: 60%
+      }
+  }
+  .boxoffice-section {
+    padding: 20px;
+    border: 2px solid #ccc;
+    border-top-width: 0;
+    display: none;
+  }
+  .boxoffice-section.active {
+    display: block;
+  }
+  .ticket-selection-content .nav-tabs>li {
+    float: left;
+    margin-bottom: -1px;
+    position: relative;
+    display: block;
+  }
+  .ticket-selection-content .nav-tabs.width-1 > li {
+    width: 100%;
+    text-align: center;
+  }
+  .ticket-selection-content .nav-tabs.width-1 > li {
+    width: 100%;
+    text-align: center;
+  }
+
+  .ticket-selection-content .nav-tabs.width-2 > li,
+  .ticket-selection-content .nav-tabs.width-3 > li,
+  .ticket-selection-content .nav-tabs.width-4 > li {
+    width: 50%;
+    text-align: center;
+    margin-top: 10px;
+  }
+
+  @media (min-width: 768px) {
+    .ticket-selection-content .nav-tabs.width-3 > li {
+      width: 33.3%;
+      text-align: center;
+    }
+
+    .payment-details-content .nav-tabs > li {
+      width: 33.3%;
+      text-align: center;
+    }
+
+    .ticket-selection-content .nav-tabs.width-4 > li {
+      width: 25%;
+      text-align: center;
+    }
+  }
+
+  .ticket-selection-content .nav-tabs > li > a {
+    font-size: 15px;
+    font-weight: 500;
+    outline: none;
+  }
+
+  .ticket-selection-content .nav-tabs > li::after {
+      transform: scaleX(0);
+      transition: all 150ms ease 0s;
+      content: "";
+      display: block;
+      height: 3px;
+      position: absolute;
+      bottom: 0px;
+      width: 100%;
+      background-color: #463850;
+  }
+
+  .ticket-selection-content .nav-tabs > li.active::after {
+      transform: scaleX(1);
+  }
+
+  .ticket-selection-content .nav > li > a:focus,
+  .ticket-selection-content .nav > li > a:hover {
+    background-color: rgba(238, 238, 255, 0.4);
+    border-color: transparent;
+    border-radius: 0;
+  }
+
+  .ticket-selection-content .nav-tabs > li.active > a,
+  .ticket-selection-content .nav-tabs > li.active > a:focus,
+  .ticket-selection-content .nav-tabs > li.active > a:hover {
+    border-color: transparent;
+    color: #463850;
+  }
+
+  .ticket-selection-content .nav > li.active > a:focus,
+  .ticket-selection-content .nav > li.active > a:hover {
+    background-color: transparent;
+  }
+
+  .ticket-details {
+    float: left;
+    width: 100%;
+    word-break: break-word;
+  }
+
+  @media (min-width: 768px) {
+    .ticket-details {
+      width: 70%;
+    }
+  }
+
+  .ticket-title {
+    font-size: 20px;
+  }
+
+  .ticket-price-qty {
+    float: right;
+  }
+
+  .ticket-price, .ticket-qty {
+    font-size: 18px;
+    margin-top: 20px;
+    display: inline-block;
+  }
+
+  .ticket-qty {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    outline: none;
+    color: #333;
+    height: 30px;
+    font-size: 15px;
+    width: 51px;
+  }
+
+  .ticket-price {
+    padding-right: 20px;
+  }
+
+  .multiplier {
+    padding-right: 20px;
+  }
+
+  .discount-code {
+    clear: both;
+    font-size: 15px;
+    float: right;
+    margin: 25px 0 0;
+  }
+
+  .icon-spinner {
+    position: relative;
+    top: 6px;
+  }
+
+  .discount-code input {
+    width: 180px;
+    padding: 3px 3px 3px 5px;
+    line-height: 1.42857;
+    height: 35px;
+    position: relative;
+    top: 2px;
+    border-radius: 5px;
+    border: 1px solid #eee;
+  }
+
+  @media (min-width: 768px) {
+    .discount-code input {
+      width: 194px;
+      padding-left: 11px;
+    }
+  }
+
+  .discount-code-msg {
+    margin: 5px 9px 0;
+    height: 22px;
+  }
+
+  .ticket-total {
+    clear: both;
+    width: 259px;
+    float: right;
+    border: 1px solid #eee;
+    margin: 15px 0;
+    padding: 15px;
+  }
+
+  .service-tax {
+    padding-bottom: 10px;
+    border-bottom: 2px solid #eee;
+  }
+
+  .proceed-button-wrapper {
+    clear: both;
+    margin: 15px 0 10px;
+    float: right;
+  }
+
+  .stage-error-msg {
+    clear: both;
+    height: 20px;
+    float: right;
+    margin: 0px 0 10px;
+  }
+</style>
