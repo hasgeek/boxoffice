@@ -1,5 +1,5 @@
-from sqlalchemy import event
-from boxoffice.models import db, BaseMixin, User, Item, Inventory
+import decimal
+from boxoffice.models import db, BaseMixin, User, Item, Inventory, Price
 from coaster.utils import LabeledEnum
 from coaster.sqlalchemy import JsonDict
 from baseframe import __
@@ -25,6 +25,23 @@ class Order(BaseMixin, db.Model):
     base_amount = db.Column(db.Numeric, default=0.0, nullable=False)
     discounted_amount = db.Column(db.Numeric, default=0.0, nullable=False)
     final_amount = db.Column(db.Numeric, default=0.0, nullable=False)
+
+    def calculate(self, line_items):
+        for line_item in line_items:
+            item = Item.get(self.inventory, line_item.get('item'))
+            line_item = LineItem(item=item, order=self, quantity=line_item.get('quantity'))
+
+            # TODO: What if the price changes by the time the computation below happens?
+            line_item.base_amount = Price.current(line_item.item).amount * line_item.quantity
+            for discount_policy in line_item.item.discount_policies:
+                if line_item.quantity >= discount_policy.item_quantity_min and line_item.quantity <= discount_policy.item_quantity_max:
+                    line_item.discounted_amount = (discount_policy.percentage * line_item.base_amount)/100.0
+            line_item.final_amount = line_item.base_amount - decimal.Decimal(line_item.discounted_amount)
+
+            self.line_items.append(line_item)
+            self.base_amount = decimal.Decimal(self.base_amount) + decimal.Decimal(line_item.base_amount)
+            self.discounted_amount = decimal.Decimal(self.discounted_amount) + decimal.Decimal(line_item.discounted_amount)
+            self.final_amount = decimal.Decimal(self.final_amount) + decimal.Decimal(line_item.final_amount)
 
 
 class LINE_ITEM_STATUS(LabeledEnum):
@@ -71,6 +88,9 @@ class PAYMENT_TYPES(LabeledEnum):
 class Payment(BaseMixin, db.Model):
     __tablename__ = 'payment'
     __uuid_primary_key__ = True
+    order_id = db.Column(None, db.ForeignKey('order.id'))
+    order = db.relationship(Order, backref=db.backref('payments', cascade='all, delete-orphan', lazy="dynamic"))
+
     # Payment id issued by the payment gateway
     pg_payment_id = db.Column(db.Unicode(80), nullable=False)
     status = db.Column(db.Integer, default=PAYMENT_TYPES.CREATED, nullable=False)

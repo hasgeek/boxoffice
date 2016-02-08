@@ -8,6 +8,7 @@ def item_json(item):
     price = Price.current(item)
     if price:
         return {
+            'name': item.name,
             'title': item.title,
             'id': item.id,
             'description': item.description,
@@ -36,6 +37,26 @@ def category_json(category):
 def inventory(organization, inventory):
     items = inventory.items
     categories = inventory.categories
+    return jsonp(**{
+        'html': render_template('boxoffice.html'),
+        'categories': [category_json(category) for category in inventory.categories]
+        })
+
+@app.route('/<organization>/<inventory>/order', methods=['POST'])
+@load_models(
+    (Organization, {'name': 'organization'}, 'organization'),
+    (Inventory, {'name': 'inventory'}, 'inventory')
+    )
+def order(organization, inventory):
+    # change to get user
+    user = User.query.first()
+    order = Order(user=user, inventory=inventory)
+    order.calculate(request.form.line_items)
+    payment = Payment(pg_payment_id=request.form.pg_payment_id, order=order)
+    db.session.add(payment)
+    # payment.capture
+    # Transaction(payment=payment)
+    # return jsonify(...)
     return jsonp(**{
         'html': render_template('boxoffice.html'),
         'categories': [category_json(category) for category in inventory.categories]
