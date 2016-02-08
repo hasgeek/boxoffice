@@ -2,8 +2,8 @@
 <div class="payment-progress-wrapper" id="payment-stages">
   <ul class="progress-indicator">
     {{#tabs:tab}}
-      <li {{#if active}}class="active"{{/if}}{{#if completed}}class="completed"{{/if}}>
-        <span class="bubble"></span>{{label}} <br>
+      <li class="indicator {{#if active}}active{{/if}} {{#if complete}}completed{{/if}}">
+        <span class="bubble"></span>{{ label }}<br>
       </li>
     {{/}}
   </ul>
@@ -14,8 +14,8 @@
       <div id='{{id}}' class="boxoffice-section ticket-selection-content clearfix active">
         <ul class="nav nav-tabs {{#if section.categories.length > 4}}width-4{{else}}width-{{section.categories.length}}{{/if}}" role="tablist">
           {{#section.categories}}
-            <li role="presentation" {{#if @index === 0}}class="active"{{/if}}><a href="#{{title}}" aria-controls="{{title}}" role="tab" data-toggle="tab">{{title}}</a></li>
-          {{/}}
+            <li role="presentation" {{#if @index === 0}}class="active"{{/if}}><a href="#{{title}}" aria-controls="{{title}}" role="tab" data-toggle="tab">{{ title }}</a></li>
+          {{/section.categories}}
         </ul>
         <div class="tab-content">
           {{#section.categories}}
@@ -23,50 +23,96 @@
               {{#items}}
                 <div class="ticket-booking clearfix">
                   <div class="ticket-details">
-                    <h5 class="ticket-title text-primary">{{ title }}</h5>
+                    <p class="ticket-title text-primary">{{ title }}</p>
                     {{#type}}
-                    <p><i class="icon icon-tags"></i>{{ type }}</p>
+                    <p><i class="fa fa-tags ticket-type"></i>{{ type }}</p>
                     {{/type}}
                     {{#date}}
-                    <p><i class="icon icon-calendar"></i>{{ date }}</p>
+                    <p><i class="fa fa-calendar ticket-date"></i>{{ date }}</p>
                     {{/date}}
                     {{#venue}}
-                    <p><i class="icon icon-map-marker"></i>{{ venue }}</p>
+                    <p><i class="fa fa-map-marker ticket-venue"></i>{{ venue }}</p>
                     {{/venue}}
-                    <p>{{{description}}}</p>
+                    <p class="ticket-description">{{{ description }}}</p>
                   </div>
                   <div class="ticket-price-qty">
-                    <p class="ticket-price"><i class="icon icon-inr"></i>{{ price }}</p>
+                    <p class="ticket-price"><i class="fa fa-inr"></i>{{ price }}</p> 
                     <span class="multiplier">X</span>
-                    <select class="ticket-qty" id="{{ id }}" data-ticketprice="{{ price }}" on-change="calculateOrder">
-                      {{#each section.availableTickets(quantity_available)}}
-                        <option value="{{.}}">{{.}}</option>
-                      {{/each}}
-                    </select>
-                  </div>
+                    <div class="ticket-qty-wrapper">
+                      <button class="decrement" data-ticket="#{{id}}" on-click="ticketIncrementer(event.node, false)">-</button>
+                      <input type="number" class="ticket-qty" name="quantity" min="0" max="{{ section.availableTickets(quantity_available) }}" value="0" disabled id="{{id}}" data-ticketprice="{{ price }}">
+                      <button class="increment" data-ticket="#{{id}}" on-click="ticketIncrementer(event.node, true)">+</button>
+                    </div>
+                  </div> 
                 </div>
               {{/items}}
             </div>
           {{/section.categories}}
-          <div class="ticket-total">
-            <p class="service-tax">Service Tax : <span class="pull-right"><i class="icon icon-inr"></i> {{ order.tax }}</span></p>
-            <p>Total : <span class="pull-right"><i class="icon icon-inr"></i> {{ order.price }}</span></p>
-          </div>
         </div>
-        <div class="proceed-button-wrapper">
-          <button id="stage1-proceed" class="btn btn-success" on-click='checkout()'>Continue to checkout</button>
+        <hr>
+        <div class="ticket-total clearfix">
+          <p class="price">Total : <span class="pull-right"><i class="fa fa-inr"></i> {{ order.price }}</span></p>
         </div>
+        {{#complete}}
+        <div class="proceed-button-wrapper" intro='fly:{"x":200,"y":"0"}'>
+          <button id="stage1-proceed" class="box-widget-button" on-click="checkout()">Checkout</button>
+        </div>
+        {{/complete}}
         <p class="stage-error-msg text-danger">{{errorMsg}}</p>
       </div>
     {{elseif id === 'boxoffice-payment' && active}}
-      Payment
+      <div id='{{id}}' class="boxoffice-section clearfix active" intro='fly:{"x":600,"y":"0"}'>
+        <form class="form-horizontal" role="form" id="buyer-details-form" on-submit="initiatePayment(event)">
+          <div class="form-group">
+            <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
+              <input type="text" class="form-control buyer-fields secondary" name="name" required placeholder="Name"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
+              <input type="text" class="form-control buyer-fields secondary" name="email" required placeholder="Email"/>
+            </div>
+          </div>
+          <div class="form-group phone-number-wrapper">
+            <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
+              <input type="text" class="form-control buyer-fields secondary" name="number" required placeholder="Phone number" value="+91"/>
+            </div>
+          </div>
+          <div class="checkout-confirmation col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
+            <p class="summary">Booking Summary</p>
+            <p class="ticket-summary"><b>{{totalTickets}}</b> {{#if totalTickets > 1}}tickets{{else}} ticket {{/if}}</p>
+            <hr>
+            <p class="tax">Service Tax: <i class="icon icon-inr"></i> {{ order.tax }}</p>
+            <hr>
+            <p class="price">Amount Payable: <b><i class="icon icon-inr"></i> {{ order.price }}</b></p>
+          </div>
+          <div class="proceed-button-wrapper">
+            <button id="stage1-proceed" type="submit" class="btn btn-success">Proceed to payment</button>
+          </div>
+          <p class="stage-error-msg text-danger">{{ errorMsg }}</p>
+        </form> 
+        <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+      </div>
     {{elseif id === 'boxoffice-attendee-details' && active}}
-      Attendee Details
+      Attendee Details        
     {{/if}}
   {{/}}
 </div>
 {%endraw%}
 <style>
+  #boxoffice-widget {
+    max-width: 1000px;
+    margin: auto;
+  }
+  .box-widget-button {
+    background: #E05F26;
+    border-width: 0px 0px 3px;
+    border-style: solid;
+    border-color:  #B94C1D;
+    border-radius: 5px;
+    padding: 6px 12px;
+    color: #fff;
+  }
   .payment-progress-wrapper {
     background-color: #463850;
     padding: 20px;
@@ -174,6 +220,9 @@
           font-size: 60%
       }
   }
+  .payment-stages-wrapper {
+    overflow: hidden;
+  }
   .boxoffice-section {
     padding: 20px;
     border: 2px solid #ccc;
@@ -198,7 +247,7 @@
     text-align: center;
   }
 
-  .ticket-selection-content .nav-tabs.width-2 > li,
+  .ticket-selection-content .nav-tabs.width-2 > li, 
   .ticket-selection-content .nav-tabs.width-3 > li,
   .ticket-selection-content .nav-tabs.width-4 > li {
     width: 50%;
@@ -245,21 +294,21 @@
       transform: scaleX(1);
   }
 
-  .ticket-selection-content .nav > li > a:focus,
+  .ticket-selection-content .nav > li > a:focus, 
   .ticket-selection-content .nav > li > a:hover {
     background-color: rgba(238, 238, 255, 0.4);
     border-color: transparent;
     border-radius: 0;
   }
 
-  .ticket-selection-content .nav-tabs > li.active > a,
-  .ticket-selection-content .nav-tabs > li.active > a:focus,
+  .ticket-selection-content .nav-tabs > li.active > a, 
+  .ticket-selection-content .nav-tabs > li.active > a:focus, 
   .ticket-selection-content .nav-tabs > li.active > a:hover {
     border-color: transparent;
     color: #463850;
   }
 
-  .ticket-selection-content .nav > li.active > a:focus,
+  .ticket-selection-content .nav > li.active > a:focus, 
   .ticket-selection-content .nav > li.active > a:hover {
     background-color: transparent;
   }
@@ -268,6 +317,7 @@
     float: left;
     width: 100%;
     word-break: break-word;
+    margin-top: 10px;
   }
 
   @media (min-width: 768px) {
@@ -280,24 +330,63 @@
     font-size: 20px;
   }
 
-  .ticket-price-qty {
-    float: right;
+  .ticket-type, .ticket-date
+  .ticket-venue, .ticket-description {
+    font-size: 15px;
   }
 
-  .ticket-price, .ticket-qty {
+  .ticket-price-qty {
+    float: right;
+    margin-top: 10px;
+  }
+
+  .ticket-price, .ticket-qty-wrapper {
     font-size: 18px;
     margin-top: 20px;
     display: inline-block;
   }
 
-  .ticket-qty {
-    border: 1px solid #ccc;
+  .ticket-qty-wrapper {
+    border: 1px solid #CCC;
     border-radius: 4px;
-    outline: none;
+    outline: medium none;
     color: #333;
+    padding: 0;
+    margin: -2px 0px 0px;
+    position: relative;
+    top: 8px;
     height: 30px;
-    font-size: 15px;
-    width: 51px;
+    overflow: hidden;
+  }
+
+  .ticket-qty {
+    width: 30px;
+    border: 0px none;
+    background-color: #fff;
+    color: #333;
+    line-height: 1;
+    display: inline-block;
+    padding-left: 8px;
+    font-size: 16px;
+  }
+
+  input[type=number]::-webkit-inner-spin-button, 
+  input[type=number]::-webkit-outer-spin-button { 
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  input[type=number] {
+    -moz-appearance: textfield;
+  }
+
+  .increment, .decrement {
+    line-height: 1;
+    font-size: 20px;
+    background-color: #eee;
+    height: 100%;
+    border: 0;
+    padding: 0 5px;
   }
 
   .ticket-price {
@@ -306,6 +395,7 @@
 
   .multiplier {
     padding-right: 20px;
+    font-size: 15px;
   }
 
   .discount-code {
@@ -333,7 +423,7 @@
 
   @media (min-width: 768px) {
     .discount-code input {
-      width: 194px;
+      width: 200px;
       padding-left: 11px;
     }
   }
@@ -352,9 +442,13 @@
     padding: 15px;
   }
 
-  .service-tax {
+  .tax {
     padding-bottom: 10px;
     border-bottom: 2px solid #eee;
+  }
+
+  .tax, .price, .buyer-fields {
+    font-size: 15px;
   }
 
   .proceed-button-wrapper {
