@@ -11,7 +11,7 @@
 <div class="payment-stages-wrapper">
   {{#tabs:tab, order}}
     {{#if id === 'boxoffice-selectItems' && active}}
-      <div id='{{id}}' class="boxoffice-section ticket-selection-content clearfix active">
+      <div id='{{id}}' class="boxoffice-section ticket-selection-content clearfix active" intro='fly:{"x":-600,"y":"0"}'>
         <ul class="nav nav-tabs {{#if section.categories.length > 4}}width-4{{else}}width-{{section.categories.length}}{{/if}}" role="tablist">
           {{#section.categories}}
             <li role="presentation" {{#if @index === 0}}class="active"{{/if}}><a href="#{{title}}" aria-controls="{{title}}" role="tab" data-toggle="tab">{{ title }}</a></li>
@@ -39,9 +39,9 @@
                     <p class="ticket-price"><i class="fa fa-inr"></i>{{ price }}</p> 
                     <span class="multiplier">X</span>
                     <div class="ticket-qty-wrapper">
-                      <button class="decrement" data-ticket="#{{id}}" on-click="ticketIncrementer(event.node, false)">-</button>
-                      <input type="number" class="ticket-qty" name="quantity" min="0" max="{{ section.availableTickets(quantity_available) }}" value="0" disabled id="{{id}}" data-ticketprice="{{ price }}">
-                      <button class="increment" data-ticket="#{{id}}" on-click="ticketIncrementer(event.node, true)">+</button>
+                      <button class="decrement" data-ticket="#{{name}}" on-click="ticketIncrementer(event.node, false)">-</button>
+                      <input type="number" class="ticket-qty" name="quantity" min="0" max="{{ section.availableTickets(quantity_available) }}" value="0" disabled id="{{name}}" data-ticketprice="{{ price }}">
+                      <button class="increment" data-ticket="#{{name}}" on-click="ticketIncrementer(event.node, true)">+</button>
                     </div>
                   </div> 
                 </div>
@@ -87,7 +87,8 @@
             <p class="price">Amount Payable: <b><i class="icon icon-inr"></i> {{ order.price }}</b></p>
           </div>
           <div class="proceed-button-wrapper">
-            <button id="stage1-proceed" type="submit" class="btn btn-success">Proceed to payment</button>
+            <button class="box-widget-button-info edit-order" on-click="showSelectTickets(event)">Edit order</button>
+            <button type="submit" class="box-widget-button">Proceed to payment</button>
           </div>
           <p class="stage-error-msg text-danger">{{ errorMsg }}</p>
         </form> 
@@ -109,6 +110,16 @@
     border-width: 0px 0px 3px;
     border-style: solid;
     border-color:  #B94C1D;
+    border-radius: 5px;
+    padding: 6px 12px;
+    color: #fff;
+  }
+  .box-widget-button-info {
+    background: #E05F26;
+    border-width: 0px 0px 3px;
+    border-style: solid;
+    background-color: #5BC0DE;
+    border-color: #2A9CBE;
     border-radius: 5px;
     padding: 6px 12px;
     color: #fff;
@@ -368,6 +379,8 @@
     display: inline-block;
     padding-left: 8px;
     font-size: 16px;
+    position: relative;
+    top: -1px;
   }
 
   input[type=number]::-webkit-inner-spin-button, 
@@ -455,6 +468,10 @@
     clear: both;
     margin: 15px 0 10px;
     float: right;
+  }
+
+  .edit-order {
+    margin-right: 10px;
   }
 
   .stage-error-msg {

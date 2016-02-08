@@ -12,24 +12,35 @@ this.node},toString:function(){return"<!--"+this.value+"-->"},unrender:function(
 window.Boxoffice = {};
 
 $(function(){
-  var boxoffice = window.Boxoffice;
-  var boxofficeBaseUrl = 'http://0.0.0.0:6500/rootconf/2016';
-  var eventName = 'Rootconf 2016';
+  Ractive.DEBUG = false;
 
-  boxoffice.init = function(config){
+  var boxoffice = window.Boxoffice;
+
+  boxoffice.init = function(config) {
+    var boxofficeBaseUrl = config.url;
+    var eventName = config.eventName;
+
     $.ajax({
       url: config.url,
       crossDomain: true,
       dataType: 'jsonp'
-    }).done(function(data){
+    }).done(function(data) {
+
+      var lineItems = [];
+
+      data.categories.forEach(function(category) {
+        category.items.forEach(function(item) {
+          lineItems.push({'item_id': item.id, 'quantity': 0});
+        });
+      });
+
       boxoffice.ractive = new Ractive({
         el: 'boxoffice-widget',
         template: data.html,
         data: {
           order: {
-            //{item_id: 1, quantity: 4}
             id: '',
-            lineItems:[],
+            lineItems: [],
             user_id: '',
             tax: 0,
             price: 0
@@ -81,7 +92,6 @@ $(function(){
           var inputField = $(element).data('ticket');
           var presentVal = parseInt($(inputField).val(), 10);
           var max = parseInt($(inputField).attr('max'), 10);
-
           if(action) {
             if(presentVal < max) {
               $(inputField).val(presentVal + 1);
@@ -127,10 +137,16 @@ $(function(){
               boxoffice.ractive.set('tabs.selectItems.complete', false);
             }
         },
+        showSelectTickets: function(event) {
+          event.original.preventDefault();
+          boxoffice.ractive.set('tabs.payment.active', false).then(function() {
+            boxoffice.ractive.set('tabs.selectItems.active', true);
+          });
+        },
         checkout: function() {
           console.log('Purchase order', boxoffice.ractive.get('order'));
-          $.post({
-            url: boxofficeBaseUrl + 'purchase_order',
+          console.log('order url', boxofficeBaseUrl + '/order');
+          $.post(boxofficeBaseUrl + '/order', {
             crossDomain: true,
             data: boxoffice.ractive.get('order.lineItems'),
             contentType: 'application/x-www-form-urlencoded',
@@ -144,9 +160,9 @@ $(function(){
           });
 
           //Stub code. Once Purchase order is complete, this can be removed.
-          boxoffice.ractive.set('tabs.selectItems.active', false).then(function() {
-            boxoffice.ractive.set('tabs.payment.active', true); 
-          }); 
+          // boxoffice.ractive.set('tabs.selectItems.active', false).then(function() {
+          //   boxoffice.ractive.set('tabs.payment.active', true); 
+          // }); 
         },
         initiatePayment: function(event) {
           event.original.preventDefault();
