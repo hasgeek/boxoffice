@@ -104,7 +104,7 @@ $(function(){
           }
           boxoffice.ractive.calculateOrder();
         },
-        calculateOrder: function() {                  
+        calculateOrder: function() {
             var lineItems = [];
             var totalPrice = 0;
             var serviceTax = 0;
@@ -146,25 +146,24 @@ $(function(){
         checkout: function() {
           console.log('Purchase order', boxoffice.ractive.get('order'));
           console.log('order url', boxofficeBaseUrl + '/order');
-          $.ajax({
-            type: 'POST',
+          $.post({
             url: boxofficeBaseUrl + '/order',
             crossDomain: true,
-            data: boxoffice.ractive.get('order'),
-            contentType: 'application/x-www-form-urlencoded',
+            // data: {line_items: boxoffice.ractive.get('order.lineItems')},
+            dataType: 'json',
+            data: JSON.stringify({line_items: boxoffice.ractive.get('order.lineItems')}),
+            // contentType: 'application/x-www-form-urlencoded',
+            // contentType: "application/json",
+            // contentType: "application/json; charset=utf-8",
             timeout: 5000
           }).done(function(data){
             console.log(data);
-            boxoffice.ractive.set('order', data.order);  
-            boxoffice.ractive.set('tabs.selectItems.active', false).then(function() {
-              boxoffice.ractive.set('tabs.payment.active', true); 
-            });                                   
+            //   boxoffice.ractive.set('order', data.order);
+            //   boxoffice.ractive.set('tabs.selectItems.active', false).then(function() {
+            //     boxoffice.ractive.set('tabs.payment.active', true);
+            //   });
+            // boxoffice.ractive.set('order.id', data.id);
           });
-
-          // Stub code. Once Purchase order is complete, this can be removed.
-          // boxoffice.ractive.set('tabs.selectItems.active', false).then(function() {
-          //   boxoffice.ractive.set('tabs.payment.active', true); 
-          // }); 
         },
         initiatePayment: function(event) {
           event.original.preventDefault();
@@ -191,7 +190,7 @@ $(function(){
               "description": inventory,
               "image": "https://hasgeek.com/static/img/hg-banner.png",
               "handler": function (response) {
-                
+
               },
               "prefill": {
                 "name": formData["name"],
@@ -207,11 +206,11 @@ $(function(){
             };
 
             var razorpay = new Razorpay(razorPayOptions);
-            razorpay.open(); 
+            razorpay.open();
           }
         },
         oncomplete: function(){
-        
+
 
           // boxoffice.ractive.on('checkout', function() {
           // });

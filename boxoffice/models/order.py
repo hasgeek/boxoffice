@@ -28,7 +28,7 @@ class Order(BaseMixin, db.Model):
 
     def calculate(self, line_items):
         for line_item in line_items:
-            item = Item.get(self.inventory, line_item.get('item'))
+            item = Item.get(self.inventory, line_item.get('name'))
             line_item = LineItem(item=item, order=self, quantity=line_item.get('quantity'))
 
             # TODO: What if the price changes by the time the computation below happens?
