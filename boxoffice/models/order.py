@@ -1,4 +1,5 @@
 import decimal
+import requests
 from boxoffice.models import db, BaseMixin, User, Item, Inventory, Price
 from coaster.utils import LabeledEnum
 from coaster.sqlalchemy import JsonDict
@@ -13,6 +14,7 @@ class ORDER_STATUS(LabeledEnum):
     INVOICE = (2, __("Invoice"))
     CANCELLED = (3, __("Cancelled Order"))
 
+
 class Order(BaseMixin, db.Model):
     __tablename__ = 'order'
     __uuid_primary_key__ = True
@@ -22,26 +24,23 @@ class Order(BaseMixin, db.Model):
     inventory = db.relationship(Inventory,
         backref=db.backref('orders', cascade='all, delete-orphan'))
     status = db.Column(db.Integer, default=ORDER_STATUS.PURCHASE_ORDER, nullable=False)
-    base_amount = db.Column(db.Numeric, default=0.0, nullable=False)
-    discounted_amount = db.Column(db.Numeric, default=0.0, nullable=False)
-    final_amount = db.Column(db.Numeric, default=0.0, nullable=False)
+    base_amount = db.Column(db.Numeric, default=decimal.Decimal(0), nullable=False)
+    discounted_amount = db.Column(db.Numeric, default=decimal.Decimal(0), nullable=False)
+    final_amount = db.Column(db.Numeric, default=decimal.Decimal(0), nullable=False)
 
     def calculate(self, line_items):
+        """
+        - Creates line items given an array of line item dicts with item name and quantity
+        - Calculates and sets the order's base_amount, discounted_amount and final_amount
+        """
         for line_item in line_items:
             item = Item.get(self.inventory, line_item.get('name'))
             line_item = LineItem(item=item, order=self, quantity=line_item.get('quantity'))
+            line_item.calculate()
 
-            # TODO: What if the price changes by the time the computation below happens?
-            line_item.base_amount = Price.current(line_item.item).amount * line_item.quantity
-            for discount_policy in line_item.item.discount_policies:
-                if line_item.quantity >= discount_policy.item_quantity_min and line_item.quantity <= discount_policy.item_quantity_max:
-                    line_item.discounted_amount = (discount_policy.percentage * line_item.base_amount)/100.0
-            line_item.final_amount = line_item.base_amount - decimal.Decimal(line_item.discounted_amount)
-
-            self.line_items.append(line_item)
-            self.base_amount = decimal.Decimal(self.base_amount) + decimal.Decimal(line_item.base_amount)
-            self.discounted_amount = decimal.Decimal(self.discounted_amount) + decimal.Decimal(line_item.discounted_amount)
-            self.final_amount = decimal.Decimal(self.final_amount) + decimal.Decimal(line_item.final_amount)
+            self.base_amount = self.base_amount + line_item.base_amount
+            self.discounted_amount = self.discounted_amount + line_item.discounted_amount
+            self.final_amount = self.final_amount + line_item.final_amount
 
 
 class LINE_ITEM_STATUS(LabeledEnum):
@@ -59,11 +58,21 @@ class LineItem(BaseMixin, db.Model):
     item = db.relationship(Item, backref=db.backref('line_items', cascade='all, delete-orphan'))
 
     quantity = db.Column(db.Integer, nullable=False)
-    base_amount = db.Column(db.Numeric, default=0.0, nullable=False)
-    discounted_amount = db.Column(db.Numeric, default=0.0, nullable=False)
-    final_amount = db.Column(db.Numeric, default=0.0, nullable=False)
+    base_amount = db.Column(db.Numeric, default=decimal.Decimal(0), nullable=False)
+    discounted_amount = db.Column(db.Numeric, default=decimal.Decimal(0), nullable=False)
+    final_amount = db.Column(db.Numeric, default=decimal.Decimal(0), nullable=False)
     status = db.Column(db.Integer, default=LINE_ITEM_STATUS.CONFIRMED, nullable=False)
     # tax_amount = db.Column(db.Numeric, default=0.0, nullable=False)
+
+
+    def calculate(self):
+        # TODO: What if the price changes by the time the computation below happens?
+        self.base_amount = Price.current(self.item).amount * self.quantity
+        for discount_policy in self.item.discount_policies:
+            if self.quantity >= discount_policy.item_quantity_min and self.quantity <= discount_policy.item_quantity_max:
+                self.discounted_amount = (discount_policy.percentage * self.base_amount)/decimal.Decimal(100.0)
+        self.final_amount = self.base_amount - self.discounted_amount
+
 
     @classmethod
     def confirmed(cls, order):
@@ -85,6 +94,7 @@ class PAYMENT_TYPES(LabeledEnum):
     REFUNDED = (3, __("Refunded"))
     FAILED = (4, __("Failed"))
 
+
 class Payment(BaseMixin, db.Model):
     __tablename__ = 'payment'
     __uuid_primary_key__ = True
@@ -95,11 +105,21 @@ class Payment(BaseMixin, db.Model):
     pg_payment_id = db.Column(db.Unicode(80), nullable=False)
     status = db.Column(db.Integer, default=PAYMENT_TYPES.CREATED, nullable=False)
 
+    def capture(self):
+        """Attempts to capture the payment from Razorpay, sets the apprpriate status"""
+        url = 'https://api.razorpay.com/v1/payments/pg_payment_id/capture'.format(pg_payment_id=self.pg_payment_id)
+        resp = requests.post(url, data={'amount':self.order.final_amount}, auth=(app.config.get('RAZORPAY_KEY_ID'), app.config.get('RAZORPAY_KEY_SECRET')))
+        if resp.status_code == 200:
+            self.status = PAYMENT_TYPES.CAPTURED
+        else:
+            self.status = PAYMENT_TYPES.FAILED
+
 
 class TRANSACTION_TYPES(LabeledEnum):
     PAYMENT = (0, __("Payment"))
     REFUND = (1, __("Refund"))
     # CREDIT = (2, __("Credit"))
+
 
 class Transaction(BaseMixin, db.Model):
     """
@@ -111,6 +131,6 @@ class Transaction(BaseMixin, db.Model):
 
     payment_id = db.Column(None, db.ForeignKey('payment.id'), nullable=False)
     payment = db.relationship(Payment, backref=db.backref('transactions', cascade='all, delete-orphan'))
-    amount = db.Column(db.Numeric, default=0.0, nullable=False)
+    amount = db.Column(db.Numeric, default=decimal.Decimal(0), nullable=False)
     currency = db.Column(db.Unicode(3), nullable=False, default=u'INR')
     transaction_type = db.Column(db.Integer, default=TRANSACTION_TYPES.PAYMENT, nullable=False)

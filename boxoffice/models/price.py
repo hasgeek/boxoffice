@@ -1,3 +1,4 @@
+import decimal
 from boxoffice.models import db, BaseNameMixin, Item
 from datetime import datetime
 
@@ -13,7 +14,7 @@ class Price(BaseNameMixin, db.Model):
     valid_from = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     valid_upto = db.Column(db.DateTime, nullable=False)
 
-    amount = db.Column(db.Numeric, default=0.0, nullable=False)
+    amount = db.Column(db.Numeric, default=decimal.Decimal(0), nullable=False)
     currency = db.Column(db.Unicode(3), nullable=False, default=u'INR')
     __table_args__ = (db.CheckConstraint('valid_from < valid_upto', 'valid_bound'),)
 
