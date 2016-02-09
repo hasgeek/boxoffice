@@ -20,32 +20,36 @@
         <div class="tab-content">
           {{#section.categories}}
             <div role="tabpanel" class="tab-pane fade {{#if @index === 0}}active in{{/if}}" id="{{title}}">
-              {{#items}}
+              {{#items}}{{# { item: . } }}
                 <div class="ticket-booking clearfix">
                   <div class="ticket-details">
-                    <p class="ticket-title text-primary">{{ title }}</p>
-                    {{#type}}
-                    <p><i class="fa fa-tags ticket-type"></i>{{ type }}</p>
-                    {{/type}}
-                    {{#date}}
-                    <p><i class="fa fa-calendar ticket-date"></i>{{ date }}</p>
+                    <p class="ticket-title text-primary">{{ item.title }}</p>
+                    {{#item.type}}
+                    <p><i class="fa fa-tags ticket-type"></i>{{ item.type }}</p>
+                    {{/item.type}}
+                    {{#item.date}}
+                    <p><i class="fa fa-calendar ticket-date"></i>{{ item.date }}</p>
                     {{/date}}
-                    {{#venue}}
-                    <p><i class="fa fa-map-marker ticket-venue"></i>{{ venue }}</p>
-                    {{/venue}}
-                    <p class="ticket-description">{{{ description }}}</p>
+                    {{#item.venue}}
+                    <p><i class="fa fa-map-marker ticket-venue"></i>{{ item.venue }}</p>
+                    {{/item.venue}}
+                    <p class="ticket-description">{{{ item.description }}}</p>
                   </div>
                   <div class="ticket-price-qty">
-                    <p class="ticket-price"><i class="fa fa-inr"></i>{{ price }}</p> 
+                    <p class="ticket-price"><i class="fa fa-inr"></i>{{ item.price }}</p> 
                     <span class="multiplier">X</span>
-                    <div class="ticket-qty-wrapper">
-                      <button class="decrement" data-ticket="#{{name}}" on-click="ticketIncrementer(event.node, false)">-</button>
-                      <input type="number" class="ticket-qty" name="quantity" min="0" max="{{ section.availableTickets(quantity_available) }}" value="0" disabled id="{{name}}" data-ticketprice="{{ price }}">
-                      <button class="increment" data-ticket="#{{name}}" on-click="ticketIncrementer(event.node, true)">+</button>
-                    </div>
+                    {{#order.line_items}} {{# { line_item: . } }}
+                      {{#if line_item.name === item.name }}
+                        <div class="ticket-qty-wrapper">
+                          <button class="decrement" data-ticket="{{ line_item.name }}" on-click="ticketIncrementer(event.node, false)">-</button>
+                          <input type="number" class="ticket-qty" name="quantity" min="0" max="{{ section.availableTickets(item.quantity_available) }}" value="{{ line_item.quantity }}" disabled id="{{ line_item.name }}" data-ticketprice="{{ item.price }}">
+                          <button class="increment" data-ticket="{{ line_item.name }}" on-click="ticketIncrementer(event.node, true)">+</button>
+                        </div>
+                      {{/if}}
+                    {{/}}{{/order.line_items}}
                   </div> 
                 </div>
-              {{/items}}
+              {{/}}{{/items}}
             </div>
           {{/section.categories}}
         </div>
@@ -55,27 +59,27 @@
         </div>
         {{#complete}}
         <div class="proceed-button-wrapper" intro='fly:{"x":200,"y":"0"}'>
-          <button id="stage1-proceed" class="box-widget-button" on-click="checkout()">Checkout</button>
+          <button id="stage1-proceed" class="box-widget-button" on-click="showBuyerForm(event)">Continue</button>
         </div>
         {{/complete}}
         <p class="stage-error-msg text-danger">{{errorMsg}}</p>
       </div>
     {{elseif id === 'boxoffice-payment' && active}}
       <div id='{{id}}' class="boxoffice-section clearfix active" intro='fly:{"x":600,"y":"0"}'>
-        <form class="form-horizontal" role="form" id="buyer-details-form" on-submit="initiatePayment(event)">
+        <form class="form-horizontal" role="form" id="buyer-details-form" on-submit="checkout(event)">
           <div class="form-group">
             <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
-              <input type="text" class="form-control buyer-fields secondary" name="name" required placeholder="Name"/>
+              <input type="text" class="form-control buyer-fields secondary" name="name" required {{#order.name}} value = {{order.name }} {{/}} placeholder="Name"/>
             </div>
           </div>
           <div class="form-group">
             <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
-              <input type="text" class="form-control buyer-fields secondary" name="email" required placeholder="Email"/>
+              <input type="text" class="form-control buyer-fields secondary" name="email" required {{#order.email}} value = {{order.email }} {{/}} placeholder="Email"/>
             </div>
           </div>
           <div class="form-group phone-number-wrapper">
             <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
-              <input type="text" class="form-control buyer-fields secondary" name="number" required placeholder="Phone number" value="+91"/>
+              <input type="text" class="form-control buyer-fields secondary" name="number" required {{#order.phone}} value = {{order.phone }} {{/}} placeholder="Phone number" value="+91"/>
             </div>
           </div>
           <div class="checkout-confirmation col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
@@ -88,7 +92,7 @@
           </div>
           <div class="proceed-button-wrapper">
             <button class="box-widget-button-info edit-order" on-click="showSelectTickets(event)">Edit order</button>
-            <button type="submit" class="box-widget-button">Proceed to payment</button>
+            <button type="submit" class="box-widget-button">Checkout</button>
           </div>
           <p class="stage-error-msg text-danger">{{ errorMsg }}</p>
         </form> 
