@@ -62,12 +62,12 @@ def order(organization, inventory):
         order.calculate(json.loads(form_values[0]).get('line_items'))
         db.session.add(order)
         db.session.commit()
-        return jsonify(code=200)
+        return jsonify(code=200, order_id=order.id)
 
 
 @app.route('/<order>/payment', methods=['GET', 'OPTIONS', 'POST'])
 @load_models(
-    (Order, {'name': 'order'}, 'order')
+    (Order, {'id': 'order'}, 'order')
     )
 @cross_origin(allow_headers=['Content-Type'])
 def payment(order):
@@ -76,12 +76,23 @@ def payment(order):
     form_values = request.form.to_dict().keys()
     pg_payment_id = json.loads(form_values[0]).get('pg_payment_id')
     payment = Payment(pg_payment_id=request.form.pg_payment_id, order=order)
+    payment.capture()
     db.session.add(payment)
     db.session.commit()
-    if payment.capture():
+    if payment.status == PAYMENT_TYPES.CAPTURED:
         transaction = Transaction(payment=payment, amount=order.amount)
         db.session.add(transaction)
         db.session.commit()
         return jsonify(code=200)
-    else:
+    elif payment.status == PAYMENT_TYPES.FAILED:
         return jsonify(code=402)
+
+
+@app.route('/<order>/invoice', methods=['GET'])
+@load_models(
+    (Order, {'id': 'order'}, 'order')
+    )
+@cross_origin(allow_headers=['Content-Type'])
+def invoice(order):
+    pass
+    # render_template('invoice.html', order=order)
