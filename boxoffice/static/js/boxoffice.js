@@ -17,11 +17,12 @@ $(function(){
   var boxoffice = window.Boxoffice;
 
   boxoffice.init = function(config) {
-    var boxofficeBaseUrl = config.url;
+    var boxofficeBaseUrl = "http://boxoffice.vidya.dev:6500";
+    var boxofficeInventoryUrl = config.url;
     var inventory = config.inventory;
 
     $.ajax({
-      url: config.url,
+      url: boxofficeInventoryUrl,
       crossDomain: true,
       dataType: 'jsonp'
     }).done(function(data) {
@@ -39,7 +40,7 @@ $(function(){
         template: data.html,
         data: {
           order: {
-            id: '',
+            order_id: '',
             line_items: lineItems,
             user_id: '',
             name: config.name,
@@ -139,6 +140,17 @@ $(function(){
             'tabs.selectItems.active': false,
             'tabs.payment.active': true });
         },
+        confirmPayment: function(razorpay_payment_id) {
+          $.post({
+            url: boxofficeBaseUrl + '/' + boxoffice.ractive.get('order.order_id') + '/payment',
+            crossDomain: true,
+            dataType: 'json',
+            data: JSON.stringify({pg_payment_id: razorpay_payment_id}),
+            timeout: 5000
+          }).done(function(data) {
+            console.log("Payment successful. Invoice received from server")
+          });
+        },
         checkout: function(event) {
           event.original.preventDefault();
           //Cancel TicketSelection.refresh timer
@@ -162,21 +174,20 @@ $(function(){
             boxoffice.ractive.set('tabs.payment.errorMsg', '');
 
             console.log('Purchase order', boxoffice.ractive.get('order'));
-            console.log('order url', boxofficeBaseUrl + '/order');
+            console.log('order url', boxofficeInventoryUrl + '/order');
 
             $.post({
-              url: boxofficeBaseUrl + '/order',
+              url: boxofficeInventoryUrl + '/order',
               crossDomain: true,
-              // data: {line_items: boxoffice.ractive.get('order.lineItems')},
               dataType: 'json',
               data: JSON.stringify(boxoffice.ractive.get('order')),
-              // contentType: 'application/x-www-form-urlencoded',
-              // contentType: "application/json",
-              // contentType: "application/json; charset=utf-8",
               timeout: 5000
             }).done(function(data) {
               console.log("Response recd from server", data);
               
+              boxoffice.ractive.set('order.order_id', data.order_id);
+              // To be done. Set user_id, tax, price, date
+
               var razorPayOptions = {
                 "key": "rzp_test_zQVCK9beh4cNp3",
                 //Razorpay expects amount in paisa
@@ -185,7 +196,7 @@ $(function(){
                 "description": inventory,
                 "image": "https://hasgeek.com/static/img/hg-banner.png",
                 "handler": function (response) {
-                  //Send razorpay_payment_id to payment api
+                  boxoffice.ractive.confirmPayment(response.razorpay_payment_id);
                 },
                 "modal.ondismiss": {
                   "ondismiss": function(){
@@ -203,8 +214,9 @@ $(function(){
               };
 
               var razorpay = new Razorpay(razorPayOptions);
-                razorpay.open();
-              });
+              razorpay.open();
+
+            });
           }
         },
         oncomplete: function(){
