@@ -62,7 +62,7 @@ def order(organization, inventory):
         order.calculate(json.loads(form_values[0]).get('line_items'))
         db.session.add(order)
         db.session.commit()
-        return jsonify(code=200)
+        return jsonify(code=200, order_id=order.id)
 
 
 @app.route('/<order>/payment', methods=['GET', 'OPTIONS', 'POST'])
