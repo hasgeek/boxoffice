@@ -74,7 +74,7 @@ def payment(order):
     # change to get user
     user = User.query.first()
     form_values = request.form.to_dict().keys()
-    pg_payment_id = json.loads(form_values[0]).get('pg_payment_id'))
+    pg_payment_id = json.loads(form_values[0]).get('pg_payment_id')
     payment = Payment(pg_payment_id=request.form.pg_payment_id, order=order)
     db.session.add(payment)
     db.session.commit()
