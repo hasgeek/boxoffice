@@ -61,10 +61,27 @@ def order(organization, inventory):
     if form_values:
         order.calculate(json.loads(form_values[0]).get('line_items'))
         db.session.add(order)
-        # payment = Payment(pg_payment_id=request.form.pg_payment_id, order=order)
-        # db.session.add(payment)
-        # payment.capture
-        # Transaction(payment=payment)
-        # return jsonify(...)
         db.session.commit()
         return jsonify(code=200)
+
+
+@app.route('/<order>/payment', methods=['GET', 'OPTIONS', 'POST'])
+@load_models(
+    (Order, {'name': 'order'}, 'order')
+    )
+@cross_origin(allow_headers=['Content-Type'])
+def payment(order):
+    # change to get user
+    user = User.query.first()
+    form_values = request.form.to_dict().keys()
+    pg_payment_id = json.loads(form_values[0]).get('pg_payment_id'))
+    payment = Payment(pg_payment_id=request.form.pg_payment_id, order=order)
+    db.session.add(payment)
+    db.session.commit()
+    if payment.capture():
+        transaction = Transaction(payment=payment, amount=order.amount)
+        db.session.add(transaction)
+        db.session.commit()
+        return jsonify(code=200)
+    else:
+        return jsonify(code=402)
