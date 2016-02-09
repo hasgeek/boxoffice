@@ -1,10 +1,11 @@
 import json
+import requests
 from flask import redirect, url_for, render_template, request, jsonify
 from flask.ext.cors import cross_origin
 from coaster.views import load_models, jsonp
 from boxoffice import app
 from boxoffice.models import db, Organization, Item, Category, Inventory, Price, User
-from boxoffice.models.order import Order, LineItem, Payment
+from boxoffice.models.order import Order, LineItem, Payment, Transaction
 
 ALLOWED_ORIGINS = ['http://shreyas-wlan.dev:8000/']
 
@@ -32,6 +33,11 @@ def category_json(category):
         'items': [item_json(item) for item in category.items]
     }
 
+
+
+@app.route('/boxoffice.js')
+def boxofficejs():
+    return render_template('boxoffice.js', base_url=app.config.get('BASE_URL'))
 
 @app.route('/<organization>/<inventory>')
 @load_models(
@@ -78,16 +84,20 @@ def payment(order):
     user = User.query.first()
     form_values = request.form.to_dict().keys()
     pg_payment_id = json.loads(form_values[0]).get('pg_payment_id')
-    payment = Payment(pg_payment_id=request.form.pg_payment_id, order=order)
-    payment.capture()
-    db.session.add(payment)
-    db.session.commit()
-    if payment.status == PAYMENT_TYPES.CAPTURED:
-        transaction = Transaction(payment=payment, amount=order.amount)
+    payment = Payment(pg_payment_id=pg_payment_id, order=order)
+
+    url = 'https://api.razorpay.com/v1/payments/{pg_payment_id}/capture'.format(pg_payment_id=payment.pg_payment_id)
+    resp = requests.post(url, data={'amount':payment.order.final_amount*100}, auth=(app.config.get('RAZORPAY_KEY_ID'), app.config.get('RAZORPAY_KEY_SECRET')))
+
+    if resp.status_code == 200:
+        payment.capture()
+        db.session.add(payment)
+        transaction = Transaction(payment=payment, amount=order.final_amount)
         db.session.add(transaction)
         db.session.commit()
         return jsonify(code=200)
-    elif payment.status == PAYMENT_TYPES.FAILED:
+    else:
+        payment.fail()
         return jsonify(code=402)
 
 

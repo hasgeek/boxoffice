@@ -32,6 +32,7 @@ class Order(BaseMixin, db.Model):
         """
         - Creates line items given an array of line item dicts with item name and quantity
         - Calculates and sets the order's base_amount, discounted_amount and final_amount
+        TODO: Calculate this whenever line item is touched
         """
         for line_item in line_items:
             item = Item.get(self.inventory, line_item.get('name'))
@@ -74,6 +75,14 @@ class LineItem(BaseMixin, db.Model):
         self.final_amount = self.base_amount - self.discounted_amount
 
 
+    def cancel(self):
+        """
+        Sets the status to LINE_ITEM_STATUS.CANCELLED. To update the quantity
+        create, a new line item with the required quantity
+        """
+        self.status = LINE_ITEM_STATUS.CANCELLED
+
+
     @classmethod
     def confirmed(cls, order):
         return cls.query.filter_by(order=order, status=LINE_ITEM_STATUS.CONFIRMED).all()
@@ -105,14 +114,16 @@ class Payment(BaseMixin, db.Model):
     pg_payment_id = db.Column(db.Unicode(80), nullable=False)
     status = db.Column(db.Integer, default=PAYMENT_TYPES.CREATED, nullable=False)
 
+    def is_captured(self):
+        return self.status == PAYMENT_TYPES.CAPTURED
+
+
     def capture(self):
-        """Attempts to capture the payment from Razorpay, sets the apprpriate status"""
-        url = 'https://api.razorpay.com/v1/payments/pg_payment_id/capture'.format(pg_payment_id=self.pg_payment_id)
-        resp = requests.post(url, data={'amount':self.order.final_amount}, auth=(app.config.get('RAZORPAY_KEY_ID'), app.config.get('RAZORPAY_KEY_SECRET')))
-        if resp.status_code == 200:
-            self.status = PAYMENT_TYPES.CAPTURED
-        else:
-            self.status = PAYMENT_TYPES.FAILED
+        self.status = PAYMENT_TYPES.CAPTURED
+
+
+    def fail(self):
+        self.status = PAYMENT_TYPES.FAILED
 
 
 class TRANSACTION_TYPES(LabeledEnum):

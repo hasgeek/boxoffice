@@ -17,7 +17,8 @@ $(function(){
   var boxoffice = window.Boxoffice;
 
   boxoffice.init = function(config) {
-    var boxofficeBaseUrl = "http://boxoffice.vidya.dev:6500";
+    // var boxofficeBaseUrl = "http://boxoffice.vidya.dev:6500";
+    var boxofficeBaseUrl = "http://shreyas-wlan.dev:6500";
     var boxofficeInventoryUrl = config.url;
     var inventory = config.inventory;
 
@@ -107,10 +108,10 @@ $(function(){
               }
             }
           });
-          
+
           boxoffice.ractive.set('order.line_items', line_items);
         },
-        calculateOrder: function() {                  
+        calculateOrder: function() {
             var totalPrice = 0;
             // var serviceTax = 0;
 
@@ -184,7 +185,7 @@ $(function(){
               timeout: 5000
             }).done(function(data) {
               console.log("Response recd from server", data);
-              
+
               boxoffice.ractive.set('order.order_id', data.order_id);
               // To be done. Set user_id, tax, price, date
 
