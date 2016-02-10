@@ -21,8 +21,6 @@ $(function(){
   var boxoffice = window.Boxoffice;
 
   boxoffice.init = function(config) {
-    // var boxofficeBaseUrl = "http://boxoffice.vidya.dev:6500";
-    // var boxofficeBaseUrl = "http://shreyas-wlan.dev:6500";
     var boxofficeBaseUrl = boxoffice.baseURL;
     var boxofficeInventoryUrl = config.url;
     var inventory = config.inventory;
@@ -37,7 +35,7 @@ $(function(){
 
       data.categories.forEach(function(category) {
         category.items.forEach(function(item) {
-          lineItems.push({'name': item.name, 'quantity': 0});
+          lineItems.push({'name': item.name, 'quantity': 0, 'title': item.title});
         });
       });
 
@@ -86,9 +84,9 @@ $(function(){
               },
               errorMsg: ''
             },
-            attendees: {
-              id: 'boxoffice-attendee-details',
-              label: 'Attendee Details',
+            confirm: {
+              id: 'boxoffice-confirm',
+              label: 'Confirm',
               active: false,
               complete: false,
               section: {
@@ -146,23 +144,27 @@ $(function(){
             'tabs.selectItems.active': false,
             'tabs.payment.active': true });
         },
-        confirmPayment: function(razorpay_payment_id) {
+        confirmPayment: function(paymentUrl, paymentID) {
           $.post({
-            url: boxofficeBaseUrl + '/' + boxoffice.ractive.get('order.order_id') + '/payment',
+            url: boxofficeBaseUrl + paymentUrl,
             crossDomain: true,
             dataType: 'json',
-            data: JSON.stringify({pg_payment_id: razorpay_payment_id}),
+            data: JSON.stringify({pg_payment_id: paymentID}),
             timeout: 5000
           }).done(function(data) {
-            console.log("Payment successful. Invoice received from server")
-          });
+            console.log("Payment confirmation recd from server");
+            boxoffice.ractive.set({
+              'tabs.payment.active': false,
+              'tabs.payment.complete': true,
+              'tabs.confirm.active': true });
+            });
         },
         checkout: function(event) {
           event.original.preventDefault();
           //Cancel TicketSelection.refresh timer
           var formElements = $('#buyer-details-form').serializeArray();
           var formDataValid = true;
-          var formData ={};
+          var formData = {};
 
           for (var formIndex=0; formIndex < formElements.length; formIndex++) {
             if(formElements[formIndex].value === "" || formElements[formIndex].value === "+91") {
@@ -173,14 +175,9 @@ $(function(){
 
           }
           if(formDataValid) {
-            boxoffice.ractive.set({
-              'order.name': formData.name,
-              'order.email': formData.email,
-              'order.phone': formData.number });
             boxoffice.ractive.set('tabs.payment.errorMsg', '');
 
             console.log('Purchase order', boxoffice.ractive.get('order'));
-            console.log('order url', boxofficeInventoryUrl + '/order');
 
             $.post({
               url: boxofficeInventoryUrl + '/order',
@@ -189,10 +186,11 @@ $(function(){
               data: JSON.stringify(boxoffice.ractive.get('order')),
               timeout: 5000
             }).done(function(data) {
-              console.log("Response recd from server", data);
+              console.log("Order recd from server", data);
 
-              boxoffice.ractive.set('order.order_id', data.order_id);
+              boxoffice.ractive.set('order.id', data.order_id);
               // To be done. Set user_id, tax, price, date
+              var paymentUrl = data.payment_url;
 
               var razorPayOptions = {
                 "key": "rzp_test_zQVCK9beh4cNp3",
@@ -201,8 +199,8 @@ $(function(){
                 "name": "HasGeek",
                 "description": inventory,
                 "image": "https://hasgeek.com/static/img/hg-banner.png",
-                "handler": function (response) {
-                  boxoffice.ractive.confirmPayment(response.razorpay_payment_id);
+                "handler": function (data) {
+                  boxoffice.ractive.confirmPayment(paymentUrl, data.razorpay_payment_id);
                 },
                 "modal.ondismiss": {
                   "ondismiss": function(){
