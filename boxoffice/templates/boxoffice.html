@@ -55,6 +55,7 @@
         </div>
         <hr>
         <div class="ticket-total clearfix">
+        <!-- <p class="tax">Service Tax: <i class="fa fa-inr"></i> {{ order.tax }}</p> -->
           <p class="price">Total : <span class="pull-right"><i class="fa fa-inr"></i> {{ order.price }}</span></p>
         </div>
         {{#complete}}
@@ -66,29 +67,33 @@
       </div>
     {{elseif id === 'boxoffice-payment' && active}}
       <div id='{{id}}' class="boxoffice-section clearfix active" intro='fly:{"x":600,"y":"0"}'>
+        <p class="buyer-form">Buyer Details</p>
         <form class="form-horizontal" role="form" id="buyer-details-form" on-submit="checkout(event)">
           <div class="form-group">
             <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
-              <input type="text" class="form-control buyer-fields secondary" name="name" required {{#order.name}} value = {{order.name }} {{/}} placeholder="Name"/>
+              <input type="text" class="form-control buyer-fields secondary" name="name" required value = {{order.name }} placeholder="Name"/>
             </div>
           </div>
           <div class="form-group">
             <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
-              <input type="text" class="form-control buyer-fields secondary" name="email" required {{#order.email}} value = {{order.email }} {{/}} placeholder="Email"/>
+              <input type="text" class="form-control buyer-fields secondary" name="email" required value = {{order.email }} placeholder="Email"/>
             </div>
           </div>
           <div class="form-group phone-number-wrapper">
             <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
-              <input type="text" class="form-control buyer-fields secondary" name="number" required {{#order.phone}} value = {{order.phone }} {{/}} placeholder="Phone number" value="+91"/>
+              <input type="text" class="form-control buyer-fields secondary" name="number" required value = {{order.phone }} placeholder="Phone"/>
             </div>
           </div>
           <div class="checkout-confirmation col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
             <p class="summary">Booking Summary</p>
-            <p class="ticket-summary"><b>{{totalTickets}}</b> {{#if totalTickets > 1}}tickets{{else}} ticket {{/if}}</p>
-            <hr>
-            <p class="tax">Service Tax: <i class="icon icon-inr"></i> {{ order.tax }}</p>
-            <hr>
-            <p class="price">Amount Payable: <b><i class="icon icon-inr"></i> {{ order.price }}</b></p>
+            {{#order.line_items}} {{# { line_item: . } }}
+              {{#if line_item.quantity > 0 }}
+              <p class="booked-ticket-title"><i class="fa fa-ticket"></i>{{ line_item.title }}<p>
+              <p class="booked-ticket-qty">Qty: {{ line_item.quantity }}</p>
+              {{/if}}
+            {{/}}{{/order.line_items}}
+            <!-- <p class="tax">Service Tax: <i class="fa fa-inr"></i> {{ order.tax }}</p> -->
+            <p class="price">Amount Payable: <b><i class="fa fa-inr"></i> {{ order.price }}</b></p>
           </div>
           <div class="proceed-button-wrapper">
             <button class="box-widget-button-info edit-order" on-click="showSelectTickets(event)">Edit order</button>
@@ -98,8 +103,10 @@
         </form> 
         <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
       </div>
-    {{elseif id === 'boxoffice-attendee-details' && active}}
-      Attendee Details        
+    {{elseif id === 'boxoffice-confirm' && active}}
+      <div id='{{id}}' class="boxoffice-section clearfix active" intro='fly:{"x":600,"y":"0"}'>
+        <p class="confirmation">Confirmation Message</p>
+      </div>      
     {{/if}}
   {{/}}
 </div>
@@ -117,6 +124,7 @@
     border-radius: 5px;
     padding: 6px 12px;
     color: #fff;
+    font-size: 17px;
   }
   .box-widget-button-info {
     background: #E05F26;
@@ -127,6 +135,7 @@
     border-radius: 5px;
     padding: 6px 12px;
     color: #fff;
+    font-size: 15px;
   }
   .payment-progress-wrapper {
     background-color: #463850;
@@ -243,6 +252,7 @@
     border: 2px solid #ccc;
     border-top-width: 0;
     display: none;
+    min-height: 450px;
   }
   .boxoffice-section.active {
     display: block;
@@ -343,6 +353,13 @@
 
   .ticket-title {
     font-size: 20px;
+    margin-top: 10px;
+  }
+
+  @media (min-width: 768px) {
+    .ticket-title {
+      margin-top: 20px;
+    }
   }
 
   .ticket-type, .ticket-date
@@ -357,8 +374,14 @@
 
   .ticket-price, .ticket-qty-wrapper {
     font-size: 18px;
-    margin-top: 20px;
+    margin-top: 10px;
     display: inline-block;
+  }
+
+  @media (min-width: 768px) {
+    .ticket-price, .ticket-qty-wrapper {
+      margin-top: 20px;
+    }
   }
 
   .ticket-qty-wrapper {
@@ -466,6 +489,7 @@
 
   .tax, .price, .buyer-fields {
     font-size: 15px;
+    margin: 0;
   }
 
   .proceed-button-wrapper {
@@ -483,5 +507,31 @@
     height: 20px;
     float: right;
     margin: 0px 0 10px;
+  }
+
+  .buyer-form, .summary {
+    text-align: center;
+    font-size: 20px;
+    margin: 10px 0;
+  }
+  @media (min-width: 768px) {
+    .buyer-form, .summary {
+      margin: 20px 0;
+    }
+  }
+  .booked-ticket-title {
+    font-size: 16px;
+  }
+  .booked-ticket-title .fa-ticket {
+    padding-right: 10px;
+  }
+  .booked-ticket-qty {
+    font-size: 13px;
+    color: #999;
+    border-bottom: 1px dotted #CCC;
+    padding: 0 0 10px 26px;
+  }
+  .confirmation {
+    text-align: center;
   }
 </style>
