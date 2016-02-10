@@ -7,7 +7,7 @@ from boxoffice import app
 from boxoffice.models import db, Organization, Item, Category, Inventory, Price, User
 from boxoffice.models.order import Order, Payment, Transaction
 
-ALLOWED_ORIGINS = [app.config.get('ALLOWED_DOMAINS')]
+ALLOWED_ORIGINS = ['http://shreyas-wlan.dev:8000']
 
 
 def item_json(item):
@@ -37,7 +37,8 @@ def category_json(category):
 
 @app.route('/boxoffice.js')
 def boxofficejs():
-    return render_template('boxoffice.js', base_url=app.config.get('BASE_URL'))
+    return render_template('boxoffice.js',
+        base_url=app.config.get('BASE_URL'), razorpay_key_id=app.config.get('RAZORPAY_KEY_ID'))
 
 
 @app.route('/<organization>/<inventory>')
@@ -45,6 +46,7 @@ def boxofficejs():
     (Organization, {'name': 'organization'}, 'organization'),
     (Inventory, {'name': 'inventory'}, 'inventory')
     )
+@cross_origin(origins=app.config.get('ALLOWED_ORIGINS'))
 def inventory(organization, inventory):
     return jsonp(**{
         'html': render_template('boxoffice.html'),
@@ -57,8 +59,7 @@ def inventory(organization, inventory):
     (Organization, {'name': 'organization'}, 'organization'),
     (Inventory, {'name': 'inventory'}, 'inventory')
     )
-# @cross_origin(origins=ALLOWED_ORIGINS, allow_headers=['Content-Type'])
-@cross_origin(allow_headers=['Content-Type'])
+@cross_origin(origins=ALLOWED_ORIGINS)
 def order(organization, inventory):
     # change to get user
     user = User.query.first()
@@ -78,7 +79,7 @@ def order(organization, inventory):
 @load_models(
     (Order, {'id': 'order'}, 'order')
     )
-@cross_origin(allow_headers=['Content-Type'])
+@cross_origin(origins=ALLOWED_ORIGINS)
 def payment(order):
     form_values = request.form.to_dict().keys()
     pg_payment_id = json.loads(form_values[0]).get('pg_payment_id')
@@ -104,7 +105,7 @@ def payment(order):
 @load_models(
     (Order, {'id': 'order'}, 'order')
     )
-@cross_origin(allow_headers=['Content-Type'])
+@cross_origin(origins=ALLOWED_ORIGINS)
 def cancel(order):
     # line_items_dict = [{id: '', quantity: 3, name: ''}, {id: '', quantity: 4, name: ''}]
     # for line_item_dict in line_items_dict:
@@ -124,7 +125,7 @@ def cancel(order):
 @load_models(
     (Order, {'id': 'order'}, 'order')
     )
-@cross_origin(allow_headers=['Content-Type'])
+@cross_origin(origins=app.config.get('ALLOWED_ORIGINS'))
 def invoice(order):
     pass
     # render_template('invoice.html', order=order)
