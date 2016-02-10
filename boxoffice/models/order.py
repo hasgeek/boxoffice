@@ -1,3 +1,4 @@
+import datetime
 import decimal
 from collections import namedtuple
 from boxoffice.models import db, BaseMixin, User, Item, Inventory, Price
@@ -22,6 +23,12 @@ class Order(BaseMixin, db.Model):
     inventory_id = db.Column(None, db.ForeignKey('inventory.id'), nullable=False)
     inventory = db.relationship(Inventory, backref=db.backref('orders', cascade='all, delete-orphan'))
     status = db.Column(db.Integer, default=ORDER_STATUS.PURCHASE_ORDER, nullable=False)
+    invoiced_at = db.Column(db.DateTime, nullable=True)
+
+    def invoice(self):
+        """Sets the invoiced_at and status"""
+        self.invoiced_at = datetime.datetime.now()
+        self.status = ORDER_STATUS.INVOICE
 
     def calculate(self):
         """

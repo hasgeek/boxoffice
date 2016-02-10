@@ -98,6 +98,8 @@ def payment(order):
         db.session.add(payment)
         transaction = Transaction(order=order, payment=payment, amount=order_amounts.final_amount)
         db.session.add(transaction)
+        order.invoice()
+        db.session.add(order)
         db.session.commit()
         return jsonify(code=200)
     else:
