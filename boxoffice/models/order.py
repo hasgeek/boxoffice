@@ -1,4 +1,5 @@
 import decimal
+from collections import namedtuple
 from boxoffice.models import db, BaseMixin, User, Item, Inventory, Price
 from coaster.utils import LabeledEnum
 from baseframe import __
@@ -21,24 +22,21 @@ class Order(BaseMixin, db.Model):
     inventory_id = db.Column(None, db.ForeignKey('inventory.id'), nullable=False)
     inventory = db.relationship(Inventory, backref=db.backref('orders', cascade='all, delete-orphan'))
     status = db.Column(db.Integer, default=ORDER_STATUS.PURCHASE_ORDER, nullable=False)
-    base_amount = db.Column(db.Numeric, default=decimal.Decimal(0), nullable=False)
-    discounted_amount = db.Column(db.Numeric, default=decimal.Decimal(0), nullable=False)
-    final_amount = db.Column(db.Numeric, default=decimal.Decimal(0), nullable=False)
 
-    def calculate(self, line_items):
+    def calculate(self):
         """
-        - Creates line items given an array of line item dicts with item name and quantity
-        - Calculates and sets the order's base_amount, discounted_amount and final_amount
-        TODO: Calculate this whenever line item is touched
+        Calculates and returns the order's base_amount, discounted_amount and final_amount
+        as a namedtuple
         """
-        for line_item in line_items:
-            item = Item.get(self.inventory, line_item.get('name'))
-            line_item = LineItem(item=item, order=self, quantity=line_item.get('quantity'))
-            line_item.calculate()
-
-            self.base_amount = self.base_amount + line_item.base_amount
-            self.discounted_amount = self.discounted_amount + line_item.discounted_amount
-            self.final_amount = self.final_amount + line_item.final_amount
+        base_amount = (decimal.Decimal(0))
+        discounted_amount = (decimal.Decimal(0))
+        final_amount = (decimal.Decimal(0))
+        for line_item in self.line_items:
+            base_amount = base_amount + line_item.base_amount
+            discounted_amount = discounted_amount + line_item.discounted_amount
+            final_amount = final_amount + line_item.final_amount
+        order_amounts = namedtuple('OrderAmounts', ['base_amount', 'discounted_amount', 'final_amount'])
+        return order_amounts(base_amount, discounted_amount, final_amount)
 
 
 class LINE_ITEM_STATUS(LabeledEnum):
@@ -62,7 +60,7 @@ class LineItem(BaseMixin, db.Model):
     status = db.Column(db.Integer, default=LINE_ITEM_STATUS.CONFIRMED, nullable=False)
     # tax_amount = db.Column(db.Numeric, default=0.0, nullable=False)
 
-    def calculate(self):
+    def set_amounts(self):
         # TODO: What if the price changes by the time the computation below happens?
         self.base_amount = Price.current(self.item).amount * self.quantity
         for discount_policy in self.item.discount_policies:
