@@ -1,5 +1,6 @@
 import datetime
 import decimal
+import humanhash
 from collections import namedtuple
 from boxoffice.models import db, BaseMixin, User, Item, Inventory, Price
 from coaster.utils import LabeledEnum
@@ -15,20 +16,33 @@ class ORDER_STATUS(LabeledEnum):
     CANCELLED = (3, __("Cancelled Order"))
 
 
+def generate_humanhash(prefix=None, words=4):
+    """
+    Generate a human-readable hash with an optional prefix and word count.
+    """
+    if prefix:
+        return unicode(prefix) + u'-' + unicode(humanhash.uuid(words=words)[0])
+    return unicode(humanhash.uuid(words=words))
+
+
 class Order(BaseMixin, db.Model):
     __tablename__ = 'order'
     __uuid_primary_key__ = True
+    __tableargs__ = (db.UniqueConstraint('inventory_id', 'order_hash'),)
+
     user_id = db.Column(None, db.ForeignKey('user.id'))
     user = db.relationship(User, backref=db.backref('orders', cascade='all, delete-orphan'))
     inventory_id = db.Column(None, db.ForeignKey('inventory.id'), nullable=False)
     inventory = db.relationship(Inventory, backref=db.backref('orders', cascade='all, delete-orphan'))
     status = db.Column(db.Integer, default=ORDER_STATUS.PURCHASE_ORDER, nullable=False)
     invoiced_at = db.Column(db.DateTime, nullable=True)
+    order_hash = db.Column(db.Unicode(120), nullable=True)
 
     def invoice(self):
         """Sets the invoiced_at and status"""
         self.invoiced_at = datetime.datetime.now()
         self.status = ORDER_STATUS.INVOICE
+        self.order_hash = generate_humanhash(self.inventory.name)
 
     def calculate(self):
         """
@@ -75,14 +89,12 @@ class LineItem(BaseMixin, db.Model):
                 self.discounted_amount = (discount_policy.percentage * self.base_amount)/decimal.Decimal(100.0)
         self.final_amount = self.base_amount - self.discounted_amount
 
-
     def cancel(self):
         """
         Sets the status to LINE_ITEM_STATUS.CANCELLED. To update the quantity
         create, a new line item with the required quantity
         """
         self.status = LINE_ITEM_STATUS.CANCELLED
-
 
     @classmethod
     def confirmed(cls, order):
