@@ -1,13 +1,14 @@
 import json
 import requests
-from flask import redirect, url_for, render_template, request, jsonify
+from flask import url_for, render_template, request, jsonify
 from flask.ext.cors import cross_origin
 from coaster.views import load_models, jsonp
 from boxoffice import app
 from boxoffice.models import db, Organization, Item, Category, Inventory, Price, User
-from boxoffice.models.order import Order, LineItem, Payment, Transaction
+from boxoffice.models.order import Order, Payment, Transaction
 
 ALLOWED_ORIGINS = ['http://shreyas-wlan.dev:8000']
+
 
 def item_json(item):
     price = Price.current(item)
@@ -34,10 +35,10 @@ def category_json(category):
     }
 
 
-
 @app.route('/boxoffice.js')
 def boxofficejs():
     return render_template('boxoffice.js', base_url=app.config.get('BASE_URL'))
+
 
 @app.route('/<organization>/<inventory>')
 @load_models(
@@ -45,12 +46,11 @@ def boxofficejs():
     (Inventory, {'name': 'inventory'}, 'inventory')
     )
 def inventory(organization, inventory):
-    items = inventory.items
-    categories = inventory.categories
     return jsonp(**{
         'html': render_template('boxoffice.html'),
         'categories': [category_json(category) for category in inventory.categories]
         })
+
 
 @app.route('/<organization>/<inventory>/order', methods=['GET', 'OPTIONS', 'POST'])
 @load_models(
@@ -79,19 +79,18 @@ def order(organization, inventory):
     )
 @cross_origin(origins=ALLOWED_ORIGINS)
 def payment(order):
-    # change to get user
-    user = User.query.first()
     form_values = request.form.to_dict().keys()
     pg_payment_id = json.loads(form_values[0]).get('pg_payment_id')
     payment = Payment(pg_payment_id=pg_payment_id, order=order)
-
     url = 'https://api.razorpay.com/v1/payments/{pg_payment_id}/capture'.format(pg_payment_id=payment.pg_payment_id)
-    resp = requests.post(url, data={'amount':payment.order.final_amount*100}, auth=(app.config.get('RAZORPAY_KEY_ID'), app.config.get('RAZORPAY_KEY_SECRET')))
+    # Razorpay requires the amount to be in paisa
+    resp = requests.post(url, data={'amount': payment.order.final_amount*100},
+            auth=(app.config.get('RAZORPAY_KEY_ID'), app.config.get('RAZORPAY_KEY_SECRET')))
 
     if resp.status_code == 200:
         payment.capture()
         db.session.add(payment)
-        transaction = Transaction(payment=payment, amount=order.final_amount)
+        transaction = Transaction(order=order, payment=payment, amount=order.final_amount)
         db.session.add(transaction)
         db.session.commit()
         return jsonify(code=200)
