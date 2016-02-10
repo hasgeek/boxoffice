@@ -1,8 +1,6 @@
 import decimal
-import requests
 from boxoffice.models import db, BaseMixin, User, Item, Inventory, Price
 from coaster.utils import LabeledEnum
-from coaster.sqlalchemy import JsonDict
 from baseframe import __
 
 __all__ = ['Order', 'LineItem', 'Transaction']
@@ -21,8 +19,7 @@ class Order(BaseMixin, db.Model):
     user_id = db.Column(None, db.ForeignKey('user.id'))
     user = db.relationship(User, backref=db.backref('orders', cascade='all, delete-orphan'))
     inventory_id = db.Column(None, db.ForeignKey('inventory.id'), nullable=False)
-    inventory = db.relationship(Inventory,
-        backref=db.backref('orders', cascade='all, delete-orphan'))
+    inventory = db.relationship(Inventory, backref=db.backref('orders', cascade='all, delete-orphan'))
     status = db.Column(db.Integer, default=ORDER_STATUS.PURCHASE_ORDER, nullable=False)
     base_amount = db.Column(db.Numeric, default=decimal.Decimal(0), nullable=False)
     discounted_amount = db.Column(db.Numeric, default=decimal.Decimal(0), nullable=False)
@@ -65,7 +62,6 @@ class LineItem(BaseMixin, db.Model):
     status = db.Column(db.Integer, default=LINE_ITEM_STATUS.CONFIRMED, nullable=False)
     # tax_amount = db.Column(db.Numeric, default=0.0, nullable=False)
 
-
     def calculate(self):
         # TODO: What if the price changes by the time the computation below happens?
         self.base_amount = Price.current(self.item).amount * self.quantity
@@ -105,6 +101,9 @@ class PAYMENT_TYPES(LabeledEnum):
 
 
 class Payment(BaseMixin, db.Model):
+    """
+    Represents online payments made through Razorpay.
+    """
     __tablename__ = 'payment'
     __uuid_primary_key__ = True
     order_id = db.Column(None, db.ForeignKey('order.id'))
@@ -117,13 +116,16 @@ class Payment(BaseMixin, db.Model):
     def is_captured(self):
         return self.status == PAYMENT_TYPES.CAPTURED
 
-
     def capture(self):
         self.status = PAYMENT_TYPES.CAPTURED
 
-
     def fail(self):
         self.status = PAYMENT_TYPES.FAILED
+
+
+class TRANSACTION_METHODS(LabeledEnum):
+    ONLINE = (0, __("Online"))
+    CASH = (1, __("Cash"))
 
 
 class TRANSACTION_TYPES(LabeledEnum):
@@ -140,8 +142,11 @@ class Transaction(BaseMixin, db.Model):
     __tablename__ = 'transaction'
     __uuid_primary_key__ = True
 
-    payment_id = db.Column(None, db.ForeignKey('payment.id'), nullable=False)
+    order_id = db.Column(None, db.ForeignKey('order.id'))
+    order = db.relationship(Order, backref=db.backref('transactions', cascade='all, delete-orphan', lazy="dynamic"))
+    payment_id = db.Column(None, db.ForeignKey('payment.id'), nullable=True)
     payment = db.relationship(Payment, backref=db.backref('transactions', cascade='all, delete-orphan'))
     amount = db.Column(db.Numeric, default=decimal.Decimal(0), nullable=False)
     currency = db.Column(db.Unicode(3), nullable=False, default=u'INR')
     transaction_type = db.Column(db.Integer, default=TRANSACTION_TYPES.PAYMENT, nullable=False)
+    transaction_method = db.Column(db.Integer, default=TRANSACTION_METHODS.ONLINE, nullable=False)
