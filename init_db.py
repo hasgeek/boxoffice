@@ -59,7 +59,7 @@ dns_workshop_price = Price(item=dns_workshop, title='DNSSEC workshop early', val
 db.session.add(dns_workshop_price)
 db.session.commit()
 
-policy = DiscountPolicy(title='10% discount on rootconf', item_quantity_min=1, item_quantity_max=1, percentage=10, inventory=rc2016)
+policy = DiscountPolicy(title='10% discount on rootconf', item_quantity_min=10, item_quantity_max=10, percentage=10, inventory=rc2016)
 policy.items.append(conf_ticket)
 db.session.add(policy)
 db.session.commit()
