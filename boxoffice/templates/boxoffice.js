@@ -199,16 +199,15 @@ $(function(){
             data: JSON.stringify(boxoffice.ractive.get('order')),
             timeout: 5000
           }).done(function(data) {
-            console.log("Order recd from server", data);
-
             boxoffice.ractive.set('order.id', data.order_id);
+            boxoffice.ractive.set('order.price', data.final_amount/100);
             // To be done. Set user_id, tax, price, date
             var paymentUrl = data.payment_url;
 
             var razorPayOptions = {
               "key": boxoffice.config.razorpayKeyId,
               //Razorpay expects amount in paisa
-              "amount": boxoffice.ractive.get('order.price') * 100,
+              "amount": boxoffice.ractive.get('order.price')*100,
               "name": "HasGeek",
               "description": inventory,
               "image": boxoffice.config.razorpayBanner,

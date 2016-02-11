@@ -31,7 +31,10 @@ def order(organization, inventory):
             line_item.set_amounts()
         db.session.add(order)
         db.session.commit()
-        return jsonify(code=200, order_id=order.id, payment_url=url_for('payment', order=order.id))
+        order_amounts = order.calculate()
+        return jsonify(code=200, order_id=order.id,
+                       payment_url=url_for('payment', order=order.id),
+                       final_amount=order_amounts.final_amount*100)
 
 
 @app.route('/<order>/payment', methods=['GET', 'OPTIONS', 'POST'])
@@ -48,6 +51,7 @@ def payment(order):
     # Razorpay requires the amount to be in paisa
     resp = requests.post(url, data={'amount': order_amounts.final_amount*100},
             auth=(app.config.get('RAZORPAY_KEY_ID'), app.config.get('RAZORPAY_KEY_SECRET')))
+    # import IPython; IPython.embed()
 
     if resp.status_code == 200:
         payment.capture()
@@ -89,4 +93,4 @@ def cancel(order):
     )
 @cross_origin(origins=app.config.get('ALLOWED_ORIGINS'))
 def invoice(order):
-    render_template('invoice.html', order=order)
+    return render_template('invoice.html', order=order)
