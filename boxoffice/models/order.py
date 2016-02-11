@@ -39,7 +39,7 @@ class Order(BaseMixin, db.Model):
     order_hash = db.Column(db.Unicode(120), nullable=True)
 
     def invoice(self):
-        """Sets the invoiced_at and status"""
+        """Sets invoiced_at, status and order_hash"""
         self.invoiced_at = datetime.datetime.now()
         self.status = ORDER_STATUS.INVOICE
         self.order_hash = generate_humanhash(self.inventory.name)

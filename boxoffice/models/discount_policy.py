@@ -1,4 +1,4 @@
-from boxoffice.models import db, BaseNameMixin, IdMixin
+from boxoffice.models import db, BaseScopedNameMixin, IdMixin
 from datetime import datetime
 from boxoffice.models import Inventory
 from baseframe import __
@@ -26,24 +26,28 @@ item_discount_policy = db.Table('item_discount_policy', db.Model.metadata,
     )
 
 
-class DiscountPolicy(BaseNameMixin, db.Model):
+class DiscountPolicy(BaseScopedNameMixin, db.Model):
     """
     Consists of discount rules for prices applied on items
     """
     __tablename__ = 'discount_policy'
     __uuid_primary_key__ = True
-    __table_args__ = (db.CheckConstraint('percentage <= 100', 'percentage_bound_upper'), db.CheckConstraint('percentage > 0', 'percentage_bound_lower'))
+    __table_args__ = (db.UniqueConstraint('inventory_id', 'name'),
+        db.CheckConstraint('percentage <= 100', 'percentage_bound_upper'),
+        db.CheckConstraint('percentage > 0', 'percentage_bound_lower'))
 
     inventory_id = db.Column(None, db.ForeignKey('inventory.id'), nullable=False)
     inventory = db.relationship(Inventory,
         backref=db.backref('discount_policies', cascade='all, delete-orphan'))
+    parent = db.synonym('inventory')
 
     discount_type = db.Column(db.Integer, default=DISCOUNTTYPES.AUTOMATIC, nullable=False)
+
 
     # Minimum and maximum number of items for which the discount policy applies
     item_quantity_min = db.Column(db.Integer, default=1, nullable=False)
     item_quantity_max = db.Column(db.Integer, nullable=True)
-    percentage = db.Column(db.Integer, nullable=True)
+    percentage = db.Column(db.Integer, nullable=False)
     items = db.relationship('Item', secondary=item_discount_policy)
 
     def __repr__(self):

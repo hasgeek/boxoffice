@@ -7,7 +7,7 @@ __all__ = ['Category']
 class Category(BaseScopedNameMixin, db.Model):
     __tablename__ = 'category'
     __uuid_primary_key__ = True
-    __tableargs__ = (db.UniqueConstraint('inventory_id', 'name'))
+    __tableargs__ = (db.UniqueConstraint('inventory_id', 'name'),)
 
     inventory_id = db.Column(None, db.ForeignKey('inventory.id'), nullable=False)
     inventory = db.relationship(Inventory,
