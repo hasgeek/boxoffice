@@ -66,9 +66,12 @@
         <p class="stage-error-msg text-danger">{{errorMsg}}</p>
       </div>
     {{elseif id === 'boxoffice-payment' && active}}
+      {{#loadingPaymentConfirmation}}
+        <div class="loader"><i class="fa fa-spinner fa-spin fa-3x"></i></div>
+      {{/}}
       <div id='{{id}}' class="boxoffice-section clearfix active" intro='fly:{"x":600,"y":"0"}'>
         <p class="buyer-form">Buyer Details</p>
-        <form class="form-horizontal" role="form" id="buyer-details-form" on-submit="checkout(event)">
+        <form class="form-horizontal" role="form" id="buyer-details-form" name="buyer-form">
           <div class="form-group">
             <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
               <input type="text" class="form-control buyer-fields secondary" name="name" required value = {{order.name }} placeholder="Name"/>
@@ -81,7 +84,7 @@
           </div>
           <div class="form-group phone-number-wrapper">
             <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
-              <input type="text" class="form-control buyer-fields secondary" name="number" required value = {{order.phone }} placeholder="Phone"/>
+              <input type="text" class="form-control buyer-fields secondary" name="phone" required value = {{order.phone }} placeholder="Phone"/>
             </div>
           </div>
           <div class="checkout-confirmation col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
@@ -106,6 +109,7 @@
     {{elseif id === 'boxoffice-confirm' && active}}
       <div id='{{id}}' class="boxoffice-section clearfix active" intro='fly:{"x":600,"y":"0"}'>
         <p class="confirmation">Confirmation Message</p>
+        <p class="confirmation"><a href="{{ invoiceURL }}" target="_blank">Invoice</a></p>
       </div>      
     {{/if}}
   {{/}}
@@ -236,7 +240,7 @@
   }
 
   .progress-indicator>li a:hover .bubble {
-      color: #5671d0
+      color: #5671d0;
   }
   @media handheld,
   screen and (max-width:400px) {
@@ -246,6 +250,7 @@
   }
   .payment-stages-wrapper {
     overflow: hidden;
+    position: relative;
   }
   .boxoffice-section {
     padding: 20px;
@@ -530,6 +535,21 @@
     color: #999;
     border-bottom: 1px dotted #CCC;
     padding: 0 0 10px 26px;
+  }
+  .loader {
+    position: absolute;
+    right: 0px;
+    z-index: 1000;
+    height: 100%;
+    top: 0px;
+    left: 0px;
+    background: rgba(255, 255, 255, 0.8);
+  }
+  .loader .fa-spin {
+    position: relative;
+    color: #000;
+    top: 43%;
+    left: 48%;
   }
   .confirmation {
     text-align: center;

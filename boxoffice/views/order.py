@@ -1,13 +1,13 @@
 import json
 import requests
-from flask import url_for, request, jsonify
+from flask import url_for, request, jsonify, render_template
 from flask.ext.cors import cross_origin
 from coaster.views import load_models
 from boxoffice import app
 from boxoffice.models import db, Organization, Item, Inventory, User, LineItem
 from boxoffice.models.order import Order, Payment, Transaction
 
-ALLOWED_ORIGINS = ['http://shreyas-wlan.dev:8000']
+ALLOWED_ORIGINS = ['http://shreyas-wlan.dev:8000', 'http://rootconf.vidya.dev:8090']
 
 
 @app.route('/<organization>/<inventory>/order', methods=['GET', 'OPTIONS', 'POST'])
@@ -89,5 +89,4 @@ def cancel(order):
     )
 @cross_origin(origins=app.config.get('ALLOWED_ORIGINS'))
 def invoice(order):
-    pass
-    # render_template('invoice.html', order=order)
+    render_template('invoice.html', order=order)

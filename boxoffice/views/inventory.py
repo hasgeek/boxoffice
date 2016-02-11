@@ -4,7 +4,7 @@ from coaster.views import load_models, jsonp
 from boxoffice import app
 from boxoffice.models import Organization, Inventory, Price
 
-ALLOWED_ORIGINS = ['http://shreyas-wlan.dev:8000']
+ALLOWED_ORIGINS = ['http://shreyas-wlan.dev:8000', 'http://rootconf.vidya.dev:8090']
 
 
 def item_json(item):
