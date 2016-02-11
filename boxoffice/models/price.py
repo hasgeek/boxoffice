@@ -1,16 +1,19 @@
 import decimal
-from boxoffice.models import db, BaseNameMixin, Item
+from boxoffice.models import db, BaseScopedNameMixin, Item
 from datetime import datetime
 
 __all__ = ['Price']
 
 
-class Price(BaseNameMixin, db.Model):
+class Price(BaseScopedNameMixin, db.Model):
     __tablename__ = 'price'
     __uuid_primary_key__ = True
+    __tableargs__ = (db.UniqueConstraint('item_id', 'name'),
+        db.CheckConstraint('valid_from < valid_to', 'validity_bound'))
 
     item_id = db.Column(None, db.ForeignKey('item.id'), nullable=False)
     item = db.relationship(Item, backref=db.backref('prices', cascade='all, delete-orphan'))
+    parent = db.synonym('item')
     valid_from = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     valid_upto = db.Column(db.DateTime, nullable=False)
 

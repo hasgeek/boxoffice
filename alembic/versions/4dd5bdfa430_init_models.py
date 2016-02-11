@@ -1,18 +1,19 @@
-"""init models
+"""init_models
 
-Revision ID: 19731610c82d
+Revision ID: 4dd5bdfa430
 Revises: None
-Create Date: 2016-02-06 16:26:51.769047
+Create Date: 2016-02-11 13:15:36.919774
 
 """
 
-revision = '19731610c82d'
+revision = '4dd5bdfa430'
 down_revision = None
 
 from alembic import op
 import sqlalchemy as sa
-import coaster
 import sqlalchemy_utils
+import coaster
+
 
 def upgrade():
     op.create_table('organization',
@@ -55,7 +56,8 @@ def upgrade():
     sa.Column('title', sa.Unicode(length=250), nullable=False),
     sa.Column('id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
     sa.ForeignKeyConstraint(['organization_id'], ['organization.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('organization_id', 'name')
     )
     op.create_table('category',
     sa.Column('created_at', sa.DateTime(), nullable=False),
@@ -65,7 +67,8 @@ def upgrade():
     sa.Column('title', sa.Unicode(length=250), nullable=False),
     sa.Column('id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
     sa.ForeignKeyConstraint(['inventory_id'], ['inventory.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('inventory_id', 'name')
     )
     op.create_table('discount_policy',
     sa.Column('created_at', sa.DateTime(), nullable=False),
@@ -74,7 +77,7 @@ def upgrade():
     sa.Column('discount_type', sa.Integer(), nullable=False),
     sa.Column('item_quantity_min', sa.Integer(), nullable=False),
     sa.Column('item_quantity_max', sa.Integer(), nullable=True),
-    sa.Column('percentage', sa.Integer(), nullable=True),
+    sa.Column('percentage', sa.Integer(), nullable=False),
     sa.Column('name', sa.Unicode(length=250), nullable=False),
     sa.Column('title', sa.Unicode(length=250), nullable=False),
     sa.Column('id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
@@ -82,7 +85,20 @@ def upgrade():
     sa.CheckConstraint(u'percentage > 0', name='percentage_bound_lower'),
     sa.ForeignKeyConstraint(['inventory_id'], ['inventory.id'], ),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('name')
+    sa.UniqueConstraint('inventory_id', 'name')
+    )
+    op.create_table('order',
+    sa.Column('created_at', sa.DateTime(), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), nullable=False),
+    sa.Column('user_id', sa.Integer(), nullable=True),
+    sa.Column('inventory_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
+    sa.Column('status', sa.Integer(), nullable=False),
+    sa.Column('invoiced_at', sa.DateTime(), nullable=True),
+    sa.Column('order_hash', sa.Unicode(length=120), nullable=True),
+    sa.Column('id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
+    sa.ForeignKeyConstraint(['inventory_id'], ['inventory.id'], ),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
+    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('discount_coupon',
     sa.Column('code', sa.Unicode(length=6), nullable=False),
@@ -106,8 +122,20 @@ def upgrade():
     sa.Column('name', sa.Unicode(length=250), nullable=False),
     sa.Column('title', sa.Unicode(length=250), nullable=False),
     sa.Column('id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
+    sa.CheckConstraint(u'quantity_available <= quantity_total', name='quantity_bound'),
     sa.ForeignKeyConstraint(['category_id'], ['category.id'], ),
     sa.ForeignKeyConstraint(['inventory_id'], ['inventory.id'], ),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('inventory_id', 'name')
+    )
+    op.create_table('payment',
+    sa.Column('created_at', sa.DateTime(), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), nullable=False),
+    sa.Column('order_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=True),
+    sa.Column('pg_payment_id', sa.Unicode(length=80), nullable=False),
+    sa.Column('status', sa.Integer(), nullable=False),
+    sa.Column('id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
+    sa.ForeignKeyConstraint(['order_id'], ['order.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('item_discount_policy',
@@ -118,6 +146,21 @@ def upgrade():
     sa.ForeignKeyConstraint(['item_id'], ['item.id'], ),
     sa.PrimaryKeyConstraint('item_id', 'discount_policy_id')
     )
+    op.create_table('line_item',
+    sa.Column('created_at', sa.DateTime(), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), nullable=False),
+    sa.Column('order_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=True),
+    sa.Column('item_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=True),
+    sa.Column('quantity', sa.Integer(), nullable=False),
+    sa.Column('base_amount', sa.Numeric(), nullable=False),
+    sa.Column('discounted_amount', sa.Numeric(), nullable=False),
+    sa.Column('final_amount', sa.Numeric(), nullable=False),
+    sa.Column('status', sa.Integer(), nullable=False),
+    sa.Column('id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
+    sa.ForeignKeyConstraint(['item_id'], ['item.id'], ),
+    sa.ForeignKeyConstraint(['order_id'], ['order.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
     op.create_table('price',
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=False),
@@ -125,24 +168,43 @@ def upgrade():
     sa.Column('valid_from', sa.DateTime(), nullable=False),
     sa.Column('valid_upto', sa.DateTime(), nullable=False),
     sa.Column('amount', sa.Numeric(), nullable=False),
-    sa.Column('currency', sa.Unicode(length=3), nullable=False, default=u'INR'),
+    sa.Column('currency', sa.Unicode(length=3), nullable=False),
     sa.Column('name', sa.Unicode(length=250), nullable=False),
     sa.Column('title', sa.Unicode(length=250), nullable=False),
     sa.Column('id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
     sa.CheckConstraint(u'valid_from < valid_upto', name='valid_bound'),
     sa.ForeignKeyConstraint(['item_id'], ['item.id'], ),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('name')
+    sa.UniqueConstraint('item_id', 'name')
+    )
+    op.create_table('transaction',
+    sa.Column('created_at', sa.DateTime(), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), nullable=False),
+    sa.Column('order_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=True),
+    sa.Column('payment_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=True),
+    sa.Column('amount', sa.Numeric(), nullable=False),
+    sa.Column('currency', sa.Unicode(length=3), nullable=False),
+    sa.Column('transaction_type', sa.Integer(), nullable=False),
+    sa.Column('transaction_method', sa.Integer(), nullable=False),
+    sa.Column('id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
+    sa.ForeignKeyConstraint(['order_id'], ['order.id'], ),
+    sa.ForeignKeyConstraint(['payment_id'], ['payment.id'], ),
+    sa.PrimaryKeyConstraint('id')
     )
 
 
 def downgrade():
+    op.drop_table('transaction')
     op.drop_table('price')
+    op.drop_table('line_item')
     op.drop_table('item_discount_policy')
+    op.drop_table('payment')
     op.drop_table('item')
     op.drop_table('discount_coupon')
+    op.drop_table('order')
     op.drop_table('discount_policy')
     op.drop_table('category')
     op.drop_table('inventory')
     op.drop_table('user')
     op.drop_table('organization')
+    ### end Alembic commands ###
