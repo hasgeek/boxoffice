@@ -5,7 +5,7 @@ from coaster.sqlalchemy import BaseMixin, BaseNameMixin, BaseScopedNameMixin, Ba
 from coaster.db import db
 
 from boxoffice.models.user import *
-from boxoffice.models.inventory import *
+from boxoffice.models.item_collection import *
 from boxoffice.models.category import *
 from boxoffice.models.item import *
 from boxoffice.models.price import *

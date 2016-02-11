@@ -1,10 +1,10 @@
 from boxoffice.models import db, BaseScopedNameMixin, Organization
 
-__all__ = ['Inventory']
+__all__ = ['ItemCollection']
 
 
-class Inventory(BaseScopedNameMixin, db.Model):
-    __tablename__ = 'inventory'
+class ItemCollection(BaseScopedNameMixin, db.Model):
+    __tablename__ = 'item_collection'
     __uuid_primary_key__ = True
     __tableargs__ = (db.UniqueConstraint('organization_id', 'name'),)
 

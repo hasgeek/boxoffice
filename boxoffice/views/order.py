@@ -1,33 +1,37 @@
 import json
 import requests
+import datetime
 from flask import url_for, request, jsonify, render_template
 from flask.ext.cors import cross_origin
 from coaster.views import load_models
 from boxoffice import app
-from boxoffice.models import db, Organization, Item, Inventory, User, LineItem
-from boxoffice.models.order import Order, Payment, Transaction
+from boxoffice.models import db, Organization, Item, ItemCollection, User, LineItem
+from boxoffice.models.order import Order, Payment, PaymentTransaction
 
 ALLOWED_ORIGINS = ['http://shreyas-wlan.dev:8000', 'http://rootconf.vidya.dev:8090']
 
 
-@app.route('/<organization>/<inventory>/order', methods=['GET', 'OPTIONS', 'POST'])
+@app.route('/<organization>/<item_collection>/order', methods=['GET', 'OPTIONS', 'POST'])
 @load_models(
     (Organization, {'name': 'organization'}, 'organization'),
-    (Inventory, {'name': 'inventory'}, 'inventory')
+    (ItemCollection, {'name': 'item_collection'}, 'item_collection')
     )
 @cross_origin(origins=ALLOWED_ORIGINS)
-def order(organization, inventory):
+def order(organization, item_collection):
     # change to get user
     user = User.query.first()
-    order = Order(user=user, inventory=inventory)
+    order = Order(user=user, item_collection=item_collection)
     form_values = request.form.to_dict().keys()
     if form_values:
         form_values_json = json.loads(form_values[0])
         # user = User.find_or_create(email=form_values_json.get('email'), phone=form_values_json.get('phone'), name=form_values_json.get('name'))
         # order.user = user
         for line_item in form_values_json.get('line_items'):
-            item = Item.get(order.inventory, line_item.get('name'))
-            line_item = LineItem(item=item, order=order, quantity=line_item.get('quantity'))
+            item = Item.get(order.item_collection, line_item.get('name'))
+            line_item = LineItem(item=item,
+                        order=order,
+                        quantity=line_item.get('quantity'),
+                        ordered_at=datetime.datetime.now())
             line_item.set_amounts()
         db.session.add(order)
         db.session.commit()
@@ -47,16 +51,17 @@ def payment(order):
     pg_payment_id = json.loads(form_values[0]).get('pg_payment_id')
     payment = Payment(pg_payment_id=pg_payment_id, order=order)
     order_amounts = order.calculate()
-    url = 'https://api.razorpay.com/v1/payments/{pg_payment_id}/capture'.format(pg_payment_id=payment.pg_payment_id)
+    url = 'https://api.razorpay.com/v1/payments/{pg_payment_id}/capture'\
+        .format(pg_payment_id=payment.pg_payment_id)
     # Razorpay requires the amount to be in paisa
     resp = requests.post(url, data={'amount': order_amounts.final_amount*100},
-            auth=(app.config.get('RAZORPAY_KEY_ID'), app.config.get('RAZORPAY_KEY_SECRET')))
-    # import IPython; IPython.embed()
+        auth=(app.config.get('RAZORPAY_KEY_ID'),
+        app.config.get('RAZORPAY_KEY_SECRET')))
 
     if resp.status_code == 200:
         payment.capture()
         db.session.add(payment)
-        transaction = Transaction(order=order, payment=payment, amount=order_amounts.final_amount)
+        transaction = PaymentTransaction(order=order, payment=payment, amount=order_amounts.final_amount)
         db.session.add(transaction)
         order.invoice()
         db.session.add(order)

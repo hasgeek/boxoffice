@@ -1,6 +1,6 @@
 from boxoffice.models import db, BaseScopedNameMixin, IdMixin
 from datetime import datetime
-from boxoffice.models import Inventory
+from boxoffice.models import ItemCollection
 from baseframe import __
 from coaster.utils import LabeledEnum
 
@@ -32,14 +32,15 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     """
     __tablename__ = 'discount_policy'
     __uuid_primary_key__ = True
-    __table_args__ = (db.UniqueConstraint('inventory_id', 'name'),
+    __table_args__ = (db.UniqueConstraint('item_collection_id', 'name'),
+        db.CheckConstraint('item_quantity_min <= item_quantity_max', 'item_quantity_range'),
         db.CheckConstraint('percentage <= 100', 'percentage_bound_upper'),
         db.CheckConstraint('percentage > 0', 'percentage_bound_lower'))
 
-    inventory_id = db.Column(None, db.ForeignKey('inventory.id'), nullable=False)
-    inventory = db.relationship(Inventory,
+    item_collection_id = db.Column(None, db.ForeignKey('item_collection.id'), nullable=False)
+    item_collection = db.relationship(ItemCollection,
         backref=db.backref('discount_policies', cascade='all, delete-orphan'))
-    parent = db.synonym('inventory')
+    parent = db.synonym('item_collection')
 
     discount_type = db.Column(db.Integer, default=DISCOUNTTYPES.AUTOMATIC, nullable=False)
 

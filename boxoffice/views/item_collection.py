@@ -2,7 +2,7 @@ from flask import render_template
 from flask.ext.cors import cross_origin
 from coaster.views import load_models, jsonp
 from boxoffice import app
-from boxoffice.models import Organization, Inventory, Price
+from boxoffice.models import Organization, ItemCollection, Price
 
 ALLOWED_ORIGINS = ['http://shreyas-wlan.dev:8000', 'http://rootconf.vidya.dev:8090']
 
@@ -18,7 +18,7 @@ def item_json(item):
             'quantity_available': item.quantity_available,
             'quantity_total': item.quantity_total,
             'category_id': item.category_id,
-            'inventory_id': item.inventory_id,
+            'item_collection_id': item.item_collection_id,
             'price': Price.current(item).amount
         }
 
@@ -27,7 +27,7 @@ def category_json(category):
     return {
         'id': category.id,
         'title': category.title,
-        'inventory_id': category.inventory_id,
+        'item_collection_id': category.item_collection_id,
         'items': [item_json(item) for item in category.items]
     }
 
@@ -38,14 +38,14 @@ def boxofficejs():
         base_url=app.config.get('BASE_URL'), razorpay_key_id=app.config.get('RAZORPAY_KEY_ID'))
 
 
-@app.route('/<organization>/<inventory>')
+@app.route('/<organization>/<item_collection>')
 @load_models(
     (Organization, {'name': 'organization'}, 'organization'),
-    (Inventory, {'name': 'inventory'}, 'inventory')
+    (ItemCollection, {'name': 'item_collection'}, 'item_collection')
     )
 @cross_origin(origins=app.config.get('ALLOWED_ORIGINS'))
-def inventory(organization, inventory):
+def item_collection(organization, item_collection):
     return jsonp(**{
         'html': render_template('boxoffice.html'),
-        'categories': [category_json(category) for category in inventory.categories]
+        'categories': [category_json(category) for category in item_collection.categories]
         })

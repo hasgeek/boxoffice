@@ -15,19 +15,19 @@ rootconf = Organization(title='Rootconf', userid="U3_JesHfQ2OUmdihAXaAGQ", statu
 db.session.add(rootconf)
 db.session.commit()
 
-rc2016 = Inventory(title='2016', organization=rootconf)
+rc2016 = ItemCollection(title='2016', organization=rootconf)
 db.session.add(rc2016)
 db.session.commit()
 
-category_conference = Category(title='Conference', inventory=rc2016)
+category_conference = Category(title='Conference', item_collection=rc2016)
 db.session.add(category_conference)
-category_workshop = Category(title='Workshop', inventory=rc2016)
+category_workshop = Category(title='Workshop', item_collection=rc2016)
 db.session.add(category_workshop)
-category_merch = Category(title='Merchandise', inventory=rc2016)
+category_merch = Category(title='Merchandise', item_collection=rc2016)
 db.session.add(category_merch)
 db.session.commit()
 
-conf_ticket = Item(title='Conference ticket', description='Rootconf',  inventory=rc2016, category=Category.query.filter_by(name='conference').first(), quantity_available=100, quantity_total=1000)
+conf_ticket = Item(title='Conference ticket', description='Rootconf',  item_collection=rc2016, category=Category.query.filter_by(name='conference').first(), quantity_available=100, quantity_total=1000)
 db.session.add(conf_ticket)
 db.session.commit()
 
@@ -35,7 +35,7 @@ price = Price(item=conf_ticket, title='Super Early Geek', valid_from='2016-02-01
 db.session.add(price)
 db.session.commit()
 
-single_day_conf_ticket = Item(title='Single Day', description='Rootconf', inventory=rc2016, category=Category.query.filter_by(name='conference').first(), quantity_available=100, quantity_total=1000)
+single_day_conf_ticket = Item(title='Single Day', description='Rootconf', item_collection=rc2016, category=Category.query.filter_by(name='conference').first(), quantity_available=100, quantity_total=1000)
 db.session.add(single_day_conf_ticket)
 db.session.commit()
 
@@ -43,7 +43,7 @@ single_day_price = Price(item=single_day_conf_ticket, title='Single Day', valid_
 db.session.add(single_day_price)
 db.session.commit()
 
-tshirt = Item(title='T-shirt', description='Rootconf', inventory=rc2016, category=Category.query.filter_by(name='merchandise').first(), quantity_available=100, quantity_total=1000)
+tshirt = Item(title='T-shirt', description='Rootconf', item_collection=rc2016, category=Category.query.filter_by(name='merchandise').first(), quantity_available=100, quantity_total=1000)
 db.session.add(tshirt)
 db.session.commit()
 
@@ -51,7 +51,7 @@ tshirt_price = Price(item=tshirt, title='T-shirt', valid_from='2016-02-01', vali
 db.session.add(tshirt_price)
 db.session.commit()
 
-dns_workshop = Item(title='DNSSEC workshop', description='Rootconf', inventory=rc2016, category=Category.query.filter_by(name='workshop').first(), quantity_available=100, quantity_total=1000)
+dns_workshop = Item(title='DNSSEC workshop', description='Rootconf', item_collection=rc2016, category=Category.query.filter_by(name='workshop').first(), quantity_available=100, quantity_total=1000)
 db.session.add(dns_workshop)
 db.session.commit()
 
@@ -59,7 +59,7 @@ dns_workshop_price = Price(item=dns_workshop, title='DNSSEC workshop early', val
 db.session.add(dns_workshop_price)
 db.session.commit()
 
-policy = DiscountPolicy(title='10% discount on rootconf', item_quantity_min=10, item_quantity_max=10, percentage=10, inventory=rc2016)
+policy = DiscountPolicy(title='10% discount on rootconf', item_quantity_min=10, item_quantity_max=10, percentage=10, item_collection=rc2016)
 policy.items.append(conf_ticket)
 db.session.add(policy)
 db.session.commit()
@@ -68,7 +68,7 @@ coupon = DiscountCoupon(discount_policy=policy, quantity_available=100, quantity
 db.session.add(coupon)
 db.session.commit()
 
-order = Order(user=user, inventory=rc2016)
+order = Order(user=user, item_collection=rc2016)
 db.session.add(order)
 db.session.commit()
 # except:

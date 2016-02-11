@@ -1,12 +1,12 @@
+import random
 import datetime
 import decimal
-import humanhash
 from collections import namedtuple
-from boxoffice.models import db, BaseMixin, User, Item, Inventory, Price
+from boxoffice.models import db, BaseMixin, User, Item, ItemCollection, Price
 from coaster.utils import LabeledEnum
 from baseframe import __
 
-__all__ = ['Order', 'LineItem', 'Transaction']
+__all__ = ['Order', 'LineItem', 'PaymentTransaction']
 
 
 class ORDER_STATUS(LabeledEnum):
@@ -16,33 +16,25 @@ class ORDER_STATUS(LabeledEnum):
     CANCELLED = (3, __("Cancelled Order"))
 
 
-def generate_humanhash(prefix=None, words=4):
-    """
-    Generate a human-readable hash with an optional prefix and word count.
-    """
-    if prefix:
-        return unicode(prefix) + u'-' + unicode(humanhash.uuid(words=words)[0])
-    return unicode(humanhash.uuid(words=words))
-
-
 class Order(BaseMixin, db.Model):
-    __tablename__ = 'order'
+    __tablename__ = 'customer_order'
     __uuid_primary_key__ = True
-    __tableargs__ = (db.UniqueConstraint('inventory_id', 'order_hash'),)
+    __tableargs__ = (db.UniqueConstraint('item_collection_id', 'order_hash'),)
 
     user_id = db.Column(None, db.ForeignKey('user.id'))
     user = db.relationship(User, backref=db.backref('orders', cascade='all, delete-orphan'))
-    inventory_id = db.Column(None, db.ForeignKey('inventory.id'), nullable=False)
-    inventory = db.relationship(Inventory, backref=db.backref('orders', cascade='all, delete-orphan'))
+    item_collection_id = db.Column(None, db.ForeignKey('item_collection.id'), nullable=False)
+    item_collection = db.relationship(ItemCollection, backref=db.backref('orders', cascade='all, delete-orphan'))
     status = db.Column(db.Integer, default=ORDER_STATUS.PURCHASE_ORDER, nullable=False)
     invoiced_at = db.Column(db.DateTime, nullable=True)
+
     order_hash = db.Column(db.Unicode(120), nullable=True)
 
     def invoice(self):
         """Sets invoiced_at, status and order_hash"""
         self.invoiced_at = datetime.datetime.now()
         self.status = ORDER_STATUS.INVOICE
-        self.order_hash = generate_humanhash(self.inventory.name)
+        self.order_hash = unicode(random.randrange(1, 120000000))
 
     def calculate(self):
         """
@@ -68,7 +60,7 @@ class LINE_ITEM_STATUS(LabeledEnum):
 class LineItem(BaseMixin, db.Model):
     __tablename__ = 'line_item'
     __uuid_primary_key__ = True
-    order_id = db.Column(None, db.ForeignKey('order.id'))
+    order_id = db.Column(None, db.ForeignKey('customer_order.id'))
     order = db.relationship(Order, backref=db.backref('line_items', cascade='all, delete-orphan', lazy="dynamic"))
 
     item_id = db.Column(None, db.ForeignKey('item.id'))
@@ -79,6 +71,8 @@ class LineItem(BaseMixin, db.Model):
     discounted_amount = db.Column(db.Numeric, default=decimal.Decimal(0), nullable=False)
     final_amount = db.Column(db.Numeric, default=decimal.Decimal(0), nullable=False)
     status = db.Column(db.Integer, default=LINE_ITEM_STATUS.CONFIRMED, nullable=False)
+    ordered_at = db.Column(db.DateTime, nullable=True)
+    cancelled_at = db.Column(db.DateTime, nullable=True)
     # tax_amount = db.Column(db.Numeric, default=0.0, nullable=False)
 
     def set_amounts(self):
@@ -91,10 +85,11 @@ class LineItem(BaseMixin, db.Model):
 
     def cancel(self):
         """
-        Sets the status to LINE_ITEM_STATUS.CANCELLED. To update the quantity
+        Sets status and cancelled_at. To update the quantity
         create, a new line item with the required quantity
         """
         self.status = LINE_ITEM_STATUS.CANCELLED
+        self.cancelled_at = datetime.datetime.now()
 
     @classmethod
     def confirmed(cls, order):
@@ -123,7 +118,7 @@ class Payment(BaseMixin, db.Model):
     """
     __tablename__ = 'payment'
     __uuid_primary_key__ = True
-    order_id = db.Column(None, db.ForeignKey('order.id'))
+    order_id = db.Column(None, db.ForeignKey('customer_order.id'))
     order = db.relationship(Order, backref=db.backref('payments', cascade='all, delete-orphan', lazy="dynamic"))
 
     # Payment id issued by the payment gateway
@@ -151,15 +146,15 @@ class TRANSACTION_TYPES(LabeledEnum):
     # CREDIT = (2, __("Credit"))
 
 
-class Transaction(BaseMixin, db.Model):
+class PaymentTransaction(BaseMixin, db.Model):
     """
     This model records transactions made with a customer.
     A transaction can either be of type 'Payment', 'Refund', 'Credit',
     """
-    __tablename__ = 'transaction'
+    __tablename__ = 'payment_transaction'
     __uuid_primary_key__ = True
 
-    order_id = db.Column(None, db.ForeignKey('order.id'))
+    order_id = db.Column(None, db.ForeignKey('customer_order.id'))
     order = db.relationship(Order, backref=db.backref('transactions', cascade='all, delete-orphan', lazy="dynamic"))
     payment_id = db.Column(None, db.ForeignKey('payment.id'), nullable=True)
     payment = db.relationship(Payment, backref=db.backref('transactions', cascade='all, delete-orphan'))
