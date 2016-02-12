@@ -7,6 +7,7 @@ from coaster.views import load_models
 from boxoffice import app
 from boxoffice.models import db, Organization, Item, ItemCollection, User, LineItem, Price
 from boxoffice.models.order import Order, Payment, PaymentTransaction
+from boxoffice.extapi import razorpay
 
 ALLOWED_ORIGINS = ['http://shreyas-wlan.dev:8000', 'http://rootconf.vidya.dev:8090']
 
@@ -36,7 +37,7 @@ def order(organization, item_collection):
     form_values = request.form.to_dict().keys()
     if form_values:
         form_values_json = json.loads(form_values[0])
-        line_item_dicts, applied_discount_policies = calculate_line_items(form_values_json.get('line_items'))
+        line_item_dicts = calculate_line_items(form_values_json.get('line_items'))
         for line_item_dict in line_item_dicts:
             line_item = LineItem(item=Item.query.get(line_item_dict.get('item_id')),
                                  order=order,
@@ -73,14 +74,8 @@ def payment(order):
     pg_payment_id = json.loads(form_values[0]).get('pg_payment_id')
     payment = Payment(pg_payment_id=pg_payment_id, order=order)
     order_amounts = order.calculate()
-    url = 'https://api.razorpay.com/v1/payments/{pg_payment_id}/capture'\
-        .format(pg_payment_id=payment.pg_payment_id)
-    # Razorpay requires the amount to be in paisa
-    resp = requests.post(url, data={'amount': order_amounts.final_amount*100},
-        auth=(app.config.get('RAZORPAY_KEY_ID'),
-        app.config.get('RAZORPAY_KEY_SECRET')))
 
-    if resp.status_code == 200:
+    if razorpay.capture_payment(payment.pg_payment_id, order_amounts.final_amount):
         payment.capture()
         db.session.add(payment)
         transaction = PaymentTransaction(order=order, payment=payment, amount=order_amounts.final_amount)

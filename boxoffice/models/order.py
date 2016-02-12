@@ -27,6 +27,7 @@ class Order(BaseMixin, db.Model):
     item_collection = db.relationship(ItemCollection, backref=db.backref('orders', cascade='all, delete-orphan'))
     status = db.Column(db.Integer, default=ORDER_STATUS.PURCHASE_ORDER, nullable=False)
     invoiced_at = db.Column(db.DateTime, nullable=True)
+    cancelled_at = db.Column(db.DateTime, nullable=True)
 
     order_hash = db.Column(db.Unicode(120), nullable=True)
 
@@ -50,6 +51,16 @@ class Order(BaseMixin, db.Model):
             final_amount = final_amount + line_item.final_amount
         order_amounts = namedtuple('OrderAmounts', ['base_amount', 'discounted_amount', 'final_amount'])
         return order_amounts(base_amount, discounted_amount, final_amount)
+
+    def cancel(self):
+        """
+        Cancels the orders and all its confirmed line items
+        """
+        self.status = ORDER_STATUS.CANCELLED
+        self.cancelled_at = datetime.datetime.now()
+        for line_item in LineItem.confirmed(self):
+            line_item.cancel()
+        db.session.add(self)
 
 
 class LINE_ITEM_STATUS(LabeledEnum):
@@ -106,6 +117,7 @@ class LineItem(BaseMixin, db.Model):
         """
         self.status = LINE_ITEM_STATUS.CANCELLED
         self.cancelled_at = datetime.datetime.now()
+        db.session.add(self)
 
     @classmethod
     def confirmed(cls, order):
