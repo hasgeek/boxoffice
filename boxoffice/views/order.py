@@ -32,9 +32,6 @@ def calculate_line_items(line_items_dicts):
     )
 @cross_origin(origins=ALLOWED_ORIGINS)
 def order(organization, item_collection):
-    # change to get user
-    user = User.query.first()
-    order = Order(user=user, item_collection=item_collection)
     form_values = request.form.to_dict().keys()
     if form_values:
         form_values_json = json.loads(form_values[0])
