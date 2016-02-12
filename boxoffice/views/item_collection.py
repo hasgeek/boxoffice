@@ -19,7 +19,8 @@ def item_json(item):
             'quantity_total': item.quantity_total,
             'category_id': item.category_id,
             'item_collection_id': item.item_collection_id,
-            'price': Price.current(item).amount
+            'price': Price.current(item).amount,
+            'discount_policies': [{'title': policy.title} for policy in item.discount_policies]
         }
 
 
