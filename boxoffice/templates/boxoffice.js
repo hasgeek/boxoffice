@@ -73,7 +73,6 @@ $(function(){
             name: config.name,
             email: config.email,
             phone: config.phone,
-            tax: 0,
             price: 0
           },
           tabs: {
@@ -125,7 +124,8 @@ $(function(){
             'tabs.selectItems.active': false,
             'tabs.payment.active': true }).then(boxoffice.ractive.buyerFormValidator());
         },
-        updateLineItems: function(item_name, quantityAvailable, increment) {
+        updateLineItems: function(event, item_name, quantityAvailable, increment) {
+          event.original.preventDefault();
           var lineItems = boxoffice.ractive.get('order.line_items');
           lineItems.forEach(function(lineItem) {
             if(lineItem.item_name === item_name) {
@@ -139,21 +139,26 @@ $(function(){
               }
             }
           });
-          console.log(lineItems);
           boxoffice.ractive.set('order.line_items', lineItems);
         },
         calculateOrder: function() {
-          var non_empty_line_items = boxoffice.ractive.get('order.line_items').filter(function(line_item){
+          var non_empty_line_items = boxoffice.ractive.get('order.line_items').filter(function(line_item) {
             return line_item.quantity > 0;
           });
-          if (non_empty_line_items.length > 0){
+          if (non_empty_line_items.length > 0) {
+            boxoffice.ractive.set('tabs.selectItems' + '.loadingPrice', true);
             $.post({
               url: boxofficeBaseUrl + '/kharcha',
               crossDomain: true,
               data: JSON.stringify({line_items: boxoffice.ractive.get('order.line_items')}),
-            }).done(function(data){
-              console.log(data);
-              var finalAmount = data.line_items.map(function(line_item){
+            }).done(function(data) {
+              boxoffice.ractive.set('tabs.selectItems' + '.loadingPrice', false);
+              var finalAmount = data.line_items.map(function(line_item) {
+                if(line_item.discount_policies.length > 0) {
+                  line_item.discount_policies.forEach(function(discount_policy) {
+                    boxoffice.ractive.set(Ractive.getNodeInfo(document.getElementById(discount_policy.id)).keypath + '.discountApplied', discount_policy.activated);   
+                  });
+                }
                 return line_item.final_amount
               }).reduce(function(prev, curr){
                 return prev + curr;
@@ -201,7 +206,6 @@ $(function(){
           }).done(function(data) {
             boxoffice.ractive.set('order.id', data.order_id);
             boxoffice.ractive.set('order.price', data.final_amount/100);
-            // To be done. Set user_id, tax, price, date
             var paymentUrl = data.payment_url;
 
             var razorPayOptions = {

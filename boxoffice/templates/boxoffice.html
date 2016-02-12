@@ -24,16 +24,10 @@
                 <div class="ticket-booking clearfix">
                   <div class="ticket-details">
                     <p class="ticket-title text-primary">{{ item.title }}</p>
-                    {{#item.type}}
-                    <p><i class="fa fa-tags ticket-type"></i>{{ item.type }}</p>
-                    {{/item.type}}
-                    {{#item.date}}
-                    <p><i class="fa fa-calendar ticket-date"></i>{{ item.date }}</p>
-                    {{/date}}
-                    {{#item.venue}}
-                    <p><i class="fa fa-map-marker ticket-venue"></i>{{ item.venue }}</p>
-                    {{/item.venue}}
-                    <p class="ticket-description">{{{ item.description }}}</p>
+                    {{#item.discount_policies}}
+                    <p class="discount {{#discountApplied}}applied{{/}}" id="{{id}}">{{ title }} {{#discountApplied}}<i class="fa fa-check"></i>{{/}}</p>
+                    {{/item.discount_policies}}
+                    <div class="ticket-description">{{{ item.description }}}</div>
                   </div>
                   <div class="ticket-price-qty">
                     <p class="ticket-price"><i class="fa fa-inr"></i>{{ item.price }}</p> 
@@ -41,9 +35,9 @@
                     {{#order.line_items}} {{# { line_item: . } }}
                       {{#if line_item.item_name === item.name }}
                         <div class="ticket-qty-wrapper">
-                          <button class="decrement" on-click="updateLineItems(line_item.item_name, item.quantity_available, false)">-</button>
+                          <button class="decrement" on-click="updateLineItems(event, line_item.item_name, item.quantity_available, false)">-</button>
                           <input type="number" class="ticket-qty" name="quantity" min="0" max="{{ item.quantity_available }}" value="{{ line_item.quantity }}" disabled>
-                          <button class="increment" on-click="updateLineItems(line_item.item_name, item.quantity_available, true)">+</button>
+                          <button class="increment" on-click="updateLineItems(event, line_item.item_name, item.quantity_available, true)">+</button>
                         </div>
                       {{/if}}
                     {{/}}{{/order.line_items}}
@@ -54,8 +48,7 @@
           {{/section.categories}}
         </div>
         <hr>
-        <div class="ticket-total clearfix">
-        <!-- <p class="tax">Service Tax: <i class="fa fa-inr"></i> {{ order.tax }}</p> -->
+        <div class="ticket-total {{#loadingPrice}}grey-out{{/}} clearfix">
           <p class="price">Total : <span class="pull-right"><i class="fa fa-inr"></i> {{ order.price }}</span></p>
         </div>
         {{#complete}}
@@ -95,7 +88,6 @@
               <p class="booked-ticket-qty">Qty: {{ line_item.quantity }}</p>
               {{/if}}
             {{/}}{{/order.line_items}}
-            <!-- <p class="tax">Service Tax: <i class="fa fa-inr"></i> {{ order.tax }}</p> -->
             <p class="price">Amount Payable: <b><i class="fa fa-inr"></i> {{ order.price }}</b></p>
           </div>
           <div class="proceed-button-wrapper">
@@ -367,9 +359,21 @@
     }
   }
 
-  .ticket-type, .ticket-date
-  .ticket-venue, .ticket-description {
-    font-size: 15px;
+  .discount {
+    color: red;
+    font-size: 13px;
+  }
+
+  .discount.applied {
+    color: green;
+  }
+
+  .ticket-description {
+    font-size: 13px;
+  }
+
+  .ticket-description .fa {
+    padding-right: 5px;
   }
 
   .ticket-price-qty {
@@ -400,12 +404,13 @@
     top: 8px;
     height: 30px;
     overflow: hidden;
+    background: #f7f3a6;
   }
 
   .ticket-qty {
     width: 30px;
     border: 0px none;
-    background-color: #fff;
+    background: #f7f3a6;
     color: #333;
     line-height: 1;
     display: inline-block;
@@ -443,56 +448,21 @@
     font-size: 15px;
   }
 
-  .discount-code {
-    clear: both;
-    font-size: 15px;
-    float: right;
-    margin: 25px 0 0;
-  }
-
-  .icon-spinner {
-    position: relative;
-    top: 6px;
-  }
-
-  .discount-code input {
-    width: 180px;
-    padding: 3px 3px 3px 5px;
-    line-height: 1.42857;
-    height: 35px;
-    position: relative;
-    top: 2px;
-    border-radius: 5px;
-    border: 1px solid #eee;
-  }
-
-  @media (min-width: 768px) {
-    .discount-code input {
-      width: 200px;
-      padding-left: 11px;
-    }
-  }
-
-  .discount-code-msg {
-    margin: 5px 9px 0;
-    height: 22px;
-  }
-
   .ticket-total {
     clear: both;
     width: 259px;
     float: right;
-    border: 1px solid #eee;
+    border: 2px solid #ccc;
     margin: 15px 0;
     padding: 15px;
+    background: #f7f3a6;
   }
 
-  .tax {
-    padding-bottom: 10px;
-    border-bottom: 2px solid #eee;
+  .grey-out {
+    opacity: 0.5;
   }
 
-  .tax, .price, .buyer-fields {
+  .price, .buyer-fields {
     font-size: 15px;
     margin: 0;
   }
