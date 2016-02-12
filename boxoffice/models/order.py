@@ -100,15 +100,17 @@ class LineItem(BaseMixin, db.Model):
         base_amount = price * quantity
         discounted_amount = decimal.Decimal(0)
 
-        applied_discount_policies = []
+        discount_policy_dicts = []
         for discount_policy in discount_policies:
+            discount_policy_dict = {'id': discount_policy.id, 'activated': False}
             if discount_policy.is_valid(quantity):
                 discounted_amount += (discount_policy.percentage * base_amount)/decimal.Decimal(100.0)
-                applied_discount_policies.append(discount_policy.id)
+                discount_policy_dict['activated'] = True
+            discount_policy_dicts.append(discount_policy_dict)
 
         return (amounts(base_amount, discounted_amount,
                         base_amount - discounted_amount),
-                applied_discount_policies)
+                discount_policy_dicts)
 
     def cancel(self):
         """
