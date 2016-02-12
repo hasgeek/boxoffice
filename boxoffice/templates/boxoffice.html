@@ -39,11 +39,11 @@
                     <p class="ticket-price"><i class="fa fa-inr"></i>{{ item.price }}</p> 
                     <span class="multiplier">X</span>
                     {{#order.line_items}} {{# { line_item: . } }}
-                      {{#if line_item.name === item.name }}
+                      {{#if line_item.item_name === item.name }}
                         <div class="ticket-qty-wrapper">
-                          <button class="decrement" data-ticket="{{ line_item.name }}" on-click="ticketIncrementer(event.node, false)">-</button>
-                          <input type="number" class="ticket-qty" name="quantity" min="0" max="{{ section.availableTickets(item.quantity_available) }}" value="{{ line_item.quantity }}" disabled id="{{ line_item.name }}" data-ticketprice="{{ item.price }}">
-                          <button class="increment" data-ticket="{{ line_item.name }}" on-click="ticketIncrementer(event.node, true)">+</button>
+                          <button class="decrement" on-click="updateLineItems(line_item.item_name, item.quantity_available, false)">-</button>
+                          <input type="number" class="ticket-qty" name="quantity" min="0" max="{{ item.quantity_available }}" value="{{ line_item.quantity }}" disabled>
+                          <button class="increment" on-click="updateLineItems(line_item.item_name, item.quantity_available, true)">+</button>
                         </div>
                       {{/if}}
                     {{/}}{{/order.line_items}}
@@ -91,7 +91,7 @@
             <p class="summary">Booking Summary</p>
             {{#order.line_items}} {{# { line_item: . } }}
               {{#if line_item.quantity > 0 }}
-              <p class="booked-ticket-title"><i class="fa fa-ticket"></i>{{ line_item.title }}<p>
+              <p class="booked-ticket-title"><i class="fa fa-ticket"></i>{{ line_item.item_title }}<p>
               <p class="booked-ticket-qty">Qty: {{ line_item.quantity }}</p>
               {{/if}}
             {{/}}{{/order.line_items}}

@@ -5,10 +5,20 @@ from flask import url_for, request, jsonify, render_template
 from flask.ext.cors import cross_origin
 from coaster.views import load_models
 from boxoffice import app
-from boxoffice.models import db, Organization, Item, ItemCollection, User, LineItem
+from boxoffice.models import db, Organization, Item, ItemCollection, User, LineItem, Price
 from boxoffice.models.order import Order, Payment, PaymentTransaction
 
 ALLOWED_ORIGINS = ['http://shreyas-wlan.dev:8000', 'http://rootconf.vidya.dev:8090']
+
+
+def calculate_line_items(line_items_dicts):
+    for line_item_dict in line_items_dicts:
+        item = Item.query.get(line_item_dict.get('item_id'))
+        amounts = LineItem.calculate(Price.current(item).amount, line_item_dict.get('quantity'), item.discount_policies)
+        line_item_dict['base_amount'] = amounts.base_amount
+        line_item_dict['discounted_amount'] = amounts.discounted_amount
+        line_item_dict['final_amount'] = amounts.final_amount
+    return line_items_dicts
 
 
 @app.route('/<organization>/<item_collection>/order', methods=['GET', 'OPTIONS', 'POST'])
@@ -24,21 +34,31 @@ def order(organization, item_collection):
     form_values = request.form.to_dict().keys()
     if form_values:
         form_values_json = json.loads(form_values[0])
-        # user = User.find_or_create(email=form_values_json.get('email'), phone=form_values_json.get('phone'), name=form_values_json.get('name'))
-        # order.user = user
-        for line_item in form_values_json.get('line_items'):
-            item = Item.get(order.item_collection, line_item.get('name'))
-            line_item = LineItem(item=item,
-                        order=order,
-                        quantity=line_item.get('quantity'),
-                        ordered_at=datetime.datetime.now())
-            line_item.set_amounts()
+        line_item_dicts = calculate_line_items(form_values_json.get('line_items'))
+        for line_item_dict in line_item_dicts:
+            line_item = LineItem(item=Item.query.get(line_item_dict.get('item_id')),
+                                 order=order,
+                                 quantity=line_item_dict.get('quantity'),
+                                 ordered_at=datetime.datetime.now(),
+                                 base_amount=line_item_dict.get('base_amount'),
+                                 discounted_amount=line_item_dict.get('discounted_amount'),
+                                 final_amount=line_item_dict.get('final_amount'))
+            db.session.add(line_item)
         db.session.add(order)
         db.session.commit()
         order_amounts = order.calculate()
         return jsonify(code=200, order_id=order.id,
                        payment_url=url_for('payment', order=order.id),
                        final_amount=order_amounts.final_amount*100)
+
+
+@app.route('/kharcha', methods=['GET', 'OPTIONS', 'POST'])
+@cross_origin(origins=ALLOWED_ORIGINS)
+def kharcha():
+    form_values = request.form.to_dict().keys()
+    if form_values:
+        form_values_json = json.loads(form_values[0])
+        return jsonify(line_items=calculate_line_items(form_values_json.get('line_items')))
 
 
 @app.route('/<order>/payment', methods=['GET', 'OPTIONS', 'POST'])

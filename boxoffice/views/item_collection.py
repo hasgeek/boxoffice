@@ -34,8 +34,8 @@ def category_json(category):
 
 @app.route('/boxoffice.js')
 def boxofficejs():
-    return render_template('boxoffice.js',
-        base_url=app.config.get('BASE_URL'), razorpay_key_id=app.config.get('RAZORPAY_KEY_ID'))
+    return render_template('boxoffice.js', base_url=app.config.get('BASE_URL'),
+     razorpay_key_id=app.config.get('RAZORPAY_KEY_ID'))
 
 
 @app.route('/<organization>/<item_collection>')

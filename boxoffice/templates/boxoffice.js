@@ -58,7 +58,7 @@ $(function(){
 
       data.categories.forEach(function(category) {
         category.items.forEach(function(item) {
-          lineItems.push({'name': item.name, 'quantity': 0, 'title': item.title});
+          lineItems.push({'item_id': item.id, 'item_name': item.name, 'quantity': 0, 'item_title': item.title, 'base_amount': item.price});
         });
       });
 
@@ -84,13 +84,7 @@ $(function(){
               complete: false,
               loadingPaymentConfirmation: false,
               section: {
-                categories: data.categories,
-                availableTickets: function(qty) {
-                  if(qty > 10) {
-                    qty = 10;
-                  }
-                  return qty;
-                }
+                categories: data.categories
               },
               errorMsg: ''
             },
@@ -131,41 +125,46 @@ $(function(){
             'tabs.selectItems.active': false,
             'tabs.payment.active': true }).then(boxoffice.ractive.buyerFormValidator());
         },
-        ticketIncrementer: function(element, action) {
-          var ticketName = $(element).data('ticket');
-          var max = parseInt($('#'+ticketName).attr('max'), 10);
-          var line_items = boxoffice.ractive.get('order.line_items');
-
-          line_items.forEach(function(item) {
-            if(ticketName === item.name) {
-              if(action && item.quantity < max) {
-                item.quantity += 1;
+        updateLineItems: function(item_name, quantityAvailable, increment) {
+          var lineItems = boxoffice.ractive.get('order.line_items');
+          lineItems.forEach(function(lineItem) {
+            if(lineItem.item_name === item_name) {
+              if(increment) {
+                if (lineItem.quantity < quantityAvailable) {
+                  lineItem.quantity += 1;
+                }
               }
-              else if(item.quantity !== 0) {
-                  item.quantity -= 1;
+              else if(lineItem.quantity !== 0) {
+                lineItem.quantity -= 1;
               }
             }
           });
-
-          boxoffice.ractive.set('order.line_items', line_items);
+          console.log(lineItems);
+          boxoffice.ractive.set('order.line_items', lineItems);
         },
         calculateOrder: function() {
-            var totalPrice = 0;
-            // var serviceTax = 0;
-
-            boxoffice.ractive.get('order.line_items').forEach(function(item) {
-              totalPrice += item.quantity * parseInt($('#'+item.name).data('ticketprice'), 10);
-            });
-
-            if(totalPrice > 0) {
-              // serviceTax = Math.round(0.145 * totalPrice);
-              boxoffice.ractive.set('order.price', totalPrice);
+          var non_empty_line_items = boxoffice.ractive.get('order.line_items').filter(function(line_item){
+            return line_item.quantity > 0;
+          });
+          if (non_empty_line_items.length > 0){
+            $.post({
+              url: boxofficeBaseUrl + '/kharcha',
+              crossDomain: true,
+              data: JSON.stringify({line_items: boxoffice.ractive.get('order.line_items')}),
+            }).done(function(data){
+              var finalAmount = data.line_items.map(function(line_item){
+                return line_item.final_amount
+              }).reduce(function(prev, curr){
+                return prev + curr;
+              }, 0);
+              boxoffice.ractive.set('order.price', finalAmount);
               boxoffice.ractive.set('tabs.selectItems.complete', true);
-            }
-            else {
-              boxoffice.ractive.set('order.price', 0);
-              boxoffice.ractive.set('tabs.selectItems.complete', false);
-            }
+            });
+          }
+          else {
+            boxoffice.ractive.set('tabs.selectItems.complete', false);
+            boxoffice.ractive.set('order.price', 0);
+          }
         },
         buyerFormValidator: function() {
           var validator = new FormValidator('buyer-form', [

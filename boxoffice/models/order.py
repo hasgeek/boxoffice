@@ -75,13 +75,17 @@ class LineItem(BaseMixin, db.Model):
     cancelled_at = db.Column(db.DateTime, nullable=True)
     # tax_amount = db.Column(db.Numeric, default=0.0, nullable=False)
 
-    def set_amounts(self):
+    @classmethod
+    def calculate(cls, price, quantity, discount_policies):
         # TODO: What if the price changes by the time the computation below happens?
-        self.base_amount = Price.current(self.item).amount * self.quantity
-        for discount_policy in self.item.discount_policies:
-            if self.quantity >= discount_policy.item_quantity_min and self.quantity <= discount_policy.item_quantity_max:
-                self.discounted_amount = (discount_policy.percentage * self.base_amount)/decimal.Decimal(100.0)
-        self.final_amount = self.base_amount - self.discounted_amount
+        amounts = namedtuple('Amounts', ['base_amount', 'discounted_amount', 'final_amount'])
+        base_amount = price * quantity
+        discounted_amount = decimal.Decimal(0)
+        for discount_policy in discount_policies:
+            if quantity >= discount_policy.item_quantity_min and quantity <= discount_policy.item_quantity_max:
+                discounted_amount += (discount_policy.percentage * base_amount)/decimal.Decimal(100.0)
+
+        return amounts(base_amount, discounted_amount, base_amount - discounted_amount)
 
     def cancel(self):
         """
