@@ -8,6 +8,7 @@ from boxoffice import app
 from boxoffice.models import db, Organization, Item, ItemCollection, User, LineItem, Price
 from boxoffice.models.order import Order, Payment, PaymentTransaction
 from boxoffice.extapi import razorpay
+from .helpers import find_or_create_user
 
 ALLOWED_ORIGINS = ['http://shreyas-wlan.dev:8000', 'http://rootconf.vidya.dev:8090']
 
@@ -37,7 +38,10 @@ def order(organization, item_collection):
     form_values = request.form.to_dict().keys()
     if form_values:
         form_values_json = json.loads(form_values[0])
-        line_item_dicts = calculate_line_items(form_values_json.get('line_items'))
+        # change to get user
+        user = find_or_create_user(form_values_json.get('email'))
+        order = Order(user=user, item_collection=item_collection)
+        line_item_dicts, applied_discount_policies = calculate_line_items(form_values_json.get('line_items'))
         for line_item_dict in line_item_dicts:
             line_item = LineItem(item=Item.query.get(line_item_dict.get('item_id')),
                                  order=order,
