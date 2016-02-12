@@ -152,6 +152,7 @@ $(function(){
               crossDomain: true,
               data: JSON.stringify({line_items: boxoffice.ractive.get('order.line_items')}),
             }).done(function(data){
+              console.log(data);
               var finalAmount = data.line_items.map(function(line_item){
                 return line_item.final_amount
               }).reduce(function(prev, curr){

@@ -14,10 +14,12 @@ ALLOWED_ORIGINS = ['http://shreyas-wlan.dev:8000', 'http://rootconf.vidya.dev:80
 def calculate_line_items(line_items_dicts):
     for line_item_dict in line_items_dicts:
         item = Item.query.get(line_item_dict.get('item_id'))
-        amounts = LineItem.calculate(Price.current(item).amount, line_item_dict.get('quantity'), item.discount_policies)
+        amounts, applied_discount_policies = LineItem.calculate(Price.current(item).amount, line_item_dict.get('quantity'), item.discount_policies)
         line_item_dict['base_amount'] = amounts.base_amount
         line_item_dict['discounted_amount'] = amounts.discounted_amount
         line_item_dict['final_amount'] = amounts.final_amount
+        line_item_dict['discount_policies'] = applied_discount_policies
+
     return line_items_dicts
 
 
@@ -34,7 +36,7 @@ def order(organization, item_collection):
     form_values = request.form.to_dict().keys()
     if form_values:
         form_values_json = json.loads(form_values[0])
-        line_item_dicts = calculate_line_items(form_values_json.get('line_items'))
+        line_item_dicts, applied_discount_policies = calculate_line_items(form_values_json.get('line_items'))
         for line_item_dict in line_item_dicts:
             line_item = LineItem(item=Item.query.get(line_item_dict.get('item_id')),
                                  order=order,

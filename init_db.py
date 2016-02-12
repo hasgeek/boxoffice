@@ -64,6 +64,12 @@ policy.items.append(conf_ticket)
 db.session.add(policy)
 db.session.commit()
 
+
+tshirt_policy = DiscountPolicy(title='5% discount on 5 t-shirts', item_quantity_min=5, percentage=5, item_collection=rc2016)
+policy.items.append(tshirt)
+db.session.add(tshirt_policy)
+db.session.commit()
+
 coupon = DiscountCoupon(discount_policy=policy, quantity_available=100, quantity_total=100)
 db.session.add(coupon)
 db.session.commit()

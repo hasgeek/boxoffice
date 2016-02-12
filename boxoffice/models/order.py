@@ -81,11 +81,13 @@ class LineItem(BaseMixin, db.Model):
         amounts = namedtuple('Amounts', ['base_amount', 'discounted_amount', 'final_amount'])
         base_amount = price * quantity
         discounted_amount = decimal.Decimal(0)
+        applied_discount_policies = []
         for discount_policy in discount_policies:
-            if quantity >= discount_policy.item_quantity_min and quantity <= discount_policy.item_quantity_max:
+            if quantity >= discount_policy.item_quantity_min and (not discount_policy.item_quantity_max or discount_policy.item_quantity_max and quantity <= discount_policy.item_quantity_max):
                 discounted_amount += (discount_policy.percentage * base_amount)/decimal.Decimal(100.0)
+                applied_discount_policies.append(discount_policy.id)
 
-        return amounts(base_amount, discounted_amount, base_amount - discounted_amount)
+        return (amounts(base_amount, discounted_amount, base_amount - discounted_amount), applied_discount_policies)
 
     def cancel(self):
         """
