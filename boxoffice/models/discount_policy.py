@@ -54,6 +54,11 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     def __repr__(self):
         return u'<DiscountPolicy "{discount}">'.format(discount=self.title)
 
+    def is_valid(self, quantity):
+        return quantity >= self.item_quantity_min and \
+               (not self.item_quantity_max or
+                self.item_quantity_max and quantity <= self.item_quantity_max)
+
 
 class DiscountCoupon(IdMixin, db.Model):
     __tablename__ = 'discount_coupon'

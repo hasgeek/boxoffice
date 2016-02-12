@@ -77,17 +77,27 @@ class LineItem(BaseMixin, db.Model):
 
     @classmethod
     def calculate(cls, price, quantity, discount_policies):
-        # TODO: What if the price changes by the time the computation below happens?
+        """
+        Returns a tuple consisting of a named tuple with
+        the line item's amounts, and an array
+        of the applied discount policies
+
+        # TODO: What if the price changes by
+        the time the computation below happens?
+        """
         amounts = namedtuple('Amounts', ['base_amount', 'discounted_amount', 'final_amount'])
         base_amount = price * quantity
         discounted_amount = decimal.Decimal(0)
+
         applied_discount_policies = []
         for discount_policy in discount_policies:
-            if quantity >= discount_policy.item_quantity_min and (not discount_policy.item_quantity_max or discount_policy.item_quantity_max and quantity <= discount_policy.item_quantity_max):
+            if discount_policy.is_valid(quantity):
                 discounted_amount += (discount_policy.percentage * base_amount)/decimal.Decimal(100.0)
                 applied_discount_policies.append(discount_policy.id)
 
-        return (amounts(base_amount, discounted_amount, base_amount - discounted_amount), applied_discount_policies)
+        return (amounts(base_amount, discounted_amount,
+                        base_amount - discounted_amount),
+                applied_discount_policies)
 
     def cancel(self):
         """
