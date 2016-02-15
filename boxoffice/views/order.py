@@ -52,7 +52,7 @@ def order(organization, item_collection):
         order_amounts = order.get_amounts()
         return jsonify(code=200, order_id=order.id,
                        payment_url=url_for('payment', order=order.id),
-                       final_amount=order_amounts.final_amount*100)
+                       final_amount=order_amounts.final_amount)
 
 
 @app.route('/kharcha', methods=['GET', 'OPTIONS', 'POST'])

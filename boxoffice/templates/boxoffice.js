@@ -79,12 +79,14 @@ $(function(){
           order: {
             order_id: '',
             line_items: lineItems,
-            // Prefill name, email, phone if user is found to be logged in
+            final_amount: 0.0,
+            readyToCheckout: false
+          },
+          // Prefill name, email, phone if user is found to be logged in
+          buyer: {
             name: widgetConfig.name,
             email: widgetConfig.email,
-            phone: widgetConfig.phone,
-            price: 0,
-            readyToCheckout: false
+            phone: widgetConfig.phone
           },
           activeTab: 'boxoffice-selectItems',
           tabs: {
@@ -161,51 +163,30 @@ $(function(){
                 })
               }),
             }).done(function(data) {
-              var updated_line_items = boxoffice.ractive.get('order.line_items').map(function(line_item){
-                var updated_line_item = data.line_items.filter(function(updated_line_item){
+              var line_items = boxoffice.ractive.get('order.line_items');
+              var finalAmount = 0.0;
+              
+              line_items.forEach(function(line_item){
+                var updatedLineItem = data.line_items.filter(function(updated_line_item){
                   return updated_line_item.item_id === line_item.item_id;
                 });
-
-                if (updated_line_item.length){
-                  return {
-                    item_id: line_item.item_id,
-                    item_name: line_item.item_name,
-                    item_title: line_item.item_title,
-                    item_description: line_item.item_description,
-                    quantity: updated_line_item[0].quantity,
-                    base_amount: line_item.base_amount,
-                    discount_policies: updated_line_item[0].discount_policies
-                  }
-                } else {
-                  return {
-                    item_id: line_item.item_id,
-                    item_name: line_item.item_name,
-                    item_title: line_item.item_title,
-                    item_description: line_item.item_description,
-                    base_amount: line_item.base_amount,
-                    quantity: line_item.quantity,
-                    discount_policies: line_item.discount_policies
-                  }
+                if (updatedLineItem.length) {
+                  line_item.discount_policies = updatedLineItem[0].discount_policies;
+                  finalAmount += updatedLineItem[0].final_amount;
                 }
               });
 
-              var finalAmount = data.line_items.map(function(line_item) {
-                return line_item.final_amount;
-              }).reduce(function(prev, curr){
-                return prev + curr;
-              }, 0);
-
               boxoffice.ractive.set({
                 'tabs.selectItems.loadingPrice': false,
-                'order.line_items': updated_line_items,
-                'order.price': finalAmount,
+                'order.line_items': line_items,
+                'order.final_amount': finalAmount,
                 'order.readyToCheckout': true
               });
             });
           }
           else {
             boxoffice.ractive.set({
-              'order.price': 0,
+              'order.final_amount': 0,
               'order.readyToCheckout': false
             });
           }
@@ -236,7 +217,6 @@ $(function(){
               boxoffice.ractive.set('tabs.payment.errorMsg', errors[0].message);
             } else {
               boxoffice.ractive.set('tabs.payment.errorMsg', '');
-              boxoffice.ractive.set('activeTab', boxoffice.ractive.get('tabs.confirm.id'));
               boxoffice.ractive.sendOrder();
             }
           });
@@ -247,7 +227,7 @@ $(function(){
             crossDomain: true,
             dataType: 'json',
             data: JSON.stringify({
-              email: boxoffice.ractive.get('order.email'),
+              email: boxoffice.ractive.get('order.buyer.email'),
               line_items: boxoffice.ractive.get('order.line_items').map(function(line_item){
                 return {
                   item_id: line_item.item_id,
@@ -258,7 +238,7 @@ $(function(){
             timeout: 5000
           }).done(function(data) {
             boxoffice.ractive.set('order.id', data.order_id);
-            boxoffice.ractive.set('order.price', data.final_amount/100);
+            boxoffice.ractive.set('order.final_amount', data.final_amount);
             boxoffice.ractive.capturePayment(data.payment_url, data.razorpay_payment_id);
           });
         },
@@ -267,7 +247,7 @@ $(function(){
           var razorPayOptions = {
             "key": boxoffice.config.razorpayKeyId,
             //Razorpay expects amount in paisa
-            "amount": boxoffice.ractive.get('order.price') * 100,
+            "amount": boxoffice.ractive.get('order.final_amount') * 100,
             "name": boxoffice.config.org,
             "description": boxoffice.widgetConfig.paymentDesc,
             "image": boxoffice.config.razorpayBanner,
@@ -285,9 +265,9 @@ $(function(){
               }
             },
             "prefill": {
-              "name": boxoffice.ractive.get('order.name'),
-              "email": boxoffice.ractive.get('order.email'),
-              "contact": boxoffice.ractive.get('order.phone')
+              "name": boxoffice.ractive.get('order.buyer.name'),
+              "email": boxoffice.ractive.get('order.buyer.email'),
+              "contact": boxoffice.ractive.get('order.buyer.phone')
             },
             "theme": {
               "color": "#F37254"
