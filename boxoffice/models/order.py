@@ -21,7 +21,7 @@ class Order(BaseMixin, db.Model):
     __uuid_primary_key__ = True
     __tableargs__ = (db.UniqueConstraint('item_collection_id', 'order_hash'),)
 
-    user_id = db.Column(None, db.ForeignKey('user.id'))
+    user_id = db.Column(None, db.ForeignKey('user.id'), nullable=False)
     user = db.relationship(User, backref=db.backref('orders', cascade='all, delete-orphan'))
     item_collection_id = db.Column(None, db.ForeignKey('item_collection.id'), nullable=False)
     item_collection = db.relationship(ItemCollection, backref=db.backref('orders', cascade='all, delete-orphan'))
@@ -102,7 +102,7 @@ class LineItem(BaseMixin, db.Model):
 
         discount_policy_dicts = []
         for discount_policy in discount_policies:
-            discount_policy_dict = {'id': discount_policy.id, 'activated': False}
+            discount_policy_dict = {'id': discount_policy.id, 'activated': False, 'title': discount_policy.title}
             if discount_policy.is_valid(quantity):
                 discounted_amount += (discount_policy.percentage * base_amount)/decimal.Decimal(100.0)
                 discount_policy_dict['activated'] = True

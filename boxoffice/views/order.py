@@ -35,9 +35,7 @@ def order(organization, item_collection):
     form_values = request.form.to_dict().keys()
     if form_values:
         form_values_json = json.loads(form_values[0])
-        # change to get user
-        # user = find_or_create_user(form_values_json.get('email'))
-        user = User.query.first()
+        user = find_or_create_user(form_values_json.get('email'))
         order = Order(user=user, item_collection=item_collection)
         line_item_dicts = calculate_line_items(form_values_json.get('line_items'))
         for line_item_dict in line_item_dicts:

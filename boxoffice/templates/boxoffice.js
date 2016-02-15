@@ -3,6 +3,7 @@ window.Boxoffice = {
   config:{
     baseURL: "{{base_url}}",
     razorpayKeyId: "{{razorpay_key_id}}",
+    orgName: 'HasGeek',
     razorpayBanner: "https://hasgeek.com/static/img/hg-banner.png"
   }
 };
@@ -43,45 +44,54 @@ $(function(){
 
   var boxoffice = window.Boxoffice;
 
-  boxoffice.init = function(config) {
-    var boxofficeBaseUrl = boxoffice.config.baseURL;
-    var boxofficeInventoryUrl = config.url;
-    var inventory = config.inventory;
+  boxoffice.init = function(widgetConfig) {
+    // Config variables provided by the client embedding the widget
+    this.widgetConfig = widgetConfig;
+    this.config.itemCollectionURL = this.config.baseURL + '/' + widgetConfig.org + '/' + widgetConfig.itemCollection;
 
     $.ajax({
-      url: boxofficeInventoryUrl,
+      url: boxoffice.config.itemCollectionURL,
       crossDomain: true,
       dataType: 'jsonp'
     }).done(function(data) {
-
       var lineItems = [];
 
+      /* load inventory from server, initialize lineItems with
+      their quantities set to 0 */
       data.categories.forEach(function(category) {
         category.items.forEach(function(item) {
-          lineItems.push({'item_id': item.id, 'item_name': item.name, 'quantity': 0, 'item_title': item.title, 'base_amount': item.price});
+          lineItems.push({
+            'item_id': item.id,
+            'item_name': item.name,
+            'quantity': 0,
+            'item_title': item.title,
+            'base_amount': item.price,
+            'item_description': item.description,
+            'discount_policies': item.discount_policies
+          });
         });
       });
 
       boxoffice.ractive = new Ractive({
-        el: 'boxoffice-widget',
+        el: '#boxoffice-widget',
         template: data.html,
         data: {
           order: {
             order_id: '',
             line_items: lineItems,
-            user_id: '',
-            name: config.name,
-            email: config.email,
-            phone: config.phone,
-            price: 0
+            // Prefill name, email, phone if user is found to be logged in
+            name: widgetConfig.name,
+            email: widgetConfig.email,
+            phone: widgetConfig.phone,
+            price: 0,
+            readyToCheckout: false
           },
+          activeTab: 'boxoffice-selectItems',
           tabs: {
             selectItems: {
               id: 'boxoffice-selectItems',
               label: 'Select Tickets',
-              active: true,
               complete: false,
-              loadingPaymentConfirmation: false,
               section: {
                 categories: data.categories
               },
@@ -90,21 +100,14 @@ $(function(){
             payment: {
               id: 'boxoffice-payment',
               label: 'Payment',
-              active: false,
               complete: false,
               section: {
-                buyer: {
-                  email: '',
-                  fullname: '',
-                  phone: ''
-                }
               },
               errorMsg: ''
             },
             confirm: {
               id: 'boxoffice-confirm',
               label: 'Confirm',
-              active: false,
               complete: false,
               section: {
                 invoiceURL: ''
@@ -112,19 +115,13 @@ $(function(){
             }
           },
         },
-        showSelectTickets: function(event) {
+        selectItems: function(event) {
+          // Makes the 'Select Items' tab active
           event.original.preventDefault();
-          boxoffice.ractive.set({
-            'tabs.payment.active': false,
-            'tabs.selectItems.active':true });
+          boxoffice.ractive.set('activeTab', boxoffice.ractive.get('tabs.selectItems.id'));
         },
-        showBuyerForm: function(event) {
-          event.original.preventDefault();
-          boxoffice.ractive.set({
-            'tabs.selectItems.active': false,
-            'tabs.payment.active': true }).then(boxoffice.ractive.buyerFormValidator());
-        },
-        updateLineItems: function(event, item_name, quantityAvailable, increment) {
+        updateOrder: function(event, item_name, quantityAvailable, increment) {
+          // Increments or decrements a line item's quantity
           event.original.preventDefault();
           var lineItems = boxoffice.ractive.get('order.line_items');
           lineItems.forEach(function(lineItem) {
@@ -140,65 +137,80 @@ $(function(){
             }
           });
           boxoffice.ractive.set('order.line_items', lineItems);
+          boxoffice.ractive.calculateOrder();
         },
         calculateOrder: function() {
-          var non_empty_line_items = boxoffice.ractive.get('order.line_items').filter(function(line_item) {
+          // Asks the server for the order's calculation and updates order
+
+          var lineItems = boxoffice.ractive.get('order.line_items').filter(function(line_item) {
             return line_item.quantity > 0;
           });
-          if (non_empty_line_items.length > 0) {
+
+          if (lineItems.length > 0) {
             boxoffice.ractive.set('tabs.selectItems' + '.loadingPrice', true);
+
             $.post({
-              url: boxofficeBaseUrl + '/kharcha',
+              url: boxoffice.config.baseURL + '/kharcha',
               crossDomain: true,
-              data: JSON.stringify({line_items: boxoffice.ractive.get('order.line_items')}),
+              data: JSON.stringify({
+                line_items: boxoffice.ractive.get('order.line_items')
+              }),
             }).done(function(data) {
-              boxoffice.ractive.set('tabs.selectItems' + '.loadingPrice', false);
               var finalAmount = data.line_items.map(function(line_item) {
-                if(line_item.discount_policies.length > 0) {
-                  line_item.discount_policies.forEach(function(discount_policy) {
-                    boxoffice.ractive.set(Ractive.getNodeInfo(document.getElementById(discount_policy.id)).keypath + '.discountApplied', discount_policy.activated);   
-                  });
-                }
-                return line_item.final_amount
+                return line_item.final_amount;
               }).reduce(function(prev, curr){
                 return prev + curr;
               }, 0);
-              boxoffice.ractive.set('order.price', finalAmount);
-              boxoffice.ractive.set('tabs.selectItems.complete', true);
+
+              boxoffice.ractive.set({
+                'tabs.selectItems.loadingPrice': false,
+                'order.line_items': data.line_items,
+                'order.price': finalAmount,
+                'order.readyToCheckout': true
+              });
             });
           }
           else {
-            boxoffice.ractive.set('tabs.selectItems.complete', false);
-            boxoffice.ractive.set('order.price', 0);
+            boxoffice.ractive.set({
+              'order.price': 0,
+              'order.readyToCheckout': false
+            });
           }
         },
-        buyerFormValidator: function() {
-          var validator = new FormValidator('buyer-form', [
-            {
-              name: 'name',
-              rules: 'required'
-            },
-            {
-              name: 'email',
-              rules: 'required|valid_email'
-            },
-            {
-              name: 'phone',
-              rules: 'required|min_length[10]'
-            }], function(errors, event) {
-              event.preventDefault();
-              if (errors.length > 0) {
-                boxoffice.ractive.set('tabs.payment.errorMsg', errors[0].message);
-              }
-              else {
-                boxoffice.ractive.set('tabs.payment.errorMsg', '');
-                boxoffice.ractive.checkout();
-              }
+        checkout: function(event) {
+          // Transitions the widget to the 'Payment' stage, and initializes
+          // the validator.
+          event.original.preventDefault();
+          boxoffice.ractive.set('tabs.selectItems.complete', true);
+          boxoffice.ractive.set('activeTab', boxoffice.ractive.get('tabs.payment.id'));
+
+          var validationConfig = [{
+            name: 'name',
+            rules: 'required'
+          },
+          {
+            name: 'email',
+            rules: 'required|valid_email'
+          },
+          {
+            name: 'phone',
+            rules: 'required|min_length[10]'
+          }];
+
+          var formValidator = new FormValidator('buyer-form', validationConfig, function(errors, event) {
+            event.preventDefault();
+            if (errors.length > 0) {
+              boxoffice.ractive.set('tabs.payment.errorMsg', errors[0].message);
+            } else {
+              boxoffice.ractive.set('tabs.payment.errorMsg', '');
+              boxoffice.ractive.set('activeTab', boxoffice.ractive.get('tabs.confirm.id'));
+              boxoffice.ractive.sendOrder();
+            }
           });
         },
-        checkout: function() {
+        sendOrder: function() {
           $.post({
-            url: boxofficeInventoryUrl + '/order',
+            url: boxoffice.config.itemCollectionURL + '/order',
             crossDomain: true,
             dataType: 'json',
             data: JSON.stringify(boxoffice.ractive.get('order')),
@@ -206,59 +218,61 @@ $(function(){
           }).done(function(data) {
             boxoffice.ractive.set('order.id', data.order_id);
             boxoffice.ractive.set('order.price', data.final_amount/100);
-            var paymentUrl = data.payment_url;
-
-            var razorPayOptions = {
-              "key": boxoffice.config.razorpayKeyId,
-              //Razorpay expects amount in paisa
-              "amount": boxoffice.ractive.get('order.price')*100,
-              "name": "HasGeek",
-              "description": inventory,
-              "image": boxoffice.config.razorpayBanner,
-              "handler": function (data) {
-                boxoffice.ractive.set('tabs.payment.loadingPaymentConfirmation', true);
-                boxoffice.ractive.confirmPayment(paymentUrl, data.razorpay_payment_id);
-              },
-              "modal.ondismiss": {
-                "ondismiss": function(){
-                  console.log("Closed");
-                }
-              },
-              "prefill": {
-                "name": boxoffice.ractive.get('order.name'),
-                "email": boxoffice.ractive.get('order.email'),
-                "contact": boxoffice.ractive.get('order.phone')
-              },
-              "theme": {
-                "color": "#F37254"
-              }
-            };
-            var razorpay = new Razorpay(razorPayOptions);
-            razorpay.open();
+            boxoffice.ractive.capturePayment(data.payment_url, data.razorpay_payment_id);
           });
         },
+        capturePayment: function(paymentUrl, razorpay_payment_id){
+          // Opens the Razorpay widget, on success calls confirmPayment
+          var razorPayOptions = {
+            "key": boxoffice.config.razorpayKeyId,
+            //Razorpay expects amount in paisa
+            "amount": boxoffice.ractive.get('order.price') * 100,
+            "name": boxoffice.config.org,
+            "description": boxoffice.widgetConfig.paymentDesc,
+            "image": boxoffice.config.razorpayBanner,
+            "handler": function (data) {
+              boxoffice.ractive.set('tabs.payment.loadingPaymentConfirmation', true);
+              boxoffice.ractive.confirmPayment(paymentUrl, data.razorpay_payment_id);
+            },
+            "modal.ondismiss": {
+              "ondismiss": function(){
+                console.log("Closed");
+              }
+            },
+            "prefill": {
+              "name": boxoffice.ractive.get('order.name'),
+              "email": boxoffice.ractive.get('order.email'),
+              "contact": boxoffice.ractive.get('order.phone')
+            },
+            "theme": {
+              "color": "#F37254"
+            }
+          };
+          var razorpay = new Razorpay(razorPayOptions);
+          razorpay.open();
+        },
         confirmPayment: function(paymentUrl, paymentID) {
+          // Sends the paymentId to the server, transitions the state to 'Confirm'
           $.post({
-            url: boxofficeBaseUrl + paymentUrl,
+            url: boxoffice.config.baseURL + paymentUrl,
             crossDomain: true,
             dataType: 'json',
             data: JSON.stringify({pg_payment_id: paymentID}),
             timeout: 5000
           }).done(function(data) {
-            console.log("Payment confirmation recd from server", data);
             boxoffice.ractive.set({
-              'tabs.payment.active': false,
+              'activeTab': boxoffice.ractive.get('tabs.confirm.id'),
               'tabs.payment.complete': true,
-              'tabs.confirm.active': true });
             });
-            var invoiceURL = boxofficeBaseUrl + "/" + boxoffice.ractive.get('order.id') + "/invoice"
-            boxoffice.ractive.set('tabs.confirm.invoiceURL', invoiceURL)
+            boxoffice.ractive.set('tabs.payment.loadingPaymentConfirmation', false);
+          });
+          var invoiceURL = boxoffice.config.baseURL + "/" + boxoffice.ractive.get('order.id') + "/invoice";
+          boxoffice.ractive.set('tabs.confirm.invoiceURL', invoiceURL);
         },
         oncomplete: function(){
-          boxoffice.ractive.observe('order.line_items', boxoffice.ractive.calculateOrder);
         }
-      })
-    })
-  }
+      });
+    });
+  };
 });
 {% endraw %}
