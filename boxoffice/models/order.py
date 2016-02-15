@@ -2,7 +2,7 @@ import random
 import datetime
 import decimal
 from collections import namedtuple
-from boxoffice.models import db, BaseMixin, User, Item, ItemCollection, Price
+from boxoffice.models import db, BaseMixin, User, Item, ItemCollection
 from coaster.utils import LabeledEnum
 from baseframe import __
 
@@ -37,7 +37,7 @@ class Order(BaseMixin, db.Model):
         self.status = ORDER_STATUS.INVOICE
         self.order_hash = unicode(random.randrange(1, 120000000))
 
-    def calculate(self):
+    def get_amounts(self):
         """
         Calculates and returns the order's base_amount, discounted_amount and final_amount
         as a namedtuple
@@ -46,9 +46,9 @@ class Order(BaseMixin, db.Model):
         discounted_amount = (decimal.Decimal(0))
         final_amount = (decimal.Decimal(0))
         for line_item in self.line_items:
-            base_amount = base_amount + line_item.base_amount
-            discounted_amount = discounted_amount + line_item.discounted_amount
-            final_amount = final_amount + line_item.final_amount
+            base_amount += line_item.base_amount
+            discounted_amount += line_item.discounted_amount
+            final_amount += line_item.final_amount
         order_amounts = namedtuple('OrderAmounts', ['base_amount', 'discounted_amount', 'final_amount'])
         return order_amounts(base_amount, discounted_amount, final_amount)
 
@@ -71,10 +71,10 @@ class LINE_ITEM_STATUS(LabeledEnum):
 class LineItem(BaseMixin, db.Model):
     __tablename__ = 'line_item'
     __uuid_primary_key__ = True
-    order_id = db.Column(None, db.ForeignKey('customer_order.id'))
+    customer_order_id = db.Column(None, db.ForeignKey('customer_order.id'), nullable=False)
     order = db.relationship(Order, backref=db.backref('line_items', cascade='all, delete-orphan', lazy="dynamic"))
 
-    item_id = db.Column(None, db.ForeignKey('item.id'))
+    item_id = db.Column(None, db.ForeignKey('item.id'), nullable=False)
     item = db.relationship(Item, backref=db.backref('line_items', cascade='all, delete-orphan'))
 
     quantity = db.Column(db.Integer, nullable=False)
@@ -87,7 +87,7 @@ class LineItem(BaseMixin, db.Model):
     # tax_amount = db.Column(db.Numeric, default=0.0, nullable=False)
 
     @classmethod
-    def calculate(cls, price, quantity, discount_policies):
+    def get_amounts_and_discounts(cls, price, quantity, discount_policies):
         """
         Returns a tuple consisting of a named tuple with
         the line item's amounts, and an array
@@ -102,7 +102,11 @@ class LineItem(BaseMixin, db.Model):
 
         discount_policy_dicts = []
         for discount_policy in discount_policies:
-            discount_policy_dict = {'id': discount_policy.id, 'activated': False, 'title': discount_policy.title}
+            discount_policy_dict = {
+                'id': discount_policy.id,
+                'activated': False,
+                'title': discount_policy.title
+            }
             if discount_policy.is_valid(quantity):
                 discounted_amount += (discount_policy.percentage * base_amount)/decimal.Decimal(100.0)
                 discount_policy_dict['activated'] = True
@@ -148,7 +152,7 @@ class Payment(BaseMixin, db.Model):
     """
     __tablename__ = 'payment'
     __uuid_primary_key__ = True
-    order_id = db.Column(None, db.ForeignKey('customer_order.id'))
+    customer_order_id = db.Column(None, db.ForeignKey('customer_order.id'), nullable=False)
     order = db.relationship(Order, backref=db.backref('payments', cascade='all, delete-orphan', lazy="dynamic"))
 
     # Payment id issued by the payment gateway
@@ -184,7 +188,7 @@ class PaymentTransaction(BaseMixin, db.Model):
     __tablename__ = 'payment_transaction'
     __uuid_primary_key__ = True
 
-    order_id = db.Column(None, db.ForeignKey('customer_order.id'))
+    customer_order_id = db.Column(None, db.ForeignKey('customer_order.id'), nullable=False)
     order = db.relationship(Order, backref=db.backref('transactions', cascade='all, delete-orphan', lazy="dynamic"))
     payment_id = db.Column(None, db.ForeignKey('payment.id'), nullable=True)
     payment = db.relationship(Payment, backref=db.backref('transactions', cascade='all, delete-orphan'))

@@ -140,22 +140,55 @@ $(function(){
           boxoffice.ractive.calculateOrder();
         },
         calculateOrder: function() {
-          // Asks the server for the order's calculation and updates order
+          // Asks the server for the order's calculation and updates the order
 
           var lineItems = boxoffice.ractive.get('order.line_items').filter(function(line_item) {
             return line_item.quantity > 0;
           });
 
-          if (lineItems.length > 0) {
+          if (lineItems.length) {
             boxoffice.ractive.set('tabs.selectItems' + '.loadingPrice', true);
 
             $.post({
               url: boxoffice.config.baseURL + '/kharcha',
               crossDomain: true,
               data: JSON.stringify({
-                line_items: boxoffice.ractive.get('order.line_items')
+                line_items: lineItems.map(function(line_item){
+                  return {
+                    quantity: line_item.quantity,
+                    item_id: line_item.item_id
+                  }
+                })
               }),
             }).done(function(data) {
+              var updated_line_items = boxoffice.ractive.get('order.line_items').map(function(line_item){
+                var updated_line_item = data.line_items.filter(function(updated_line_item){
+                  return updated_line_item.item_id === line_item.item_id;
+                });
+
+                if (updated_line_item.length){
+                  return {
+                    item_id: line_item.item_id,
+                    item_name: line_item.item_name,
+                    item_title: line_item.item_title,
+                    item_description: line_item.item_description,
+                    quantity: updated_line_item[0].quantity,
+                    base_amount: line_item.base_amount,
+                    discount_policies: updated_line_item[0].discount_policies
+                  }
+                } else {
+                  return {
+                    item_id: line_item.item_id,
+                    item_name: line_item.item_name,
+                    item_title: line_item.item_title,
+                    item_description: line_item.item_description,
+                    base_amount: line_item.base_amount,
+                    quantity: line_item.quantity,
+                    discount_policies: line_item.discount_policies
+                  }
+                }
+              });
+
               var finalAmount = data.line_items.map(function(line_item) {
                 return line_item.final_amount;
               }).reduce(function(prev, curr){
@@ -164,7 +197,7 @@ $(function(){
 
               boxoffice.ractive.set({
                 'tabs.selectItems.loadingPrice': false,
-                'order.line_items': data.line_items,
+                'order.line_items': updated_line_items,
                 'order.price': finalAmount,
                 'order.readyToCheckout': true
               });
@@ -213,7 +246,15 @@ $(function(){
             url: boxoffice.config.itemCollectionURL + '/order',
             crossDomain: true,
             dataType: 'json',
-            data: JSON.stringify(boxoffice.ractive.get('order')),
+            data: JSON.stringify({
+              email: boxoffice.ractive.get('order.email'),
+              line_items: boxoffice.ractive.get('order.line_items').map(function(line_item){
+                return {
+                  item_id: line_item.item_id,
+                  quantity: line_item.quantity
+                }
+              }),
+            }),
             timeout: 5000
           }).done(function(data) {
             boxoffice.ractive.set('order.id', data.order_id);
@@ -230,6 +271,10 @@ $(function(){
             "name": boxoffice.config.org,
             "description": boxoffice.widgetConfig.paymentDesc,
             "image": boxoffice.config.razorpayBanner,
+            // Order id is for razorpay's reference, useful for querying
+            "notes": {
+              "order_id": boxoffice.ractive.get('order.id')
+            },
             "handler": function (data) {
               boxoffice.ractive.set('tabs.payment.loadingPaymentConfirmation', true);
               boxoffice.ractive.confirmPayment(paymentUrl, data.razorpay_payment_id);

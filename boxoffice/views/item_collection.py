@@ -44,7 +44,7 @@ def boxofficejs():
     (Organization, {'name': 'organization'}, 'organization'),
     (ItemCollection, {'name': 'item_collection'}, 'item_collection')
     )
-@cross_origin(origins=app.config.get('ALLOWED_ORIGINS'))
+@cross_origin(origins=ALLOWED_ORIGINS)
 def item_collection(organization, item_collection):
     return jsonp(**{
         'html': render_template('boxoffice.html'),

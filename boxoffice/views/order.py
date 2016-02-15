@@ -16,7 +16,7 @@ ALLOWED_ORIGINS = ['http://shreyas-wlan.dev:8000', 'http://rootconf.vidya.dev:80
 def calculate_line_items(line_items_dicts):
     for line_item_dict in line_items_dicts:
         item = Item.query.get(line_item_dict.get('item_id'))
-        amounts, discount_policies = LineItem.calculate(Price.current(item).amount, line_item_dict.get('quantity'), item.discount_policies)
+        amounts, discount_policies = LineItem.get_amounts_and_discounts(Price.current(item).amount, line_item_dict.get('quantity'), item.discount_policies)
         line_item_dict['base_amount'] = amounts.base_amount
         line_item_dict['discounted_amount'] = amounts.discounted_amount
         line_item_dict['final_amount'] = amounts.final_amount
@@ -49,7 +49,7 @@ def order(organization, item_collection):
             db.session.add(line_item)
         db.session.add(order)
         db.session.commit()
-        order_amounts = order.calculate()
+        order_amounts = order.get_amounts()
         return jsonify(code=200, order_id=order.id,
                        payment_url=url_for('payment', order=order.id),
                        final_amount=order_amounts.final_amount*100)
@@ -59,6 +59,7 @@ def order(organization, item_collection):
 @cross_origin(origins=ALLOWED_ORIGINS)
 def kharcha():
     form_values = request.form.to_dict().keys()
+    # import IPython; IPython.embed()
     if form_values:
         form_values_json = json.loads(form_values[0])
         return jsonify(line_items=calculate_line_items(form_values_json.get('line_items')))
@@ -73,7 +74,7 @@ def payment(order):
     form_values = request.form.to_dict().keys()
     pg_payment_id = json.loads(form_values[0]).get('pg_payment_id')
     payment = Payment(pg_payment_id=pg_payment_id, order=order)
-    order_amounts = order.calculate()
+    order_amounts = order.get_amounts()
 
     if razorpay.capture_payment(payment.pg_payment_id, order_amounts.final_amount):
         payment.capture()
