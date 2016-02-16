@@ -11,44 +11,38 @@
 <div class="payment-stages-wrapper">
   {{#tabs:tab}}
     {{#if id === 'boxoffice-selectItems'  && id === activeTab}}
-      <div id='{{id}}' class="boxoffice-section ticket-selection-content clearfix {{#if id === activeTab}}active{{/if}}" intro='fly:{"x":-600,"y":"0"}'>
-        <ul class="nav nav-tabs {{#if section.categories.length > 4}}width-4{{else}}width-{{section.categories.length}}{{/if}}" role="tablist">
-          {{#section.categories}}
-            <li role="presentation" class="category {{#if @index === 0}}active{{/if}}"><a href="#{{title}}" aria-controls="{{title}}" role="tab" data-toggle="tab">{{ title }}</a></li>
-          {{/section.categories}}
-        </ul>
-        <div class="tab-content">
-          {{#section.categories}}
-            <div role="tabpanel" class="tab-pane fade {{#if @index === 0}}active in{{/if}}" id="{{title}}">
-              {{#items}}{{# { item: . } }}
-                {{#order.line_items}} {{# { line_item: . } }}
-                  {{#if line_item.item_name === item.name }}
-                    <div class="ticket-booking clearfix">
-                      <div class="ticket-details">
-                        <p class="ticket-title text-primary">{{ line_item.item_title }}</p>
-                        {{#line_item.discount_policies}}
-                          <p class="discount {{#activated}}applied{{/}}">
-                            {{ title }}{{#activated}} <i class="fa fa-check"></i>{{/}}
-                          </p>
-                        {{/line_item.discount_policies}}
-                        <div class="ticket-description">{{{ line_item.item_description }}}</div>
-                      </div>
-                      <div class="ticket-price-qty">
-                        <p class="ticket-price"><i class="fa fa-inr"></i> {{ line_item.base_amount }}</p>
-                        <span class="multiplier">X</span>
-                          <div class="ticket-qty-wrapper">
-                            <button class="decrement" on-click="updateOrder(event, line_item.item_name, item.quantity_available, false)">-</button>
-                            <input type="number" class="ticket-qty" name="quantity" min="0" max="{{ item.quantity_available }}" value="{{ line_item.quantity }}" disabled>
-                            <button class="increment" on-click="updateOrder(event, line_item.item_name, item.quantity_available, true)">+</button>
-                          </div>
+      <div id='{{id}}' class="boxoffice-section ticket-selection-content clearfix" intro='fly:{"x":-600,"y":"0"}'>
+        {{#section.categories}}
+          <h1 class="category-heading">{{title}}</h1>
+          <div id="{{title}}">
+            {{#items}}{{# { item: . } }}
+              {{#order.line_items}} {{# { line_item: . } }}
+                {{#if line_item.item_name === item.name }}
+                  <div class="ticket-booking clearfix">
+                    <div class="ticket-details">
+                      <p class="ticket-title text-primary">{{ line_item.item_title }}</p>
+                      {{#line_item.discount_policies}}
+                        <p class="discount {{#activated}}applied{{/}}">
+                          {{ title }}{{#activated}} <i class="fa fa-check"></i>{{/}}
+                        </p>
+                      {{/line_item.discount_policies}}
+                      <div class="ticket-description">{{{ line_item.item_description }}}</div>
+                    </div>
+                    <div class="ticket-price-qty">
+                      <p class="ticket-price"><i class="fa fa-inr"></i> {{ line_item.base_amount }}</p>
+                      <span class="multiplier">X</span>
+                        <div class="ticket-qty-wrapper">
+                          <button class="decrement" on-click="updateOrder(event, line_item.item_name, item.quantity_available, false)">-</button>
+                          <input type="number" class="ticket-qty" name="quantity" min="0" max="{{ item.quantity_available }}" value="{{ line_item.quantity }}" disabled>
+                          <button class="increment" on-click="updateOrder(event, line_item.item_name, item.quantity_available, true)">+</button>
                         </div>
                       </div>
-                    {{/if}}
-                  {{/}}{{/order.line_items}}
-              {{/}}{{/items}}
-            </div>
-          {{/section.categories}}
-        </div>
+                    </div>
+                  {{/if}}
+                {{/}}{{/order.line_items}}
+            {{/}}{{/items}}
+          </div>
+        {{/section.categories}}
         <hr>
         <div class="ticket-total {{#loadingPrice}}grey-out{{/}} clearfix">
           <p class="price">Total : <span class="pull-right"><i class="fa fa-inr"></i> {{ order.final_amount }}</span></p>
@@ -60,11 +54,11 @@
         {{/order.readyToCheckout}}
         <p class="stage-error-msg text-danger">{{errorMsg}}</p>
       </div>
-    {{elseif id === 'boxoffice-payment'  && id === activeTab}}
+    {{elseif id === 'boxoffice-payment' && id === activeTab}}
       {{#loadingPaymentConfirmation}}
         <div class="loader"><i class="fa fa-spinner fa-spin fa-3x"></i></div>
       {{/}}
-      <div id='{{id}}' class="boxoffice-section clearfix {{#if id === activeTab}}active{{/if}}">
+      <div id='{{id}}' class="boxoffice-section clearfix" intro='fly:{"x":600,"y":"0"}'>
         <p class="buyer-form">Buyer Details</p>
         <form class="form-horizontal" role="form" id="buyer-details-form" name="buyer-form">
           <div class="form-group">
@@ -108,7 +102,7 @@
         <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
       </div>
     {{elseif id === 'boxoffice-confirm'  && id === activeTab}}
-      <div id='{{id}}' class="boxoffice-section clearfix {{#if id === activeTab}}active{{/if}}">
+      <div id='{{id}}' class="boxoffice-section clearfix" intro='fly:{"x":600,"y":"0"}'>
         {{#section}}
           <p class="confirmation-icon"><i class="fa fa-check-circle"></i></p>
           <p class="confirmation-header">Thank you for your order!</p>
@@ -251,95 +245,32 @@
     padding: 20px;
     border: 2px solid #ccc;
     border-top-width: 0;
-    display: none;
     min-height: 450px;
   }
-  .boxoffice-section.active {
-    display: block;
-  }
-  .ticket-selection-content .nav-tabs>li.category {
-    float: left;
-    margin-bottom: -1px;
+  .category-heading {
+    background-color: #f0a40c;
     position: relative;
-    display: block;
+    font-size: 20px;
+    width: 55%;
+    margin: 20px 0px 0 -22px;
+    padding: 10px 20px;
+    color: #FFF;
+    z-index: 1;
+    text-transform: uppercase;
+    border-bottom: 3px solid #d5920d;
   }
-  .ticket-selection-content .nav-tabs.width-1 > li.category {
-    width: 100%;
-    text-align: center;
-  }
-  .ticket-selection-content .nav-tabs.width-2 > li.category, 
-  .ticket-selection-content .nav-tabs.width-4 > li.category {
-    width: 50%;
-    text-align: center;
-    margin-top: 10px;
-  }
-  .ticket-selection-content .nav-tabs.width-3 > li.category {
-    width: 33.3%;
-    text-align: center;
-    margin-top: 10px;
-  }
-  @media (min-width: 768px) {
-    .ticket-selection-content .nav-tabs.width-3 > li.category {
-      width: 33.3%;
-      text-align: center;
-    }
-
-    .ticket-selection-content .nav-tabs.width-4 > li.category {
-      width: 25%;
-      text-align: center;
-    }
-  }
-  .ticket-selection-content .nav-tabs .category a {
-    font-size: 13px;
-    font-weight: 500;
-    outline: none;
-    padding: 5px 0;
-    text-align: center;
-    border-color: transparent;
-    border-radius: 0;
-  }
-  .ticket-selection-content .nav-tabs .category a:focus, 
-  .ticket-selection-content .nav-tabs .category a:hover {
-    border-color: transparent;
-    border-radius: 0;
-  }
-  .ticket-selection-content .nav-tabs .category.active > a, 
-  .ticket-selection-content .nav-tabs .category.active > a:focus, 
-  .ticket-selection-content .nav-tabs .category.active > a:hover {
-    background-color: transparent;
-    border-color: transparent;
-  }
-  @media (min-width: 768px) {
-    .ticket-selection-content .nav-tabs .category a {
-      font-size: 15px;
-      padding: 10px 15px;
-    }
-  }
-  .category::after {
+  .category-heading:after {
     content: "";
     display: block;
-    height: 3px;
     position: absolute;
-    bottom: 0px;
-    width: 100%;
-    background-color: #ccc;
-    -moz-transform: scaleX(0);
-    -webkit-transform: scaleX(0);
-    -o-transform: scaleX(0);
-    -ms-transform: scaleX(0);
-    transform: scaleX(0);
-    -webkit-transition: all 300ms ease;
-    -moz-transition: all 300ms ease;
-    -ms-transition: all 300ms ease;
-    -o-transition: all 300ms ease;
-    transition: all 300ms ease;
-  }
-  .category.active::after {
-    -moz-transform: scaleX(1);
-    -webkit-transform: scaleX(1);
-    -o-transform: scaleX(1);
-    -ms-transform: scaleX(1);
-    transform: scaleX(1); 
+    right: 0px;
+    top: 0px;
+    border-style: solid;
+    border-color: #f0a40c;
+    border-right-color: transparent;
+    border-width: 21px;
+    z-index: 2;
+    background-color: #fff;
   }
   .ticket-details {
     float: left;
@@ -359,7 +290,7 @@
   @media (min-width: 768px) {
     .ticket-title {
       font-size: 20px;
-      margin-top: 20px;
+      /*margin-top: 20px;*/
     }
   }
   .discount {
@@ -384,10 +315,6 @@
     float: left;
     margin-top: 2px;
   }
-  .ticket-qty-wrapper {
-    font-size: 18px;
-    float: right;
-  }
   @media (min-width: 768px) {
     .ticket-price-qty {
       margin-top: 35px;
@@ -401,12 +328,14 @@
     padding: 0;
     height: 30px;
     overflow: hidden;
-    background: #f7f3a6;
+    background: #f6f3c2;
+    font-size: 18px;
+    float: right;
   }
   .ticket-qty {
     width: 30px;
     border: 0px none;
-    background: #f7f3a6;
+    background: #f6f3c2;
     -webkit-text-fill-color:#333;
     color: #333;
     line-height: 1;
@@ -432,6 +361,9 @@
     border: 0;
     padding: 0 5px;
   }
+  .increment:focus, .decrement:focus {
+    outline:0;
+  }
   .ticket-price {
     padding-right: 20px;
   }
@@ -446,8 +378,9 @@
     float: right;
     border: 2px solid #ccc;
     margin: 15px 0;
-    padding: 15px;
-    background: #f7f3a6;
+    padding: 5px 10px;
+    border-radius: 5px;
+    background: #f6f3c2;
   }
   .grey-out {
     opacity: 0.5;
