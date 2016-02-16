@@ -7,49 +7,6 @@ from fixtures import init_data
 
 class TestOrder(unittest.TestCase):
 
-    expected_keys = ["categories", "html"]
-    expected_categories_names = ['conference', 'workshop', 'merchandise']
-    expected_data = {
-        "conference": {
-            "conference-ticket": {
-                "title": "Conference ticket",
-                "price": 3500,
-                "description": '<p><i class="fa fa-calendar"></i>14 - 15 April 2016</p><p><i class="fa fa-map-marker ticket-venue"></i>MLR Convention Center, JP Nagar</p><p>This ticket gets you access to rootconf conference on 14th and 15th April 2016.</p>',
-                "name": "conference-ticket",
-                "quantity_available": 100,
-                "quantity_total": 1000,
-                },
-            "single-day": {
-                "title": "Single Day",
-                "price": 2500,
-                "description": '<p><i class="fa fa-calendar"></i>14 April 2016</p><p><i class="fa fa-map-marker ticket-venue"></i>MLR Convention Center, JP Nagar</p><p>This ticket gets you access to rootconf conference on 14th April 2016.</p>',
-                "name": "single-day",
-                "quantity_available": 100,
-                "quantity_total": 1000,
-                }
-            },
-        "workshop": {
-            "dnssec-workshop": {
-                "title": "DNSSEC workshop",
-                "price": 2500,
-                "description": '<p><i class="fa fa-calendar"></i>12 April 2016</p><p><i class="fa fa-map-marker ticket-venue"></i>TERI, Domlur</p><p>This ticket gets you access to DNSSEC workshop 12th April 2016.</p>',
-                "name": "dnssec-workshop",
-                "quantity_available": 100,
-                "quantity_total": 1000,
-                },
-            },
-        "merchandise": {
-            "t-shirt": {
-                "title": "T-shirt",
-                "price": 500,
-                "description": "Rootconf",
-                "name": "t-shirt",
-                "quantity_available": 100,
-                "quantity_total": 1000,
-                },
-            },
-        }
-
     def setUp(self):
         self.ctx = app.test_request_context()
         self.ctx.push()
