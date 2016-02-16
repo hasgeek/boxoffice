@@ -36,7 +36,11 @@ def order(organization, item_collection):
     if form_values:
         form_values_json = json.loads(form_values[0])
         user = find_or_create_user(form_values_json.get('email'))
-        order = Order(user=user, item_collection=item_collection)
+        order = Order(user=user,
+                      item_collection=item_collection,
+                      buyer_email=form_values_json.get('buyer').get('email'),
+                      buyer_fullname=form_values_json.get('buyer').get('fullname'),
+                      buyer_phone=form_values_json.get('buyer').get('phone'))
         line_item_dicts = calculate_line_items(form_values_json.get('line_items'))
         for line_item_dict in line_item_dicts:
             line_item = LineItem(item=Item.query.get(line_item_dict.get('item_id')),
@@ -58,11 +62,16 @@ def order(organization, item_collection):
 @app.route('/kharcha', methods=['GET', 'OPTIONS', 'POST'])
 @cross_origin(origins=ALLOWED_ORIGINS)
 def kharcha():
-    form_values = request.form.to_dict().keys()
-    # import IPython; IPython.embed()
-    if form_values:
-        form_values_json = json.loads(form_values[0])
-        return jsonify(line_items=calculate_line_items(form_values_json.get('line_items')))
+    try:
+        form_values = request.form.to_dict().keys()
+        # import IPython; IPython.embed()
+        if form_values:
+            form_values_json = json.loads(form_values[0])
+            return jsonify(line_items=calculate_line_items(form_values_json.get('line_items')))
+    except Exception:
+        return jsonify(status=400)
+    else:
+        return jsonify(status=401)
 
 
 @app.route('/<order>/payment', methods=['GET', 'OPTIONS', 'POST'])

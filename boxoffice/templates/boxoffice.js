@@ -230,7 +230,11 @@ $(function(){
             crossDomain: true,
             dataType: 'json',
             data: JSON.stringify({
-              email: boxoffice.ractive.get('buyer.email'),
+              buyer:{
+                email: boxoffice.ractive.get('buyer.email'),
+                fullname: boxoffice.ractive.get('buyer.name'),
+                phone: boxoffice.ractive.get('buyer.phone')
+              },
               line_items: boxoffice.ractive.get('order.line_items').filter(function(line_item) {
                 return line_item.quantity > 0;
               }).map(function(line_item) {
