@@ -16,14 +16,19 @@ class TestOrder(unittest.TestCase):
         self.client = app.test_client()
 
     def test_basic(self):
-        item = Item.query.first()
+        item = Item.query.filter_by(name='conference-ticket').first()
         data = {
             'line_items': [{'item_id': unicode(item.id), 'quantity': 2}],
-            'email': 'test@hasgeek.com'
+            'buyer': {
+                'fullname': 'Testing',
+                'phone': 9814141414,
+                'email': 'test@hasgeek.com',
+                }
             }
         resp = self.client.post('/rootconf/2016/order', data=json.dumps(data), content_type='application/x-www-form-urlencoded')
         data = json.loads(resp.data)
         self.assertEquals(data['code'], 200)
+        # 3500*2 = 7000
         self.assertEquals(data['final_amount'], 7000)
 
     # def test_invalid_item(self):
@@ -41,7 +46,11 @@ class TestOrder(unittest.TestCase):
         discounted_item = Item.query.filter_by(name='t-shirt').first()
         data = {
             'line_items': [{'item_id': unicode(discounted_item.id), 'quantity': 5}],
-            'email': 'test@hasgeek.com'
+            'buyer': {
+                'fullname': 'Testing',
+                'phone': 9814141414,
+                'email': 'test@hasgeek.com',
+                }
             }
         resp = self.client.post('/rootconf/2016/order', data=json.dumps(data), content_type='application/x-www-form-urlencoded')
         data = json.loads(resp.data)
@@ -61,7 +70,12 @@ class TestOrder(unittest.TestCase):
                     'quantity': 10
                     }
                 ],
-            'email': 'test@hasgeek.com'
+            'buyer': {
+                'fullname': 'Testing',
+                'phone': 9814141414,
+                'email': 'test@hasgeek.com',
+                }
+
             }
         resp = self.client.post('/rootconf/2016/order', data=json.dumps(data), content_type='application/x-www-form-urlencoded')
         data = json.loads(resp.data)

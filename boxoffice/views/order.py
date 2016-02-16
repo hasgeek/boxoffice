@@ -35,7 +35,7 @@ def order(organization, item_collection):
     form_values = request.form.to_dict().keys()
     if form_values:
         form_values_json = json.loads(form_values[0])
-        user = find_or_create_user(form_values_json.get('email'))
+        user = find_or_create_user(form_values_json.get('buyer').get('email'))
         order = Order(user=user,
                       item_collection=item_collection,
                       buyer_email=form_values_json.get('buyer').get('email'),
