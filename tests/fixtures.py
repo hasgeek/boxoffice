@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-
-from boxoffice import init_for
 from boxoffice.models import *
 
 
