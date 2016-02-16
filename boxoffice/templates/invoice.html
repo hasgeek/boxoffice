@@ -5,6 +5,7 @@
   <meta charset='UTF-8'>  
   <title>Invoice</title>  
   <link rel="stylesheet" href="{{ url_for('static', filename='css/invoice.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/font-awesome.min.css') }}">
   <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400italic,600italic,400,600" />
 </head>
 
@@ -34,8 +35,7 @@
         <tr>
           <th class="gray" colspan="2">Bill To</th>
         </tr>
-        <!-- To be done -->
-        <!-- <tr>
+        <tr>
           <td class="gray">Name</td>
           <td>{{ order.user.name }}</td>
         </tr>
@@ -46,18 +46,6 @@
         <tr>
           <td class="gray">Phone</td>
           <td>{{ order.user.phone }}</td>
-        </tr> -->
-        <tr>
-          <td class="gray">Name</td>
-          <td>Vidya R</td>
-        </tr>
-        <tr>
-          <td class="gray">Email</td>
-          <td>vidya@hasgeek.in</td>
-        </tr>
-        <tr>
-          <td class="gray">Phone</td>
-          <td>+919900088416</td>
         </tr>
       </table>
 
@@ -86,12 +74,12 @@
       {% for ticket in order.line_items -%}
         {% if ticket.quantity > 0 %}
           <tr class="item-row">
-            <td>{{ ticket.item.title }}</td>
-            <td>{{ ticket.item.description }}</td>
-            <td class="center">&#8377; {{ ticket.base_amount }}</td>
+            <td class="center">{{ ticket.item.title }}</td>
+            <td class="item-description">{{ ticket.item.description|safe }}</td>
+            <td class="center"><i class="fa fa-inr"></i>{{ ticket.base_amount }}</td>
             <td class="center">{{ ticket.quantity }}</td>
-            <td class="center">&#8377; {{ ticket.discounted_amount }}</td>
-            <td class="center">&#8377; {{ ticket.final_amount }}</td>
+            <td class="center"><i class="fa fa-inr"></i>{{ ticket.discounted_amount }}</td>
+            <td class="center"><i class="fa fa-inr"></i>{{ ticket.final_amount }}</td>
           </tr>
         {% endif %}
       {%- endfor %}
@@ -99,7 +87,7 @@
       <tr>
           <td colspan="3"></td>
           <td colspan="2" class="total gray">Total</td>
-          <td class="total-amount gray center"><div id="total">&#8377; {{ order.calculate().final_amount }}</div></td>
+          <td class="total-amount gray center"><div id="total">&#8377; {{ order.get_amounts().final_amount }}</div></td>
       </tr>
     </table>
     

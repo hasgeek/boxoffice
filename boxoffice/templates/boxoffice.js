@@ -84,9 +84,9 @@ $(function(){
           },
           // Prefill name, email, phone if user is found to be logged in
           buyer: {
-            name: widgetConfig.name,
-            email: widgetConfig.email,
-            phone: widgetConfig.phone
+            name: widgetConfig.user_name,
+            email: widgetConfig.user_email,
+            phone: widgetConfig.user_phone
           },
           activeTab: 'boxoffice-selectItems',
           tabs: {
@@ -112,7 +112,10 @@ $(function(){
               label: 'Confirm',
               complete: false,
               section: {
-                invoiceURL: ''
+                invoiceURL: '',
+                eventTitle: widgetConfig.event_title,
+                eventUrl: widgetConfig.event_url,
+                eventHashtag: widgetConfig.event_hashtag,
               }
             }
           },
@@ -227,8 +230,10 @@ $(function(){
             crossDomain: true,
             dataType: 'json',
             data: JSON.stringify({
-              email: boxoffice.ractive.get('order.buyer.email'),
-              line_items: boxoffice.ractive.get('order.line_items').map(function(line_item){
+              email: boxoffice.ractive.get('buyer.email'),
+              line_items: boxoffice.ractive.get('order.line_items').filter(function(line_item) {
+                return line_item.quantity > 0;
+              }).map(function(line_item) {
                 return {
                   item_id: line_item.item_id,
                   quantity: line_item.quantity
@@ -265,9 +270,9 @@ $(function(){
               }
             },
             "prefill": {
-              "name": boxoffice.ractive.get('order.buyer.name'),
-              "email": boxoffice.ractive.get('order.buyer.email'),
-              "contact": boxoffice.ractive.get('order.buyer.phone')
+              "name": boxoffice.ractive.get('buyer.name'),
+              "email": boxoffice.ractive.get('buyer.email'),
+              "contact": boxoffice.ractive.get('buyer.phone')
             },
             "theme": {
               "color": "#F37254"
@@ -292,7 +297,7 @@ $(function(){
             boxoffice.ractive.set('tabs.payment.loadingPaymentConfirmation', false);
           });
           var invoiceURL = boxoffice.config.baseURL + "/" + boxoffice.ractive.get('order.id') + "/invoice";
-          boxoffice.ractive.set('tabs.confirm.invoiceURL', invoiceURL);
+          boxoffice.ractive.set('tabs.confirm.section.invoiceURL', invoiceURL);
         },
         oncomplete: function(){
         }
