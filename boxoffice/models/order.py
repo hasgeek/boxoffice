@@ -29,6 +29,10 @@ class Order(BaseMixin, db.Model):
     invoiced_at = db.Column(db.DateTime, nullable=True)
     cancelled_at = db.Column(db.DateTime, nullable=True)
 
+    buyer_email = db.Column(db.Unicode(254), nullable=False)
+    buyer_fullname = db.Column(db.Unicode(80), nullable=False)
+    buyer_phone = db.Column(db.Unicode(13), nullable=True)
+
     order_hash = db.Column(db.Unicode(120), nullable=True)
 
     def invoice(self):
