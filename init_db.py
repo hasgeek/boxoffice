@@ -73,7 +73,7 @@ coupon = DiscountCoupon(discount_policy=policy, quantity_available=100, quantity
 db.session.add(coupon)
 db.session.commit()
 
-order = Order(user=user, item_collection=rc2016)
+order = Order(user=user, item_collection=rc2016, buyer_email='abc@xyz.com', buyer_fullname='ABC XYZ', buyer_phone='9999999999')
 db.session.add(order)
 db.session.commit()
 # except:

@@ -165,6 +165,7 @@ $(function(){
                   }
                 })
               }),
+              contentType: 'application/json'
             }).done(function(data) {
               var line_items = boxoffice.ractive.get('order.line_items');
               var finalAmount = 0.0;
@@ -229,6 +230,7 @@ $(function(){
             url: boxoffice.config.itemCollectionURL + '/order',
             crossDomain: true,
             dataType: 'json',
+            contentType: 'application/json',
             data: JSON.stringify({
               buyer:{
                 email: boxoffice.ractive.get('buyer.email'),
@@ -292,7 +294,8 @@ $(function(){
             crossDomain: true,
             dataType: 'json',
             data: JSON.stringify({pg_payment_id: paymentID}),
-            timeout: 5000
+            timeout: 5000,
+            contentType: 'application/json'
           }).done(function(data) {
             boxoffice.ractive.set({
               'activeTab': boxoffice.ractive.get('tabs.confirm.id'),

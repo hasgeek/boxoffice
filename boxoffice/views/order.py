@@ -1,11 +1,10 @@
 import json
-import requests
 import datetime
-from flask import url_for, request, jsonify, render_template
+from flask import url_for, request, jsonify, render_template, abort
 from flask.ext.cors import cross_origin
 from coaster.views import load_models
 from boxoffice import app
-from boxoffice.models import db, Organization, Item, ItemCollection, User, LineItem, Price
+from boxoffice.models import db, Organization, Item, ItemCollection, LineItem, Price
 from boxoffice.models.order import Order, Payment, PaymentTransaction
 from boxoffice.extapi import razorpay
 from .helpers import find_or_create_user
@@ -32,46 +31,42 @@ def calculate_line_items(line_items_dicts):
     )
 @cross_origin(origins=ALLOWED_ORIGINS)
 def order(organization, item_collection):
-    form_values = request.form.to_dict().keys()
-    if form_values:
-        form_values_json = json.loads(form_values[0])
-        user = find_or_create_user(form_values_json.get('buyer').get('email'))
-        order = Order(user=user,
-                      item_collection=item_collection,
-                      buyer_email=form_values_json.get('buyer').get('email'),
-                      buyer_fullname=form_values_json.get('buyer').get('fullname'),
-                      buyer_phone=form_values_json.get('buyer').get('phone'))
-        line_item_dicts = calculate_line_items(form_values_json.get('line_items'))
-        for line_item_dict in line_item_dicts:
-            line_item = LineItem(item=Item.query.get(line_item_dict.get('item_id')),
-                                 order=order,
-                                 quantity=line_item_dict.get('quantity'),
-                                 ordered_at=datetime.datetime.now(),
-                                 base_amount=line_item_dict.get('base_amount'),
-                                 discounted_amount=line_item_dict.get('discounted_amount'),
-                                 final_amount=line_item_dict.get('final_amount'))
-            db.session.add(line_item)
-        db.session.add(order)
-        db.session.commit()
-        order_amounts = order.get_amounts()
-        return jsonify(code=200, order_id=order.id,
-                       payment_url=url_for('payment', order=order.id),
-                       final_amount=order_amounts.final_amount)
+    line_items = request.json.get('line_items')
+    buyer = request.json.get('buyer')
+    if not request.json or not line_items or not isinstance(line_items, list) or not buyer:
+        abort(400)
+
+    user = find_or_create_user(buyer.get('email'))
+    order = Order(user=user,
+                  item_collection=item_collection,
+                  buyer_email=buyer.get('email'),
+                  buyer_fullname=buyer.get('fullname'),
+                  buyer_phone=buyer.get('phone'))
+    line_item_dicts = calculate_line_items(line_items)
+    for line_item_dict in line_item_dicts:
+        line_item = LineItem(item=Item.query.get(line_item_dict.get('item_id')),
+                             order=order,
+                             quantity=line_item_dict.get('quantity'),
+                             ordered_at=datetime.datetime.now(),
+                             base_amount=line_item_dict.get('base_amount'),
+                             discounted_amount=line_item_dict.get('discounted_amount'),
+                             final_amount=line_item_dict.get('final_amount'))
+        db.session.add(line_item)
+    db.session.add(order)
+    db.session.commit()
+    order_amounts = order.get_amounts()
+    return jsonify(code=200, order_id=order.id,
+                   payment_url=url_for('payment', order=order.id),
+                   final_amount=order_amounts.final_amount)
 
 
 @app.route('/kharcha', methods=['GET', 'OPTIONS', 'POST'])
 @cross_origin(origins=ALLOWED_ORIGINS)
 def kharcha():
-    try:
-        form_values = request.form.to_dict().keys()
-        # import IPython; IPython.embed()
-        if form_values:
-            form_values_json = json.loads(form_values[0])
-            return jsonify(line_items=calculate_line_items(form_values_json.get('line_items')))
-    except Exception:
-        return jsonify(status=400)
-    else:
-        return jsonify(status=401)
+    line_items = request.json.get('line_items')
+    if not request.json or not line_items or not isinstance(line_items, list):
+        abort(400)
+    return jsonify(line_items=calculate_line_items(line_items))
 
 
 @app.route('/<order>/payment', methods=['GET', 'OPTIONS', 'POST'])
@@ -80,8 +75,9 @@ def kharcha():
     )
 @cross_origin(origins=ALLOWED_ORIGINS)
 def payment(order):
-    form_values = request.form.to_dict().keys()
-    pg_payment_id = json.loads(form_values[0]).get('pg_payment_id')
+    pg_payment_id = request.json.get('pg_payment_id')
+    if not request.json or not pg_payment_id:
+        abort(400)
     payment = Payment(pg_payment_id=pg_payment_id, order=order)
     order_amounts = order.get_amounts()
 
@@ -96,27 +92,7 @@ def payment(order):
         return jsonify(code=200)
     else:
         payment.fail()
-        return jsonify(code=402)
-
-
-@app.route('/<order>/cancel', methods=['POST'])
-@load_models(
-    (Order, {'id': 'order'}, 'order')
-    )
-@cross_origin(origins=ALLOWED_ORIGINS)
-def cancel(order):
-    # line_items_dict = [{id: '', quantity: 3, name: ''}, {id: '', quantity: 4, name: ''}]
-    # for line_item_dict in line_items_dict:
-    #     line_item = LineItem.get(line_item_dict.get('id'))
-    #    if line_item_dict.get('quantity') == 0:
-    #        line_item.cancel()
-    #    elif line_item_dict('quantity') < line_item.quantity:
-    #        line_item.cancel()
-    #        new_line_item = LineItem(quantity=line_item_dict('quantity'), order=order, item=line_item.item)
-    #        db.session.add(new_line_item)
-    # db.session.commit()
-    # render_template('invoice.html', order=order)
-    pass
+        return abort(402)
 
 
 @app.route('/<order>/invoice', methods=['GET'])

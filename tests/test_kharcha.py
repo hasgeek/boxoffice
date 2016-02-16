@@ -24,7 +24,7 @@ class TestKharchaAPI(unittest.TestCase):
         first_item = Item.query.first()
         undiscounted_quantity = 2
         kharcha_req = {'line_items': [{'item_id': unicode(first_item.id), 'quantity': undiscounted_quantity}]}
-        resp = self.client.post(url_for('kharcha'), data=json.dumps(kharcha_req), content_type='application/x-www-form-urlencoded')
+        resp = self.client.post(url_for('kharcha'), data=json.dumps(kharcha_req), content_type='application/json')
         self.assertEquals(resp.status_code, 200)
         resp_json = json.loads(resp.get_data())
 
@@ -39,7 +39,7 @@ class TestKharchaAPI(unittest.TestCase):
         first_item = Item.query.first()
         discounted_quantity = 10
         kharcha_req = {'line_items': [{'item_id': unicode(first_item.id), 'quantity': discounted_quantity}]}
-        resp = self.client.post(url_for('kharcha'), data=json.dumps(kharcha_req), content_type='application/x-www-form-urlencoded')
+        resp = self.client.post(url_for('kharcha'), data=json.dumps(kharcha_req), content_type='application/json')
         self.assertEquals(resp.status_code, 200)
         resp_json = json.loads(resp.get_data())
 
