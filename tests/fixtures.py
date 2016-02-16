@@ -1,12 +1,10 @@
 #!/usr/bin/env python
 
-
-from boxoffice import init_for
 from boxoffice.models import *
 
 
 def init_data():
-    user = User(userid="U3_JesHfQ2OUmdihAXaAGQ")
+    user = User(userid="U3_JesHfQ2OUmdihAXaAGQ", email="test@hasgeek.com")
     db.session.add(user)
     db.session.commit()
 
