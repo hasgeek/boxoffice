@@ -72,6 +72,14 @@ table td, table th {
   float: right; 
 }
 
+.item-description {
+  max-width: 200px;
+}
+
+.fa {
+  padding-right: 5px;
+}
+
 .gray { 
   background-color: #eee; 
 }

@@ -9,8 +9,8 @@
   </ul>
 </div><!--eof payment-box-progress-wrapper -->
 <div class="payment-stages-wrapper">
-  {{#tabs:tab, order}}
-    {{#if id === 'boxoffice-selectItems'}}
+  {{#tabs:tab}}
+    {{#if id === 'boxoffice-selectItems'  && id === activeTab}}
       <div id='{{id}}' class="boxoffice-section ticket-selection-content clearfix {{#if id === activeTab}}active{{/if}}" intro='fly:{"x":-600,"y":"0"}'>
         <ul class="nav nav-tabs {{#if section.categories.length > 4}}width-4{{else}}width-{{section.categories.length}}{{/if}}" role="tablist">
           {{#section.categories}}
@@ -27,14 +27,14 @@
                       <div class="ticket-details">
                         <p class="ticket-title text-primary">{{ line_item.item_title }}</p>
                         {{#line_item.discount_policies}}
-                          <p class="discount {{#activated}}applied{{/}}" id="{{id}}">
-                            {{ title }}{{#activated}}<i class="fa fa-check"></i>{{/}}
+                          <p class="discount {{#activated}}applied{{/}}">
+                            {{ title }}{{#activated}} <i class="fa fa-check"></i>{{/}}
                           </p>
                         {{/line_item.discount_policies}}
-                        <div class="ticket-description">{{{ line_item.description }}}</div>
+                        <div class="ticket-description">{{{ line_item.item_description }}}</div>
                       </div>
                       <div class="ticket-price-qty">
-                        <p class="ticket-price"><i class="fa fa-inr"></i>{{ line_item.base_amount }}</p>
+                        <p class="ticket-price"><i class="fa fa-inr"></i> {{ line_item.base_amount }}</p>
                         <span class="multiplier">X</span>
                           <div class="ticket-qty-wrapper">
                             <button class="decrement" on-click="updateOrder(event, line_item.item_name, item.quantity_available, false)">-</button>
@@ -60,7 +60,7 @@
         {{/order.readyToCheckout}}
         <p class="stage-error-msg text-danger">{{errorMsg}}</p>
       </div>
-    {{elseif id === 'boxoffice-payment'}}
+    {{elseif id === 'boxoffice-payment'  && id === activeTab}}
       {{#loadingPaymentConfirmation}}
         <div class="loader"><i class="fa fa-spinner fa-spin fa-3x"></i></div>
       {{/}}
@@ -69,28 +69,35 @@
         <form class="form-horizontal" role="form" id="buyer-details-form" name="buyer-form">
           <div class="form-group">
             <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
-              <input type="text" class="form-control buyer-fields secondary" name="name" required value = {{order.buyer.name }} placeholder="Name"/>
+              <input type="text" class="form-control buyer-fields secondary" name="name" required value = {{buyer.name }} placeholder="Name"/>
             </div>
           </div>
           <div class="form-group">
             <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
-              <input type="text" class="form-control buyer-fields secondary" name="email" required value = {{order.buyer.email }} placeholder="Email"/>
+              <input type="text" class="form-control buyer-fields secondary" name="email" required value = {{buyer.email }} placeholder="Email"/>
             </div>
           </div>
           <div class="form-group phone-number-wrapper">
             <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
-              <input type="text" class="form-control buyer-fields secondary" name="phone" required value = {{order.buyer.phone }} placeholder="Phone"/>
+              <input type="text" class="form-control buyer-fields secondary" name="phone" required value = {{buyer.phone }} placeholder="Phone"/>
             </div>
           </div>
           <div class="checkout-confirmation col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
             <p class="summary">Booking Summary</p>
             {{#order.line_items}} {{# { line_item: . } }}
               {{#if line_item.quantity > 0 }}
-              <p class="booked-ticket-title"><i class="fa fa-ticket"></i>{{ line_item.item_title }}<p>
-              <p class="booked-ticket-qty">Qty: {{ line_item.quantity }}</p>
+                <div class="item-summary">
+                  <p class="booked-ticket-title"><i class="fa fa-ticket"></i>{{ line_item.item_title }}</p>
+                  <p class="booked-ticket-qty">Qty: {{ line_item.quantity }} X <i class="fa fa-inr"></i> {{line_item.base_amount}}</p>
+                  {{#line_item.discount_policies}}
+                    {{#if activated}}
+                    <p class="discount-applied">Applied: {{ title }}</p>
+                    {{/if}}
+                  {{/line_item.discount_policies}}
+                </div>
               {{/if}}
             {{/}}{{/order.line_items}}
-            <p class="price">Amount Payable: <b><i class="fa fa-inr"></i> {{ order.price }}</b></p>
+            <p class="price">Amount Payable: <span class="final-amount"><b><i class="fa fa-inr"></i> {{ order.final_amount }}</b></span></p>
           </div>
           <div class="proceed-button-wrapper">
             <button class="boxoffice-button boxoffice-button-info edit-order" on-click="selectItems(event)">Edit order</button>
@@ -100,10 +107,27 @@
         </form> 
         <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
       </div>
-    {{elseif id === 'boxoffice-confirm'}}
+    {{elseif id === 'boxoffice-confirm'  && id === activeTab}}
       <div id='{{id}}' class="boxoffice-section clearfix {{#if id === activeTab}}active{{/if}}">
-        <p class="confirmation">Confirmation Message</p>
-        <p class="confirmation"><a href="{{ invoiceURL }}" target="_blank">Invoice</a></p>
+        {{#section}}
+          <p class="confirmation-icon"><i class="fa fa-check-circle"></i></p>
+          <p class="confirmation-header">Thank you for your order!</p>
+          <div class="confirmation-msg">
+            <p>Hello {{buyer.name}},</p>
+            <p>Your payment has been successful and ticket to {{eventTitle}} has been booked. We have sent you a confirmation email with the <a href="{{ invoiceURL }}" target="_blank">invoice</a>.</p>
+            <p>For terms of service and refund policy, please visit <a href="https://hasgeek.com/about/policy/">https://hasgeek.com/about/policy</a></p>
+            <p>For further queries, please write to us at <a href="mailto:support@hasgeek.com">support@hasgeek.com</a> or call us at <a href="tel:+917676332020">+91 7676 33 2020</a>.</p>
+            <p>Tell your friends!</p>
+            <span class="tweet-button">
+            <a href="https://twitter.com/share" class="twitter-share-button" {{#if eventUrl}}data-url="{{eventUrl}}"{{/if}} data-text="Iam attending {{eventTitle}}" data-hashtags="HasGeek{{#if eventHashtag}}, {{eventHashtag}}{{/if}}">Tweet</a>
+            </span>
+            <div class="fb-share-button pad-half" {{#if eventUrl}}data-href="{{eventUrl}}"{{/if}} data-layout="button"></div>
+            <div id="fb-root"></div>
+            <script>(function(d, s, id) { var js, fjs = d.getElementsByTagName(s)[0]; if (d.getElementById(id)) return; js = d.createElement(s); js.id = id; js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.5"; fjs.parentNode.insertBefore(js, fjs); }(document, 'script', 'facebook-jssdk'));</script>
+            <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+            <!-- <p>We host the <a href="https://friends.hasgeek.com">Friends of HasGeek</a> Slack team that anyone can join.</p> -->
+          </div>
+        {{/section}}
       </div>      
     {{/if}}
   {{/}}
@@ -428,9 +452,41 @@
   .grey-out {
     opacity: 0.5;
   }
-  .price, .buyer-fields {
+  .buyer-fields {
     font-size: 15px;
     margin: 0;
+  }
+  .buyer-form, .summary {
+    text-align: center;
+    font-size: 20px;
+    margin: 20px 0;
+  }
+  .item-summary {
+    border-bottom: 1px dotted #CCC;
+    padding: 5px 0;
+  }
+  .booked-ticket-title {
+    font-size: 16px;
+  }
+  .booked-ticket-title .fa-ticket {
+    padding-right: 10px;
+  }
+  .booked-ticket-qty,  
+  .discount-applied {
+    font-size: 13px;
+    color: #999;
+    text-align: right;
+    margin-bottom: 5px;
+  }
+  .discount-applied {
+    color: green;
+  }
+  .final-amount{
+    float: right;
+  }
+  .price {
+    font-size: 15px;
+    margin: 10px 0;
   }
   .proceed-button-wrapper {
     clear: both;
@@ -445,23 +501,6 @@
     height: 20px;
     float: right;
     margin: 0px 0 10px;
-  }
-  .buyer-form, .summary {
-    text-align: center;
-    font-size: 20px;
-    margin: 20px 0;
-  }
-  .booked-ticket-title {
-    font-size: 16px;
-  }
-  .booked-ticket-title .fa-ticket {
-    padding-right: 10px;
-  }
-  .booked-ticket-qty {
-    font-size: 13px;
-    color: #999;
-    border-bottom: 1px dotted #CCC;
-    padding: 0 0 10px 26px;
   }
   .loader {
     position: absolute;
@@ -478,7 +517,44 @@
     top: 43%;
     left: 48%;
   }
-  .confirmation {
+  .confirmation-icon {
+    font-size: 50px;
+    color: green;
     text-align: center;
+    line-height: 1;
+  }
+  .confirmation-header {
+    font-size: 24px;
+    color: green;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .confirmation-msg {
+    font-size: 16px;
+  }
+  @media (min-width: 768px) {
+    .confirmation-icon {
+      font-size: 75px;
+    }
+    .confirmation-header {
+      font-size: 30px;
+      margin-bottom: 20px;
+    }
+    .confirmation-msg {
+      max-width: 700px;
+      margin: auto;
+    }
+  }
+  .socialmedia-share {
+    display: inline-block;
+  }
+  .fb-share-button {
+    display: inline-block;
+    line-height: 1;
+  }
+  .tweet-button {
+    line-height: 1;
+    position: relative;
+    top: 2px;
   }
 </style>
