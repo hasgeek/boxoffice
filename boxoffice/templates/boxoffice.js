@@ -199,6 +199,7 @@ $(function(){
           // Transitions the widget to the 'Payment' stage, and initializes
           // the validator.
           event.original.preventDefault();
+          $('html,body').animate({scrollTop:$("#boxoffice-widget").offset().top}, '900');
           boxoffice.ractive.set('tabs.selectItems.complete', true);
           boxoffice.ractive.set('activeTab', boxoffice.ractive.get('tabs.payment.id'));
 
