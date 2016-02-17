@@ -8,3 +8,4 @@ git+https://github.com/hasgeek/flask-lastuser
 jsmin
 pytz
 flask-cors
+wtforms_json

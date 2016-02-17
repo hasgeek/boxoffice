@@ -21,7 +21,7 @@ class TestOrder(unittest.TestCase):
             'line_items': [{'item_id': unicode(item.id), 'quantity': 2}],
             'buyer': {
                 'fullname': 'Testing',
-                'phone': 9814141414,
+                'phone': '9814141414',
                 'email': 'test@hasgeek.com',
                 }
             }
@@ -49,7 +49,7 @@ class TestOrder(unittest.TestCase):
             'line_items': [{'item_id': unicode(discounted_item.id), 'quantity': 5}],
             'buyer': {
                 'fullname': 'Testing',
-                'phone': 9814141414,
+                'phone': '9814141414',
                 'email': 'test@hasgeek.com',
                 }
             }
@@ -73,7 +73,7 @@ class TestOrder(unittest.TestCase):
                 ],
             'buyer': {
                 'fullname': 'Testing',
-                'phone': 9814141414,
+                'phone': '9814141414',
                 'email': 'test@hasgeek.com',
                 }
 

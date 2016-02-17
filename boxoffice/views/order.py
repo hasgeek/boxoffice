@@ -1,4 +1,3 @@
-import json
 import datetime
 from flask import url_for, request, jsonify, render_template, abort
 from flask.ext.cors import cross_origin
@@ -8,6 +7,7 @@ from boxoffice.models import db, Organization, Item, ItemCollection, LineItem, P
 from boxoffice.models.order import Order, Payment, PaymentTransaction
 from boxoffice.extapi import razorpay
 from .helpers import find_or_create_user
+from forms import LineItemForm, BuyerForm
 
 ALLOWED_ORIGINS = ['http://shreyas-wlan.dev:8000', 'http://rootconf.vidya.dev:8090']
 
@@ -31,18 +31,24 @@ def calculate_line_items(line_items_dicts):
     )
 @cross_origin(origins=ALLOWED_ORIGINS)
 def order(organization, item_collection):
-    line_items = request.json.get('line_items')
-    buyer = request.json.get('buyer')
-    if not request.json or not line_items or not isinstance(line_items, list) or not buyer:
+    line_item_forms = LineItemForm.process_list(request.json.get('line_items'))
+    if not line_item_forms:
         abort(400)
 
-    user = find_or_create_user(buyer.get('email'))
+    buyer_form = BuyerForm.from_json(request.json.get('buyer'))
+
+    if not buyer_form.validate():
+        abort(400)
+
+    user = find_or_create_user(buyer_form.email.data)
     order = Order(user=user,
                   item_collection=item_collection,
-                  buyer_email=buyer.get('email'),
-                  buyer_fullname=buyer.get('fullname'),
-                  buyer_phone=buyer.get('phone'))
-    line_item_dicts = calculate_line_items(line_items)
+                  buyer_email=buyer_form.email.data,
+                  buyer_fullname=buyer_form.fullname.data,
+                  buyer_phone=buyer_form.phone.data)
+
+    # Get line items with calcuated base_amount, discounted_amount and final_amount
+    line_item_dicts = calculate_line_items([li_form.data for li_form in line_item_forms])
     for line_item_dict in line_item_dicts:
         line_item = LineItem(item=Item.query.get(line_item_dict.get('item_id')),
                              order=order,
@@ -54,19 +60,18 @@ def order(organization, item_collection):
         db.session.add(line_item)
     db.session.add(order)
     db.session.commit()
-    order_amounts = order.get_amounts()
     return jsonify(code=200, order_id=order.id,
                    payment_url=url_for('payment', order=order.id),
-                   final_amount=order_amounts.final_amount)
+                   final_amount=order.get_amounts().final_amount)
 
 
 @app.route('/kharcha', methods=['GET', 'OPTIONS', 'POST'])
 @cross_origin(origins=ALLOWED_ORIGINS)
 def kharcha():
-    line_items = request.json.get('line_items')
-    if not request.json or not line_items or not isinstance(line_items, list):
+    line_item_forms = LineItemForm.process_list(request.json.get('line_items'))
+    if not line_item_forms:
         abort(400)
-    return jsonify(line_items=calculate_line_items(line_items))
+    return jsonify(line_items=calculate_line_items([li_form.data for li_form in line_item_forms]))
 
 
 @app.route('/<order>/payment', methods=['GET', 'OPTIONS', 'POST'])
@@ -76,7 +81,7 @@ def kharcha():
 @cross_origin(origins=ALLOWED_ORIGINS)
 def payment(order):
     pg_payment_id = request.json.get('pg_payment_id')
-    if not request.json or not pg_payment_id:
+    if not (request.json and pg_payment_id):
         abort(400)
     payment = Payment(pg_payment_id=pg_payment_id, order=order)
     order_amounts = order.get_amounts()
