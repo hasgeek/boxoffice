@@ -2,7 +2,7 @@ from flask import request, abort
 from functools import wraps
 
 
-def xhr_or_abort(f):
+def xhr_only(f):
     """
     Aborts if a request does not have the XMLHttpRequest header set
     """

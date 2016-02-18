@@ -54,7 +54,6 @@ $(function(){
       headers: {'X-Requested-With': 'XMLHttpRequest'},
       dataType: 'json'
     }).done(function(data) {
-      console.log(data);
       var lineItems = [];
 
       /* load inventory from server, initialize lineItems with

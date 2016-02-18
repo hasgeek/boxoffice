@@ -8,7 +8,7 @@ from boxoffice.models.order import Order, Payment, PaymentTransaction, User
 from boxoffice.extapi import razorpay
 from .helpers import find_or_create_user
 from forms import LineItemForm, BuyerForm
-from utils import xhr_or_abort
+from utils import xhr_only
 
 ALLOWED_ORIGINS = ['http://shreyas-wlan.dev:8000', 'http://rootconf.vidya.dev:8090']
 
@@ -30,7 +30,7 @@ def calculate_line_items(line_items_dicts):
     (Organization, {'name': 'organization'}, 'organization'),
     (ItemCollection, {'name': 'item_collection'}, 'item_collection')
     )
-@xhr_or_abort
+@xhr_only
 @cross_origin(origins=ALLOWED_ORIGINS)
 def order(organization, item_collection):
     line_item_forms = LineItemForm.process_list(request.json.get('line_items'))
@@ -65,7 +65,7 @@ def order(organization, item_collection):
                    final_amount=order.get_amounts().final_amount)
 
 @app.route('/kharcha', methods=['GET', 'OPTIONS', 'POST'])
-@xhr_or_abort
+@xhr_only
 @cross_origin(origins=ALLOWED_ORIGINS)
 def kharcha():
     line_item_forms = LineItemForm.process_list(request.json.get('line_items'))
@@ -78,7 +78,7 @@ def kharcha():
 @load_models(
     (Order, {'id': 'order'}, 'order')
     )
-@xhr_or_abort
+@xhr_only
 @cross_origin(origins=ALLOWED_ORIGINS)
 def payment(order):
     pg_payment_id = request.json.get('pg_payment_id')

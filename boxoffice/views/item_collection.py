@@ -3,7 +3,7 @@ from flask.ext.cors import cross_origin
 from coaster.views import load_models, jsonp
 from boxoffice import app
 from boxoffice.models import Organization, ItemCollection, Price
-from utils import xhr_or_abort
+from utils import xhr_only
 
 ALLOWED_ORIGINS = ['http://shreyas-wlan.dev:8000', 'http://rootconf.vidya.dev:8090', 'http://rootconf.karthik.dev:8090']
 
@@ -46,7 +46,7 @@ def boxofficejs():
     (Organization, {'name': 'organization'}, 'organization'),
     (ItemCollection, {'name': 'item_collection'}, 'item_collection')
     )
-@xhr_or_abort
+@xhr_only
 @cross_origin(origins=ALLOWED_ORIGINS)
 def item_collection(organization, item_collection):
     return jsonify(html=render_template('boxoffice.html'),
