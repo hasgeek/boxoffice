@@ -76,6 +76,7 @@ def upgrade():
     sa.Column('user_id', sa.Integer(), nullable=True),
     sa.Column('item_collection_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
     sa.Column('status', sa.Integer(), nullable=False),
+    sa.Column('initiated_at', sa.DateTime(), nullable=False),
     sa.Column('invoiced_at', sa.DateTime(), nullable=True),
     sa.Column('access_token', sa.Unicode(length=22), nullable=False),
     sa.Column('buyer_email', sa.Unicode(length=254), nullable=False),
@@ -139,6 +140,8 @@ def upgrade():
     sa.Column('customer_order_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
     sa.Column('pg_payment_id', sa.Unicode(length=80), nullable=False),
     sa.Column('status', sa.Integer(), nullable=False),
+    sa.Column('captured_at', sa.DateTime(), nullable=True),
+    sa.Column('failed_at', sa.DateTime(), nullable=True),
     sa.Column('id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
     sa.ForeignKeyConstraint(['customer_order_id'], ['customer_order.id'], ),
     sa.PrimaryKeyConstraint('id')

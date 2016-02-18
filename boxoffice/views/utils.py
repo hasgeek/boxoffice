@@ -1,3 +1,4 @@
+from pytz import utc, timezone
 from flask import request, abort
 from functools import wraps
 
@@ -12,3 +13,7 @@ def xhr_only(f):
             abort(400)
         return f(*args, **kwargs)
     return wrapper
+
+
+def localize(datetime, tz):
+    return utc.localize(datetime).astimezone(timezone(tz))

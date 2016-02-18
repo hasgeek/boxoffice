@@ -10,11 +10,15 @@ class ItemCollection(BaseScopedNameMixin, db.Model):
 
     description = db.Column(db.Unicode(2500), default=u'', nullable=True)
 
-    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'), nullable=False)
+    organization_id = db.Column(db.Integer,
+                                db.ForeignKey('organization.id'),
+                                nullable=False)
     organization = db.relationship(Organization,
-        backref=db.backref('inventories', cascade='all, delete-orphan'))
+                                   backref=db.backref('item_collections',
+                                                      cascade='all, delete-orphan'))  # noqa
 
     parent = db.synonym('organization')
 
     def __repr__(self):
-        return u'<Inventory "{inventory}">'.format(inventory=self.title)
+        return u'<ItemCollection "{item_collection}">'\
+               .format(item_collection=self.title)
