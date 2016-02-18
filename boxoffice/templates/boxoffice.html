@@ -30,7 +30,7 @@
                     </div>
                     <div class="ticket-price-qty">
                       <p class="ticket-price"><i class="fa fa-inr"></i> {{ line_item.base_amount }}</p>
-                      <span class="multiplier">X</span>
+                      <span class="multiplier">&times;</span>
                         <div class="ticket-qty-wrapper">
                           <button class="decrement" on-click="updateOrder(event, line_item.item_name, item.quantity_available, false)">-</button>
                           <input type="number" class="ticket-qty" name="quantity" min="0" max="{{ item.quantity_available }}" value="{{ line_item.quantity }}" disabled>
@@ -82,7 +82,7 @@
               {{#if line_item.quantity > 0 }}
                 <div class="item-summary">
                   <p class="booked-ticket-title"><i class="fa fa-ticket"></i>{{ line_item.item_title }}</p>
-                  <p class="booked-ticket-qty">Qty: {{ line_item.quantity }} X <i class="fa fa-inr"></i> {{line_item.base_amount}}</p>
+                  <p class="booked-ticket-qty">Qty: {{ line_item.quantity }} &times; <i class="fa fa-inr"></i> {{line_item.base_amount}}</p>
                   {{#line_item.discount_policies}}
                     {{#if activated}}
                     <p class="discount-applied">Applied: {{ title }}</p>
@@ -231,12 +231,6 @@
       background-color: #337AB7;
       border-color: #122a3f
   }
-  @media handheld,
-  screen and (max-width:400px) {
-      .progress-indicator {
-          font-size: 60%
-      }
-  }
   .payment-stages-wrapper {
     overflow: hidden;
     position: relative;
@@ -250,8 +244,8 @@
   .category-heading {
     background-color: #f0a40c;
     position: relative;
-    font-size: 20px;
-    width: 55%;
+    font-size: 18px;
+    width: 70%;
     margin: 20px 0px 0 -22px;
     padding: 10px 20px;
     color: #FFF;
@@ -268,9 +262,18 @@
     border-style: solid;
     border-color: #f0a40c;
     border-right-color: transparent;
-    border-width: 21px;
+    border-width: 19px;
     z-index: 2;
     background-color: #fff;
+  }
+  @media (min-width: 480px) {
+    .category-heading {
+      font-size: 20px;
+      width: 55%;
+    }
+    .category-heading:after {
+      border-width: 21px;
+    }
   }
   .ticket-details {
     float: left;
@@ -369,7 +372,7 @@
   }
   .multiplier {
     padding-right: 20px;
-    font-size: 15px;
+    font-size: 20px;
     margin-top: 2px;
   }
   .ticket-total {
