@@ -41,6 +41,7 @@ def order(organization, item_collection):
 
     if not buyer_form.validate():
         abort(400)
+
     user = User.query.filter_by(email=buyer_form.email.data).first()
     order = Order(user=user,
                   item_collection=item_collection,
