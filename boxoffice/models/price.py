@@ -23,7 +23,6 @@ class Price(BaseScopedNameMixin, db.Model):
     def __repr__(self):
         return u'<Price "{price}" for item "{item}">'.format(price=self.title, item=self.item.title)
 
-
     @classmethod
     def current(cls, item):
         now = datetime.utcnow()

@@ -250,6 +250,7 @@ $(function(){
             timeout: 5000
           }).done(function(data) {
             boxoffice.ractive.set('order.id', data.order_id);
+            boxoffice.ractive.set('order.access_token', data.order_access_token);
             boxoffice.ractive.set('order.final_amount', data.final_amount);
             boxoffice.ractive.capturePayment(data.payment_url, data.razorpay_payment_id);
           });
@@ -304,7 +305,7 @@ $(function(){
             });
             boxoffice.ractive.set('tabs.payment.loadingPaymentConfirmation', false);
           });
-          var invoiceURL = boxoffice.config.baseURL + "/" + boxoffice.ractive.get('order.id') + "/invoice";
+          var invoiceURL = boxoffice.config.baseURL + "/" + boxoffice.ractive.get('order.access_token') + "/invoice";
           boxoffice.ractive.set('tabs.confirm.section.invoiceURL', invoiceURL);
         },
         oncomplete: function(){

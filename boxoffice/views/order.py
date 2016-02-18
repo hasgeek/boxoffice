@@ -3,7 +3,7 @@ from flask import url_for, request, jsonify, render_template, abort
 from flask.ext.cors import cross_origin
 from coaster.views import load_models
 from boxoffice import app
-from boxoffice.models import db, Organization, Item, ItemCollection, LineItem, Price
+from boxoffice.models import db, Organization, Item, ItemCollection, LineItem, Price, User
 from boxoffice.models.order import Order, Payment, PaymentTransaction
 from boxoffice.extapi import razorpay
 from .helpers import find_or_create_user
@@ -39,8 +39,7 @@ def order(organization, item_collection):
 
     if not buyer_form.validate():
         abort(400)
-
-    user = find_or_create_user(buyer_form.email.data)
+    user = User.query.filter_by(email=buyer_form.email.data).first()
     order = Order(user=user,
                   item_collection=item_collection,
                   buyer_email=buyer_form.email.data,
@@ -60,7 +59,7 @@ def order(organization, item_collection):
         db.session.add(line_item)
     db.session.add(order)
     db.session.commit()
-    return jsonify(code=200, order_id=order.id,
+    return jsonify(code=200, order_id=order.id, order_access_token=order.access_token,
                    payment_url=url_for('payment', order=order.id),
                    final_amount=order.get_amounts().final_amount)
 
@@ -100,9 +99,9 @@ def payment(order):
         return abort(402)
 
 
-@app.route('/<order>/invoice', methods=['GET'])
+@app.route('/<access_token>/invoice', methods=['GET'])
 @load_models(
-    (Order, {'id': 'order'}, 'order')
+    (Order, {'access_token': 'access_token'}, 'order')
     )
 @cross_origin(origins=app.config.get('ALLOWED_ORIGINS'))
 def invoice(order):

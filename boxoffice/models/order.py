@@ -3,7 +3,7 @@ import datetime
 import decimal
 from collections import namedtuple
 from boxoffice.models import db, BaseMixin, User, Item, ItemCollection
-from coaster.utils import LabeledEnum
+from coaster.utils import LabeledEnum, buid
 from baseframe import __
 
 __all__ = ['Order', 'LineItem', 'PaymentTransaction']
@@ -21,13 +21,15 @@ class Order(BaseMixin, db.Model):
     __uuid_primary_key__ = True
     __tableargs__ = (db.UniqueConstraint('item_collection_id', 'order_hash'),)
 
-    user_id = db.Column(None, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(None, db.ForeignKey('user.id'), nullable=True)
     user = db.relationship(User, backref=db.backref('orders', cascade='all, delete-orphan'))
     item_collection_id = db.Column(None, db.ForeignKey('item_collection.id'), nullable=False)
     item_collection = db.relationship(ItemCollection, backref=db.backref('orders', cascade='all, delete-orphan'))
     status = db.Column(db.Integer, default=ORDER_STATUS.PURCHASE_ORDER, nullable=False)
     invoiced_at = db.Column(db.DateTime, nullable=True)
     cancelled_at = db.Column(db.DateTime, nullable=True)
+
+    access_token = db.Column(db.Unicode(22), nullable=False, default=buid)
 
     buyer_email = db.Column(db.Unicode(254), nullable=False)
     buyer_fullname = db.Column(db.Unicode(80), nullable=False)
