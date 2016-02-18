@@ -123,6 +123,8 @@ $(function(){
           // Makes the 'Select Items' tab active
           event.original.preventDefault();
           boxoffice.ractive.set('activeTab', boxoffice.ractive.get('tabs.selectItems.id'));
+          //Scroll the page up to top of boxoffice widget. Suctracting the site nav height.
+          $('html,body').animate({scrollTop:$("#boxoffice-widget").offset().top - 50}, '900');
         },
         updateOrder: function(event, item_name, quantityAvailable, increment) {
           // Increments or decrements a line item's quantity
@@ -156,7 +158,9 @@ $(function(){
             $.post({
               url: boxoffice.config.baseURL + '/kharcha',
               crossDomain: true,
+              dataType: 'json',
               headers: {'X-Requested-With': 'XMLHttpRequest'},
+              contentType: 'application/json',
               data: JSON.stringify({
                 line_items: lineItems.map(function(line_item){
                   return {
@@ -165,7 +169,7 @@ $(function(){
                   }
                 })
               }),
-              contentType: 'application/json'
+              timeout: 5000
             }).done(function(data) {
               var line_items = boxoffice.ractive.get('order.line_items');
               var finalAmount = 0.0;
@@ -201,9 +205,10 @@ $(function(){
           // Transitions the widget to the 'Payment' stage, and initializes
           // the validator.
           event.original.preventDefault();
-          $('html,body').animate({scrollTop:$("#boxoffice-widget").offset().top}, '900');
           boxoffice.ractive.set('tabs.selectItems.complete', true);
           boxoffice.ractive.set('activeTab', boxoffice.ractive.get('tabs.payment.id'));
+          //Scroll the page up to top of boxoffice widget. Suctracting the site nav height.
+          $('html,body').animate({scrollTop:$("#boxoffice-widget").offset().top - 50}, '900');
 
           var validationConfig = [{
             name: 'name',
@@ -256,6 +261,8 @@ $(function(){
             boxoffice.ractive.set('order.access_token', data.order_access_token);
             boxoffice.ractive.set('order.final_amount', data.final_amount);
             boxoffice.ractive.capturePayment(data.payment_url, data.razorpay_payment_id);
+            //Scroll the page up to top of boxoffice widget. Suctracting the site nav height.
+            $('html,body').animate({scrollTop:$("#boxoffice-widget").offset().top - 50}, '900');
           });
         },
         capturePayment: function(paymentUrl, razorpay_payment_id){
@@ -294,9 +301,9 @@ $(function(){
             crossDomain: true,
             dataType: 'json',
             headers: {'X-Requested-With': 'XMLHttpRequest'},
+            contentType: 'application/json',
             data: JSON.stringify({pg_payment_id: paymentID}),
-            timeout: 5000,
-            contentType: 'application/json'
+            timeout: 5000
           }).done(function(data) {
             boxoffice.ractive.set({
               'activeTab': boxoffice.ractive.get('tabs.confirm.id'),
