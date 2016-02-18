@@ -54,7 +54,6 @@ $(function(){
       headers: {'X-Requested-With': 'XMLHttpRequest'},
       dataType: 'json'
     }).done(function(data) {
-      console.log(data);
       var lineItems = [];
 
       /* load inventory from server, initialize lineItems with
@@ -66,7 +65,7 @@ $(function(){
             'item_name': item.name,
             'quantity': 0,
             'item_title': item.title,
-            'base_amount': item.price,
+            'base_price': item.price,
             'item_description': item.description,
             'discount_policies': item.discount_policies
           });
@@ -114,8 +113,7 @@ $(function(){
               complete: false,
               section: {
                 invoiceURL: '',
-                eventTitle: widgetConfig.event_title,
-                eventUrl: widgetConfig.event_url,
+                eventTitle: widgetConfig.paymentDesc,
                 eventHashtag: widgetConfig.event_hashtag,
               }
             }
@@ -178,6 +176,8 @@ $(function(){
                 });
                 if (updatedLineItem.length) {
                   line_item.discount_policies = updatedLineItem[0].discount_policies;
+                  line_item.discounted_amount = updatedLineItem[0].discounted_amount;
+                  line_item.final_amount = updatedLineItem[0].final_amount;
                   finalAmount += updatedLineItem[0].final_amount;
                 }
               });
@@ -215,7 +215,7 @@ $(function(){
           },
           {
             name: 'phone',
-            rules: 'required|min_length[10]'
+            rules: 'required|numeric|min_length[10]'
           }];
 
           var formValidator = new FormValidator('buyer-form', validationConfig, function(errors, event) {
@@ -274,11 +274,6 @@ $(function(){
             "handler": function (data) {
               boxoffice.ractive.set('tabs.payment.loadingPaymentConfirmation', true);
               boxoffice.ractive.confirmPayment(paymentUrl, data.razorpay_payment_id);
-            },
-            "modal.ondismiss": {
-              "ondismiss": function(){
-                console.log("Closed");
-              }
             },
             "prefill": {
               "name": boxoffice.ractive.get('buyer.name'),
