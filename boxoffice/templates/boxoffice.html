@@ -11,7 +11,7 @@
 <div class="payment-stages-wrapper">
   {{#tabs:tab}}
     {{#if id === 'boxoffice-selectItems'  && id === activeTab}}
-      <div id='{{id}}' class="boxoffice-section ticket-selection-content clearfix" intro='fly:{"x":-600,"y":"0"}'>
+      <div id='{{id}}' class="boxoffice-section ticket-selection-content clearfix">
         {{#section.categories}}
           <div id="{{title}}">
             <div>
@@ -62,22 +62,22 @@
       {{#loadingPaymentConfirmation}}
         <div class="loader"><i class="fa fa-spinner fa-spin fa-3x"></i></div>
       {{/}}
-      <div id='{{id}}' class="boxoffice-section clearfix" intro='fly:{"x":600,"y":"0"}'>
+      <div id='{{id}}' class="boxoffice-section clearfix">
         <p class="buyer-form">Buyer Details</p>
         <form class="form-horizontal" role="form" id="buyer-details-form" name="buyer-form">
           <div class="form-group">
             <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
-              <input type="text" class="form-control buyer-fields secondary" name="name" required value = {{buyer.name }} placeholder="Name"/>
+              <input type="text" class="form-control buyer-fields secondary" name="name" value = {{buyer.name }} placeholder="Name"/>
             </div>
           </div>
           <div class="form-group">
             <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
-              <input type="text" class="form-control buyer-fields secondary" name="email" required value = {{buyer.email }} placeholder="Email"/>
+              <input type="text" class="form-control buyer-fields secondary" name="email" value = {{buyer.email }} placeholder="Email"/>
             </div>
           </div>
           <div class="form-group phone-number-wrapper">
             <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
-              <input type="text" class="form-control buyer-fields secondary" name="phone" required value = {{buyer.phone }} placeholder="Phone"/>
+              <input type="text" class="form-control buyer-fields secondary" name="phone" value = {{buyer.phone }} placeholder="Phone"/>
             </div>
           </div>
           <div class="checkout-confirmation col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
@@ -115,7 +115,7 @@
           <div class="confirmation-msg">
             <p>Hello {{buyer.name}},</p>
             <p>Your payment has been successful.</p>
-            <p>We have sent you a confirmation email with the <a href="{{ invoiceURL }}" target="_blank" class="boxoffice-button boxoffice-button-info">invoice</a></p>
+            <p>We have sent you a confirmation email with the <a href="{{ invoiceURL }}" target="_blank" class="boxoffice-button boxoffice-button-info invoice-button">invoice</a></p>
             <p class="service-policy-msg">Please refer our <a href="https://hasgeek.com/about/policy/" target="_blank">terms of service and refund policy</a>. For further queries, please write to us at <a href="mailto:support@hasgeek.com">support@hasgeek.com</a> or call us at <a href="tel:+917676332020">+91 7676 33 2020</a>.</p>
             <p>Tell your friends!</p>
             <span class="tweet-button">
@@ -489,15 +489,17 @@
       margin: auto;
     }
   }
+  .invoice-button {
+    margin-top: 10px;
+    display: inline-block;
+  }
   .service-policy-msg {
     margin: 15px 0;
-  }
-  .socialmedia-share {
-    display: inline-block;
   }
   .fb-share-button {
     display: inline-block;
     line-height: 1;
+    padding: 0px 0px 0px 10px !important;
   }
   .tweet-button {
     line-height: 1;
