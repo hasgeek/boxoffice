@@ -48,12 +48,13 @@ $(function(){
     // Config variables provided by the client embedding the widget
     this.widgetConfig = widgetConfig;
     this.config.itemCollectionURL = this.config.baseURL + '/' + widgetConfig.org + '/' + widgetConfig.itemCollection;
-
     $.ajax({
       url: boxoffice.config.itemCollectionURL,
       crossDomain: true,
-      dataType: 'jsonp'
+      headers: {'X-Requested-With': 'XMLHttpRequest'},
+      dataType: 'json'
     }).done(function(data) {
+      console.log(data);
       var lineItems = [];
 
       /* load inventory from server, initialize lineItems with
@@ -157,6 +158,7 @@ $(function(){
             $.post({
               url: boxoffice.config.baseURL + '/kharcha',
               crossDomain: true,
+              headers: {'X-Requested-With': 'XMLHttpRequest'},
               data: JSON.stringify({
                 line_items: lineItems.map(function(line_item){
                   return {
@@ -230,6 +232,7 @@ $(function(){
             url: boxoffice.config.itemCollectionURL + '/order',
             crossDomain: true,
             dataType: 'json',
+            headers: {'X-Requested-With': 'XMLHttpRequest'},
             contentType: 'application/json',
             data: JSON.stringify({
               buyer:{
@@ -293,6 +296,7 @@ $(function(){
             url: boxoffice.config.baseURL + paymentUrl,
             crossDomain: true,
             dataType: 'json',
+            headers: {'X-Requested-With': 'XMLHttpRequest'},
             data: JSON.stringify({pg_payment_id: paymentID}),
             timeout: 5000,
             contentType: 'application/json'

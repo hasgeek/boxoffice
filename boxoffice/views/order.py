@@ -4,10 +4,11 @@ from flask.ext.cors import cross_origin
 from coaster.views import load_models
 from boxoffice import app
 from boxoffice.models import db, Organization, Item, ItemCollection, LineItem, Price
-from boxoffice.models.order import Order, Payment, PaymentTransaction
+from boxoffice.models.order import Order, Payment, PaymentTransaction, User
 from boxoffice.extapi import razorpay
 from .helpers import find_or_create_user
 from forms import LineItemForm, BuyerForm
+from utils import xhr_or_abort
 
 ALLOWED_ORIGINS = ['http://shreyas-wlan.dev:8000', 'http://rootconf.vidya.dev:8090']
 
@@ -29,6 +30,7 @@ def calculate_line_items(line_items_dicts):
     (Organization, {'name': 'organization'}, 'organization'),
     (ItemCollection, {'name': 'item_collection'}, 'item_collection')
     )
+@xhr_or_abort
 @cross_origin(origins=ALLOWED_ORIGINS)
 def order(organization, item_collection):
     line_item_forms = LineItemForm.process_list(request.json.get('line_items'))
@@ -40,7 +42,7 @@ def order(organization, item_collection):
     if not buyer_form.validate():
         abort(400)
 
-    user = find_or_create_user(buyer_form.email.data)
+    user = User.query.first()
     order = Order(user=user,
                   item_collection=item_collection,
                   buyer_email=buyer_form.email.data,
@@ -48,8 +50,7 @@ def order(organization, item_collection):
                   buyer_phone=buyer_form.phone.data)
 
     # Get line items with calcuated base_amount, discounted_amount and final_amount
-    line_item_dicts = calculate_line_items([li_form.data for li_form in line_item_forms])
-    for line_item_dict in line_item_dicts:
+    for line_item_dict in calculate_line_items([li_form.data for li_form in line_item_forms]):
         line_item = LineItem(item=Item.query.get(line_item_dict.get('item_id')),
                              order=order,
                              quantity=line_item_dict.get('quantity'),
@@ -64,8 +65,8 @@ def order(organization, item_collection):
                    payment_url=url_for('payment', order=order.id),
                    final_amount=order.get_amounts().final_amount)
 
-
 @app.route('/kharcha', methods=['GET', 'OPTIONS', 'POST'])
+@xhr_or_abort
 @cross_origin(origins=ALLOWED_ORIGINS)
 def kharcha():
     line_item_forms = LineItemForm.process_list(request.json.get('line_items'))
@@ -78,6 +79,7 @@ def kharcha():
 @load_models(
     (Order, {'id': 'order'}, 'order')
     )
+@xhr_or_abort
 @cross_origin(origins=ALLOWED_ORIGINS)
 def payment(order):
     pg_payment_id = request.json.get('pg_payment_id')

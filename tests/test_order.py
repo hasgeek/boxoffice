@@ -25,7 +25,7 @@ class TestOrder(unittest.TestCase):
                 'email': 'test@hasgeek.com',
                 }
             }
-        resp = self.client.post('/rootconf/2016/order', data=json.dumps(data), content_type='application/json')
+        resp = self.client.post('/rootconf/2016/order', data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest')])
         data = json.loads(resp.data)
 
         self.assertEquals(data['code'], 200)
@@ -53,7 +53,7 @@ class TestOrder(unittest.TestCase):
                 'email': 'test@hasgeek.com',
                 }
             }
-        resp = self.client.post('/rootconf/2016/order', data=json.dumps(data), content_type='application/json')
+        resp = self.client.post('/rootconf/2016/order', data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest')])
         data = json.loads(resp.data)
         self.assertEquals(data['code'], 200)
         self.assertEquals(data['final_amount'], 2375)
@@ -78,7 +78,7 @@ class TestOrder(unittest.TestCase):
                 }
 
             }
-        resp = self.client.post('/rootconf/2016/order', data=json.dumps(data), content_type='application/json')
+        resp = self.client.post('/rootconf/2016/order', data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest')])
         data = json.loads(resp.data)
         self.assertEquals(data['code'], 200)
         # 10*3500@90% + 5*500*@95 = 33875

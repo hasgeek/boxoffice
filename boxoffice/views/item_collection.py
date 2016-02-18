@@ -1,8 +1,9 @@
-from flask import render_template
+from flask import render_template, jsonify
 from flask.ext.cors import cross_origin
 from coaster.views import load_models, jsonp
 from boxoffice import app
 from boxoffice.models import Organization, ItemCollection, Price
+from utils import xhr_or_abort
 
 ALLOWED_ORIGINS = ['http://shreyas-wlan.dev:8000', 'http://rootconf.vidya.dev:8090', 'http://rootconf.karthik.dev:8090']
 
@@ -40,14 +41,14 @@ def boxofficejs():
      razorpay_key_id=app.config.get('RAZORPAY_KEY_ID'))
 
 
-@app.route('/<organization>/<item_collection>')
+@app.route('/<organization>/<item_collection>', methods=['GET'])
 @load_models(
     (Organization, {'name': 'organization'}, 'organization'),
     (ItemCollection, {'name': 'item_collection'}, 'item_collection')
     )
-@cross_origin(origins=app.config.get('ALLOWED_ORIGINS'))
+@xhr_or_abort
+@cross_origin(origins=ALLOWED_ORIGINS)
 def item_collection(organization, item_collection):
-    return jsonp(**{
-        'html': render_template('boxoffice.html'),
-        'categories': [category_json(category) for category in item_collection.categories]
-        })
+    return jsonify(html=render_template('boxoffice.html'),
+        categories=[category_json(category) for category in item_collection.categories]
+        )
