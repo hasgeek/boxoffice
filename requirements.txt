@@ -8,5 +8,6 @@ git+https://github.com/hasgeek/coaster
 git+https://github.com/hasgeek/flask-lastuser
 jsmin
 pytz
+pdfkit
 flask-cors
 wtforms_json
