@@ -10,7 +10,7 @@
 </div><!--eof payment-box-progress-wrapper -->
 <div class="payment-stages-wrapper">
   {{#tabs:tab}}
-    {{#if id === 'boxoffice-selectItems'  && id === activeTab}}
+    {{#if id === 'boxoffice-selectItems' && id === activeTab}}
       <div id='{{id}}' class="boxoffice-section ticket-selection-content clearfix">
         {{#section.categories}}
           <div id="{{title}}">
@@ -34,11 +34,19 @@
                     <div class="ticket-price-qty">
                       <p class="ticket-price"><i class="fa fa-inr"></i> {{ line_item.base_price }}</p>
                       <span class="multiplier">&times;</span>
-                        <div class="ticket-qty-wrapper">
-                          <button class="decrement" on-click="updateOrder(event, line_item.item_name, item.quantity_available, false)">-</button>
-                          <input type="number" class="ticket-qty" name="quantity" min="0" max="{{ item.quantity_available }}" value="{{ line_item.quantity }}" disabled>
-                          <button class="increment" on-click="updateOrder(event, line_item.item_name, item.quantity_available, true)">+</button>
-                        </div>
+                      <div class="ticket-qty-wrapper">
+                        <button class="decrement" on-click="updateOrder(event, line_item.item_name, item.quantity_available, false)">-</button>
+                        <input type="number" class="ticket-qty" name="quantity" min="0" max="{{ item.quantity_available }}" value="{{ line_item.quantity }}" disabled>
+                        <button class="increment" on-click="updateOrder(event, line_item.item_name, item.quantity_available, true)">+</button>
+                      </div>
+                      <div class="item-amount">
+                        {{#line_item.discounted_amount}}
+                          <p intro-outro='fly:{"x":0,"y":"0"}'>Discount: <span><i class="fa fa-inr"></i> {{line_item.discounted_amount}}</span></p>
+                        {{/}}
+                        {{#line_item.final_amount}}
+                          <p intro-outro='fly:{"x":0,"y":"0"}'>Subtotal: <span><i class="fa fa-inr"></i> {{line_item.final_amount}}</span></p>
+                        {{/}}
+                      </div>
                       </div>
                     </div>
                   {{/if}}
@@ -107,7 +115,7 @@
         </form> 
         <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
       </div>
-    {{elseif id === 'boxoffice-confirm'  && id === activeTab}}
+    {{elseif id === 'boxoffice-confirm' && id === activeTab}}
       <div id='{{id}}' class="boxoffice-section clearfix" intro='fly:{"x":600,"y":"0"}'>
         {{#section}}
           <p class="confirmation-icon"><i class="fa fa-check-circle"></i></p>
@@ -136,6 +144,7 @@
   #boxoffice-widget {
     max-width: 1000px;
     margin: auto;
+    padding-top: 50px;
   }
   .boxoffice-button {
     border-width: 0px 0px 3px;
@@ -188,7 +197,7 @@
       margin: 0;
       position: relative;
       text-overflow: ellipsis;
-      color: #bbb;
+      color: #333;
       display: block
   }
   .progress-indicator>li.completed,
@@ -247,16 +256,16 @@
     min-height: 450px;
   }
   .category-heading {
-    background-color: #f0a40c;
+    background-color: #ccc;
+    border-bottom: 3px solid #aaa;
+    color: #333;
     position: relative;
     font-size: 18px;
     width: 70%;
     margin: 20px 0px 0 -22px;
     padding: 10px 20px;
-    color: #FFF;
     z-index: 1;
     text-transform: uppercase;
-    border-bottom: 3px solid #d5920d;
   }
   .category-heading:after {
     content: "";
@@ -265,8 +274,7 @@
     right: 0px;
     top: 0px;
     border-style: solid;
-    border-color: #f0a40c;
-    border-right-color: transparent;
+    border-color: #CCC transparent #CCC #CCC;
     border-width: 19px;
     z-index: 2;
     background-color: #fff;
@@ -302,7 +310,7 @@
   }
   .discount {
     color: red;
-    font-size: 13px;
+    font-size: 14px;
   }
   .discount.applied {
     color: green;
@@ -378,6 +386,13 @@
     padding-right: 20px;
     font-size: 20px;
     margin-top: 2px;
+  }
+  .item-amount {
+    clear: both;
+    font-size: 15px;
+    color: #888;
+    margin-top: 10px;
+    text-align: right;
   }
   .ticket-total {
     clear: both;
@@ -492,6 +507,13 @@
   .invoice-button {
     margin-top: 10px;
     display: inline-block;
+  }
+  .invoice-button:hover,
+  .invoice-button:focus {
+    background-color: inherit;
+    color: inherit;
+    border-color: inherit;
+    border-bottom: 3px solid;
   }
   .service-policy-msg {
     margin: 15px 0;
