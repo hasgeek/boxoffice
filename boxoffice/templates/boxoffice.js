@@ -123,8 +123,8 @@ $(function(){
           // Makes the 'Select Items' tab active
           event.original.preventDefault();
           boxoffice.ractive.set('activeTab', boxoffice.ractive.get('tabs.selectItems.id'));
-          //Scroll the page up to top of boxoffice widget. Suctracting the site nav height.
-          $('html,body').animate({scrollTop:$("#boxoffice-widget").offset().top - 50}, '900');
+          //Scroll the page up to top of boxoffice widget.
+          $('html,body').animate({scrollTop:$("#boxoffice-widget").offset().top}, '900');
         },
         updateOrder: function(event, item_name, quantityAvailable, increment) {
           // Increments or decrements a line item's quantity
@@ -140,6 +140,10 @@ $(function(){
               else if(lineItem.quantity !== 0) {
                 lineItem.quantity -= 1;
               }
+            }
+            if(lineItem.quantity === 0) {
+              lineItem.discounted_amount = 0;
+              lineItem.final_amount = 0;
             }
           });
           boxoffice.ractive.set('order.line_items', lineItems);
@@ -162,7 +166,7 @@ $(function(){
               headers: {'X-Requested-With': 'XMLHttpRequest'},
               contentType: 'application/json',
               data: JSON.stringify({
-                line_items: lineItems.map(function(line_item){
+                line_items: lineItems.map(function(line_item) {
                   return {
                     quantity: line_item.quantity,
                     item_id: line_item.item_id
@@ -174,8 +178,8 @@ $(function(){
               var line_items = boxoffice.ractive.get('order.line_items');
               var finalAmount = 0.0;
               
-              line_items.forEach(function(line_item){
-                var updatedLineItem = data.line_items.filter(function(updated_line_item){
+              line_items.forEach(function(line_item) {
+                var updatedLineItem = data.line_items.filter(function(updated_line_item) {
                   return updated_line_item.item_id === line_item.item_id;
                 });
                 if (updatedLineItem.length) {
@@ -207,8 +211,8 @@ $(function(){
           event.original.preventDefault();
           boxoffice.ractive.set('tabs.selectItems.complete', true);
           boxoffice.ractive.set('activeTab', boxoffice.ractive.get('tabs.payment.id'));
-          //Scroll the page up to top of boxoffice widget. Suctracting the site nav height.
-          $('html,body').animate({scrollTop:$("#boxoffice-widget").offset().top - 50}, '900');
+          //Scroll the page up to top of boxoffice widget.
+          $('html,body').animate({scrollTop:$("#boxoffice-widget").offset().top}, '900');
 
           var validationConfig = [{
             name: 'name',
@@ -261,8 +265,8 @@ $(function(){
             boxoffice.ractive.set('order.access_token', data.order_access_token);
             boxoffice.ractive.set('order.final_amount', data.final_amount);
             boxoffice.ractive.capturePayment(data.payment_url, data.razorpay_payment_id);
-            //Scroll the page up to top of boxoffice widget. Suctracting the site nav height.
-            $('html,body').animate({scrollTop:$("#boxoffice-widget").offset().top - 50}, '900');
+            //Scroll the page up to top of boxoffice widget.
+            $('html,body').animate({scrollTop:$("#boxoffice-widget").offset().top}, '900');
           });
         },
         capturePayment: function(paymentUrl, razorpay_payment_id){
