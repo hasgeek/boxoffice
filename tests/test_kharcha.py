@@ -33,8 +33,6 @@ class TestKharchaAPI(unittest.TestCase):
         expected_discount_policy_ids = [unicode(policy.id) for policy in first_item.discount_policies]
         self.assertEquals(activated_policies[0], (expected_discount_policy_ids[0], False))
 
-
-
     def test_discounted_kharcha(self):
         first_item = Item.query.first()
         discounted_quantity = 10
@@ -49,7 +47,6 @@ class TestKharchaAPI(unittest.TestCase):
         expected_discount_policy_ids = [unicode(policy.id) for policy in first_item.discount_policies]
         activated_policies = [(policy.get('id'), policy.get('activated')) for policy in resp_json.get('line_items')[0].get('discount_policies')]
         self.assertEquals(activated_policies[0], (expected_discount_policy_ids[0], True))
-
 
     def tearDown(self):
         db.session.rollback()

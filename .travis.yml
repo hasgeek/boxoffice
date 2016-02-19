@@ -1,0 +1,18 @@
+language: python
+python:
+  - 2.7
+cache:
+  - pip
+  - apt
+before_script:
+  - psql -c 'create database boxoffice_testing;' -U postgres
+install:
+  - pip install -r test_requirments.txt
+  - pip install -r requirements.txt
+script: nosetest --with-progressive -v tests
+addons:
+  postgresql: "9.4"
+services:
+  - redis-server
+notifications:
+  email: false
