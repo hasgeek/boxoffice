@@ -119,12 +119,17 @@ $(function(){
             }
           },
         },
+        scrollTop: function(){
+          //Scroll the page up to top of boxoffice widget.
+          $('html,body').animate({
+            scrollTop: $("#" + boxoffice.ractive.el.id).offset().top
+          }, '900');
+        },
         selectItems: function(event) {
           // Makes the 'Select Items' tab active
           event.original.preventDefault();
           boxoffice.ractive.set('activeTab', boxoffice.ractive.get('tabs.selectItems.id'));
-          //Scroll the page up to top of boxoffice widget.
-          $('html,body').animate({scrollTop:$("#boxoffice-widget").offset().top}, '900');
+          boxoffice.ractive.scrollTop();
         },
         updateOrder: function(event, item_name, quantityAvailable, increment) {
           // Increments or decrements a line item's quantity
@@ -211,8 +216,7 @@ $(function(){
           event.original.preventDefault();
           boxoffice.ractive.set('tabs.selectItems.complete', true);
           boxoffice.ractive.set('activeTab', boxoffice.ractive.get('tabs.payment.id'));
-          //Scroll the page up to top of boxoffice widget.
-          $('html,body').animate({scrollTop:$("#boxoffice-widget").offset().top}, '900');
+          boxoffice.ractive.scrollTop();
 
           var validationConfig = [{
             name: 'name',
@@ -265,8 +269,7 @@ $(function(){
             boxoffice.ractive.set('order.access_token', data.order_access_token);
             boxoffice.ractive.set('order.final_amount', data.final_amount);
             boxoffice.ractive.capturePayment(data.payment_url, data.razorpay_payment_id);
-            //Scroll the page up to top of boxoffice widget.
-            $('html,body').animate({scrollTop:$("#boxoffice-widget").offset().top}, '900');
+            boxoffice.ractive.scrollTop();
           });
         },
         capturePayment: function(paymentUrl, razorpay_payment_id){
