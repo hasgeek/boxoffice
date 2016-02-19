@@ -2,7 +2,7 @@ import random
 from datetime import datetime
 import decimal
 from collections import namedtuple
-from boxoffice.models import db, BaseMixin, User, Item, ItemCollection
+from boxoffice.models import db, BaseMixin, User, Item, ItemCollection, Price
 from coaster.utils import LabeledEnum, buid
 from baseframe import __
 
@@ -20,19 +20,13 @@ class Order(BaseMixin, db.Model):
     __tablename__ = 'customer_order'
     __uuid_primary_key__ = True
     __tableargs__ = (db.UniqueConstraint('item_collection_id', 'order_hash'),
-                     db.UniqueConstraint('access_token'))
+        db.UniqueConstraint('access_token'))
 
     user_id = db.Column(None, db.ForeignKey('user.id'), nullable=True)
-    user = db.relationship(User,
-                           backref=db.backref('orders',
-                                              cascade='all, delete-orphan'))
-    item_collection_id = db.Column(None,
-                                   db.ForeignKey('item_collection.id'),
-                                   nullable=False)
-    item_collection = db.relationship(ItemCollection,
-                                      backref=db.backref('orders', cascade='all, delete-orphan'))  # noqa
-    status = db.Column(db.Integer,
-                       default=ORDER_STATUS.PURCHASE_ORDER, nullable=False)
+    user = db.relationship(User, backref=db.backref('orders', cascade='all, delete-orphan'))
+    item_collection_id = db.Column(None, db.ForeignKey('item_collection.id'), nullable=False)
+    item_collection = db.relationship(ItemCollection, backref=db.backref('orders', cascade='all, delete-orphan'))  # noqa
+    status = db.Column(db.Integer, default=ORDER_STATUS.PURCHASE_ORDER, nullable=False)
 
     initiated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     invoiced_at = db.Column(db.DateTime, nullable=True)
@@ -54,9 +48,8 @@ class Order(BaseMixin, db.Model):
 
     def get_amounts(self):
         """
-        Calculates and returns the order's base_amount,
-        discounted_amount and final_amount
-        as a namedtuple
+        Calculates and returns the order's base_amount, discounted_amount and
+        final_amount as a namedtuple
         """
         base_amount = (decimal.Decimal(0))
         discounted_amount = (decimal.Decimal(0))
@@ -65,10 +58,7 @@ class Order(BaseMixin, db.Model):
             base_amount += line_item.base_amount
             discounted_amount += line_item.discounted_amount
             final_amount += line_item.final_amount
-        order_amounts = namedtuple('OrderAmounts',
-                                   ['base_amount',
-                                    'discounted_amount',
-                                    'final_amount'])
+        order_amounts = namedtuple('OrderAmounts', ['base_amount', 'discounted_amount', 'final_amount'])
         return order_amounts(base_amount, discounted_amount, final_amount)
 
 
@@ -80,34 +70,23 @@ class LINE_ITEM_STATUS(LabeledEnum):
 class LineItem(BaseMixin, db.Model):
     __tablename__ = 'line_item'
     __uuid_primary_key__ = True
-    customer_order_id = db.Column(None,
-                                  db.ForeignKey('customer_order.id'),
-                                  nullable=False)
-    order = db.relationship(Order,
-                            backref=db.backref('line_items',
-                                               cascade='all, delete-orphan',
-                                               lazy="dynamic"))
+    customer_order_id = db.Column(None, db.ForeignKey('customer_order.id'), nullable=False)
+    order = db.relationship(Order, backref=db.backref('line_items', cascade='all, delete-orphan', lazy="dynamic"))
 
     item_id = db.Column(None, db.ForeignKey('item.id'), nullable=False)
-    item = db.relationship(Item,
-                           backref=db.backref('line_items',
-                                              cascade='all, delete-orphan'))
+    item = db.relationship(Item, backref=db.backref('line_items', cascade='all, delete-orphan'))
 
     quantity = db.Column(db.Integer, nullable=False)
-    base_amount = db.Column(db.Numeric,
-                            default=decimal.Decimal(0), nullable=False)
-    discounted_amount = db.Column(db.Numeric,
-                                  default=decimal.Decimal(0), nullable=False)
-    final_amount = db.Column(db.Numeric,
-                             default=decimal.Decimal(0), nullable=False)
-    status = db.Column(db.Integer,
-                       default=LINE_ITEM_STATUS.CONFIRMED, nullable=False)
+    base_amount = db.Column(db.Numeric, default=decimal.Decimal(0), nullable=False)
+    discounted_amount = db.Column(db.Numeric, default=decimal.Decimal(0), nullable=False)
+    final_amount = db.Column(db.Numeric, default=decimal.Decimal(0), nullable=False)
+    status = db.Column(db.Integer, default=LINE_ITEM_STATUS.CONFIRMED, nullable=False)
     ordered_at = db.Column(db.DateTime, nullable=True)
     cancelled_at = db.Column(db.DateTime, nullable=True)
     # tax_amount = db.Column(db.Numeric, default=0.0, nullable=False)
 
     @classmethod
-    def populate_amounts_and_discounts(cls, price, quantity, discount_policies):
+    def get_amounts_and_discounts(cls, price, quantity, discount_policies):
         """
         Returns a tuple consisting of a named tuple with
         the line item's amounts, and an array
@@ -138,6 +117,25 @@ class LineItem(BaseMixin, db.Model):
                         base_amount - discounted_amount),
                 discount_policy_dicts)
 
+    @classmethod
+    def populate_amounts_and_discounts(cls, line_items_dicts):
+        """
+        Returns line_item_dicts with the respective base_amount, discount_amount,
+        final_amount and discount_policies populated
+        """
+        for line_item_dict in line_items_dicts:
+            item = Item.query.get(line_item_dict.get('item_id'))
+            amounts, discount_policies = cls\
+                .get_amounts_and_discounts(Price.current(item).amount,
+                                           line_item_dict.get('quantity'),
+                                           item.discount_policies)
+            line_item_dict['base_amount'] = amounts.base_amount
+            line_item_dict['discounted_amount'] = amounts.discounted_amount
+            line_item_dict['final_amount'] = amounts.final_amount
+            line_item_dict['discount_policies'] = discount_policies
+
+        return line_items_dicts
+
     def cancel(self):
         """
         Sets status and cancelled_at. To update the quantity
@@ -149,13 +147,17 @@ class LineItem(BaseMixin, db.Model):
 
     @classmethod
     def confirmed(cls, order):
-        return cls.query.filter_by(order=order,
-                                   status=LINE_ITEM_STATUS.CONFIRMED).all()
+        """
+        Returns an order's confirmed line items.
+        """
+        return cls.query.filter_by(order=order, status=LINE_ITEM_STATUS.CONFIRMED).all()
 
     @classmethod
     def cancelled(cls, order):
-        return cls.query.filter_by(order=order,
-                                   status=LINE_ITEM_STATUS.CANCELLED).all()
+        """
+        Returns an order's cancelled line items.
+        """
+        return cls.query.filter_by(order=order, status=LINE_ITEM_STATUS.CANCELLED).all()
 
 
 class PAYMENT_TYPES(LabeledEnum):
@@ -196,10 +198,16 @@ class Payment(BaseMixin, db.Model):
         return self.status == PAYMENT_TYPES.CAPTURED
 
     def capture(self):
+        """
+        'Captures' a payment, sets status and captured_at.
+        """
         self.status = PAYMENT_TYPES.CAPTURED
         self.captured_at = datetime.utcnow()
 
     def fail(self):
+        """
+        Fails a payment, sets status and failed_at.
+        """
         self.status = PAYMENT_TYPES.FAILED
         self.failed_at = datetime.utcnow()
 
@@ -217,28 +225,17 @@ class TRANSACTION_TYPES(LabeledEnum):
 
 class PaymentTransaction(BaseMixin, db.Model):
     """
-    This model records transactions made with a customer.
+    Models transactions made with a customer.
     A transaction can either be of type 'Payment', 'Refund', 'Credit',
     """
     __tablename__ = 'payment_transaction'
     __uuid_primary_key__ = True
 
-    customer_order_id = db.Column(None,
-                                  db.ForeignKey('customer_order.id'),
-                                  nullable=False)
-    order = db.relationship(Order,
-                            backref=db.backref('transactions',
-                                               cascade='all, delete-orphan',
-                                               lazy="dynamic"))
+    customer_order_id = db.Column(None, db.ForeignKey('customer_order.id'), nullable=False)
+    order = db.relationship(Order, backref=db.backref('transactions', cascade='all, delete-orphan', lazy="dynamic"))
     payment_id = db.Column(None, db.ForeignKey('payment.id'), nullable=True)
-    payment = db.relationship(Payment,
-                              backref=db.backref('transactions',
-                                                 cascade='all, delete-orphan'))
+    payment = db.relationship(Payment, backref=db.backref('transactions', cascade='all, delete-orphan'))
     amount = db.Column(db.Numeric, default=decimal.Decimal(0), nullable=False)
     currency = db.Column(db.Unicode(3), nullable=False, default=u'INR')
-    transaction_type = db.Column(db.Integer,
-                                 default=TRANSACTION_TYPES.PAYMENT,
-                                 nullable=False)
-    transaction_method = db.Column(db.Integer,
-                                   default=TRANSACTION_METHODS.ONLINE,
-                                   nullable=False)
+    transaction_type = db.Column(db.Integer, default=TRANSACTION_TYPES.PAYMENT, nullable=False)
+    transaction_method = db.Column(db.Integer, default=TRANSACTION_METHODS.ONLINE, nullable=False)

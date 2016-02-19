@@ -4,7 +4,7 @@ from flask.ext.cors import cross_origin
 from coaster.views import load_models
 from boxoffice import app, ALLOWED_ORIGINS
 from boxoffice.models import db, Organization, Item
-from boxoffice.models import ItemCollection, LineItem, Price
+from boxoffice.models import ItemCollection, LineItem
 from boxoffice.models.order import Order, Payment, PaymentTransaction, User
 from boxoffice.extapi import razorpay
 from forms import LineItemForm, BuyerForm
@@ -12,23 +12,21 @@ from boxoffice.mailclient import send_invoice_email
 from utils import xhr_only, api_result
 
 
-def calculate_line_items(line_items_dicts):
+@app.route('/kharcha', methods=['OPTIONS', 'POST'])
+@xhr_only
+@cross_origin(origins=ALLOWED_ORIGINS)
+def kharcha():
     """
-    Returns line_item_dicts with the respective base_amount, discount_amount,
-    final_amount and discount_policies populated
-    """
-    for line_item_dict in line_items_dicts:
-        item = Item.query.get(line_item_dict.get('item_id'))
-        amounts, discount_policies = LineItem\
-            .populate_amounts_and_discounts(Price.current(item).amount,
-                                       line_item_dict.get('quantity'),
-                                       item.discount_policies)
-        line_item_dict['base_amount'] = amounts.base_amount
-        line_item_dict['discounted_amount'] = amounts.discounted_amount
-        line_item_dict['final_amount'] = amounts.final_amount
-        line_item_dict['discount_policies'] = discount_policies
+    Accepts JSON containing an array of line_items, with the quantity and item_id set for each line_item.
 
-    return line_items_dicts
+    Returns JSON, containing an array of line_items with the base_amount, discounted_amount, final_amount
+    and discount_policies set for each line item.
+    """
+    line_item_forms = LineItemForm.process_list(request.json.get('line_items'))
+    if not line_item_forms:
+        api_result(400, 'invalid_line_items')
+    line_item_dicts = LineItem.populate_amounts_and_discounts([li_form.data for li_form in line_item_forms])
+    return jsonify(line_items=line_item_dicts)
 
 
 @app.route('/<organization>/<item_collection>/order',
@@ -40,6 +38,13 @@ def calculate_line_items(line_items_dicts):
 @xhr_only
 @cross_origin(origins=ALLOWED_ORIGINS)
 def order(organization, item_collection):
+    """
+    Accepts JSON containing an array of line_items with the quantity and item_id
+    set for each item, and a buyer hash containing `email`, `fullname` and `phone`.
+
+    Creates a purchase order, and returns a JSON containing the final_amount, order id
+    and the URL to be used to register a payment against the order.
+    """
     line_item_forms = LineItemForm.process_list(request.json.get('line_items'))
     if not line_item_forms:
         api_result(400, 'invalid_line_items')
@@ -51,42 +56,27 @@ def order(organization, item_collection):
 
     user = User.query.filter_by(email=buyer_form.email.data).first()
     order = Order(user=user,
-                  item_collection=item_collection,
-                  buyer_email=buyer_form.email.data,
-                  buyer_fullname=buyer_form.fullname.data,
-                  buyer_phone=buyer_form.phone.data)
+        item_collection=item_collection,
+        buyer_email=buyer_form.email.data,
+        buyer_fullname=buyer_form.fullname.data,
+        buyer_phone=buyer_form.phone.data)
 
-    line_item_dicts = calculate_line_items([li_form.data
-                                            for li_form in line_item_forms])
+    line_item_dicts = LineItem.populate_amounts_and_discounts([li_form.data for li_form in line_item_forms])
     for line_item_dict in line_item_dicts:
-        line_item = LineItem(item=Item.query
-                                      .get(line_item_dict.get('item_id')),
-                             order=order,
-                             quantity=line_item_dict.get('quantity'),
-                             ordered_at=datetime.utcnow(),
-                             base_amount=line_item_dict.get('base_amount'),
-                             discounted_amount=line_item_dict
-                                                .get('discounted_amount'),
-                             final_amount=line_item_dict.get('final_amount'))
+        line_item = LineItem(item=Item.query.get(line_item_dict.get('item_id')),
+            order=order,
+            quantity=line_item_dict.get('quantity'),
+            ordered_at=datetime.utcnow(),
+            base_amount=line_item_dict.get('base_amount'),
+            discounted_amount=line_item_dict.get('discounted_amount'),
+            final_amount=line_item_dict.get('final_amount'))
         db.session.add(line_item)
     db.session.add(order)
     db.session.commit()
     return jsonify(code=200, order_id=order.id,
-                   order_access_token=order.access_token,
-                   payment_url=url_for('payment', order=order.id),
-                   final_amount=order.get_amounts().final_amount)
-
-
-@app.route('/kharcha', methods=['GET', 'OPTIONS', 'POST'])
-@xhr_only
-@cross_origin(origins=ALLOWED_ORIGINS)
-def kharcha():
-    line_item_forms = LineItemForm.process_list(request.json.get('line_items'))
-    if not line_item_forms:
-        api_result(400, 'invalid_line_items')
-    line_item_dicts = calculate_line_items([li_form.data
-                                            for li_form in line_item_forms])
-    return jsonify(line_items=line_item_dicts)
+        order_access_token=order.access_token,
+        payment_url=url_for('payment', order=order.id),
+        final_amount=order.get_amounts().final_amount)
 
 
 @app.route('/<order>/payment', methods=['GET', 'OPTIONS', 'POST'])
@@ -96,24 +86,30 @@ def kharcha():
 @xhr_only
 @cross_origin(origins=ALLOWED_ORIGINS)
 def payment(order):
+    """
+    Accepts JSON containing `pg_payment_id`.
+
+    Creates a payment object, attempts to 'capture' the payment from Razorpay,
+    and returns a JSON containing the result of the operation.
+
+    A successful capture results in a `payment_transaction` registered against the order.
+    """
     pg_payment_id = request.json.get('pg_payment_id')
     if not (request.json and pg_payment_id):
         abort(400)
     payment = Payment(pg_payment_id=pg_payment_id, order=order)
     order_amounts = order.get_amounts()
 
-    rp_resp = razorpay.capture_payment(payment.pg_payment_id,
-                                       order_amounts.final_amount)
+    rp_resp = razorpay.capture_payment(payment.pg_payment_id, order_amounts.final_amount)
     if rp_resp:
         payment.capture()
         db.session.add(payment)
-        transaction = PaymentTransaction(order=order,
-                                         payment=payment,
-                                         amount=order_amounts.final_amount)
+        transaction = PaymentTransaction(order=order, payment=payment, amount=order_amounts.final_amount)
         db.session.add(transaction)
         order.invoice()
         db.session.add(order)
         db.session.commit()
+        # Todo move this to the background
         send_invoice_email(order)
         return jsonify(code=200)
     else:

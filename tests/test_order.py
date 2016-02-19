@@ -32,17 +32,6 @@ class TestOrder(unittest.TestCase):
         # 3500*2 = 7000
         self.assertEquals(data['final_amount'], 7000)
 
-    # def test_invalid_item(self):
-    #     data = {
-    #         'line_items': [{'item_id': 'uuidtdoesntexist', 'quantity': 2}],
-    #         'email': 'test@hasgeek.com'
-    #         }
-    #     resp = self.client.post('/rootconf/2016/order', data=json.dumps(data), content_type='application/x-www-form-urlencoded')
-    #     data = json.loads(resp.data)
-    #     print data
-    #     self.assertEquals(data['code'], 200)
-    #     self.assertEquals(data['final_amount'], 7000)
-
     def test_simple_discounted_item(self):
         discounted_item = Item.query.filter_by(name='t-shirt').first()
         data = {
@@ -55,6 +44,7 @@ class TestOrder(unittest.TestCase):
             }
         resp = self.client.post('/rootconf/2016/order', data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest')])
         data = json.loads(resp.data)
+
         self.assertEquals(data['code'], 200)
         self.assertEquals(data['final_amount'], 2375)
 
