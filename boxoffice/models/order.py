@@ -34,7 +34,7 @@ class Order(BaseMixin, db.Model):
     status = db.Column(db.Integer,
                        default=ORDER_STATUS.PURCHASE_ORDER, nullable=False)
 
-    initiated_at = db.Column(db.DateTime, nullable=False)
+    initiated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     invoiced_at = db.Column(db.DateTime, nullable=True)
     cancelled_at = db.Column(db.DateTime, nullable=True)
 
@@ -48,7 +48,7 @@ class Order(BaseMixin, db.Model):
 
     def invoice(self):
         """Sets invoiced_at, status and order_hash"""
-        self.invoiced_at = datetime.utcnow
+        self.invoiced_at = datetime.utcnow()
         self.status = ORDER_STATUS.INVOICE
         self.order_hash = unicode(random.randrange(1, 9999999999))
 
@@ -107,7 +107,7 @@ class LineItem(BaseMixin, db.Model):
     # tax_amount = db.Column(db.Numeric, default=0.0, nullable=False)
 
     @classmethod
-    def get_amounts_and_discounts(cls, price, quantity, discount_policies):
+    def populate_amounts_and_discounts(cls, price, quantity, discount_policies):
         """
         Returns a tuple consisting of a named tuple with
         the line item's amounts, and an array
@@ -144,7 +144,7 @@ class LineItem(BaseMixin, db.Model):
         create, a new line item with the required quantity
         """
         self.status = LINE_ITEM_STATUS.CANCELLED
-        self.cancelled_at = datetime.utcnow
+        self.cancelled_at = datetime.utcnow()
         db.session.add(self)
 
     @classmethod
@@ -197,11 +197,11 @@ class Payment(BaseMixin, db.Model):
 
     def capture(self):
         self.status = PAYMENT_TYPES.CAPTURED
-        self.captured_at = datetime.utcnow
+        self.captured_at = datetime.utcnow()
 
     def fail(self):
         self.status = PAYMENT_TYPES.FAILED
-        self.failed_at = datetime.utcnow
+        self.failed_at = datetime.utcnow()
 
 
 class TRANSACTION_METHODS(LabeledEnum):

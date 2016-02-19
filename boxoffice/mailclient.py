@@ -1,0 +1,23 @@
+# -*- coding: utf-8 -*-
+
+import pdfkit
+from flask import render_template
+from flask.ext.mail import Message
+from html2text import html2text
+
+from boxoffice import mail
+
+
+def send_invoice_email(order, subject="Your Invoice", filename="order_invoice"):
+    msg = Message(subject=subject,
+        recipients=[order.buyer_email])
+    html = render_template('invoice.html', order=order)
+    pdf_file = pdfkit.from_string(html, False)
+    msg.body = html2text(html)
+
+    if len(filename) > 4:
+        if filename[-3:] != '.pdf':
+            filename = filename + '.pdf'
+
+    msg.attach(filename, 'application/pdf', pdf_file)
+    mail.send(msg)

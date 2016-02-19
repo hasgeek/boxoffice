@@ -6,6 +6,7 @@ from boxoffice.models import *
 init_for('dev')
 
 # try:
+db.drop_all()
 db.create_all()
 user = User(userid="U3_JesHfQ2OUmdihAXaAGQ")
 db.session.add(user)
