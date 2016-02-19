@@ -1,6 +1,8 @@
 from datetime import datetime
 from flask import url_for, request, jsonify, render_template, abort
 from flask.ext.cors import cross_origin
+from rq import Queue
+from redis import Redis
 from coaster.views import load_models
 from boxoffice import app, ALLOWED_ORIGINS
 from boxoffice.models import db, Organization, Item
@@ -10,6 +12,9 @@ from boxoffice.extapi import razorpay
 from forms import LineItemForm, BuyerForm
 from boxoffice.mailclient import send_invoice_email
 from utils import xhr_only, api_result
+
+redis_connection = Redis()
+boxofficeq = Queue('boxoffice', connection=redis_connection)
 
 
 @app.route('/kharcha', methods=['OPTIONS', 'POST'])
@@ -109,8 +114,7 @@ def payment(order):
         order.invoice()
         db.session.add(order)
         db.session.commit()
-        # Todo move this to the background
-        send_invoice_email(order)
+        boxofficeq.enqueue(send_invoice_email, order.id)
         return jsonify(code=200)
     else:
         payment.fail()
