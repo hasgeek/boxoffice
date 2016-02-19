@@ -9,7 +9,7 @@ before_script:
 install:
   - pip install -r test_requirements.txt
   - pip install -r requirements.txt
-script: nosetests --with-progressive -v tests
+script: nosetests -v tests
 addons:
   postgresql: "9.4"
 services:

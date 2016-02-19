@@ -29,7 +29,7 @@ class TestKharchaAPI(unittest.TestCase):
         resp_json = json.loads(resp.get_data())
 
         self.assertEquals(resp_json.get('line_items')[0].get('final_amount'), undiscounted_quantity * Price.current(first_item).amount)
-        activated_policies = [(policy.get('id'), policy.get('activated')) for policy in resp_json.get('line_items')[0].get('discount_policies')]
+        activated_policies = [(unicode(policy.get('id')), policy.get('activated')) for policy in resp_json.get('line_items')[0].get('discount_policies')]
         expected_discount_policy_ids = [unicode(policy.id) for policy in first_item.discount_policies]
         self.assertEquals(activated_policies[0], (expected_discount_policy_ids[0], False))
 
@@ -45,7 +45,7 @@ class TestKharchaAPI(unittest.TestCase):
         discounted_amount = (first_item.discount_policies[0].percentage * base_amount)/decimal.Decimal(100.0)
         self.assertEquals(resp_json.get('line_items')[0].get('final_amount'), base_amount-discounted_amount)
         expected_discount_policy_ids = [unicode(policy.id) for policy in first_item.discount_policies]
-        activated_policies = [(policy.get('id'), policy.get('activated')) for policy in resp_json.get('line_items')[0].get('discount_policies')]
+        activated_policies = [(unicode(policy.get('id')), policy.get('activated')) for policy in resp_json.get('line_items')[0].get('discount_policies')]
         self.assertEquals(activated_policies[0], (expected_discount_policy_ids[0], True))
 
     def tearDown(self):
