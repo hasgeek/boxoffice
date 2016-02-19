@@ -13,7 +13,7 @@
     {{#if id === 'boxoffice-selectItems' && id === activeTab}}
       <div id='{{id}}' class="boxoffice-section ticket-selection-content clearfix">
         {{#section.categories}}
-          <div id="{{title}}">
+          <div id="{{name}}">
             <div>
               <h1 class="category-heading">{{title}}</h1>
             </div>
@@ -21,7 +21,7 @@
             {{#items}}{{# { item: . } }}
               {{#order.line_items}} {{# { line_item: . } }}
                 {{#if line_item.item_name === item.name }}
-                  <div class="ticket-booking clearfix">
+                  <div class="ticket-booking clearfix" id="{{line_item.item_name}}">
                     <div class="ticket-details">
                       <p class="ticket-title text-primary">{{ line_item.item_title }}</p>
                       {{#line_item.discount_policies}}
@@ -124,6 +124,7 @@
             <p>Hello {{buyer.name}},</p>
             <p>Your payment has been successful.</p>
             <p>We have sent you a confirmation email with the <a href="{{ invoiceURL }}" target="_blank" class="boxoffice-button boxoffice-button-info invoice-button">invoice</a></p>
+            <p>We get in touch with you shortly to fill the attendee details.</p>
             <p class="service-policy-msg">Please refer our <a href="https://hasgeek.com/about/policy/" target="_blank">terms of service and refund policy</a>. For further queries, please write to us at <a href="mailto:support@hasgeek.com">support@hasgeek.com</a> or call us at <a href="tel:+917676332020">+91 7676 33 2020</a>.</p>
             <p>Tell your friends!</p>
             <span class="tweet-button">
