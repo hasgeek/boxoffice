@@ -56,7 +56,7 @@
         </tr>
         <tr>
           <td class="gray">Invoice Date</td>
-          <td>{{ order.invoiced_at.strftime('%d %b %Y') }}</td>
+          <td>{{ order.invoiced_at | invoice_date('%d %b %Y') }}</td>
         </tr>
       </table>  
     </div>

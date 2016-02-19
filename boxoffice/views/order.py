@@ -8,7 +8,8 @@ from boxoffice.models import ItemCollection, LineItem, Price
 from boxoffice.models.order import Order, Payment, PaymentTransaction, User
 from boxoffice.extapi import razorpay
 from forms import LineItemForm, BuyerForm
-from utils import xhr_only
+from boxoffice.mailclient import send_invoice_email
+from utils import xhr_only, api_result
 
 
 def calculate_line_items(line_items_dicts):
@@ -19,7 +20,7 @@ def calculate_line_items(line_items_dicts):
     for line_item_dict in line_items_dicts:
         item = Item.query.get(line_item_dict.get('item_id'))
         amounts, discount_policies = LineItem\
-            .get_amounts_and_discounts(Price.current(item).amount,
+            .populate_amounts_and_discounts(Price.current(item).amount,
                                        line_item_dict.get('quantity'),
                                        item.discount_policies)
         line_item_dict['base_amount'] = amounts.base_amount
@@ -41,16 +42,15 @@ def calculate_line_items(line_items_dicts):
 def order(organization, item_collection):
     line_item_forms = LineItemForm.process_list(request.json.get('line_items'))
     if not line_item_forms:
-        abort(400)
+        api_result(400, 'invalid_line_items')
 
     buyer_form = BuyerForm.from_json(request.json.get('buyer'))
 
     if not buyer_form.validate():
-        abort(400)
+        api_result(400, 'invalid_buyer')
 
     user = User.query.filter_by(email=buyer_form.email.data).first()
     order = Order(user=user,
-                  initiated_at=datetime.utcnow(),
                   item_collection=item_collection,
                   buyer_email=buyer_form.email.data,
                   buyer_fullname=buyer_form.fullname.data,
@@ -83,7 +83,7 @@ def order(organization, item_collection):
 def kharcha():
     line_item_forms = LineItemForm.process_list(request.json.get('line_items'))
     if not line_item_forms:
-        abort(400)
+        api_result(400, 'invalid_line_items')
     line_item_dicts = calculate_line_items([li_form.data
                                             for li_form in line_item_forms])
     return jsonify(line_items=line_item_dicts)
@@ -114,16 +114,16 @@ def payment(order):
         order.invoice()
         db.session.add(order)
         db.session.commit()
+        send_invoice_email(order)
         return jsonify(code=200)
     else:
         payment.fail()
-        return abort(402)
+        return api_result(402, 'payment_capture_failed')
 
 
 @app.route('/<access_token>/invoice', methods=['GET'])
 @load_models(
     (Order, {'access_token': 'access_token'}, 'order')
     )
-@cross_origin(origins=app.config.get('ALLOWED_ORIGINS'))
 def invoice(order):
     return render_template('invoice.html', order=order)

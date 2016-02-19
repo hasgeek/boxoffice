@@ -25,6 +25,7 @@ class LineItemForm(Form):
             line_item_forms.append(line_item_form)
         return line_item_forms
 
+
 class BuyerForm(Form):
     email = forms.EmailField(__("Email"), validators=[forms.validators.DataRequired(), forms.validators.Length(max=80)])
     fullname = forms.StringField(__("Full Name"), validators=[forms.validators.DataRequired()])
