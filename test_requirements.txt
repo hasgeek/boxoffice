@@ -1,3 +1,2 @@
-nose2
 coverage
-node-progressive
+nose-progressive
