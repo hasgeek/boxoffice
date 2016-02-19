@@ -13,4 +13,3 @@ psycopg2
 pdfkit
 flask-cors
 wtforms_json
-pdfkit
