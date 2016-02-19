@@ -5,7 +5,9 @@ Flask-Mail
 Flask-WTF
 git+https://github.com/hasgeek/coaster
 git+https://github.com/hasgeek/flask-lastuser
+git+https://github.com/hasgeek/baseframe
 jsmin
 pytz
 flask-cors
 wtforms_json
+pdfkit
