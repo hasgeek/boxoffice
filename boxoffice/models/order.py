@@ -92,8 +92,7 @@ class LineItem(BaseMixin, db.Model):
         the line item's amounts, and an array
         of the applied discount policies
 
-        # TODO: What if the price changes by
-        the time the computation below happens?
+        # TODO: What if the price changes by the time the computation below happens?
         """
         amounts = namedtuple('Amounts',
                              ['base_amount',

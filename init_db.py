@@ -3,16 +3,17 @@
 
 from boxoffice import init_for
 from boxoffice.models import *
+from coaster.utils import buid
 init_for('dev')
 
 # try:
 db.drop_all()
 db.create_all()
-user = User(userid="U3_JesHfQ2OUmdihAXaAGQ")
+user = User(userid=buid())
 db.session.add(user)
 db.session.commit()
 
-rootconf = Organization(title='Rootconf', userid="U3_JesHfQ2OUmdihAXaAGQ", status=0)
+rootconf = Organization(title='Rootconf', userid=user.userid, status=0)
 db.session.add(rootconf)
 db.session.commit()
 
@@ -74,10 +75,3 @@ coupon = DiscountCoupon(discount_policy=policy, quantity_available=100, quantity
 db.session.add(coupon)
 db.session.commit()
 
-order = Order(user=user, item_collection=rc2016, buyer_email='abc@xyz.com', buyer_fullname='ABC XYZ', buyer_phone='9999999999')
-db.session.add(order)
-db.session.commit()
-# except:
-#     print "Fail"
-#     db.session.rollback()
-#     db.drop_all()
