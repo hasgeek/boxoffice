@@ -64,7 +64,9 @@
             <button id="stage1-proceed" class="boxoffice-button boxoffice-button-action" on-click="checkout(event)">Continue</button>
           </div>
         {{/order.readyToCheckout}}
-        <p class="stage-error-msg text-danger">{{errorMsg}}</p>
+        {{#errorMsg }}
+          <p class="stage-error-msg text-danger">{{ errorMsg }}</p>
+        {{/}}
       </div>
     {{elseif id === 'boxoffice-payment' && id === activeTab}}
       {{#loadingPaymentConfirmation}}
@@ -111,7 +113,9 @@
             <button class="boxoffice-button boxoffice-button-info edit-order" on-click="selectItems(event)">Edit order</button>
             <button type="submit" class="boxoffice-button boxoffice-button-action">Checkout</button>
           </div>
-          <p class="stage-error-msg text-danger">{{ errorMsg }}</p>
+          {{#errorMsg }}
+            <p class="stage-error-msg text-danger">{{ errorMsg }}</p>
+          {{/}}
         </form> 
         <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
       </div>
@@ -325,11 +329,11 @@
   .ticket-price-qty {
     float: right;
     margin-top: 10px;
-    font-size: 18px;
   }
   .ticket-price {
     float: left;
     margin-top: 2px;
+    font-size: 18px;
   }
   @media (min-width: 768px) {
     .ticket-price-qty {
@@ -388,6 +392,24 @@
     font-size: 20px;
     margin-top: 2px;
   }
+  @media (min-width: 600px) and (max-width: 1023px) {
+    .category-heading {
+      font-size: 30px;
+    }
+    .ticket-title, .ticket-price, .multiplier, .ticket-qty {
+     font-size: 25px;
+    }
+    .increment, .decrement {
+      font-size: 35px;
+    }
+    .ticket-qty-wrapper {
+      height: 37px;
+    }
+    .ticket-qty {
+      top: -3px;
+      width: 40px;
+    }
+  }
   .item-amount {
     clear: both;
     font-size: 15px;
@@ -417,6 +439,14 @@
     font-size: 20px;
     margin: 20px 0;
   }
+  .checkout-confirmation {
+    padding: 0;
+  }
+  @media(min-width: 768px) {
+    .checkout-confirmation {
+      padding: 0px 15px;
+    }
+  }
   .item-summary {
     border-bottom: 1px dotted #CCC;
     padding: 5px 0;
@@ -430,7 +460,6 @@
   .booked-ticket-qty,  
   .discount-applied {
     font-size: 13px;
-    color: #999;
     text-align: right;
     margin-bottom: 5px;
   }
@@ -454,10 +483,8 @@
   }
   .stage-error-msg {
     clear: both;
-    height: 20px;
     float: right;
     margin: 0px 0 10px;
-    padding-left: 15px;
   }
   .loader {
     position: absolute;
