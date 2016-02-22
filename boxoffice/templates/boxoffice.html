@@ -41,10 +41,10 @@
                       </div>
                       <div class="item-amount">
                         {{#line_item.discounted_amount}}
-                          <p intro-outro='fly:{"x":0,"y":"0"}'>Discount: <span><i class="fa fa-inr"></i> {{line_item.discounted_amount}}</span></p>
+                          <p intro-outro='fly:{"x":0,"y":"0"}' class="discount">Discount: <span><i class="fa fa-inr"></i> {{line_item.discounted_amount}}</span></p>
                         {{/}}
                         {{#line_item.final_amount}}
-                          <p intro-outro='fly:{"x":0,"y":"0"}'>Subtotal: <span><i class="fa fa-inr"></i> {{line_item.final_amount}}</span></p>
+                          <p intro-outro='fly:{"x":0,"y":"0"}' class="subtotal">Subtotal: <span><i class="fa fa-inr"></i> {{line_item.final_amount}}</span></p>
                         {{/}}
                       </div>
                       </div>
