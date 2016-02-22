@@ -9,7 +9,7 @@ class Price(BaseScopedNameMixin, db.Model):
     __tablename__ = 'price'
     __uuid_primary_key__ = True
     __tableargs__ = (db.UniqueConstraint('item_id', 'name'),
-        db.CheckConstraint('valid_from < valid_to', 'validity_bound'))
+        db.CheckConstraint('valid_from < valid_to', 'price_valid_from_lte_valid_to_check'))
 
     item_id = db.Column(None, db.ForeignKey('item.id'), nullable=False)
     item = db.relationship(Item, backref=db.backref('prices', cascade='all, delete-orphan'))

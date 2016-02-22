@@ -7,7 +7,7 @@ from coaster.views import load_models
 from boxoffice import app, ALLOWED_ORIGINS
 from boxoffice.models import db, Organization, Item
 from boxoffice.models import ItemCollection, LineItem
-from boxoffice.models.order import Order, Payment, PaymentTransaction, User
+from boxoffice.models.order import Order, OnlinePayment, PaymentTransaction, User
 from boxoffice.extapi import razorpay
 from forms import LineItemForm, BuyerForm
 from boxoffice.mailclient import send_invoice_email
@@ -102,14 +102,15 @@ def payment(order):
     pg_payment_id = request.json.get('pg_payment_id')
     if not (request.json and pg_payment_id):
         abort(400)
-    payment = Payment(pg_payment_id=pg_payment_id, order=order)
-    order_amounts = order.get_amounts()
 
-    rp_resp = razorpay.capture_payment(payment.pg_payment_id, order_amounts.final_amount)
+    order_amounts = order.get_amounts()
+    online_payment = OnlinePayment(pg_payment_id=pg_payment_id, order=order)
+
+    rp_resp = razorpay.capture_payment(online_payment.pg_payment_id, order_amounts.final_amount)
     if rp_resp:
-        payment.capture()
-        db.session.add(payment)
-        transaction = PaymentTransaction(order=order, payment=payment, amount=order_amounts.final_amount)
+        online_payment.confirm()
+        db.session.add(online_payment)
+        transaction = PaymentTransaction(order=order, online_payment=online_payment, amount=order_amounts.final_amount)
         db.session.add(transaction)
         order.invoice()
         db.session.add(order)
@@ -117,7 +118,8 @@ def payment(order):
         boxofficeq.enqueue(send_invoice_email, order.id)
         return jsonify(code=200)
     else:
-        payment.fail()
+        online_payment.fail()
+        db.session.commit()
         return api_result(402, 'payment_capture_failed')
 
 

@@ -6,7 +6,7 @@ from boxoffice.models import db, BaseMixin, User, Item, ItemCollection, Price
 from coaster.utils import LabeledEnum, buid
 from baseframe import __
 
-__all__ = ['Order', 'LineItem', 'PaymentTransaction']
+__all__ = ['Order', 'LineItem', 'OnlinePayment', 'PaymentTransaction']
 
 
 class ORDER_STATUS(LabeledEnum):
@@ -36,7 +36,7 @@ class Order(BaseMixin, db.Model):
 
     buyer_email = db.Column(db.Unicode(254), nullable=False)
     buyer_fullname = db.Column(db.Unicode(80), nullable=False)
-    buyer_phone = db.Column(db.Unicode(13), nullable=False)
+    buyer_phone = db.Column(db.Unicode(16), nullable=False)
 
     order_hash = db.Column(db.Unicode(120), nullable=True)
 
@@ -159,7 +159,7 @@ class LineItem(BaseMixin, db.Model):
         return cls.query.filter_by(order=order, status=LINE_ITEM_STATUS.CANCELLED).all()
 
 
-class PAYMENT_TYPES(LabeledEnum):
+class RAZORPAY_PAYMENT_STATUS(LabeledEnum):
     """
     Reflects payment statuses as specified in
     https://docs.razorpay.com/docs/return-objects
@@ -172,42 +172,40 @@ class PAYMENT_TYPES(LabeledEnum):
     FAILED = (4, __("Failed"))
 
 
-class Payment(BaseMixin, db.Model):
+class OnlinePayment(BaseMixin, db.Model):
     """
-    Represents online payments made through Razorpay.
+    Represents payments made through a payment gateway.
+    Supports Razorpay only.
     """
-    __tablename__ = 'payment'
+    __tablename__ = 'online_payment'
     __uuid_primary_key__ = True
     customer_order_id = db.Column(None,
                                   db.ForeignKey('customer_order.id'),
                                   nullable=False)
     order = db.relationship(Order,
-                            backref=db.backref('payments',
+                            backref=db.backref('online_payments',
                                                cascade='all, delete-orphan',
                                                lazy="dynamic"))
 
     # Payment id issued by the payment gateway
     pg_payment_id = db.Column(db.Unicode(80), nullable=False)
-    status = db.Column(db.Integer,
-                       default=PAYMENT_TYPES.CREATED, nullable=False)
-    captured_at = db.Column(db.DateTime, nullable=True)
+    # Payment status issued by the payment gateway
+    pg_payment_status = db.Column(db.Integer, nullable=False)
+    confirmed_at = db.Column(db.DateTime, nullable=True)
     failed_at = db.Column(db.DateTime, nullable=True)
 
-    def is_captured(self):
-        return self.status == PAYMENT_TYPES.CAPTURED
-
-    def capture(self):
+    def confirm(self):
         """
-        'Captures' a payment, sets status and captured_at.
+        Confirms a payment, sets confirmed_at and pg_payment_status.
         """
-        self.status = PAYMENT_TYPES.CAPTURED
-        self.captured_at = datetime.utcnow()
+        self.confirmed_at = datetime.utcnow()
+        self.pg_payment_status = RAZORPAY_PAYMENT_STATUS.CAPTURED
 
     def fail(self):
         """
-        Fails a payment, sets status and failed_at.
+        Fails a payment, sets failed_at.
         """
-        self.status = PAYMENT_TYPES.FAILED
+        self.pg_payment_status = RAZORPAY_PAYMENT_STATUS.FAILED
         self.failed_at = datetime.utcnow()
 
 
@@ -232,8 +230,8 @@ class PaymentTransaction(BaseMixin, db.Model):
 
     customer_order_id = db.Column(None, db.ForeignKey('customer_order.id'), nullable=False)
     order = db.relationship(Order, backref=db.backref('transactions', cascade='all, delete-orphan', lazy="dynamic"))
-    payment_id = db.Column(None, db.ForeignKey('payment.id'), nullable=True)
-    payment = db.relationship(Payment, backref=db.backref('transactions', cascade='all, delete-orphan'))
+    online_payment_id = db.Column(None, db.ForeignKey('online_payment.id'), nullable=True)
+    online_payment = db.relationship(OnlinePayment, backref=db.backref('transactions', cascade='all, delete-orphan'))
     amount = db.Column(db.Numeric, default=decimal.Decimal(0), nullable=False)
     currency = db.Column(db.Unicode(3), nullable=False, default=u'INR')
     transaction_type = db.Column(db.Integer, default=TRANSACTION_TYPES.PAYMENT, nullable=False)

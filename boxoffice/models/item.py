@@ -9,8 +9,8 @@ class Item(BaseScopedNameMixin, db.Model):
     __tablename__ = 'item'
     __uuid_primary_key__ = True
     __tableargs__ = (db.UniqueConstraint('item_collection_id', 'name'),
-                     db.CheckConstraint('quantity_available <= quantity_total',
-                                        'quantity_bound'))
+        db.CheckConstraint('quantity_available <= quantity_total',
+                          'item_quantity_available_lte_quantity_total_check'))
 
     description = db.Column(db.Unicode(2500), nullable=False)
 

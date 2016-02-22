@@ -6,7 +6,6 @@ __all__ = ['Category']
 
 class Category(BaseScopedNameMixin, db.Model):
     __tablename__ = 'category'
-    __uuid_primary_key__ = True
     __tableargs__ = (db.UniqueConstraint('item_collection_id', 'name'),)
 
     item_collection_id = db.Column(None,
@@ -18,6 +17,5 @@ class Category(BaseScopedNameMixin, db.Model):
     parent = db.synonym('item_collection')
 
     def __repr__(self):
-        return u'<Category "{category}" in "{item_collection}">'\
-              .format(category=self.title,
-                      item_collection=self.item_collection.title)
+        return '<Category "{category}" in "{item_collection}">'.format(category=self.title,
+            item_collection=self.item_collection.title)

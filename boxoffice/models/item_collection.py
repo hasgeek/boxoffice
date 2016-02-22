@@ -1,4 +1,4 @@
-from boxoffice.models import db, BaseScopedNameMixin, Organization
+from ..models import db, BaseScopedNameMixin, Organization
 
 __all__ = ['ItemCollection']
 

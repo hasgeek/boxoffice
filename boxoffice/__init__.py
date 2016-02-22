@@ -8,6 +8,7 @@ from flask.ext.lastuser.sqlalchemy import UserManager
 import coaster.app
 import wtforms_json
 
+
 app = Flask(__name__, instance_relative_config=True)
 lastuser = Lastuser()
 ALLOWED_ORIGINS = ['http://shreyas-wlan.dev:8000',
@@ -15,6 +16,10 @@ ALLOWED_ORIGINS = ['http://shreyas-wlan.dev:8000',
                    'http://rootconf.karthik.dev:8090']
 
 mail = Mail()
+
+
+from boxoffice.models import db  # noqa
+import boxoffice.views  # noqa
 
 
 # Configure the app
@@ -30,6 +35,3 @@ def init_for(env):
 
     mail.init_app(app)
     wtforms_json.init()
-
-from boxoffice.models import db  # noqa
-import boxoffice.views  # noqa
