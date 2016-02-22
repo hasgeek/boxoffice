@@ -32,7 +32,7 @@ class TestKharchaAPI(unittest.TestCase):
         self.assertEquals(resp_json.get('line_items')[0].get('final_amount'),
             undiscounted_quantity * Price.current(first_item).amount)
 
-        policies = [(policy.get('id'), policy.get('activated'))
+        policies = [(unicode(policy.get('id')), policy.get('activated'))
             for policy in resp_json.get('line_items')[0].get('discount_policies')]
         self.assertEquals(resp_json.get('line_items')[0].get('final_amount'), undiscounted_quantity * Price.current(first_item).amount)
         expected_discount_policy_ids = [unicode(policy.id) for policy in first_item.discount_policies]
@@ -59,7 +59,7 @@ class TestKharchaAPI(unittest.TestCase):
             base_amount-discounted_amount)
 
         expected_discount_policy_ids = [unicode(policy.id) for policy in first_item.discount_policies]
-        policies = [(policy.get('id'), policy.get('activated')) for policy in resp_json.get('line_items')[0].get('discount_policies')]
+        policies = [(unicode(policy.get('id')), policy.get('activated')) for policy in resp_json.get('line_items')[0].get('discount_policies')]
 
         # Test that all the discount policies are returned
         for expected_policy_id in expected_discount_policy_ids:
