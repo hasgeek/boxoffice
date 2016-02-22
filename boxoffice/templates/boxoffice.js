@@ -182,12 +182,14 @@ $(function(){
             }).done(function(data) {
               var line_items = boxoffice.ractive.get('order.line_items');
               var finalAmount = 0.0;
+              var readyToCheckout = false;
               
               line_items.forEach(function(line_item) {
                 var updatedLineItem = data.line_items.filter(function(updated_line_item) {
-                  return updated_line_item.item_id === line_item.item_id;
+                  return (updated_line_item.item_id === line_item.item_id && line_item.quantity === updated_line_item.quantity);
                 });
                 if (updatedLineItem.length) {
+                  readyToCheckout = true;
                   line_item.discount_policies = updatedLineItem[0].discount_policies;
                   line_item.discounted_amount = updatedLineItem[0].discounted_amount;
                   line_item.final_amount = updatedLineItem[0].final_amount;
@@ -199,7 +201,7 @@ $(function(){
                 'tabs.selectItems.loadingPrice': false,
                 'order.line_items': line_items,
                 'order.final_amount': finalAmount,
-                'order.readyToCheckout': true
+                'order.readyToCheckout': readyToCheckout
               });
             });
           }
