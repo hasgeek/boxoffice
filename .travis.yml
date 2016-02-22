@@ -7,8 +7,6 @@ cache:
 before_script:
   - sudo -- sh -c "echo '127.0.0.1  boxoffice.travis.dev' >> /etc/hosts"
   - psql -c 'create database boxoffice_testing;' -U postgres
-  - nohup python runtestserver.py &
-  - sleep 30
 install:
   - pip install -U pip wheel
   - pip install -r test_requirements.txt
@@ -16,6 +14,8 @@ install:
   - npm install casperjs
 script:
   - nosetests -v tests
+  - nohup python runtestserver.py &
+  - sleep 30
   - casperjs test tests
 addons:
   postgresql: "9.4"
