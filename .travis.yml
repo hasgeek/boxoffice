@@ -5,11 +5,18 @@ cache:
   - pip
   - apt
 before_script:
+  - sudo -- sh -c "echo '127.0.0.1  boxoffice.travis.dev' >> /etc/hosts"
   - psql -c 'create database boxoffice_testing;' -U postgres
+  - nohup python runtestserver.py &
+  - sleep 30
 install:
   - pip install -r test_requirements.txt
   - pip install -r requirements.txt
-script: nosetests -v tests
+  - npm install casperjs
+  - npm install phantom@1.9.7
+script:
+  - nosetests -v tests
+  - casperjs test tests
 addons:
   postgresql: "9.4"
 services:
