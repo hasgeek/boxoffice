@@ -80,6 +80,7 @@ def order(organization, item_collection):
     db.session.commit()
     return jsonify(code=200, order_id=order.id,
         order_access_token=order.access_token,
+        order_hash=order.order_hash,
         payment_url=url_for('payment', order=order.id),
         final_amount=order.get_amounts().final_amount)
 
@@ -120,6 +121,8 @@ def payment(order):
     else:
         online_payment.fail()
         db.session.commit()
+        #raise an exception and return user readable error msg.
+        #Also send a mail to the user with order details
         return api_result(402, 'payment_capture_failed')
 
 

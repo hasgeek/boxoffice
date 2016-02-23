@@ -11,7 +11,7 @@
 <div class="payment-stages-wrapper">
   {{#tabs:tab}}
     {{#if id === 'boxoffice-selectItems' && id === activeTab}}
-      <div id='{{id}}' class="boxoffice-section ticket-selection-content clearfix">
+      <div id='{{id}}' class="boxoffice-section ticket-selection-content clearfix" intro-outro='fly:{"x":0,"y":"0"}'>
         {{#section.categories}}
           <div id="{{name}}">
             <div>
@@ -72,7 +72,7 @@
       {{#loadingPaymentConfirmation}}
         <div class="loader"><i class="fa fa-spinner fa-spin fa-3x"></i></div>
       {{/}}
-      <div id='{{id}}' class="boxoffice-section clearfix">
+      <div id='{{id}}' class="boxoffice-section clearfix" intro='fly:{"x":0,"y":"0"}'>
         <p class="buyer-form">Buyer Details</p>
         <form class="form-horizontal" role="form" id="buyer-details-form" name="buyer-form">
           <div class="form-group">
@@ -395,6 +395,9 @@
   @media (min-width: 600px) and (max-width: 1023px) {
     .category-heading {
       font-size: 30px;
+    }
+    .category-heading:after {
+      border-width: 26px;
     }
     .ticket-title, .ticket-price, .multiplier, .ticket-qty {
      font-size: 25px;

@@ -45,6 +45,14 @@ single_day_price = Price(item=single_day_conf_ticket, title='Single Day', valid_
 db.session.add(single_day_price)
 db.session.commit()
 
+single_day2_conf_ticket = Item(title='Single Day', description='<p><i class="fa fa-calendar"></i>15 April 2016</p><p><i class="fa fa-map-marker ticket-venue"></i>MLR Convention Center, JP Nagar</p><p>This ticket gets you access to rootconf conference on 15th April 2016.</p>', item_collection=rc2016, category=Category.query.filter_by(name='conference').first(), quantity_available=100, quantity_total=1000)
+db.session.add(single_day2_conf_ticket)
+db.session.commit()
+
+single_day2_price = Price(item=single_day2_conf_ticket, title='Single Day', valid_from='2016-02-01', valid_upto='2016-03-01', amount=2500)
+db.session.add(single_day2_price)
+db.session.commit()
+
 tshirt = Item(title='T-shirt', description='Rootconf', item_collection=rc2016, category=Category.query.filter_by(name='merchandise').first(), quantity_available=100, quantity_total=1000)
 db.session.add(tshirt)
 db.session.commit()
@@ -61,12 +69,12 @@ dns_workshop_price = Price(item=dns_workshop, title='DNSSEC workshop early', val
 db.session.add(dns_workshop_price)
 db.session.commit()
 
-policy = DiscountPolicy(title='10% discount on rootconf', item_quantity_min=10, percentage=10, item_collection=rc2016)
+policy = DiscountPolicy(title='10% discount on 10 or more tickets', item_quantity_min=10, percentage=10, item_collection=rc2016)
 policy.items.append(conf_ticket)
 db.session.add(policy)
 db.session.commit()
 
-tshirt_policy = DiscountPolicy(title='5% discount on 5 t-shirts', item_quantity_min=5, percentage=5, item_collection=rc2016)
+tshirt_policy = DiscountPolicy(title='5% discount on 5 or more t-shirts', item_quantity_min=5, percentage=5, item_collection=rc2016)
 tshirt_policy.items.append(tshirt)
 db.session.add(tshirt_policy)
 db.session.commit()
