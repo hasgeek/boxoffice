@@ -114,7 +114,7 @@ $(function(){
               label: 'Confirm',
               complete: false,
               section: {
-                invoiceURL: '',
+                cashReceiptURL: '',
                 eventTitle: widgetConfig.paymentDesc,
                 eventHashtag: widgetConfig.event_hashtag,
               }
@@ -293,6 +293,15 @@ $(function(){
               'order.final_amount': data.final_amount});
             boxoffice.ractive.capturePayment(data.payment_url, data.razorpay_payment_id);
             boxoffice.ractive.scrollTop();
+          }).fail(function(response) {
+            var errorMsg;
+            if(response.readyState === 4) {
+              errorMsg = JSON.parse(response.responseText).message;
+            }
+            else if(response.readyState === 0) {
+              errorMsg = "Unable to connect. Please try again.";
+            }
+            boxoffice.ractive.set('tabs.payment.errorMsg', errorMsg);
           });
         },
         capturePayment: function(paymentUrl, razorpay_payment_id){
@@ -340,8 +349,8 @@ $(function(){
               'tabs.payment.complete': true,
             });
             boxoffice.ractive.set('tabs.payment.loadingPaymentConfirmation', false);
-            var invoiceURL = boxoffice.config.baseURL + "/" + boxoffice.ractive.get('order.access_token') + "/invoice";
-            boxoffice.ractive.set('tabs.confirm.section.invoiceURL', invoiceURL);
+            var cashReceiptURL = boxoffice.config.baseURL + "/" + boxoffice.ractive.get('order.access_token') + "/receipt";
+            boxoffice.ractive.set('tabs.confirm.section.cashReceiptURL', cashReceiptURL);
           }).fail(function(response) {
             boxoffice.ractive.set('tabs.payment.loadingPaymentConfirmation', false);
             var errorMsg;

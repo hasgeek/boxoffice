@@ -126,6 +126,14 @@ def payment(order):
         return api_result(402, 'payment_capture_failed')
 
 
+@app.route('/<access_token>/receipt', methods=['GET'])
+@load_models(
+    (Order, {'access_token': 'access_token'}, 'order')
+    )
+def receipt(order):
+    return render_template('cash_receipt.html', order=order)
+
+
 @app.route('/<access_token>/invoice', methods=['GET'])
 @load_models(
     (Order, {'access_token': 'access_token'}, 'order')

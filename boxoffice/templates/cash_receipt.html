@@ -3,7 +3,7 @@
 
 <head>
   <meta charset='UTF-8'>  
-  <title>Invoice</title>  
+  <title>Receipt</title>  
   <link rel="stylesheet" href="{{ url_for('static', filename='css/receipt.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/font-awesome.min.css') }}">
   <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400italic,600italic,400,600" />
@@ -11,7 +11,7 @@
 
 <body>
   <div class="wrapper">
-    <h1 class="header">Invoice</h1>
+    <h1 class="header">Cash Receipt</h1>
     
     <div class="company-details clearfix">  
       <div class="logo">
@@ -51,12 +51,12 @@
 
       <table class="details">
         <tr>
-          <td class="gray">Invoice#</td>
+          <td class="gray">Receipt#</td>
           <td>{{ order.order_hash }}</td>
         </tr>
         <tr>
-          <td class="gray">Invoice Date</td>
-          <td>{{ order.invoiced_at | invoice_date('%d %b %Y') }}</td>
+          <td class="gray">Date</td>
+          <td>{{ order.paid_at | invoice_date('%d %b %Y') }}</td>
         </tr>
       </table>  
     </div>
