@@ -49,7 +49,6 @@ class Order(BaseMixin, db.Model):
         Updates the status to Sales Order
         """
         self.status = ORDER_STATUS.SALES_ORDER
-        self.order_hash = unicode(random.randrange(1, 9999999999))
 
     def invoice(self):
         """Sets invoiced_at, status and order_hash"""
