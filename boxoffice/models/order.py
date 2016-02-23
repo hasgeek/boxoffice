@@ -15,8 +15,10 @@ class ORDER_STATUS(LabeledEnum):
     INVOICE = (2, __("Invoice"))
     CANCELLED = (3, __("Cancelled Order"))
 
+
 def gen_order_hash():
     return unicode(random.randrange(1, 9999999999))
+
 
 class Order(BaseMixin, db.Model):
     __tablename__ = 'customer_order'
