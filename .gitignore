@@ -1,6 +1,6 @@
 .DS_Store
 *.pyc
-settings.py
+development.py
 test.db
 *.wpr
 .project
@@ -9,3 +9,4 @@ test.db
 .sass-cache
 geekup/static/img/uploads
 error.log
+testing.py

@@ -1,4 +1,2 @@
-import boxoffice.views.setup
-import boxoffice.views.index
-import boxoffice.views.login
-import boxoffice.views.registration
+from boxoffice.views.item_collection import *
+from boxoffice.views.order import *
