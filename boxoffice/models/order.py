@@ -33,6 +33,7 @@ class Order(BaseMixin, db.Model):
     status = db.Column(db.Integer, default=ORDER_STATUS.PURCHASE_ORDER, nullable=False)
 
     initiated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    paid_at = db.Column(db.DateTime, nullable=True)
     invoiced_at = db.Column(db.DateTime, nullable=True)
     cancelled_at = db.Column(db.DateTime, nullable=True)
 
@@ -49,6 +50,7 @@ class Order(BaseMixin, db.Model):
         Updates the status to Sales Order
         """
         self.status = ORDER_STATUS.SALES_ORDER
+        self.paid_at = datetime.utcnow()
 
     def invoice(self):
         """Sets invoiced_at, status and order_hash"""

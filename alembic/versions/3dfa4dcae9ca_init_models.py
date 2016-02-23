@@ -77,6 +77,7 @@ def upgrade():
     sa.Column('item_collection_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
     sa.Column('status', sa.Integer(), nullable=False),
     sa.Column('initiated_at', sa.DateTime(), nullable=False),
+    sa.Column('paid_at', sa.DateTime(), nullable=True),
     sa.Column('invoiced_at', sa.DateTime(), nullable=True),
     sa.Column('cancelled_at', sa.DateTime(), nullable=True),
     sa.Column('access_token', sa.Unicode(length=22), nullable=False),
