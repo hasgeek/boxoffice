@@ -6,7 +6,7 @@ from boxoffice.models import db, BaseMixin, User, Item, ItemCollection, Price
 from coaster.utils import LabeledEnum, buid
 from baseframe import __
 
-__all__ = ['Order', 'LineItem', 'OnlinePayment', 'PaymentTransaction']
+__all__ = ['Order', 'LineItem', 'OnlinePayment', 'PaymentTransaction', 'ORDER_STATUS']
 
 
 class ORDER_STATUS(LabeledEnum):
@@ -40,11 +40,17 @@ class Order(BaseMixin, db.Model):
 
     order_hash = db.Column(db.Unicode(120), nullable=True)
 
+    def confirm_sale(self):
+        """
+        Updates the status to Sales Order
+        """
+        self.status = ORDER_STATUS.SALES_ORDER
+        self.order_hash = unicode(random.randrange(1, 9999999999))
+
     def invoice(self):
         """Sets invoiced_at, status and order_hash"""
         self.invoiced_at = datetime.utcnow()
         self.status = ORDER_STATUS.INVOICE
-        self.order_hash = unicode(random.randrange(1, 9999999999))
 
     def get_amounts(self):
         """

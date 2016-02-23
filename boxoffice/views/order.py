@@ -112,7 +112,7 @@ def payment(order):
         db.session.add(online_payment)
         transaction = PaymentTransaction(order=order, online_payment=online_payment, amount=order_amounts.final_amount)
         db.session.add(transaction)
-        order.invoice()
+        order.confirm_sale()
         db.session.add(order)
         db.session.commit()
         boxofficeq.enqueue(send_invoice_email, order.id)
