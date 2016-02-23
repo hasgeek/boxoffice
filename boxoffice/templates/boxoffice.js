@@ -78,6 +78,8 @@ $(function(){
         data: {
           order: {
             order_id: '',
+            access_token: '',
+            order_hash: '',
             line_items: lineItems,
             final_amount: 0.0,
             readyToCheckout: false
@@ -123,7 +125,7 @@ $(function(){
           //Scroll the page up to top of boxoffice widget.
           $('html,body').animate({
             scrollTop: $("#" + boxoffice.ractive.el.id).offset().top
-          }, '900');
+          }, '300');
         },
         selectItems: function(event) {
           // Makes the 'Select Items' tab active
@@ -175,7 +177,7 @@ $(function(){
                   return {
                     quantity: line_item.quantity,
                     item_id: line_item.item_id
-                  }
+                  };
                 })
               }),
               timeout: 5000
@@ -279,14 +281,16 @@ $(function(){
                 return {
                   item_id: line_item.item_id,
                   quantity: line_item.quantity
-                }
+                };
               }),
             }),
             timeout: 5000
           }).done(function(data) {
-            boxoffice.ractive.set('order.id', data.order_id);
-            boxoffice.ractive.set('order.access_token', data.order_access_token);
-            boxoffice.ractive.set('order.final_amount', data.final_amount);
+            boxoffice.ractive.set({
+              'order.order_id': data.order_id,
+              'order.access_token': data.order_access_token,
+              'order.order_hash': data.order_hash,
+              'order.final_amount': data.final_amount});
             boxoffice.ractive.capturePayment(data.payment_url, data.razorpay_payment_id);
             boxoffice.ractive.scrollTop();
           });
@@ -302,7 +306,7 @@ $(function(){
             "image": boxoffice.config.razorpayBanner,
             // Order id is for razorpay's reference, useful for querying
             "notes": {
-              "order_id": boxoffice.ractive.get('order.id')
+              "order_id": boxoffice.ractive.get('order.order_id')
             },
             "handler": function (data) {
               boxoffice.ractive.set('tabs.payment.loadingPaymentConfirmation', true);
@@ -336,9 +340,19 @@ $(function(){
               'tabs.payment.complete': true,
             });
             boxoffice.ractive.set('tabs.payment.loadingPaymentConfirmation', false);
+            var invoiceURL = boxoffice.config.baseURL + "/" + boxoffice.ractive.get('order.access_token') + "/invoice";
+            boxoffice.ractive.set('tabs.confirm.section.invoiceURL', invoiceURL);
+          }).fail(function(response) {
+            boxoffice.ractive.set('tabs.payment.loadingPaymentConfirmation', false);
+            var errorMsg;
+            if(response.readyState === 4) {
+              errorMsg = JSON.parse(response.responseText).message + "Sorry, something went wrong. We will get in touch with you shortly. This is your order number " + boxoffice.ractive.get('order.order_hash') + ".";
+            }
+            else if(response.readyState === 0) {
+              errorMsg = "Unable to connect. Please write to us at support@hasgeek.com with your order number " + boxoffice.ractive.get('order.order_hash') + ".";
+            }
+            boxoffice.ractive.set('tabs.payment.errorMsg', errorMsg);
           });
-          var invoiceURL = boxoffice.config.baseURL + "/" + boxoffice.ractive.get('order.access_token') + "/invoice";
-          boxoffice.ractive.set('tabs.confirm.section.invoiceURL', invoiceURL);
         },
         oncomplete: function(){
         }
