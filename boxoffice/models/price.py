@@ -28,6 +28,12 @@ class Price(BaseScopedNameMixin, db.Model):
         """
         Returns the current price for an item
         """
-        now = datetime.utcnow()
-        return cls.query.filter(cls.item == item, cls.valid_from <= now, cls.valid_upto >= now)\
+        return cls.at(item, datetime.utcnow())
+
+    @classmethod
+    def at(cls, item, timestamp):
+        """
+        Returns the price for an item at a given time
+        """
+        return cls.query.filter(cls.item == item, cls.valid_from <= timestamp, cls.valid_upto >= timestamp)\
             .order_by('created_at desc').first()

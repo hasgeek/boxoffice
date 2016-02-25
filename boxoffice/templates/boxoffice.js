@@ -158,6 +158,7 @@ $(function(){
         },
         calculateOrder: function() {
           // Asks the server for the order's calculation and updates the order
+          console.log('calculating');
 
           var lineItems = boxoffice.ractive.get('order.line_items').filter(function(line_item) {
             return line_item.quantity > 0;
@@ -178,7 +179,8 @@ $(function(){
                     quantity: line_item.quantity,
                     item_id: line_item.item_id
                   };
-                })
+                }),
+                buyer_email: boxoffice.ractive.get('buyer.email')
               }),
               timeout: 5000
             }).done(function(data) {
@@ -291,7 +293,11 @@ $(function(){
               'order.access_token': data.order_access_token,
               'order.order_hash': data.order_hash,
               'order.final_amount': data.final_amount});
-            boxoffice.ractive.capturePayment(data.payment_url, data.razorpay_payment_id);
+            if (boxoffice.ractive.get('order.final_amount') === 0){
+              boxoffice.ractive.completeFreeOrder(data.free_order_url);
+            } else {
+              boxoffice.ractive.capturePayment(data.payment_url, data.razorpay_payment_id);
+            }
             boxoffice.ractive.scrollTop();
           });
         },
@@ -354,7 +360,22 @@ $(function(){
             boxoffice.ractive.set('tabs.payment.errorMsg', errorMsg);
           });
         },
-        oncomplete: function(){
+        completeFreeOrder: function(url){
+          $.post({
+            url: boxoffice.config.baseURL + url,
+            crossDomain: true,
+            dataType: 'json',
+            headers: {'X-Requested-With': 'XMLHttpRequest'},
+            contentType: 'application/json',
+            timeout: 5000
+          }).done(function(data) {
+            boxoffice.ractive.set({
+              'activeTab': boxoffice.ractive.get('tabs.confirm.id'),
+              'tabs.payment.complete': true,
+            });
+            var invoiceURL = boxoffice.config.baseURL + "/" + boxoffice.ractive.get('order.access_token') + "/invoice";
+            boxoffice.ractive.set('tabs.confirm.section.invoiceURL', invoiceURL);
+          });
         }
       });
     });

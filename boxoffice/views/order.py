@@ -30,7 +30,13 @@ def kharcha():
     line_item_forms = LineItemForm.process_list(request.json.get('line_items'))
     if not line_item_forms:
         api_result(400, 'invalid_line_items')
-    line_item_dicts = LineItem.populate_amounts_and_discounts([li_form.data for li_form in line_item_forms])
+    print request.json
+    print request.json.get('buyer_email')
+    if request.json.get('buyer_email'):
+        user = User.query.filter_by(email=request.json.get('buyer_email')).first()
+    else:
+        user = None
+    line_item_dicts = LineItem.populate_amounts_and_discounts([li_form.data for li_form in line_item_forms], user)
     return jsonify(line_items=line_item_dicts)
 
 
@@ -66,7 +72,8 @@ def order(organization, item_collection):
         buyer_fullname=buyer_form.fullname.data,
         buyer_phone=buyer_form.phone.data)
 
-    line_item_dicts = LineItem.populate_amounts_and_discounts([li_form.data for li_form in line_item_forms])
+    user = User.query.filter_by(email=order.buyer_email).first()
+    line_item_dicts = LineItem.populate_amounts_and_discounts([li_form.data for li_form in line_item_forms], user)
     for line_item_dict in line_item_dicts:
         line_item = LineItem(item=Item.query.get(line_item_dict.get('item_id')),
             order=order,
@@ -82,7 +89,28 @@ def order(organization, item_collection):
         order_access_token=order.access_token,
         order_hash=order.order_hash,
         payment_url=url_for('payment', order=order.id),
+        free_order_url=url_for('free', order=order.id),
         final_amount=order.get_amounts().final_amount)
+
+
+@app.route('/<order>/free', methods=['GET', 'OPTIONS', 'POST'])
+@load_models(
+    (Order, {'id': 'order'}, 'order')
+    )
+@xhr_only
+@cross_origin(origins=ALLOWED_ORIGINS)
+def free(order):
+    """
+    Completes a order which has a final_amount of 0
+    """
+    order_amounts = order.get_amounts()
+    if order_amounts.final_amount == 0:
+        order.confirm_sale()
+        db.session.add(order)
+        db.session.commit()
+        return jsonify(code=200)
+    else:
+        return api_result(402, 'payment_capture_failed')
 
 
 @app.route('/<order>/payment', methods=['GET', 'OPTIONS', 'POST'])
@@ -121,8 +149,6 @@ def payment(order):
     else:
         online_payment.fail()
         db.session.commit()
-        #raise an exception and return user readable error msg.
-        #Also send a mail to the user with order details
         return api_result(402, 'payment_capture_failed')
 
 

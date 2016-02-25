@@ -4,16 +4,18 @@ from datetime import datetime
 from sqlalchemy import event, DDL
 from baseframe import __
 from coaster.utils import LabeledEnum
-from boxoffice.models import db, BaseScopedNameMixin, IdMixin
-from boxoffice.models import ItemCollection
+from boxoffice.models import db, BaseMixin, BaseScopedNameMixin, IdMixin
+from boxoffice.models import Organization
 
 
+# __all__ = ['DiscountPolicy', 'DiscountCoupon', 'DiscountOffer', 'item_discount_policy']
 __all__ = ['DiscountPolicy', 'DiscountCoupon', 'item_discount_policy']
 
 
 class DISCOUNT_TYPES(LabeledEnum):
     AUTOMATIC = (0, __("Automatic"))
     COUPON = (1, __("Coupon"))
+    USER = (2, __("User"))
 
 
 item_discount_policy = db.Table('item_discount_policy', db.Model.metadata,
@@ -22,19 +24,30 @@ item_discount_policy = db.Table('item_discount_policy', db.Model.metadata,
     db.Column('created_at', db.DateTime, default=datetime.utcnow, nullable=False))
 
 
+# class DiscountOffer(BaseMixin, db.Model):
+#     discount_policy_id = db.Column('discount_policy_id', None, db.ForeignKey('discount_policy.id'), primary_key=True)
+#     discount_policy = db.relationship('DiscountPolicy', backref=db.backref('discount_offers', cascade='all, delete-orphan'))
+#     user_id = db.Column(None, db.ForeignKey('user.id'), nullable=True)
+#     user = db.relationship('User', backref=db.backref('discount_offers', cascade='all, delete-orphan'))
+#     availed_at = db.Column(db.DateTime, nullable=True)
+
+#     def avail(self):
+#         self.availed_at = datetime.utcnow()
+
+
 class DiscountPolicy(BaseScopedNameMixin, db.Model):
     """
     Consists of discount rules for prices applied on items
     """
     __tablename__ = 'discount_policy'
     __uuid_primary_key__ = True
-    __table_args__ = (db.UniqueConstraint('item_collection_id', 'name'),
+    __table_args__ = (db.UniqueConstraint('organization_id', 'name'),
         db.CheckConstraint('item_quantity_min <= item_quantity_max', 'discount_policy_item_quantity_check'),
         db.CheckConstraint('percentage > 0 and percentage <= 100', 'discount_policy_percentage_check'))
 
-    item_collection_id = db.Column(None, db.ForeignKey('item_collection.id'), nullable=False)
-    item_collection = db.relationship(ItemCollection, backref=db.backref('discount_policies', cascade='all, delete-orphan'))
-    parent = db.synonym('item_collection')
+    organization_id = db.Column(None, db.ForeignKey('organization.id'), nullable=False)
+    organization = db.relationship(Organization, backref=db.backref('discount_policies', cascade='all, delete-orphan'))
+    parent = db.synonym('organization')
 
     discount_type = db.Column(db.Integer, default=DISCOUNT_TYPES.AUTOMATIC, nullable=False)
 
@@ -43,9 +56,17 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     item_quantity_max = db.Column(db.Integer, nullable=True)
     percentage = db.Column(db.Integer, nullable=False)
     items = db.relationship('Item', secondary=item_discount_policy)
+    # users = db.relationship('User', secondary='discount_offer', backref='discount_policies', lazy='dynamic')
 
     def __repr__(self):
         return u'<DiscountPolicy "{discount}">'.format(discount=self.title)
+
+    # def is_applicable_to_user(self, user):
+    #     """
+    #     Checks if a discount policy is applicable to a given user
+    #     """
+    #     offer = DiscountOffer.query.get(self, user)
+    #     return user in self.users and not offer.availed_at
 
     def is_valid(self, quantity):
         """
