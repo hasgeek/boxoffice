@@ -29,7 +29,7 @@ class Order(BaseMixin, db.Model):
     user_id = db.Column(None, db.ForeignKey('user.id'), nullable=True)
     user = db.relationship(User, backref=db.backref('orders', cascade='all, delete-orphan'))
     item_collection_id = db.Column(None, db.ForeignKey('item_collection.id'), nullable=False)
-    item_collection = db.relationship(ItemCollection, backref=db.backref('orders', cascade='all, delete-orphan'))  # noqa
+    item_collection = db.relationship(ItemCollection, backref=db.backref('orders', cascade='all, delete-orphan', lazy="dynamic"))  # noqa
     status = db.Column(db.Integer, default=ORDER_STATUS.PURCHASE_ORDER, nullable=False)
 
     initiated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
@@ -72,79 +72,86 @@ class Order(BaseMixin, db.Model):
         order_amounts = namedtuple('OrderAmounts', ['base_amount', 'discounted_amount', 'final_amount'])
         return order_amounts(base_amount, discounted_amount, final_amount)
 
+    def cancel(self):
+        """
+        Cancels the order and all the associated line items.
+        """
+        for line_item in LineItem.get_confirmed(self):
+            line_item.cancel()
+        self.status = ORDER_STATUS.CANCELLED
+        self.cancelled_at = datetime.utcnow()
+
+    def make_line_items(self, line_item_dicts):
+        """
+        Accepts a list of dictionaries in the format {'item_id': 'x', 'quantity': y}
+        Makes line item objects for the order.
+        """
+        for line_item_dict in line_item_dicts:
+            item = Item.query.get(line_item_dict.get('item_id'))
+            line_item = LineItem(item=item, order=self, ordered_at=datetime.utcnow())
+
+            line_item.base_amount = Price.current(item).amount
+            discounted_amount = decimal.Decimal(0)
+            for discount_policy in item.discount_policies:
+                if discount_policy.is_valid(len(item.line_items)):
+                    discounted_amount += (discount_policy.percentage * line_item.base_amount)/decimal.Decimal(100.0)  # noqa
+
+            line_item.discounted_amount = discounted_amount
+            line_item.final_amount = line_item.base_amount - line_item.discounted_amount
+            line_item.discount_policies.append(discount_policy)
+
+        return self
+
 
 class LINE_ITEM_STATUS(LabeledEnum):
     CONFIRMED = (0, __("Confirmed"))
     CANCELLED = (1, __("Cancelled"))
 
 
+line_item_payment_transaction = db.Table('line_item_payment_transaction', db.Model.metadata,
+    db.Column('line_item_id', None, db.ForeignKey('line_item.id'), primary_key=True),
+    db.Column('payment_transaction_id', None, db.ForeignKey('payment_transaction.id'), primary_key=True),
+    db.Column('created_at', db.DateTime, default=datetime.utcnow, nullable=False))
+
+
+line_item_discount_policy = db.Table('line_item_discount_policy', db.Model.metadata,
+    db.Column('line_item_id', None, db.ForeignKey('line_item.id'), primary_key=True),
+    db.Column('discount_policy_id', None, db.ForeignKey('discount_policy.id'), primary_key=True),
+    db.Column('created_at', db.DateTime, default=datetime.utcnow, nullable=False))
+
+
 class LineItem(BaseMixin, db.Model):
+    """
+    Line Items MUST NOT be modified OR deleted, they must only be created or cancelled.
+    As an example, if a user requests the quantity to be changed from x to y, following is
+    the workflow to manage such a transaction:
+        1. Cancel the original line item.
+        2. Create a new line item with the requested 'y' quantity.
+        3. Compute the order total, and issue a refund if required.
+    """
     __tablename__ = 'line_item'
     __uuid_primary_key__ = True
     customer_order_id = db.Column(None, db.ForeignKey('customer_order.id'), nullable=False)
-    order = db.relationship(Order, backref=db.backref('line_items', cascade='all, delete-orphan', lazy="dynamic"))
+    order = db.relationship(Order, backref=db.backref('line_items', cascade='all, delete-orphan'))
 
     item_id = db.Column(None, db.ForeignKey('item.id'), nullable=False)
     item = db.relationship(Item, backref=db.backref('line_items', cascade='all, delete-orphan'))
 
-    quantity = db.Column(db.Integer, nullable=False)
     base_amount = db.Column(db.Numeric, default=decimal.Decimal(0), nullable=False)
     discounted_amount = db.Column(db.Numeric, default=decimal.Decimal(0), nullable=False)
     final_amount = db.Column(db.Numeric, default=decimal.Decimal(0), nullable=False)
     status = db.Column(db.Integer, default=LINE_ITEM_STATUS.CONFIRMED, nullable=False)
     ordered_at = db.Column(db.DateTime, nullable=True)
     cancelled_at = db.Column(db.DateTime, nullable=True)
+    cancellable = db.Column(db.Boolean, nullable=False, default=True)
+    transferrable = db.Column(db.Boolean, nullable=True, default=True)
+    assignee_email = db.Column(db.Unicode(254), nullable=False)
+    assignee_fullname = db.Column(db.Unicode(80), nullable=False)
+    assignee_phone = db.Column(db.Unicode(16), nullable=False)
+
+    discount_policies = db.relationship('DiscountPolicy', secondary=line_item_discount_policy)
+    payment_transactions = db.relationship('PaymentTransaction', secondary=line_item_payment_transaction)
     # tax_amount = db.Column(db.Numeric, default=0.0, nullable=False)
-
-    @classmethod
-    def get_amounts_and_discounts(cls, price, quantity, discount_policies):
-        """
-        Returns a tuple consisting of a named tuple with
-        the line item's amounts, and an array
-        of the applied discount policies
-
-        # TODO: What if the price changes by the time the computation below happens?
-        """
-        amounts = namedtuple('Amounts',
-                             ['base_amount',
-                              'discounted_amount', 'final_amount'])
-        base_amount = price * quantity
-        discounted_amount = decimal.Decimal(0)
-
-        discount_policy_dicts = []
-        for discount_policy in discount_policies:
-            discount_policy_dict = {
-                'id': discount_policy.id,
-                'activated': False,
-                'title': discount_policy.title
-            }
-            if discount_policy.is_valid(quantity):
-                discounted_amount += (discount_policy.percentage * base_amount)/decimal.Decimal(100.0)  # noqa
-                discount_policy_dict['activated'] = True
-            discount_policy_dicts.append(discount_policy_dict)
-
-        return (amounts(base_amount, discounted_amount,
-                        base_amount - discounted_amount),
-                discount_policy_dicts)
-
-    @classmethod
-    def populate_amounts_and_discounts(cls, line_items_dicts):
-        """
-        Returns line_item_dicts with the respective base_amount, discount_amount,
-        final_amount and discount_policies populated
-        """
-        for line_item_dict in line_items_dicts:
-            item = Item.query.get(line_item_dict.get('item_id'))
-            amounts, discount_policies = cls\
-                .get_amounts_and_discounts(Price.current(item).amount,
-                                           line_item_dict.get('quantity'),
-                                           item.discount_policies)
-            line_item_dict['base_amount'] = amounts.base_amount
-            line_item_dict['discounted_amount'] = amounts.discounted_amount
-            line_item_dict['final_amount'] = amounts.final_amount
-            line_item_dict['discount_policies'] = discount_policies
-
-        return line_items_dicts
 
     def cancel(self):
         """
@@ -153,17 +160,16 @@ class LineItem(BaseMixin, db.Model):
         """
         self.status = LINE_ITEM_STATUS.CANCELLED
         self.cancelled_at = datetime.utcnow()
-        db.session.add(self)
 
     @classmethod
-    def confirmed(cls, order):
+    def get_confirmed(cls, order):
         """
         Returns an order's confirmed line items.
         """
         return cls.query.filter_by(order=order, status=LINE_ITEM_STATUS.CONFIRMED).all()
 
     @classmethod
-    def cancelled(cls, order):
+    def get_cancelled(cls, order):
         """
         Returns an order's cancelled line items.
         """
@@ -247,3 +253,4 @@ class PaymentTransaction(BaseMixin, db.Model):
     currency = db.Column(db.Unicode(3), nullable=False, default=u'INR')
     transaction_type = db.Column(db.Integer, default=TRANSACTION_TYPES.PAYMENT, nullable=False)
     transaction_method = db.Column(db.Integer, default=TRANSACTION_METHODS.ONLINE, nullable=False)
+    # line_items = db.relationship('LineItem', secondary=line_item_payment_transaction)

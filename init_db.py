@@ -69,12 +69,12 @@ dns_workshop_price = Price(item=dns_workshop, title='DNSSEC workshop early', val
 db.session.add(dns_workshop_price)
 db.session.commit()
 
-policy = DiscountPolicy(title='10% discount on 10 or more tickets', item_quantity_min=10, percentage=10, item_collection=rc2016)
+policy = DiscountPolicy(title='10% discount on 10 or more tickets', item_quantity_min=10, percentage=10, organization=rootconf)
 policy.items.append(conf_ticket)
 db.session.add(policy)
 db.session.commit()
 
-tshirt_policy = DiscountPolicy(title='5% discount on 5 or more t-shirts', item_quantity_min=5, percentage=5, item_collection=rc2016)
+tshirt_policy = DiscountPolicy(title='5% discount on 5 or more t-shirts', item_quantity_min=5, percentage=5, organization=rootconf)
 tshirt_policy.items.append(tshirt)
 db.session.add(tshirt_policy)
 db.session.commit()
@@ -83,3 +83,7 @@ coupon = DiscountCoupon(discount_policy=policy, quantity_available=100, quantity
 db.session.add(coupon)
 db.session.commit()
 
+speaker_policy = DiscountPolicy(title='100% discount for speakers', item_quantity_min=1, item_quantity_max=1, percentage=100, organization=rootconf)
+speaker_policy.items.append(conf_ticket)
+db.session.add(speaker_policy)
+db.session.commit()
