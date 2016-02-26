@@ -17,6 +17,24 @@ redis_connection = Redis()
 boxofficeq = Queue('boxoffice', connection=redis_connection)
 
 
+def discount_policy_dict(dp, activated):
+    return {
+        'id': dp.id,
+        'activated': activated,
+        'title': dp.title
+    }
+
+
+def line_item_dict(line_item):
+    return {
+        'base_amount': line_item.base_amount,
+        'discounted_amount': line_item.discounted_amount,
+        'final_amount': line_item.final_amount,
+        'discount_policies': [discount_policy_dict(dp, dp.id in [lidp.id for lidp in line_item.discount_policies])
+                            for dp in line_item.item.discount_policies]
+    }
+
+
 @app.route('/kharcha', methods=['OPTIONS', 'POST'])
 @xhr_only
 @cross_origin(origins=ALLOWED_ORIGINS)
@@ -32,12 +50,14 @@ def kharcha():
         api_result(400, 'invalid_line_items')
     print request.json
     print request.json.get('buyer_email')
-    if request.json.get('buyer_email'):
-        user = User.query.filter_by(email=request.json.get('buyer_email')).first()
-    else:
-        user = None
-    line_item_dicts = LineItem.populate_amounts_and_discounts([li_form.data for li_form in line_item_forms], user)
-    return jsonify(line_items=line_item_dicts)
+
+    # if request.json.get('buyer_email'):
+    #     user = User.query.filter_by(email=request.json.get('buyer_email')).first()
+    # else:
+    #     user = None
+    with db.session.no_autoflush:
+        order = Order().make_line_items([li_form.data for li_form in line_item_forms])
+        return jsonify(line_items=[line_item_dict(line_item) for line_item in order.line_items])
 
 
 @app.route('/<organization>/<item_collection>/order',
