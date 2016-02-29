@@ -82,8 +82,3 @@ db.session.commit()
 coupon = DiscountCoupon(discount_policy=policy, quantity_available=100, quantity_total=100)
 db.session.add(coupon)
 db.session.commit()
-
-speaker_policy = DiscountPolicy(title='100% discount for speakers', item_quantity_min=1, item_quantity_max=1, percentage=100, organization=rootconf)
-speaker_policy.items.append(conf_ticket)
-db.session.add(speaker_policy)
-db.session.commit()

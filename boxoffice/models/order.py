@@ -81,43 +81,22 @@ class Order(BaseMixin, db.Model):
         self.status = ORDER_STATUS.CANCELLED
         self.cancelled_at = datetime.utcnow()
 
-    def make_line_items(self, line_item_dicts):
-        """
-        Accepts a list of dictionaries in the format {'item_id': 'x', 'quantity': y}
-        Makes line item objects for the order.
-        """
-        for line_item_dict in line_item_dicts:
-            item = Item.query.get(line_item_dict.get('item_id'))
-            line_item = LineItem(item=item, order=self, ordered_at=datetime.utcnow())
-
-            line_item.base_amount = Price.current(item).amount
-            discounted_amount = decimal.Decimal(0)
-            for discount_policy in item.discount_policies:
-                if discount_policy.is_valid(len(item.line_items)):
-                    discounted_amount += (discount_policy.percentage * line_item.base_amount)/decimal.Decimal(100.0)  # noqa
-
-            line_item.discounted_amount = discounted_amount
-            line_item.final_amount = line_item.base_amount - line_item.discounted_amount
-            line_item.discount_policies.append(discount_policy)
-
-        return self
-
 
 class LINE_ITEM_STATUS(LabeledEnum):
     CONFIRMED = (0, __("Confirmed"))
     CANCELLED = (1, __("Cancelled"))
 
 
-line_item_payment_transaction = db.Table('line_item_payment_transaction', db.Model.metadata,
-    db.Column('line_item_id', None, db.ForeignKey('line_item.id'), primary_key=True),
-    db.Column('payment_transaction_id', None, db.ForeignKey('payment_transaction.id'), primary_key=True),
-    db.Column('created_at', db.DateTime, default=datetime.utcnow, nullable=False))
+# line_item_payment_transaction = db.Table('line_item_payment_transaction', db.Model.metadata,
+#     db.Column('line_item_id', None, db.ForeignKey('line_item.id'), primary_key=True),
+#     db.Column('payment_transaction_id', None, db.ForeignKey('payment_transaction.id'), primary_key=True),
+#     db.Column('created_at', db.DateTime, default=datetime.utcnow, nullable=False))
 
 
-line_item_discount_policy = db.Table('line_item_discount_policy', db.Model.metadata,
-    db.Column('line_item_id', None, db.ForeignKey('line_item.id'), primary_key=True),
-    db.Column('discount_policy_id', None, db.ForeignKey('discount_policy.id'), primary_key=True),
-    db.Column('created_at', db.DateTime, default=datetime.utcnow, nullable=False))
+# line_item_discount_policy = db.Table('line_item_discount_policy', db.Model.metadata,
+#     db.Column('line_item_id', None, db.ForeignKey('line_item.id'), primary_key=True),
+#     db.Column('discount_policy_id', None, db.ForeignKey('discount_policy.id'), primary_key=True),
+#     db.Column('created_at', db.DateTime, default=datetime.utcnow, nullable=False))
 
 
 class LineItem(BaseMixin, db.Model):
@@ -145,13 +124,63 @@ class LineItem(BaseMixin, db.Model):
     cancelled_at = db.Column(db.DateTime, nullable=True)
     cancellable = db.Column(db.Boolean, nullable=False, default=True)
     transferrable = db.Column(db.Boolean, nullable=True, default=True)
-    assignee_email = db.Column(db.Unicode(254), nullable=False)
-    assignee_fullname = db.Column(db.Unicode(80), nullable=False)
-    assignee_phone = db.Column(db.Unicode(16), nullable=False)
+    assignee_email = db.Column(db.Unicode(254), nullable=True)
+    assignee_fullname = db.Column(db.Unicode(80), nullable=True)
+    assignee_phone = db.Column(db.Unicode(16), nullable=True)
 
-    discount_policies = db.relationship('DiscountPolicy', secondary=line_item_discount_policy)
-    payment_transactions = db.relationship('PaymentTransaction', secondary=line_item_payment_transaction)
+    # discount_policies = db.relationship('DiscountPolicy', secondary=line_item_discount_policy)
+    # payment_transactions = db.relationship('PaymentTransaction', secondary=line_item_payment_transaction)
     # tax_amount = db.Column(db.Numeric, default=0.0, nullable=False)
+
+    @classmethod
+    def get_amounts_and_discounts(cls, price, quantity, discount_policies):
+        """
+        Returns a tuple consisting of a named tuple with
+        the line item's amounts, and an array
+        of the applied discount policies
+
+        # TODO: What if the price changes by the time the computation below happens?
+        """
+        amounts = namedtuple('Amounts',
+                             ['base_amount',
+                              'discounted_amount', 'final_amount'])
+        base_amount = price * quantity
+        discounted_amount = decimal.Decimal(0)
+
+        discount_policy_dicts = []
+        for discount_policy in discount_policies:
+            discount_policy_dict = {
+                'id': discount_policy.id,
+                'activated': False,
+                'title': discount_policy.title
+            }
+            if discount_policy.is_automatic() and discount_policy.is_bulk_applicable(quantity):
+                discounted_amount += (discount_policy.percentage * base_amount)/decimal.Decimal(100.0)  # noqa
+                discount_policy_dict['activated'] = True
+            discount_policy_dicts.append(discount_policy_dict)
+
+        return (amounts(base_amount, discounted_amount,
+                        base_amount - discounted_amount),
+                discount_policy_dicts)
+
+    @classmethod
+    def populate_amounts_and_discounts(cls, line_items_dicts):
+        """
+        Returns line_item_dicts with the respective base_amount, discount_amount,
+        final_amount and discount_policies populated
+        """
+        for line_item_dict in line_items_dicts:
+            item = Item.query.get(line_item_dict.get('item_id'))
+            amounts, discount_policies = cls\
+                .get_amounts_and_discounts(Price.current(item).amount,
+                                           line_item_dict.get('quantity'),
+                                           item.discount_policies)
+            line_item_dict['base_amount'] = amounts.base_amount
+            line_item_dict['discounted_amount'] = amounts.discounted_amount
+            line_item_dict['final_amount'] = amounts.final_amount
+            line_item_dict['discount_policies'] = discount_policies
+
+        return line_items_dicts
 
     def cancel(self):
         """

@@ -1,4 +1,6 @@
 {%raw%}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
 <div class="payment-progress-wrapper payment-stages-bg" id="payment-stages">
   <ul class="progress-indicator">
     {{#tabs:tab}}
@@ -82,7 +84,7 @@
           </div>
           <div class="form-group">
             <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
-              <input type="text" class="form-control buyer-fields secondary" name="email" value = {{buyer.email }} on-blur='calculateOrder()' placeholder="Email"/>
+              <input type="text" class="form-control buyer-fields secondary" name="email" value = {{buyer.email }} placeholder="Email"/>
             </div>
           </div>
           <div class="form-group phone-number-wrapper">
@@ -117,7 +119,6 @@
             <p class="stage-error-msg text-danger">{{ errorMsg }}</p>
           {{/}}
         </form> 
-        <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
       </div>
     {{elseif id === 'boxoffice-confirm' && id === activeTab}}
       <div id='{{id}}' class="boxoffice-section clearfix" intro='fly:{"x":600,"y":"0"}'>
