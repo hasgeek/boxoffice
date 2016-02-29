@@ -56,12 +56,12 @@ def init_data():
     db.session.add(dns_workshop_price)
     db.session.commit()
 
-    policy = DiscountPolicy(title='10% discount on rootconf', item_quantity_min=10, percentage=10, item_collection=rc2016)
+    policy = DiscountPolicy(title='10% discount on rootconf', item_quantity_min=10, percentage=10, organization=rootconf)
     policy.items.append(conf_ticket)
     db.session.add(policy)
     db.session.commit()
 
-    tshirt_policy = DiscountPolicy(title='5% discount on 5 t-shirts', item_quantity_min=5, percentage=5, item_collection=rc2016)
+    tshirt_policy = DiscountPolicy(title='5% discount on 5 t-shirts', item_quantity_min=5, percentage=5, organization=rootconf)
     tshirt_policy.items.append(tshirt)
     db.session.add(tshirt_policy)
     db.session.commit()
