@@ -4,35 +4,22 @@ from datetime import datetime
 from sqlalchemy import event, DDL
 from baseframe import __
 from coaster.utils import LabeledEnum
-from boxoffice.models import db, BaseMixin, BaseScopedNameMixin, IdMixin
+from boxoffice.models import db, BaseScopedNameMixin, IdMixin
 from boxoffice.models import Organization
 
 
-# __all__ = ['DiscountPolicy', 'DiscountCoupon', 'DiscountOffer', 'item_discount_policy']
 __all__ = ['DiscountPolicy', 'DiscountCoupon', 'item_discount_policy']
 
 
 class DISCOUNT_TYPES(LabeledEnum):
     AUTOMATIC = (0, __("Automatic"))
     COUPON = (1, __("Coupon"))
-    USER = (2, __("User"))
 
 
 item_discount_policy = db.Table('item_discount_policy', db.Model.metadata,
     db.Column('item_id', None, db.ForeignKey('item.id'), primary_key=True),
     db.Column('discount_policy_id', None, db.ForeignKey('discount_policy.id'), primary_key=True),
     db.Column('created_at', db.DateTime, default=datetime.utcnow, nullable=False))
-
-
-# class DiscountOffer(BaseMixin, db.Model):
-#     discount_policy_id = db.Column('discount_policy_id', None, db.ForeignKey('discount_policy.id'), primary_key=True)
-#     discount_policy = db.relationship('DiscountPolicy', backref=db.backref('discount_offers', cascade='all, delete-orphan'))
-#     user_id = db.Column(None, db.ForeignKey('user.id'), nullable=True)
-#     user = db.relationship('User', backref=db.backref('discount_offers', cascade='all, delete-orphan'))
-#     availed_at = db.Column(db.DateTime, nullable=True)
-
-#     def avail(self):
-#         self.availed_at = datetime.utcnow()
 
 
 class DiscountPolicy(BaseScopedNameMixin, db.Model):
@@ -56,19 +43,14 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     item_quantity_max = db.Column(db.Integer, nullable=True)
     percentage = db.Column(db.Integer, nullable=False)
     items = db.relationship('Item', secondary=item_discount_policy)
-    # users = db.relationship('User', secondary='discount_offer', backref='discount_policies', lazy='dynamic')
 
     def __repr__(self):
         return u'<DiscountPolicy "{discount}">'.format(discount=self.title)
 
-    # def is_applicable_to_user(self, user):
-    #     """
-    #     Checks if a discount policy is applicable to a given user
-    #     """
-    #     offer = DiscountOffer.query.get(self, user)
-    #     return user in self.users and not offer.availed_at
+    def is_automatic(self):
+        return self.discount_type == DISCOUNT_TYPES.AUTOMATIC
 
-    def is_valid(self, quantity):
+    def is_bulk_applicable(self, quantity):
         """
         Checks if a discount policy is valid for a line item, given its quantity
         """

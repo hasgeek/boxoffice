@@ -48,16 +48,8 @@ def kharcha():
     line_item_forms = LineItemForm.process_list(request.json.get('line_items'))
     if not line_item_forms:
         api_result(400, 'invalid_line_items')
-    print request.json
-    print request.json.get('buyer_email')
-
-    # if request.json.get('buyer_email'):
-    #     user = User.query.filter_by(email=request.json.get('buyer_email')).first()
-    # else:
-    #     user = None
-    with db.session.no_autoflush:
-        order = Order().make_line_items([li_form.data for li_form in line_item_forms])
-        return jsonify(line_items=[line_item_dict(line_item) for line_item in order.line_items])
+    line_item_dicts = LineItem.populate_amounts_and_discounts([li_form.data for li_form in line_item_forms])
+    return jsonify(line_items=line_item_dicts)
 
 
 @app.route('/<organization>/<item_collection>/order',
@@ -92,17 +84,17 @@ def order(organization, item_collection):
         buyer_fullname=buyer_form.fullname.data,
         buyer_phone=buyer_form.phone.data)
 
-    user = User.query.filter_by(email=order.buyer_email).first()
-    line_item_dicts = LineItem.populate_amounts_and_discounts([li_form.data for li_form in line_item_forms], user)
+    line_item_dicts = LineItem.populate_amounts_and_discounts([li_form.data for li_form in line_item_forms])
     for line_item_dict in line_item_dicts:
-        line_item = LineItem(item=Item.query.get(line_item_dict.get('item_id')),
-            order=order,
-            quantity=line_item_dict.get('quantity'),
-            ordered_at=datetime.utcnow(),
-            base_amount=line_item_dict.get('base_amount'),
-            discounted_amount=line_item_dict.get('discounted_amount'),
-            final_amount=line_item_dict.get('final_amount'))
-        db.session.add(line_item)
+        for _ in xrange(0, line_item_dict.get('quantity')):
+            # Split line items into individual entries
+            line_item = LineItem(item=Item.query.get(line_item_dict.get('item_id')),
+                order=order,
+                ordered_at=datetime.utcnow(),
+                base_amount=line_item_dict.get('base_amount')/line_item_dict.get('quantity'),
+                discounted_amount=line_item_dict.get('discounted_amount')/line_item_dict.get('quantity'),
+                final_amount=line_item_dict.get('final_amount')/line_item_dict.get('quantity'))
+            db.session.add(line_item)
     db.session.add(order)
     db.session.commit()
     return jsonify(code=200, order_id=order.id,
