@@ -71,17 +71,15 @@
         <th>Price</th>
       </tr>
       
-      {% for ticket in order.line_items -%}
-        {% if ticket.quantity > 0 %}
-          <tr class="item-row">
-            <td class="center">{{ ticket.item.title }}</td>
-            <td class="item-description">{{ ticket.item.description|safe }}</td>
-            <td class="center"><i class="fa fa-inr"></i>{{ ticket.base_amount }}</td>
-            <td class="center">{{ ticket.quantity }}</td>
-            <td class="center"><i class="fa fa-inr"></i>{{ ticket.discounted_amount }}</td>
-            <td class="center"><i class="fa fa-inr"></i>{{ ticket.final_amount }}</td>
-          </tr>
-        {% endif %}
+      {% for line_item_id, line_item in line_items.items() -%}
+        <tr class="item-row">
+          <td class="center">{{ line_item[0].item.title }}</td>
+          <td class="item-description">{{ line_item[0].item.description|safe }}</td>
+          <td class="center"><i class="fa fa-inr"></i>{{ line_item[0].base_amount }}</td>
+          <td class="center">{{ line_item|length }}</td>
+          <td class="center"><i class="fa fa-inr"></i>{{ line_item|sum(attribute='discounted_amount') }}</td>
+          <td class="center"><i class="fa fa-inr"></i>{{ line_item|sum(attribute='final_amount') }}</td>
+        </tr>
       {%- endfor %}
       
       <tr>
@@ -98,7 +96,6 @@
     </div>
   
   </div>
-
 </body>
 
 </html>

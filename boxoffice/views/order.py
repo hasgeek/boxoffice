@@ -169,7 +169,10 @@ def payment(order):
     (Order, {'access_token': 'access_token'}, 'order')
     )
 def receipt(order):
-    return render_template('cash_receipt.html', order=order)
+    line_items_dict = {}
+    for line_item in order.line_items:
+        line_items_dict.setdefault(line_item.item.id, []).append(line_item)
+    return render_template('cash_receipt.html', order=order, line_items= line_items_dict)
 
 
 @app.route('/<access_token>/invoice', methods=['GET'])
@@ -177,4 +180,7 @@ def receipt(order):
     (Order, {'access_token': 'access_token'}, 'order')
     )
 def invoice(order):
-    return render_template('invoice.html', order=order)
+    line_items_dict = {}
+    for line_item in order.line_items:
+        line_items_dict.setdefault(line_item.item.id, []).append(line_item)
+    return render_template('invoice.html', order=order, line_items= line_items_dict)
