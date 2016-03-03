@@ -1,14 +1,15 @@
 import string
 import random
 from datetime import datetime
-from sqlalchemy import event, DDL
 from baseframe import __
 from coaster.utils import LabeledEnum
+from boxoffice import app
 from boxoffice.models import db, BaseScopedNameMixin, IdMixin
 from boxoffice.models import Organization
+from itsdangerous import Signer
 
 
-__all__ = ['DiscountPolicy', 'DiscountCoupon', 'item_discount_policy']
+__all__ = ['DiscountPolicy', 'DiscountCoupon', 'item_discount_policy', 'DISCOUNT_TYPES']
 
 
 class DISCOUNT_TYPES(LabeledEnum):
@@ -37,6 +38,7 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     parent = db.synonym('organization')
 
     discount_type = db.Column(db.Integer, default=DISCOUNT_TYPES.AUTOMATIC, nullable=False)
+    discount_code_base = db.Column(db.Unicode(20), nullable=True)
 
     # Minimum and maximum number of items for which the discount policy applies
     item_quantity_min = db.Column(db.Integer, default=1, nullable=False)
@@ -50,15 +52,8 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     def is_automatic(self):
         return self.discount_type == DISCOUNT_TYPES.AUTOMATIC
 
-    def is_bulk_applicable(self, quantity):
-        """
-        Checks if a discount policy is valid for a line item, given its quantity
-        """
-        is_min = quantity >= self.item_quantity_min
-        if not self.item_quantity_max:
-            return is_min
-        else:
-            return is_min and quantity <= self.item_quantity_max
+    def is_valid(self, quantity, coupons):
+        return self.is_automatic_applicable() or self.is_coupon_applicable()
 
 
 def generate_coupon_code(size=6, chars=string.ascii_uppercase + string.digits):
@@ -66,20 +61,16 @@ def generate_coupon_code(size=6, chars=string.ascii_uppercase + string.digits):
 
 
 class DiscountCoupon(IdMixin, db.Model):
+    """
+    Represents used discount coupons
+    """
     __tablename__ = 'discount_coupon'
     __uuid_primary_key__ = True
     __table_args__ = (db.UniqueConstraint('code', 'discount_policy_id'),
         db.CheckConstraint('quantity_available <= quantity_total', 'discount_coupon_quantity_check'))
 
-    code = db.Column(db.Unicode(20), default=generate_coupon_code, nullable=False)
+    code = db.Column(db.Unicode(20), nullable=False)
+    used_at = db.Column(db.DateTime, nullable=True)
 
     discount_policy_id = db.Column(None, db.ForeignKey('discount_policy.id'), nullable=False)
     discount_policy = db.relationship(DiscountPolicy, backref=db.backref('discount_coupons', cascade='all, delete-orphan'))
-
-    quantity_available = db.Column(db.Integer, default=0, nullable=False)
-    quantity_total = db.Column(db.Integer, default=0, nullable=False)
-
-create_discount_coupon_index = DDL(
-    'CREATE INDEX ix_discount_coupon_code ON "discount_coupon" (lower(code) varchar_pattern_ops); ')
-event.listen(DiscountCoupon.__table__, 'after_create',
-    create_discount_coupon_index.execute_if(dialect='postgresql'))

@@ -30,8 +30,7 @@ def line_item_dict(line_item):
         'base_amount': line_item.base_amount,
         'discounted_amount': line_item.discounted_amount,
         'final_amount': line_item.final_amount,
-        'discount_policies': [discount_policy_dict(dp, dp.id in [lidp.id for lidp in line_item.discount_policies])
-                            for dp in line_item.item.discount_policies]
+        'discount_policy_id': line_item.discount_policy_id
     }
 
 
@@ -46,10 +45,11 @@ def kharcha():
     and discount_policies set for each line item.
     """
     line_item_forms = LineItemForm.process_list(request.json.get('line_items'))
+    discount_coupons = request.json.get('discount_coupons')
     if not line_item_forms:
         api_result(400, 'invalid_line_items')
-    line_item_dicts = LineItem.populate_amounts_and_discounts([li_form.data for li_form in line_item_forms])
-    return jsonify(line_items=line_item_dicts)
+    line_items = LineItem.build_list([li_form.data for li_form in line_item_forms], discount_coupons)
+    return jsonify(line_items=[line_item_dict(line_item) for line_item in line_items])
 
 
 @app.route('/<organization>/<item_collection>/order',
@@ -72,6 +72,7 @@ def order(organization, item_collection):
     if not line_item_forms:
         api_result(400, 'invalid_line_items')
 
+    discount_coupons = request.json.get('discount_coupons')
     buyer_form = BuyerForm.from_json(request.json.get('buyer'))
 
     if not buyer_form.validate():
@@ -84,17 +85,11 @@ def order(organization, item_collection):
         buyer_fullname=buyer_form.fullname.data,
         buyer_phone=buyer_form.phone.data)
 
-    line_item_dicts = LineItem.populate_amounts_and_discounts([li_form.data for li_form in line_item_forms])
-    for line_item_dict in line_item_dicts:
-        for _ in xrange(0, line_item_dict.get('quantity')):
-            # Split line items into individual entries
-            line_item = LineItem(item=Item.query.get(line_item_dict.get('item_id')),
-                order=order,
-                ordered_at=datetime.utcnow(),
-                base_amount=line_item_dict.get('base_amount')/line_item_dict.get('quantity'),
-                discounted_amount=line_item_dict.get('discounted_amount')/line_item_dict.get('quantity'),
-                final_amount=line_item_dict.get('final_amount')/line_item_dict.get('quantity'))
-            db.session.add(line_item)
+    line_items = LineItem.build_list([li_form.data for li_form in line_item_forms], coupons=discount_coupons)
+    for line_item in line_items:
+        line_item.order = order
+        line_item.ordered_at = datetime.utcnow()
+        db.session.add(line_item)
     db.session.add(order)
     db.session.commit()
     return jsonify(code=200, order_id=order.id,
