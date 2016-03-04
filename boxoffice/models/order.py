@@ -135,6 +135,7 @@ class LineItem(BaseMixin, db.Model):
     # payment_transactions = db.relationship('PaymentTransaction', secondary=line_item_payment_transaction)
     # tax_amount = db.Column(db.Numeric, default=0.0, nullable=False)
 
+    @classmethod
     def build_list(cls, line_item_dicts, coupons=[]):
         """
         Returns line_item_dicts with the respective base_amount, discount_amount,
@@ -144,7 +145,7 @@ class LineItem(BaseMixin, db.Model):
             line_items = []
             for line_item_dict in line_item_dicts:
                 item = Item.query.get(line_item_dict.get('item_id'))
-                line_items.append(cls(item=item, price=Price.current(item).amount))
+                line_items.append(cls(item_id=item.id, base_amount=Price.current(item).amount))
             line_items = discount.calculate_discounts(line_items)
             for line_item in line_items:
                 line_item.final_amount = line_item.base_amount - line_item.discounted_amount

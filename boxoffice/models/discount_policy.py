@@ -7,7 +7,7 @@ from boxoffice import app
 from boxoffice.models import db, BaseScopedNameMixin, IdMixin
 from boxoffice.models import Organization
 from itsdangerous import Signer
-
+from sqlalchemy import or_, and_
 
 __all__ = ['DiscountPolicy', 'DiscountCoupon', 'item_discount_policy', 'DISCOUNT_TYPES']
 
@@ -54,6 +54,17 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
 
     def is_valid(self, quantity, coupons):
         return self.is_automatic_applicable() or self.is_coupon_applicable()
+
+    @classmethod
+    def get_from_item(cls, item, qty, coupons=[]):
+        if not coupons:
+            return item.discount_policies.filter(DiscountPolicy.discount_type == DISCOUNT_TYPES.AUTOMATIC,
+                or_(DiscountPolicy.item_quantity_min <= qty, and_(DiscountPolicy.item_quantity_min <= qty, DiscountPolicy.item_quantity_max > qty))).all()
+        signer = Signer(app.config.get('SECRET_KEY'))
+        coupon_bases = [signer.unsign(coupon) for coupon in coupons]
+        return item.discount_policies.filter(or_(DiscountPolicy.discount_code_base.in_(coupon_bases),
+                DiscountPolicy.item_quantity_min <= qty,
+                and_(DiscountPolicy.item_quantity_min <= qty, DiscountPolicy.item_quantity_max > qty))).all()
 
 
 def generate_coupon_code(size=6, chars=string.ascii_uppercase + string.digits):
