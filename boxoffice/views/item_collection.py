@@ -6,7 +6,7 @@ from boxoffice.models import Organization, ItemCollection, Price
 from utils import xhr_only
 
 
-def item_json(item):
+def jsonify_item(item):
     price = Price.current(item)
     if price:
         return {
@@ -24,14 +24,20 @@ def item_json(item):
         }
 
 
-def category_json(category):
-    return {
-        'id': category.id,
-        'title': category.title,
-        'name': category.name,
-        'item_collection_id': category.item_collection_id,
-        'items': [item_json(item) for item in category.items]
-    }
+def jsonify_category(category):
+    category_items = []
+    for item in category.items:
+        item_json = jsonify_item(item)
+        if item_json:
+            category_items.append(item_json)
+    if category_items:
+        return {
+            'id': category.id,
+            'title': category.title,
+            'name': category.name,
+            'item_collection_id': category.item_collection_id,
+            'items': category_items
+        }
 
 
 @app.route('/boxoffice.js')
@@ -49,6 +55,9 @@ def boxofficejs():
 @xhr_only
 @cross_origin(origins=ALLOWED_ORIGINS)
 def item_collection(organization, item_collection):
-    return jsonify(html=render_template('boxoffice.html'),
-                   categories=[category_json(category)
-                   for category in item_collection.categories])
+    categories_json = []
+    for category in item_collection.categories:
+        category_json = jsonify_category(category)
+        if category_json:
+            categories_json.append(category_json)
+    return jsonify(html=render_template('boxoffice.html'), categories=categories_json)

@@ -79,6 +79,12 @@ tshirt_policy.items.append(tshirt)
 db.session.add(tshirt_policy)
 db.session.commit()
 
+discount_coupon1 = DiscountPolicy(title='15% discount for coupon code with STU', item_quantity_min=1, item_quantity_max=1, percentage=15, organization=rootconf, discount_type=DISCOUNT_TYPES.COUPON)
+discount_coupon1.items.append(conf_ticket)
+db.session.add(discount_coupon1)
+db.session.commit()
+
+
 coupon = DiscountCoupon(discount_policy=policy, quantity_available=100, quantity_total=100)
 db.session.add(coupon)
 db.session.commit()

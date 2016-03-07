@@ -1,11 +1,12 @@
 from datetime import datetime
+import decimal
 from flask import url_for, request, jsonify, render_template, abort
 from flask.ext.cors import cross_origin
 from rq import Queue
 from redis import Redis
 from coaster.views import load_models
 from boxoffice import app, ALLOWED_ORIGINS
-from boxoffice.models import db, Organization, Item
+from boxoffice.models import db, Organization
 from boxoffice.models import ItemCollection, LineItem
 from boxoffice.models.order import Order, OnlinePayment, PaymentTransaction, User
 from boxoffice.extapi import razorpay
@@ -27,12 +28,25 @@ def discount_policy_dict(dp, activated):
 
 def line_item_dict(line_item):
     return {
+        'item_id': line_item.item_id,
         'base_amount': line_item.base_amount,
         'discounted_amount': line_item.discounted_amount,
         'final_amount': line_item.final_amount,
-        'discount_policies': [discount_policy_dict(dp, dp.id in [lidp.id for lidp in line_item.discount_policies])
-                            for dp in line_item.item.discount_policies]
+        'discount_policy_id': line_item.discount_policy_id
     }
+
+
+def jsonify_line_items(line_items):
+    items_json = dict()
+    for line_item in line_items:
+        if not items_json.get(unicode(line_item.item_id)):
+            items_json[unicode(line_item.item_id)] = {'quantity': 0, 'final_amount': decimal.Decimal(0), 'discounted_amount': decimal.Decimal(0), 'discount_policy_ids': []}
+        items_json[unicode(line_item.item_id)]['final_amount'] += line_item.final_amount
+        items_json[unicode(line_item.item_id)]['discounted_amount'] += line_item.discounted_amount
+        items_json[unicode(line_item.item_id)]['quantity'] += 1
+        if line_item.discount_policy_id and line_item.discount_policy_id not in items_json[unicode(line_item.item_id)]['discount_policy_ids']:
+            items_json[unicode(line_item.item_id)]['discount_policy_ids'].append(line_item.discount_policy_id)
+    return items_json
 
 
 @app.route('/kharcha', methods=['OPTIONS', 'POST'])
@@ -46,10 +60,15 @@ def kharcha():
     and discount_policies set for each line item.
     """
     line_item_forms = LineItemForm.process_list(request.json.get('line_items'))
+    discount_coupons = request.json.get('discount_coupons') or []
     if not line_item_forms:
         return api_result(400, 'Invalid items')
-    line_item_dicts = LineItem.populate_amounts_and_discounts([li_form.data for li_form in line_item_forms])
-    return jsonify(line_items=line_item_dicts)
+    line_items = LineItem.build_list([{'item_id': li_form.data.get('item_id')}
+        for li_form in line_item_forms
+        for _ in range(li_form.data.get('quantity'))], coupons=discount_coupons)
+    items_json = jsonify_line_items(line_items)
+    order_final_amount = sum([values['final_amount'] for values in items_json.values()])
+    return jsonify(line_items=items_json, order={'final_amount': order_final_amount})
 
 
 @app.route('/<organization>/<item_collection>/order',
@@ -72,6 +91,7 @@ def order(organization, item_collection):
     if not line_item_forms:
         return api_result(400, 'Invalid items')
 
+    discount_coupons = request.json.get('discount_coupons')
     buyer_form = BuyerForm.from_json(request.json.get('buyer'))
 
     if not buyer_form.validate():
@@ -84,17 +104,11 @@ def order(organization, item_collection):
         buyer_fullname=buyer_form.fullname.data,
         buyer_phone=buyer_form.phone.data)
 
-    line_item_dicts = LineItem.populate_amounts_and_discounts([li_form.data for li_form in line_item_forms])
-    for line_item_dict in line_item_dicts:
-        for _ in xrange(0, line_item_dict.get('quantity')):
-            # Split line items into individual entries
-            line_item = LineItem(item=Item.query.get(line_item_dict.get('item_id')),
-                order=order,
-                ordered_at=datetime.utcnow(),
-                base_amount=line_item_dict.get('base_amount')/line_item_dict.get('quantity'),
-                discounted_amount=line_item_dict.get('discounted_amount')/line_item_dict.get('quantity'),
-                final_amount=line_item_dict.get('final_amount')/line_item_dict.get('quantity'))
-            db.session.add(line_item)
+    line_items = LineItem.build_list([li_form.data for li_form in line_item_forms], coupons=discount_coupons)
+    for line_item in line_items:
+        line_item.order = order
+        line_item.ordered_at = datetime.utcnow()
+        db.session.add(line_item)
     db.session.add(order)
     db.session.commit()
     return jsonify(code=200, order_id=order.id,
@@ -172,4 +186,4 @@ def invoice(order):
     line_items_dict = {}
     for line_item in order.line_items:
         line_items_dict.setdefault(line_item.item.id, []).append(line_item)
-    return render_template('invoice.html', order=order, line_items= line_items_dict)
+    return render_template('invoice.html', order=order, line_items=line_items_dict)

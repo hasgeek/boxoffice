@@ -5,6 +5,7 @@ from collections import namedtuple
 from boxoffice.models import db, BaseMixin, User, Item, ItemCollection, Price
 from coaster.utils import LabeledEnum, buid
 from baseframe import __
+from boxoffice import discount
 
 __all__ = ['Order', 'LineItem', 'OnlinePayment', 'PaymentTransaction', 'ORDER_STATUS']
 
@@ -116,6 +117,9 @@ class LineItem(BaseMixin, db.Model):
     item_id = db.Column(None, db.ForeignKey('item.id'), nullable=False)
     item = db.relationship(Item, backref=db.backref('line_items', cascade='all, delete-orphan'))
 
+    discount_policy_id = db.Column(None, db.ForeignKey('discount_policy.id'), nullable=True)
+    discount_policy = db.relationship('DiscountPolicy', backref=db.backref('line_items', cascade='all, delete-orphan'))
+
     base_amount = db.Column(db.Numeric, default=decimal.Decimal(0), nullable=False)
     discounted_amount = db.Column(db.Numeric, default=decimal.Decimal(0), nullable=False)
     final_amount = db.Column(db.Numeric, default=decimal.Decimal(0), nullable=False)
@@ -128,59 +132,24 @@ class LineItem(BaseMixin, db.Model):
     assignee_fullname = db.Column(db.Unicode(80), nullable=True)
     assignee_phone = db.Column(db.Unicode(16), nullable=True)
 
-    # discount_policies = db.relationship('DiscountPolicy', secondary=line_item_discount_policy)
     # payment_transactions = db.relationship('PaymentTransaction', secondary=line_item_payment_transaction)
     # tax_amount = db.Column(db.Numeric, default=0.0, nullable=False)
 
     @classmethod
-    def get_amounts_and_discounts(cls, price, quantity, discount_policies):
-        """
-        Returns a tuple consisting of a named tuple with
-        the line item's amounts, and an array
-        of the applied discount policies
-
-        # TODO: What if the price changes by the time the computation below happens?
-        """
-        amounts = namedtuple('Amounts',
-                             ['base_amount',
-                              'discounted_amount', 'final_amount'])
-        base_amount = price * quantity
-        discounted_amount = decimal.Decimal(0)
-
-        discount_policy_dicts = []
-        for discount_policy in discount_policies:
-            discount_policy_dict = {
-                'id': discount_policy.id,
-                'activated': False,
-                'title': discount_policy.title
-            }
-            if discount_policy.is_automatic() and discount_policy.is_bulk_applicable(quantity):
-                discounted_amount += (discount_policy.percentage * base_amount)/decimal.Decimal(100.0)  # noqa
-                discount_policy_dict['activated'] = True
-            discount_policy_dicts.append(discount_policy_dict)
-
-        return (amounts(base_amount, discounted_amount,
-                        base_amount - discounted_amount),
-                discount_policy_dicts)
-
-    @classmethod
-    def populate_amounts_and_discounts(cls, line_items_dicts):
+    def build_list(cls, line_item_dicts, coupons=[]):
         """
         Returns line_item_dicts with the respective base_amount, discount_amount,
         final_amount and discount_policies populated
         """
-        for line_item_dict in line_items_dicts:
-            item = Item.query.get(line_item_dict.get('item_id'))
-            amounts, discount_policies = cls\
-                .get_amounts_and_discounts(Price.current(item).amount,
-                                           line_item_dict.get('quantity'),
-                                           item.discount_policies)
-            line_item_dict['base_amount'] = amounts.base_amount
-            line_item_dict['discounted_amount'] = amounts.discounted_amount
-            line_item_dict['final_amount'] = amounts.final_amount
-            line_item_dict['discount_policies'] = discount_policies
-
-        return line_items_dicts
+        with db.session.no_autoflush:
+            line_items = []
+            for line_item_dict in line_item_dicts:
+                item = Item.query.get(line_item_dict.get('item_id'))
+                line_items.append(cls(item_id=item.id, base_amount=Price.current(item).amount))
+            line_items = discount.calculate_discounts(line_items, list(set(coupons)))
+            for line_item in line_items:
+                line_item.final_amount = line_item.base_amount - line_item.discounted_amount
+            return line_items
 
     def cancel(self):
         """

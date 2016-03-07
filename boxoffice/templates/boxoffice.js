@@ -196,28 +196,24 @@ $(function(){
               retryInterval: 5000,
               success: function(data) {
                 var line_items = boxoffice.ractive.get('order.line_items');
-                var finalAmount = 0.0;
                 var readyToCheckout = false;
-
-                line_items.forEach(function(line_item) {
-                  var updatedLineItem = data.line_items.filter(function(updated_line_item) {
-                    return (updated_line_item.item_id === line_item.item_id && line_item.quantity === updated_line_item.quantity);
-                  });
-                  if (updatedLineItem.length) {
+                line_items.forEach(function(line_item){
+                  line_item.final_amount = data.line_items[line_item.item_id].final_amount;
+                  line_item.discounted_amount = data.line_items[line_item.item_id].discounted_amount;
+                  if (!readyToCheckout && data.line_items[line_item.item_id].quantity > 0) {
                     readyToCheckout = true;
-                    line_item.discount_policies = updatedLineItem[0].discount_policies;
-                    line_item.discounted_amount = updatedLineItem[0].discounted_amount;
-                    line_item.final_amount = updatedLineItem[0].final_amount;
-                    finalAmount += updatedLineItem[0].final_amount;
                   }
+                  line_item.discount_policies.forEach(function(discount_policy){
+                    if (data.line_items[line_item.item_id].discount_policy_ids.indexOf(discount_policy.id) >= 0) {
+                      discount_policy.activated = true;
+                    }
+                  });
                 });
 
                 boxoffice.ractive.set({
                   'tabs.selectItems.loadingPrice': false,
-                  'tabs.selectItems.isLoadingFail': false,
-                  'tabs.selectItems.errorMsg': '',
                   'order.line_items': line_items,
-                  'order.final_amount': finalAmount,
+                  'order.final_amount': data.order.final_amount,
                   'order.readyToCheckout': readyToCheckout
                 });
               },
@@ -248,8 +244,7 @@ $(function(){
                 }
               }
             });
-          }
-          else {
+          } else {
             boxoffice.ractive.set({
               'order.final_amount': 0,
               'order.readyToCheckout': false
