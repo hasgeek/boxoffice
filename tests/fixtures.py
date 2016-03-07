@@ -1,12 +1,16 @@
 #!/usr/bin/env python
 
 from boxoffice.models import *
+from datetime import date
+from dateutil.relativedelta import relativedelta
 
 
 def init_data():
     user = User(userid="U3_JesHfQ2OUmdihAXaAGQ", email="test@hasgeek.com")
     db.session.add(user)
     db.session.commit()
+
+    one_month_from_now = date.today() + relativedelta(months=+1)
 
     rootconf = Organization(title='Rootconf', userid="U3_JesHfQ2OUmdihAXaAGQ", status=0)
     db.session.add(rootconf)
@@ -28,7 +32,7 @@ def init_data():
     db.session.add(conf_ticket)
     db.session.commit()
 
-    price = Price(item=conf_ticket, title='Super Early Geek', valid_from='2016-02-01', valid_upto='2016-03-01', amount=3500)
+    price = Price(item=conf_ticket, title='Super Early Geek', valid_from=date.today(), valid_upto=one_month_from_now, amount=3500)
     db.session.add(price)
     db.session.commit()
 
@@ -36,7 +40,7 @@ def init_data():
     db.session.add(single_day_conf_ticket)
     db.session.commit()
 
-    single_day_price = Price(item=single_day_conf_ticket, title='Single Day', valid_from='2016-02-01', valid_upto='2016-03-01', amount=2500)
+    single_day_price = Price(item=single_day_conf_ticket, title='Single Day', valid_from=date.today(), valid_upto=one_month_from_now, amount=2500)
     db.session.add(single_day_price)
     db.session.commit()
 
@@ -44,7 +48,7 @@ def init_data():
     db.session.add(tshirt)
     db.session.commit()
 
-    tshirt_price = Price(item=tshirt, title='T-shirt', valid_from='2016-02-01', valid_upto='2016-03-01', amount=500)
+    tshirt_price = Price(item=tshirt, title='T-shirt', valid_from=date.today(), valid_upto=one_month_from_now, amount=500)
     db.session.add(tshirt_price)
     db.session.commit()
 
@@ -52,7 +56,7 @@ def init_data():
     db.session.add(dns_workshop)
     db.session.commit()
 
-    dns_workshop_price = Price(item=dns_workshop, title='DNSSEC workshop early', valid_from='2016-02-01', valid_upto='2016-03-01', amount=2500)
+    dns_workshop_price = Price(item=dns_workshop, title='DNSSEC workshop early', valid_from=date.today(), valid_upto=one_month_from_now, amount=2500)
     db.session.add(dns_workshop_price)
     db.session.commit()
 
@@ -66,6 +70,11 @@ def init_data():
     db.session.add(tshirt_policy)
     db.session.commit()
 
-    coupon = DiscountCoupon(discount_policy=policy, quantity_available=100, quantity_total=100)
+    discount_coupon1 = DiscountPolicy(title='15% discount for coupon code with STU', item_quantity_min=1, item_quantity_max=1, percentage=15, organization=rootconf, discount_type=DISCOUNT_TYPES.COUPON)
+    discount_coupon1.items.append(conf_ticket)
+    db.session.add(discount_coupon1)
+    db.session.commit()
+
+    coupon = DiscountCoupon(discount_policy=discount_coupon1, quantity_available=100, quantity_total=100)
     db.session.add(coupon)
     db.session.commit()

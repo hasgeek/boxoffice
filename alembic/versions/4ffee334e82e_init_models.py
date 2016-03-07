@@ -54,6 +54,7 @@ def upgrade():
     sa.Column('discount_type', sa.Integer(), nullable=False),
     sa.Column('item_quantity_min', sa.Integer(), nullable=False),
     sa.Column('item_quantity_max', sa.Integer(), nullable=True),
+    sa.Column('discount_code_base', sa.Unicode(length=20), nullable=True),
     sa.Column('percentage', sa.Integer(), nullable=False),
     sa.Column('name', sa.Unicode(length=250), nullable=False),
     sa.Column('title', sa.Unicode(length=250), nullable=False),
@@ -111,6 +112,7 @@ def upgrade():
     sa.Column('discount_policy_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
     sa.Column('quantity_available', sa.Integer(), nullable=False),
     sa.Column('quantity_total', sa.Integer(), nullable=False),
+    sa.Column('used_at', sa.DateTime(), nullable=True),
     sa.Column('id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
     sa.CheckConstraint(u'quantity_available <= quantity_total', name='discount_coupon_quantity_check'),
     sa.ForeignKeyConstraint(['discount_policy_id'], ['discount_policy.id'], ),
@@ -158,6 +160,7 @@ def upgrade():
     sa.Column('updated_at', sa.DateTime(), nullable=False),
     sa.Column('customer_order_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
     sa.Column('item_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
+    sa.Column('discount_policy_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=True),
     sa.Column('base_amount', sa.Numeric(), nullable=False),
     sa.Column('discounted_amount', sa.Numeric(), nullable=False),
     sa.Column('final_amount', sa.Numeric(), nullable=False),
@@ -171,6 +174,7 @@ def upgrade():
     sa.Column('assignee_phone', sa.Unicode(length=16), nullable=True),
     sa.Column('id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
     sa.ForeignKeyConstraint(['customer_order_id'], ['customer_order.id'], ),
+    sa.ForeignKeyConstraint(['discount_policy_id'], ['discount_policy.id'], ),
     sa.ForeignKeyConstraint(['item_id'], ['item.id'], ),
     sa.PrimaryKeyConstraint('id')
     )

@@ -16,6 +16,7 @@ class TestKharchaAPI(unittest.TestCase):
         self.ctx = app.test_request_context()
         self.ctx.push()
         init_for('test')
+        db.drop_all()
         db.create_all()
         init_data()
         self.client = app.test_client()

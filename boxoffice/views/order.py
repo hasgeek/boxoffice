@@ -6,7 +6,7 @@ from rq import Queue
 from redis import Redis
 from coaster.views import load_models
 from boxoffice import app, ALLOWED_ORIGINS
-from boxoffice.models import db, Organization, Item
+from boxoffice.models import db, Organization
 from boxoffice.models import ItemCollection, LineItem
 from boxoffice.models.order import Order, OnlinePayment, PaymentTransaction, User
 from boxoffice.extapi import razorpay
@@ -37,7 +37,7 @@ def line_item_dict(line_item):
 
 
 def jsonify_line_items(line_items):
-    items_json = []
+    items_json = dict()
     for line_item in line_items:
         if not items_json.get(unicode(line_item.item_id)):
             items_json[unicode(line_item.item_id)] = {'quantity': 0, 'final_amount': decimal.Decimal(0), 'discounted_amount': decimal.Decimal(0), 'discount_policy_ids': []}
@@ -62,7 +62,7 @@ def kharcha():
     line_item_forms = LineItemForm.process_list(request.json.get('line_items'))
     discount_coupons = request.json.get('discount_coupons') or []
     if not line_item_forms:
-        api_result(400, 'invalid_line_items')
+        return api_result(400, 'Invalid items')
     line_items = LineItem.build_list([{'item_id': li_form.data.get('item_id')}
         for li_form in line_item_forms
         for _ in range(li_form.data.get('quantity'))], coupons=discount_coupons)
@@ -89,13 +89,13 @@ def order(organization, item_collection):
     """
     line_item_forms = LineItemForm.process_list(request.json.get('line_items'))
     if not line_item_forms:
-        api_result(400, 'invalid_line_items')
+        return api_result(400, 'Invalid items')
 
     discount_coupons = request.json.get('discount_coupons')
     buyer_form = BuyerForm.from_json(request.json.get('buyer'))
 
     if not buyer_form.validate():
-        api_result(400, 'invalid_buyer')
+        return api_result(400, 'Invalid buyer details')
 
     user = User.query.filter_by(email=buyer_form.email.data).first()
     order = Order(user=user,
@@ -136,7 +136,7 @@ def free(order):
         db.session.commit()
         return jsonify(code=200)
     else:
-        return api_result(402, 'payment_capture_failed')
+        return api_result(402, 'Payment capture failed')
 
 
 @app.route('/<order>/payment', methods=['GET', 'OPTIONS', 'POST'])
@@ -175,7 +175,7 @@ def payment(order):
     else:
         online_payment.fail()
         db.session.commit()
-        return api_result(402, 'payment_capture_failed')
+        return api_result(402, 'Payment capture failed')
 
 
 @app.route('/<access_token>/invoice', methods=['GET'])
@@ -183,4 +183,7 @@ def payment(order):
     (Order, {'access_token': 'access_token'}, 'order')
     )
 def invoice(order):
-    return render_template('invoice.html', order=order)
+    line_items_dict = {}
+    for line_item in order.line_items:
+        line_items_dict.setdefault(line_item.item.id, []).append(line_item)
+    return render_template('invoice.html', order=order, line_items=line_items_dict)

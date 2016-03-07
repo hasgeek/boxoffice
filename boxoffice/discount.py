@@ -14,14 +14,14 @@ def calculate_discounts(line_items, coupons=[]):
         return None
 
     valid_discounts = get_valid_discounts(line_items, coupons)
+    for line_item in line_items:
+        line_item.discounted_amount = decimal.Decimal(0)
     if len(valid_discounts) > 1:
         # Multiple discounts found, find the combination that results
         # in the best discount
         return apply_max_discount(valid_discounts, line_items)
     elif len(valid_discounts) == 1:
         return apply_discount(valid_discounts[0], line_items)
-    for line_item in line_items:
-        line_item.discounted_amount = decimal.Decimal(0)
     return line_items
 
 
@@ -40,7 +40,7 @@ def get_valid_discounts(line_items, coupons):
 
 
 def calculate_discounted_amount(percentage, base_amount):
-    return (percentage * base_amount/decimal.Decimal(100)) or decimal.Decimal(0)
+    return (percentage * base_amount/decimal.Decimal(100))
 
 
 def apply_discount(discount, line_items, combo=False):
@@ -50,7 +50,6 @@ def apply_discount(discount, line_items, combo=False):
     """
     for idx, line_item in enumerate(line_items):
         discounted_amount = calculate_discounted_amount(discount.percentage, line_item.base_amount)
-        print discounted_amount
         if not line_item.discount_policy_id or (combo and line_item.discounted_amount < discounted_amount):
             line_item.discount_policy_id = discount.id
             line_item.discounted_amount = discounted_amount

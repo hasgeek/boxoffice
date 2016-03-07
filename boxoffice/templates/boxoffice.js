@@ -174,6 +174,7 @@ $(function(){
               headers: {'X-Requested-With': 'XMLHttpRequest'},
               contentType: 'application/json',
               data: JSON.stringify({
+                // discount_coupons: ['5ZM640'],
                 line_items: lineItems.map(function(line_item) {
                   return {
                     quantity: line_item.quantity,
@@ -195,6 +196,8 @@ $(function(){
                 line_item.discount_policies.forEach(function(discount_policy){
                   if (data.line_items[line_item.item_id].discount_policy_ids.indexOf(discount_policy.id) >= 0) {
                     discount_policy.activated = true;
+                  } else {
+                    discount_policy.activated = false;
                   }
                 });
               });
