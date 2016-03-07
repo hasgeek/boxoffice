@@ -187,7 +187,7 @@ $(function(){
               var line_items = boxoffice.ractive.get('order.line_items');
               var finalAmount = 0.0;
               var readyToCheckout = false;
-              
+              console.log(data.line_items);
               line_items.forEach(function(line_item) {
                 var updatedLineItem = data.line_items.filter(function(updated_line_item) {
                   return (updated_line_item.item_id === line_item.item_id && line_item.quantity === updated_line_item.quantity);

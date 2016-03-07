@@ -146,10 +146,9 @@ class LineItem(BaseMixin, db.Model):
             for line_item_dict in line_item_dicts:
                 item = Item.query.get(line_item_dict.get('item_id'))
                 line_items.append(cls(item_id=item.id, base_amount=Price.current(item).amount))
-            line_items = discount.calculate_discounts(line_items)
+            line_items = discount.calculate_discounts(line_items, list(set(coupons)))
             for line_item in line_items:
                 line_item.final_amount = line_item.base_amount - line_item.discounted_amount
-
             return line_items
 
     def cancel(self):

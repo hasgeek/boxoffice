@@ -1,5 +1,4 @@
 import decimal
-import copy
 import itertools
 from boxoffice.models import Item, DiscountPolicy
 
@@ -21,6 +20,8 @@ def calculate_discounts(line_items, coupons=[]):
         return apply_max_discount(valid_discounts, line_items)
     elif len(valid_discounts) == 1:
         return apply_discount(valid_discounts[0], line_items)
+    for line_item in line_items:
+        line_item.discounted_amount = decimal.Decimal(0)
     return line_items
 
 
@@ -39,7 +40,7 @@ def get_valid_discounts(line_items, coupons):
 
 
 def calculate_discounted_amount(percentage, base_amount):
-    return (percentage * base_amount/decimal.Decimal(100))
+    return (percentage * base_amount/decimal.Decimal(100)) or decimal.Decimal(0)
 
 
 def apply_discount(discount, line_items, combo=False):
@@ -49,6 +50,7 @@ def apply_discount(discount, line_items, combo=False):
     """
     for idx, line_item in enumerate(line_items):
         discounted_amount = calculate_discounted_amount(discount.percentage, line_item.base_amount)
+        print discounted_amount
         if not line_item.discount_policy_id or (combo and line_item.discounted_amount < discounted_amount):
             line_item.discount_policy_id = discount.id
             line_item.discounted_amount = discounted_amount
@@ -59,6 +61,17 @@ def apply_discount(discount, line_items, combo=False):
     return line_items
 
 
+def apply_combo_discount(discounts, line_items):
+    """
+    Applies multiple discounts to a list of line items recursively.
+    """
+    if len(discounts) == 0:
+        return line_items
+    if len(discounts) == 1:
+        return apply_discount(discounts[0], line_items, combo=True)
+    return apply_combo_discount([discounts[0]], apply_combo_discount(discounts[1:], line_items))
+
+
 def apply_max_discount(discounts, line_items):
     """
     Fetches the various discount combinations and applies the discount policy
@@ -67,13 +80,11 @@ def apply_max_discount(discounts, line_items):
     """
     discounts.extend(get_combos(discounts, len(line_items)))
     discounted_line_items_list = []
+
     for discount in discounts:
         if isinstance(discount, tuple):
             # Combo discount
-            combo_discounted_line_items = copy.deepcopy(line_items)
-            for d in discount:
-                combo_discounted_line_items = apply_discount(d, combo_discounted_line_items, combo=True)
-            discounted_line_items_list.append(combo_discounted_line_items)
+            discounted_line_items_list.append(apply_combo_discount(discount, line_items))
         else:
             discounted_line_items_list.append(apply_discount(discount, line_items))
 

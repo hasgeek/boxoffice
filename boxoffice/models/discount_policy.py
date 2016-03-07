@@ -57,14 +57,15 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
 
     @classmethod
     def get_from_item(cls, item, qty, coupons=[]):
+        discounts = item.discount_policies.filter(DiscountPolicy.discount_type == DISCOUNT_TYPES.AUTOMATIC,
+            or_(DiscountPolicy.item_quantity_min <= qty, and_(DiscountPolicy.item_quantity_min <= qty, DiscountPolicy.item_quantity_max > qty))).all()
         if not coupons:
-            return item.discount_policies.filter(DiscountPolicy.discount_type == DISCOUNT_TYPES.AUTOMATIC,
-                or_(DiscountPolicy.item_quantity_min <= qty, and_(DiscountPolicy.item_quantity_min <= qty, DiscountPolicy.item_quantity_max > qty))).all()
+            return discounts
         signer = Signer(app.config.get('SECRET_KEY'))
         coupon_bases = [signer.unsign(coupon) for coupon in coupons]
-        return item.discount_policies.filter(or_(DiscountPolicy.discount_code_base.in_(coupon_bases),
-                DiscountPolicy.item_quantity_min <= qty,
-                and_(DiscountPolicy.item_quantity_min <= qty, DiscountPolicy.item_quantity_max > qty))).all()
+        for coupon_base in coupon_bases:
+            discounts.append(item.discount_policies.filter_by(discount_code_base=coupon_base).first())
+        return discounts
 
 
 def generate_coupon_code(size=6, chars=string.ascii_uppercase + string.digits):
