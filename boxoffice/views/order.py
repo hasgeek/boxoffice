@@ -1,4 +1,5 @@
 from datetime import datetime
+import decimal
 from flask import url_for, request, jsonify, render_template, abort
 from flask.ext.cors import cross_origin
 from rq import Queue
@@ -27,11 +28,25 @@ def discount_policy_dict(dp, activated):
 
 def line_item_dict(line_item):
     return {
+        'item_id': line_item.item_id,
         'base_amount': line_item.base_amount,
         'discounted_amount': line_item.discounted_amount,
         'final_amount': line_item.final_amount,
         'discount_policy_id': line_item.discount_policy_id
     }
+
+
+def jsonify_line_items(line_items):
+    items_json = []
+    for line_item in line_items:
+        if not items_json.get(unicode(line_item.item_id)):
+            items_json[unicode(line_item.item_id)] = {'quantity': 0, 'final_amount': decimal.Decimal(0), 'discounted_amount': decimal.Decimal(0), 'discount_policy_ids': []}
+        items_json[unicode(line_item.item_id)]['final_amount'] += line_item.final_amount
+        items_json[unicode(line_item.item_id)]['discounted_amount'] += line_item.discounted_amount
+        items_json[unicode(line_item.item_id)]['quantity'] += 1
+        if line_item.discount_policy_id and line_item.discount_policy_id not in items_json[unicode(line_item.item_id)]['discount_policy_ids']:
+            items_json[unicode(line_item.item_id)]['discount_policy_ids'].append(line_item.discount_policy_id)
+    return items_json
 
 
 @app.route('/kharcha', methods=['OPTIONS', 'POST'])
@@ -45,11 +60,15 @@ def kharcha():
     and discount_policies set for each line item.
     """
     line_item_forms = LineItemForm.process_list(request.json.get('line_items'))
-    discount_coupons = request.json.get('discount_coupons')
+    discount_coupons = request.json.get('discount_coupons') or []
     if not line_item_forms:
         api_result(400, 'invalid_line_items')
-    line_items = LineItem.build_list([li_form.data for li_form in line_item_forms], discount_coupons)
-    return jsonify(line_items=[line_item_dict(line_item) for line_item in line_items])
+    line_items = LineItem.build_list([{'item_id': li_form.data.get('item_id')}
+        for li_form in line_item_forms
+        for _ in range(li_form.data.get('quantity'))], coupons=discount_coupons)
+    items_json = jsonify_line_items(line_items)
+    order_final_amount = sum([values['final_amount'] for values in items_json.values()])
+    return jsonify(line_items=items_json, order={'final_amount': order_final_amount})
 
 
 @app.route('/<organization>/<item_collection>/order',
