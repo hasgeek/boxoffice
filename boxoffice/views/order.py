@@ -47,7 +47,7 @@ def kharcha():
     """
     line_item_forms = LineItemForm.process_list(request.json.get('line_items'))
     if not line_item_forms:
-        api_result(400, 'invalid_line_items')
+        return api_result(400, 'Invalid items')
     line_item_dicts = LineItem.populate_amounts_and_discounts([li_form.data for li_form in line_item_forms])
     return jsonify(line_items=line_item_dicts)
 
@@ -70,12 +70,12 @@ def order(organization, item_collection):
     """
     line_item_forms = LineItemForm.process_list(request.json.get('line_items'))
     if not line_item_forms:
-        api_result(400, 'invalid_line_items')
+        return api_result(400, 'Invalid items')
 
     buyer_form = BuyerForm.from_json(request.json.get('buyer'))
 
     if not buyer_form.validate():
-        api_result(400, 'invalid_buyer')
+        return api_result(400, 'Invalid buyer details')
 
     user = User.query.filter_by(email=buyer_form.email.data).first()
     order = Order(user=user,
@@ -122,7 +122,7 @@ def free(order):
         db.session.commit()
         return jsonify(code=200)
     else:
-        return api_result(402, 'payment_capture_failed')
+        return api_result(402, 'Payment capture failed')
 
 
 @app.route('/<order>/payment', methods=['GET', 'OPTIONS', 'POST'])
@@ -161,7 +161,7 @@ def payment(order):
     else:
         online_payment.fail()
         db.session.commit()
-        return api_result(402, 'payment_capture_failed')
+        return api_result(402, 'Payment capture failed')
 
 
 @app.route('/<access_token>/receipt', methods=['GET'])

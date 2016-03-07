@@ -33,7 +33,7 @@ conf_ticket = Item(title='Conference ticket', description='<p><i class="fa fa-ca
 db.session.add(conf_ticket)
 db.session.commit()
 
-price = Price(item=conf_ticket, title='Super Early Geek', valid_from='2016-02-01', valid_upto='2016-03-01', amount=3500)
+price = Price(item=conf_ticket, title='Super Early Geek', valid_from='2016-02-01', valid_upto='2016-04-01', amount=3500)
 db.session.add(price)
 db.session.commit()
 
@@ -41,7 +41,7 @@ single_day_conf_ticket = Item(title='Single Day', description='<p><i class="fa f
 db.session.add(single_day_conf_ticket)
 db.session.commit()
 
-single_day_price = Price(item=single_day_conf_ticket, title='Single Day', valid_from='2016-02-01', valid_upto='2016-03-01', amount=2500)
+single_day_price = Price(item=single_day_conf_ticket, title='Single Day', valid_from='2016-02-01', valid_upto='2016-04-01', amount=2500)
 db.session.add(single_day_price)
 db.session.commit()
 
@@ -49,7 +49,7 @@ single_day2_conf_ticket = Item(title='Single Day', description='<p><i class="fa 
 db.session.add(single_day2_conf_ticket)
 db.session.commit()
 
-single_day2_price = Price(item=single_day2_conf_ticket, title='Single Day', valid_from='2016-02-01', valid_upto='2016-03-01', amount=2500)
+single_day2_price = Price(item=single_day2_conf_ticket, title='Single Day', valid_from='2016-02-01', valid_upto='2016-04-01', amount=2500)
 db.session.add(single_day2_price)
 db.session.commit()
 
@@ -57,7 +57,7 @@ tshirt = Item(title='T-shirt', description='Rootconf', item_collection=rc2016, c
 db.session.add(tshirt)
 db.session.commit()
 
-tshirt_price = Price(item=tshirt, title='T-shirt', valid_from='2016-02-01', valid_upto='2016-03-01', amount=500)
+tshirt_price = Price(item=tshirt, title='T-shirt', valid_from='2016-02-01', valid_upto='2016-04-01', amount=500)
 db.session.add(tshirt_price)
 db.session.commit()
 
@@ -65,7 +65,7 @@ dns_workshop = Item(title='DNSSEC workshop', description='<p><i class="fa fa-cal
 db.session.add(dns_workshop)
 db.session.commit()
 
-dns_workshop_price = Price(item=dns_workshop, title='DNSSEC workshop early', valid_from='2016-02-01', valid_upto='2016-03-01', amount=2500)
+dns_workshop_price = Price(item=dns_workshop, title='DNSSEC workshop early', valid_from='2016-02-01', valid_upto='2016-04-01', amount=2500)
 db.session.add(dns_workshop_price)
 db.session.commit()
 

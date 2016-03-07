@@ -15,50 +15,55 @@
     {{#if id === 'boxoffice-selectItems' && id === activeTab}}
       <div id='{{id}}' class="boxoffice-section ticket-selection-content clearfix" intro-outro='fly:{"x":0,"y":"0"}'>
         {{#section.categories}}
-          <div id="{{name}}">
-            <div>
-              <h1 class="category-heading">{{title}}</h1>
+          {{#if isItemPresent}}
+            <div id="{{name}}">
+              <div>
+                <h1 class="category-heading">{{title}}</h1>
+              </div>
+              <div>
+              {{#items}}{{# { item: . } }}
+                {{#order.line_items}} {{# { line_item: . } }}
+                  {{#if line_item.item_name === item.name }}
+                    <div class="ticket-booking clearfix" id="{{line_item.item_name}}">
+                      <div class="ticket-details">
+                        <p class="ticket-title text-primary">{{ line_item.item_title }}</p>
+                        {{#line_item.discount_policies}}
+                          <p class="discount {{#activated}}applied{{/}}">
+                            {{ title }}{{#activated && !isLoadingFail}} <i class="fa fa-check"></i>{{/}}
+                          </p>
+                        {{/line_item.discount_policies}}
+                        <div class="ticket-description">{{{ line_item.item_description }}}</div>
+                      </div>
+                      <div class="ticket-price-qty">
+                        <p class="ticket-price"><i class="fa fa-inr"></i> {{ line_item.base_price }}</p>
+                        <span class="multiplier">&times;</span>
+                        <div class="ticket-qty-wrapper">
+                          <button class="decrement" on-click="updateOrder(event, line_item.item_name, item.quantity_available, false)">-</button>
+                          <input type="number" class="ticket-qty" name="quantity" min="0" max="{{ item.quantity_available }}" value="{{ line_item.quantity }}" disabled>
+                          <button class="increment" on-click="updateOrder(event, line_item.item_name, item.quantity_available, true)">+</button>
+                        </div>
+                        <div class="item-amount">
+                          {{#line_item.discounted_amount && !isLoadingFail}}
+                            <p intro-outro='fly:{"x":0,"y":"0"}' class="discount">Discount: <span><i class="fa fa-inr"></i> {{line_item.discounted_amount}}</span></p>
+                          {{/}}
+                          {{#line_item.final_amount && !isLoadingFail}}
+                            <p intro-outro='fly:{"x":0,"y":"0"}' class="subtotal">Subtotal: <span><i class="fa fa-inr"></i> {{line_item.final_amount}}</span></p>
+                          {{/}}
+                        </div>
+                        </div>
+                      </div>
+                    {{/if}}
+                  {{/}}{{/order.line_items}}
+              {{/}}{{/items}}
+              </div>
             </div>
-            <div>
-            {{#items}}{{# { item: . } }}
-              {{#order.line_items}} {{# { line_item: . } }}
-                {{#if line_item.item_name === item.name }}
-                  <div class="ticket-booking clearfix" id="{{line_item.item_name}}">
-                    <div class="ticket-details">
-                      <p class="ticket-title text-primary">{{ line_item.item_title }}</p>
-                      {{#line_item.discount_policies}}
-                        <p class="discount {{#activated}}applied{{/}}">
-                          {{ title }}{{#activated}} <i class="fa fa-check"></i>{{/}}
-                        </p>
-                      {{/line_item.discount_policies}}
-                      <div class="ticket-description">{{{ line_item.item_description }}}</div>
-                    </div>
-                    <div class="ticket-price-qty">
-                      <p class="ticket-price"><i class="fa fa-inr"></i> {{ line_item.base_price }}</p>
-                      <span class="multiplier">&times;</span>
-                      <div class="ticket-qty-wrapper">
-                        <button class="decrement" on-click="updateOrder(event, line_item.item_name, item.quantity_available, false)">-</button>
-                        <input type="number" class="ticket-qty" name="quantity" min="0" max="{{ item.quantity_available }}" value="{{ line_item.quantity }}" disabled>
-                        <button class="increment" on-click="updateOrder(event, line_item.item_name, item.quantity_available, true)">+</button>
-                      </div>
-                      <div class="item-amount">
-                        {{#line_item.discounted_amount}}
-                          <p intro-outro='fly:{"x":0,"y":"0"}' class="discount">Discount: <span><i class="fa fa-inr"></i> {{line_item.discounted_amount}}</span></p>
-                        {{/}}
-                        {{#line_item.final_amount}}
-                          <p intro-outro='fly:{"x":0,"y":"0"}' class="subtotal">Subtotal: <span><i class="fa fa-inr"></i> {{line_item.final_amount}}</span></p>
-                        {{/}}
-                      </div>
-                      </div>
-                    </div>
-                  {{/if}}
-                {{/}}{{/order.line_items}}
-            {{/}}{{/items}}
-            </div>
-          </div>
+          {{/if}}
         {{/section.categories}}
         <hr>
         <div class="ticket-total {{#loadingPrice}}grey-out{{/}} clearfix">
+          {{#loadingPrice && !isLoadingFail}}
+            <div class="loader"><i class="fa fa-spinner fa-spin fa-2x"></i></div>
+          {{/}}
           <p class="price">Total : <span class="pull-right"><i class="fa fa-inr"></i> {{ order.final_amount }}</span></p>
         </div>
         {{#order.readyToCheckout}}
@@ -72,7 +77,7 @@
       </div>
     {{elseif id === 'boxoffice-payment' && id === activeTab}}
       {{#loadingPaymentConfirmation}}
-        <div class="loader"><i class="fa fa-spinner fa-spin fa-3x"></i></div>
+        <div class="loader payment-confirmation"><i class="fa fa-spinner fa-spin fa-3x"></i></div>
       {{/}}
       <div id='{{id}}' class="boxoffice-section clearfix" intro='fly:{"x":0,"y":"0"}'>
         <p class="buyer-form">Buyer Details</p>
@@ -113,7 +118,9 @@
           </div>
           <div class="proceed-button-wrapper">
             <button class="boxoffice-button boxoffice-button-info edit-order" on-click="selectItems(event)">Edit order</button>
-            <button type="submit" class="boxoffice-button boxoffice-button-action">Checkout</button>
+            <button type="submit" class="boxoffice-button boxoffice-button-action">
+              Checkout {{#loadingOrder}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'>{{/}}
+            </button>
           </div>
           {{#errorMsg }}
             <p class="stage-error-msg text-danger">{{ errorMsg }}</p>
@@ -430,9 +437,25 @@
     padding: 5px 10px;
     border-radius: 5px;
     background: #f6f3c2;
+    position: relative;
   }
   .grey-out {
     opacity: 0.5;
+  }
+  .loader {
+    position: absolute;
+    right: 0px;
+    z-index: 1000;
+    height: 100%;
+    top: 0px;
+    left: 0px;
+    background: rgba(255, 255, 255, 0.8);
+  }
+  .ticket-total .loader .fa-spin {
+    position: relative;
+    color: #000;
+    top: 20%;
+    left: 48%;
   }
   .buyer-fields {
     font-size: 15px;
@@ -490,16 +513,7 @@
     float: right;
     margin: 0px 0 10px;
   }
-  .loader {
-    position: absolute;
-    right: 0px;
-    z-index: 1000;
-    height: 100%;
-    top: 0px;
-    left: 0px;
-    background: rgba(255, 255, 255, 0.8);
-  }
-  .loader .fa-spin {
+  .loader.payment-confirmation .fa-spin {
     position: relative;
     color: #000;
     top: 43%;
