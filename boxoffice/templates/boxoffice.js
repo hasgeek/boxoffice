@@ -119,7 +119,7 @@ $(function(){
               label: 'Confirm',
               complete: false,
               section: {
-                cashReceiptURL: '',
+                invoiceURL: '',
                 eventTitle: widgetConfig.paymentDesc,
                 eventHashtag: widgetConfig.event_hashtag,
               }
@@ -418,12 +418,12 @@ $(function(){
             retries: 5,
             retryInterval: 5000,
             success: function(data) {
-              var cashReceiptURL = boxoffice.config.baseURL + "/" + boxoffice.ractive.get('order.access_token') + "/receipt";
+              var invoiceURL = boxoffice.config.baseURL + "/" + boxoffice.ractive.get('order.access_token') + "/invoice";
               boxoffice.ractive.set({
                 'tabs.payment.loadingPaymentConfirmation': false,
                 'tabs.payment.complete': true,
                 'activeTab': boxoffice.ractive.get('tabs.confirm.id'),
-                'tabs.confirm.section.cashReceiptURL': cashReceiptURL
+                'tabs.confirm.section.invoiceURL': invoiceURL
               });
             },
             error: function(response) {
@@ -467,13 +467,13 @@ $(function(){
             retries: 5,
             retryInterval: 5000,
             success: function(data) {
+              var invoiceURL = boxoffice.config.baseURL + "/" + boxoffice.ractive.get('order.access_token') + "/invoice";
               boxoffice.ractive.set({
                 'tabs.payment.loadingPaymentConfirmation': false,
                 'tabs.payment.complete': true,
-                'activeTab': boxoffice.ractive.get('tabs.confirm.id')
+                'activeTab': boxoffice.ractive.get('tabs.confirm.id'),
+                'tabs.confirm.section.invoiceURL': invoiceURL
               });
-              var invoiceURL = boxoffice.config.baseURL + "/" + boxoffice.ractive.get('order.access_token') + "/invoice";
-              boxoffice.ractive.set('tabs.confirm.section.invoiceURL', invoiceURL);
             },
             error: function(response) {
               ajaxLoad = this;
