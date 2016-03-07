@@ -3,10 +3,8 @@ import random
 from datetime import datetime
 from baseframe import __
 from coaster.utils import LabeledEnum
-from boxoffice import app
 from boxoffice.models import db, BaseScopedNameMixin, IdMixin
 from boxoffice.models import Organization
-from itsdangerous import Signer
 from sqlalchemy import or_, and_
 
 __all__ = ['DiscountPolicy', 'DiscountCoupon', 'item_discount_policy', 'DISCOUNT_TYPES']
@@ -38,7 +36,6 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     parent = db.synonym('organization')
 
     discount_type = db.Column(db.Integer, default=DISCOUNT_TYPES.AUTOMATIC, nullable=False)
-    discount_code_base = db.Column(db.Unicode(20), nullable=True)
 
     # Minimum and maximum number of items for which the discount policy applies
     item_quantity_min = db.Column(db.Integer, default=1, nullable=False)
@@ -61,10 +58,13 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
             or_(DiscountPolicy.item_quantity_min <= qty, and_(DiscountPolicy.item_quantity_min <= qty, DiscountPolicy.item_quantity_max > qty))).all()
         if not coupons:
             return discounts
-        signer = Signer(app.config.get('SECRET_KEY'))
-        coupon_bases = [signer.unsign(coupon) for coupon in coupons]
-        for coupon_base in coupon_bases:
-            discounts.append(item.discount_policies.filter_by(discount_code_base=coupon_base).first())
+
+        valid_coupons = DiscountCoupon.query.filter(DiscountCoupon.code.in_(coupons),
+            DiscountCoupon.quantity_available > 0,
+            DiscountCoupon.discount_policy_id.in_([discount_policy.id
+                for discount_policy in item.discount_policies.filter(DiscountPolicy.discount_type == DISCOUNT_TYPES.COUPON)])).all()
+        for coupon in valid_coupons:
+            discounts.append(coupon.discount_policy)
         return discounts
 
 
@@ -81,8 +81,10 @@ class DiscountCoupon(IdMixin, db.Model):
     __table_args__ = (db.UniqueConstraint('code', 'discount_policy_id'),
         db.CheckConstraint('quantity_available <= quantity_total', 'discount_coupon_quantity_check'))
 
-    code = db.Column(db.Unicode(20), nullable=False)
+    code = db.Column(db.Unicode(20), nullable=False, default=generate_coupon_code)
     used_at = db.Column(db.DateTime, nullable=True)
+    quantity_available = db.Column(db.Integer, default=0, nullable=False)
+    quantity_total = db.Column(db.Integer, default=0, nullable=False)
 
     discount_policy_id = db.Column(None, db.ForeignKey('discount_policy.id'), nullable=False)
     discount_policy = db.relationship(DiscountPolicy, backref=db.backref('discount_coupons', cascade='all, delete-orphan'))

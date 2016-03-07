@@ -4,6 +4,9 @@
 from boxoffice import init_for
 from boxoffice.models import *
 from coaster.utils import buid
+from datetime import date
+from dateutil.relativedelta import relativedelta
+
 init_for('dev')
 
 # try:
@@ -12,6 +15,8 @@ db.create_all()
 user = User(userid=buid())
 db.session.add(user)
 db.session.commit()
+
+one_month_from_now = date.today() + relativedelta(months=+1)
 
 rootconf = Organization(title='Rootconf', userid=user.userid, status=0)
 db.session.add(rootconf)
@@ -33,7 +38,7 @@ conf_ticket = Item(title='Conference ticket', description='<p><i class="fa fa-ca
 db.session.add(conf_ticket)
 db.session.commit()
 
-price = Price(item=conf_ticket, title='Super Early Geek', valid_from='2016-02-01', valid_upto='2016-04-01', amount=3500)
+price = Price(item=conf_ticket, title='Super Early Geek', valid_from=date.today(), valid_upto=one_month_from_now, amount=3500)
 db.session.add(price)
 db.session.commit()
 
@@ -41,7 +46,7 @@ single_day_conf_ticket = Item(title='Single Day', description='<p><i class="fa f
 db.session.add(single_day_conf_ticket)
 db.session.commit()
 
-single_day_price = Price(item=single_day_conf_ticket, title='Single Day', valid_from='2016-02-01', valid_upto='2016-04-01', amount=2500)
+single_day_price = Price(item=single_day_conf_ticket, title='Single Day', valid_from=date.today(), valid_upto=one_month_from_now, amount=2500)
 db.session.add(single_day_price)
 db.session.commit()
 
@@ -49,7 +54,7 @@ single_day2_conf_ticket = Item(title='Single Day', description='<p><i class="fa 
 db.session.add(single_day2_conf_ticket)
 db.session.commit()
 
-single_day2_price = Price(item=single_day2_conf_ticket, title='Single Day', valid_from='2016-02-01', valid_upto='2016-04-01', amount=2500)
+single_day2_price = Price(item=single_day2_conf_ticket, title='Single Day', valid_from=date.today(), valid_upto=one_month_from_now, amount=2500)
 db.session.add(single_day2_price)
 db.session.commit()
 
@@ -57,7 +62,7 @@ tshirt = Item(title='T-shirt', description='Rootconf', item_collection=rc2016, c
 db.session.add(tshirt)
 db.session.commit()
 
-tshirt_price = Price(item=tshirt, title='T-shirt', valid_from='2016-02-01', valid_upto='2016-04-01', amount=500)
+tshirt_price = Price(item=tshirt, title='T-shirt', valid_from=date.today(), valid_upto=one_month_from_now, amount=500)
 db.session.add(tshirt_price)
 db.session.commit()
 
@@ -65,7 +70,7 @@ dns_workshop = Item(title='DNSSEC workshop', description='<p><i class="fa fa-cal
 db.session.add(dns_workshop)
 db.session.commit()
 
-dns_workshop_price = Price(item=dns_workshop, title='DNSSEC workshop early', valid_from='2016-02-01', valid_upto='2016-04-01', amount=2500)
+dns_workshop_price = Price(item=dns_workshop, title='DNSSEC workshop early', valid_from=date.today(), valid_upto=one_month_from_now, amount=2500)
 db.session.add(dns_workshop_price)
 db.session.commit()
 
@@ -84,7 +89,6 @@ discount_coupon1.items.append(conf_ticket)
 db.session.add(discount_coupon1)
 db.session.commit()
 
-
-coupon = DiscountCoupon(discount_policy=policy, quantity_available=100, quantity_total=100)
+coupon = DiscountCoupon(discount_policy=discount_coupon1, quantity_available=100, quantity_total=100)
 db.session.add(coupon)
 db.session.commit()

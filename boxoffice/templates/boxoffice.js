@@ -183,6 +183,7 @@ $(function(){
               headers: {'X-Requested-With': 'XMLHttpRequest'},
               contentType: 'application/json',
               data: JSON.stringify({
+                // discount_coupons: ['5ZM640'],
                 line_items: lineItems.map(function(line_item) {
                   return {
                     quantity: line_item.quantity,
@@ -198,16 +199,20 @@ $(function(){
                 var line_items = boxoffice.ractive.get('order.line_items');
                 var readyToCheckout = false;
                 line_items.forEach(function(line_item){
-                  line_item.final_amount = data.line_items[line_item.item_id].final_amount;
-                  line_item.discounted_amount = data.line_items[line_item.item_id].discounted_amount;
-                  if (!readyToCheckout && data.line_items[line_item.item_id].quantity > 0) {
-                    readyToCheckout = true;
-                  }
-                  line_item.discount_policies.forEach(function(discount_policy){
-                    if (data.line_items[line_item.item_id].discount_policy_ids.indexOf(discount_policy.id) >= 0) {
-                      discount_policy.activated = true;
+                  if (data.line_items.hasOwnProperty(line_item.item_id)) {
+                    line_item.final_amount = data.line_items[line_item.item_id].final_amount;
+                    line_item.discounted_amount = data.line_items[line_item.item_id].discounted_amount;
+                    if (!readyToCheckout && data.line_items[line_item.item_id].quantity > 0) {
+                      readyToCheckout = true;
                     }
-                  });
+                    line_item.discount_policies.forEach(function(discount_policy){
+                      if (data.line_items[line_item.item_id].discount_policy_ids.indexOf(discount_policy.id) >= 0) {
+                        discount_policy.activated = true;
+                      } else {
+                        discount_policy.activated = false;
+                      }
+                    });
+                  }
                 });
 
                 boxoffice.ractive.set({
