@@ -1,9 +1,14 @@
 #!/usr/bin/env python
 
 from boxoffice.models import *
+from datetime import datetime, timedelta
 
 
 def init_data():
+
+    today = datetime.now().strftime('%Y-%m-%d')
+    one_month_later = (datetime.now() + timedelta(days=30)).strftime('%Y-%m-%d')
+
     user = User(userid="U3_JesHfQ2OUmdihAXaAGQ", email="test@hasgeek.com")
     db.session.add(user)
     db.session.commit()
@@ -28,7 +33,7 @@ def init_data():
     db.session.add(conf_ticket)
     db.session.commit()
 
-    price = Price(item=conf_ticket, title='Super Early Geek', valid_from='2016-02-01', valid_upto='2016-03-01', amount=3500)
+    price = Price(item=conf_ticket, title='Super Early Geek', valid_from=today, valid_upto=one_month_later, amount=3500)
     db.session.add(price)
     db.session.commit()
 
@@ -36,7 +41,7 @@ def init_data():
     db.session.add(single_day_conf_ticket)
     db.session.commit()
 
-    single_day_price = Price(item=single_day_conf_ticket, title='Single Day', valid_from='2016-02-01', valid_upto='2016-03-01', amount=2500)
+    single_day_price = Price(item=single_day_conf_ticket, title='Single Day', valid_from=today, valid_upto=one_month_later, amount=2500)
     db.session.add(single_day_price)
     db.session.commit()
 
@@ -44,7 +49,7 @@ def init_data():
     db.session.add(tshirt)
     db.session.commit()
 
-    tshirt_price = Price(item=tshirt, title='T-shirt', valid_from='2016-02-01', valid_upto='2016-03-01', amount=500)
+    tshirt_price = Price(item=tshirt, title='T-shirt', valid_from=today, valid_upto=one_month_later, amount=500)
     db.session.add(tshirt_price)
     db.session.commit()
 
@@ -52,7 +57,7 @@ def init_data():
     db.session.add(dns_workshop)
     db.session.commit()
 
-    dns_workshop_price = Price(item=dns_workshop, title='DNSSEC workshop early', valid_from='2016-02-01', valid_upto='2016-03-01', amount=2500)
+    dns_workshop_price = Price(item=dns_workshop, title='DNSSEC workshop early', valid_from=today, valid_upto=one_month_later, amount=2500)
     db.session.add(dns_workshop_price)
     db.session.commit()
 
