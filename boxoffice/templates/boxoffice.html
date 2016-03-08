@@ -58,18 +58,6 @@
           </div>
         {{/section.categories}}
         <hr>
-        <div class="discount-code">
-          {{#order.discount_coupons}}
-            {{#activated}}
-            <div intro-outro='fly:{"x":0,"y":"0"}'>
-              <span class="discount-title">{{title}}</span>
-              <span class="remove-discount" on-click="removeDiscount(event, @index)"><i class="fa fa-times-circle-o"></i></span>
-            </div>
-            {{/if}}
-          {{/order.discount_coupons}}
-          <input type="text" placeholder="Enter your discount code" name="discount-code" value="{{.coupon}}"/>
-          <button class="boxoffice-button boxoffice-button-info" on-click="applyDiscount(event)">Apply</button>
-        </div>
         <div class="ticket-total {{#loadingPrice}}grey-out{{/}} clearfix">
           {{#loadingPrice && !isLoadingFail}}
             <div class="loader"><i class="fa fa-spinner fa-spin fa-2x"></i></div>
@@ -145,9 +133,9 @@
           <div class="confirmation-msg">
             <p>Hello {{buyer.name}},</p>
             <p>Your payment has been successful.</p>
-            <p>We have sent you a confirmation email with the <a href="{{ invoiceURL }}" target="_blank" class="boxoffice-button boxoffice-button-info receipt-button">invoice</a></p>
-            <p>We get in touch with you shortly to fill the attendee details.</p>
-            <p class="service-policy-msg">Please refer our <a href="https://hasgeek.com/about/policy/" target="_blank">terms of service and refund policy</a>. For further queries, please write to us at <a href="mailto:support@hasgeek.com">support@hasgeek.com</a> or call us at <a href="tel:+917676332020">+91 7676 33 2020</a>.</p>
+            <p>We have sent you a confirmation email with the <a href="{{ cashReceiptURL }}" target="_blank" class="boxoffice-button boxoffice-button-info receipt-button">cash receipt</a></p>
+            <p>We will get in touch with you shortly for the attendee details.</p>
+            <p class="service-policy-msg">Please refer to our <a href="https://hasgeek.com/about/policy/" target="_blank">terms of service and refund policy</a>. For further queries, please write to us at <a href="mailto:support@hasgeek.com">support@hasgeek.com</a> or call us at <a href="tel:+917676332020">+91 7676 33 2020</a>.</p>
             <p>Tell your friends!</p>
             <span class="tweet-button">
             <a href="https://twitter.com/share" class="twitter-share-button" data-text="Yay! I'm attending {{eventTitle}}" data-hashtags="HasGeek{{#if eventHashtag}}, {{eventHashtag}}{{/if}}">Tweet</a>
@@ -338,16 +326,6 @@
   .discount.applied {
     color: green;
   }
-  .discount-title,.remove-discount {
-    display: inline-block;
-    padding-right: 10px;
-    margin: 10px 0;
-    color: green;
-    font-size: 14px;
-  }
-  .remove-discount {
-    cursor: pointer;
-  }
   .ticket-description {
     font-size: 13px;
   }
@@ -466,7 +444,7 @@
   }
   .ticket-total {
     clear: both;
-    width: 271px;
+    width: 259px;
     float: right;
     border: 2px solid #ccc;
     margin: 15px 0;

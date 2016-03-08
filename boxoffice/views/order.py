@@ -178,12 +178,12 @@ def payment(order):
         return api_result(402, 'Payment capture failed')
 
 
-@app.route('/<access_token>/invoice', methods=['GET'])
+@app.route('/<access_token>/receipt', methods=['GET'])
 @load_models(
     (Order, {'access_token': 'access_token'}, 'order')
     )
-def invoice(order):
+def receipt(order):
     line_items_dict = {}
     for line_item in order.line_items:
         line_items_dict.setdefault(line_item.item.id, []).append(line_item)
-    return render_template('invoice.html', order=order, line_items=line_items_dict)
+    return render_template('cash_receipt.html', order=order, line_items=line_items_dict)

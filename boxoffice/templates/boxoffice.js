@@ -81,7 +81,6 @@ $(function(){
             access_token: '',
             order_hash: '',
             line_items: lineItems,
-            discount_coupons: [],
             final_amount: 0.0,
             readyToCheckout: false
           },
@@ -115,7 +114,7 @@ $(function(){
               label: 'Confirm',
               complete: false,
               section: {
-                invoiceURL: '',
+                cashReceiptURL: '',
                 eventTitle: widgetConfig.paymentDesc,
                 eventHashtag: widgetConfig.event_hashtag,
               }
@@ -160,24 +159,6 @@ $(function(){
           });
           boxoffice.ractive.calculateOrder();
         },
-        applyDiscount: function(event) {
-          event.original.preventDefault();
-          var lineItems = boxoffice.ractive.get('order.line_items').filter(function(line_item) {
-            return line_item.quantity > 0;
-          });
-          if (lineItems.length) {
-            boxoffice.ractive.push('order.discount_coupons', {coupon_code: boxoffice.ractive.get('tabs.selectItems.coupon')});
-            boxoffice.ractive.calculateOrder();
-          }
-          else {
-            boxoffice.ractive.set('tabs.selectItems.errorMsg', 'Please select an ticket');
-          }
-        },
-        removeDiscount: function(event, index) {
-          event.original.preventDefault();
-          boxoffice.ractive.splice('order.discount_coupons', index, 1);
-          boxoffice.ractive.calculateOrder();
-        },
         calculateOrder: function() {
           // Asks the server for the order's calculation and updates the order
           var lineItems = boxoffice.ractive.get('order.line_items').filter(function(line_item) {
@@ -194,7 +175,6 @@ $(function(){
               headers: {'X-Requested-With': 'XMLHttpRequest'},
               contentType: 'application/json',
               data: JSON.stringify({
-                // discount_coupons: ['5ZM640'],
                 line_items: lineItems.filter(function(line_item) {
                   return line_item.quantity > 0;
                   }).map(function(line_item) {
@@ -202,9 +182,6 @@ $(function(){
                     quantity: line_item.quantity,
                     item_id: line_item.item_id
                   };
-                }),
-                discount_coupons: boxoffice.ractive.get('order.discount_coupons').map(function(discount_coupon) {
-                  return discount_coupon.coupon_code
                 })
               }),
               timeout: 5000,
@@ -433,12 +410,12 @@ $(function(){
             retries: 5,
             retryInterval: 5000,
             success: function(data) {
-              var invoiceURL = boxoffice.config.baseURL + "/" + boxoffice.ractive.get('order.access_token') + "/invoice";
+              var cashReceiptURL = boxoffice.config.baseURL + "/" + boxoffice.ractive.get('order.access_token') + "/receipt";
               boxoffice.ractive.set({
                 'tabs.payment.loadingPaymentConfirmation': false,
                 'tabs.payment.complete': true,
                 'activeTab': boxoffice.ractive.get('tabs.confirm.id'),
-                'tabs.confirm.section.invoiceURL': invoiceURL
+                'tabs.confirm.section.cashReceiptURL': cashReceiptURL
               });
             },
             error: function(response) {
@@ -480,12 +457,12 @@ $(function(){
             retries: 5,
             retryInterval: 5000,
             success: function(data) {
-              var invoiceURL = boxoffice.config.baseURL + "/" + boxoffice.ractive.get('order.access_token') + "/invoice";
+              var cashReceiptURL = boxoffice.config.baseURL + "/" + boxoffice.ractive.get('order.access_token') + "/receipt";
               boxoffice.ractive.set({
                 'tabs.payment.loadingPaymentConfirmation': false,
                 'tabs.payment.complete': true,
                 'activeTab': boxoffice.ractive.get('tabs.confirm.id'),
-                'tabs.confirm.section.invoiceURL': invoiceURL
+                'tabs.confirm.section.cashReceiptURL': cashReceiptURL
               });
             },
             error: function(response) {
