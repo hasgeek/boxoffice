@@ -114,7 +114,7 @@ $(function(){
               label: 'Confirm',
               complete: false,
               section: {
-                invoiceURL: '',
+                cashReceiptURL: '',
                 eventTitle: widgetConfig.paymentDesc,
                 eventHashtag: widgetConfig.event_hashtag,
               }
@@ -175,14 +175,14 @@ $(function(){
               headers: {'X-Requested-With': 'XMLHttpRequest'},
               contentType: 'application/json',
               data: JSON.stringify({
-                // discount_coupons: ['5ZM640'],
-                line_items: lineItems.map(function(line_item) {
+                line_items: lineItems.filter(function(line_item) {
+                  return line_item.quantity > 0;
+                  }).map(function(line_item) {
                   return {
                     quantity: line_item.quantity,
                     item_id: line_item.item_id
                   };
-                }),
-                buyer_email: boxoffice.ractive.get('buyer.email')
+                })
               }),
               timeout: 5000,
               retries: 5,
@@ -191,7 +191,7 @@ $(function(){
                 var line_items = boxoffice.ractive.get('order.line_items');
                 var readyToCheckout = false;
                 line_items.forEach(function(line_item){
-                  if (data.line_items.hasOwnProperty(line_item.item_id)) {
+                  if (data.line_items.hasOwnProperty(line_item.item_id) && line_item.quantity ===  data.line_items[line_item.item_id].quantity) {
                     line_item.final_amount = data.line_items[line_item.item_id].final_amount;
                     line_item.discounted_amount = data.line_items[line_item.item_id].discounted_amount;
 
@@ -209,10 +209,14 @@ $(function(){
                   }
                 });
 
+                if (readyToCheckout) {
+                  boxoffice.ractive.set({
+                    'order.line_items': line_items,
+                    'order.final_amount': data.order.final_amount
+                  });
+                }
                 boxoffice.ractive.set({
                   'tabs.selectItems.loadingPrice': false,
-                  'order.line_items': line_items,
-                  'order.final_amount': data.order.final_amount,
                   'order.readyToCheckout': readyToCheckout
                 });
               },
@@ -233,9 +237,7 @@ $(function(){
                       'tabs.selectItems.isLoadingFail': true,
                       'order.readyToCheckout': false
                     });
-                  }
-                  else {
-                    console.log("Karcha retry", this.retries);
+                  } else {
                     setTimeout(function() {
                       $.post(ajaxLoad)
                     }, ajaxLoad.retryInterval);
@@ -295,8 +297,7 @@ $(function(){
                 formValidator.setMessage('validate_phone', 'This does not appear to be a valid Indian mobile number');
                 return false;
               }
-            }
-            else
+            } else
             {
               formValidator.setMessage('validate_phone', 'Phone number must be in international format with a leading + symbol');
               return false;
@@ -409,12 +410,12 @@ $(function(){
             retries: 5,
             retryInterval: 5000,
             success: function(data) {
-              var invoiceURL = boxoffice.config.baseURL + "/" + boxoffice.ractive.get('order.access_token') + "/invoice";
+              var cashReceiptURL = boxoffice.config.baseURL + "/" + boxoffice.ractive.get('order.access_token') + "/receipt";
               boxoffice.ractive.set({
                 'tabs.payment.loadingPaymentConfirmation': false,
                 'tabs.payment.complete': true,
                 'activeTab': boxoffice.ractive.get('tabs.confirm.id'),
-                'tabs.confirm.section.invoiceURL': invoiceURL
+                'tabs.confirm.section.cashReceiptURL': cashReceiptURL
               });
             },
             error: function(response) {
@@ -435,8 +436,7 @@ $(function(){
                     'tabs.payment.errorMsg': errorMsg,
                     'tabs.payment.loadingPaymentConfirmation': false
                   });
-                }
-                else {
+                } else {
                   setTimeout(function() {
                     $.post(ajaxLoad) 
                   }, ajaxLoad.retryInterval);
@@ -457,12 +457,12 @@ $(function(){
             retries: 5,
             retryInterval: 5000,
             success: function(data) {
-              var invoiceURL = boxoffice.config.baseURL + "/" + boxoffice.ractive.get('order.access_token') + "/invoice";
+              var cashReceiptURL = boxoffice.config.baseURL + "/" + boxoffice.ractive.get('order.access_token') + "/receipt";
               boxoffice.ractive.set({
                 'tabs.payment.loadingPaymentConfirmation': false,
                 'tabs.payment.complete': true,
                 'activeTab': boxoffice.ractive.get('tabs.confirm.id'),
-                'tabs.confirm.section.invoiceURL': invoiceURL
+                'tabs.confirm.section.cashReceiptURL': cashReceiptURL
               });
             },
             error: function(response) {
@@ -483,9 +483,7 @@ $(function(){
                     'tabs.payment.errorMsg': errorMsg,
                     'tabs.payment.loadingPaymentConfirmation': false
                   });
-                }
-                else {
-                  console.log("completeFreeOrder retry", this.retries);
+                } else {
                   setTimeout(function() {
                     $.post(ajaxLoad) 
                   }, ajaxLoad.retryInterval);
