@@ -43,7 +43,7 @@
                       </div>
                       <div class="item-amount">
                         {{#line_item.discounted_amount && !isLoadingFail}}
-                          <p intro-outro='fly:{"x":0,"y":"0"}' class="discount">Discount: <span><i class="fa fa-inr"></i> {{line_item.discounted_amount}}</span></p>
+                          <p intro-outro='fly:{"x":0,"y":"0"}' class="discount-amount">Discount: <span><i class="fa fa-inr"></i> {{line_item.discounted_amount}}</span></p>
                         {{/}}
                         {{#line_item.final_amount && !isLoadingFail}}
                           <p intro-outro='fly:{"x":0,"y":"0"}' class="subtotal">Subtotal: <span><i class="fa fa-inr"></i> {{line_item.final_amount}}</span></p>
@@ -58,6 +58,18 @@
           </div>
         {{/section.categories}}
         <hr>
+        <div class="discount-code">
+          {{#order.discount_coupons}}
+            {{#activated}}
+            <div intro-outro='fly:{"x":0,"y":"0"}'>
+              <span class="discount-title">{{title}}</span>
+              <span class="remove-discount" on-click="removeDiscount(event, @index)"><i class="fa fa-times-circle-o"></i></span>
+            </div>
+            {{/if}}
+          {{/order.discount_coupons}}
+          <input type="text" placeholder="Enter your discount code" name="discount-code" value="{{.coupon}}"/>
+          <button class="boxoffice-button boxoffice-button-info" on-click="applyDiscount(event)">Apply</button>
+        </div>
         <div class="ticket-total {{#loadingPrice}}grey-out{{/}} clearfix">
           {{#loadingPrice && !isLoadingFail}}
             <div class="loader"><i class="fa fa-spinner fa-spin fa-2x"></i></div>
@@ -326,6 +338,16 @@
   .discount.applied {
     color: green;
   }
+  .discount-title,.remove-discount {
+    display: inline-block;
+    padding-right: 10px;
+    margin: 10px 0;
+    color: green;
+    font-size: 14px;
+  }
+  .remove-discount {
+    cursor: pointer;
+  }
   .ticket-description {
     font-size: 13px;
   }
@@ -419,6 +441,22 @@
       width: 40px;
     }
   }
+  .discount-code {
+    clear: both;
+    font-size: 15px;
+    float: right;
+    margin: 25px 0 0;
+  }
+  .discount-code input {
+    width: 202px;
+    padding: 3px 3px 3px 11px;
+    line-height: 1.42857;
+    height: 35px;
+    position: relative;
+    top: 2px;
+    border-radius: 5px;
+    border: 1px solid #eee;
+  }
   .item-amount {
     clear: both;
     font-size: 15px;
@@ -428,7 +466,7 @@
   }
   .ticket-total {
     clear: both;
-    width: 259px;
+    width: 271px;
     float: right;
     border: 2px solid #ccc;
     margin: 15px 0;
