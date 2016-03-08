@@ -142,14 +142,19 @@ class LineItem(BaseMixin, db.Model):
         final_amount and discount_policies populated
         """
         with db.session.no_autoflush:
+            item_line_items = dict()
             line_items = []
             for line_item_dict in line_item_dicts:
                 item = Item.query.get(line_item_dict.get('item_id'))
-                line_items.append(cls(item_id=item.id, base_amount=Price.current(item).amount))
+                if not item_line_items.get(unicode(item.id)):
+                    item_line_items[unicode(item.id)] = []
+                item_line_items[unicode(item.id)].append(cls(item_id=item.id, base_amount=Price.current(item).amount))
             coupon_list = list(set(coupons)) if coupons else []
-            line_items = discount.calculate_discounts(line_items, coupon_list)
-            for line_item in line_items:
-                line_item.final_amount = line_item.base_amount - line_item.discounted_amount
+            for item_id in item_line_items.keys():
+                item_line_items[item_id] = discount.calculate_discounts(item_line_items[item_id], coupon_list)
+                for line_item in item_line_items[item_id]:
+                    line_item.final_amount = line_item.base_amount - line_item.discounted_amount
+                line_items.extend(item_line_items[item_id])
             return line_items
 
     def cancel(self):

@@ -20,7 +20,8 @@ def jsonify_item(item):
             'item_collection_id': item.item_collection_id,
             'price': Price.current(item).amount,
             'discount_policies': [{'id': policy.id, 'title': policy.title}
-                                  for policy in item.discount_policies]
+                                  for policy in item.discount_policies
+                                  if policy.is_automatic()]
         }
 
 
