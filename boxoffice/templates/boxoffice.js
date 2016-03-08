@@ -59,22 +59,17 @@ $(function(){
       /* load inventory from server, initialize lineItems with
       their quantities set to 0 */
       data.categories.forEach(function(category) {
-        var isItemPresent = false;
         category.items.forEach(function(item) {
-          if(item) {
-            isItemPresent = true;
-            lineItems.push({
-              'item_id': item.id,
-              'item_name': item.name,
-              'quantity': 0,
-              'item_title': item.title,
-              'base_price': item.price,
-              'item_description': item.description,
-              'discount_policies': item.discount_policies
-            });
-          }
+          lineItems.push({
+            'item_id': item.id,
+            'item_name': item.name,
+            'quantity': 0,
+            'item_title': item.title,
+            'base_price': item.price,
+            'item_description': item.description,
+            'discount_policies': item.discount_policies
+          });
         });
-        category.isItemPresent = isItemPresent;
       });
 
       boxoffice.ractive = new Ractive({
