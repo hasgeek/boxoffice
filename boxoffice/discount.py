@@ -9,9 +9,13 @@ def calculate_discounts(line_items, coupons=[]):
     each supplied with an `item_id` and a `price`, this function,
     calculates the applicable discounts and assigns the relevant discount
     policy_id and the discounted amount to each line item.
+
+    Note: the list of line_items must have the same item_id.
     """
     if not line_items:
         return None
+    if len(set(line_item.item_id for line_item in line_items)) > 1:
+        raise ValueError("line_items must be of the same item_id")
 
     valid_discounts = get_valid_discounts(line_items, coupons)
     for line_item in line_items:

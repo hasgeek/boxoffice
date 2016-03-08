@@ -49,6 +49,9 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     def is_automatic(self):
         return self.discount_type == DISCOUNT_TYPES.AUTOMATIC
 
+    def is_coupon(self):
+        return self.discount_type == DISCOUNT_TYPES.COUPON
+
     def is_valid(self, quantity, coupons):
         return self.is_automatic_applicable() or self.is_coupon_applicable()
 
@@ -59,11 +62,7 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
         if not coupons:
             return discounts
 
-        valid_coupons = DiscountCoupon.query.filter(DiscountCoupon.code.in_(coupons),
-            DiscountCoupon.quantity_available > 0,
-            DiscountCoupon.discount_policy_id.in_([discount_policy.id
-                for discount_policy in item.discount_policies.filter(DiscountPolicy.discount_type == DISCOUNT_TYPES.COUPON)])).all()
-        for coupon in valid_coupons:
+        for coupon in DiscountCoupon.get_valid_coupons(item.discount_policies, coupons):
             discounts.append(coupon.discount_policy)
         return discounts
 
@@ -82,9 +81,15 @@ class DiscountCoupon(IdMixin, db.Model):
         db.CheckConstraint('quantity_available <= quantity_total', 'discount_coupon_quantity_check'))
 
     code = db.Column(db.Unicode(20), nullable=False, default=generate_coupon_code)
-    used_at = db.Column(db.DateTime, nullable=True)
     quantity_available = db.Column(db.Integer, default=0, nullable=False)
     quantity_total = db.Column(db.Integer, default=0, nullable=False)
 
     discount_policy_id = db.Column(None, db.ForeignKey('discount_policy.id'), nullable=False)
     discount_policy = db.relationship(DiscountPolicy, backref=db.backref('discount_coupons', cascade='all, delete-orphan'))
+
+    @classmethod
+    def get_valid_coupons(cls, discount_policies, coupons):
+        return cls.query.filter(cls.code.in_(coupons),
+            cls.quantity_available > 0,
+            cls.discount_policy_id.in_([discount_policy.id
+                for discount_policy in discount_policies.filter(DiscountPolicy.discount_type == DISCOUNT_TYPES.COUPON)])).all()

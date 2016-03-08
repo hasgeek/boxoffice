@@ -2,7 +2,7 @@ import random
 from datetime import datetime
 import decimal
 from collections import namedtuple
-from boxoffice.models import db, BaseMixin, User, Item, ItemCollection, Price
+from boxoffice.models import db, BaseMixin, User, Item, ItemCollection, Price, DiscountCoupon
 from coaster.utils import LabeledEnum, buid
 from baseframe import __
 from boxoffice import discount
@@ -118,7 +118,7 @@ class LineItem(BaseMixin, db.Model):
     item = db.relationship(Item, backref=db.backref('line_items', cascade='all, delete-orphan'))
 
     discount_policy_id = db.Column(None, db.ForeignKey('discount_policy.id'), nullable=True)
-    discount_policy = db.relationship('DiscountPolicy', backref=db.backref('line_items', cascade='all, delete-orphan'))
+    discount_policy = db.relationship('DiscountPolicy', backref=db.backref('line_items'))
 
     base_amount = db.Column(db.Numeric, default=decimal.Decimal(0), nullable=False)
     discounted_amount = db.Column(db.Numeric, default=decimal.Decimal(0), nullable=False)
