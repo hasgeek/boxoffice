@@ -138,13 +138,12 @@ $(function(){
           event.original.preventDefault();
           var lineItems = boxoffice.ractive.get('order.line_items');
           lineItems.forEach(function(lineItem) {
-            if(lineItem.item_name === item_name) {
-              if(increment) {
+            if (lineItem.item_name === item_name) {
+              if (increment) {
                 if (lineItem.quantity < quantityAvailable) {
                   lineItem.quantity += 1;
                 }
-              }
-              else if(lineItem.quantity !== 0) {
+              } else if (lineItem.quantity !== 0) {
                 lineItem.quantity -= 1;
               }
             }
@@ -162,8 +161,6 @@ $(function(){
         },
         calculateOrder: function() {
           // Asks the server for the order's calculation and updates the order
-          console.log('calculating');
-
           var lineItems = boxoffice.ractive.get('order.line_items').filter(function(line_item) {
             return line_item.quantity > 0;
           });
@@ -197,9 +194,11 @@ $(function(){
                   if (data.line_items.hasOwnProperty(line_item.item_id)) {
                     line_item.final_amount = data.line_items[line_item.item_id].final_amount;
                     line_item.discounted_amount = data.line_items[line_item.item_id].discounted_amount;
+
                     if (!readyToCheckout && data.line_items[line_item.item_id].quantity > 0) {
                       readyToCheckout = true;
                     }
+
                     line_item.discount_policies.forEach(function(discount_policy){
                       if (data.line_items[line_item.item_id].discount_policy_ids.indexOf(discount_policy.id) >= 0) {
                         discount_policy.activated = true;
@@ -346,25 +345,22 @@ $(function(){
               boxoffice.ractive.scrollTop();
             },
             error: function(response) {
-              ajaxLoad = this;
+              var ajaxLoad = this;
               ajaxLoad.retries -= 1;
-              if(response.readyState === 4) {
+              if (response.readyState === 4) {
                 boxoffice.ractive.set({
                   'tabs.payment.errorMsg': JSON.parse(response.responseText).message,
                   'tabs.payment.loadingOrder': false
                 });
-              }
-              else if(response.readyState === 0) {
+              } else if (response.readyState === 0) {
                 if(ajaxLoad.retries < 0) {
                   boxoffice.ractive.set({
                     'tabs.payment.errorMsg': "Unable to connect. Please try again later.",
                     'tabs.payment.loadingOrder': false
                   });
-                }
-                else {
-                  console.log("Order retry", this.retries);
+                } else {
                   setTimeout(function() {
-                    $.post(ajaxLoad) 
+                    $.post(ajaxLoad);
                   }, ajaxLoad.retryInterval);
                 }
               }
@@ -422,7 +418,7 @@ $(function(){
               });
             },
             error: function(response) {
-              ajaxLoad = this;
+              var ajaxLoad = this;
               ajaxLoad.retries -= 1;
               var errorMsg;
               if(response.readyState === 4) {
@@ -441,7 +437,6 @@ $(function(){
                   });
                 }
                 else {
-                  console.log("confirmPayment retry", this.retries);
                   setTimeout(function() {
                     $.post(ajaxLoad) 
                   }, ajaxLoad.retryInterval);
