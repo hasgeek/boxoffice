@@ -92,3 +92,16 @@ db.session.commit()
 coupon = DiscountCoupon(discount_policy=discount_coupon1, quantity_available=100, quantity_total=100)
 db.session.add(coupon)
 db.session.commit()
+
+speaker_discount = DiscountPolicy(title='100% discount for speaker coupons', item_quantity_min=1, item_quantity_max=1, percentage=100, organization=rootconf, discount_type=DISCOUNT_TYPES.COUPON)
+speaker_discount.items.append(conf_ticket)
+db.session.add(speaker_discount)
+db.session.commit()
+
+speaker1 = DiscountCoupon(code='speaker1', discount_policy=speaker_discount, quantity_available=1, quantity_total=1)
+db.session.add(speaker1)
+db.session.commit()
+
+speaker2 = DiscountCoupon(code='speaker2', discount_policy=speaker_discount, quantity_available=1, quantity_total=1)
+db.session.add(speaker2)
+db.session.commit()

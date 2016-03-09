@@ -1,6 +1,7 @@
 import decimal
 import itertools
 from boxoffice.models import Item, DiscountPolicy
+from copy import deepcopy
 
 
 def calculate_discounts(line_items, coupons=[]):
@@ -52,16 +53,19 @@ def apply_discount(discount, line_items, combo=False):
     Returns the line_items with the given discount_policy and
     the discounted amount assigned to each line item.
     """
-    for idx, line_item in enumerate(line_items):
+    applied_to_count = 0
+    line_items_copy = deepcopy(line_items)
+    for line_item in line_items_copy:
         discounted_amount = calculate_discounted_amount(discount.percentage, line_item.base_amount)
         if not line_item.discount_policy_id or (combo and line_item.discounted_amount < discounted_amount):
             line_item.discount_policy_id = discount.id
             line_item.discounted_amount = discounted_amount
-        if discount.item_quantity_max and idx + 1 == discount.item_quantity_max:
-            # If the upper limit on the discount's allowed item quantity
-            # is reached, break out of the loop.
-            break
-    return line_items
+            applied_to_count += 1
+            if discount.item_quantity_max and applied_to_count == discount.item_quantity_max:
+                # If the upper limit on the discount's allowed item quantity
+                # is reached, break out of the loop.
+                break
+    return line_items_copy
 
 
 def apply_combo_discount(discounts, line_items):
@@ -90,7 +94,6 @@ def apply_max_discount(discounts, line_items):
             discounted_line_items_list.append(apply_combo_discount(discount, line_items))
         else:
             discounted_line_items_list.append(apply_discount(discount, line_items))
-
     return max(discounted_line_items_list,
         key=lambda line_item_list: sum([line_item.discounted_amount for line_item in line_item_list]))
 
@@ -104,8 +107,9 @@ def get_combos(discounts, qty):
     # where n is the number of discounts
     for n in range(2, len(discounts) + 1):
         combos = list(itertools.combinations(discounts, n))
-        if qty >= sum([discount.item_quantity_min for combo in combos for discount in combo]):
-            # if number of line items is gte to number of items the discount policies
-            # as a combo supports, count it as a valid combo
-            valid_combos.extend(combos)
+        for combo in combos:
+            if sum([discount.item_quantity_min for discount in combo]) <= qty:
+                # if number of line items is gte to number of items the discount policies
+                # as a combo supports, count it as a valid combo
+                valid_combos.append(combo)
     return valid_combos
