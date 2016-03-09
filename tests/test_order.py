@@ -27,7 +27,6 @@ class TestOrder(unittest.TestCase):
             }
         resp = self.client.post('/rootconf/2016/order', data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest')])
         data = json.loads(resp.data)
-
         self.assertEquals(data['code'], 200)
         # 3500*2 = 7000
         self.assertEquals(data['final_amount'], 7000)
@@ -66,7 +65,6 @@ class TestOrder(unittest.TestCase):
                 'phone': '9814141414',
                 'email': 'test@hasgeek.com',
                 }
-
             }
         resp = self.client.post('/rootconf/2016/order', data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest')])
         data = json.loads(resp.data)

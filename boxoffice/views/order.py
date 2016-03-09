@@ -68,6 +68,7 @@ def kharcha():
         for _ in range(li_form.data.get('quantity'))], coupons=discount_coupons)
     items_json = jsonify_line_items(line_items)
     order_final_amount = sum([values['final_amount'] for values in items_json.values()])
+
     return jsonify(line_items=items_json, order={'final_amount': order_final_amount})
 
 
@@ -104,7 +105,12 @@ def order(organization, item_collection):
         buyer_fullname=buyer_form.fullname.data,
         buyer_phone=buyer_form.phone.data)
 
-    line_items = LineItem.build_list([li_form.data for li_form in line_item_forms], coupons=discount_coupons)
+    if not line_item_forms:
+        return api_result(400, 'Invalid items')
+    line_items = LineItem.build_list([{'item_id': li_form.data.get('item_id')}
+        for li_form in line_item_forms
+        for _ in range(li_form.data.get('quantity'))], coupons=discount_coupons)
+
     for line_item in line_items:
         line_item.order = order
         line_item.ordered_at = datetime.utcnow()
@@ -114,6 +120,7 @@ def order(organization, item_collection):
     return jsonify(code=200, order_id=order.id,
         order_access_token=order.access_token,
         order_hash=order.order_hash,
+        order_invoice_number=order.invoice_number,
         payment_url=url_for('payment', order=order.id),
         free_order_url=url_for('free', order=order.id),
         final_amount=order.get_amounts().final_amount)
@@ -168,6 +175,7 @@ def payment(order):
         transaction = PaymentTransaction(order=order, online_payment=online_payment, amount=order_amounts.final_amount)
         db.session.add(transaction)
         order.confirm_sale()
+        order.invoice()
         db.session.add(order)
         db.session.commit()
         boxofficeq.enqueue(send_invoice_email, order.id)

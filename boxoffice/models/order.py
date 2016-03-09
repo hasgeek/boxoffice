@@ -1,11 +1,11 @@
-import random
 from datetime import datetime
+from pytz import utc, timezone
 import decimal
 from collections import namedtuple
-from boxoffice.models import db, BaseMixin, User, Item, ItemCollection, Price, DiscountCoupon
+from boxoffice.models import db, BaseMixin, User, Item, ItemCollection, Price
 from coaster.utils import LabeledEnum, buid
 from baseframe import __
-from boxoffice import discount
+from boxoffice import discount, app
 
 __all__ = ['Order', 'LineItem', 'OnlinePayment', 'PaymentTransaction', 'ORDER_STATUS']
 
@@ -17,15 +17,27 @@ class ORDER_STATUS(LabeledEnum):
     CANCELLED = (3, __("Cancelled Order"))
 
 
+def localize(datetime, tz):
+    return utc.localize(datetime).astimezone(timezone(tz))
+
+
 def gen_order_hash():
-    return unicode(random.randrange(1, 9999999999))
+    return localize(datetime.utcnow(), app.config.get('TIMEZONE')).strftime('%b')
+
+
+def get_latest_invoice_number():
+    invoiced_order = Order.query.filter_by(status=ORDER_STATUS.INVOICE).order_by('created_at desc').first()
+    if invoiced_order:
+        return invoiced_order.invoice_number
+    return 0
 
 
 class Order(BaseMixin, db.Model):
     __tablename__ = 'customer_order'
     __uuid_primary_key__ = True
     __tableargs__ = (db.UniqueConstraint('item_collection_id', 'order_hash'),
-        db.UniqueConstraint('access_token'))
+        db.UniqueConstraint('access_token'),
+        db.UniqueConstraint('item_collection_id', 'invoice_number'))
 
     user_id = db.Column(None, db.ForeignKey('user.id'), nullable=True)
     user = db.relationship(User, backref=db.backref('orders', cascade='all, delete-orphan'))
@@ -46,6 +58,8 @@ class Order(BaseMixin, db.Model):
 
     order_hash = db.Column(db.Unicode(120), nullable=True, default=gen_order_hash)
 
+    invoice_number = db.Column(db.Integer, nullable=True)
+
     def confirm_sale(self):
         """
         Updates the status to Sales Order
@@ -56,6 +70,7 @@ class Order(BaseMixin, db.Model):
     def invoice(self):
         """Sets invoiced_at, status and order_hash"""
         self.invoiced_at = datetime.utcnow()
+        self.invoice_number = get_latest_invoice_number() + 1
         self.status = ORDER_STATUS.INVOICE
 
     def get_amounts(self):

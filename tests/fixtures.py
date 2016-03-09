@@ -6,6 +6,9 @@ from dateutil.relativedelta import relativedelta
 
 
 def init_data():
+    db.drop_all()
+    db.create_all()
+
     user = User(userid="U3_JesHfQ2OUmdihAXaAGQ", email="test@hasgeek.com")
     db.session.add(user)
     db.session.commit()
@@ -75,6 +78,19 @@ def init_data():
     db.session.add(discount_coupon1)
     db.session.commit()
 
-    coupon = DiscountCoupon(discount_policy=discount_coupon1, quantity_available=100, quantity_total=100)
-    db.session.add(coupon)
+    coupon1 = DiscountCoupon(code='coupon1', discount_policy=discount_coupon1, quantity_available=100, quantity_total=100)
+    db.session.add(coupon1)
+    db.session.commit()
+
+    discount_coupon2 = DiscountPolicy(title='100% discount', item_quantity_min=1, item_quantity_max=1, percentage=100, organization=rootconf, discount_type=DISCOUNT_TYPES.COUPON)
+    discount_coupon2.items.append(conf_ticket)
+    db.session.add(discount_coupon1)
+    db.session.commit()
+
+    coupon2 = DiscountCoupon(code='coupon2', discount_policy=discount_coupon2, quantity_available=100, quantity_total=100)
+    db.session.add(coupon2)
+    db.session.commit()
+
+    coupon3 = DiscountCoupon(code='coupon3', discount_policy=discount_coupon2, quantity_available=100, quantity_total=100)
+    db.session.add(coupon3)
     db.session.commit()
