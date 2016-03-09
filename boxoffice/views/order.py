@@ -7,7 +7,7 @@ from redis import Redis
 from coaster.views import load_models
 from boxoffice import app, ALLOWED_ORIGINS
 from boxoffice.models import db, Organization
-from boxoffice.models import ItemCollection, LineItem
+from boxoffice.models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy
 from boxoffice.models.order import Order, OnlinePayment, PaymentTransaction, User
 from boxoffice.extapi import razorpay
 from forms import LineItemForm, BuyerForm
@@ -41,7 +41,9 @@ def jsonify_line_items(line_items):
     for line_item in line_items:
         if not items_json.get(unicode(line_item.item_id)):
             items_json[unicode(line_item.item_id)] = {'quantity': 0, 'final_amount': decimal.Decimal(0), 'discounted_amount': decimal.Decimal(0), 'discount_policy_ids': []}
-        items_json[unicode(line_item.item_id)]['final_amount'] += line_item.final_amount
+        if not items_json[unicode(line_item.item_id)].get('final_amount'):
+            items_json[unicode(line_item.item_id)]['final_amount'] = decimal.Decimal(0)
+        items_json[unicode(line_item.item_id)]['final_amount'] += line_item.base_amount - line_item.discounted_amount
         items_json[unicode(line_item.item_id)]['discounted_amount'] += line_item.discounted_amount
         items_json[unicode(line_item.item_id)]['quantity'] += 1
         if line_item.discount_policy_id and line_item.discount_policy_id not in items_json[unicode(line_item.item_id)]['discount_policy_ids']:
@@ -68,7 +70,6 @@ def kharcha():
         for _ in range(li_form.data.get('quantity'))], coupons=discount_coupons)
     items_json = jsonify_line_items(line_items)
     order_final_amount = sum([values['final_amount'] for values in items_json.values()])
-
     return jsonify(line_items=items_json, order={'final_amount': order_final_amount})
 
 
@@ -107,15 +108,27 @@ def order(organization, item_collection):
 
     if not line_item_forms:
         return api_result(400, 'Invalid items')
-    line_items = LineItem.build_list([{'item_id': li_form.data.get('item_id')}
+    line_item_tups = LineItem.build_list([{'item_id': li_form.data.get('item_id')}
         for li_form in line_item_forms
         for _ in range(li_form.data.get('quantity'))], coupons=discount_coupons)
 
-    for line_item in line_items:
-        line_item.order = order
-        line_item.ordered_at = datetime.utcnow()
+    for line_item_tup in line_item_tups:
+        item = Item.query.get(line_item_tup.item_id)
+        policy = DiscountPolicy.query.get(line_item_tup.discount_policy_id)
+        line_item = LineItem(order=order, item=item, discount_policy=policy,
+            ordered_at=datetime.utcnow(),
+            base_amount=line_item_tup.base_amount,
+            discounted_amount=line_item_tup.discounted_amount,
+            final_amount=line_item_tup.base_amount-line_item_tup.discounted_amount)
         db.session.add(line_item)
-        # TODO Decrement code quantity if code is used
+
+    applied_discount_policy_ids = [li.discount_policy_id for li in line_item_tups]
+    valid_coupons = DiscountCoupon.get_valid_coupons(DiscountPolicy.query.filter(DiscountPolicy.id.in_(applied_discount_policy_ids)).all(), discount_coupons)
+    applied_coupons = [coupon for coupon in valid_coupons if coupon.discount_policy_id in applied_discount_policy_ids]
+    for applied_coupon in applied_coupons:
+        applied_coupon.use()
+        db.session.add(applied_coupon)
+        db.session.commit()
     db.session.add(order)
     db.session.commit()
     return jsonify(code=200, order_id=order.id,

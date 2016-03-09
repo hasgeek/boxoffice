@@ -63,7 +63,7 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
             return discounts
 
         for coupon in DiscountCoupon.get_valid_coupons(item.discount_policies, coupons):
-            discounts.append(coupon.discount_policy)
+            discounts.append((coupon.discount_policy, coupon))
         return discounts
 
 
@@ -77,7 +77,7 @@ class DiscountCoupon(IdMixin, db.Model):
     """
     __tablename__ = 'discount_coupon'
     __uuid_primary_key__ = True
-    __table_args__ = (db.UniqueConstraint('code', 'discount_policy_id'),
+    __table_args__ = (db.UniqueConstraint('discount_policy_id', 'code'),
         db.CheckConstraint('quantity_available <= quantity_total', 'discount_coupon_quantity_check'))
 
     code = db.Column(db.Unicode(20), nullable=False, default=generate_coupon_code)
@@ -93,3 +93,6 @@ class DiscountCoupon(IdMixin, db.Model):
             cls.quantity_available > 0,
             cls.discount_policy_id.in_([discount_policy.id
                 for discount_policy in discount_policies.filter(DiscountPolicy.discount_type == DISCOUNT_TYPES.COUPON)])).all()
+
+    def use(self):
+        self.quantity_available -= 1

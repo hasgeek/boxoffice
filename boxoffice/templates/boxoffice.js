@@ -44,6 +44,23 @@ $(function(){
 
   var boxoffice = window.Boxoffice;
 
+  window.getQueryParams = function(){
+    var searchStr = window.location.search.split('?');
+    if (searchStr.length > 1) {
+      return searchStr[1].split('&');
+    }
+    return [];
+  }
+
+  window.getCodes = function(){
+    return getQueryParams().map(function(param){
+      var paramSplit = param.split('=');
+      if (paramSplit[0] === 'code') {
+        return paramSplit[1];
+      }
+    })
+  }
+
   boxoffice.init = function(widgetConfig) {
     // Config variables provided by the client embedding the widget
     this.widgetConfig = widgetConfig;
@@ -182,7 +199,8 @@ $(function(){
                     quantity: line_item.quantity,
                     item_id: line_item.item_id
                   };
-                })
+                }),
+                discount_coupons: getCodes()
               }),
               timeout: 5000,
               retries: 5,
