@@ -115,6 +115,7 @@ def order(organization, item_collection):
         line_item.order = order
         line_item.ordered_at = datetime.utcnow()
         db.session.add(line_item)
+        # TODO Decrement code quantity if code is used
     db.session.add(order)
     db.session.commit()
     return jsonify(code=200, order_id=order.id,
