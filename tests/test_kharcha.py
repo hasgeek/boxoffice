@@ -89,11 +89,10 @@ class TestKharchaAPI(unittest.TestCase):
         coupon3 = DiscountCoupon.query.filter_by(code='coupon3').first()
         kharcha_req = {'line_items': [{'item_id': unicode(first_item.id), 'quantity': discounted_quantity}], 'discount_coupons': [coupon2.code, coupon3.code]}
 
-        print kharcha_req
         resp = self.client.post(url_for('kharcha'), data=json.dumps(kharcha_req), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest')])
         self.assertEquals(resp.status_code, 200)
         resp_json = json.loads(resp.get_data())
-        print resp_json
+
         base_amount = discounted_quantity * Price.current(first_item).amount
         discounted_amount = 2*Price.current(first_item).amount
         self.assertEquals(resp_json.get('line_items')[unicode(first_item.id)].get('final_amount'),

@@ -103,9 +103,11 @@ def upgrade():
     sa.Column('buyer_phone', sa.Unicode(length=16), nullable=False),
     sa.Column('order_hash', sa.Unicode(length=120), nullable=True),
     sa.Column('id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
+    sa.Column('invoice_number', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['item_collection_id'], ['item_collection.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('item_collection_id', 'invoice_number')
     )
     op.create_table('discount_coupon',
     sa.Column('code', sa.Unicode(length=20), nullable=False),
