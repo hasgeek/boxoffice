@@ -114,21 +114,25 @@ def order(organization, item_collection):
 
     for line_item_tup in line_item_tups:
         item = Item.query.get(line_item_tup.item_id)
-        policy = DiscountPolicy.query.get(line_item_tup.discount_policy_id)
+        if line_item_tup.discount_policy_id:
+            policy = DiscountPolicy.query.get(line_item_tup.discount_policy_id)
+        else:
+            policy = None
+        if line_item_tup.discount_coupon_id:
+            coupon = DiscountCoupon.query.get(line_item_tup.discount_coupon_id)
+        else:
+            coupon = None
         line_item = LineItem(order=order, item=item, discount_policy=policy,
+            discount_coupon=coupon,
             ordered_at=datetime.utcnow(),
             base_amount=line_item_tup.base_amount,
             discounted_amount=line_item_tup.discounted_amount,
             final_amount=line_item_tup.base_amount-line_item_tup.discounted_amount)
+        if coupon:
+            coupon.register_use()
+            db.session.add(coupon)
         db.session.add(line_item)
 
-    applied_discount_policy_ids = [li.discount_policy_id for li in line_item_tups]
-    valid_coupons = DiscountCoupon.get_valid_coupons(DiscountPolicy.query.filter(DiscountPolicy.id.in_(applied_discount_policy_ids)).all(), discount_coupons)
-    applied_coupons = [coupon for coupon in valid_coupons if coupon.discount_policy_id in applied_discount_policy_ids]
-    for applied_coupon in applied_coupons:
-        applied_coupon.use()
-        db.session.add(applied_coupon)
-        db.session.commit()
     db.session.add(order)
     db.session.commit()
     return jsonify(code=200, order_id=order.id,

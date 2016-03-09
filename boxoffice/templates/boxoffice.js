@@ -343,6 +343,7 @@ $(function(){
                   quantity: line_item.quantity
                 };
               }),
+              discount_coupons: getCodes()
             }),
             timeout: 5000,
             retries: 5,

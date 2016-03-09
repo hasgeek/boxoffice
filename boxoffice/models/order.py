@@ -157,7 +157,7 @@ class LineItem(BaseMixin, db.Model):
     @classmethod
     def make_tuple(cls, item_id, base_amount, discount_policy_id=None, discount_coupon_id=None, discount_amount=decimal.Decimal(0)):
         line_item_tup = namedtuple('LineItem', ['item_id', 'base_amount', 'discount_policy_id', 'discount_coupon_id', 'discounted_amount'])
-        return line_item_tup(item_id, base_amount, discount_policy_id, discount_amount)
+        return line_item_tup(item_id, base_amount, discount_policy_id, discount_coupon_id, discount_amount)
 
     @classmethod
     def build_list(cls, line_item_dicts, coupons=[]):
@@ -250,18 +250,14 @@ class LineItemDiscounter():
         should_apply_discount = True
         discounted_line_items = []
         applied_to_count = 0
-        if isinstance(discount, tuple):
-            discount_obj, coupon = discount
-        else:
-            discount_obj = discount
-            coupon = None
+        discount_obj, coupon = discount
         for line_item in line_items:
             discounted_amount = self.calculate_discounted_amount(discount_obj.percentage, line_item.base_amount)
             if should_apply_discount and (not line_item.discount_policy_id or (combo and line_item.discounted_amount < discounted_amount)):
                 if coupon:
                     discounted_line_items.append(LineItem.make_tuple(line_item.item_id, line_item.base_amount, discount_obj.id, coupon.id, discounted_amount))
                 else:
-                    discounted_line_items.append(LineItem.make_tuple(line_item.item_id, line_item.base_amount, discount_obj.id, coupon.id, discounted_amount))
+                    discounted_line_items.append(LineItem.make_tuple(line_item.item_id, line_item.base_amount, discount_obj.id, None, discounted_amount))
                 applied_to_count += 1
                 if discount_obj.item_quantity_max and applied_to_count == discount_obj.item_quantity_max:
                     # If the upper limit on the discount's allowed item quantity
@@ -270,7 +266,6 @@ class LineItemDiscounter():
             else:
                 # Copy the rest of the line items as they are
                 discounted_line_items.append(line_item)
-        print [li.discount_policy_id for li in discounted_line_items]
         return discounted_line_items
 
     def apply_combo_discount(self, discounts, line_items):
@@ -293,7 +288,7 @@ class LineItemDiscounter():
         discounted_line_items_list = []
 
         for discount in discounts:
-            if isinstance(discount, tuple):
+            if isinstance(discount[0], tuple):
                 # Combo discount
                 discounted_line_items_list.append(self.apply_combo_discount(discount, line_items))
             else:
@@ -311,7 +306,7 @@ class LineItemDiscounter():
         for n in range(2, len(discounts) + 1):
             combos = list(itertools.combinations(discounts, n))
             for combo in combos:
-                if sum([discount.item_quantity_min for discount in combo]) <= qty:
+                if sum([discount.item_quantity_min for discount, coupon in combo]) <= qty:
                     # if number of line items is gte to number of items the discount policies
                     # as a combo supports, count it as a valid combo
                     valid_combos.append(combo)

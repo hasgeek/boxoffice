@@ -57,14 +57,15 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
 
     @classmethod
     def get_from_item(cls, item, qty, coupons=[]):
-        discounts = item.discount_policies.filter(DiscountPolicy.discount_type == DISCOUNT_TYPES.AUTOMATIC,
+        automatic_discounts = item.discount_policies.filter(DiscountPolicy.discount_type == DISCOUNT_TYPES.AUTOMATIC,
             or_(DiscountPolicy.item_quantity_min <= qty, and_(DiscountPolicy.item_quantity_min <= qty, DiscountPolicy.item_quantity_max > qty))).all()
+        policies = [(discount, None) for discount in automatic_discounts]
         if not coupons:
-            return discounts
+            return policies
 
         for coupon in DiscountCoupon.get_valid_coupons(item.discount_policies, coupons):
-            discounts.append((coupon.discount_policy, coupon))
-        return discounts
+            policies.append((coupon.discount_policy, coupon))
+        return policies
 
 
 def generate_coupon_code(size=6, chars=string.ascii_uppercase + string.digits):
@@ -94,5 +95,5 @@ class DiscountCoupon(IdMixin, db.Model):
             cls.discount_policy_id.in_([discount_policy.id
                 for discount_policy in discount_policies.filter(DiscountPolicy.discount_type == DISCOUNT_TYPES.COUPON)])).all()
 
-    def use(self):
+    def register_use(self):
         self.quantity_available -= 1
