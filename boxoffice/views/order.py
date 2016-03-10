@@ -8,7 +8,7 @@ from coaster.views import load_models
 from boxoffice import app, ALLOWED_ORIGINS
 from boxoffice.models import db, Organization
 from boxoffice.models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy
-from boxoffice.models.order import Order, OnlinePayment, PaymentTransaction, User
+from boxoffice.models import Order, OnlinePayment, PaymentTransaction, User
 from boxoffice.extapi import razorpay
 from forms import LineItemForm, BuyerForm
 from boxoffice.mailclient import send_invoice_email
