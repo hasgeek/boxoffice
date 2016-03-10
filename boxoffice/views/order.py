@@ -122,6 +122,7 @@ def order(organization, item_collection):
             coupon = DiscountCoupon.query.get(line_item_tup.discount_coupon_id)
         else:
             coupon = None
+
         line_item = LineItem(order=order, item=item, discount_policy=policy,
             discount_coupon=coupon,
             ordered_at=datetime.utcnow(),
@@ -193,7 +194,6 @@ def payment(order):
         transaction = PaymentTransaction(order=order, online_payment=online_payment, amount=order_amounts.final_amount)
         db.session.add(transaction)
         order.confirm_sale()
-        order.invoice()
         db.session.add(order)
         db.session.commit()
         boxofficeq.enqueue(send_invoice_email, order.id)
