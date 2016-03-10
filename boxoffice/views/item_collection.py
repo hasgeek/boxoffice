@@ -42,6 +42,7 @@ def jsonify_category(category):
 
 
 @app.route('/boxoffice.js')
+@cross_origin(origins=ALLOWED_ORIGINS)
 def boxofficejs():
     return render_template('boxoffice.js',
                            base_url=app.config.get('BASE_URL'),

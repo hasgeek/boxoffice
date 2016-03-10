@@ -39,7 +39,7 @@ d[g].toUpperCase()&&(f=!0);return f},greater_than_date:function(a,c){var b=this.
 f})(window,document);"undefined"!==typeof module&&module.exports&&(module.exports=FormValidator);
 
 
-$(function(){
+$(function() {
   Ractive.DEBUG = false;
 
   var boxoffice = window.Boxoffice;
@@ -147,6 +147,7 @@ $(function(){
         selectItems: function(event) {
           // Makes the 'Select Items' tab active
           event.original.preventDefault();
+          boxoffice.ractive.fire('eventAnalytics', 'edit order', 'Edit order');
           boxoffice.ractive.set('activeTab', boxoffice.ractive.get('tabs.selectItems.id'));
           boxoffice.ractive.scrollTop();
         },
@@ -160,8 +161,10 @@ $(function(){
                 if (lineItem.quantity < quantityAvailable) {
                   lineItem.quantity += 1;
                 }
+                boxoffice.ractive.fire('eventAnalytics', 'add ticket', item_name);
               } else if (lineItem.quantity !== 0) {
                 lineItem.quantity -= 1;
+                boxoffice.ractive.fire('eventAnalytics', 'remove ticket', item_name);
               }
             }
             if(lineItem.quantity === 0) {
@@ -274,6 +277,7 @@ $(function(){
           // Transitions the widget to the 'Payment' stage, and initializes
           // the validator.
           event.original.preventDefault();
+          boxoffice.ractive.fire('eventAnalytics', 'checkout', 'Checkout');
           boxoffice.ractive.set( {
             'tabs.selectItems.complete': true,
             'activeTab': boxoffice.ractive.get('tabs.payment.id')
@@ -323,6 +327,7 @@ $(function(){
           });
         },
         sendOrder: function() {
+          boxoffice.ractive.fire('eventAnalytics', 'order creation', 'sendOrder');
           $.post({
             url: boxoffice.config.itemCollectionURL + '/order',
             crossDomain: true,
@@ -389,6 +394,7 @@ $(function(){
         },
         capturePayment: function(paymentUrl, razorpay_payment_id){
           // Opens the Razorpay widget, on success calls confirmPayment
+          boxoffice.ractive.fire('eventAnalytics', 'initiate payment', 'capturePayment');
           var razorPayOptions = {
             "key": boxoffice.config.razorpayKeyId,
             //Razorpay expects amount in paisa
@@ -410,6 +416,11 @@ $(function(){
             },
             "theme": {
               "color": "#F37254"
+            },
+            "modal": {
+              "ondismiss": function() {
+                boxoffice.ractive.fire('eventAnalytics', 'dismiss payment form', 'razorPay close');
+              }
             }
           };
           var razorpay = new Razorpay(razorPayOptions);
@@ -418,6 +429,7 @@ $(function(){
         confirmPayment: function(paymentUrl, paymentID) {
           // Sends the paymentId to the server, transitions the state to 'Confirm'
           boxoffice.ractive.set('tabs.payment.loadingPaymentConfirmation', true);
+          boxoffice.ractive.fire('eventAnalytics', 'capture payment', 'confirmPayment');
           $.post({
             url: boxoffice.config.baseURL + paymentUrl,
             crossDomain: true,
@@ -436,6 +448,7 @@ $(function(){
                 'activeTab': boxoffice.ractive.get('tabs.confirm.id'),
                 'tabs.confirm.section.cashReceiptURL': cashReceiptURL
               });
+              boxoffice.ractive.fire('eventAnalytics', 'booking complete', 'confirmPayment success');
             },
             error: function(response) {
               var ajaxLoad = this;
@@ -483,6 +496,7 @@ $(function(){
                 'activeTab': boxoffice.ractive.get('tabs.confirm.id'),
                 'tabs.confirm.section.cashReceiptURL': cashReceiptURL
               });
+              boxoffice.ractive.fire('eventAnalytics', 'booking complete', 'completeFreeOrder success');
             },
             error: function(response) {
               ajaxLoad = this;
@@ -508,6 +522,13 @@ $(function(){
                   }, ajaxLoad.retryInterval);
                 }
               }
+            }
+          });
+        },
+        oncomplete: function() {
+          boxoffice.ractive.on('eventAnalytics', function(userAction, label) {
+            if(typeof g != "undefined") {
+              ga('send', { hitType: 'event', eventCategory: 'ticketing', eventAction: userAction, eventLabel: label});
             }
           });
         }
