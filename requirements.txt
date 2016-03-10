@@ -10,7 +10,6 @@ git+https://github.com/hasgeek/baseframe
 jsmin
 pytz
 psycopg2
-pdfkit
 flask-cors
 wtforms_json
 rq
