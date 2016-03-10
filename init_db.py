@@ -42,7 +42,7 @@ price = Price(item=conf_ticket, title='Super Early Geek', valid_from=date.today(
 db.session.add(price)
 db.session.commit()
 
-single_day_conf_ticket = Item(title='Single Day', description='<p><i class="fa fa-calendar"></i>14 April 2016</p><p><i class="fa fa-map-marker ticket-venue"></i>MLR Convention Center, JP Nagar</p><p>This ticket gets you access to rootconf conference on 14th April 2016.</p>', item_collection=rc2016, category=Category.query.filter_by(name='conference').first(), quantity_available=100, quantity_total=1000)
+single_day_conf_ticket = Item(title='Single Day 1', description='<p><i class="fa fa-calendar"></i>14 April 2016</p><p><i class="fa fa-map-marker ticket-venue"></i>MLR Convention Center, JP Nagar</p><p>This ticket gets you access to rootconf conference on 14th April 2016.</p>', item_collection=rc2016, category=Category.query.filter_by(name='conference').first(), quantity_available=100, quantity_total=1000)
 db.session.add(single_day_conf_ticket)
 db.session.commit()
 
@@ -50,7 +50,7 @@ single_day_price = Price(item=single_day_conf_ticket, title='Single Day', valid_
 db.session.add(single_day_price)
 db.session.commit()
 
-single_day2_conf_ticket = Item(title='Single Day', description='<p><i class="fa fa-calendar"></i>15 April 2016</p><p><i class="fa fa-map-marker ticket-venue"></i>MLR Convention Center, JP Nagar</p><p>This ticket gets you access to rootconf conference on 15th April 2016.</p>', item_collection=rc2016, category=Category.query.filter_by(name='conference').first(), quantity_available=100, quantity_total=1000)
+single_day2_conf_ticket = Item(title='Single Day 2', description='<p><i class="fa fa-calendar"></i>15 April 2016</p><p><i class="fa fa-map-marker ticket-venue"></i>MLR Convention Center, JP Nagar</p><p>This ticket gets you access to rootconf conference on 15th April 2016.</p>', item_collection=rc2016, category=Category.query.filter_by(name='conference').first(), quantity_available=100, quantity_total=1000)
 db.session.add(single_day2_conf_ticket)
 db.session.commit()
 

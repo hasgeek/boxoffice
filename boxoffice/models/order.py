@@ -26,11 +26,13 @@ def gen_order_hash():
     return localize(datetime.utcnow(), app.config.get('TIMEZONE')).strftime('%b')
 
 
-def get_latest_invoice_number():
-    invoiced_order = Order.query.filter_by(status=ORDER_STATUS.INVOICE).order_by('created_at desc').first()
-    if invoiced_order:
-        return invoiced_order.invoice_number
-    return 0
+def get_latest_invoice_number(item_collection):
+    """
+    Returns the last invoice number used, 0 if no order has ben invoiced yet.
+    """
+    invoiced_order = Order.query.filter_by(item_collection=item_collection,
+        status=ORDER_STATUS.INVOICE).order_by('created_at desc').first()
+    return invoiced_order.invoice_number if invoiced_order else 0
 
 
 class Order(BaseMixin, db.Model):
@@ -71,7 +73,7 @@ class Order(BaseMixin, db.Model):
     def invoice(self):
         """Sets invoiced_at, status and order_hash"""
         self.invoiced_at = datetime.utcnow()
-        self.invoice_number = get_latest_invoice_number() + 1
+        self.invoice_number = get_latest_invoice_number(self.item_collection) + 1
         self.status = ORDER_STATUS.INVOICE
 
     def get_amounts(self):
@@ -102,18 +104,6 @@ class Order(BaseMixin, db.Model):
 class LINE_ITEM_STATUS(LabeledEnum):
     CONFIRMED = (0, __("Confirmed"))
     CANCELLED = (1, __("Cancelled"))
-
-
-# line_item_payment_transaction = db.Table('line_item_payment_transaction', db.Model.metadata,
-#     db.Column('line_item_id', None, db.ForeignKey('line_item.id'), primary_key=True),
-#     db.Column('payment_transaction_id', None, db.ForeignKey('payment_transaction.id'), primary_key=True),
-#     db.Column('created_at', db.DateTime, default=datetime.utcnow, nullable=False))
-
-
-# line_item_discount_policy = db.Table('line_item_discount_policy', db.Model.metadata,
-#     db.Column('line_item_id', None, db.ForeignKey('line_item.id'), primary_key=True),
-#     db.Column('discount_policy_id', None, db.ForeignKey('discount_policy.id'), primary_key=True),
-#     db.Column('created_at', db.DateTime, default=datetime.utcnow, nullable=False))
 
 
 class LineItem(BaseMixin, db.Model):
@@ -150,9 +140,6 @@ class LineItem(BaseMixin, db.Model):
     assignee_email = db.Column(db.Unicode(254), nullable=True)
     assignee_fullname = db.Column(db.Unicode(80), nullable=True)
     assignee_phone = db.Column(db.Unicode(16), nullable=True)
-
-    # payment_transactions = db.relationship('PaymentTransaction', secondary=line_item_payment_transaction)
-    # tax_amount = db.Column(db.Numeric, default=0.0, nullable=False)
 
     @classmethod
     def make_tuple(cls, item_id, base_amount, discount_policy_id=None, discount_coupon_id=None, discount_amount=decimal.Decimal(0)):
