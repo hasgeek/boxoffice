@@ -162,7 +162,7 @@ def free(order):
         db.session.commit()
         return jsonify(code=200)
     else:
-        return api_result(402, 'Payment capture failed')
+        return api_result(402, 'Free order confirmation failed')
 
 
 @app.route('/<order>/payment', methods=['GET', 'OPTIONS', 'POST'])

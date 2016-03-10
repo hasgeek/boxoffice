@@ -43,8 +43,11 @@ $(function() {
   Ractive.DEBUG = false;
 
   var boxoffice = window.Boxoffice;
+  boxoffice.util = {};
 
-  window.getQueryParams = function(){
+  boxoffice.util.getQueryParams = function(){
+    // Returns an array of query parameters
+    // Eg: "?code=xxx&cody=yyy" -> ["code=xxx", "code=yyy"]
     var searchStr = window.location.search.split('?');
     if (searchStr.length > 1) {
       return searchStr[1].split('&');
@@ -52,8 +55,10 @@ $(function() {
     return [];
   }
 
-  window.getCodes = function(){
-    return getQueryParams().map(function(param){
+  boxoffice.util.getCodes = function(){
+    // Returns an array of codes used
+    //Eg: "?code=xxx&cody=yyy" -> ["xxx", "yyy"]
+    return boxoffice.util.getQueryParams().map(function(param){
       var paramSplit = param.split('=');
       if (paramSplit[0] === 'code') {
         return paramSplit[1];
@@ -167,7 +172,7 @@ $(function() {
                 boxoffice.ractive.fire('eventAnalytics', 'remove ticket', item_name);
               }
             }
-            if(lineItem.quantity === 0) {
+            if (lineItem.quantity === 0) {
               lineItem.discounted_amount = 0;
               lineItem.final_amount = 0;
             }
@@ -203,7 +208,7 @@ $(function() {
                     item_id: line_item.item_id
                   };
                 }),
-                discount_coupons: getCodes()
+                discount_coupons: boxoffice.util.getCodes()
               }),
               timeout: 5000,
               retries: 5,
@@ -212,6 +217,7 @@ $(function() {
                 var line_items = boxoffice.ractive.get('order.line_items');
                 var readyToCheckout = false;
                 line_items.forEach(function(line_item){
+                  // TODO: Refactor this to iterate through data.line_items
                   if (data.line_items.hasOwnProperty(line_item.item_id) && line_item.quantity ===  data.line_items[line_item.item_id].quantity) {
                     line_item.final_amount = data.line_items[line_item.item_id].final_amount;
                     line_item.discounted_amount = data.line_items[line_item.item_id].discounted_amount;
@@ -242,7 +248,7 @@ $(function() {
                 });
               },
               error: function(response) {
-                ajaxLoad = this;
+                var ajaxLoad = this;
                 ajaxLoad.retries -= 1;
                 if(response.readyState === 4) {
                   boxoffice.ractive.set({
@@ -251,8 +257,8 @@ $(function() {
                     'order.readyToCheckout': false
                   });
                 }
-                else if(response.readyState === 0) {
-                  if(ajaxLoad.retries < 0) {
+                else if (response.readyState === 0) {
+                  if (ajaxLoad.retries < 0) {
                     boxoffice.ractive.set({
                       'tabs.selectItems.errorMsg': "Unable to connect. Please try again later.",
                       'tabs.selectItems.isLoadingFail': true,
@@ -312,15 +318,13 @@ $(function() {
 
           formValidator.registerCallback('validate_phone', function(phone) {
             var validPhone = /^\+[0-9]+$/;
-            if(phone.match(validPhone))
-            {
+            if(phone.match(validPhone)) {
               //Indian number starting with '+91'
               if (phone.indexOf('+91') === 0 && phone.length != 13) {
                 formValidator.setMessage('validate_phone', 'This does not appear to be a valid Indian mobile number');
                 return false;
               }
-            } else
-            {
+            } else {
               formValidator.setMessage('validate_phone', 'Phone number must be in international format with a leading + symbol');
               return false;
             }
@@ -348,7 +352,7 @@ $(function() {
                   quantity: line_item.quantity
                 };
               }),
-              discount_coupons: getCodes()
+              discount_coupons: boxoffice.util.getCodes()
             }),
             timeout: 5000,
             retries: 5,
@@ -499,7 +503,7 @@ $(function() {
               boxoffice.ractive.fire('eventAnalytics', 'booking complete', 'completeFreeOrder success');
             },
             error: function(response) {
-              ajaxLoad = this;
+              var ajaxLoad = this;
               ajaxLoad.retries -= 1;
               var errorMsg;
               if(response.readyState === 4) {
@@ -527,7 +531,7 @@ $(function() {
         },
         oncomplete: function() {
           boxoffice.ractive.on('eventAnalytics', function(userAction, label) {
-            if(typeof g != "undefined") {
+            if(typeof g !== "undefined") {
               ga('send', { hitType: 'event', eventCategory: 'ticketing', eventAction: userAction, eventLabel: label});
             }
           });
