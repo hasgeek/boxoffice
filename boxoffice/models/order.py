@@ -56,9 +56,7 @@ class Order(BaseMixin, db.Model):
     invoice_no = db.Column(db.Integer, nullable=True)
 
     def confirm_sale(self):
-        """
-        Updates the status to Sales Order
-        """
+        """Updates the status to ORDER_STATUS.SALES_ORDER"""
         self.invoice_no = get_latest_invoice_no(self.organization) + 1
         self.status = ORDER_STATUS.SALES_ORDER
         self.paid_at = datetime.utcnow()
@@ -83,14 +81,14 @@ class Order(BaseMixin, db.Model):
         order_amounts = namedtuple('OrderAmounts', ['base_amount', 'discounted_amount', 'final_amount'])
         return order_amounts(base_amount, discounted_amount, final_amount)
 
-    def cancel(self):
-        """
-        Cancels the order and all the associated line items.
-        """
-        for line_item in LineItem.get_confirmed(self):
-            line_item.cancel()
-        self.status = ORDER_STATUS.CANCELLED
-        self.cancelled_at = datetime.utcnow()
+    # def cancel(self):
+    #     """
+    #     Cancels the order and all the associated line items.
+    #     """
+    #     for line_item in LineItem.get_confirmed(self):
+    #         line_item.cancel()
+    #     self.status = ORDER_STATUS.CANCELLED
+    #     self.cancelled_at = datetime.utcnow()
 
 
 class LINE_ITEM_STATUS(LabeledEnum):
@@ -100,12 +98,8 @@ class LINE_ITEM_STATUS(LabeledEnum):
 
 class LineItem(BaseMixin, db.Model):
     """
-    Line Items MUST NOT be modified OR deleted, they must only be created or cancelled.
-    As an example, if a user requests the quantity to be changed from x to y, following is
-    the workflow to manage such a transaction:
-        1. Cancel the original line item.
-        2. Create a new line item with the requested 'y' quantity.
-        3. Compute the order total, and issue a refund if required.
+    Note: Line Items MUST NOT be deleted.
+    They must only be cancelled.
     """
     __tablename__ = 'line_item'
     __uuid_primary_key__ = True
@@ -141,8 +135,8 @@ class LineItem(BaseMixin, db.Model):
     @classmethod
     def calculate(cls, line_item_dicts, coupons=[]):
         """
-        Returns line_item_dicts with the respective base_amount, discount_amount,
-        final_amount and discount_policies populated
+        Returns line item tuples with the respective base_amount, discounted_amount,
+        final_amount, discount_policy and discount coupon populated
         """
         item_line_items = dict()
         line_items = []
@@ -158,38 +152,33 @@ class LineItem(BaseMixin, db.Model):
             line_items.extend(item_line_items[item_id])
         return line_items
 
-    def cancel(self):
-        """
-        Sets status and cancelled_at. To update the quantity
-        create, a new line item with the required quantity
-        """
-        self.status = LINE_ITEM_STATUS.CANCELLED
-        self.cancelled_at = datetime.utcnow()
+    # def cancel(self):
+    #     """
+    #     Sets status and cancelled_at. To update the quantity
+    #     create, a new line item with the required quantity
+    #     """
+    #     self.status = LINE_ITEM_STATUS.CANCELLED
+    #     self.cancelled_at = datetime.utcnow()
 
-    @classmethod
-    def get_confirmed(cls, order):
-        """
-        Returns an order's confirmed line items.
-        """
-        return cls.query.filter_by(order=order, status=LINE_ITEM_STATUS.CONFIRMED).all()
+    # @classmethod
+    # def get_confirmed(cls, order):
+    #     """
+    #     Returns an order's confirmed line items.
+    #     """
+    #     return cls.query.filter_by(order=order, status=LINE_ITEM_STATUS.CONFIRMED).all()
 
-    @classmethod
-    def get_cancelled(cls, order):
-        """
-        Returns an order's cancelled line items.
-        """
-        return cls.query.filter_by(order=order, status=LINE_ITEM_STATUS.CANCELLED).all()
+    # @classmethod
+    # def get_cancelled(cls, order):
+    #     """
+    #     Returns an order's cancelled line items.
+    #     """
+    #     return cls.query.filter_by(order=order, status=LINE_ITEM_STATUS.CANCELLED).all()
 
 
 class LineItemDiscounter():
     def get_discounted_line_items(self, line_items, coupons=[]):
         """
-        Given a list of line items, as named tuples or db objects,
-        each supplied with an `item_id` and a `price`, this function,
-        calculates the applicable discounts and assigns the relevant discount
-        policy_id and the discounted amount to each line item.
-
-        Note: the list of line_items must have the same item_id.
+        Returns line items with the maximum possible discount applied.
         """
         if not line_items:
             return None
@@ -312,13 +301,8 @@ class OnlinePayment(BaseMixin, db.Model):
     """
     __tablename__ = 'online_payment'
     __uuid_primary_key__ = True
-    customer_order_id = db.Column(None,
-                                  db.ForeignKey('customer_order.id'),
-                                  nullable=False)
-    order = db.relationship(Order,
-                            backref=db.backref('online_payments',
-                                               cascade='all, delete-orphan',
-                                               lazy="dynamic"))
+    customer_order_id = db.Column(None, db.ForeignKey('customer_order.id'), nullable=False)
+    order = db.relationship(Order, backref=db.backref('online_payments', cascade='all, delete-orphan'))
 
     # Payment id issued by the payment gateway
     pg_payment_id = db.Column(db.Unicode(80), nullable=False)
@@ -369,4 +353,3 @@ class PaymentTransaction(BaseMixin, db.Model):
     currency = db.Column(db.Unicode(3), nullable=False, default=u'INR')
     transaction_type = db.Column(db.Integer, default=TRANSACTION_TYPES.PAYMENT, nullable=False)
     transaction_method = db.Column(db.Integer, default=TRANSACTION_METHODS.ONLINE, nullable=False)
-    # line_items = db.relationship('LineItem', secondary=line_item_payment_transaction)
