@@ -45,7 +45,7 @@ $(function() {
   var boxoffice = window.Boxoffice;
   boxoffice.util = {};
 
-  boxoffice.util.getQueryParams = function(){
+  boxoffice.util.getQueryParams = function() {
     // Returns an array of query parameters
     // Eg: "?code=xxx&cody=yyy" -> ["code=xxx", "code=yyy"]
     var searchStr = window.location.search.split('?');
@@ -53,9 +53,9 @@ $(function() {
       return searchStr[1].split('&');
     }
     return [];
-  }
+  };
 
-  boxoffice.util.getCodes = function(){
+  boxoffice.util.getCodes = function() {
     // Returns an array of codes used
     //Eg: "?code=xxx&cody=yyy" -> ["xxx", "yyy"]
     return boxoffice.util.getQueryParams().map(function(param){
@@ -63,8 +63,14 @@ $(function() {
       if (paramSplit[0] === 'code') {
         return paramSplit[1];
       }
-    })
-  }
+    });
+  };
+
+  boxoffice.util.formatDate = function(valid_upto) {
+    // Returns date in the format 00:00:00 AM, Sun Apr 10 2016
+    var date = new Date(valid_upto);
+    return date.toLocaleTimeString(['en-US'], {hour: '2-digit', minute: '2-digit'}) + ", " + date.toDateString();
+  };
 
   boxoffice.init = function(widgetConfig) {
     // Config variables provided by the client embedding the widget
@@ -78,11 +84,6 @@ $(function() {
     }).done(function(data) {
       var lineItems = [];
 
-      var formatDate = function(date) {
-        var date = new Date(date);
-        return date.toLocaleTimeString() + ", " + date.toDateString();
-      }
-
       /* load inventory from server, initialize lineItems with
       their quantities set to 0 */
       data.categories.forEach(function(category) {
@@ -95,7 +96,7 @@ $(function() {
             'base_price': item.price,
             'item_description': item.description,
             'price_category': item.price_category,
-            'price_valid_upto': formatDate(item.price_valid_upto),
+            'price_valid_upto': boxoffice.util.formatDate(item.price_valid_upto),
             'discount_policies': item.discount_policies
           });
         });
@@ -273,7 +274,7 @@ $(function() {
                     });
                   } else {
                     setTimeout(function() {
-                      $.post(ajaxLoad)
+                      $.post(ajaxLoad);
                     }, ajaxLoad.retryInterval);
                   }
                 }
@@ -325,7 +326,7 @@ $(function() {
 
           formValidator.registerCallback('validate_phone', function(phone) {
             var validPhone = /^\+[0-9]+$/;
-            if(phone.match(validPhone)) {
+            if (phone.match(validPhone)) {
               //Indian number starting with '+91'
               if (phone.indexOf('+91') === 0 && phone.length != 13) {
                 formValidator.setMessage('validate_phone', 'This does not appear to be a valid Indian mobile number');
@@ -466,7 +467,7 @@ $(function() {
               ajaxLoad.retries -= 1;
               var errorMsg;
               if(response.readyState === 4) {
-                errorMsg = JSON.parse(response.responseText).message + "Sorry, something went wrong. We will get in touch with you shortly. This is your order number " + boxoffice.ractive.get('order.order_hash') + ".";
+                errorMsg = JSON.parse(response.responseText).message + " Sorry, something went wrong. We will get in touch with you shortly. This is your order number " + boxoffice.ractive.get('order.order_hash') + ".";
                 boxoffice.ractive.set({
                   'tabs.payment.errorMsg': errorMsg,
                   'tabs.payment.loadingPaymentConfirmation': false
@@ -481,7 +482,7 @@ $(function() {
                   });
                 } else {
                   setTimeout(function() {
-                    $.post(ajaxLoad) 
+                    $.post(ajaxLoad);
                   }, ajaxLoad.retryInterval);
                 }
               }
@@ -514,7 +515,7 @@ $(function() {
               ajaxLoad.retries -= 1;
               var errorMsg;
               if(response.readyState === 4) {
-                errorMsg = JSON.parse(response.responseText).message + "Sorry, something went wrong. We will get in touch with you shortly. This is your order number " + boxoffice.ractive.get('order.order_hash') + ".";
+                errorMsg = JSON.parse(response.responseText).message + " Sorry, something went wrong. We will get in touch with you shortly. This is your order number " + boxoffice.ractive.get('order.order_hash') + ".";
                 boxoffice.ractive.set({
                   'tabs.payment.errorMsg': errorMsg,
                   'tabs.payment.loadingPaymentConfirmation': false
@@ -529,7 +530,7 @@ $(function() {
                   });
                 } else {
                   setTimeout(function() {
-                    $.post(ajaxLoad) 
+                    $.post(ajaxLoad);
                   }, ajaxLoad.retryInterval);
                 }
               }
@@ -538,7 +539,7 @@ $(function() {
         },
         oncomplete: function() {
           boxoffice.ractive.on('eventAnalytics', function(userAction, label) {
-            if(typeof g !== "undefined") {
+            if(typeof ga !== "undefined") {
               ga('send', { hitType: 'event', eventCategory: 'ticketing', eventAction: userAction, eventLabel: label});
             }
           });
