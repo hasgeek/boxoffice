@@ -1,6 +1,5 @@
 import itertools
 from datetime import datetime
-from pytz import utc, timezone
 import decimal
 from collections import namedtuple
 from boxoffice.models import db, BaseMixin, User, Item, Price, DiscountPolicy
@@ -17,17 +16,13 @@ class ORDER_STATUS(LabeledEnum):
     CANCELLED = (3, __("Cancelled Order"))
 
 
-def localize(datetime, tz):
-    return utc.localize(datetime).astimezone(timezone(tz))
-
-
 def get_latest_invoice_no(organization):
     """
     Returns the last invoice number used, 0 if no order has ben invoiced yet.
     """
     order = Order.query.filter_by(organization=organization,
         status=ORDER_STATUS.SALES_ORDER).order_by('created_at desc').first()
-    return order.invoice_no if order.invoice_no else 0
+    return order.invoice_no if order else 0
 
 
 class Order(BaseMixin, db.Model):

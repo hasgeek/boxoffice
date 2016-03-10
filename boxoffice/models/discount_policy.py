@@ -23,7 +23,7 @@ item_discount_policy = db.Table('item_discount_policy', db.Model.metadata,
 
 class DiscountPolicy(BaseScopedNameMixin, db.Model):
     """
-    Consists of discount rules for prices applied on items
+    Consists of the discount rules applicable on items
     """
     __tablename__ = 'discount_policy'
     __uuid_primary_key__ = True
@@ -52,11 +52,12 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     def is_coupon(self):
         return self.discount_type == DISCOUNT_TYPES.COUPON
 
-    def is_valid(self, quantity, coupons):
-        return self.is_automatic_applicable() or self.is_coupon_applicable()
-
     @classmethod
     def get_from_item(cls, item, qty, coupons=[]):
+        """
+        Returns a list of (discount_policy, discount_coupon) tuples
+        applicable for an item, given the quantity of line items and coupons if any.
+        """
         automatic_discounts = item.discount_policies.filter(DiscountPolicy.discount_type == DISCOUNT_TYPES.AUTOMATIC,
             or_(DiscountPolicy.item_quantity_min <= qty, and_(DiscountPolicy.item_quantity_min <= qty, DiscountPolicy.item_quantity_max > qty))).all()
         policies = [(discount, None) for discount in automatic_discounts]
@@ -73,9 +74,6 @@ def generate_coupon_code(size=6, chars=string.ascii_uppercase + string.digits):
 
 
 class DiscountCoupon(IdMixin, db.Model):
-    """
-    Represents used discount coupons
-    """
     __tablename__ = 'discount_coupon'
     __uuid_primary_key__ = True
     __table_args__ = (db.UniqueConstraint('discount_policy_id', 'code'),
@@ -89,11 +87,17 @@ class DiscountCoupon(IdMixin, db.Model):
     discount_policy = db.relationship(DiscountPolicy, backref=db.backref('discount_coupons', cascade='all, delete-orphan'))
 
     @classmethod
-    def get_valid_coupons(cls, discount_policies, coupons):
-        return cls.query.filter(cls.code.in_(coupons),
+    def get_valid_coupons(cls, discount_policies, codes):
+        """
+        Returns valid coupons, given a list of discount policies and discount codes
+        """
+        return cls.query.filter(cls.code.in_(codes),
             cls.quantity_available > 0,
             cls.discount_policy_id.in_([discount_policy.id
                 for discount_policy in discount_policies.filter(DiscountPolicy.discount_type == DISCOUNT_TYPES.COUPON)])).all()
 
     def register_use(self):
+        """
+        Decrement the quantity available by 1 to register usage.
+        """
         self.quantity_available -= 1

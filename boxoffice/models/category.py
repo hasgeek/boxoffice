@@ -8,11 +8,8 @@ class Category(BaseScopedNameMixin, db.Model):
     __tablename__ = 'category'
     __tableargs__ = (db.UniqueConstraint('item_collection_id', 'name'),)
 
-    item_collection_id = db.Column(None,
-                                   db.ForeignKey('item_collection.id'),
-                                   nullable=False)
-    item_collection = db.relationship(ItemCollection,
-                                      backref=db.backref('categories', cascade='all, delete-orphan'))  # noqa
+    item_collection_id = db.Column(None, db.ForeignKey('item_collection.id'), nullable=False)
+    item_collection = db.relationship(ItemCollection, backref=db.backref('categories', cascade='all, delete-orphan'))
 
     parent = db.synonym('item_collection')
 

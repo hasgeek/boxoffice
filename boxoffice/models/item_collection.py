@@ -4,6 +4,9 @@ __all__ = ['ItemCollection']
 
 
 class ItemCollection(BaseScopedNameMixin, db.Model):
+    """
+    Represents a collection of items or an inventory.
+    """
     __tablename__ = 'item_collection'
     __uuid_primary_key__ = True
     __tableargs__ = (db.UniqueConstraint('organization_id', 'name'),)
