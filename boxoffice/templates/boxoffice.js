@@ -108,7 +108,6 @@ $(function() {
           order: {
             order_id: '',
             access_token: '',
-            order_hash: '',
             line_items: lineItems,
             final_amount: 0.0,
             readyToCheckout: false
@@ -370,7 +369,6 @@ $(function() {
                 'tabs.payment.errorMsg' : '',
                 'order.order_id': data.order_id,
                 'order.access_token': data.order_access_token,
-                'order.order_hash': data.order_hash,
                 'order.final_amount': data.final_amount
               });
               if (boxoffice.ractive.get('order.final_amount') === 0){
@@ -466,7 +464,7 @@ $(function() {
               ajaxLoad.retries -= 1;
               var errorMsg;
               if(response.readyState === 4) {
-                errorMsg = JSON.parse(response.responseText).message + "Sorry, something went wrong. We will get in touch with you shortly. This is your order number " + boxoffice.ractive.get('order.order_hash') + ".";
+                errorMsg = JSON.parse(response.responseText).message + "Sorry, something went wrong. We will get in touch with you shortly. This is your order id " + boxoffice.ractive.get('order.order_id') + ".";
                 boxoffice.ractive.set({
                   'tabs.payment.errorMsg': errorMsg,
                   'tabs.payment.loadingPaymentConfirmation': false
@@ -474,7 +472,7 @@ $(function() {
               }
               else if(response.readyState === 0) {
                 if(ajaxLoad.retries < 0) {
-                  errorMsg = "Unable to connect. Please write to us at support@hasgeek.com with your order number " + boxoffice.ractive.get('order.order_hash') + ".";
+                  errorMsg = "Unable to connect. Please write to us at support@hasgeek.com with your order id " + boxoffice.ractive.get('order.order_id') + ".";
                   boxoffice.ractive.set({
                     'tabs.payment.errorMsg': errorMsg,
                     'tabs.payment.loadingPaymentConfirmation': false
@@ -514,7 +512,7 @@ $(function() {
               ajaxLoad.retries -= 1;
               var errorMsg;
               if(response.readyState === 4) {
-                errorMsg = JSON.parse(response.responseText).message + "Sorry, something went wrong. We will get in touch with you shortly. This is your order number " + boxoffice.ractive.get('order.order_hash') + ".";
+                errorMsg = JSON.parse(response.responseText).message + "Sorry, something went wrong. We will get in touch with you shortly. This is your order id " + boxoffice.ractive.get('order.order_id') + ".";
                 boxoffice.ractive.set({
                   'tabs.payment.errorMsg': errorMsg,
                   'tabs.payment.loadingPaymentConfirmation': false
@@ -522,7 +520,7 @@ $(function() {
               }
               else if(response.readyState === 0) {
                 if(ajaxLoad.retries < 0) {
-                  errorMsg = "Unable to connect. Please write to us at support@hasgeek.com with your order number " + boxoffice.ractive.get('order.order_hash') + ".";
+                  errorMsg = "Unable to connect. Please write to us at support@hasgeek.com with your order id " + boxoffice.ractive.get('order.order_id') + ".";
                   boxoffice.ractive.set({
                     'tabs.payment.errorMsg': errorMsg,
                     'tabs.payment.loadingPaymentConfirmation': false

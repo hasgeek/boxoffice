@@ -91,6 +91,7 @@ def upgrade():
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=True),
+    sa.Column('organization_id', sa.Integer(), nullable=False),
     sa.Column('item_collection_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
     sa.Column('status', sa.Integer(), nullable=False),
     sa.Column('initiated_at', sa.DateTime(), nullable=False),
@@ -103,11 +104,12 @@ def upgrade():
     sa.Column('buyer_phone', sa.Unicode(length=16), nullable=False),
     sa.Column('order_hash', sa.Unicode(length=120), nullable=True),
     sa.Column('id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
-    sa.Column('invoice_number', sa.Integer(), nullable=True),
+    sa.Column('invoice_no', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['organization_id'], ['organization.id'], ),
     sa.ForeignKeyConstraint(['item_collection_id'], ['item_collection.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('item_collection_id', 'invoice_number')
+    sa.UniqueConstraint('organization_id', 'invoice_no')
     )
     op.create_table('discount_coupon',
     sa.Column('code', sa.Unicode(length=20), nullable=False),
