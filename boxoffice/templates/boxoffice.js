@@ -534,7 +534,7 @@ $(function() {
         },
         oncomplete: function() {
           boxoffice.ractive.on('eventAnalytics', function(userAction, label) {
-            if(typeof g != "undefined") {
+            if(typeof ga != "undefined") {
               ga('send', { hitType: 'event', eventCategory: 'ticketing', eventAction: userAction, eventLabel: label});
             }
           });
