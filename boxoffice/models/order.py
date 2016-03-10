@@ -3,10 +3,9 @@ from datetime import datetime
 from pytz import utc, timezone
 import decimal
 from collections import namedtuple
-from boxoffice.models import db, BaseMixin, User, Item, ItemCollection, Price, DiscountPolicy
+from boxoffice.models import db, BaseMixin, User, Item, Price, DiscountPolicy
 from coaster.utils import LabeledEnum, buid
 from baseframe import __
-from boxoffice import app
 
 __all__ = ['Order', 'LineItem', 'OnlinePayment', 'PaymentTransaction', 'ORDER_STATUS']
 
@@ -22,30 +21,30 @@ def localize(datetime, tz):
     return utc.localize(datetime).astimezone(timezone(tz))
 
 
-def gen_order_hash():
-    return localize(datetime.utcnow(), app.config.get('TIMEZONE')).strftime('%b')
-
-
-def get_latest_invoice_number(item_collection):
+def get_latest_invoice_no(organization):
     """
     Returns the last invoice number used, 0 if no order has ben invoiced yet.
     """
-    invoiced_order = Order.query.filter_by(item_collection=item_collection,
-        status=ORDER_STATUS.INVOICE).order_by('created_at desc').first()
-    return invoiced_order.invoice_number if invoiced_order else 0
+    order = Order.query.filter_by(organization=organization,
+        status=ORDER_STATUS.SALES_ORDER).order_by('created_at desc').first()
+    return order.invoice_no if order.invoice_no else 0
 
 
 class Order(BaseMixin, db.Model):
     __tablename__ = 'customer_order'
     __uuid_primary_key__ = True
-    __tableargs__ = (db.UniqueConstraint('item_collection_id', 'order_hash'),
+    __tableargs__ = (db.UniqueConstraint('organization_id', 'invoice_no'),
         db.UniqueConstraint('access_token'),
-        db.UniqueConstraint('item_collection_id', 'invoice_number'))
+        db.UniqueConstraint('item_collection_id', 'invoice_no'))
 
     user_id = db.Column(None, db.ForeignKey('user.id'), nullable=True)
     user = db.relationship(User, backref=db.backref('orders', cascade='all, delete-orphan'))
     item_collection_id = db.Column(None, db.ForeignKey('item_collection.id'), nullable=False)
-    item_collection = db.relationship(ItemCollection, backref=db.backref('orders', cascade='all, delete-orphan', lazy="dynamic"))  # noqa
+    item_collection = db.relationship('ItemCollection', backref=db.backref('orders', cascade='all, delete-orphan', lazy="dynamic"))  # noqa
+
+    organization_id = db.Column(None, db.ForeignKey('organization.id'), nullable=False)
+    organization = db.relationship('Organization', backref=db.backref('orders', cascade='all, delete-orphan', lazy="dynamic"))  # noqa
+
     status = db.Column(db.Integer, default=ORDER_STATUS.PURCHASE_ORDER, nullable=False)
 
     initiated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
@@ -59,21 +58,19 @@ class Order(BaseMixin, db.Model):
     buyer_fullname = db.Column(db.Unicode(80), nullable=False)
     buyer_phone = db.Column(db.Unicode(16), nullable=False)
 
-    order_hash = db.Column(db.Unicode(120), nullable=True, default=gen_order_hash)
-
-    invoice_number = db.Column(db.Integer, nullable=True)
+    invoice_no = db.Column(db.Integer, nullable=True)
 
     def confirm_sale(self):
         """
         Updates the status to Sales Order
         """
+        self.invoice_no = get_latest_invoice_no(self.organization) + 1
         self.status = ORDER_STATUS.SALES_ORDER
         self.paid_at = datetime.utcnow()
 
     def invoice(self):
-        """Sets invoiced_at, status and order_hash"""
+        """Sets invoiced_at, status"""
         self.invoiced_at = datetime.utcnow()
-        self.invoice_number = get_latest_invoice_number(self.item_collection) + 1
         self.status = ORDER_STATUS.INVOICE
 
     def get_amounts(self):

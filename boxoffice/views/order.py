@@ -101,6 +101,7 @@ def order(organization, item_collection):
 
     user = User.query.filter_by(email=buyer_form.email.data).first()
     order = Order(user=user,
+        organization=organization,
         item_collection=item_collection,
         buyer_email=buyer_form.email.data,
         buyer_fullname=buyer_form.fullname.data,
@@ -138,8 +139,6 @@ def order(organization, item_collection):
     db.session.commit()
     return jsonify(code=200, order_id=order.id,
         order_access_token=order.access_token,
-        order_hash=order.order_hash,
-        order_invoice_number=order.invoice_number,
         payment_url=url_for('payment', order=order.id),
         free_order_url=url_for('free', order=order.id),
         final_amount=order.get_amounts().final_amount)
