@@ -144,7 +144,7 @@ class LineItem(BaseMixin, db.Model):
         return line_item_tup(item_id, base_amount, discount_policy_id, discount_coupon_id, discount_amount)
 
     @classmethod
-    def build_list(cls, line_item_dicts, coupons=[]):
+    def calculate(cls, line_item_dicts, coupons=[]):
         """
         Returns line_item_dicts with the respective base_amount, discount_amount,
         final_amount and discount_policies populated

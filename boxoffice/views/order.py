@@ -18,25 +18,11 @@ redis_connection = Redis()
 boxofficeq = Queue('boxoffice', connection=redis_connection)
 
 
-def discount_policy_dict(dp, activated):
-    return {
-        'id': dp.id,
-        'activated': activated,
-        'title': dp.title
-    }
-
-
-def line_item_dict(line_item):
-    return {
-        'item_id': line_item.item_id,
-        'base_amount': line_item.base_amount,
-        'discounted_amount': line_item.discounted_amount,
-        'final_amount': line_item.final_amount,
-        'discount_policy_id': line_item.discount_policy_id
-    }
-
-
 def jsonify_line_items(line_items):
+    """
+    Serializes and return line items in the format:
+    {item_id: {'quantity': Y, 'final_amount': Z, 'discounted_amount': Z, 'discount_policy_ids': ['d1', 'd2']}}
+    """
     items_json = dict()
     for line_item in line_items:
         if not items_json.get(unicode(line_item.item_id)):
@@ -58,14 +44,15 @@ def kharcha():
     """
     Accepts JSON containing an array of line_items, with the quantity and item_id set for each line_item.
 
-    Returns JSON, containing an array of line_items with the base_amount, discounted_amount, final_amount
-    and discount_policies set for each line item.
+    Returns JSON of line items in the format:
+    {item_id: {'quantity': Y, 'final_amount': Z, 'discounted_amount': Z, 'discount_policy_ids': ['d1', 'd2']}}
     """
     line_item_forms = LineItemForm.process_list(request.json.get('line_items'))
-    discount_coupons = request.json.get('discount_coupons') or []
+    discount_coupons = request.json.get('discount_coupons')
     if not line_item_forms:
         return api_result(400, 'Invalid items')
-    line_items = LineItem.build_list([{'item_id': li_form.data.get('item_id')}
+    # Make line item splits and compute amounts and discounts
+    line_items = LineItem.calculate([{'item_id': li_form.data.get('item_id')}
         for li_form in line_item_forms
         for _ in range(li_form.data.get('quantity'))], coupons=discount_coupons)
     items_json = jsonify_line_items(line_items)
@@ -107,9 +94,7 @@ def order(organization, item_collection):
         buyer_fullname=buyer_form.fullname.data,
         buyer_phone=buyer_form.phone.data)
 
-    if not line_item_forms:
-        return api_result(400, 'Invalid items')
-    line_item_tups = LineItem.build_list([{'item_id': li_form.data.get('item_id')}
+    line_item_tups = LineItem.calculate([{'item_id': li_form.data.get('item_id')}
         for li_form in line_item_forms
         for _ in range(li_form.data.get('quantity'))], coupons=discount_coupons)
 

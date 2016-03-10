@@ -18,7 +18,7 @@ def jsonify_item(item):
             'quantity_total': item.quantity_total,
             'category_id': item.category_id,
             'item_collection_id': item.item_collection_id,
-            'price': Price.current(item).amount,
+            'price': price.amount,
             'price_category': price.title,
             'price_valid_upto': price.valid_upto,
             'discount_policies': [{'id': policy.id, 'title': policy.title}
