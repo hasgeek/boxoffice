@@ -103,9 +103,11 @@ def upgrade():
     sa.Column('buyer_phone', sa.Unicode(length=16), nullable=False),
     sa.Column('order_hash', sa.Unicode(length=120), nullable=True),
     sa.Column('id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
+    sa.Column('invoice_number', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['item_collection_id'], ['item_collection.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('item_collection_id', 'invoice_number')
     )
     op.create_table('discount_coupon',
     sa.Column('code', sa.Unicode(length=20), nullable=False),
@@ -161,6 +163,7 @@ def upgrade():
     sa.Column('customer_order_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
     sa.Column('item_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
     sa.Column('discount_policy_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=True),
+    sa.Column('discount_coupon_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=True),
     sa.Column('base_amount', sa.Numeric(), nullable=False),
     sa.Column('discounted_amount', sa.Numeric(), nullable=False),
     sa.Column('final_amount', sa.Numeric(), nullable=False),
@@ -175,6 +178,7 @@ def upgrade():
     sa.Column('id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
     sa.ForeignKeyConstraint(['customer_order_id'], ['customer_order.id'], ),
     sa.ForeignKeyConstraint(['discount_policy_id'], ['discount_policy.id'], ),
+    sa.ForeignKeyConstraint(['discount_coupon_id'], ['discount_coupon.id'], ),
     sa.ForeignKeyConstraint(['item_id'], ['item.id'], ),
     sa.PrimaryKeyConstraint('id')
     )

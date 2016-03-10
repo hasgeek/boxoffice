@@ -7,7 +7,7 @@ from redis import Redis
 from coaster.views import load_models
 from boxoffice import app, ALLOWED_ORIGINS
 from boxoffice.models import db, Organization
-from boxoffice.models import ItemCollection, LineItem
+from boxoffice.models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy
 from boxoffice.models.order import Order, OnlinePayment, PaymentTransaction, User
 from boxoffice.extapi import razorpay
 from forms import LineItemForm, BuyerForm
@@ -41,7 +41,9 @@ def jsonify_line_items(line_items):
     for line_item in line_items:
         if not items_json.get(unicode(line_item.item_id)):
             items_json[unicode(line_item.item_id)] = {'quantity': 0, 'final_amount': decimal.Decimal(0), 'discounted_amount': decimal.Decimal(0), 'discount_policy_ids': []}
-        items_json[unicode(line_item.item_id)]['final_amount'] += line_item.final_amount
+        if not items_json[unicode(line_item.item_id)].get('final_amount'):
+            items_json[unicode(line_item.item_id)]['final_amount'] = decimal.Decimal(0)
+        items_json[unicode(line_item.item_id)]['final_amount'] += line_item.base_amount - line_item.discounted_amount
         items_json[unicode(line_item.item_id)]['discounted_amount'] += line_item.discounted_amount
         items_json[unicode(line_item.item_id)]['quantity'] += 1
         if line_item.discount_policy_id and line_item.discount_policy_id not in items_json[unicode(line_item.item_id)]['discount_policy_ids']:
@@ -104,16 +106,39 @@ def order(organization, item_collection):
         buyer_fullname=buyer_form.fullname.data,
         buyer_phone=buyer_form.phone.data)
 
-    line_items = LineItem.build_list([li_form.data for li_form in line_item_forms], coupons=discount_coupons)
-    for line_item in line_items:
-        line_item.order = order
-        line_item.ordered_at = datetime.utcnow()
+    if not line_item_forms:
+        return api_result(400, 'Invalid items')
+    line_item_tups = LineItem.build_list([{'item_id': li_form.data.get('item_id')}
+        for li_form in line_item_forms
+        for _ in range(li_form.data.get('quantity'))], coupons=discount_coupons)
+
+    for line_item_tup in line_item_tups:
+        item = Item.query.get(line_item_tup.item_id)
+        if line_item_tup.discount_policy_id:
+            policy = DiscountPolicy.query.get(line_item_tup.discount_policy_id)
+        else:
+            policy = None
+        if line_item_tup.discount_coupon_id:
+            coupon = DiscountCoupon.query.get(line_item_tup.discount_coupon_id)
+        else:
+            coupon = None
+        line_item = LineItem(order=order, item=item, discount_policy=policy,
+            discount_coupon=coupon,
+            ordered_at=datetime.utcnow(),
+            base_amount=line_item_tup.base_amount,
+            discounted_amount=line_item_tup.discounted_amount,
+            final_amount=line_item_tup.base_amount-line_item_tup.discounted_amount)
+        if coupon:
+            coupon.register_use()
+            db.session.add(coupon)
         db.session.add(line_item)
+
     db.session.add(order)
     db.session.commit()
     return jsonify(code=200, order_id=order.id,
         order_access_token=order.access_token,
         order_hash=order.order_hash,
+        order_invoice_number=order.invoice_number,
         payment_url=url_for('payment', order=order.id),
         free_order_url=url_for('free', order=order.id),
         final_amount=order.get_amounts().final_amount)
@@ -168,6 +193,7 @@ def payment(order):
         transaction = PaymentTransaction(order=order, online_payment=online_payment, amount=order_amounts.final_amount)
         db.session.add(transaction)
         order.confirm_sale()
+        order.invoice()
         db.session.add(order)
         db.session.commit()
         boxofficeq.enqueue(send_invoice_email, order.id)
