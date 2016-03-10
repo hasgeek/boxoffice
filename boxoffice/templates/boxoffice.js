@@ -78,6 +78,11 @@ $(function() {
     }).done(function(data) {
       var lineItems = [];
 
+      var formatDate = function(date) {
+        var date = new Date(date);
+        return date.toLocaleTimeString() + ", " + date.toDateString();
+      }
+
       /* load inventory from server, initialize lineItems with
       their quantities set to 0 */
       data.categories.forEach(function(category) {
@@ -89,6 +94,8 @@ $(function() {
             'item_title': item.title,
             'base_price': item.price,
             'item_description': item.description,
+            'price_category': item.price_category,
+            'price_valid_upto': formatDate(item.price_valid_upto),
             'discount_policies': item.discount_policies
           });
         });

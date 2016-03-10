@@ -58,11 +58,11 @@ single_day2_price = Price(item=single_day2_conf_ticket, title='Single Day', vali
 db.session.add(single_day2_price)
 db.session.commit()
 
-tshirt = Item(title='T-shirt', description='Rootconf', item_collection=rc2016, category=Category.query.filter_by(name='merchandise').first(), quantity_available=100, quantity_total=1000)
+tshirt = Item(title='T-shirt', description='Rootconf conference T-shirt', item_collection=rc2016, category=Category.query.filter_by(name='merchandise').first(), quantity_available=100, quantity_total=1000)
 db.session.add(tshirt)
 db.session.commit()
 
-tshirt_price = Price(item=tshirt, title='T-shirt', valid_from=date.today(), valid_upto=one_month_from_now, amount=500)
+tshirt_price = Price(item=tshirt, title='Regular', valid_from=date.today(), valid_upto=one_month_from_now, amount=500)
 db.session.add(tshirt_price)
 db.session.commit()
 
@@ -70,13 +70,18 @@ dns_workshop = Item(title='DNSSEC workshop', description='<p><i class="fa fa-cal
 db.session.add(dns_workshop)
 db.session.commit()
 
-dns_workshop_price = Price(item=dns_workshop, title='DNSSEC workshop early', valid_from=date.today(), valid_upto=one_month_from_now, amount=2500)
+dns_workshop_price = Price(item=dns_workshop, title='Early Geek', valid_from=date.today(), valid_upto=one_month_from_now, amount=2500)
 db.session.add(dns_workshop_price)
 db.session.commit()
 
 policy = DiscountPolicy(title='10% discount on 10 or more tickets', item_quantity_min=10, percentage=10, organization=rootconf)
 policy.items.append(conf_ticket)
 db.session.add(policy)
+db.session.commit()
+
+policy2 = DiscountPolicy(title='5% discount on 5 or more tickets', item_quantity_min=5, percentage=5, organization=rootconf)
+policy2.items.append(conf_ticket)
+db.session.add(policy2)
 db.session.commit()
 
 tshirt_policy = DiscountPolicy(title='5% discount on 5 or more t-shirts', item_quantity_min=5, percentage=5, organization=rootconf)
@@ -89,7 +94,7 @@ discount_coupon1.items.append(conf_ticket)
 db.session.add(discount_coupon1)
 db.session.commit()
 
-coupon = DiscountCoupon(discount_policy=discount_coupon1, quantity_available=100, quantity_total=100)
+coupon = DiscountCoupon(code='xyzer', discount_policy=discount_coupon1, quantity_available=100, quantity_total=100)
 db.session.add(coupon)
 db.session.commit()
 
@@ -105,3 +110,17 @@ db.session.commit()
 speaker2 = DiscountCoupon(code='speaker2', discount_policy=speaker_discount, quantity_available=1, quantity_total=1)
 db.session.add(speaker2)
 db.session.commit()
+
+discount_coupon2 = DiscountPolicy(title='20% discount for workshop ticket', item_quantity_min=1, item_quantity_max=1, percentage=20, organization=rootconf, discount_type=DISCOUNT_TYPES.COUPON)
+discount_coupon2.items.append(dns_workshop)
+db.session.add(discount_coupon2)
+db.session.commit()
+
+coupon1 = DiscountCoupon(code='wert34', discount_policy=discount_coupon2, quantity_available=100, quantity_total=100)
+db.session.add(coupon1)
+db.session.commit()
+
+
+
+
+
