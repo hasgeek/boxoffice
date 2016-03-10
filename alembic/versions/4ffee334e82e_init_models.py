@@ -74,7 +74,8 @@ def upgrade():
     sa.Column('title', sa.Unicode(length=250), nullable=False),
     sa.Column('id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
     sa.ForeignKeyConstraint(['organization_id'], ['organization.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('organization_id', 'name')
     )
     op.create_table('category',
     sa.Column('created_at', sa.DateTime(), nullable=False),
@@ -102,7 +103,6 @@ def upgrade():
     sa.Column('buyer_email', sa.Unicode(length=254), nullable=False),
     sa.Column('buyer_fullname', sa.Unicode(length=80), nullable=False),
     sa.Column('buyer_phone', sa.Unicode(length=16), nullable=False),
-    sa.Column('order_hash', sa.Unicode(length=120), nullable=True),
     sa.Column('id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
     sa.Column('invoice_no', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['organization_id'], ['organization.id'], ),
@@ -137,7 +137,8 @@ def upgrade():
     sa.ForeignKeyConstraint(['category_id'], ['category.id'], ),
     sa.ForeignKeyConstraint(['item_collection_id'], ['item_collection.id'], ),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('item_collection_id', 'name')
+    sa.UniqueConstraint('item_collection_id', 'name'),
+    sa.CheckConstraint(u'quantity_available <= quantity_total', name='item_quantity_available_lte_quantity_total_check')
     )
     op.create_table('online_payment',
     sa.Column('created_at', sa.DateTime(), nullable=False),
