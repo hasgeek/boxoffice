@@ -102,7 +102,9 @@
                 <div class="item-summary">
                   <p class="booked-ticket-title"><i class="fa fa-ticket"></i>{{ line_item.item_title }}</p>
                   <p class="booked-ticket-qty">Qty: {{ line_item.quantity }} &times; <i class="fa fa-inr"></i> {{line_item.base_price}}</p>
-                  <p class="booked-ticket-qty">Discount: <i class="fa fa-inr"></i> {{line_item.discounted_amount}}</p>
+                  {{#line_item.discounted_amount}}
+                    <p class="booked-ticket-qty">Discount: <i class="fa fa-inr"></i> {{line_item.discounted_amount}}</p>
+                  {{/line_item.discounted_amount}}
                   {{#line_item.discount_policies}}
                     {{#if activated}}
                     <p class="discount-applied">Applied: {{ title }}</p>
@@ -120,7 +122,7 @@
               Checkout {{#loadingOrder}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'>{{/}}
             </button>
           </div>
-          {{#errorMsg }}
+          {{#errorMsg}}
             <p class="stage-error-msg text-danger">{{ errorMsg }}</p>
           {{/}}
         </form> 
@@ -133,7 +135,7 @@
           <div class="confirmation-msg">
             <p>Hello {{buyer.name}},</p>
             <p>Your payment has been successful.</p>
-            <p>We have sent you a confirmation email with the <a href="{{ cashReceiptURL }}" target="_blank" class="boxoffice-button boxoffice-button-info receipt-button">cash receipt</a></p>
+            <p>We have sent you a confirmation email with the <a href="{{ cashReceiptURL }}" target="_blank" class="boxoffice-button boxoffice-button-info receipt-button" on-click="fire('eventAnalytics','view cash receipt', 'cash receipt')">cash receipt</a></p>
             <p>We will get in touch with you shortly for the attendee details.</p>
             <p class="service-policy-msg">Please refer to our <a href="https://hasgeek.com/about/policy/" target="_blank">terms of service and refund policy</a>. For further queries, please write to us at <a href="mailto:support@hasgeek.com">support@hasgeek.com</a> or call us at <a href="tel:+917676332020">+91 7676 33 2020</a>.</p>
             <p>Tell your friends!</p>
