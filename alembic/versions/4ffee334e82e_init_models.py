@@ -184,7 +184,7 @@ def upgrade():
         sa.ForeignKeyConstraint(['discount_policy_id'], ['discount_policy.id'], ),
         sa.ForeignKeyConstraint(['discount_coupon_id'], ['discount_coupon.id'], ),
         sa.ForeignKeyConstraint(['item_id'], ['item.id'], ),
-        sa.UniqueConstraint('order_id', 'line_item_no'),
+        sa.UniqueConstraint('customer_order_id', 'line_item_no'),
         sa.PrimaryKeyConstraint('id')
     )
     op.create_table('payment_transaction',
