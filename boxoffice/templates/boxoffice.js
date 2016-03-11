@@ -55,7 +55,7 @@ $(function() {
     return [];
   };
 
-  boxoffice.util.getCodes = function() {
+  boxoffice.util.getDiscountCodes = function() {
     // Returns an array of codes used
     //Eg: "?code=xxx&cody=yyy" -> ["xxx", "yyy"]
     return boxoffice.util.getQueryParams().map(function(param){
@@ -215,7 +215,7 @@ $(function() {
                     item_id: line_item.item_id
                   };
                 }),
-                discount_coupons: boxoffice.util.getCodes()
+                discount_coupons: boxoffice.util.getDiscountCodes()
               }),
               timeout: 5000,
               retries: 5,
@@ -359,7 +359,7 @@ $(function() {
                   quantity: line_item.quantity
                 };
               }),
-              discount_coupons: boxoffice.util.getCodes()
+              discount_coupons: boxoffice.util.getDiscountCodes()
             }),
             timeout: 5000,
             retries: 5,
