@@ -98,7 +98,7 @@ def order(organization, item_collection):
         for li_form in line_item_forms
         for _ in range(li_form.data.get('quantity'))], coupons=discount_coupons)
 
-    for line_item_tup in line_item_tups:
+    for idx, line_item_tup in enumerate(line_item_tups):
         item = Item.query.get(line_item_tup.item_id)
         if line_item_tup.discount_policy_id:
             policy = DiscountPolicy.query.get(line_item_tup.discount_policy_id)
@@ -110,6 +110,7 @@ def order(organization, item_collection):
             coupon = None
 
         line_item = LineItem(order=order, item=item, discount_policy=policy,
+            line_item_no=idx+1,
             discount_coupon=coupon,
             ordered_at=datetime.utcnow(),
             base_amount=line_item_tup.base_amount,

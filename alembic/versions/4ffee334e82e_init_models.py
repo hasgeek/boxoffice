@@ -178,11 +178,13 @@ def upgrade():
     sa.Column('assignee_email', sa.Unicode(length=254), nullable=True),
     sa.Column('assignee_fullname', sa.Unicode(length=80), nullable=True),
     sa.Column('assignee_phone', sa.Unicode(length=16), nullable=True),
+    sa.Column('line_item_no', sa.Integer(), nullable=False),
     sa.Column('id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
     sa.ForeignKeyConstraint(['customer_order_id'], ['customer_order.id'], ),
     sa.ForeignKeyConstraint(['discount_policy_id'], ['discount_policy.id'], ),
     sa.ForeignKeyConstraint(['discount_coupon_id'], ['discount_coupon.id'], ),
     sa.ForeignKeyConstraint(['item_id'], ['item.id'], ),
+    sa.UniqueConstraint('order_id', 'line_item_no'),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('payment_transaction',

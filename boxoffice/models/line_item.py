@@ -20,8 +20,11 @@ class LineItem(BaseMixin, db.Model):
     """
     __tablename__ = 'line_item'
     __uuid_primary_key__ = True
+    __tableargs__ = (db.UniqueConstraint('order_id', 'line_item_no'),)
+
     customer_order_id = db.Column(None, db.ForeignKey('customer_order.id'), nullable=False)
     order = db.relationship(Order, backref=db.backref('line_items', cascade='all, delete-orphan'))
+    line_item_no = db.Column(db.Integer, nullable=False)
 
     item_id = db.Column(None, db.ForeignKey('item.id'), nullable=False)
     item = db.relationship(Item, backref=db.backref('line_items', cascade='all, delete-orphan'))
