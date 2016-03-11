@@ -6,121 +6,120 @@
   <title>Invoice</title>  
   <link rel="stylesheet" href="{{ url_for('static', filename='css/font-awesome.min.css') }}">
   <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400italic,600italic,400,600" />
-
   <style type="text/css">
-* { 
-  margin: 0; 
-  padding: 0; 
-}
+    * { 
+      margin: 0; 
+      padding: 0; 
+    }
 
-body { 
-  font-family: "Source Sans Pro",Arial,sans-serif;
-  font-size: 16px;
-  line-height: 1.5;
-  color: #333;
-  background-color: #fff
-}
+    body { 
+      font-family: "Source Sans Pro",Arial,sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      color: #333;
+      background-color: #fff
+    }
 
-a {
-  text-decoration: none;
-}
+    a {
+      text-decoration: none;
+    }
 
-.clearfix:after, .clearfix:before { 
-  clear: both; 
-  display: table; 
-  content: " "; 
-}
+    .clearfix:after, .clearfix:before { 
+      clear: both; 
+      display: table; 
+      content: " "; 
+    }
 
-.wrapper { 
-  width: 800px; 
-  margin: 20px auto; 
-}
+    .wrapper { 
+      width: 800px; 
+      margin: 20px auto; 
+    }
 
-.header { 
-  font-size: 40px; 
-  text-align: center; 
-  margin-bottom: 30px; 
-  padding-bottom: 10px; 
-  border-bottom: 1px solid #000;
-}
+    .header { 
+      font-size: 40px; 
+      text-align: center; 
+      margin-bottom: 30px; 
+      padding-bottom: 10px; 
+      border-bottom: 1px solid #000;
+    }
 
-.company-details { 
-  margin-bottom: 40px; 
-}
+    .company-details { 
+      margin-bottom: 40px; 
+    }
 
-.logo { 
-  float: left;
-}
+    .logo { 
+      float: left;
+    }
 
-.address { 
-  float: right; 
-}
+    .address { 
+      float: right; 
+    }
 
-.customer { 
-  margin-bottom: 40px; 
-}
+    .customer { 
+      margin-bottom: 40px; 
+    }
 
-table { 
-  border-collapse: collapse; 
-  border: 1px solid #000;
-}
+    table { 
+      border-collapse: collapse; 
+      border: 1px solid #000;
+    }
 
-table td, table th { 
-  border: 1px solid #000; 
-  padding: 5px; 
-}
+    table td, table th { 
+      border: 1px solid #000; 
+      padding: 5px; 
+    }
 
-.center { 
-  text-align: center;
-}
+    .center { 
+      text-align: center;
+    }
 
-.cutomer-details { 
-  float: left; 
-}
+    .cutomer-details { 
+      float: left; 
+    }
 
-.details { 
-  float: right; 
-}
+    .details { 
+      float: right; 
+    }
 
-.item-description {
-  max-width: 200px;
-}
+    .item-description {
+      max-width: 200px;
+    }
 
-.fa {
-  padding-right: 5px;
-}
+    .fa {
+      padding-right: 5px;
+    }
 
-.gray { 
-  background-color: #eee; 
-}
+    .gray { 
+      background-color: #eee; 
+    }
 
-.total, .total-amount {
-  font-weight: 600;
-}
+    .total, .total-amount {
+      font-weight: 600;
+    }
 
-.items {
-  width: 100%;
-  margin-top: 20px;
-}
+    .items {
+      width: 100%;
+      margin-top: 20px;
+    }
 
-.terms {
-  margin-top: 20px;
-}
+    .terms {
+      margin-top: 20px;
+    }
 
-.terms-heading {
-  font-size: 15px;
-  font-weight: 600;
-}
+    .terms-heading {
+      font-size: 15px;
+      font-weight: 600;
+    }
 
-.terms-content {
-  font-size: 13px;
-}
+    .terms-content {
+      font-size: 13px;
+    }
   </style>
 </head>
 
 <body>
   <div class="wrapper">
-    <h1 class="header">Invoice</h1>
+    <h1 class="header">Cash Receipt</h1>
     
     <div class="company-details clearfix">  
       <div class="logo">
@@ -160,34 +159,34 @@ table td, table th {
 
       <table class="details">
         <tr>
-          <td class="gray">Invoice#</td>
-          <td>{{ order.order_hash }}</td>
+          <td class="gray">Receipt#</td>
+          <td>{{ order.invoice_no }}</td>
         </tr>
         <tr>
-          <td class="gray">Invoice Date</td>
-          <td>{{ order.invoiced_at | invoice_date('%d %b %Y') }}</td>
+          <td class="gray">Date</td>
+          <td>{{ order.paid_at | invoice_date('%d %b %Y') }}</td>
         </tr>
       </table>  
     </div>
     
     <table class="items">    
       <tr>
+        <th>Ticket No:</th>
         <th>Item</th>
         <th>Description</th>
-        <th>Unit Cost</th>
-        <th>Quantity</th>
+        <th>Base Price</th>
         <th>Discount</th>
-        <th>Price</th>
+        <th>Final Price</th>
       </tr>
       
-      {% for line_item_id, line_item in line_items.items() -%}
+      {% for line_item in order.line_items -%}
         <tr class="item-row">
-          <td class="center">{{ line_item[0].item.title }}</td>
-          <td class="item-description">{{ line_item[0].item.description|safe }}</td>
-          <td class="center"><i class="fa fa-inr"></i>{{ line_item[0].base_amount }}</td>
-          <td class="center">{{ line_item|length }}</td>
-          <td class="center"><i class="fa fa-inr"></i>{{ line_item|sum(attribute='discounted_amount') }}</td>
-          <td class="center"><i class="fa fa-inr"></i>{{ line_item|sum(attribute='final_amount') }}</td>
+          <td class="center">{{ line_item.line_item_no }}</td>
+          <td class="center">{{ line_item.item.title }}</td>
+          <td class="item-description">{{ line_item.item.description|safe }}</td>
+          <td class="center">&#8377; {{ line_item.base_amount }}</td>
+          <td class="center">&#8377; {{ line_item.discounted_amount }}</td>
+          <td class="center">&#8377; {{ line_item.final_amount }}</td>
         </tr>
       {%- endfor %}
       
@@ -205,7 +204,6 @@ table td, table th {
     </div>
   
   </div>
-
 </body>
 
 </html>

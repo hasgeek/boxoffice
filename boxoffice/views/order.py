@@ -194,7 +194,4 @@ def payment(order):
     (Order, {'access_token': 'access_token'}, 'order')
     )
 def receipt(order):
-    line_items_dict = {}
-    for line_item in order.line_items:
-        line_items_dict.setdefault(line_item.item.id, []).append(line_item)
-    return render_template('cash_receipt.html', order=order, line_items=line_items_dict)
+    return render_template('cash_receipt.html', order=order)
