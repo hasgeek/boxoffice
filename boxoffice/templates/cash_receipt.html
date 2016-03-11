@@ -4,7 +4,6 @@
 <head>
   <meta charset='UTF-8'>  
   <title>Receipt</title>  
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/font-awesome.min.css') }}">
   <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400italic,600italic,400,600" />
   <style type="text/css">
     * { 
@@ -15,7 +14,7 @@
     body {
       font-family: "Source Sans Pro",Arial,sans-serif;
       font-size: 16px;
-      line-height: 1.5;
+      line-height: 1.2;
       color: #333;
       background-color: #fff
     }
@@ -24,19 +23,17 @@
       text-decoration: none;
     }
 
-    .clearfix:after, .clearfix:before { 
-      clear: both; 
-      display: table; 
-      content: " "; 
+    p { 
+      margin: 5px 0 5px;
     }
 
     .wrapper { 
-      width: 800px; 
+      max-width: 800px; 
       margin: 20px auto; 
     }
 
     .header { 
-      font-size: 40px; 
+      font-size: 35px; 
       text-align: center; 
       margin-bottom: 30px; 
       padding-bottom: 10px; 
@@ -49,19 +46,29 @@
 
     .logo { 
       float: left;
+      max-width: 150px; 
+    }
+
+    .logo img {
+      width: 100%;
     }
 
     .address { 
       float: right; 
     }
 
-    .customer { 
-      margin-bottom: 40px; 
+    .company-name {
+      font-size: 20px;
+      margin: 0 0 10px;
+    }
+
+    .customer {
+      padding-top: 20px;
+      clear: both;
     }
 
     table { 
       border-collapse: collapse; 
-      border: 1px solid #000;
     }
 
     table td, table th { 
@@ -73,20 +80,22 @@
       text-align: center;
     }
 
-    .cutomer-details { 
-      float: left; 
+    .cutomer-details {
+      display: inline-block;
     }
 
     .details { 
       float: right; 
     }
 
-    .item-description {
-      max-width: 200px;
+    .items {
+      width: 100%;
+      margin-top: 20px;
+      clear: both;
     }
 
-    .fa {
-      padding-right: 5px;
+    .item-description {
+      max-width: 200px;
     }
 
     .gray { 
@@ -97,11 +106,6 @@
       font-weight: 600;
     }
 
-    .items {
-      width: 100%;
-      margin-top: 20px;
-    }
-
     .terms {
       margin-top: 20px;
     }
@@ -109,6 +113,7 @@
     .terms-heading {
       font-size: 15px;
       font-weight: 600;
+      margin: 0 0 5px;
     }
 
     .terms-content {
@@ -121,13 +126,13 @@
   <div class="wrapper">
     <h1 class="header">Cash Receipt</h1>
     
-    <div class="company-details clearfix">  
+    <div class="company-details">  
       <div class="logo">
        <img src="https://hasgeek.com/static/img/hg-banner.png"/>
       </div> 
 
       <div class="address">
-        <h2>HasGeek Learning Private Limited</h2>
+        <h2 class="company-name">HasGeek Learning Private Limited</h2>
         <p>141/142, 2nd cross, Pai Layout</p>
         <p>Hulimavu Gate, Bannerghatta Road</p>
         <p>Bangalore – 560076</p>
@@ -138,7 +143,7 @@
       </div>    
     </div>
     
-    <div class="customer clearfix">
+    <div class="customer">
       <table class="cutomer-details">
         <tr>
           <th class="gray" colspan="2">Bill To</th>
