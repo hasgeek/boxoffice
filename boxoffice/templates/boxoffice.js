@@ -447,9 +447,9 @@ $(function() {
             headers: {'X-Requested-With': 'XMLHttpRequest'},
             contentType: 'application/json',
             data: JSON.stringify({pg_payment_id: paymentID}),
-            timeout: 5000,
+            timeout: 60000,
             retries: 5,
-            retryInterval: 5000,
+            retryInterval: 10000,
             success: function(data) {
               var cashReceiptURL = boxoffice.config.baseURL + "/" + boxoffice.ractive.get('order.access_token') + "/receipt";
               boxoffice.ractive.set({

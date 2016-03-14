@@ -8,7 +8,7 @@ from coaster.views import load_models
 from boxoffice import app, ALLOWED_ORIGINS
 from boxoffice.models import db, Organization
 from boxoffice.models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy
-from boxoffice.models import Order, OnlinePayment, PaymentTransaction, User
+from boxoffice.models import Order, OnlinePayment, PaymentTransaction, User, PaymentFailError
 from boxoffice.extapi import razorpay
 from forms import LineItemForm, BuyerForm
 from boxoffice.mailclient import send_invoice_email
@@ -173,7 +173,7 @@ def payment(order):
     online_payment = OnlinePayment(pg_payment_id=pg_payment_id, order=order)
 
     rp_resp = razorpay.capture_payment(online_payment.pg_payment_id, order_amounts.final_amount)
-    if rp_resp:
+    if rp_resp.status_code == 200:
         online_payment.confirm()
         db.session.add(online_payment)
         transaction = PaymentTransaction(order=order, online_payment=online_payment, amount=order_amounts.final_amount)
@@ -186,6 +186,7 @@ def payment(order):
     else:
         online_payment.fail()
         db.session.commit()
+        raise PaymentFailError("Online payment failed for order - {order}".format(order=order.id))
         return api_result(402, 'Payment capture failed')
 
 
