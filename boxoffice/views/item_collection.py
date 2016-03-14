@@ -21,9 +21,8 @@ def jsonify_item(item):
             'price': price.amount,
             'price_category': price.title,
             'price_valid_upto': price.valid_upto,
-            'discount_policies': [{'id': policy.id, 'title': policy.title}
-                                  for policy in item.discount_policies
-                                  if policy.is_automatic()]
+            'discount_policies': [{'id': policy.id, 'title': policy.title, 'is_automatic': policy.is_automatic()}
+                                  for policy in item.discount_policies]
         }
 
 
