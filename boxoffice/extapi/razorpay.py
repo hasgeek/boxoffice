@@ -16,4 +16,5 @@ def capture_payment(payment_id, amount):
     # Razorpay requires the amount to be in paisa
     resp = requests.post(url, data={'amount': amount*100},
         auth=(app.config.get('RAZORPAY_KEY_ID'), app.config.get('RAZORPAY_KEY_SECRET')), verify=verify_https)
-    return True if resp.status_code == 200 else False
+    # return True if resp.status_code == 200 else False
+    return resp

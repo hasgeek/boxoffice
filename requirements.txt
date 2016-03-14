@@ -16,3 +16,4 @@ rq
 itsdangerous
 html2text
 premailer
+python-dateutil

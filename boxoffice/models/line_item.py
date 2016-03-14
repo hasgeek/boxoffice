@@ -24,6 +24,7 @@ class LineItem(BaseMixin, db.Model):
 
     customer_order_id = db.Column(None, db.ForeignKey('customer_order.id'), nullable=False)
     order = db.relationship(Order, backref=db.backref('line_items', cascade='all, delete-orphan'))
+    # line_item_no is the relative number of the line item per order.
     line_item_no = db.Column(db.Integer, nullable=False)
 
     item_id = db.Column(None, db.ForeignKey('item.id'), nullable=False)
@@ -41,16 +42,15 @@ class LineItem(BaseMixin, db.Model):
     status = db.Column(db.Integer, default=LINE_ITEM_STATUS.CONFIRMED, nullable=False)
     ordered_at = db.Column(db.DateTime, nullable=True)
     cancelled_at = db.Column(db.DateTime, nullable=True)
-    cancellable = db.Column(db.Boolean, nullable=False, default=True)
-    transferrable = db.Column(db.Boolean, nullable=True, default=True)
-    assignee_email = db.Column(db.Unicode(254), nullable=True)
-    assignee_fullname = db.Column(db.Unicode(80), nullable=True)
-    assignee_phone = db.Column(db.Unicode(16), nullable=True)
 
     @classmethod
-    def make_tuple(cls, item_id, base_amount, discount_policy_id=None, discount_coupon_id=None, discount_amount=decimal.Decimal(0)):
+    def make_ntuple(cls, item_id, base_amount, **kwargs):
         line_item_tup = namedtuple('LineItem', ['item_id', 'base_amount', 'discount_policy_id', 'discount_coupon_id', 'discounted_amount'])
-        return line_item_tup(item_id, base_amount, discount_policy_id, discount_coupon_id, discount_amount)
+        return line_item_tup(item_id,
+            base_amount,
+            kwargs.get('discount_policy_id', None),
+            kwargs.get('discount_coupon_id', None),
+            kwargs.get('discounted_amount', decimal.Decimal(0)))
 
     @classmethod
     def calculate(cls, line_item_dicts, coupons=[]):
@@ -64,7 +64,8 @@ class LineItem(BaseMixin, db.Model):
             item = Item.query.get(line_item_dict.get('item_id'))
             if not item_line_items.get(unicode(item.id)):
                 item_line_items[unicode(item.id)] = []
-            item_line_items[unicode(item.id)].append(LineItem.make_tuple(item.id, Price.current(item).amount))
+            item_line_items[unicode(item.id)].append(LineItem.make_ntuple(item_id=item.id,
+                base_amount=Price.current(item).amount))
         coupon_list = list(set(coupons)) if coupons else []
         discounter = LineItemDiscounter()
         for item_id in item_line_items.keys():
@@ -107,8 +108,8 @@ class LineItemDiscounter():
 
         valid_discounts = self.get_valid_discounts(line_items, coupons)
         if len(valid_discounts) > 1:
-            # Multiple discounts found, find the combination that results
-            # in the best discount
+            # Multiple discounts found, find the combination of discounts that results
+            # in the maximum discount and apply those discounts to the line items.
             return self.apply_max_discount(valid_discounts, line_items)
         elif len(valid_discounts) == 1:
             return self.apply_discount(valid_discounts[0], line_items)
@@ -130,29 +131,39 @@ class LineItemDiscounter():
     def calculate_discounted_amount(self, percentage, base_amount):
         return (percentage * base_amount/decimal.Decimal(100))
 
-    def apply_discount(self, discount, line_items, combo=False):
+    def apply_discount(self, policy_coupon, line_items, combo=False):
         """
         Returns the line_items with the given discount_policy and
         the discounted amount assigned to each line item.
         """
         should_apply_discount = True
         discounted_line_items = []
+
+        # keep track of how many line items have been assigned this discount
         applied_to_count = 0
-        discount_obj, coupon = discount
+        # unpack (discount_policy, dicount_coupon)
+        discount_policy, coupon = policy_coupon
         for line_item in line_items:
-            discounted_amount = self.calculate_discounted_amount(discount_obj.percentage, line_item.base_amount)
+            discounted_amount = self.calculate_discounted_amount(discount_policy.percentage, line_item.base_amount)
             if should_apply_discount and (not line_item.discount_policy_id or (combo and line_item.discounted_amount < discounted_amount)):
-                if coupon:
-                    discounted_line_items.append(LineItem.make_tuple(line_item.item_id, line_item.base_amount, discount_obj.id, coupon.id, discounted_amount))
-                else:
-                    discounted_line_items.append(LineItem.make_tuple(line_item.item_id, line_item.base_amount, discount_obj.id, None, discounted_amount))
+                # if the discount policy's upper limit hasn't been reached,and if the line
+                # item hasn't been assigned a discount or if the line item's assigned discount is lesser
+                # than the current discount, assign the current discount to the line item
+
+                discount_coupon_id = coupon.id if coupon else None
+                discounted_line_items.append(LineItem.make_ntuple(item_id=line_item.item_id,
+                    base_amount=line_item.base_amount,
+                    discount_policy_id=discount_policy.id,
+                    discount_coupon_id=discount_coupon_id,
+                    discounted_amount=discounted_amount))
+
                 applied_to_count += 1
-                if discount_obj.item_quantity_max and applied_to_count == discount_obj.item_quantity_max:
-                    # If the upper limit on the discount's allowed item quantity
-                    # is reached, break out of the loop.
+                if discount_policy.item_quantity_max and applied_to_count == discount_policy.item_quantity_max:
+                    # If the discount policy has a upper limit and the upper limit on the discount's allowed item quantity
+                    # is reached, stop iterating through line items.
                     should_apply_discount = False
             else:
-                # Copy the rest of the line items as they are
+                # Current discount is not applicable, copy over the line item as it is.
                 discounted_line_items.append(line_item)
         return discounted_line_items
 
