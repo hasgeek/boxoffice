@@ -44,9 +44,13 @@ class LineItem(BaseMixin, db.Model):
     cancelled_at = db.Column(db.DateTime, nullable=True)
 
     @classmethod
-    def make_tuple(cls, item_id, base_amount, discount_policy_id=None, discount_coupon_id=None, discount_amount=decimal.Decimal(0)):
+    def make_ntuple(cls, item_id, base_amount, **kwargs):
         line_item_tup = namedtuple('LineItem', ['item_id', 'base_amount', 'discount_policy_id', 'discount_coupon_id', 'discounted_amount'])
-        return line_item_tup(item_id, base_amount, discount_policy_id, discount_coupon_id, discount_amount)
+        return line_item_tup(item_id,
+            base_amount,
+            kwargs.get('discount_policy_id', None),
+            kwargs.get('discount_coupon_id', None),
+            kwargs.get('discounted_amount', decimal.Decimal(0)))
 
     @classmethod
     def calculate(cls, line_item_dicts, coupons=[]):
@@ -60,7 +64,8 @@ class LineItem(BaseMixin, db.Model):
             item = Item.query.get(line_item_dict.get('item_id'))
             if not item_line_items.get(unicode(item.id)):
                 item_line_items[unicode(item.id)] = []
-            item_line_items[unicode(item.id)].append(LineItem.make_tuple(item.id, Price.current(item).amount))
+            item_line_items[unicode(item.id)].append(LineItem.make_ntuple(item_id=item.id,
+                base_amount=Price.current(item).amount))
         coupon_list = list(set(coupons)) if coupons else []
         discounter = LineItemDiscounter()
         for item_id in item_line_items.keys():
@@ -138,10 +143,13 @@ class LineItemDiscounter():
         for line_item in line_items:
             discounted_amount = self.calculate_discounted_amount(discount_obj.percentage, line_item.base_amount)
             if should_apply_discount and (not line_item.discount_policy_id or (combo and line_item.discounted_amount < discounted_amount)):
-                if coupon:
-                    discounted_line_items.append(LineItem.make_tuple(line_item.item_id, line_item.base_amount, discount_obj.id, coupon.id, discounted_amount))
-                else:
-                    discounted_line_items.append(LineItem.make_tuple(line_item.item_id, line_item.base_amount, discount_obj.id, None, discounted_amount))
+                discount_coupon_id = coupon.id if coupon else None
+                discounted_line_items.append(LineItem.make_ntuple(item_id=line_item.item_id,
+                    base_amount=line_item.base_amount,
+                    discount_policy_id=discount_obj.id,
+                    discount_coupon_id=discount_coupon_id,
+                    discounted_amount=discounted_amount))
+
                 applied_to_count += 1
                 if discount_obj.item_quantity_max and applied_to_count == discount_obj.item_quantity_max:
                     # If the upper limit on the discount's allowed item quantity
