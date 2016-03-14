@@ -95,7 +95,6 @@ $(function() {
             'item_title': item.title,
             'base_price': item.price,
             'item_description': item.description,
-            'price_category': item.price_category,
             'price_valid_upto': boxoffice.util.formatDate(item.price_valid_upto),
             'discount_policies': item.discount_policies
           });
@@ -182,6 +181,9 @@ $(function() {
             if (lineItem.quantity === 0) {
               lineItem.discounted_amount = 0;
               lineItem.final_amount = 0;
+              lineItem.discount_policies.forEach(function(discount_policy) {
+                discount_policy.activated = false;
+              });
             }
           });
           boxoffice.ractive.set({
