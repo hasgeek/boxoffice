@@ -24,6 +24,7 @@ class LineItem(BaseMixin, db.Model):
 
     customer_order_id = db.Column(None, db.ForeignKey('customer_order.id'), nullable=False)
     order = db.relationship(Order, backref=db.backref('line_items', cascade='all, delete-orphan'))
+    # line_item_no is the relative number of the line item per order.
     line_item_no = db.Column(db.Integer, nullable=False)
 
     item_id = db.Column(None, db.ForeignKey('item.id'), nullable=False)
@@ -41,11 +42,6 @@ class LineItem(BaseMixin, db.Model):
     status = db.Column(db.Integer, default=LINE_ITEM_STATUS.CONFIRMED, nullable=False)
     ordered_at = db.Column(db.DateTime, nullable=True)
     cancelled_at = db.Column(db.DateTime, nullable=True)
-    cancellable = db.Column(db.Boolean, nullable=False, default=True)
-    transferrable = db.Column(db.Boolean, nullable=True, default=True)
-    assignee_email = db.Column(db.Unicode(254), nullable=True)
-    assignee_fullname = db.Column(db.Unicode(80), nullable=True)
-    assignee_phone = db.Column(db.Unicode(16), nullable=True)
 
     @classmethod
     def make_tuple(cls, item_id, base_amount, discount_policy_id=None, discount_coupon_id=None, discount_amount=decimal.Decimal(0)):
