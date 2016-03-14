@@ -28,8 +28,7 @@ class Order(BaseMixin, db.Model):
     __tablename__ = 'customer_order'
     __uuid_primary_key__ = True
     __tableargs__ = (db.UniqueConstraint('organization_id', 'invoice_no'),
-        db.UniqueConstraint('access_token'),
-        db.UniqueConstraint('item_collection_id', 'invoice_no'))
+        db.UniqueConstraint('access_token'))
 
     user_id = db.Column(None, db.ForeignKey('user.id'), nullable=True)
     user = db.relationship(User, backref=db.backref('orders', cascade='all, delete-orphan'))
