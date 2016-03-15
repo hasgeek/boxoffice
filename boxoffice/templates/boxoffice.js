@@ -539,8 +539,8 @@ $(function() {
         },
         oncomplete: function() {
           boxoffice.ractive.on('eventAnalytics', function(userAction, label) {
-            if(typeof boxoffice.ractive.get('sendEventsHits') === "undefined") {
-              boxoffice.ractive.set('sendEventsHits', 0)
+            if(typeof boxoffice.ractive.get('sendEventHits') === "undefined") {
+              boxoffice.ractive.set('sendEventHits', 0)
               userAction = 'First interaction';
             }
             if(typeof ga !== "undefined") {
