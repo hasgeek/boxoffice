@@ -15,5 +15,5 @@ def capture_payment(payment_id, amount):
     url = urljoin(base_url, '{payment_id}/capture'.format(payment_id=payment_id))
     # Razorpay requires the amount to be in paisa
     resp = requests.post(url, data={'amount': amount*100},
-        auth=(app.config.get('RAZORPAY_KEY_ID'), app.config.get('RAZORPAY_KEY_SECRET')), verify=verify_https)
+        auth=(app.config['RAZORPAY_KEY_ID'], app.config['RAZORPAY_KEY_SECRET']), verify=verify_https)
     return resp
