@@ -4,8 +4,8 @@ from flask import render_template
 from flask.ext.mail import Message
 from html2text import html2text
 from premailer import transform as email_transform
-from boxoffice.models import Order
-from boxoffice import mail, app
+from .models import Order
+from . import mail, app
 
 
 def send_invoice_email(order_id, subject="Thank you for your order!"):
