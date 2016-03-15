@@ -5,7 +5,6 @@ from baseframe import __
 from coaster.utils import LabeledEnum
 from boxoffice.models import db, BaseScopedNameMixin, IdMixin
 from boxoffice.models import Organization
-from sqlalchemy import or_, and_
 
 __all__ = ['DiscountPolicy', 'DiscountCoupon', 'item_discount_policy', 'DISCOUNT_TYPE']
 
@@ -59,7 +58,8 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
         applicable for an item, given the quantity of line items and coupons if any.
         """
         automatic_discounts = item.discount_policies.filter(DiscountPolicy.discount_type == DISCOUNT_TYPE.AUTOMATIC,
-            or_(DiscountPolicy.item_quantity_min <= qty, and_(DiscountPolicy.item_quantity_min <= qty, DiscountPolicy.item_quantity_max > qty))).all()
+            db.or_(DiscountPolicy.item_quantity_min <= qty,
+                db.and_(DiscountPolicy.item_quantity_min <= qty, DiscountPolicy.item_quantity_max > qty))).all()
         policies = [(discount, None) for discount in automatic_discounts]
         if not coupons:
             return policies
