@@ -539,6 +539,10 @@ $(function() {
         },
         oncomplete: function() {
           boxoffice.ractive.on('eventAnalytics', function(userAction, label) {
+            if(typeof boxoffice.ractive.get('sendEventsHits') === "undefined") {
+              boxoffice.ractive.set('sendEventsHits', 0)
+              userAction = 'First interaction';
+            }
             if(typeof ga !== "undefined") {
               ga('send', { hitType: 'event', eventCategory: 'ticketing', eventAction: userAction, eventLabel: label});
             }
