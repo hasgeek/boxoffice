@@ -73,7 +73,7 @@ def init_data():
     db.session.add(tshirt_policy)
     db.session.commit()
 
-    discount_coupon1 = DiscountPolicy(title='15% discount for coupon code with STU', item_quantity_min=1, item_quantity_max=1, percentage=15, organization=rootconf, discount_type=DISCOUNT_TYPES.COUPON)
+    discount_coupon1 = DiscountPolicy(title='15% discount for coupon code with STU', item_quantity_min=1, item_quantity_max=1, percentage=15, organization=rootconf, discount_type=DISCOUNT_TYPE.COUPON)
     discount_coupon1.items.append(conf_ticket)
     db.session.add(discount_coupon1)
     db.session.commit()
@@ -82,7 +82,7 @@ def init_data():
     db.session.add(coupon1)
     db.session.commit()
 
-    discount_coupon2 = DiscountPolicy(title='100% discount', item_quantity_min=1, item_quantity_max=1, percentage=100, organization=rootconf, discount_type=DISCOUNT_TYPES.COUPON)
+    discount_coupon2 = DiscountPolicy(title='100% discount', item_quantity_min=1, item_quantity_max=1, percentage=100, organization=rootconf, discount_type=DISCOUNT_TYPE.COUPON)
     discount_coupon2.items.append(conf_ticket)
     db.session.add(discount_coupon1)
     db.session.commit()

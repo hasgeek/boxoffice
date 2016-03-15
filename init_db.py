@@ -89,7 +89,7 @@ tshirt_policy.items.append(tshirt)
 db.session.add(tshirt_policy)
 db.session.commit()
 
-discount_coupon1 = DiscountPolicy(title='15% discount for coupon code with STU', item_quantity_min=1, item_quantity_max=1, percentage=15, organization=rootconf, discount_type=DISCOUNT_TYPES.COUPON)
+discount_coupon1 = DiscountPolicy(title='15% discount for coupon code with STU', item_quantity_min=1, item_quantity_max=1, percentage=15, organization=rootconf, discount_type=DISCOUNT_TYPE.COUPON)
 discount_coupon1.items.append(conf_ticket)
 db.session.add(discount_coupon1)
 db.session.commit()
@@ -98,7 +98,7 @@ coupon = DiscountCoupon(code='xyzer', discount_policy=discount_coupon1, quantity
 db.session.add(coupon)
 db.session.commit()
 
-speaker_discount = DiscountPolicy(title='100% discount for speaker coupons', item_quantity_min=1, item_quantity_max=1, percentage=100, organization=rootconf, discount_type=DISCOUNT_TYPES.COUPON)
+speaker_discount = DiscountPolicy(title='100% discount for speaker coupons', item_quantity_min=1, item_quantity_max=1, percentage=100, organization=rootconf, discount_type=DISCOUNT_TYPE.COUPON)
 speaker_discount.items.append(conf_ticket)
 db.session.add(speaker_discount)
 db.session.commit()
@@ -111,7 +111,7 @@ speaker2 = DiscountCoupon(code='speaker2', discount_policy=speaker_discount, qua
 db.session.add(speaker2)
 db.session.commit()
 
-discount_coupon2 = DiscountPolicy(title='20% discount for workshop ticket', item_quantity_min=1, item_quantity_max=1, percentage=20, organization=rootconf, discount_type=DISCOUNT_TYPES.COUPON)
+discount_coupon2 = DiscountPolicy(title='20% discount for workshop ticket', item_quantity_min=1, item_quantity_max=1, percentage=20, organization=rootconf, discount_type=DISCOUNT_TYPE.COUPON)
 discount_coupon2.items.append(dns_workshop)
 db.session.add(discount_coupon2)
 db.session.commit()

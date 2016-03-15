@@ -7,10 +7,10 @@ from boxoffice.models import db, BaseScopedNameMixin, IdMixin
 from boxoffice.models import Organization
 from sqlalchemy import or_, and_
 
-__all__ = ['DiscountPolicy', 'DiscountCoupon', 'item_discount_policy', 'DISCOUNT_TYPES']
+__all__ = ['DiscountPolicy', 'DiscountCoupon', 'item_discount_policy', 'DISCOUNT_TYPE']
 
 
-class DISCOUNT_TYPES(LabeledEnum):
+class DISCOUNT_TYPE(LabeledEnum):
     AUTOMATIC = (0, __("Automatic"))
     COUPON = (1, __("Coupon"))
 
@@ -35,7 +35,7 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     organization = db.relationship(Organization, backref=db.backref('discount_policies', cascade='all, delete-orphan'))
     parent = db.synonym('organization')
 
-    discount_type = db.Column(db.Integer, default=DISCOUNT_TYPES.AUTOMATIC, nullable=False)
+    discount_type = db.Column(db.Integer, default=DISCOUNT_TYPE.AUTOMATIC, nullable=False)
 
     # Minimum and maximum number of items for which the discount policy applies
     item_quantity_min = db.Column(db.Integer, default=1, nullable=False)
@@ -47,10 +47,10 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
         return u'<DiscountPolicy "{discount}">'.format(discount=self.title)
 
     def is_automatic(self):
-        return self.discount_type == DISCOUNT_TYPES.AUTOMATIC
+        return self.discount_type == DISCOUNT_TYPE.AUTOMATIC
 
     def is_coupon(self):
-        return self.discount_type == DISCOUNT_TYPES.COUPON
+        return self.discount_type == DISCOUNT_TYPE.COUPON
 
     @classmethod
     def get_from_item(cls, item, qty, coupons=[]):
@@ -58,7 +58,7 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
         Returns a list of (discount_policy, discount_coupon) tuples
         applicable for an item, given the quantity of line items and coupons if any.
         """
-        automatic_discounts = item.discount_policies.filter(DiscountPolicy.discount_type == DISCOUNT_TYPES.AUTOMATIC,
+        automatic_discounts = item.discount_policies.filter(DiscountPolicy.discount_type == DISCOUNT_TYPE.AUTOMATIC,
             or_(DiscountPolicy.item_quantity_min <= qty, and_(DiscountPolicy.item_quantity_min <= qty, DiscountPolicy.item_quantity_max > qty))).all()
         policies = [(discount, None) for discount in automatic_discounts]
         if not coupons:
@@ -94,7 +94,7 @@ class DiscountCoupon(IdMixin, db.Model):
         return cls.query.filter(cls.code.in_(codes),
             cls.quantity_available > 0,
             cls.discount_policy_id.in_([discount_policy.id
-                for discount_policy in discount_policies.filter(DiscountPolicy.discount_type == DISCOUNT_TYPES.COUPON)])).all()
+                for discount_policy in discount_policies.filter(DiscountPolicy.discount_type == DISCOUNT_TYPE.COUPON)])).all()
 
     def register_use(self):
         """
