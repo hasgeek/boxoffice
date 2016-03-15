@@ -1,5 +1,6 @@
 *.pyc
-development.py
 .sass-cache
 error.log
-testing.py
+instance/settings.py
+instance/development.py
+instance/testing.py
