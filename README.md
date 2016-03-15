@@ -1,6 +1,5 @@
 ### BoxOffice. HasGeek's ticketing system.
-[![Build Status](https://travis-ci.org/hasgeek/boxoffice.svg?branch=order_ui)](https://travis-ci.org/hasgeek/boxoffice)
-Set invoice title passed to BillGate in settings.py using property TICKET_INVOICE_TITLE
+[![Build Status](https://travis-ci.org/hasgeek/boxoffice.svg?branch=v0.2)](https://travis-ci.org/hasgeek/boxoffice)
 
 ### Tests
 
