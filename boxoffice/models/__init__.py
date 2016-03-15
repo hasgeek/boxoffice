@@ -1,5 +1,3 @@
-from flask.ext.sqlalchemy import SQLAlchemy
-from boxoffice import app
 from coaster.sqlalchemy import BaseMixin, BaseNameMixin, BaseScopedNameMixin, BaseScopedIdNameMixin, BaseScopedIdMixin, IdMixin
 
 from coaster.db import db
