@@ -17,6 +17,3 @@ class ItemCollection(BaseScopedNameMixin, db.Model):
     organization = db.relationship(Organization, backref=db.backref('item_collections', cascade='all, delete-orphan'))
 
     parent = db.synonym('organization')
-
-    def __repr__(self):
-        return u'<ItemCollection "{item_collection}">'.format(item_collection=self.title)

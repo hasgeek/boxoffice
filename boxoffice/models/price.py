@@ -20,9 +20,6 @@ class Price(BaseScopedNameMixin, db.Model):
     amount = db.Column(db.Numeric, default=decimal.Decimal(0), nullable=False)
     currency = db.Column(db.Unicode(3), nullable=False, default=u'INR')
 
-    def __repr__(self):
-        return u'<Price "{price}" for item "{item}">'.format(price=self.title, item=self.item.title)
-
     @classmethod
     def current(cls, item):
         """

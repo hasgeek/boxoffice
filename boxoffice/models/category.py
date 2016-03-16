@@ -12,7 +12,3 @@ class Category(BaseScopedNameMixin, db.Model):
     item_collection = db.relationship(ItemCollection, backref=db.backref('categories', cascade='all, delete-orphan'))
 
     parent = db.synonym('item_collection')
-
-    def __repr__(self):
-        return '<Category "{category}" in "{item_collection}">'.format(category=self.title,
-            item_collection=self.item_collection.title)

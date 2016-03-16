@@ -42,9 +42,6 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     percentage = db.Column(db.Integer, nullable=False)
     items = db.relationship('Item', secondary=item_discount_policy)
 
-    def __repr__(self):
-        return u'<DiscountPolicy "{discount}">'.format(discount=self.title)
-
     def is_automatic(self):
         return self.discount_type == DISCOUNT_TYPE.AUTOMATIC
 

@@ -25,7 +25,3 @@ class Item(BaseScopedNameMixin, db.Model):
     quantity_total = db.Column(db.Integer, default=0, nullable=False)
 
     discount_policies = db.relationship('DiscountPolicy', secondary=item_discount_policy, lazy='dynamic')
-
-    def __repr__(self):
-        return u'<Item "{item}" in "{item_collection}">'.format(item=self.title,
-            item_collection=self.item_collection.title)
