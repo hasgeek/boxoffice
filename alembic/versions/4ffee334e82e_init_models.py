@@ -200,15 +200,17 @@ def upgrade():
         sa.Column('created_at', sa.DateTime(), nullable=False),
         sa.Column('updated_at', sa.DateTime(), nullable=False),
         sa.Column('item_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
-        sa.Column('valid_from', sa.DateTime(), nullable=False),
-        sa.Column('valid_upto', sa.DateTime(), nullable=False),
+        sa.Column('start_at', sa.DateTime(), nullable=False),
+        sa.Column('end_at', sa.DateTime(), nullable=False),
         sa.Column('amount', sa.Numeric(), nullable=False),
         sa.Column('currency', sa.Unicode(length=3), nullable=False),
         sa.Column('name', sa.Unicode(length=250), nullable=False),
         sa.Column('title', sa.Unicode(length=250), nullable=False),
         sa.Column('id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
         sa.ForeignKeyConstraint(['item_id'], ['item.id'], ),
-        sa.PrimaryKeyConstraint('id')
+        sa.PrimaryKeyConstraint('id'),
+        sa.UniqueConstraint('item_id', 'name'),
+        sa.CheckConstraint(u'start_at < end_at', name='price_start_at_lt_end_at_check')
     )
 
 

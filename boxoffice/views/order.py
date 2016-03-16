@@ -64,7 +64,7 @@ def kharcha():
            methods=['GET', 'OPTIONS', 'POST'])
 @load_models(
     (Organization, {'name': 'organization'}, 'organization'),
-    (ItemCollection, {'name': 'item_collection'}, 'item_collection')
+    (ItemCollection, {'organization': 'organization', 'name': 'item_collection'}, 'item_collection')
     )
 @xhr_only
 @cross_origin(origins=ALLOWED_ORIGINS)
@@ -110,7 +110,7 @@ def order(organization, item_collection):
             coupon = None
 
         line_item = LineItem(order=order, item=item, discount_policy=policy,
-            line_item_no=idx+1,
+            line_item_seq=idx+1,
             discount_coupon=coupon,
             ordered_at=datetime.utcnow(),
             base_amount=line_item_tup.base_amount,

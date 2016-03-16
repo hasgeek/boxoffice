@@ -5,7 +5,7 @@ from flask import url_for
 from boxoffice import app, init_for
 from boxoffice.models import (db)
 from fixtures import init_data
-from boxoffice.models import Price, Item, DiscountPolicy, DiscountCoupon
+from boxoffice.models import Item, DiscountPolicy, DiscountCoupon
 
 SERVER_NAME = 'http://shreyas-wlan.dev:6500'
 
@@ -31,10 +31,10 @@ class TestKharchaAPI(unittest.TestCase):
         resp_json = json.loads(resp.get_data())
         # Test that the price is correct
         self.assertEquals(resp_json.get('line_items')[unicode(first_item.id)].get('final_amount'),
-            undiscounted_quantity * Price.current(first_item).amount)
+            undiscounted_quantity * first_item.current_price().amount)
 
         policy_ids = [policy for policy in resp_json.get('line_items')[unicode(first_item.id)].get('discount_policy_ids')]
-        self.assertEquals(resp_json.get('line_items')[unicode(first_item.id)].get('final_amount'), undiscounted_quantity * Price.current(first_item).amount)
+        self.assertEquals(resp_json.get('line_items')[unicode(first_item.id)].get('final_amount'), undiscounted_quantity * first_item.current_price().amount)
         expected_discount_policy_ids = []
 
         # Test that all the discount policies are returned
@@ -49,7 +49,7 @@ class TestKharchaAPI(unittest.TestCase):
         self.assertEquals(resp.status_code, 200)
         resp_json = json.loads(resp.get_data())
 
-        base_amount = discounted_quantity * Price.current(first_item).amount
+        base_amount = discounted_quantity * first_item.current_price().amount
         discounted_amount = (first_item.discount_policies[0].percentage * base_amount)/decimal.Decimal(100.0)
         self.assertEquals(resp_json.get('line_items')[unicode(first_item.id)].get('final_amount'),
             base_amount-discounted_amount)
@@ -70,7 +70,7 @@ class TestKharchaAPI(unittest.TestCase):
         self.assertEquals(resp.status_code, 200)
         resp_json = json.loads(resp.get_data())
 
-        base_amount = discounted_quantity * Price.current(first_item).amount
+        base_amount = discounted_quantity * first_item.current_price().amount
         discounted_amount = (coupon.discount_policy.percentage * base_amount)/decimal.Decimal(100.0)
         self.assertEquals(resp_json.get('line_items')[unicode(first_item.id)].get('final_amount'),
             base_amount-discounted_amount)
@@ -93,8 +93,8 @@ class TestKharchaAPI(unittest.TestCase):
         self.assertEquals(resp.status_code, 200)
         resp_json = json.loads(resp.get_data())
 
-        base_amount = discounted_quantity * Price.current(first_item).amount
-        discounted_amount = 2*Price.current(first_item).amount
+        base_amount = discounted_quantity * first_item.current_price().amount
+        discounted_amount = 2*first_item.current_price().amount
         self.assertEquals(resp_json.get('line_items')[unicode(first_item.id)].get('final_amount'),
             base_amount-discounted_amount)
 

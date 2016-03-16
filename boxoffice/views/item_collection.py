@@ -2,12 +2,12 @@ from flask import render_template, jsonify
 from flask.ext.cors import cross_origin
 from coaster.views import load_models
 from boxoffice import app, ALLOWED_ORIGINS
-from boxoffice.models import Organization, ItemCollection, Price
+from boxoffice.models import Organization, ItemCollection
 from utils import xhr_only
 
 
 def jsonify_item(item):
-    price = Price.current(item)
+    price = item.current_price()
     if price:
         return {
             'name': item.name,
@@ -20,7 +20,7 @@ def jsonify_item(item):
             'item_collection_id': item.item_collection_id,
             'price': price.amount,
             'price_category': price.title,
-            'price_valid_upto': price.valid_upto,
+            'price_valid_upto': price.end_at,
             'discount_policies': [{'id': policy.id, 'title': policy.title, 'is_automatic': policy.is_automatic()}
                                   for policy in item.discount_policies]
         }
@@ -53,7 +53,7 @@ def boxofficejs():
 @app.route('/<organization>/<item_collection>', methods=['GET'])
 @load_models(
     (Organization, {'name': 'organization'}, 'organization'),
-    (ItemCollection, {'name': 'item_collection'}, 'item_collection')
+    (ItemCollection, {'organization': 'organization', 'name': 'item_collection'}, 'item_collection')
     )
 @xhr_only
 @cross_origin(origins=ALLOWED_ORIGINS)

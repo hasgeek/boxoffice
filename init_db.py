@@ -10,21 +10,31 @@ from dateutil.relativedelta import relativedelta
 init_for('dev')
 
 # try:
-db.drop_all()
-db.create_all()
+# db.drop_all()
+# db.create_all()
 user = User(userid=buid())
+user2 = User(userid=buid())
 db.session.add(user)
 db.session.commit()
 
 one_month_from_now = date.today() + relativedelta(months=+1)
 
-rootconf = Organization(title='Rootconf', userid=user.userid, status=0)
-db.session.add(rootconf)
+hasgeek2 = Organization(title='HasGeek2', userid=user2.userid, status=0)
+db.session.add(hasgeek2)
 db.session.commit()
 
-rc2016 = ItemCollection(title='2016', organization=rootconf)
+rc2016b = ItemCollection(title='rootconf-2016', organization=hasgeek2)
+db.session.add(rc2016b)
+db.session.commit()
+
+hasgeek = Organization(title='HasGeek', userid=user.userid, status=0)
+db.session.add(hasgeek)
+db.session.commit()
+
+rc2016 = ItemCollection(title='rootconf-2016', organization=hasgeek)
 db.session.add(rc2016)
 db.session.commit()
+
 
 category_conference = Category(title='Conference', item_collection=rc2016)
 db.session.add(category_conference)
@@ -38,7 +48,7 @@ conf_ticket = Item(title='Conference ticket', description='<p><i class="fa fa-ca
 db.session.add(conf_ticket)
 db.session.commit()
 
-price = Price(item=conf_ticket, title='Super Early Geek', valid_from=date.today(), valid_upto=one_month_from_now, amount=3500)
+price = Price(item=conf_ticket, title='Super Early Geek', start_at=date.today(), end_at=one_month_from_now, amount=3500)
 db.session.add(price)
 db.session.commit()
 
@@ -46,7 +56,7 @@ single_day_conf_ticket = Item(title='Single Day 1', description='<p><i class="fa
 db.session.add(single_day_conf_ticket)
 db.session.commit()
 
-single_day_price = Price(item=single_day_conf_ticket, title='Single Day', valid_from=date.today(), valid_upto=one_month_from_now, amount=2500)
+single_day_price = Price(item=single_day_conf_ticket, title='Single Day', start_at=date.today(), end_at=one_month_from_now, amount=2500)
 db.session.add(single_day_price)
 db.session.commit()
 
@@ -54,7 +64,7 @@ single_day2_conf_ticket = Item(title='Single Day 2', description='<p><i class="f
 db.session.add(single_day2_conf_ticket)
 db.session.commit()
 
-single_day2_price = Price(item=single_day2_conf_ticket, title='Single Day', valid_from=date.today(), valid_upto=one_month_from_now, amount=2500)
+single_day2_price = Price(item=single_day2_conf_ticket, title='Single Day', start_at=date.today(), end_at=one_month_from_now, amount=2500)
 db.session.add(single_day2_price)
 db.session.commit()
 
@@ -62,7 +72,7 @@ tshirt = Item(title='T-shirt', description='Rootconf conference T-shirt', item_c
 db.session.add(tshirt)
 db.session.commit()
 
-tshirt_price = Price(item=tshirt, title='Regular', valid_from=date.today(), valid_upto=one_month_from_now, amount=500)
+tshirt_price = Price(item=tshirt, title='Regular', start_at=date.today(), end_at=one_month_from_now, amount=500)
 db.session.add(tshirt_price)
 db.session.commit()
 
@@ -70,26 +80,26 @@ dns_workshop = Item(title='DNSSEC workshop', description='<p><i class="fa fa-cal
 db.session.add(dns_workshop)
 db.session.commit()
 
-dns_workshop_price = Price(item=dns_workshop, title='Early Geek', valid_from=date.today(), valid_upto=one_month_from_now, amount=2500)
+dns_workshop_price = Price(item=dns_workshop, title='Early Geek', start_at=date.today(), end_at=one_month_from_now, amount=2500)
 db.session.add(dns_workshop_price)
 db.session.commit()
 
-policy = DiscountPolicy(title='10% discount on 10 or more tickets', item_quantity_min=10, percentage=10, organization=rootconf)
+policy = DiscountPolicy(title='10% discount on 10 or more tickets', item_quantity_min=10, percentage=10, organization=hasgeek)
 policy.items.append(conf_ticket)
 db.session.add(policy)
 db.session.commit()
 
-policy2 = DiscountPolicy(title='5% discount on 5 or more tickets', item_quantity_min=5, percentage=5, organization=rootconf)
+policy2 = DiscountPolicy(title='5% discount on 5 or more tickets', item_quantity_min=5, percentage=5, organization=hasgeek)
 policy2.items.append(conf_ticket)
 db.session.add(policy2)
 db.session.commit()
 
-tshirt_policy = DiscountPolicy(title='5% discount on 5 or more t-shirts', item_quantity_min=5, percentage=5, organization=rootconf)
+tshirt_policy = DiscountPolicy(title='5% discount on 5 or more t-shirts', item_quantity_min=5, percentage=5, organization=hasgeek)
 tshirt_policy.items.append(tshirt)
 db.session.add(tshirt_policy)
 db.session.commit()
 
-discount_coupon1 = DiscountPolicy(title='15% discount for coupon code with STU', item_quantity_min=1, item_quantity_max=1, percentage=15, organization=rootconf, discount_type=DISCOUNT_TYPE.COUPON)
+discount_coupon1 = DiscountPolicy(title='15% discount for coupon code with STU', item_quantity_min=1, item_quantity_max=1, percentage=15, organization=hasgeek, discount_type=DISCOUNT_TYPE.COUPON)
 discount_coupon1.items.append(conf_ticket)
 db.session.add(discount_coupon1)
 db.session.commit()
@@ -98,7 +108,7 @@ coupon = DiscountCoupon(code='xyzer', discount_policy=discount_coupon1, quantity
 db.session.add(coupon)
 db.session.commit()
 
-speaker_discount = DiscountPolicy(title='100% discount for speaker coupons', item_quantity_min=1, item_quantity_max=1, percentage=100, organization=rootconf, discount_type=DISCOUNT_TYPE.COUPON)
+speaker_discount = DiscountPolicy(title='100% discount for speaker coupons', item_quantity_min=1, item_quantity_max=1, percentage=100, organization=hasgeek, discount_type=DISCOUNT_TYPE.COUPON)
 speaker_discount.items.append(conf_ticket)
 db.session.add(speaker_discount)
 db.session.commit()
@@ -111,7 +121,7 @@ speaker2 = DiscountCoupon(code='speaker2', discount_policy=speaker_discount, qua
 db.session.add(speaker2)
 db.session.commit()
 
-discount_coupon2 = DiscountPolicy(title='20% discount for workshop ticket', item_quantity_min=1, item_quantity_max=1, percentage=20, organization=rootconf, discount_type=DISCOUNT_TYPE.COUPON)
+discount_coupon2 = DiscountPolicy(title='20% discount for workshop ticket', item_quantity_min=1, item_quantity_max=1, percentage=20, organization=hasgeek, discount_type=DISCOUNT_TYPE.COUPON)
 discount_coupon2.items.append(dns_workshop)
 db.session.add(discount_coupon2)
 db.session.commit()

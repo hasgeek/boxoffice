@@ -78,8 +78,8 @@ class TestOrder(unittest.TestCase):
     def test_discounted_complex_order(self):
         conf = Item.query.filter_by(name='conference-ticket').first()
         tshirt = Item.query.filter_by(name='t-shirt').first()
-        conf_price = Price.current(conf).amount
-        tshirt_price = Price.current(tshirt).amount
+        conf_price = conf.current_price().amount
+        tshirt_price = tshirt.current_price().amount
         conf_quantity = 12
         tshirt_quantity = 5
         coupon2 = DiscountCoupon.query.filter_by(code='coupon2').first()
