@@ -26,4 +26,4 @@ def localize(datetime, tz):
 
 @app.template_filter('invoice_date')
 def invoice_date_filter(date, format):
-    return localize(date, app.config.get('TIMEZONE')).strftime(format)
+    return localize(date, app.config['TIMEZONE']).strftime(format)
