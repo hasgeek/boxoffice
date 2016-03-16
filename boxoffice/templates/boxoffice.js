@@ -72,12 +72,56 @@ $(function() {
     return date.toLocaleTimeString(['en-US'], {hour: '2-digit', minute: '2-digit'}) + ", " + date.toDateString();
   };
 
+  boxoffice.initResources = function(config) {
+    this.config.resources = {
+      itemCollection: {
+        method: 'GET',
+        urlFor: function(){
+          return boxoffice.config.baseURL + '/' + config.org + '/' + config.ic;
+        }
+      },
+      kharcha: {
+        method: 'POST',
+        urlFor: function(){
+          return boxoffice.config.baseURL + '/order/kharcha';
+        }
+      },
+      purchaseOrder: {
+        method: 'POST',
+        urlFor: function(){
+          return boxoffice.config.baseURL + '/org/' + config.org + '/ic/' + config.ic + '/order';
+        }
+      },
+      payment: {
+        method: 'POST',
+        urlFor: function(id){
+          return boxoffice.config.baseURL + '/order/' + id + '/payment';
+        }
+      },
+      free: {
+        method: 'POST',
+        urlFor: function(id){
+          return boxoffice.config.baseURL + '/order/' + id + '/free';
+        }
+      },
+      receipt: {
+        urlFor: function(accessToken){
+          return boxoffice.config.baseURL + "/order/" + accessToken + "/receipt";
+        }
+      }
+    }
+  };
+
   boxoffice.init = function(widgetConfig) {
     // Config variables provided by the client embedding the widget
     this.widgetConfig = widgetConfig;
-    this.config.itemCollectionURL = this.config.baseURL + '/' + widgetConfig.org + '/' + widgetConfig.itemCollection;
+    boxoffice.initResources({
+      org: widgetConfig.org,
+      ic: widgetConfig.itemCollection
+    });
+
     $.ajax({
-      url: boxoffice.config.itemCollectionURL,
+      url: boxoffice.config.resources.itemCollection.urlFor(),
       crossDomain: true,
       headers: {'X-Requested-With': 'XMLHttpRequest'},
       dataType: 'json'
@@ -203,7 +247,7 @@ $(function() {
             boxoffice.ractive.set('tabs.selectItems' + '.loadingPrice', true);
 
             $.post({
-              url: boxoffice.config.baseURL + '/kharcha',
+              url: boxoffice.config.resources.kharcha.urlFor(),
               crossDomain: true,
               dataType: 'json',
               headers: {'X-Requested-With': 'XMLHttpRequest'},
@@ -342,7 +386,7 @@ $(function() {
         sendOrder: function() {
           boxoffice.ractive.fire('eventAnalytics', 'order creation', 'sendOrder');
           $.post({
-            url: boxoffice.config.itemCollectionURL + '/order',
+            url: boxoffice.config.resources.purchaseOrder.urlFor(),
             crossDomain: true,
             dataType: 'json',
             headers: {'X-Requested-With': 'XMLHttpRequest'},
@@ -443,7 +487,7 @@ $(function() {
           boxoffice.ractive.set('tabs.payment.loadingPaymentConfirmation', true);
           boxoffice.ractive.fire('eventAnalytics', 'capture payment', 'confirmPayment');
           $.post({
-            url: boxoffice.config.baseURL + paymentUrl,
+            url: boxoffice.config.resources.payment.urlFor(boxoffice.ractive.get('order.order_id')),
             crossDomain: true,
             dataType: 'json',
             headers: {'X-Requested-With': 'XMLHttpRequest'},
@@ -453,12 +497,11 @@ $(function() {
             retries: 5,
             retryInterval: 10000,
             success: function(data) {
-              var cashReceiptURL = boxoffice.config.baseURL + "/" + boxoffice.ractive.get('order.access_token') + "/receipt";
               boxoffice.ractive.set({
                 'tabs.payment.loadingPaymentConfirmation': false,
                 'tabs.payment.complete': true,
                 'activeTab': boxoffice.ractive.get('tabs.confirm.id'),
-                'tabs.confirm.section.cashReceiptURL': cashReceiptURL
+                'tabs.confirm.section.cashReceiptURL': boxoffice.config.resources.receipt.urlFor(boxoffice.ractive.get('order.access_token'))
               });
               boxoffice.ractive.fire('eventAnalytics', 'booking complete', 'confirmPayment success');
             },
@@ -492,7 +535,7 @@ $(function() {
         completeFreeOrder: function(url) {
           boxoffice.ractive.set('tabs.payment.loadingPaymentConfirmation', true);
           $.post({
-            url: boxoffice.config.baseURL + url,
+            url: boxoffice.config.resources.free.urlFor(boxoffice.ractive.get('order.order_id')),
             crossDomain: true,
             dataType: 'json',
             headers: {'X-Requested-With': 'XMLHttpRequest'},
@@ -501,12 +544,11 @@ $(function() {
             retries: 5,
             retryInterval: 5000,
             success: function(data) {
-              var cashReceiptURL = boxoffice.config.baseURL + "/" + boxoffice.ractive.get('order.access_token') + "/receipt";
               boxoffice.ractive.set({
                 'tabs.payment.loadingPaymentConfirmation': false,
                 'tabs.payment.complete': true,
                 'activeTab': boxoffice.ractive.get('tabs.confirm.id'),
-                'tabs.confirm.section.cashReceiptURL': cashReceiptURL
+                'tabs.confirm.section.cashReceiptURL': boxoffice.config.resources.receipt.urlFor(boxoffice.ractive.get('order.access_token'))
               });
               boxoffice.ractive.fire('eventAnalytics', 'booking complete', 'completeFreeOrder success');
             },

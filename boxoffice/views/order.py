@@ -37,7 +37,7 @@ def jsonify_line_items(line_items):
     return items_json
 
 
-@app.route('/kharcha', methods=['OPTIONS', 'POST'])
+@app.route('/order/kharcha', methods=['OPTIONS', 'POST'])
 @xhr_only
 @cross_origin(origins=ALLOWED_ORIGINS)
 def kharcha():
@@ -60,7 +60,7 @@ def kharcha():
     return jsonify(line_items=items_json, order={'final_amount': order_final_amount})
 
 
-@app.route('/<organization>/<item_collection>/order',
+@app.route('/org/<organization>/ic/<item_collection>/order',
            methods=['GET', 'OPTIONS', 'POST'])
 @load_models(
     (Organization, {'name': 'organization'}, 'organization'),
@@ -130,7 +130,7 @@ def order(organization, item_collection):
         final_amount=order.get_amounts().final_amount)
 
 
-@app.route('/<order>/free', methods=['GET', 'OPTIONS', 'POST'])
+@app.route('/order/<order>/free', methods=['GET', 'OPTIONS', 'POST'])
 @load_models(
     (Order, {'id': 'order'}, 'order')
     )
@@ -150,7 +150,7 @@ def free(order):
         return api_result(402, 'Free order confirmation failed')
 
 
-@app.route('/<order>/payment', methods=['GET', 'OPTIONS', 'POST'])
+@app.route('/order/<order>/payment', methods=['GET', 'OPTIONS', 'POST'])
 @load_models(
     (Order, {'id': 'order'}, 'order')
     )
@@ -188,7 +188,7 @@ def payment(order):
         raise PaymentFailError("Online payment failed for order - {order}".format(order=order.id))
 
 
-@app.route('/<access_token>/receipt', methods=['GET'])
+@app.route('/order/<access_token>/receipt', methods=['GET'])
 @load_models(
     (Order, {'access_token': 'access_token'}, 'order')
     )
