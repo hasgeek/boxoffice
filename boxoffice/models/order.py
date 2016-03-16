@@ -33,10 +33,10 @@ class Order(BaseMixin, db.Model):
     user_id = db.Column(None, db.ForeignKey('user.id'), nullable=True)
     user = db.relationship(User, backref=db.backref('orders', cascade='all, delete-orphan'))
     item_collection_id = db.Column(None, db.ForeignKey('item_collection.id'), nullable=False)
-    item_collection = db.relationship('ItemCollection', backref=db.backref('orders', cascade='all, delete-orphan', lazy="dynamic"))  # noqa
+    item_collection = db.relationship('ItemCollection', backref=db.backref('orders', cascade='all, delete-orphan', lazy='dynamic'))
 
     organization_id = db.Column(None, db.ForeignKey('organization.id'), nullable=False)
-    organization = db.relationship('Organization', backref=db.backref('orders', cascade='all, delete-orphan', lazy="dynamic"))  # noqa
+    organization = db.relationship('Organization', backref=db.backref('orders', cascade='all, delete-orphan', lazy='dynamic'))
 
     status = db.Column(db.Integer, default=ORDER_STATUS.PURCHASE_ORDER, nullable=False)
 

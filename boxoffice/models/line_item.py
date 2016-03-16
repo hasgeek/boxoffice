@@ -180,7 +180,7 @@ class LineItemDiscounter():
     def apply_max_discount(self, discounts, line_items):
         """
         Fetches the various discount combinations and applies the discount policy
-        combination that results in the maximum dicount for the given list of
+        combination that results in the maximum discount for the given list of
         line items.
         """
         discounts.extend(self.get_combos(discounts, len(line_items)))
@@ -200,6 +200,9 @@ class LineItemDiscounter():
         Returns the various valid discount combinations given a list of discount policies
         """
         valid_combos = []
+        if len(discounts) < 2:
+            return valid_combos
+
         # Get all possible valid combinations of discounts in groups of 2..n,
         # where n is the number of discounts
         for n in range(2, len(discounts) + 1):

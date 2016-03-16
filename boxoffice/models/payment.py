@@ -20,6 +20,17 @@ class RAZORPAY_PAYMENT_STATUS(LabeledEnum):
     FAILED = (4, __("Failed"))
 
 
+class TRANSACTION_METHOD(LabeledEnum):
+    ONLINE = (0, __("Online"))
+    CASH = (1, __("Cash"))
+
+
+class TRANSACTION_TYPE(LabeledEnum):
+    PAYMENT = (0, __("Payment"))
+    REFUND = (1, __("Refund"))
+    # CREDIT = (2, __("Credit"))
+
+
 class OnlinePayment(BaseMixin, db.Model):
     """
     Represents payments made through a payment gateway.
@@ -52,17 +63,6 @@ class OnlinePayment(BaseMixin, db.Model):
         self.failed_at = datetime.utcnow()
 
 
-class TRANSACTION_METHODS(LabeledEnum):
-    ONLINE = (0, __("Online"))
-    CASH = (1, __("Cash"))
-
-
-class TRANSACTION_TYPES(LabeledEnum):
-    PAYMENT = (0, __("Payment"))
-    REFUND = (1, __("Refund"))
-    # CREDIT = (2, __("Credit"))
-
-
 class PaymentTransaction(BaseMixin, db.Model):
     """
     Models transactions made with a customer.
@@ -77,8 +77,8 @@ class PaymentTransaction(BaseMixin, db.Model):
     online_payment = db.relationship(OnlinePayment, backref=db.backref('transactions', cascade='all, delete-orphan'))
     amount = db.Column(db.Numeric, default=Decimal(0), nullable=False)
     currency = db.Column(db.Unicode(3), nullable=False, default=u'INR')
-    transaction_type = db.Column(db.Integer, default=TRANSACTION_TYPES.PAYMENT, nullable=False)
-    transaction_method = db.Column(db.Integer, default=TRANSACTION_METHODS.ONLINE, nullable=False)
+    transaction_type = db.Column(db.Integer, default=TRANSACTION_TYPE.PAYMENT, nullable=False)
+    transaction_method = db.Column(db.Integer, default=TRANSACTION_METHOD.ONLINE, nullable=False)
 
 
 class PaymentFailError(Exception):
