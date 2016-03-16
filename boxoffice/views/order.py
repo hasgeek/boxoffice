@@ -187,7 +187,6 @@ def payment(order):
         online_payment.fail()
         db.session.commit()
         raise PaymentFailError("Online payment failed for order - {order}".format(order=order.id))
-        return api_result(402, 'Payment capture failed')
 
 
 @app.route('/<access_token>/receipt', methods=['GET'])
