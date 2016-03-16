@@ -20,6 +20,7 @@ mail = Mail()
 
 from boxoffice.models import db  # noqa
 import boxoffice.views  # noqa
+import boxoffice.forms  # noqa
 
 
 # Configure the app

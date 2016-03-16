@@ -1,4 +1,3 @@
-from wtforms import Form
 from baseframe import __
 import baseframe.forms as forms
 
@@ -6,7 +5,7 @@ import baseframe.forms as forms
 __all__ = ['LineItemForm', 'BuyerForm']
 
 
-class LineItemForm(Form):
+class LineItemForm(forms.Form):
     quantity = forms.IntegerField(__("Quantity"), validators=[forms.validators.DataRequired()])
     item_id = forms.StringField(__("Item Id"), validators=[forms.validators.DataRequired()])
 
@@ -26,7 +25,7 @@ class LineItemForm(Form):
         return line_item_forms
 
 
-class BuyerForm(Form):
+class BuyerForm(forms.Form):
     email = forms.EmailField(__("Email"), validators=[forms.validators.DataRequired(), forms.validators.Length(max=80)])
-    fullname = forms.StringField(__("Full Name"), validators=[forms.validators.DataRequired()])
-    phone = forms.StringField(__("Phone number"), validators=[forms.validators.Length(max=13)])
+    fullname = forms.StringField(__("Full name"), validators=[forms.validators.DataRequired()])
+    phone = forms.StringField(__("Phone number"), validators=[forms.validators.Length(max=16)])

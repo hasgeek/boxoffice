@@ -1,2 +1,1 @@
-from boxoffice.views.item_collection import *
-from boxoffice.views.order import *
+from . import item_collection, order

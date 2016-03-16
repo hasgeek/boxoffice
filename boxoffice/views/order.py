@@ -5,12 +5,12 @@ from flask.ext.cors import cross_origin
 from rq import Queue
 from redis import Redis
 from coaster.views import load_models
-from boxoffice import app, ALLOWED_ORIGINS
-from boxoffice.models import db, Organization
-from boxoffice.models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy
-from boxoffice.models import Order, OnlinePayment, PaymentTransaction, User, PaymentFailError
-from boxoffice.extapi import razorpay
-from forms import LineItemForm, BuyerForm
+from .. import app, ALLOWED_ORIGINS
+from ..models import db, Organization
+from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy
+from ..models import Order, OnlinePayment, PaymentTransaction, User, PaymentFailError
+from ..extapi import razorpay
+from .forms import LineItemForm, BuyerForm
 from boxoffice.mailclient import send_invoice_email
 from utils import xhr_only, api_result
 
