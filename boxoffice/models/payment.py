@@ -31,7 +31,7 @@ class OnlinePayment(BaseMixin, db.Model):
     order = db.relationship(Order, backref=db.backref('online_payments', cascade='all, delete-orphan'))
 
     # Payment id issued by the payment gateway
-    pg_payment_id = db.Column(db.Unicode(80), nullable=False)
+    pg_paymentid = db.Column(db.Unicode(80), nullable=False)
     # Payment status issued by the payment gateway
     pg_payment_status = db.Column(db.Integer, nullable=False)
     confirmed_at = db.Column(db.DateTime, nullable=True)

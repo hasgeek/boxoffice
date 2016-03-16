@@ -448,7 +448,7 @@ $(function() {
             dataType: 'json',
             headers: {'X-Requested-With': 'XMLHttpRequest'},
             contentType: 'application/json',
-            data: JSON.stringify({pg_payment_id: paymentID}),
+            data: JSON.stringify({pg_paymentid: paymentID}),
             timeout: 60000,
             retries: 5,
             retryInterval: 10000,

@@ -158,21 +158,20 @@ def free(order):
 @cross_origin(origins=ALLOWED_ORIGINS)
 def payment(order):
     """
-    Accepts JSON containing `pg_payment_id`.
+    Accepts JSON containing `pg_paymentid`.
 
     Creates a payment object, attempts to 'capture' the payment from Razorpay,
     and returns a JSON containing the result of the operation.
 
     A successful capture results in a `payment_transaction` registered against the order.
     """
-    pg_payment_id = request.json.get('pg_payment_id')
-    if not (request.json and pg_payment_id):
+    if not request.json.get('pg_paymentid'):
         abort(400)
 
     order_amounts = order.get_amounts()
-    online_payment = OnlinePayment(pg_payment_id=pg_payment_id, order=order)
+    online_payment = OnlinePayment(pg_paymentid=request.json.get('pg_paymentid'), order=order)
 
-    rp_resp = razorpay.capture_payment(online_payment.pg_payment_id, order_amounts.final_amount)
+    rp_resp = razorpay.capture_payment(online_payment.pg_paymentid, order_amounts.final_amount)
     if rp_resp.status_code == 200:
         online_payment.confirm()
         db.session.add(online_payment)

@@ -144,7 +144,7 @@ def upgrade():
         sa.Column('created_at', sa.DateTime(), nullable=False),
         sa.Column('updated_at', sa.DateTime(), nullable=False),
         sa.Column('customer_order_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
-        sa.Column('pg_payment_id', sa.Unicode(length=80), nullable=False),
+        sa.Column('pg_paymentid', sa.Unicode(length=80), nullable=False),
         sa.Column('pg_payment_status', sa.Integer(), nullable=False),
         sa.Column('confirmed_at', sa.DateTime(), nullable=True),
         sa.Column('failed_at', sa.DateTime(), nullable=True),
