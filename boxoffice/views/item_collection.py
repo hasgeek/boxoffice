@@ -42,12 +42,11 @@ def jsonify_category(category):
         }
 
 
-@app.route('/boxoffice.js')
+@app.route('/api/1/boxoffice.js')
 @cross_origin(origins=ALLOWED_ORIGINS)
 def boxofficejs():
-    return render_template('boxoffice.js',
-                           base_url=app.config.get('BASE_URL'),
-                           razorpay_key_id=app.config.get('RAZORPAY_KEY_ID'))
+    return render_template('boxoffice.js', base_url=app.config['BASE_URL'],
+        razorpay_key_id=app.config['RAZORPAY_KEY_ID'])
 
 
 @app.route('/<organization>/<item_collection>', methods=['GET'])
