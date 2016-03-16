@@ -58,7 +58,7 @@ class LineItem(BaseMixin, db.Model):
         Returns line item tuples with the respective base_amount, discounted_amount,
         final_amount, discount_policy and discount coupon populated
         """
-        item_line_items = dict()
+        item_line_items = {}
         line_items = []
         for line_item_dict in line_item_dicts:
             item = Item.query.get(line_item_dict.get('item_id'))
