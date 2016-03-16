@@ -91,9 +91,9 @@ casper.test.begin('Order Workflow for Boxoffice', 9, function suite(test) {
                 var subtotal = items[itemCategory][item]['subtotal'] || 0;
                 
                 if (discount) {
-                     test.assertEquals(casper.fetchText("#"+itemCategory+" #"+item+" .discount span"), " "+discount, "#"+itemCategory+" #"+item+" discount exists and is correct");
+                     test.assertEquals(casper.fetchText("#"+itemCategory+" #"+item+" .discount-amount span"), " "+discount, "#"+itemCategory+" #"+item+" discount exists and is correct");
                 } else {
-                     test.assertEquals(casper.fetchText("#"+itemCategory+" #"+item+" .discount span"), "", "#"+itemCategory+" #"+item+" discount doesn't exist");
+                     test.assertEquals(casper.fetchText("#"+itemCategory+" #"+item+" .discount-amount span"), "", "#"+itemCategory+" #"+item+" discount doesn't exist");
                 }
 
                 if (subtotal) {
