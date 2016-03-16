@@ -8,7 +8,7 @@ __all__ = ['Item']
 class Item(BaseScopedNameMixin, db.Model):
     __tablename__ = 'item'
     __uuid_primary_key__ = True
-    __tableargs__ = (db.UniqueConstraint('item_collection_id', 'name'),
+    __table_args__ = (db.UniqueConstraint('item_collection_id', 'name'),
         db.CheckConstraint('quantity_available <= quantity_total',
             'item_quantity_available_lte_quantity_total_check'))
 

@@ -27,7 +27,7 @@ def get_latest_invoice_no(organization):
 class Order(BaseMixin, db.Model):
     __tablename__ = 'customer_order'
     __uuid_primary_key__ = True
-    __tableargs__ = (db.UniqueConstraint('organization_id', 'invoice_no'),
+    __table_args__ = (db.UniqueConstraint('organization_id', 'invoice_no'),
         db.UniqueConstraint('access_token'))
 
     user_id = db.Column(None, db.ForeignKey('user.id'), nullable=True)
