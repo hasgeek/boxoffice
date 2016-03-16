@@ -1,7 +1,7 @@
 import itertools
-import decimal
+from decimal import Decimal
 from collections import namedtuple
-from boxoffice.models import db, BaseMixin, Order, Item, Price, DiscountPolicy
+from boxoffice.models import db, BaseMixin, Order, Item, DiscountPolicy
 from coaster.utils import LabeledEnum
 from baseframe import __
 
@@ -36,9 +36,9 @@ class LineItem(BaseMixin, db.Model):
     discount_coupon_id = db.Column(None, db.ForeignKey('discount_coupon.id'), nullable=True)
     discount_coupon = db.relationship('DiscountCoupon', backref=db.backref('line_items'))
 
-    base_amount = db.Column(db.Numeric, default=decimal.Decimal(0), nullable=False)
-    discounted_amount = db.Column(db.Numeric, default=decimal.Decimal(0), nullable=False)
-    final_amount = db.Column(db.Numeric, default=decimal.Decimal(0), nullable=False)
+    base_amount = db.Column(db.Numeric, default=Decimal(0), nullable=False)
+    discounted_amount = db.Column(db.Numeric, default=Decimal(0), nullable=False)
+    final_amount = db.Column(db.Numeric, default=Decimal(0), nullable=False)
     status = db.Column(db.Integer, default=LINE_ITEM_STATUS.CONFIRMED, nullable=False)
     ordered_at = db.Column(db.DateTime, nullable=True)
     cancelled_at = db.Column(db.DateTime, nullable=True)
@@ -50,7 +50,7 @@ class LineItem(BaseMixin, db.Model):
             base_amount,
             kwargs.get('discount_policy_id', None),
             kwargs.get('discount_coupon_id', None),
-            kwargs.get('discounted_amount', decimal.Decimal(0)))
+            kwargs.get('discounted_amount', Decimal(0)))
 
     @classmethod
     def calculate(cls, line_item_dicts, coupons=[]):
@@ -129,7 +129,7 @@ class LineItemDiscounter():
         return DiscountPolicy.get_from_item(item, len(line_items), coupons)
 
     def calculate_discounted_amount(self, percentage, base_amount):
-        return (percentage * base_amount/decimal.Decimal(100))
+        return (percentage * base_amount/Decimal(100))
 
     def apply_discount(self, policy_coupon, line_items, combo=False):
         """

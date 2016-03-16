@@ -1,5 +1,5 @@
 from datetime import datetime
-import decimal
+from decimal import Decimal
 from flask import url_for, request, jsonify, render_template, abort
 from flask.ext.cors import cross_origin
 from rq import Queue
@@ -26,9 +26,9 @@ def jsonify_line_items(line_items):
     items_json = dict()
     for line_item in line_items:
         if not items_json.get(unicode(line_item.item_id)):
-            items_json[unicode(line_item.item_id)] = {'quantity': 0, 'final_amount': decimal.Decimal(0), 'discounted_amount': decimal.Decimal(0), 'discount_policy_ids': []}
+            items_json[unicode(line_item.item_id)] = {'quantity': 0, 'final_amount': Decimal(0), 'discounted_amount': Decimal(0), 'discount_policy_ids': []}
         if not items_json[unicode(line_item.item_id)].get('final_amount'):
-            items_json[unicode(line_item.item_id)]['final_amount'] = decimal.Decimal(0)
+            items_json[unicode(line_item.item_id)]['final_amount'] = Decimal(0)
         items_json[unicode(line_item.item_id)]['final_amount'] += line_item.base_amount - line_item.discounted_amount
         items_json[unicode(line_item.item_id)]['discounted_amount'] += line_item.discounted_amount
         items_json[unicode(line_item.item_id)]['quantity'] += 1

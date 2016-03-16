@@ -1,5 +1,5 @@
+from decimal import Decimal
 from datetime import datetime
-import decimal
 from collections import namedtuple
 from boxoffice.models import db, BaseMixin, User
 from coaster.utils import LabeledEnum, buid
@@ -69,9 +69,9 @@ class Order(BaseMixin, db.Model):
         Calculates and returns the order's base_amount, discounted_amount and
         final_amount as a namedtuple
         """
-        base_amount = (decimal.Decimal(0))
-        discounted_amount = (decimal.Decimal(0))
-        final_amount = (decimal.Decimal(0))
+        base_amount = Decimal(0)
+        discounted_amount = Decimal(0)
+        final_amount = Decimal(0)
         for line_item in self.line_items:
             base_amount += line_item.base_amount
             discounted_amount += line_item.discounted_amount

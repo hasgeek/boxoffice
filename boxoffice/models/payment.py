@@ -1,5 +1,5 @@
 from datetime import datetime
-import decimal
+from decimal import Decimal
 from coaster.utils import LabeledEnum
 from baseframe import __
 from boxoffice.models import db, BaseMixin, Order
@@ -75,7 +75,7 @@ class PaymentTransaction(BaseMixin, db.Model):
     order = db.relationship(Order, backref=db.backref('transactions', cascade='all, delete-orphan', lazy="dynamic"))
     online_payment_id = db.Column(None, db.ForeignKey('online_payment.id'), nullable=True)
     online_payment = db.relationship(OnlinePayment, backref=db.backref('transactions', cascade='all, delete-orphan'))
-    amount = db.Column(db.Numeric, default=decimal.Decimal(0), nullable=False)
+    amount = db.Column(db.Numeric, default=Decimal(0), nullable=False)
     currency = db.Column(db.Unicode(3), nullable=False, default=u'INR')
     transaction_type = db.Column(db.Integer, default=TRANSACTION_TYPES.PAYMENT, nullable=False)
     transaction_method = db.Column(db.Integer, default=TRANSACTION_METHODS.ONLINE, nullable=False)
