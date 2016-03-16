@@ -6,7 +6,6 @@ Flask-WTF
 git+https://github.com/hasgeek/baseframe
 git+https://github.com/hasgeek/coaster
 git+https://github.com/hasgeek/flask-lastuser
-git+https://github.com/hasgeek/baseframe
 jsmin
 pytz
 psycopg2
