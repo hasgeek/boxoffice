@@ -181,7 +181,7 @@
       
       {% for line_item in order.line_items -%}
         <tr class="item-row">
-          <td class="center">{{ line_item.line_item_no }}</td>
+          <td class="center">{{ line_item.line_item_seq }}</td>
           <td class="center">{{ line_item.item.title }}</td>
           <td class="item-description">{{ line_item.item.description|safe }}</td>
           <td class="center">&#8377; {{ line_item.base_amount }}</td>

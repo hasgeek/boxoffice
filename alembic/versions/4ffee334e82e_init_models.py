@@ -173,13 +173,13 @@ def upgrade():
         sa.Column('status', sa.Integer(), nullable=False),
         sa.Column('ordered_at', sa.DateTime(), nullable=True),
         sa.Column('cancelled_at', sa.DateTime(), nullable=True),
-        sa.Column('line_item_no', sa.Integer(), nullable=False),
+        sa.Column('line_item_seq', sa.Integer(), nullable=False),
         sa.Column('id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
         sa.ForeignKeyConstraint(['customer_order_id'], ['customer_order.id'], ),
         sa.ForeignKeyConstraint(['discount_policy_id'], ['discount_policy.id'], ),
         sa.ForeignKeyConstraint(['discount_coupon_id'], ['discount_coupon.id'], ),
         sa.ForeignKeyConstraint(['item_id'], ['item.id'], ),
-        sa.UniqueConstraint('customer_order_id', 'line_item_no'),
+        sa.UniqueConstraint('customer_order_id', 'line_item_seq'),
         sa.PrimaryKeyConstraint('id')
     )
     op.create_table('payment_transaction',
