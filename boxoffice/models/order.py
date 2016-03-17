@@ -24,6 +24,11 @@ def get_latest_invoice_no(organization):
     return order.invoice_no if order else 0
 
 
+def order_amounts_ntuple(base_amount, discounted_amount, final_amount):
+    order_amounts = namedtuple('OrderAmounts', ['base_amount', 'discounted_amount', 'final_amount'])
+    return order_amounts(base_amount, discounted_amount, final_amount)
+
+
 class Order(BaseMixin, db.Model):
     __tablename__ = 'customer_order'
     __uuid_primary_key__ = True
@@ -76,14 +81,4 @@ class Order(BaseMixin, db.Model):
             base_amount += line_item.base_amount
             discounted_amount += line_item.discounted_amount
             final_amount += line_item.final_amount
-        order_amounts = namedtuple('OrderAmounts', ['base_amount', 'discounted_amount', 'final_amount'])
-        return order_amounts(base_amount, discounted_amount, final_amount)
-
-    # def cancel(self):
-    #     """
-    #     Cancels the order and all the associated line items.
-    #     """
-    #     for line_item in LineItem.get_confirmed(self):
-    #         line_item.cancel()
-    #     self.status = ORDER_STATUS.CANCELLED
-    #     self.cancelled_at = datetime.utcnow()
+        return order_amounts_ntuple(base_amount, discounted_amount, final_amount)
