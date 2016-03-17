@@ -10,8 +10,8 @@ from dateutil.relativedelta import relativedelta
 init_for('dev')
 
 # try:
-# db.drop_all()
-# db.create_all()
+db.drop_all()
+db.create_all()
 user = User(userid=buid())
 user2 = User(userid=buid())
 db.session.add(user)

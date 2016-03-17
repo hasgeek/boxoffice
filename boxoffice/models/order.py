@@ -1,6 +1,7 @@
 from decimal import Decimal
 from datetime import datetime
 from collections import namedtuple
+from sqlalchemy import sql
 from boxoffice.models import db, BaseMixin, User
 from coaster.utils import LabeledEnum, buid
 from baseframe import __
@@ -19,9 +20,9 @@ def get_latest_invoice_no(organization):
     """
     Returns the last invoice number used, 0 if no order has ben invoiced yet.
     """
-    order = Order.query.filter_by(organization=organization,
-        status=ORDER_STATUS.SALES_ORDER).order_by('created_at desc').first()
-    return order.invoice_no if order else 0
+    last_invoice_no = db.session.query(sql.functions.max(Order.invoice_no))\
+        .filter(Order.organization == organization).first()
+    return last_invoice_no[0] if last_invoice_no[0] else 0
 
 
 def order_amounts_ntuple(base_amount, discounted_amount, final_amount):
