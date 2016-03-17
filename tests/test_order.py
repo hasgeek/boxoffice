@@ -28,7 +28,7 @@ class TestOrder(unittest.TestCase):
             }
         resp = self.client.post('/org/rootconf/ic/2016/order', data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest')])
         data = json.loads(resp.data)
-        self.assertEquals(data['code'], 200)
+        self.assertEquals(resp.status_code, 201)
         order = Order.query.get(data.get('order_id'))
         self.assertEquals(order.status, ORDER_STATUS.PURCHASE_ORDER)
         # 3500*2 = 7000
@@ -47,7 +47,7 @@ class TestOrder(unittest.TestCase):
         resp = self.client.post('/org/rootconf/ic/2016/order', data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest')])
         data = json.loads(resp.data)
 
-        self.assertEquals(data['code'], 200)
+        self.assertEquals(resp.status_code, 201)
         self.assertEquals(data['final_amount'], 2375)
 
     def test_complex_discounted_item(self):
@@ -71,7 +71,7 @@ class TestOrder(unittest.TestCase):
             }
         resp = self.client.post('/org/rootconf/ic/2016/order', data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest')])
         data = json.loads(resp.data)
-        self.assertEquals(data['code'], 200)
+        self.assertEquals(resp.status_code, 201)
         # 10*3500@90% + 5*500*@95 = 33875
         self.assertEquals(data['final_amount'], 33875)
 
@@ -105,7 +105,7 @@ class TestOrder(unittest.TestCase):
             }
         resp = self.client.post('/org/rootconf/ic/2016/order', data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest')])
         data = json.loads(resp.data)
-        self.assertEquals(resp.status_code, 200)
+        self.assertEquals(resp.status_code, 201)
         resp_json = json.loads(resp.get_data())
         order = Order.query.get(resp_json.get('order_id'))
         tshirt_policy = DiscountPolicy.query.filter_by(title='5% discount on 5 t-shirts').first()

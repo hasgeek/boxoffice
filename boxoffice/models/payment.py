@@ -5,7 +5,7 @@ from baseframe import __
 from boxoffice.models import db, BaseMixin, Order
 from ..extapi import RAZORPAY_PAYMENT_STATUS
 
-__all__ = ['OnlinePayment', 'PaymentTransaction', 'PaymentFailError']
+__all__ = ['OnlinePayment', 'PaymentTransaction']
 
 
 class TRANSACTION_METHOD(LabeledEnum):
@@ -67,11 +67,3 @@ class PaymentTransaction(BaseMixin, db.Model):
     currency = db.Column(db.Unicode(3), nullable=False, default=u'INR')
     transaction_type = db.Column(db.Integer, default=TRANSACTION_TYPE.PAYMENT, nullable=False)
     transaction_method = db.Column(db.Integer, default=TRANSACTION_METHOD.ONLINE, nullable=False)
-
-
-class PaymentFailError(Exception):
-    def __init__(self, value):
-        self.value = value
-
-    def __str__(self):
-        return repr(self.value)

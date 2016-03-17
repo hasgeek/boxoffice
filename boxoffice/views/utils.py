@@ -1,11 +1,7 @@
 from pytz import utc, timezone
-from flask import request, abort, jsonify
+from flask import request, abort
 from functools import wraps
 from boxoffice import app
-
-
-def api_result(code, message):
-    return jsonify(code=code, message=message), code
 
 
 def xhr_only(f):

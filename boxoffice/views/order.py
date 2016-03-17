@@ -1,6 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
-from flask import url_for, request, jsonify, render_template, abort
+from flask import url_for, request, jsonify, render_template
 from flask.ext.cors import cross_origin
 from rq import Queue
 from redis import Redis
@@ -8,11 +8,12 @@ from coaster.views import load_models
 from .. import app, ALLOWED_ORIGINS
 from ..models import db, Organization
 from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy
-from ..models import Order, OnlinePayment, PaymentTransaction, User, PaymentFailError
+from ..models import Order, OnlinePayment, PaymentTransaction, User
 from ..extapi import razorpay
 from .forms import LineItemForm, BuyerForm
+from exceptions import APIError
 from boxoffice.mailclient import send_invoice_email
-from utils import xhr_only, api_result
+from utils import xhr_only
 
 redis_connection = Redis()
 boxofficeq = Queue('boxoffice', connection=redis_connection)
@@ -38,7 +39,7 @@ def jsonify_line_items(line_items):
 
 
 @app.route('/order/kharcha', methods=['OPTIONS', 'POST'])
-@xhr_only
+# @xhr_only
 @cross_origin(origins=ALLOWED_ORIGINS)
 def kharcha():
     """
@@ -47,14 +48,16 @@ def kharcha():
     Returns JSON of line items in the format:
     {item_id: {'quantity': Y, 'final_amount': Z, 'discounted_amount': Z, 'discount_policy_ids': ['d1', 'd2']}}
     """
+    if not request.json or not request.json.get('line_items'):
+        return jsonify(message='Missing line items'), 400
     line_item_forms = LineItemForm.process_list(request.json.get('line_items'))
-    discount_coupons = request.json.get('discount_coupons')
     if not line_item_forms:
-        return api_result(400, 'Invalid items')
+        return jsonify(message='Invalid line items'), 400
+
     # Make line item splits and compute amounts and discounts
     line_items = LineItem.calculate([{'item_id': li_form.data.get('item_id')}
         for li_form in line_item_forms
-        for _ in range(li_form.data.get('quantity'))], coupons=discount_coupons)
+        for _ in range(li_form.data.get('quantity'))], coupons=request.json.get('discount_coupons'))
     items_json = jsonify_line_items(line_items)
     order_final_amount = sum([values['final_amount'] for values in items_json.values()])
     return jsonify(line_items=items_json, order={'final_amount': order_final_amount})
@@ -76,15 +79,16 @@ def order(organization, item_collection):
     Creates a purchase order, and returns a JSON containing the final_amount, order id
     and the URL to be used to register a payment against the order.
     """
+    if not request.json or not request.json.get('line_items'):
+        return jsonify(message='Missing line items'), 400
     line_item_forms = LineItemForm.process_list(request.json.get('line_items'))
     if not line_item_forms:
-        return api_result(400, 'Invalid items')
+        return jsonify(message='Invalid line items'), 400
 
-    discount_coupons = request.json.get('discount_coupons')
     buyer_form = BuyerForm.from_json(request.json.get('buyer'))
 
     if not buyer_form.validate():
-        return api_result(400, 'Invalid buyer details')
+        return jsonify(message='Invalid buyer details'), 400
 
     user = User.query.filter_by(email=buyer_form.email.data).first()
     order = Order(user=user,
@@ -96,7 +100,7 @@ def order(organization, item_collection):
 
     line_item_tups = LineItem.calculate([{'item_id': li_form.data.get('item_id')}
         for li_form in line_item_forms
-        for _ in range(li_form.data.get('quantity'))], coupons=discount_coupons)
+        for _ in range(li_form.data.get('quantity'))], coupons=request.json.get('discount_coupons'))
 
     for idx, line_item_tup in enumerate(line_item_tups):
         item = Item.query.get(line_item_tup.item_id)
@@ -123,11 +127,11 @@ def order(organization, item_collection):
 
     db.session.add(order)
     db.session.commit()
-    return jsonify(code=200, order_id=order.id,
+    return jsonify(order_id=order.id,
         order_access_token=order.access_token,
         payment_url=url_for('payment', order=order.id),
         free_order_url=url_for('free', order=order.id),
-        final_amount=order.get_amounts().final_amount)
+        final_amount=order.get_amounts().final_amount), 201
 
 
 @app.route('/order/<order>/free', methods=['GET', 'OPTIONS', 'POST'])
@@ -145,9 +149,9 @@ def free(order):
         order.confirm_sale()
         db.session.add(order)
         db.session.commit()
-        return jsonify(code=200)
+        return jsonify(message="Free order confirmed"), 201
     else:
-        return api_result(402, 'Free order confirmation failed')
+        return jsonify(message='Free order confirmation failed'), 402
 
 
 @app.route('/order/<order>/payment', methods=['GET', 'OPTIONS', 'POST'])
@@ -166,7 +170,7 @@ def payment(order):
     A successful capture results in a `payment_transaction` registered against the order.
     """
     if not request.json.get('pg_paymentid'):
-        abort(400)
+        return jsonify(message='Missing payment id.'), 400
 
     order_amounts = order.get_amounts()
     online_payment = OnlinePayment(pg_paymentid=request.json.get('pg_paymentid'), order=order)
@@ -181,11 +185,11 @@ def payment(order):
         db.session.add(order)
         db.session.commit()
         boxofficeq.enqueue(send_invoice_email, order.id)
-        return jsonify(code=200)
+        return jsonify(message="Payment verified"), 201
     else:
         online_payment.fail()
         db.session.commit()
-        raise PaymentFailError("Online payment failed for order - {order}".format(order=order.id))
+        raise APIError("Online payment failed for order - {order}".format(order=order.id), 502)
 
 
 @app.route('/order/<access_token>/receipt', methods=['GET'])
