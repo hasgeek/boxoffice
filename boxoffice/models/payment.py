@@ -3,21 +3,9 @@ from decimal import Decimal
 from coaster.utils import LabeledEnum
 from baseframe import __
 from boxoffice.models import db, BaseMixin, Order
+from ..extapi import RAZORPAY_PAYMENT_STATUS
 
 __all__ = ['OnlinePayment', 'PaymentTransaction', 'PaymentFailError']
-
-
-class RAZORPAY_PAYMENT_STATUS(LabeledEnum):
-    """
-    Reflects payment statuses as specified in
-    https://docs.razorpay.com/docs/return-objects
-    """
-    CREATED = (0, __("Created"))
-    AUTHORIZED = (1, __("Authorized"))
-    CAPTURED = (2, __("Captured"))
-    # Only fully refunded payments.
-    REFUNDED = (3, __("Refunded"))
-    FAILED = (4, __("Failed"))
 
 
 class TRANSACTION_METHOD(LabeledEnum):

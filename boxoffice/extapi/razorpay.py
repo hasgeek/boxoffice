@@ -1,10 +1,25 @@
 import requests
+from coaster.utils import LabeledEnum
+from baseframe import __
 from boxoffice import app
 
 # Don't use a trailing slash
 base_url = 'https://api.razorpay.com/v1/payments'
 
-__all__ = ['capture_payment']
+__all__ = ['RAZORPAY_PAYMENT_STATUS', 'capture_payment']
+
+
+class RAZORPAY_PAYMENT_STATUS(LabeledEnum):
+    """
+    Reflects payment statuses as specified in
+    https://docs.razorpay.com/docs/return-objects
+    """
+    CREATED = (0, __("Created"))
+    AUTHORIZED = (1, __("Authorized"))
+    CAPTURED = (2, __("Captured"))
+    # Only fully refunded payments.
+    REFUNDED = (3, __("Refunded"))
+    FAILED = (4, __("Failed"))
 
 
 def capture_payment(paymentid, amount):
