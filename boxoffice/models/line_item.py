@@ -13,6 +13,15 @@ class LINE_ITEM_STATUS(LabeledEnum):
     CANCELLED = (1, __("Cancelled"))
 
 
+def make_ntuple(item_id, base_amount, **kwargs):
+    line_item_tup = namedtuple('LineItem', ['item_id', 'base_amount', 'discount_policy_id', 'discount_coupon_id', 'discounted_amount'])
+    return line_item_tup(item_id,
+        base_amount,
+        kwargs.get('discount_policy_id', None),
+        kwargs.get('discount_coupon_id', None),
+        kwargs.get('discounted_amount', Decimal(0)))
+
+
 class LineItem(BaseMixin, db.Model):
     """
     Note: Line Items MUST NOT be deleted.
@@ -44,15 +53,6 @@ class LineItem(BaseMixin, db.Model):
     cancelled_at = db.Column(db.DateTime, nullable=True)
 
     @classmethod
-    def make_ntuple(cls, item_id, base_amount, **kwargs):
-        line_item_tup = namedtuple('LineItem', ['item_id', 'base_amount', 'discount_policy_id', 'discount_coupon_id', 'discounted_amount'])
-        return line_item_tup(item_id,
-            base_amount,
-            kwargs.get('discount_policy_id', None),
-            kwargs.get('discount_coupon_id', None),
-            kwargs.get('discounted_amount', Decimal(0)))
-
-    @classmethod
     def calculate(cls, line_item_dicts, coupons=[]):
         """
         Returns line item tuples with the respective base_amount, discounted_amount,
@@ -64,7 +64,7 @@ class LineItem(BaseMixin, db.Model):
             item = Item.query.get(line_item_dict.get('item_id'))
             if not item_line_items.get(unicode(item.id)):
                 item_line_items[unicode(item.id)] = []
-            item_line_items[unicode(item.id)].append(LineItem.make_ntuple(item_id=item.id,
+            item_line_items[unicode(item.id)].append(make_ntuple(item_id=item.id,
                 base_amount=item.current_price().amount))
         coupon_list = list(set(coupons)) if coupons else []
         discounter = LineItemDiscounter()
@@ -72,28 +72,6 @@ class LineItem(BaseMixin, db.Model):
             item_line_items[item_id] = discounter.get_discounted_line_items(item_line_items[item_id], coupon_list)
             line_items.extend(item_line_items[item_id])
         return line_items
-
-    # def cancel(self):
-    #     """
-    #     Sets status and cancelled_at. To update the quantity
-    #     create, a new line item with the required quantity
-    #     """
-    #     self.status = LINE_ITEM_STATUS.CANCELLED
-    #     self.cancelled_at = datetime.utcnow()
-
-    # @classmethod
-    # def get_confirmed(cls, order):
-    #     """
-    #     Returns an order's confirmed line items.
-    #     """
-    #     return cls.query.filter_by(order=order, status=LINE_ITEM_STATUS.CONFIRMED).all()
-
-    # @classmethod
-    # def get_cancelled(cls, order):
-    #     """
-    #     Returns an order's cancelled line items.
-    #     """
-    #     return cls.query.filter_by(order=order, status=LINE_ITEM_STATUS.CANCELLED).all()
 
 
 class LineItemDiscounter():
@@ -151,7 +129,7 @@ class LineItemDiscounter():
                 # than the current discount, assign the current discount to the line item
 
                 discount_coupon_id = coupon.id if coupon else None
-                discounted_line_items.append(LineItem.make_ntuple(item_id=line_item.item_id,
+                discounted_line_items.append(make_ntuple(item_id=line_item.item_id,
                     base_amount=line_item.base_amount,
                     discount_policy_id=discount_policy.id,
                     discount_coupon_id=discount_coupon_id,
