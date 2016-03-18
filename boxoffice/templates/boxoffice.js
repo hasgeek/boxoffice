@@ -77,7 +77,7 @@ $(function() {
       itemCollection: {
         method: 'GET',
         urlFor: function(){
-          return boxoffice.config.baseURL + '/' + config.org + '/' + config.ic;
+          return boxoffice.config.baseURL + '/ic/' + config.ic;
         }
       },
       kharcha: {
@@ -89,7 +89,7 @@ $(function() {
       purchaseOrder: {
         method: 'POST',
         urlFor: function(){
-          return boxoffice.config.baseURL + '/org/' + config.org + '/ic/' + config.ic + '/order';
+          return boxoffice.config.baseURL + '/ic/' + config.ic + '/order';
         }
       },
       payment: {
@@ -116,7 +116,6 @@ $(function() {
     // Config variables provided by the client embedding the widget
     this.widgetConfig = widgetConfig;
     boxoffice.initResources({
-      org: widgetConfig.org,
       ic: widgetConfig.itemCollection
     });
 

@@ -6,7 +6,7 @@ from rq import Queue
 from redis import Redis
 from coaster.views import load_models
 from .. import app, ALLOWED_ORIGINS
-from ..models import db, Organization
+from ..models import db
 from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy
 from ..models import Order, OnlinePayment, PaymentTransaction, User, CURRENCY
 from ..extapi import razorpay
@@ -63,15 +63,14 @@ def kharcha():
     return jsonify(line_items=items_json, order={'final_amount': order_final_amount})
 
 
-@app.route('/org/<organization>/ic/<item_collection>/order',
+@app.route('/ic/<item_collection>/order',
            methods=['GET', 'OPTIONS', 'POST'])
 @load_models(
-    (Organization, {'name': 'organization'}, 'organization'),
-    (ItemCollection, {'organization': 'organization', 'name': 'item_collection'}, 'item_collection')
+    (ItemCollection, {'id': 'item_collection'}, 'item_collection')
     )
 @xhr_only
 @cross_origin(origins=ALLOWED_ORIGINS)
-def order(organization, item_collection):
+def order(item_collection):
     """
     Accepts JSON containing an array of line_items with the quantity and item_id
     set for each item, and a buyer hash containing `email`, `fullname` and `phone`.
@@ -92,7 +91,7 @@ def order(organization, item_collection):
 
     user = User.query.filter_by(email=buyer_form.email.data).first()
     order = Order(user=user,
-        organization=organization,
+        organization=item_collection.organization,
         item_collection=item_collection,
         buyer_email=buyer_form.email.data,
         buyer_fullname=buyer_form.fullname.data,

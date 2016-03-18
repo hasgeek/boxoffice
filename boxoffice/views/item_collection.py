@@ -49,14 +49,13 @@ def boxofficejs():
         razorpay_key_id=app.config['RAZORPAY_KEY_ID'])
 
 
-@app.route('/<organization>/<item_collection>', methods=['GET'])
+@app.route('/ic/<item_collection>', methods=['GET'])
 @load_models(
-    (Organization, {'name': 'organization'}, 'organization'),
-    (ItemCollection, {'organization': 'organization', 'name': 'item_collection'}, 'item_collection')
+    (ItemCollection, {'id': 'item_collection'}, 'item_collection')
     )
 @xhr_only
 @cross_origin(origins=ALLOWED_ORIGINS)
-def item_collection(organization, item_collection):
+def item_collection(item_collection):
     categories_json = []
     for category in item_collection.categories:
         category_json = jsonify_category(category)
