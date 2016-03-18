@@ -1,6 +1,7 @@
 import string
 import random
 from datetime import datetime
+from werkzeug import cached_property
 from baseframe import __
 from coaster.utils import LabeledEnum
 from boxoffice.models import db, BaseScopedNameMixin, IdMixin
@@ -42,9 +43,11 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     percentage = db.Column(db.Integer, nullable=False)
     items = db.relationship('Item', secondary=item_discount_policy)
 
+    @cached_property
     def is_automatic(self):
         return self.discount_type == DISCOUNT_TYPE.AUTOMATIC
 
+    @cached_property
     def is_coupon(self):
         return self.discount_type == DISCOUNT_TYPE.COUPON
 
