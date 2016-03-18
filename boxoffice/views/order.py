@@ -11,7 +11,7 @@ from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPol
 from ..models import Order, OnlinePayment, PaymentTransaction, User
 from ..extapi import razorpay
 from .forms import LineItemForm, BuyerForm
-from exceptions import APIError
+from custom_exceptions import APIError
 from boxoffice.mailclient import send_invoice_email
 from utils import xhr_only
 
@@ -49,7 +49,7 @@ def kharcha():
     {item_id: {'quantity': Y, 'final_amount': Z, 'discounted_amount': Z, 'discount_policy_ids': ['d1', 'd2']}}
     """
     if not request.json or not request.json.get('line_items'):
-        return jsonify(message='Missing line items'), 400
+        return jsonify(message='<Missing></Missing> line items'), 400
     line_item_forms = LineItemForm.process_list(request.json.get('line_items'))
     if not line_item_forms:
         return jsonify(message='Invalid line items'), 400
@@ -188,6 +188,7 @@ def payment(order):
         return jsonify(message="Payment verified"), 201
     else:
         online_payment.fail()
+        db.session.add(online_payment)
         db.session.commit()
         raise APIError("Online payment failed for order - {order}".format(order=order.id), 502)
 
