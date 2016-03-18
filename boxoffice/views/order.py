@@ -8,7 +8,7 @@ from coaster.views import load_models
 from .. import app, ALLOWED_ORIGINS
 from ..models import db, Organization
 from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy
-from ..models import Order, OnlinePayment, PaymentTransaction, User
+from ..models import Order, OnlinePayment, PaymentTransaction, User, CURRENCY
 from ..extapi import razorpay
 from .forms import LineItemForm, BuyerForm
 from custom_exceptions import APIError
@@ -179,7 +179,9 @@ def payment(order):
     if rp_resp.status_code == 200:
         online_payment.confirm()
         db.session.add(online_payment)
-        transaction = PaymentTransaction(order=order, online_payment=online_payment, amount=order_amounts.final_amount)
+        # Only INR is supported as of now
+        transaction = PaymentTransaction(order=order, online_payment=online_payment,
+            amount=order_amounts.final_amount, currency=CURRENCY.INR)
         db.session.add(transaction)
         order.confirm_sale()
         db.session.add(order)

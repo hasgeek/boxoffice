@@ -1,11 +1,10 @@
 from datetime import datetime
-from decimal import Decimal
 from coaster.utils import LabeledEnum
 from baseframe import __
 from boxoffice.models import db, BaseMixin, Order
 from ..extapi import RAZORPAY_PAYMENT_STATUS
 
-__all__ = ['OnlinePayment', 'PaymentTransaction']
+__all__ = ['OnlinePayment', 'PaymentTransaction', 'CURRENCY']
 
 
 class TRANSACTION_METHOD(LabeledEnum):
@@ -64,6 +63,10 @@ class PaymentTransaction(BaseMixin, db.Model):
     online_payment_id = db.Column(None, db.ForeignKey('online_payment.id'), nullable=True)
     online_payment = db.relationship(OnlinePayment, backref=db.backref('transactions', cascade='all, delete-orphan'))
     amount = db.Column(db.Numeric, nullable=False)
-    currency = db.Column(db.Unicode(3), nullable=False, default=u'INR')
+    currency = db.Column(db.Unicode(3), nullable=False)
     transaction_type = db.Column(db.Integer, default=TRANSACTION_TYPE.PAYMENT, nullable=False)
     transaction_method = db.Column(db.Integer, default=TRANSACTION_METHOD.ONLINE, nullable=False)
+
+
+class CURRENCY(LabeledEnum):
+    INR = (u"INR", __("INR"))
