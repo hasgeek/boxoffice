@@ -61,7 +61,7 @@ class LineItem(BaseMixin, db.Model):
         item_line_items = {}
         line_items = []
         for line_item_dict in line_item_dicts:
-            item = Item.query.get(line_item_dict.get('item_id'))
+            item = Item.query.get(line_item_dict['item_id'])
             if not item_line_items.get(unicode(item.id)):
                 item_line_items[unicode(item.id)] = []
             item_line_items[unicode(item.id)].append(make_ntuple(item_id=item.id,
