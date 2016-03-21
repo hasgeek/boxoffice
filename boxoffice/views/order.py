@@ -85,7 +85,8 @@ def order(item_collection):
         return jsonify(message='Invalid line items'), 400
 
     buyer_form = BuyerForm.from_json(request.json.get('buyer'))
-
+    # See comment in LineItemForm about CSRF
+    buyer_form.csrf_enabled = False
     if not buyer_form.validate():
         return jsonify(message='Invalid buyer details'), 400
 
