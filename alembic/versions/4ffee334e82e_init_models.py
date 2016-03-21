@@ -86,9 +86,11 @@ def upgrade():
         sa.Column('name', sa.Unicode(length=250), nullable=False),
         sa.Column('title', sa.Unicode(length=250), nullable=False),
         sa.Column('id', sa.Integer(), nullable=False),
+        sa.Column('seq', sa.Integer(), nullable=False),
         sa.ForeignKeyConstraint(['item_collection_id'], ['item_collection.id'], ),
         sa.PrimaryKeyConstraint('id'),
-        sa.UniqueConstraint('item_collection_id', 'name')
+        sa.UniqueConstraint('item_collection_id', 'name'),
+        sa.UniqueConstraint('item_collection_id', 'seq')
     )
     op.create_table('customer_order',
         sa.Column('created_at', sa.DateTime(), nullable=False),

@@ -56,6 +56,7 @@ def boxofficejs():
 @cors
 def item_collection(item_collection):
     categories_json = []
+    item_collection.categories.sort(key=lambda category: category.seq)
     for category in item_collection.categories:
         category_json = jsonify_category(category)
         if category_json:
