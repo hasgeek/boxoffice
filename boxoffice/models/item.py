@@ -1,6 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
-from ..models import db, BaseScopedNameMixin
+from ..models import db, BaseScopedNameMixin, MarkdownColumn
 from ..models import ItemCollection, Category
 from ..models.discount_policy import item_discount_policy
 
@@ -14,7 +14,7 @@ class Item(BaseScopedNameMixin, db.Model):
         db.CheckConstraint('quantity_available <= quantity_total',
             'item_quantity_available_lte_quantity_total_check'))
 
-    description = db.Column(db.Unicode(2500), nullable=False)
+    description = MarkdownColumn('description', default=u'', nullable=False)
 
     item_collection_id = db.Column(None, db.ForeignKey('item_collection.id'), nullable=False)
     item_collection = db.relationship(ItemCollection, backref=db.backref('items', cascade='all, delete-orphan'))

@@ -2,10 +2,6 @@ from pytz import utc, timezone
 from flask import request, abort
 from functools import wraps
 from boxoffice import app
-from datetime import timedelta
-from functools import update_wrapper
-from flask import make_response
-import flask
 from urlparse import urlparse
 
 
@@ -46,7 +42,7 @@ def cors(f):
         if referrer_url in app.config['ALLOWED_ORIGINS']:
             resp.headers['Access-Control-Allow-Origin'] = referrer_url
             resp.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS, GET'
-            resp.headers['Access-Control-Allow-Headers'] = flask.request.headers.get('Access-Control-Request-Headers', 'Authorization')
+            resp.headers['Access-Control-Allow-Headers'] = request.headers.get('Access-Control-Request-Headers', 'Authorization')
             # debugging only
             if app.debug:
                 resp.headers['Access-Control-Max-Age'] = '1'

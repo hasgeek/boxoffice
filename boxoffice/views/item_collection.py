@@ -12,7 +12,7 @@ def jsonify_item(item):
             'name': item.name,
             'title': item.title,
             'id': item.id,
-            'description': item.description,
+            'description': item.description.text,
             'quantity_available': item.quantity_available,
             'quantity_total': item.quantity_total,
             'category_id': item.category_id,
@@ -42,7 +42,6 @@ def jsonify_category(category):
 
 
 @app.route('/api/1/boxoffice.js')
-@cors
 def boxofficejs():
     return render_template('boxoffice.js', base_url=app.config['BASE_URL'],
         razorpay_key_id=app.config['RAZORPAY_KEY_ID'])
