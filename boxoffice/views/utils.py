@@ -2,7 +2,7 @@ from pytz import utc, timezone
 from flask import request, abort
 from functools import wraps
 from boxoffice import app
-from urlparse import urlparse
+from urlparse import urlparse, urlunsplit
 
 
 def xhr_only(f):
@@ -37,12 +37,13 @@ def cors(f):
         if not request.referrer:
             abort(401)
         parsed_result = urlparse(request.referrer)
-        referrer_url = parsed_result.scheme + "://" + parsed_result.netloc
+        referrer_base_url = urlunsplit((parsed_result.scheme, parsed_result.netloc, '', '', ''))
 
-        if referrer_url in app.config['ALLOWED_ORIGINS']:
-            resp.headers['Access-Control-Allow-Origin'] = referrer_url
+        if referrer_base_url in app.config['ALLOWED_ORIGINS']:
+            resp.headers['Access-Control-Allow-Origin'] = referrer_base_url
             resp.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS, GET'
-            resp.headers['Access-Control-Allow-Headers'] = request.headers.get('Access-Control-Request-Headers', 'Authorization')
+            # echo the request's headers
+            resp.headers['Access-Control-Allow-Headers'] = request.headers.get('Access-Control-Request-Headers')
             # debugging only
             if app.debug:
                 resp.headers['Access-Control-Max-Age'] = '1'
