@@ -132,13 +132,10 @@
       </div> 
 
       <div class="address">
-        <h2 class="company-name">HasGeek Learning Private Limited</h2>
-        <p>141/142, 2nd cross, Pai Layout</p>
-        <p>Hulimavu Gate, Bannerghatta Road</p>
-        <p>Bangalore – 560076</p>
-        <p>India</p>
-        <p>CIN: U74900KA2015PTC083923</p>
-        <p>PAN No: AADCH7324J</p>
+        {{org.details.get('address') | safe}}
+        <p>CIN: {{org.details.get('cin')}}</p>
+        <p>PAN No: {{org.details.get('pan')}}</p>
+        <p>Service Tax No: {{org.details.get('service_tax_no')}}</p>
         <p><a href="https://hasgeek.com/">https://hasgeek.com</a></p>
       </div>    
     </div>

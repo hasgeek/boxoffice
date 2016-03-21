@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from flask import g
 from flask.ext.lastuser.sqlalchemy import UserBase2, ProfileBase
-from boxoffice.models import db
+from boxoffice.models import db, JsonDict
 
 
 __all__ = ['User', 'Organization']
@@ -21,3 +21,4 @@ def default_user(context):
 
 class Organization(ProfileBase, db.Model):
     __tablename__ = 'organization'
+    details = db.Column(JsonDict, nullable=False, server_default='{}')

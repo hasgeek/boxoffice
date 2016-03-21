@@ -19,19 +19,19 @@ db.session.commit()
 
 one_month_from_now = date.today() + relativedelta(months=+1)
 
-hasgeek2 = Organization(title='HasGeek2', userid=user2.userid, status=0)
-db.session.add(hasgeek2)
-db.session.commit()
+# hasgeek2 = Organization(title='HasGeek2', userid=user2.userid, status=0)
+# db.session.add(hasgeek2)
+# db.session.commit()
 
-rc2016b = ItemCollection(title='rootconf-2016', organization=hasgeek2)
-db.session.add(rc2016b)
-db.session.commit()
+# rc2016b = ItemCollection(title='rootconf-2016', organization=hasgeek2)
+# db.session.add(rc2016b)
+# db.session.commit()
 
-hasgeek = Organization(title='HasGeek', userid=user.userid, status=0)
+hasgeek = Organization(title='HasGeek', userid=user.userid, status=0, details={'service_tax_no': 'AADCH7324JSD001', 'address': u'<h2 class="company-name">HasGeek Learning Private Limited</h2> <p>141/142, 2nd cross, Pai Layout</p> <p>Hulimavu Gate, Bannerghatta Road</p> <p>Bangalore - 560076</p> <p>India</p>', 'cin': u'U74900KA2015PTC083923', 'pan': u'AADCH7324J'})
 db.session.add(hasgeek)
 db.session.commit()
 
-rc2016 = ItemCollection(title='rootconf-2016', organization=hasgeek)
+rc2016 = ItemCollection(id=u'40fc461c-ef40-11e5-ae92-457529b5226a', title='rootconf-2016', organization=hasgeek)
 db.session.add(rc2016)
 db.session.commit()
 

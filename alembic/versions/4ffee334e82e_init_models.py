@@ -2,6 +2,7 @@ from alembic import op
 import sqlalchemy as sa
 import sqlalchemy_utils
 import coaster
+from coaster.sqlalchemy import JsonDict
 
 """init models
 
@@ -23,6 +24,7 @@ def upgrade():
         sa.Column('status', sa.Integer(), nullable=False),
         sa.Column('name', sa.Unicode(length=250), nullable=False),
         sa.Column('title', sa.Unicode(length=250), nullable=False),
+        sa.Column('details', JsonDict(), server_default='{}', nullable=False),
         sa.Column('id', sa.Integer(), nullable=False),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('name'),

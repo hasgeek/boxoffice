@@ -39,7 +39,7 @@ def jsonify_line_items(line_items):
 
 
 @app.route('/order/kharcha', methods=['OPTIONS', 'POST'])
-# @xhr_only
+@xhr_only
 @cross_origin(origins=ALLOWED_ORIGINS)
 def kharcha():
     """
@@ -199,4 +199,4 @@ def payment(order):
     (Order, {'access_token': 'access_token'}, 'order')
     )
 def receipt(order):
-    return render_template('cash_receipt.html', order=order)
+    return render_template('cash_receipt.html', order=order, org=order.organization)

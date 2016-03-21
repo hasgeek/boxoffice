@@ -2,7 +2,7 @@ from flask import render_template, jsonify
 from flask.ext.cors import cross_origin
 from coaster.views import load_models
 from boxoffice import app, ALLOWED_ORIGINS
-from boxoffice.models import Organization, ItemCollection
+from boxoffice.models import ItemCollection
 from utils import xhr_only
 
 
