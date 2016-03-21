@@ -36,11 +36,11 @@ db.session.add(rc2016)
 db.session.commit()
 
 
-category_conference = Category(title='Conference', item_collection=rc2016)
+category_conference = Category(title='Conference', item_collection=rc2016, seq=1)
 db.session.add(category_conference)
-category_workshop = Category(title='Workshop', item_collection=rc2016)
+category_workshop = Category(title='Workshop', item_collection=rc2016, seq=2)
 db.session.add(category_workshop)
-category_merch = Category(title='Merchandise', item_collection=rc2016)
+category_merch = Category(title='Merchandise', item_collection=rc2016, seq=3)
 db.session.add(category_merch)
 db.session.commit()
 
