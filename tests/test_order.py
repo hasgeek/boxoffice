@@ -26,7 +26,8 @@ class TestOrder(unittest.TestCase):
                 'email': 'test@hasgeek.com',
                 }
             }
-        resp = self.client.post('/org/rootconf/ic/2016/order', data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest')])
+        ic = ItemCollection.query.first()
+        resp = self.client.post('/ic/{ic}/order'.format(ic=ic.id), data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest')])
         data = json.loads(resp.data)
         self.assertEquals(resp.status_code, 201)
         order = Order.query.get(data.get('order_id'))
@@ -44,7 +45,8 @@ class TestOrder(unittest.TestCase):
                 'email': 'test@hasgeek.com',
                 }
             }
-        resp = self.client.post('/org/rootconf/ic/2016/order', data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest')])
+        ic = ItemCollection.query.first()
+        resp = self.client.post('/ic/{ic}/order'.format(ic=ic.id), data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest')])
         data = json.loads(resp.data)
 
         self.assertEquals(resp.status_code, 201)
@@ -69,7 +71,8 @@ class TestOrder(unittest.TestCase):
                 'email': 'test@hasgeek.com',
                 }
             }
-        resp = self.client.post('/org/rootconf/ic/2016/order', data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest')])
+        ic = ItemCollection.query.first()
+        resp = self.client.post('/ic/{ic}/order'.format(ic=ic.id), data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest')])
         data = json.loads(resp.data)
         self.assertEquals(resp.status_code, 201)
         # 10*3500@90% + 5*500*@95 = 33875
@@ -103,7 +106,8 @@ class TestOrder(unittest.TestCase):
                 'email': 'test@hasgeek.com',
                 }
             }
-        resp = self.client.post('/org/rootconf/ic/2016/order', data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest')])
+        ic = ItemCollection.query.first()
+        resp = self.client.post('/ic/{ic}/order'.format(ic=ic.id), data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest')])
         data = json.loads(resp.data)
         self.assertEquals(resp.status_code, 201)
         resp_json = json.loads(resp.get_data())

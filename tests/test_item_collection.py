@@ -1,7 +1,7 @@
 import unittest
 import json
 from boxoffice import app, init_for
-from boxoffice.models import (db)
+from boxoffice.models import (db, ItemCollection)
 from fixtures import init_data
 
 
@@ -57,7 +57,8 @@ class TestItemCollectionAPI(unittest.TestCase):
         db.create_all()
         init_data()
         self.client = app.test_client()
-        self.resp = self.client.get('/rootconf/2016', headers=[('X-Requested-With', 'XMLHttpRequest')])
+        ic = ItemCollection.query.first()
+        self.resp = self.client.get('/ic/{ic}'.format(ic=ic.id), headers=[('X-Requested-With', 'XMLHttpRequest')])
 
     def test_status(self):
         self.assertEquals(self.resp.status_code, 200)
