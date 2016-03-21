@@ -18,9 +18,8 @@ ALLOWED_ORIGINS = ['http://shreyas-wlan.dev:8000',
 mail = Mail()
 
 
-from boxoffice.models import db  # noqa
-import boxoffice.views  # noqa
-import boxoffice.forms  # noqa
+from boxoffice.models import db, User  # noqa
+from . import extapi, views  # noqa
 
 
 # Configure the app
@@ -30,8 +29,7 @@ def init_for(env):
     db.app = app
 
     lastuser.init_app(app)
-    lastuser.init_usermanager(UserManager(boxoffice.models.db,
-                                          boxoffice.models.User))
+    lastuser.init_usermanager(UserManager(db, User))
     app.config['tz'] = timezone(app.config['TIMEZONE'])
 
     mail.init_app(app)
