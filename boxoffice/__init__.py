@@ -11,9 +11,6 @@ import wtforms_json
 
 app = Flask(__name__, instance_relative_config=True)
 lastuser = Lastuser()
-ALLOWED_ORIGINS = ['http://shreyas-wlan.dev:8000',
-                   'http://rootconf.vidya.dev:8090',
-                   'http://rootconf.karthik.dev:8090']
 
 mail = Mail()
 

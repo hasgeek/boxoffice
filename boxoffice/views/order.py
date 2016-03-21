@@ -1,11 +1,10 @@
 from datetime import datetime
 from decimal import Decimal
-from flask import url_for, request, jsonify, render_template
-from flask.ext.cors import cross_origin
+from flask import url_for, request, jsonify, render_template, make_response
 from rq import Queue
 from redis import Redis
 from coaster.views import load_models
-from .. import app, ALLOWED_ORIGINS
+from .. import app
 from ..models import db
 from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy
 from ..models import Order, OnlinePayment, PaymentTransaction, User, CURRENCY
@@ -13,7 +12,7 @@ from ..extapi import razorpay
 from ..forms import LineItemForm, BuyerForm
 from custom_exceptions import APIError
 from boxoffice.mailclient import send_invoice_email
-from utils import xhr_only
+from utils import xhr_only, cors
 
 redis_connection = Redis()
 boxofficeq = Queue('boxoffice', connection=redis_connection)
@@ -40,7 +39,7 @@ def jsonify_line_items(line_items):
 
 @app.route('/order/kharcha', methods=['OPTIONS', 'POST'])
 @xhr_only
-@cross_origin(origins=ALLOWED_ORIGINS)
+@cors
 def kharcha():
     """
     Accepts JSON containing an array of line_items, with the quantity and item_id set for each line_item.
@@ -49,10 +48,10 @@ def kharcha():
     {item_id: {'quantity': Y, 'final_amount': Z, 'discounted_amount': Z, 'discount_policy_ids': ['d1', 'd2']}}
     """
     if not request.json or not request.json.get('line_items'):
-        return jsonify(message='<Missing></Missing> line items'), 400
+        return make_response(jsonify(message='<Missing></Missing> line items'), 400)
     line_item_forms = LineItemForm.process_list(request.json.get('line_items'))
     if not line_item_forms:
-        return jsonify(message='Invalid line items'), 400
+        return make_response(jsonify(message='Invalid line items'), 400)
 
     # Make line item splits and compute amounts and discounts
     line_items = LineItem.calculate([{'item_id': li_form.data.get('item_id')}
@@ -69,7 +68,7 @@ def kharcha():
     (ItemCollection, {'id': 'item_collection'}, 'item_collection')
     )
 @xhr_only
-@cross_origin(origins=ALLOWED_ORIGINS)
+@cors
 def order(item_collection):
     """
     Accepts JSON containing an array of line_items with the quantity and item_id
@@ -79,16 +78,16 @@ def order(item_collection):
     and the URL to be used to register a payment against the order.
     """
     if not request.json or not request.json.get('line_items'):
-        return jsonify(message='Missing line items'), 400
+        return make_response(jsonify(message='Missing line items'), 400)
     line_item_forms = LineItemForm.process_list(request.json.get('line_items'))
     if not line_item_forms:
-        return jsonify(message='Invalid line items'), 400
+        return make_response(jsonify(message='Invalid line items'), 400)
 
     buyer_form = BuyerForm.from_json(request.json.get('buyer'))
     # See comment in LineItemForm about CSRF
     buyer_form.csrf_enabled = False
     if not buyer_form.validate():
-        return jsonify(message='Invalid buyer details'), 400
+        return make_response(jsonify(message='Invalid buyer details'), 400)
 
     user = User.query.filter_by(email=buyer_form.email.data).first()
     order = Order(user=user,
@@ -127,11 +126,11 @@ def order(item_collection):
 
     db.session.add(order)
     db.session.commit()
-    return jsonify(order_id=order.id,
+    return make_response(jsonify(order_id=order.id,
         order_access_token=order.access_token,
         payment_url=url_for('payment', order=order.id),
         free_order_url=url_for('free', order=order.id),
-        final_amount=order.get_amounts().final_amount), 201
+        final_amount=order.get_amounts().final_amount), 201)
 
 
 @app.route('/order/<order>/free', methods=['GET', 'OPTIONS', 'POST'])
@@ -139,7 +138,7 @@ def order(item_collection):
     (Order, {'id': 'order'}, 'order')
     )
 @xhr_only
-@cross_origin(origins=ALLOWED_ORIGINS)
+@cors
 def free(order):
     """
     Completes a order which has a final_amount of 0
@@ -149,9 +148,9 @@ def free(order):
         order.confirm_sale()
         db.session.add(order)
         db.session.commit()
-        return jsonify(message="Free order confirmed"), 201
+        return make_response(jsonify(message="Free order confirmed"), 201)
     else:
-        return jsonify(message='Free order confirmation failed'), 402
+        return make_response(jsonify(message='Free order confirmation failed'), 402)
 
 
 @app.route('/order/<order>/payment', methods=['GET', 'OPTIONS', 'POST'])
@@ -159,7 +158,7 @@ def free(order):
     (Order, {'id': 'order'}, 'order')
     )
 @xhr_only
-@cross_origin(origins=ALLOWED_ORIGINS)
+@cors
 def payment(order):
     """
     Accepts JSON containing `pg_paymentid`.
@@ -170,7 +169,7 @@ def payment(order):
     A successful capture results in a `payment_transaction` registered against the order.
     """
     if not request.json.get('pg_paymentid'):
-        return jsonify(message='Missing payment id.'), 400
+        return make_response(jsonify(message='Missing payment id.'), 400)
 
     order_amounts = order.get_amounts()
     online_payment = OnlinePayment(pg_paymentid=request.json.get('pg_paymentid'), order=order)
@@ -187,7 +186,7 @@ def payment(order):
         db.session.add(order)
         db.session.commit()
         boxofficeq.enqueue(send_invoice_email, order.id)
-        return jsonify(message="Payment verified"), 201
+        return make_response(jsonify(message="Payment verified"), 201)
     else:
         online_payment.fail()
         db.session.add(online_payment)

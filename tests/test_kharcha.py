@@ -25,7 +25,7 @@ class TestKharchaAPI(unittest.TestCase):
         first_item = Item.query.filter_by(name='conference-ticket').first()
         undiscounted_quantity = 2
         kharcha_req = {'line_items': [{'item_id': unicode(first_item.id), 'quantity': undiscounted_quantity}]}
-        resp = self.client.post(url_for('kharcha'), data=json.dumps(kharcha_req), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest')])
+        resp = self.client.post(url_for('kharcha'), data=json.dumps(kharcha_req), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Referer', SERVER_NAME)])
 
         self.assertEquals(resp.status_code, 200)
         resp_json = json.loads(resp.get_data())
@@ -45,7 +45,7 @@ class TestKharchaAPI(unittest.TestCase):
         first_item = Item.query.filter_by(name='conference-ticket').first()
         discounted_quantity = 10
         kharcha_req = {'line_items': [{'item_id': unicode(first_item.id), 'quantity': discounted_quantity}]}
-        resp = self.client.post(url_for('kharcha'), data=json.dumps(kharcha_req), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest')])
+        resp = self.client.post(url_for('kharcha'), data=json.dumps(kharcha_req), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Referer', SERVER_NAME)])
         self.assertEquals(resp.status_code, 200)
         resp_json = json.loads(resp.get_data())
 
@@ -66,7 +66,7 @@ class TestKharchaAPI(unittest.TestCase):
         coupon = DiscountCoupon.query.filter_by(code='coupon1').first()
         discounted_quantity = 1
         kharcha_req = {'line_items': [{'item_id': unicode(first_item.id), 'quantity': discounted_quantity}], 'discount_coupons': [coupon.code]}
-        resp = self.client.post(url_for('kharcha'), data=json.dumps(kharcha_req), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest')])
+        resp = self.client.post(url_for('kharcha'), data=json.dumps(kharcha_req), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Referer', SERVER_NAME)])
         self.assertEquals(resp.status_code, 200)
         resp_json = json.loads(resp.get_data())
 
@@ -89,7 +89,8 @@ class TestKharchaAPI(unittest.TestCase):
         coupon3 = DiscountCoupon.query.filter_by(code='coupon3').first()
         kharcha_req = {'line_items': [{'item_id': unicode(first_item.id), 'quantity': discounted_quantity}], 'discount_coupons': [coupon2.code, coupon3.code]}
 
-        resp = self.client.post(url_for('kharcha'), data=json.dumps(kharcha_req), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest')])
+        resp = self.client.post(url_for('kharcha'), data=json.dumps(kharcha_req), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Referer', SERVER_NAME)])
+
         self.assertEquals(resp.status_code, 200)
         resp_json = json.loads(resp.get_data())
 

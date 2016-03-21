@@ -4,6 +4,8 @@ from boxoffice import app, init_for
 from boxoffice.models import (db, ItemCollection)
 from fixtures import init_data
 
+SERVER_NAME = 'http://shreyas-wlan.dev:6500'
+
 
 class TestItemCollectionAPI(unittest.TestCase):
 
@@ -58,7 +60,7 @@ class TestItemCollectionAPI(unittest.TestCase):
         init_data()
         self.client = app.test_client()
         ic = ItemCollection.query.first()
-        self.resp = self.client.get('/ic/{ic}'.format(ic=ic.id), headers=[('X-Requested-With', 'XMLHttpRequest')])
+        self.resp = self.client.get('/ic/{ic}'.format(ic=ic.id), headers=[('X-Requested-With', 'XMLHttpRequest'), ('Referer', SERVER_NAME)])
 
     def test_status(self):
         self.assertEquals(self.resp.status_code, 200)

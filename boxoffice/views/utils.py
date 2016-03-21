@@ -2,6 +2,11 @@ from pytz import utc, timezone
 from flask import request, abort
 from functools import wraps
 from boxoffice import app
+from datetime import timedelta
+from functools import update_wrapper
+from flask import make_response
+import flask
+from urlparse import urlparse
 
 
 def xhr_only(f):
@@ -23,3 +28,39 @@ def localize(datetime, tz):
 @app.template_filter('invoice_date')
 def invoice_date_filter(date, format):
     return localize(date, app.config['TIMEZONE']).strftime(format)
+
+
+def cors(f):
+    """
+    Adds CORS headers to the decorated view function.
+
+    Requires `app.config['ALLOWED_ORIGINS']` to be defined with a list
+    of permitted domains. Eg: app.config['ALLOWED_ORIGINS'] = ['https://example.com']
+    """
+    def add_headers(resp):
+        if not request.referrer:
+            abort(401)
+        parsed_result = urlparse(request.referrer)
+        referrer_url = parsed_result.scheme + "://" + parsed_result.netloc
+
+        if referrer_url in app.config['ALLOWED_ORIGINS']:
+            resp.headers['Access-Control-Allow-Origin'] = referrer_url
+            resp.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS, GET'
+            resp.headers['Access-Control-Allow-Headers'] = flask.request.headers.get('Access-Control-Request-Headers', 'Authorization')
+            # debugging only
+            if app.debug:
+                resp.headers['Access-Control-Max-Age'] = '1'
+            return resp
+        else:
+            abort(401)
+
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if request.method == 'OPTIONS':
+            # pre-flight request, check CORS headers directly
+            resp = app.make_default_options_response()
+        else:
+            resp = f(*args, **kwargs)
+        return add_headers(resp)
+
+    return wrapper

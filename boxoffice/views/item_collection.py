@@ -1,9 +1,8 @@
 from flask import render_template, jsonify
-from flask.ext.cors import cross_origin
 from coaster.views import load_models
-from boxoffice import app, ALLOWED_ORIGINS
+from boxoffice import app
 from boxoffice.models import ItemCollection
-from utils import xhr_only
+from utils import xhr_only, cors
 
 
 def jsonify_item(item):
@@ -43,18 +42,18 @@ def jsonify_category(category):
 
 
 @app.route('/api/1/boxoffice.js')
-@cross_origin(origins=ALLOWED_ORIGINS)
+@cors
 def boxofficejs():
     return render_template('boxoffice.js', base_url=app.config['BASE_URL'],
         razorpay_key_id=app.config['RAZORPAY_KEY_ID'])
 
 
-@app.route('/ic/<item_collection>', methods=['GET'])
+@app.route('/ic/<item_collection>', methods=['GET', 'OPTIONS'])
 @load_models(
     (ItemCollection, {'id': 'item_collection'}, 'item_collection')
     )
 @xhr_only
-@cross_origin(origins=ALLOWED_ORIGINS)
+@cors
 def item_collection(item_collection):
     categories_json = []
     for category in item_collection.categories:

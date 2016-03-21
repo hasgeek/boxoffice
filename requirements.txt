@@ -9,7 +9,6 @@ git+https://github.com/hasgeek/flask-lastuser
 jsmin
 pytz
 psycopg2
-flask-cors
 wtforms_json
 rq
 itsdangerous
