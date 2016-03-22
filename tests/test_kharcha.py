@@ -34,10 +34,7 @@ class TestKharchaAPI(unittest.TestCase):
         policy_ids = [policy for policy in resp_json.get('line_items')[unicode(first_item.id)].get('discount_policy_ids')]
         self.assertEquals(resp_json.get('line_items')[unicode(first_item.id)].get('final_amount'), undiscounted_quantity * first_item.current_price().amount)
         expected_discount_policy_ids = []
-
-        # Test that all the discount policies are returned
-        for expected_policy_id in expected_discount_policy_ids:
-            self.assertIn(expected_policy_id, [policy for policy in policy_ids])
+        self.assertEquals(expected_discount_policy_ids, policy_ids)
 
     def test_discounted_bulk_kharcha(self):
         first_item = Item.query.filter_by(name='conference-ticket').first()
@@ -53,7 +50,7 @@ class TestKharchaAPI(unittest.TestCase):
             base_amount-discounted_amount)
 
         expected_discount_policy_ids = [unicode(DiscountPolicy.query.filter_by(title='10% discount on rootconf').first().id)]
-        policy_ids = [policy for policy in resp_json.get('line_items')[unicode(first_item.id)].get('discount_policy_ids')]
+        policy_ids = [unicode(policy) for policy in resp_json.get('line_items')[unicode(first_item.id)].get('discount_policy_ids')]
 
         # Test that all the discount policies are returned
         for expected_policy_id in expected_discount_policy_ids:
@@ -74,7 +71,7 @@ class TestKharchaAPI(unittest.TestCase):
             base_amount-discounted_amount)
 
         expected_discount_policy_ids = [unicode(coupon.discount_policy_id)]
-        policy_ids = [policy for policy in resp_json.get('line_items')[unicode(first_item.id)].get('discount_policy_ids')]
+        policy_ids = [unicode(policy) for policy in resp_json.get('line_items')[unicode(first_item.id)].get('discount_policy_ids')]
 
         # Test that all the discount policies are returned
         for expected_policy_id in expected_discount_policy_ids:
@@ -99,7 +96,6 @@ class TestKharchaAPI(unittest.TestCase):
 
         expected_discount_policy_ids = [unicode(coupon2.discount_policy_id), unicode(coupon3.discount_policy_id)]
         policy_ids = [policy for policy in resp_json.get('line_items')[unicode(first_item.id)].get('discount_policy_ids')]
-
         # Test that all the discount policies are returned
         for expected_policy_id in expected_discount_policy_ids:
             self.assertIn(expected_policy_id, [policy for policy in policy_ids])
