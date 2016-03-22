@@ -10,3 +10,4 @@ ALLOWED_ORIGINS = [BASE_URL]
 LASTUSER_SERVER = 'https://auth.hasgeek.com'
 LASTUSER_CLIENT_ID = ''
 LASTUSER_CLIENT_SECRET = ''
+TIMEZONE = 'Asia/Calcutta'
