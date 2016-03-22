@@ -33,31 +33,30 @@ def cors(f):
     Requires `app.config['ALLOWED_ORIGINS']` to be defined with a list
     of permitted domains. Eg: app.config['ALLOWED_ORIGINS'] = ['https://example.com']
     """
-    def add_headers(resp):
+    def add_headers(resp, origin):
+        resp.headers['Access-Control-Allow-Origin'] = origin
+        resp.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS, GET'
+        # echo the request's headers
+        resp.headers['Access-Control-Allow-Headers'] = request.headers.get('Access-Control-Request-Headers')
+        # debugging only
+        if app.debug:
+            resp.headers['Access-Control-Max-Age'] = '1'
+        return resp
+
+    @wraps(f)
+    def wrapper(*args, **kwargs):
         if not request.referrer:
             abort(401)
         parsed_result = urlparse(request.referrer)
         referrer_base_url = urlunsplit((parsed_result.scheme, parsed_result.netloc, '', '', ''))
-
-        if referrer_base_url in app.config['ALLOWED_ORIGINS']:
-            resp.headers['Access-Control-Allow-Origin'] = referrer_base_url
-            resp.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS, GET'
-            # echo the request's headers
-            resp.headers['Access-Control-Allow-Headers'] = request.headers.get('Access-Control-Request-Headers')
-            # debugging only
-            if app.debug:
-                resp.headers['Access-Control-Max-Age'] = '1'
-            return resp
-        else:
+        if referrer_base_url not in app.config['ALLOWED_ORIGINS']:
             abort(401)
 
-    @wraps(f)
-    def wrapper(*args, **kwargs):
         if request.method == 'OPTIONS':
             # pre-flight request, check CORS headers directly
             resp = app.make_default_options_response()
         else:
             resp = f(*args, **kwargs)
-        return add_headers(resp)
+        return add_headers(resp, referrer_base_url)
 
     return wrapper
