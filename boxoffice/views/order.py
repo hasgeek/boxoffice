@@ -11,7 +11,7 @@ from ..models import Order, OnlinePayment, PaymentTransaction, User, CURRENCY
 from ..extapi import razorpay
 from ..forms import LineItemForm, BuyerForm
 from custom_exceptions import APIError
-from boxoffice.mailclient import send_invoice_email
+from boxoffice.mailclient import send_receipt_email
 from utils import xhr_only, cors
 
 redis_connection = Redis()
@@ -185,7 +185,7 @@ def payment(order):
         order.confirm_sale()
         db.session.add(order)
         db.session.commit()
-        boxofficeq.enqueue(send_invoice_email, order.id)
+        boxofficeq.enqueue(send_receipt_email, order.id)
         return make_response(jsonify(message="Payment verified"), 201)
     else:
         online_payment.fail()

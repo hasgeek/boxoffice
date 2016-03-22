@@ -8,7 +8,7 @@ from .models import Order
 from . import mail, app
 
 
-def send_invoice_email(order_id, subject="Thank you for your order!"):
+def send_receipt_email(order_id, subject="Thank you for your order!"):
     """
     Sends an invoice with a PDF attached, to the order's buyer
     """
