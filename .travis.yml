@@ -16,7 +16,6 @@ script:
   - nosetests -v tests
   - nohup python runtestserver.py &
   - sleep 10
-  - casperjs test tests
 addons:
   postgresql: "9.4"
 services:
