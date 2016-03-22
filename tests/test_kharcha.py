@@ -95,7 +95,7 @@ class TestKharchaAPI(unittest.TestCase):
             base_amount-discounted_amount)
 
         expected_discount_policy_ids = [unicode(coupon2.discount_policy_id), unicode(coupon3.discount_policy_id)]
-        policy_ids = [policy for policy in resp_json.get('line_items')[unicode(first_item.id)].get('discount_policy_ids')]
+        policy_ids = [unicode(policy) for policy in resp_json.get('line_items')[unicode(first_item.id)].get('discount_policy_ids')]
         # Test that all the discount policies are returned
         for expected_policy_id in expected_discount_policy_ids:
             self.assertIn(expected_policy_id, [policy for policy in policy_ids])
