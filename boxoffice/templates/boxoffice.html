@@ -127,7 +127,7 @@
             <p class="price">Amount Payable: <span class="final-amount"><b><i class="fa fa-inr"></i> {{ order.final_amount }}</b></span></p>
           </div>
           <div class="proceed-button-wrapper">
-            <button class="boxoffice-button boxoffice-button-info edit-order" on-click="selectItems(event)">Edit order</button>
+            <button class="boxoffice-button boxoffice-button-info edit-order" type="button" on-click="selectItems(event)">Edit order</button>
             <button type="submit" class="boxoffice-button boxoffice-button-action">
               Checkout {{#loadingOrder}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'>{{/}}
             </button>
