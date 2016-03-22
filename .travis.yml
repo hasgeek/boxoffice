@@ -1,0 +1,24 @@
+language: python
+python:
+  - 2.7
+cache:
+  directories:
+    - $HOME/.cache/pip
+before_script:
+  - sudo -- sh -c "echo '127.0.0.1  boxoffice.travis.dev' >> /etc/hosts"
+  - psql -c 'create database boxoffice_testing;' -U postgres
+install:
+  - pip install -U pip wheel
+  - pip install -r test_requirements.txt
+  - pip install -r requirements.txt
+  - npm install casperjs
+script:
+  - nosetests -v tests
+  - nohup python runtestserver.py &
+  - sleep 10
+addons:
+  postgresql: "9.4"
+services:
+  - redis-server
+notifications:
+  email: false

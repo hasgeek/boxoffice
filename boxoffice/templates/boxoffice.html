@@ -1,0 +1,619 @@
+{%raw%}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<div class="payment-progress-wrapper payment-stages-bg" id="payment-stages">
+  <ul class="progress-indicator">
+    {{#tabs:tab}}
+      <li class="indicator {{#if id === activeTab}}active{{/if}} {{#if complete}}completed{{/if}}">
+        <span class="bubble"></span>{{ label }}<br>
+      </li>
+    {{/}}
+  </ul>
+</div><!--eof payment-box-progress-wrapper -->
+<div class="payment-stages-wrapper">
+  {{#tabs:tab}}
+    {{#if id === 'boxoffice-selectItems' && id === activeTab}}
+      <div id='{{id}}' class="boxoffice-section ticket-selection-content clearfix" intro-outro='fly:{"x":0,"y":"0"}'>
+        {{#section.categories}}
+          <div id="{{name}}">
+            <div>
+              <h1 class="category-heading">{{title}}</h1>
+            </div>
+            <div>
+            {{#items}}{{# { item: . } }}
+              {{#order.line_items}} {{# { line_item: . } }}
+                {{#if line_item.item_name === item.name }}
+                  <div class="ticket-booking clearfix" id="{{line_item.item_name}}">
+                    <div class="ticket-details">
+                      <p class="ticket-title text-primary">{{ line_item.item_title }}</p>
+                      <div class="ticket-description">{{{ line_item.item_description }}}</div>
+                      {{#line_item.discount_policies}}
+                        {{#if is_automatic || activated}}
+                          <p class="discount {{#activated}}applied{{/}}">
+                            {{ title }}{{#activated && !isLoadingFail}} <i class="fa fa-check"></i>{{/}}
+                          </p>
+                        {{/if}}
+                      {{/line_item.discount_policies}}
+                      <div class="ticket-description">
+                        <p class="valid-upto">Prices go up after {{line_item.price_valid_upto}}</p>
+                      </div>
+                    </div>
+                    <div class="ticket-price-qty">
+                      <p class="ticket-price"><i class="fa fa-inr"></i> {{ line_item.base_price }}</p>
+                      <span class="multiplier">&times;</span>
+                      <div class="ticket-qty-wrapper">
+                        <button class="decrement" on-click="updateOrder(event, line_item.item_name, item.quantity_available, false)">-</button>
+                        <input type="number" class="ticket-qty" name="quantity" min="0" max="{{ item.quantity_available }}" value="{{ line_item.quantity }}" disabled>
+                        <button class="increment" on-click="updateOrder(event, line_item.item_name, item.quantity_available, true)">+</button>
+                      </div>
+                      <div class="item-amount">
+                        {{#line_item.discounted_amount && !isLoadingFail}}
+                          <p intro-outro='fly:{"x":0,"y":"0"}' class="discount-amount">Discount: <span><i class="fa fa-inr"></i> {{line_item.discounted_amount}}</span></p>
+                        {{/}}
+                        {{#line_item.discounted_amount || line_item.final_amount && !isLoadingFail}}
+                          <p intro-outro='fly:{"x":0,"y":"0"}' class="subtotal">Subtotal: <span><i class="fa fa-inr"></i> {{line_item.final_amount}}</span></p>
+                        {{/}}
+                      </div>
+                      </div>
+                    </div>
+                  {{/if}}
+                {{/}}{{/order.line_items}}
+            {{/}}{{/items}}
+            </div>
+          </div>
+        {{/section.categories}}
+        <hr>
+        <div class="ticket-total {{#loadingPrice}}grey-out{{/}} clearfix">
+          {{#loadingPrice && !isLoadingFail}}
+            <div class="loader"><i class="fa fa-spinner fa-spin fa-2x"></i></div>
+          {{/}}
+          <p class="price">Total : <span class="pull-right"><i class="fa fa-inr"></i> {{ order.final_amount }}</span></p>
+        </div>
+        {{#order.readyToCheckout}}
+          <div class="proceed-button-wrapper" intro='fly:{"x":200,"y":"0"}'>
+            <button id="stage1-proceed" class="boxoffice-button boxoffice-button-action" on-click="checkout(event)">Continue</button>
+          </div>
+        {{/order.readyToCheckout}}
+        {{#errorMsg }}
+          <p class="stage-error-msg text-danger">{{ errorMsg }}</p>
+        {{/}}
+        <div class="policy">
+          <p class="policy-heading">Cancellation and refund policy</p>
+          <p>We offer a 100% refund on attendee ticket cancellations until the day before the event and allowed transfer upto 24 hours before the event.</p>
+          <p>For more information, please refer our <a href="https://hasgeek.com/about/policy/refunds" target="_blank">cancellation and refund policy</a>. For further queries, please write to us at <a href="mailto:support@hasgeek.com">support@hasgeek.com</a> or call us at <a href="tel:+917676332020">+91 7676 33 2020</a>.</p>
+        </div>
+      </div>
+    {{elseif id === 'boxoffice-payment' && id === activeTab}}
+      {{#loadingPaymentConfirmation}}
+        <div class="loader payment-confirmation"><i class="fa fa-spinner fa-spin fa-3x"></i></div>
+      {{/}}
+      <div id='{{id}}' class="boxoffice-section clearfix" intro='fly:{"x":0,"y":"0"}'>
+        <p class="buyer-form">Buyer Details</p>
+        <form class="form-horizontal" role="form" id="buyer-details-form" name="buyer-form">
+          <div class="form-group">
+            <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
+              <input type="text" class="form-control buyer-fields secondary" name="name" value = {{buyer.name }} placeholder="Name"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
+              <input type="text" class="form-control buyer-fields secondary" name="email" value = {{buyer.email }} placeholder="Email"/>
+            </div>
+          </div>
+          <div class="form-group phone-number-wrapper">
+            <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
+              <input type="text" class="form-control buyer-fields secondary" name="phone" value = {{buyer.phone }} placeholder="Phone"/>
+            </div>
+          </div>
+          <div class="checkout-confirmation col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
+            <p class="summary">Booking Summary</p>
+            {{#order.line_items}} {{# { line_item: . } }}
+              {{#if line_item.quantity > 0 }}
+                <div class="item-summary">
+                  <p class="booked-ticket-title"><i class="fa fa-ticket"></i>{{ line_item.item_title }}</p>
+                  <p class="booked-ticket-qty">Qty: {{ line_item.quantity }} &times; <i class="fa fa-inr"></i> {{line_item.base_price}}</p>
+                  {{#line_item.discounted_amount}}
+                    <p class="booked-ticket-qty">Discount: <i class="fa fa-inr"></i> {{line_item.discounted_amount}}</p>
+                  {{/line_item.discounted_amount}}
+                  {{#line_item.discount_policies}}
+                    {{#if activated}}
+                    <p class="discount-applied">Applied: {{ title }}</p>
+                    {{/if}}
+                  {{/line_item.discount_policies}}
+                  <p class="booked-ticket-qty">Subtotal: <i class="fa fa-inr"></i> {{line_item.final_amount}}</p>
+                </div>
+              {{/if}}
+            {{/}}{{/order.line_items}}
+            <p class="price">Amount Payable: <span class="final-amount"><b><i class="fa fa-inr"></i> {{ order.final_amount }}</b></span></p>
+          </div>
+          <div class="proceed-button-wrapper">
+            <button class="boxoffice-button boxoffice-button-info edit-order" type="button" on-click="selectItems(event)">Edit order</button>
+            <button type="submit" class="boxoffice-button boxoffice-button-action">
+              Checkout {{#loadingOrder}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'>{{/}}
+            </button>
+          </div>
+          {{#errorMsg}}
+            <p class="stage-error-msg text-danger">{{ errorMsg }}</p>
+          {{/}}
+        </form> 
+      </div>
+    {{elseif id === 'boxoffice-confirm' && id === activeTab}}
+      <div id='{{id}}' class="boxoffice-section clearfix" intro='fly:{"x":600,"y":"0"}'>
+        {{#section}}
+          <p class="confirmation-icon"><i class="fa fa-check-circle"></i></p>
+          <p class="confirmation-header">Thank you for your order!</p>
+          <div class="confirmation-msg">
+            <p class="name">Hello {{buyer.name}},</p>
+            <p>We have sent you a confirmation email with the <a href="{{ cashReceiptURL }}" target="_blank" class="boxoffice-button boxoffice-button-info receipt-button" on-click="fire('eventAnalytics','view cash receipt', 'cash receipt')">cash receipt</a> <br>We will get in touch with you shortly for details that go onto your conference badge.</p>
+            <p class="service-policy-msg">If you would like to cancel, please submit the form below. For more information, refer our <a href="https://hasgeek.com/about/policy/refunds" target="_blank">cancellation and refund policy</a>. For further queries, please write to us at <a href="mailto:support@hasgeek.com">support@hasgeek.com</a> or call us at <a href="tel:+917676332020">+91 7676 33 2020</a>.</p>
+            <div class="social-icons">
+              <p>Tell your friends!</p>
+              <span class="tweet-button">
+              <a href="https://twitter.com/share" class="twitter-share-button" data-text="Yay! I'm attending {{eventTitle}}" data-hashtags="HasGeek{{#if eventHashtag}}, {{eventHashtag}}{{/if}}">Tweet</a>
+              </span>
+              <div class="fb-share-button pad-half" data-layout="button"></div>
+              <div id="fb-root"></div>
+              <script>(function(d, s, id) { var js, fjs = d.getElementsByTagName(s)[0]; if (d.getElementById(id)) return; js = d.createElement(s); js.id = id; js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.5"; fjs.parentNode.insertBefore(js, fjs); }(document, 'script', 'facebook-jssdk'));</script>
+              <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+            </div>
+          </div>
+        {{/section}}
+      </div>      
+    {{/if}}
+  {{/}}
+</div>
+{%endraw%}
+<style>
+  #boxoffice-widget {
+    max-width: 1000px;
+    margin: auto;
+    padding-top: 50px;
+  }
+  .boxoffice-button {
+    border-width: 0px 0px 3px;
+    border-style: solid;
+    border-radius: 5px;
+    padding: 6px 12px;
+    color: #fff;
+    font-size: 15px;
+  }
+  .boxoffice-button-action {
+    background-color: #5CB85C;
+    border-color: #4CAE4C;
+  }
+  .boxoffice-button-info {
+    background-color: #5BC0DE;
+    border-color: #46B8DA;
+  }
+  @media (min-width: 768px) {
+    .box-widget-button,
+    .box-widget-button-info {
+      font-size: 17px;
+    } 
+  }
+  .payment-progress-wrapper {
+    background-color: #eee;
+    padding: 20px;
+    border: 2px solid #ccc;
+    border-radius: 15px 15px 0 0;
+  }
+  .progress-indicator {
+      display: -webkit-box;
+      display: -moz-box;
+      display: -ms-flexbox;
+      display: -webkit-flex;
+      display: flex;
+      margin: 0 0 1em;
+      padding: 0;
+      font-size: 80%;
+      text-transform: uppercase
+  }
+  .progress-indicator>li {
+      -ms-flex: 1;
+      -webkit-flex: 1;
+      -moz-flex: 1;
+      flex: 1;
+      list-style: none;
+      text-align: center;
+      width: auto;
+      padding: 0;
+      margin: 0;
+      position: relative;
+      text-overflow: ellipsis;
+      color: #333;
+      display: block
+  }
+  .progress-indicator>li.completed,
+  .progress-indicator>li.completed .bubble {
+      color: #65d074
+  }
+  .progress-indicator>li .bubble {
+      border-radius: 1000px;
+      width: 20px;
+      height: 20px;
+      background-color: #bbb;
+      display: block;
+      margin: 0 auto .5em;
+      border-bottom: 1px solid #888
+  }
+  .progress-indicator>li .bubble:after,
+  .progress-indicator>li .bubble:before {
+      display: block;
+      position: absolute;
+      top: 9px;
+      width: 100%;
+      height: 3px;
+      content: '';
+      background-color: #bbb
+  }
+  .progress-indicator>li.completed .bubble,
+  .progress-indicator>li.completed .bubble:after,
+  .progress-indicator>li.completed .bubble:before {
+      background-color: #65d074;
+      border-color: #247830
+  }
+  .progress-indicator>li .bubble:before {
+      left: 0
+  }
+  .progress-indicator>li .bubble:after {
+      right: 0
+  }
+  .progress-indicator>li.active,
+  .progress-indicator>li.active .bubble {
+      color: #337AB7
+  }
+  .progress-indicator>li.active .bubble,
+  .progress-indicator>li.active .bubble:after,
+  .progress-indicator>li.active .bubble:before {
+      background-color: #337AB7;
+      border-color: #122a3f
+  }
+  .payment-stages-wrapper {
+    overflow: hidden;
+    position: relative;
+  }
+  .boxoffice-section {
+    padding: 20px;
+    border: 2px solid #ccc;
+    border-top-width: 0;
+    min-height: 450px;
+  }
+  .category-heading {
+    background-color: #ccc;
+    border-bottom: 3px solid #aaa;
+    color: #333;
+    position: relative;
+    font-size: 18px;
+    width: 70%;
+    margin: 20px 0px 0 -22px;
+    padding: 10px 20px;
+    z-index: 1;
+    text-transform: uppercase;
+  }
+  .category-heading:after {
+    content: "";
+    display: block;
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    border-style: solid;
+    border-color: #CCC transparent #CCC #CCC;
+    border-width: 19px;
+    z-index: 2;
+    background-color: #fff;
+  }
+  @media (min-width: 480px) {
+    .category-heading {
+      font-size: 20px;
+      width: 55%;
+    }
+    .category-heading:after {
+      border-width: 21px;
+    }
+  }
+  .ticket-details {
+    float: left;
+    width: 100%;
+    word-break: break-word;
+    margin-top: 10px;
+  }
+  @media (min-width: 768px) {
+    .ticket-details {
+      width: 70%;
+    }
+  }
+  .ticket-title {
+    font-size: 18px;
+    margin-top: 10px;
+  }
+  @media (min-width: 768px) {
+    .ticket-title {
+      font-size: 20px;
+    }
+  }
+  .discount {
+    color: red;
+    font-size: 14px;
+  }
+  .discount.applied {
+    color: green;
+  }
+  .valid-upto {
+    color: #20b2aa;
+  }
+  .ticket-description {
+    font-size: 13px;
+  }
+  .ticket-description .fa {
+    padding-right: 5px;
+  }
+  .ticket-price-qty {
+    float: right;
+    margin-top: 10px;
+  }
+  .ticket-price {
+    float: left;
+    margin-top: 2px;
+    font-size: 18px;
+  }
+  @media (min-width: 768px) {
+    .ticket-price-qty {
+      margin-top: 35px;
+    }
+  }
+  .ticket-qty-wrapper {
+    border: 1px solid #CCC;
+    border-radius: 4px;
+    outline: medium none;
+    color: #333;
+    padding: 0;
+    height: 30px;
+    overflow: hidden;
+    background: #f6f3c2;
+    font-size: 18px;
+    float: right;
+  }
+  .ticket-qty {
+    width: 30px;
+    border: 0px none;
+    background: #f6f3c2;
+    -webkit-text-fill-color:#333;
+    color: #333;
+    line-height: 1;
+    display: inline-block;
+    padding-left: 8px;
+    font-size: 16px;
+    position: relative;
+    top: -1px;
+  }
+  input[type=number]::-webkit-inner-spin-button, 
+  input[type=number]::-webkit-outer-spin-button { 
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type=number] {
+    -moz-appearance: textfield;
+  }
+  .increment, .decrement {
+    line-height: 1;
+    font-size: 20px;
+    background-color: #eee;
+    height: 100%;
+    border: 0;
+    padding: 0 5px;
+  }
+  .increment:focus, .decrement:focus {
+    outline:0;
+  }
+  .ticket-price {
+    padding-right: 20px;
+  }
+  .multiplier {
+    padding-right: 20px;
+    font-size: 20px;
+    margin-top: 2px;
+  }
+  @media (min-width: 600px) and (max-width: 1023px) {
+    .category-heading {
+      font-size: 30px;
+    }
+    .category-heading:after {
+      border-width: 26px;
+    }
+    .ticket-title, .ticket-price, .multiplier, .ticket-qty {
+     font-size: 25px;
+    }
+    .increment, .decrement {
+      font-size: 35px;
+    }
+    .ticket-qty-wrapper {
+      height: 37px;
+    }
+    .ticket-qty {
+      top: -4px;
+      width: 40px;
+    }
+  }
+  .discount-code {
+    clear: both;
+    font-size: 15px;
+    float: right;
+    margin: 25px 0 0;
+  }
+  .discount-code input {
+    width: 202px;
+    padding: 3px 3px 3px 11px;
+    line-height: 1.42857;
+    height: 35px;
+    position: relative;
+    top: 2px;
+    border-radius: 5px;
+    border: 1px solid #eee;
+  }
+  .item-amount {
+    clear: both;
+    font-size: 15px;
+    color: #888;
+    margin-top: 10px;
+    text-align: right;
+  }
+  .ticket-total {
+    clear: both;
+    width: 259px;
+    float: right;
+    border: 2px solid #ccc;
+    margin: 15px 0;
+    padding: 5px 10px;
+    border-radius: 5px;
+    background: #f6f3c2;
+    position: relative;
+  }
+  .grey-out {
+    opacity: 0.5;
+  }
+  .policy {
+    clear: both;
+    padding-top: 10px;
+  }
+  .policy-heading {
+    font-size: 18px;
+  }
+  .loader {
+    position: absolute;
+    right: 0px;
+    z-index: 1000;
+    height: 100%;
+    top: 0px;
+    left: 0px;
+    background: rgba(255, 255, 255, 0.8);
+  }
+  .ticket-total .loader .fa-spin {
+    position: relative;
+    color: #000;
+    top: 20%;
+    left: 48%;
+  }
+  .buyer-fields {
+    font-size: 15px;
+    margin: 0;
+  }
+  .buyer-form, .summary {
+    text-align: center;
+    font-size: 20px;
+    margin: 20px 0;
+  }
+  .checkout-confirmation {
+    padding: 0;
+  }
+  @media(min-width: 768px) {
+    .checkout-confirmation {
+      padding: 0px 15px;
+    }
+  }
+  .item-summary {
+    border-bottom: 1px dotted #CCC;
+    padding: 5px 0;
+  }
+  .booked-ticket-title {
+    font-size: 16px;
+  }
+  .booked-ticket-title .fa-ticket {
+    padding-right: 10px;
+  }
+  .booked-ticket-qty,  
+  .discount-applied {
+    font-size: 13px;
+    text-align: right;
+    margin-bottom: 5px;
+  }
+  .discount-applied {
+    color: green;
+  }
+  .final-amount{
+    float: right;
+  }
+  .price {
+    font-size: 15px;
+    margin: 10px 0;
+  }
+  .proceed-button-wrapper {
+    clear: both;
+    margin: 15px 0 10px;
+    float: right;
+  }
+  .edit-order {
+    margin-right: 10px;
+  }
+  .stage-error-msg {
+    clear: both;
+    float: right;
+    margin: 0px 0 10px;
+  }
+  .loader.payment-confirmation .fa-spin {
+    position: relative;
+    color: #000;
+    top: 43%;
+    left: 48%;
+  }
+  .confirmation-icon {
+    font-size: 50px;
+    color: green;
+    text-align: center;
+    line-height: 1;
+  }
+  .confirmation-header {
+    font-size: 24px;
+    color: green;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .confirmation-msg {
+    font-size: 16px;
+  }
+  @media (min-width: 768px) {
+    .confirmation-icon {
+      font-size: 75px;
+    }
+    .confirmation-header {
+      font-size: 30px;
+      margin-bottom: 20px;
+    }
+    .confirmation-msg {
+      font-size: 18px;
+      line-height: 1.7;
+      max-width: 700px;
+      margin: auto;
+    }
+  }
+  .name {
+    text-align: left;
+    margin: 0;
+  }
+  .receipt-button {
+    margin: 10px 0;
+    display: inline-block;
+  }
+  .receipt-button:hover,
+  .receipt-button:focus {
+    background-color: inherit;
+    color: inherit;
+    border-color: inherit;
+    border-bottom: 3px solid;
+  }
+  .service-policy-msg {
+    margin: 30px 0;
+  }
+  .social-icons {
+    text-align: center;
+  }
+  .fb-share-button {
+    display: inline-block;
+    line-height: 1;
+    padding: 0px 0px 0px 10px !important;
+  }
+  .tweet-button {
+    line-height: 1;
+    position: relative;
+    top: 2px;
+  }
+</style>

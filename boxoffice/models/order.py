@@ -1,38 +1,85 @@
 from decimal import Decimal
-from boxoffice.models import db, BaseMixin
-from boxoffice.models.event import Event
-from boxoffice.models.user import User
+from datetime import datetime
+from collections import namedtuple
+from sqlalchemy import sql
+from boxoffice.models import db, BaseMixin, User
+from coaster.utils import LabeledEnum, buid
+from baseframe import __
 
-__all__ = ['Order', 'HALF_DOZEN']
+__all__ = ['Order', 'ORDER_STATUS']
 
-HALF_DOZEN = [
-    [0, "0"],
-    [1, "1"],
-    [2, "2"],
-    [3, "3"],
-    [4, "4"],
-    [5, "5"],
-    [6, "6"]
-]
+
+class ORDER_STATUS(LabeledEnum):
+    PURCHASE_ORDER = (0, __("Purchase Order"))
+    SALES_ORDER = (1, __("Sales Order"))
+    INVOICE = (2, __("Invoice"))
+    CANCELLED = (3, __("Cancelled Order"))
+
+
+def get_latest_invoice_no(organization):
+    """
+    Returns the last invoice number used, 0 if no order has ben invoiced yet.
+    """
+    last_invoice_no = db.session.query(sql.functions.max(Order.invoice_no))\
+        .filter(Order.organization == organization).first()
+    return last_invoice_no[0] if last_invoice_no[0] else 0
+
+
+def order_amounts_ntuple(base_amount, discounted_amount, final_amount):
+    order_amounts = namedtuple('OrderAmounts', ['base_amount', 'discounted_amount', 'final_amount'])
+    return order_amounts(base_amount, discounted_amount, final_amount)
+
 
 class Order(BaseMixin, db.Model):
-    """
-    An Order begins with an intent to register 
-    Belongs to an Event
-    Contains all Attendees, Has an Owner
-    """
-    __tablename__ = 'order'
+    __tablename__ = 'customer_order'
+    __uuid_primary_key__ = True
+    __table_args__ = (db.UniqueConstraint('organization_id', 'invoice_no'),
+        db.UniqueConstraint('access_token'))
 
-    #owner
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    user = db.relationship(User, primaryjoin=user_id == User.id,
-        backref=db.backref('orders', cascade='all, delete-orphan'))
+    user_id = db.Column(None, db.ForeignKey('user.id'), nullable=True)
+    user = db.relationship(User, backref=db.backref('orders', cascade='all, delete-orphan'))
+    item_collection_id = db.Column(None, db.ForeignKey('item_collection.id'), nullable=False)
+    item_collection = db.relationship('ItemCollection', backref=db.backref('orders', cascade='all, delete-orphan', lazy='dynamic'))
 
-    total = db.Column(db.Numeric(10, 2), nullable=False, default=Decimal('0.0'))
+    organization_id = db.Column(None, db.ForeignKey('organization.id'), nullable=False)
+    organization = db.relationship('Organization', backref=db.backref('orders', cascade='all, delete-orphan', lazy='dynamic'))
 
-    #status -> incomplete, submitted, completed
+    status = db.Column(db.Integer, default=ORDER_STATUS.PURCHASE_ORDER, nullable=False)
 
+    initiated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    paid_at = db.Column(db.DateTime, nullable=True)
+    invoiced_at = db.Column(db.DateTime, nullable=True)
+    cancelled_at = db.Column(db.DateTime, nullable=True)
 
-    def update_total(self):
-        self.total = sum([l.total for l in self.lineitems])
+    access_token = db.Column(db.Unicode(22), nullable=False, default=buid)
 
+    buyer_email = db.Column(db.Unicode(254), nullable=False)
+    buyer_fullname = db.Column(db.Unicode(80), nullable=False)
+    buyer_phone = db.Column(db.Unicode(16), nullable=False)
+
+    invoice_no = db.Column(db.Integer, nullable=True)
+
+    def confirm_sale(self):
+        """Updates the status to ORDER_STATUS.SALES_ORDER"""
+        self.invoice_no = get_latest_invoice_no(self.organization) + 1
+        self.status = ORDER_STATUS.SALES_ORDER
+        self.paid_at = datetime.utcnow()
+
+    def invoice(self):
+        """Sets invoiced_at, status"""
+        self.invoiced_at = datetime.utcnow()
+        self.status = ORDER_STATUS.INVOICE
+
+    def get_amounts(self):
+        """
+        Calculates and returns the order's base_amount, discounted_amount and
+        final_amount as a namedtuple
+        """
+        base_amount = Decimal(0)
+        discounted_amount = Decimal(0)
+        final_amount = Decimal(0)
+        for line_item in self.line_items:
+            base_amount += line_item.base_amount
+            discounted_amount += line_item.discounted_amount
+            final_amount += line_item.final_amount
+        return order_amounts_ntuple(base_amount, discounted_amount, final_amount)

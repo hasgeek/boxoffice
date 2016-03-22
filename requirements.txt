@@ -3,7 +3,15 @@ Flask-SQLAlchemy
 Flask-Assets
 Flask-Mail
 Flask-WTF
-https://github.com/hasgeek/coaster/zipball/master
-https://github.com/hasgeek/flask-lastuser/zipball/master
+git+https://github.com/hasgeek/baseframe
+git+https://github.com/hasgeek/coaster
+git+https://github.com/hasgeek/flask-lastuser
 jsmin
 pytz
+psycopg2
+wtforms_json
+rq
+itsdangerous
+html2text
+premailer
+python-dateutil
