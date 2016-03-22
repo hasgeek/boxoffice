@@ -45,11 +45,8 @@ def cors(f):
 
     @wraps(f)
     def wrapper(*args, **kwargs):
-        if not request.referrer:
-            abort(401)
-        parsed_result = urlparse(request.referrer)
-        referrer_base_url = urlunsplit((parsed_result.scheme, parsed_result.netloc, '', '', ''))
-        if referrer_base_url not in app.config['ALLOWED_ORIGINS']:
+        origin = request.headers.get('Origin')
+        if not origin or origin not in app.config['ALLOWED_ORIGINS']:
             abort(401)
 
         if request.method == 'OPTIONS':
@@ -57,6 +54,6 @@ def cors(f):
             resp = app.make_default_options_response()
         else:
             resp = f(*args, **kwargs)
-        return add_headers(resp, referrer_base_url)
+        return add_headers(resp, origin)
 
     return wrapper
