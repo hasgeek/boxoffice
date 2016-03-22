@@ -1,2 +1,5 @@
+python-dateutil
+nose
 coverage
 nose-progressive
+nose-timer

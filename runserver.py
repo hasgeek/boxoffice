@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-from boxoffice import app, init_for
-from boxoffice.models import *
+# -*- coding: utf-8 -*-
+from boxoffice import init_for, app
 
-init_for('dev')
-
-app.run('0.0.0.0', 6500, debug=True, threaded=True)
+if __name__ == '__main__':
+    init_for('dev')
+    # To insert seed data, please run relevant file under scripts/
+app.run('0.0.0.0', port=6500, threaded=True)
