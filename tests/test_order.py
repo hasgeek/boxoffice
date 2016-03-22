@@ -5,8 +5,6 @@ from boxoffice import app, init_for
 from boxoffice.models import *
 from fixtures import init_data
 
-SERVER_NAME = 'http://shreyas-wlan.dev:6500'
-
 
 class TestOrder(unittest.TestCase):
 
@@ -29,7 +27,7 @@ class TestOrder(unittest.TestCase):
                 }
             }
         ic = ItemCollection.query.first()
-        resp = self.client.post('/ic/{ic}/order'.format(ic=ic.id), data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Referer', SERVER_NAME)])
+        resp = self.client.post('/ic/{ic}/order'.format(ic=ic.id), data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Referer', app.config['BASE_URL'])])
         data = json.loads(resp.data)
         self.assertEquals(resp.status_code, 201)
         order = Order.query.get(data.get('order_id'))
@@ -48,7 +46,7 @@ class TestOrder(unittest.TestCase):
                 }
             }
         ic = ItemCollection.query.first()
-        resp = self.client.post('/ic/{ic}/order'.format(ic=ic.id), data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Referer', SERVER_NAME)])
+        resp = self.client.post('/ic/{ic}/order'.format(ic=ic.id), data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Referer', app.config['BASE_URL'])])
         data = json.loads(resp.data)
 
         self.assertEquals(resp.status_code, 201)
@@ -74,7 +72,7 @@ class TestOrder(unittest.TestCase):
                 }
             }
         ic = ItemCollection.query.first()
-        resp = self.client.post('/ic/{ic}/order'.format(ic=ic.id), data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Referer', SERVER_NAME)])
+        resp = self.client.post('/ic/{ic}/order'.format(ic=ic.id), data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Referer', app.config['BASE_URL'])])
         data = json.loads(resp.data)
         self.assertEquals(resp.status_code, 201)
         # 10*3500@90% + 5*500*@95 = 33875
@@ -109,7 +107,7 @@ class TestOrder(unittest.TestCase):
                 }
             }
         ic = ItemCollection.query.first()
-        resp = self.client.post('/ic/{ic}/order'.format(ic=ic.id), data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Referer', SERVER_NAME)])
+        resp = self.client.post('/ic/{ic}/order'.format(ic=ic.id), data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Referer', app.config['BASE_URL'])])
         data = json.loads(resp.data)
         self.assertEquals(resp.status_code, 201)
         resp_json = json.loads(resp.get_data())
