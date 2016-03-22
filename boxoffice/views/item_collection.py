@@ -45,7 +45,7 @@ def jsonify_category(category):
 @cors
 def boxofficejs():
     return make_response(jsonify({
-        'script': render_template('boxoffice.js', base_url=app.config['BASE_URL'],
+        'script': render_template('boxoffice.js', base_url=request.url_root.strip('/'),
         razorpay_key_id=app.config['RAZORPAY_KEY_ID'])
     }))
 
