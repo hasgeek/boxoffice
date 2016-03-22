@@ -1,4 +1,4 @@
-from flask import render_template, jsonify
+from flask import make_response, render_template, jsonify, request
 from coaster.views import load_models
 from boxoffice import app
 from boxoffice.models import ItemCollection
@@ -42,9 +42,12 @@ def jsonify_category(category):
 
 
 @app.route('/api/1/boxoffice.js')
+@cors
 def boxofficejs():
-    return render_template('boxoffice.js', base_url=app.config['BASE_URL'],
+    return make_response(jsonify({
+        'script': render_template('boxoffice.js', base_url=app.config['BASE_URL'],
         razorpay_key_id=app.config['RAZORPAY_KEY_ID'])
+    }))
 
 
 @app.route('/ic/<item_collection>', methods=['GET', 'OPTIONS'])
