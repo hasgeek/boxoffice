@@ -2,7 +2,6 @@ from pytz import utc, timezone
 from flask import request, abort
 from functools import wraps
 from boxoffice import app
-from urlparse import urlparse, urlunsplit
 
 
 def xhr_only(f):
