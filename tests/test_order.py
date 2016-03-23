@@ -117,8 +117,8 @@ class TestOrder(unittest.TestCase):
         conf_policy = DiscountPolicy.query.filter_by(title='10% discount on rootconf').first()
         conf_final_amount = (conf_price * (conf_quantity-2)) - ((conf_quantity-2) * (conf_policy.percentage * conf_price)/decimal.Decimal(100))
         self.assertEquals(tshirt_final_amount+conf_final_amount, order.get_amounts().final_amount)
-        self.assertEquals(coupon2.quantity_available, coupon2_initial_qty-1)
-        self.assertEquals(coupon3.quantity_available, coupon3_initial_qty-1)
+        self.assertEquals(coupon2.quantity_available, coupon2_initial_qty)
+        self.assertEquals(coupon3.quantity_available, coupon3_initial_qty)
 
     def tearDown(self):
         db.session.rollback()
