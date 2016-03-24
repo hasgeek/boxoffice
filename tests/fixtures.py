@@ -15,7 +15,7 @@ def init_data():
 
     one_month_from_now = date.today() + relativedelta(months=+1)
 
-    rootconf = Organization(title='Rootconf', userid="U3_JesHfQ2OUmdihAXaAGQ", status=0)
+    rootconf = Organization(title='Rootconf', userid="U3_JesHfQ2OUmdihAXaAGQ", status=0, details={'service_tax_no': 'xx', 'address': u'<h2 class="company-name">XYZ</h2> <p>Bangalore - 560034</p> <p>India</p>', 'cin': u'1234', 'pan': u'abc', 'contact_email': u'test@gmail.com', 'website': u'https://www.test.com'})
     db.session.add(rootconf)
     db.session.commit()
 
