@@ -39,7 +39,7 @@ class Item(BaseScopedNameMixin, db.Model):
         Returns the price for an item at a given time
         """
         return Price.query.filter(Price.item == self, Price.start_at <= timestamp,
-            Price.end_at >= timestamp).order_by('created_at desc').first()
+            Price.end_at > timestamp).order_by('created_at desc').first()
 
 
 class Price(BaseScopedNameMixin, db.Model):
