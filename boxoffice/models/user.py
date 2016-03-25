@@ -21,4 +21,7 @@ def default_user(context):
 
 class Organization(ProfileBase, db.Model):
     __tablename__ = 'organization'
+    __table_args__ = (db.UniqueConstraint('contact_email'),)
+
     details = db.Column(JsonDict, nullable=False, server_default='{}')
+    contact_email = db.Column(db.Unicode(254), nullable=True)
