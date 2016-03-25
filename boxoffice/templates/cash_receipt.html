@@ -136,7 +136,8 @@
         <p>CIN: {{org.details.get('cin')}}</p>
         <p>PAN No: {{org.details.get('pan')}}</p>
         <p>Service Tax No: {{org.details.get('service_tax_no')}}</p>
-        <p><a href="https://hasgeek.com/">https://hasgeek.com</a></p>
+        <p><a href="{{org.details.get('website')}}">{{org.details.get('website')}}</a></p>
+        <p><a href="mailto:{{org.contact_email}}">{{org.contact_email}}</a></p>
       </div>    
     </div>
     
