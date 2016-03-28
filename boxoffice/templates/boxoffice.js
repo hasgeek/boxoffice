@@ -335,6 +335,7 @@ $(function() {
           // Transitions the widget to the 'Payment' stage, and initializes
           // the validator.
           event.original.preventDefault();
+          boxoffice.ractive.fire('eventAnalytics', 'checkout', 'Checkout');
           boxoffice.ractive.set( {
             'tabs.selectItems.complete': true,
             'activeTab': boxoffice.ractive.get('tabs.payment.id')
@@ -363,7 +364,6 @@ $(function() {
                 'tabs.payment.errorMsg': '',
                 'tabs.payment.loadingOrder': true
               });
-              boxoffice.ractive.fire('eventAnalytics', 'checkout', 'Checkout');
               boxoffice.ractive.sendOrder();
             }
           });
