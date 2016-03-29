@@ -12,7 +12,8 @@ class Item(BaseScopedNameMixin, db.Model):
     __uuid_primary_key__ = True
     __table_args__ = (db.UniqueConstraint('item_collection_id', 'name'),
         db.CheckConstraint('quantity_available <= quantity_total',
-            'item_quantity_available_lte_quantity_total_check'))
+            'item_quantity_available_lte_quantity_total_check'),
+        db.UniqueConstraint('item_collection_id', 'seq'),)
 
     description = MarkdownColumn('description', default=u'', nullable=False)
 
@@ -25,6 +26,8 @@ class Item(BaseScopedNameMixin, db.Model):
 
     quantity_available = db.Column(db.Integer, default=0, nullable=False)
     quantity_total = db.Column(db.Integer, default=0, nullable=False)
+
+    seq = db.Column(db.Integer, nullable=False)
 
     discount_policies = db.relationship('DiscountPolicy', secondary=item_discount_policy, lazy='dynamic')
 

@@ -18,6 +18,7 @@ class TestItemCollectionAPI(unittest.TestCase):
                 "name": "conference-ticket",
                 "quantity_available": 100,
                 "quantity_total": 1000,
+                "seq": 1
                 },
             "single-day": {
                 "title": "Single Day",
@@ -26,6 +27,7 @@ class TestItemCollectionAPI(unittest.TestCase):
                 "name": "single-day",
                 "quantity_available": 100,
                 "quantity_total": 1000,
+                "seq": 2
                 }
             },
         "workshop": {
@@ -36,6 +38,7 @@ class TestItemCollectionAPI(unittest.TestCase):
                 "name": "dnssec-workshop",
                 "quantity_available": 100,
                 "quantity_total": 1000,
+                "seq": 1
                 },
             },
         "merchandise": {
@@ -46,6 +49,7 @@ class TestItemCollectionAPI(unittest.TestCase):
                 "name": "t-shirt",
                 "quantity_available": 100,
                 "quantity_total": 1000,
+                "seq": 1
                 },
             },
         }
