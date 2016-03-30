@@ -1,14 +1,24 @@
-import os
-#: Database backend
-SECRET_KEY = 'testkey'
-SQLALCHEMY_DATABASE_URI = 'postgres://127.0.0.1/boxoffice_testing'
-SERVER_NAME = 'boxoffice.travis.dev:6500'
-BASE_URL = 'http://' + SERVER_NAME
+from os import environ
 
-RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID')
-RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET')
-ALLOWED_ORIGINS = [BASE_URL]
-LASTUSER_SERVER = 'https://auth.hasgeek.com'
-LASTUSER_CLIENT_ID = ''
-LASTUSER_CLIENT_SECRET = ''
+#: App settings
+TESTING = True
+DEBUG = True
+SQLALCHEMY_TRACK_MODIFICATIONS = True
+SQLALCHEMY_DATABASE_URI = environ.get('SQLALCHEMY_DATABASE_URI')
+ALLOWED_ORIGINS = environ.get('ALLOWED_ORIGINS')
 TIMEZONE = 'Asia/Calcutta'
+SECRET_KEY = environ.get('SECRET_KEY')
+BASE_URL = environ.get('BASE_URL')
+ALLOWED_ORIGINS = BASE_URL
+
+#: LastUser server
+LASTUSER_SERVER = environ.get('LASTUSER_SERVER')
+LASTUSER_CLIENT_ID = environ.get('LASTUSER_CLIENT_ID')
+LASTUSER_CLIENT_SECRET = environ.get('LASTUSER_CLIENT_SECRET')
+
+#: Razorpay payment gateway
+RAZORPAY_KEY_ID = environ.get('RAZORPAY_KEY_ID')
+RAZORPAY_KEY_SECRET = environ.get('RAZORPAY_KEY_SECRET')
+
+#: Data settings
+ITEM_COLLECTION_ID=environ.get('ITEM_COLLECTION_ID')

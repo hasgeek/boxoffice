@@ -3,4 +3,5 @@
 error.log
 instance/settings.py
 instance/development.py
-instance/testing.py
+secrets.dev
+secrets.test

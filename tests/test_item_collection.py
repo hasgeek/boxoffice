@@ -1,17 +1,17 @@
 import unittest
 import json
-from boxoffice import app, init_for
-from boxoffice.models import (db, ItemCollection)
-from fixtures import init_data
+from boxoffice import app
+from boxoffice.models import ItemCollection
+from .test_db import TestDatabaseFixture
 
 
-class TestItemCollectionAPI(unittest.TestCase):
+class TestItemCollectionAPI(TestDatabaseFixture):
 
     expected_keys = ["categories", "html"]
-    expected_categories_names = ['conference', 'workshop', 'merchandise']
+    expected_categories_names = [u'conference', u'workshop', u'merchandise']
     expected_data = {
-        "conference": {
-            "conference-ticket": {
+        u"conference": {
+            u"conference-ticket": {
                 "title": "Conference ticket",
                 "price": 3500,
                 "description": '<p><i class="fa fa-calendar"></i>14 - 15 April 2016</p><p><i class="fa fa-map-marker ticket-venue"></i>MLR Convention Center, JP Nagar</p><p>This ticket gets you access to rootconf conference on 14th and 15th April 2016.</p>',
@@ -19,26 +19,26 @@ class TestItemCollectionAPI(unittest.TestCase):
                 "quantity_available": 100,
                 "quantity_total": 1000,
                 },
-            "single-day": {
-                "title": "Single Day",
-                "price": 2500,
-                "description": '<p><i class="fa fa-calendar"></i>14 April 2016</p><p><i class="fa fa-map-marker ticket-venue"></i>MLR Convention Center, JP Nagar</p><p>This ticket gets you access to rootconf conference on 14th April 2016.</p>',
-                "name": "single-day",
-                "quantity_available": 100,
-                "quantity_total": 1000,
+            u"single-day": {
+                u"title": u"Single Day",
+                u"price": 2500,
+                u"description": u'<p><i class="fa fa-calendar"></i>14 April 2016</p><p><i class="fa fa-map-marker ticket-venue"></i>MLR Convention Center, JP Nagar</p><p>This ticket gets you access to rootconf conference on 14th April 2016.</p>',
+                u"name": u"single-day",
+                u"quantity_available": 100,
+                u"quantity_total": 1000,
                 }
             },
-        "workshop": {
+        u"workshop": {
             "dnssec-workshop": {
-                "title": "DNSSEC workshop",
-                "price": 2500,
-                "description": '<p><i class="fa fa-calendar"></i>12 April 2016</p><p><i class="fa fa-map-marker ticket-venue"></i>TERI, Domlur</p><p>This ticket gets you access to DNSSEC workshop 12th April 2016.</p>',
-                "name": "dnssec-workshop",
-                "quantity_available": 100,
-                "quantity_total": 1000,
+                u"title": u"DNSSEC workshop",
+                u"price": 2500,
+                u"description": u'<p><i class="fa fa-calendar"></i>12 April 2016</p><p><i class="fa fa-map-marker ticket-venue"></i>TERI, Domlur</p><p>This ticket gets you access to DNSSEC workshop 12th April 2016.</p>',
+                u"name": u"dnssec-workshop",
+                u"quantity_available": 100,
+                u"quantity_total": 1000,
                 },
             },
-        "merchandise": {
+        u"merchandise": {
             "t-shirt": {
                 "title": "T-shirt",
                 "price": 500,
@@ -51,11 +51,10 @@ class TestItemCollectionAPI(unittest.TestCase):
         }
 
     def setUp(self):
-        self.ctx = app.test_request_context()
-        self.ctx.push()
-        init_for('test')
-        db.create_all()
-        init_data()
+        """
+        setUp that runs after each test method.
+        """
+        self.app = app
         self.client = app.test_client()
         ic = ItemCollection.query.first()
         self.resp = self.client.get('/ic/{ic}'.format(ic=ic.id), headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
@@ -70,7 +69,6 @@ class TestItemCollectionAPI(unittest.TestCase):
     def test_category_keys(self):
         data = json.loads(self.resp.data)
         self.assertEquals(sorted([cat['name'] for cat in data['categories']]), sorted(self.expected_categories_names))
-
         for category in data['categories']:
             expected_items = self.expected_data[category['name']]
             self.assertEquals(sorted([c['name'] for c in category['items']]), sorted(expected_items.keys()))
@@ -82,8 +80,3 @@ class TestItemCollectionAPI(unittest.TestCase):
                 self.assertEquals(item['description'], expected_item_data['description'])
                 self.assertEquals(item['quantity_available'], expected_item_data['quantity_available'])
                 self.assertEquals(item['quantity_total'], expected_item_data['quantity_total'])
-
-    def tearDown(self):
-        db.session.rollback()
-        db.drop_all()
-        self.ctx.pop()

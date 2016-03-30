@@ -3,9 +3,6 @@ Flask-SQLAlchemy
 Flask-Assets
 Flask-Mail
 Flask-WTF
-git+https://github.com/hasgeek/baseframe
-git+https://github.com/hasgeek/coaster
-git+https://github.com/hasgeek/flask-lastuser
 jsmin
 pytz
 psycopg2
@@ -15,3 +12,7 @@ itsdangerous
 html2text
 premailer
 python-dateutil
+tabulate
+git+https://github.com/hasgeek/baseframe
+git+https://github.com/hasgeek/coaster
+git+https://github.com/hasgeek/flask-lastuser

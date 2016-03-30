@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Dummy Boxoffice Client</title>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"/>
+<style type="text/css">
+    #boxoffice-widget .boxoffice-button-action {
+      background-color: #E05F26;
+      border-color:  #B94C1D;
+      color: #fff;
+    }
+    #boxoffice-widget .boxoffice-button-info {
+      background-color: #5BC0DE;
+      border-color: #2A9CBE;
+      color: #fff;
+    }
+    #boxoffice-widget .payment-stages-bg {
+      background-color: #463850;
+    }
+    #boxoffice-widget .progress-indicator>li {
+      color: #bbb;
+    }
+    #boxoffice-widget .category-heading {
+      background-color: #f0a40c;
+      border-bottom: 3px solid #d5920d;
+      color: #fff;
+    }
+    #boxoffice-widget .category-heading:after {
+      border-color: #f0a40c transparent #f0a40c #f0a40c;
+    }
+  </style>
+</head>
+
+<body>
+<div id="boxoffice-widget"></div>
+<script src="//code.jquery.com/jquery-1.12.0.min.js"></script>
+<script>
+ $(function(){
+   //Boxoffice widget
+   var boxofficeUrl = "http://localhost:6500";
+   var username, userphone, useremail;
+   // Uncomment this if you have access to g.user environment variable. You might have access to this variable if your client app has user management enabled and working.
+   // {% if g.user %}
+   //   {% if g.user.fullname %}
+   //     username = "{{ g.user.fullname }}";
+   //   {% endif %}
+   //   {% if g.user.phone %}
+   //     userphone = "{{ g.user.phone }}";
+   //   {% endif %}
+   //   useremail = "{{ g.user.email }}";
+   // {% endif %}
+   $.get({
+     url: boxofficeUrl+"/api/1/boxoffice.js",
+     crossDomain: true
+   }).done(function(data) {
+     var boxofficeScript = document.createElement('script');
+     boxofficeScript.innerHTML = data.script;
+     document.getElementsByTagName('body')[0].appendChild(boxofficeScript);
+     window.Boxoffice.init({
+     org: 'Dummy',
+       // add itemCollection id retrieved from database, see README
+       itemCollection: '3BDDB6F3-F4D2-11E5-922F-A358EC7A25BD',
+       user_name: username,
+       user_phone: userphone,
+       user_email: useremail,
+       paymentDesc: 'Dummy Event 2016'
+     });
+   }).fail(function(response) {
+     console.log("response", response);
+     $('#boxoffice-widget p').html('Unable to connect. Please try again.');
+   });
+ });
+</script>
+</body>
+</html>
