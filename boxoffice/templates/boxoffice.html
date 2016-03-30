@@ -37,15 +37,26 @@
                       <div class="ticket-description">
                         <p class="valid-upto">Prices go up after {{line_item.price_valid_upto}}</p>
                       </div>
+                      {{#if item.quantity_available > 0 && item.quantity_available < 5}}
+                      <div class="ticket-descriptiont">
+                        <p class="few-ticket">Only a few tickets left</p>
+                      </div>
+                      {{/if}}
                     </div>
                     <div class="ticket-price-qty">
                       <p class="ticket-price"><i class="fa fa-inr rupee-sign"></i>{{ line_item.base_price }}</p>
                       <span class="multiplier">&times;</span>
-                      <div class="ticket-qty-wrapper">
-                        <button class="decrement" on-click="updateOrder(event, line_item.item_name, item.quantity_available, false)">-</button>
-                        <input type="number" class="ticket-qty" name="quantity" min="0" max="{{ item.quantity_available }}" value="{{ line_item.quantity }}" disabled>
-                        <button class="increment" on-click="updateOrder(event, line_item.item_name, item.quantity_available, true)">+</button>
-                      </div>
+                      {{#if item.quantity_available > 0}}
+                        <div class="ticket-qty-wrapper">
+                          <button class="decrement" on-click="updateOrder(event, line_item.item_name, item.quantity_available, false)">-</button>
+                          <input type="number" class="ticket-qty" name="quantity" min="0" max="{{ item.quantity_available }}" value="{{ line_item.quantity }}" disabled>
+                          <button class="increment" on-click="updateOrder(event, line_item.item_name, item.quantity_available, true)">+</button>
+                        </div>
+                      {{else}}
+                        <div class="sold-out-wrapper">
+                          <p class="sold-out">Sold out</p>
+                        </div>
+                      {{/if}}
                       <div class="item-amount">
                         {{#line_item.discounted_amount && !isLoadingFail}}
                           <p intro-outro='fly:{"x":0,"y":"0"}' class="discount-amount">Discount <span><i class="fa fa-inr rupee-sign"></i>{{line_item.discounted_amount}}</span></p>
@@ -350,6 +361,9 @@
   .ticket-description .fa {
     padding-right: 5px;
   }
+  .few-ticket {
+    color: #e42c42;
+  }
   .ticket-price-qty {
     float: right;
     margin-top: 10px;
@@ -419,6 +433,21 @@
     font-size: 20px;
     margin-top: 2px;
   }
+  .sold-out-wrapper {
+    float: right;
+  }
+  .sold-out {
+    font-size: 15px;
+    color: #fff;
+    background: red;
+    width: 80px;
+    border-radius: 0 10px 0 10px;
+    padding: 5px;
+    margin: 0;
+    text-align: center;
+    box-shadow: 1px 1px 1px rgba(0,0,0,0.3);
+    font-weight: bold;
+  }
   @media (min-width: 600px) and (max-width: 1023px) {
     .category-heading {
       font-size: 30px;
@@ -428,6 +457,11 @@
     }
     .ticket-title, .ticket-price, .multiplier, .ticket-qty {
      font-size: 25px;
+    }
+    .sold-out {
+      font-size: 18px;
+      width: 105px;
+      margin-top: 4px;
     }
     .ticket-price .rupee-sign {
       font-size: 22px;
