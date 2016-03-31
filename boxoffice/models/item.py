@@ -50,6 +50,10 @@ class Price(BaseScopedNameMixin, db.Model):
 
     item_id = db.Column(None, db.ForeignKey('item.id'), nullable=False)
     item = db.relationship(Item, backref=db.backref('prices', cascade='all, delete-orphan'))
+
+    discount_policy_id = db.Column(None, db.ForeignKey('discount_policy.id'), nullable=False)
+    discount_policy = db.relationship('DiscountPolicy', backref=db.backref('price', cascade='all, delete-orphan'))
+
     parent = db.synonym('item')
     start_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     end_at = db.Column(db.DateTime, nullable=False)

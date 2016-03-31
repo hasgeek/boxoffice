@@ -106,7 +106,10 @@ class LineItemDiscounter():
             return DiscountPolicy.get_from_item(item, len(line_items))
         return DiscountPolicy.get_from_item(item, len(line_items), coupons)
 
-    def calculate_discounted_amount(self, percentage, base_amount):
+    def calculate_discounted_amount(self, discount_policy, percentage, base_amount):
+        if discount_policy.discount_type == DISCOUNT_TYPE.PRICE:
+            discounted_price = item.discounted_price(discount_policy)
+            return base_amount - discounted_price
         return (percentage * base_amount/Decimal(100))
 
     def apply_discount(self, policy_coupon, line_items, combo=False):

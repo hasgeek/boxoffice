@@ -13,6 +13,7 @@ __all__ = ['DiscountPolicy', 'DiscountCoupon', 'item_discount_policy', 'DISCOUNT
 class DISCOUNT_TYPE(LabeledEnum):
     AUTOMATIC = (0, __("Automatic"))
     COUPON = (1, __("Coupon"))
+    PRICE = (2, __("Price"))
 
 
 item_discount_policy = db.Table('item_discount_policy', db.Model.metadata,
