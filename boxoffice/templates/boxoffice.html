@@ -23,7 +23,7 @@
             {{#items}}{{# { item: . } }}
               {{#order.line_items}} {{# { line_item: . } }}
                 {{#if line_item.item_name === item.name }}
-                  <div class="ticket-booking clearfix" id="{{line_item.item_name}}">
+                  <div class="ticket-booking clearfix {{#line_item.quantity}}ticket-selected{{/}}" id="{{line_item.item_name}}">
                     <div class="ticket-details">
                       <p class="ticket-title text-primary">{{ line_item.item_title }}</p>
                       <div class="ticket-description">{{{ line_item.item_description }}}</div>
@@ -37,16 +37,16 @@
                       <div class="ticket-description">
                         <p class="valid-upto">Prices go up after {{line_item.price_valid_upto}}</p>
                       </div>
-                      {{#if item.quantity_available > 0 && item.quantity_available < 5}}
-                      <div class="ticket-description">
-                        <p class="few-ticket">Only a few tickets left</p>
-                      </div>
-                      {{/if}}
                     </div>
                     <div class="ticket-price-qty">
-                      <p class="ticket-price"><i class="fa fa-inr rupee-sign"></i>{{ line_item.base_price }}</p>
-                      <span class="multiplier">&times;</span>
+                      {{#if item.quantity_available > 0 && item.quantity_available < 5}}
+                        <div class="ticket-description">
+                          <p class="few-ticket">Only a few tickets left</p>
+                        </div>
+                      {{/if}}
                       {{#if item.quantity_available > 0}}
+                        <p class="ticket-price"><i class="fa fa-inr rupee-sign"></i>{{ line_item.base_price }}</p>
+                        <span class="multiplier">&times;</span>
                         <div class="ticket-qty-wrapper">
                           <button class="decrement" on-click="updateOrder(event, line_item.item_name, item.quantity_available, false)">-</button>
                           <input type="number" class="ticket-qty" name="quantity" min="0" max="{{ item.quantity_available }}" value="{{ line_item.quantity }}" disabled>
@@ -73,7 +73,7 @@
             </div>
           </div>
         {{/section.categories}}
-        <hr>
+        <hr class="separator">
         <div class="ticket-total {{#loadingPrice}}grey-out{{/}} clearfix">
           {{#loadingPrice && !isLoadingFail}}
             <div class="loader"><i class="fa fa-spinner fa-spin fa-2x"></i></div>
@@ -287,7 +287,7 @@
     position: relative;
   }
   .boxoffice-section {
-    padding: 20px;
+    padding: 40px 20px;
     border: 2px solid #ccc;
     border-top-width: 0;
     min-height: 450px;
@@ -299,7 +299,7 @@
     position: relative;
     font-size: 18px;
     width: 70%;
-    margin: 20px 0px 0 -22px;
+    margin: 0 0 0 -22px;
     padding: 10px 20px;
     z-index: 1;
     text-transform: uppercase;
@@ -324,6 +324,13 @@
     .category-heading:after {
       border-width: 21px;
     }
+  }
+  .ticket-booking {
+    padding: 0 20px 20px;
+    margin: 0 -20px;
+  }
+  .ticket-selected {
+    background-color: #f7f6ec;
   }
   .ticket-details {
     float: left;
@@ -353,7 +360,7 @@
     color: green;
   }
   .valid-upto {
-    color: #20b2aa;
+    color: #20b200;
   }
   .ticket-description {
     font-size: 13px;
@@ -363,6 +370,7 @@
   }
   .few-ticket {
     color: #e42c42;
+    text-align: right;
   }
   .ticket-price-qty {
     float: right;
@@ -440,7 +448,7 @@
     font-size: 15px;
     color: #fff;
     background: red;
-    width: 80px;
+    width: 100px;
     border-radius: 0 10px 0 10px;
     padding: 5px;
     margin: 0;
@@ -503,6 +511,10 @@
   .item-amount .rupee-sign {
     font-size: 13px;
     padding-left: 5px;
+  }
+  .separator {
+    height: 1px;
+    margin: 0 -20px 20px;
   }
   .ticket-total {
     clear: both;
