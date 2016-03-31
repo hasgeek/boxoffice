@@ -96,3 +96,41 @@ def init_data():
     coupon3 = DiscountCoupon(code='coupon3', discount_policy=discount_coupon2, quantity_available=100, quantity_total=100)
     db.session.add(coupon3)
     db.session.commit()
+
+    forever_early_geek = DiscountPolicy(title='Forever Early Geek',
+        item_quantity_min=1,
+        is_price_based=True,
+        discount_type=DISCOUNT_TYPE.COUPON,
+        organization=rootconf)
+    forever_early_geek.items.append(conf_ticket)
+    db.session.add(forever_early_geek)
+    db.session.commit()
+
+    forever_coupon = DiscountCoupon(code='forever', discount_policy=forever_early_geek, quantity_available=100, quantity_total=100)
+    db.session.add(forever_coupon)
+    db.session.commit()
+
+    discount_price = Price(item=conf_ticket,
+        discount_policy=forever_early_geek, title='Forever Early Geek',
+        start_at=date.today(), end_at=one_month_from_now, amount=3400)
+    db.session.add(discount_price)
+    db.session.commit()
+
+    zero_discount = DiscountPolicy(title='Zero Discount',
+        item_quantity_min=1,
+        is_price_based=True,
+        discount_type=DISCOUNT_TYPE.COUPON,
+        organization=rootconf)
+    zero_discount.items.append(conf_ticket)
+    db.session.add(zero_discount)
+    db.session.commit()
+
+    zero_coupon = DiscountCoupon(code='zerodi', discount_policy=zero_discount, quantity_available=100, quantity_total=100)
+    db.session.add(zero_coupon)
+    db.session.commit()
+
+    zero_discount_price = Price(item=conf_ticket,
+        discount_policy=zero_discount, title='Zero Discount',
+        start_at=date.today(), end_at=one_month_from_now, amount=3600)
+    db.session.add(zero_discount_price)
+    db.session.commit()
