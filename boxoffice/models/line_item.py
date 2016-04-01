@@ -128,10 +128,11 @@ class LineItemDiscounter():
         discount_policy, coupon = policy_coupon
         for line_item in line_items:
             discounted_amount = self.calculate_discounted_amount(discount_policy, line_item)
-            if should_apply_discount and discounted_amount and \
-                (not line_item.discount_policy_id or (combo and line_item.discounted_amount < discounted_amount)):  # noqa
+            if should_apply_discount and discounted_amount and (
+                not line_item.discount_policy_id or (
+                    combo and line_item.discounted_amount < discounted_amount)):
                 # if the discount policy's upper limit hasn't been reached, and if discounted_amount
-                # is positive and if the line and if the item hasn't been assigned a discount
+                # is positive and if the line item hasn't been assigned a discount
                 # or if the line item's assigned discount is lesser
                 # than the current discount, assign the current discount to the line item
 
