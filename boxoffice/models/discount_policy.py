@@ -40,7 +40,9 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     # Minimum and maximum number of items for which the discount policy applies
     item_quantity_min = db.Column(db.Integer, default=1, nullable=False)
     item_quantity_max = db.Column(db.Integer, nullable=True)
-    percentage = db.Column(db.Integer, nullable=False)
+    percentage = db.Column(db.Integer, nullable=True)
+    # price-based discount
+    is_price_based = db.Column(db.Boolean, default=False, nullable=False)
     items = db.relationship('Item', secondary=item_discount_policy)
 
     @cached_property

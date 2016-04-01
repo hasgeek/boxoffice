@@ -102,12 +102,17 @@ class LineItemDiscounter():
             return None
 
         item = Item.query.get(line_items[0].item_id)
-        if not coupons:
-            return DiscountPolicy.get_from_item(item, len(line_items))
         return DiscountPolicy.get_from_item(item, len(line_items), coupons)
 
-    def calculate_discounted_amount(self, percentage, base_amount):
-        return (percentage * base_amount/Decimal(100))
+    def calculate_discounted_amount(self, discount_policy, line_item):
+        if discount_policy.is_price_based:
+            item = Item.query.get(line_item.item_id)
+            discounted_price = item.discounted_price(discount_policy).amount
+            if discounted_price >= line_item.base_amount:
+                # No discount, base_amount is cheaper
+                return Decimal(0)
+            return line_item.base_amount - discounted_price
+        return (discount_policy.percentage * line_item.base_amount/Decimal(100))
 
     def apply_discount(self, policy_coupon, line_items, combo=False):
         """
@@ -122,10 +127,13 @@ class LineItemDiscounter():
         # unpack (discount_policy, dicount_coupon)
         discount_policy, coupon = policy_coupon
         for line_item in line_items:
-            discounted_amount = self.calculate_discounted_amount(discount_policy.percentage, line_item.base_amount)
-            if should_apply_discount and (not line_item.discount_policy_id or (combo and line_item.discounted_amount < discounted_amount)):
-                # if the discount policy's upper limit hasn't been reached,and if the line
-                # item hasn't been assigned a discount or if the line item's assigned discount is lesser
+            discounted_amount = self.calculate_discounted_amount(discount_policy, line_item)
+            if should_apply_discount and discounted_amount and (
+                not line_item.discount_policy_id or (
+                    combo and line_item.discounted_amount < discounted_amount)):
+                # if the discount policy's upper limit hasn't been reached, and if discounted_amount
+                # is positive and if the line item hasn't been assigned a discount
+                # or if the line item's assigned discount is lesser
                 # than the current discount, assign the current discount to the line item
 
                 discount_coupon_id = coupon.id if coupon else None

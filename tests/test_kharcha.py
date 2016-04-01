@@ -77,6 +77,43 @@ class TestKharchaAPI(unittest.TestCase):
         for expected_policy_id in expected_discount_policy_ids:
             self.assertIn(expected_policy_id, [policy for policy in policy_ids])
 
+    def test_discounted_price_kharcha(self):
+        first_item = Item.query.filter_by(name='conference-ticket').first()
+        coupon = DiscountCoupon.query.filter_by(code='forever').first()
+        discounted_quantity = 1
+        kharcha_req = {'line_items': [{'item_id': unicode(first_item.id), 'quantity': discounted_quantity}], 'discount_coupons': [coupon.code]}
+        resp = self.client.post(url_for('kharcha'), data=json.dumps(kharcha_req), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
+        self.assertEquals(resp.status_code, 200)
+        resp_json = json.loads(resp.get_data())
+
+        discounted_price = [price for price in first_item.prices if price.name == u'forever-early-geek'][0]
+        self.assertEquals(resp_json.get('line_items')[unicode(first_item.id)].get('final_amount'),
+            int(discounted_price.amount))
+        expected_discount_policy_ids = [unicode(coupon.discount_policy_id)]
+        policy_ids = [unicode(policy) for policy in resp_json.get('line_items')[unicode(first_item.id)].get('discount_policy_ids')]
+
+        # Test that all the discount policies are returned
+        for expected_policy_id in expected_discount_policy_ids:
+            self.assertIn(expected_policy_id, [policy for policy in policy_ids])
+
+    def test_zero_discounted_price_kharcha(self):
+        first_item = Item.query.filter_by(name='conference-ticket').first()
+        coupon = DiscountCoupon.query.filter_by(code='zerodi').first()
+        discounted_quantity = 1
+        kharcha_req = {'line_items': [{'item_id': unicode(first_item.id), 'quantity': discounted_quantity}], 'discount_coupons': [coupon.code]}
+        resp = self.client.post(url_for('kharcha'), data=json.dumps(kharcha_req), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
+        self.assertEquals(resp.status_code, 200)
+        resp_json = json.loads(resp.get_data())
+        discounted_price = [price for price in first_item.prices if price.name == u'zero-discount'][0]
+        self.assertNotEquals(resp_json.get('line_items')[unicode(first_item.id)].get('final_amount'),
+            int(discounted_price.amount))
+        expected_discount_policy_ids = [unicode(coupon.discount_policy_id)]
+        policy_ids = [unicode(policy) for policy in resp_json.get('line_items')[unicode(first_item.id)].get('discount_policy_ids')]
+
+        # Test that all the discount policies are returned
+        for expected_policy_id in expected_discount_policy_ids:
+            self.assertNotIn(expected_policy_id, [policy for policy in policy_ids])
+
     def test_discounted_complex_kharcha(self):
         first_item = Item.query.filter_by(name='conference-ticket').first()
         discounted_quantity = 9
