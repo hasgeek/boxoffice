@@ -32,4 +32,4 @@ def downgrade():
     op.drop_column('discount_policy', 'is_price_based')
     op.alter_column('discount_policy', 'percentage',
                existing_type=sa.INTEGER,
-               nullable=True)
+               nullable=False)
