@@ -10,13 +10,13 @@ Create Date: 2016-03-31 15:29:51.897720
 revision = '45de268cd444'
 down_revision = '4d7f840202d2'
 
-from alembic import op  # noqa
-import sqlalchemy as sa  # noqa
-import sqlalchemy_utils  # noqa
+from alembic import op
+import sqlalchemy as sa
+import sqlalchemy_utils
 
 
 def upgrade():
-    op.add_column('price', sa.Column('discount_policy_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=True))
+    op.add_column('price', sa.Column('discount_policy_id', sqlalchemy_utils.types.uuid.UUIDType(binary=False), nullable=True))
     op.create_unique_constraint('price_item_id_discount_policy_id_key', 'price', ['item_id', 'discount_policy_id'])
     op.create_foreign_key('price_discount_policy_id_key', 'price', 'discount_policy', ['discount_policy_id'], ['id'])
     op.alter_column('discount_policy', 'percentage',
