@@ -28,7 +28,6 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     __tablename__ = 'discount_policy'
     __uuid_primary_key__ = True
     __table_args__ = (db.UniqueConstraint('organization_id', 'name'),
-        db.CheckConstraint('item_quantity_min <= item_quantity_max', 'discount_policy_item_quantity_check'),
         db.CheckConstraint('percentage > 0 and percentage <= 100', 'discount_policy_percentage_check'))
 
     organization_id = db.Column(None, db.ForeignKey('organization.id'), nullable=False)
@@ -37,9 +36,10 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
 
     discount_type = db.Column(db.Integer, default=DISCOUNT_TYPE.AUTOMATIC, nullable=False)
 
-    # Minimum and maximum number of items for which the discount policy applies
+    # Minimum and maximum number of an item that needs to be bought for this
+    # discount to apply
     item_quantity_min = db.Column(db.Integer, default=1, nullable=False)
-    item_quantity_max = db.Column(db.Integer, nullable=True)
+    # item_quantity_max = db.Column(db.Integer, nullable=True)
     percentage = db.Column(db.Integer, nullable=True)
     # price-based discount
     is_price_based = db.Column(db.Boolean, default=False, nullable=False)
@@ -60,8 +60,7 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
         applicable for an item, given the quantity of line items and coupons if any.
         """
         automatic_discounts = item.discount_policies.filter(DiscountPolicy.discount_type == DISCOUNT_TYPE.AUTOMATIC,
-            db.or_(DiscountPolicy.item_quantity_min <= qty,
-                db.and_(DiscountPolicy.item_quantity_min <= qty, DiscountPolicy.item_quantity_max > qty))).all()
+            DiscountPolicy.item_quantity_min <= qty).all()
         policies = [(discount, None) for discount in automatic_discounts]
         if not coupons:
             return policies
@@ -78,12 +77,12 @@ def generate_coupon_code(size=6, chars=string.ascii_uppercase + string.digits):
 class DiscountCoupon(IdMixin, db.Model):
     __tablename__ = 'discount_coupon'
     __uuid_primary_key__ = True
-    __table_args__ = (db.UniqueConstraint('discount_policy_id', 'code'),
-        db.CheckConstraint('quantity_available <= quantity_total', 'discount_coupon_quantity_check'))
+    __table_args__ = (db.UniqueConstraint('discount_policy_id', 'code'),)
 
     code = db.Column(db.Unicode(20), nullable=False, default=generate_coupon_code)
-    quantity_available = db.Column(db.Integer, default=0, nullable=False)
-    quantity_total = db.Column(db.Integer, default=0, nullable=False)
+    used = db.Column(db.Boolean, nullable=True, default=False)
+    # quantity_available = db.Column(db.Integer, default=0, nullable=False)
+    # quantity_total = db.Column(db.Integer, default=0, nullable=False)
 
     discount_policy_id = db.Column(None, db.ForeignKey('discount_policy.id'), nullable=False)
     discount_policy = db.relationship(DiscountPolicy, backref=db.backref('discount_coupons', cascade='all, delete-orphan'))
@@ -94,7 +93,7 @@ class DiscountCoupon(IdMixin, db.Model):
         Returns valid coupons, given a list of discount policies and discount codes
         """
         return cls.query.filter(cls.code.in_(codes),
-            cls.quantity_available > 0,
+            cls.used is not False,
             cls.discount_policy_id.in_([discount_policy.id
                 for discount_policy in discount_policies.filter(DiscountPolicy.discount_type == DISCOUNT_TYPE.COUPON)])).all()
 
@@ -102,4 +101,4 @@ class DiscountCoupon(IdMixin, db.Model):
         """
         Decrement the quantity available by 1 to register usage.
         """
-        self.quantity_available -= 1
+        self.used = True
