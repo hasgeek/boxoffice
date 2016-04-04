@@ -93,7 +93,7 @@ class DiscountCoupon(IdMixin, db.Model):
         Returns valid coupons, given a list of discount policies and discount codes
         """
         return cls.query.filter(cls.code.in_(codes),
-            cls.used is not False,
+            cls.used != True,
             cls.discount_policy_id.in_([discount_policy.id
                 for discount_policy in discount_policies.filter(DiscountPolicy.discount_type == DISCOUNT_TYPE.COUPON)])).all()
 
