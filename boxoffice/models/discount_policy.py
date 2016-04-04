@@ -78,7 +78,7 @@ class DiscountCoupon(IdMixin, db.Model):
     __table_args__ = (db.UniqueConstraint('discount_policy_id', 'code'),)
 
     code = db.Column(db.Unicode(20), nullable=False, default=generate_coupon_code)
-    used = db.Column(db.Boolean, nullable=True, default=False)
+    used = db.Column(db.Boolean, nullable=False, default=False)
 
     discount_policy_id = db.Column(None, db.ForeignKey('discount_policy.id'), nullable=False)
     discount_policy = db.relationship(DiscountPolicy, backref=db.backref('discount_coupons', cascade='all, delete-orphan'))
