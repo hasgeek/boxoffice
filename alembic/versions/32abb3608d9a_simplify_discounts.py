@@ -23,7 +23,6 @@ def upgrade():
 
     op.drop_constraint('discount_policy_item_quantity_check', 'discount_policy')
     op.drop_constraint('discount_coupon_quantity_check', 'discount_coupon')
-    op.drop_column('discount_coupon', 'used_at')
     op.execute(discount_coupon.update().where(discount_coupon.c.quantity_available == 0).values({'used': True}))
     op.execute(discount_coupon.update().where(discount_coupon.c.quantity_available == 1).values({'used': False}))
     op.drop_column('discount_coupon', 'quantity_available')
@@ -32,8 +31,23 @@ def upgrade():
 
 
 def downgrade():
+    discount_coupon = table('discount_coupon',
+        column('quantity_total', sa.Integer()),
+        column('quantity_available', sa.Integer()),
+        column('used', sa.Boolean()))
+
     op.add_column('discount_policy', sa.Column('item_quantity_max', sa.INTEGER(), autoincrement=False, nullable=True))
-    op.add_column('discount_coupon', sa.Column('quantity_total', sa.INTEGER(), autoincrement=False, nullable=False))
-    op.add_column('discount_coupon', sa.Column('quantity_available', sa.INTEGER(), autoincrement=False, nullable=False))
+    op.add_column('discount_coupon', sa.Column('quantity_total', sa.INTEGER(), autoincrement=False, nullable=True))
+    op.add_column('discount_coupon', sa.Column('quantity_available', sa.INTEGER(), autoincrement=False, nullable=True))
+    op.execute(discount_coupon.update().values({'quantity_total': 1}))
+    op.execute(discount_coupon.update().where(discount_coupon.c.used == True).values({'quantity_available': 0}))
+    op.execute(discount_coupon.update().where(discount_coupon.c.used == False).values({'quantity_available': 1}))
+    op.execute(discount_coupon.update().where(discount_coupon.c.used == None).values({'quantity_available': 1}))
+    op.alter_column('discount_coupon', 'quantity_total',
+               existing_type=sa.INTEGER(),
+               nullable=False)
+    op.alter_column('discount_coupon', 'quantity_available',
+               existing_type=sa.INTEGER(),
+               nullable=False)
     op.create_check_constraint('discount_coupon_quantity_check', 'discount_coupon', u'quantity_available <= quantity_total')
     op.create_check_constraint('discount_policy_item_quantity_check', 'discount_policy', u'item_quantity_min <= item_quantity_max')
