@@ -75,25 +75,25 @@ def init_data():
     db.session.add(tshirt_policy)
     db.session.commit()
 
-    discount_coupon1 = DiscountPolicy(title='15% discount for coupon code with STU', item_quantity_min=1, item_quantity_max=1, percentage=15, organization=rootconf, discount_type=DISCOUNT_TYPE.COUPON)
+    discount_coupon1 = DiscountPolicy(title='15% discount for coupon code with STU', item_quantity_min=1, percentage=15, organization=rootconf, discount_type=DISCOUNT_TYPE.COUPON)
     discount_coupon1.items.append(conf_ticket)
     db.session.add(discount_coupon1)
     db.session.commit()
 
-    coupon1 = DiscountCoupon(code='coupon1', discount_policy=discount_coupon1, quantity_available=100, quantity_total=100)
+    coupon1 = DiscountCoupon(code='coupon1', discount_policy=discount_coupon1)
     db.session.add(coupon1)
     db.session.commit()
 
-    discount_coupon2 = DiscountPolicy(title='100% discount', item_quantity_min=1, item_quantity_max=1, percentage=100, organization=rootconf, discount_type=DISCOUNT_TYPE.COUPON)
+    discount_coupon2 = DiscountPolicy(title='100% discount', item_quantity_min=1, percentage=100, organization=rootconf, discount_type=DISCOUNT_TYPE.COUPON)
     discount_coupon2.items.append(conf_ticket)
     db.session.add(discount_coupon1)
     db.session.commit()
 
-    coupon2 = DiscountCoupon(code='coupon2', discount_policy=discount_coupon2, quantity_available=100, quantity_total=100)
+    coupon2 = DiscountCoupon(code='coupon2', discount_policy=discount_coupon2)
     db.session.add(coupon2)
     db.session.commit()
 
-    coupon3 = DiscountCoupon(code='coupon3', discount_policy=discount_coupon2, quantity_available=100, quantity_total=100)
+    coupon3 = DiscountCoupon(code='coupon3', discount_policy=discount_coupon2)
     db.session.add(coupon3)
     db.session.commit()
 
@@ -106,7 +106,7 @@ def init_data():
     db.session.add(forever_early_geek)
     db.session.commit()
 
-    forever_coupon = DiscountCoupon(code='forever', discount_policy=forever_early_geek, quantity_available=100, quantity_total=100)
+    forever_coupon = DiscountCoupon(code='forever', discount_policy=forever_early_geek)
     db.session.add(forever_coupon)
     db.session.commit()
 
@@ -125,7 +125,7 @@ def init_data():
     db.session.add(zero_discount)
     db.session.commit()
 
-    zero_coupon = DiscountCoupon(code='zerodi', discount_policy=zero_discount, quantity_available=100, quantity_total=100)
+    zero_coupon = DiscountCoupon(code='zerodi', discount_policy=zero_discount)
     db.session.add(zero_coupon)
     db.session.commit()
 

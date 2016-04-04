@@ -119,35 +119,27 @@ class LineItemDiscounter():
         Returns the line_items with the given discount_policy and
         the discounted amount assigned to each line item.
         """
-        should_apply_discount = True
         discounted_line_items = []
-
-        # keep track of how many line items have been assigned this discount
-        applied_to_count = 0
+        coupon_used = False
         # unpack (discount_policy, dicount_coupon)
         discount_policy, coupon = policy_coupon
         for line_item in line_items:
             discounted_amount = self.calculate_discounted_amount(discount_policy, line_item)
-            if should_apply_discount and discounted_amount and (
-                not line_item.discount_policy_id or (
-                    combo and line_item.discounted_amount < discounted_amount)):
-                # if the discount policy's upper limit hasn't been reached, and if discounted_amount
-                # is positive and if the line item hasn't been assigned a discount
-                # or if the line item's assigned discount is lesser
+            if ((coupon and not coupon_used and discounted_amount > 0) or discount_policy.is_automatic) and (
+                    not line_item.discount_policy_id or (combo and line_item.discounted_amount < discounted_amount)):
+                # if the line item's assigned discount is lesser
                 # than the current discount, assign the current discount to the line item
-
-                discount_coupon_id = coupon.id if coupon else None
+                if coupon:
+                    discount_coupon_id = coupon.id
+                    coupon_used = True
+                else:
+                    discount_coupon_id = None
                 discounted_line_items.append(make_ntuple(item_id=line_item.item_id,
                     base_amount=line_item.base_amount,
                     discount_policy_id=discount_policy.id,
                     discount_coupon_id=discount_coupon_id,
                     discounted_amount=discounted_amount))
 
-                applied_to_count += 1
-                if discount_policy.item_quantity_max and applied_to_count == discount_policy.item_quantity_max:
-                    # If the discount policy has a upper limit and the upper limit on the discount's allowed item quantity
-                    # is reached, stop iterating through line items.
-                    should_apply_discount = False
             else:
                 # Current discount is not applicable, copy over the line item as it is.
                 discounted_line_items.append(line_item)

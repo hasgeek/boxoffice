@@ -48,7 +48,6 @@ class TestOrder(unittest.TestCase):
         ic = ItemCollection.query.first()
         resp = self.client.post('/ic/{ic}/order'.format(ic=ic.id), data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
         data = json.loads(resp.data)
-
         self.assertEquals(resp.status_code, 201)
         self.assertEquals(data['final_amount'], 2375)
 
@@ -86,9 +85,7 @@ class TestOrder(unittest.TestCase):
         conf_quantity = 12
         tshirt_quantity = 5
         coupon2 = DiscountCoupon.query.filter_by(code='coupon2').first()
-        coupon2_initial_qty = coupon2.quantity_available
         coupon3 = DiscountCoupon.query.filter_by(code='coupon3').first()
-        coupon3_initial_qty = coupon3.quantity_available
         data = {
             'line_items': [{
                     'item_id': unicode(tshirt.id),
@@ -117,8 +114,6 @@ class TestOrder(unittest.TestCase):
         conf_policy = DiscountPolicy.query.filter_by(title='10% discount on rootconf').first()
         conf_final_amount = (conf_price * (conf_quantity-2)) - ((conf_quantity-2) * (conf_policy.percentage * conf_price)/decimal.Decimal(100))
         self.assertEquals(tshirt_final_amount+conf_final_amount, order.get_amounts().final_amount)
-        self.assertEquals(coupon2.quantity_available, coupon2_initial_qty)
-        self.assertEquals(coupon3.quantity_available, coupon3_initial_qty)
 
     def tearDown(self):
         db.session.rollback()
