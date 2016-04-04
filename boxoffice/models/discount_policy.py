@@ -36,10 +36,8 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
 
     discount_type = db.Column(db.Integer, default=DISCOUNT_TYPE.AUTOMATIC, nullable=False)
 
-    # Minimum and maximum number of an item that needs to be bought for this
-    # discount to apply
+    # Minimum number of a particular item that needs to be bought for this discount to apply
     item_quantity_min = db.Column(db.Integer, default=1, nullable=False)
-    # item_quantity_max = db.Column(db.Integer, nullable=True)
     percentage = db.Column(db.Integer, nullable=True)
     # price-based discount
     is_price_based = db.Column(db.Boolean, default=False, nullable=False)
@@ -81,8 +79,6 @@ class DiscountCoupon(IdMixin, db.Model):
 
     code = db.Column(db.Unicode(20), nullable=False, default=generate_coupon_code)
     used = db.Column(db.Boolean, nullable=True, default=False)
-    # quantity_available = db.Column(db.Integer, default=0, nullable=False)
-    # quantity_total = db.Column(db.Integer, default=0, nullable=False)
 
     discount_policy_id = db.Column(None, db.ForeignKey('discount_policy.id'), nullable=False)
     discount_policy = db.relationship(DiscountPolicy, backref=db.backref('discount_coupons', cascade='all, delete-orphan'))
