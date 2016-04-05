@@ -73,6 +73,11 @@ class LineItem(BaseMixin, db.Model):
             line_items.extend(item_line_items[item_id])
         return line_items
 
+    @classmethod
+    def coupon_used_count(cls, coupon):
+        # return self.usage_limit - self.line_items.filter_by(status=LINE_ITEM_STATUS.CONFIRMED).count()
+        return cls.query.filter(cls.discount_coupon == coupon, cls.status == LINE_ITEM_STATUS.CONFIRMED).count()
+
 
 class LineItemDiscounter():
     def get_discounted_line_items(self, line_items, coupons=[]):
@@ -114,6 +119,9 @@ class LineItemDiscounter():
             return line_item.base_amount - discounted_price
         return (discount_policy.percentage * line_item.base_amount/Decimal(100))
 
+    def is_coupon_usable(self, coupon, applied_to_count):
+        return (coupon.usage_limit - LineItem.coupon_used_count(coupon)) > applied_to_count
+
     def apply_discount(self, policy_coupon, line_items, combo=False):
         """
         Returns the line_items with the given discount_policy and
@@ -122,26 +130,21 @@ class LineItemDiscounter():
         Assumes that the discount policies and discount coupons passed as arguments are valid and usable.
         """
         discounted_line_items = []
-        coupon_used = False
         # unpack (discount_policy, dicount_coupon)
         discount_policy, coupon = policy_coupon
+        applied_to_count = 0
         for line_item in line_items:
             discounted_amount = self.calculate_discounted_amount(discount_policy, line_item)
-            if ((coupon and (coupon.unlimited or not coupon_used)) or discount_policy.is_automatic) and discounted_amount > 0 and (
+            if (coupon and self.is_coupon_usable(coupon, applied_to_count) or discount_policy.is_automatic) and discounted_amount > 0 and (
                     not line_item.discount_policy_id or (combo and line_item.discounted_amount < discounted_amount)):
                 # if the line item's assigned discount is lesser
                 # than the current discount, assign the current discount to the line item
-                if coupon:
-                    discount_coupon_id = coupon.id
-                    coupon_used = True
-                else:
-                    discount_coupon_id = None
                 discounted_line_items.append(make_ntuple(item_id=line_item.item_id,
                     base_amount=line_item.base_amount,
                     discount_policy_id=discount_policy.id,
-                    discount_coupon_id=discount_coupon_id,
+                    discount_coupon_id=coupon.id if coupon else None,
                     discounted_amount=discounted_amount))
-
+                applied_to_count += 1
             else:
                 # Current discount is not applicable, copy over the line item as it is.
                 discounted_line_items.append(line_item)

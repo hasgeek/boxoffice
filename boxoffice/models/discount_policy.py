@@ -52,19 +52,33 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
         return self.discount_type == DISCOUNT_TYPE.COUPON
 
     @classmethod
-    def get_from_item(cls, item, qty, coupons=[]):
+    def get_from_item(cls, item, qty, coupon_codes=[]):
         """
         Returns a list of (discount_policy, discount_coupon) tuples
         applicable for an item, given the quantity of line items and coupons if any.
         """
+        # for discount_policy in item.discount_policies:
+        #     if discount_policy.is_automatic:
+        #         valid_discounts.append((discount_policy, None))
+        #     else:
+        #         if discount_policy.discount_coupons
+        #         valid_discounts.append((discount_policy, None))
+
         automatic_discounts = item.discount_policies.filter(DiscountPolicy.discount_type == DISCOUNT_TYPE.AUTOMATIC,
             DiscountPolicy.item_quantity_min <= qty).all()
         policies = [(discount, None) for discount in automatic_discounts]
-        if not coupons:
+        if not coupon_codes:
             return policies
+        else:
+            coupon_policies = item.discount_policies.filter(DiscountPolicy.discount_type == DISCOUNT_TYPE.COUPON).all()
+            coupon_policy_ids = [cp.id for cp in coupon_policies]
+            for coupon_code in coupon_codes:
+                coupon = DiscountCoupon.query.filter(DiscountCoupon.discount_policy_id.in_(coupon_policy_ids), DiscountCoupon.code==coupon_code).one_or_none()
+                print coupon.usage_limit
+                print len([line_item for line_item in item.line_items if line_item.discount_coupon == coupon])
+                if coupon and coupon.usage_limit > len([line_item for line_item in item.line_items if line_item.discount_coupon == coupon]):
+                    policies.append((coupon.discount_policy, coupon))
 
-        for coupon in DiscountCoupon.get_valid_coupons(item.discount_policies, coupons):
-            policies.append((coupon.discount_policy, coupon))
         return policies
 
 
@@ -78,24 +92,28 @@ class DiscountCoupon(IdMixin, db.Model):
     __table_args__ = (db.UniqueConstraint('discount_policy_id', 'code'),)
 
     code = db.Column(db.Unicode(20), nullable=False, default=generate_coupon_code)
-    used = db.Column(db.Boolean, nullable=False, default=False)
-    unlimited = db.Column(db.Boolean, nullable=False, default=False)
+    # used = db.Column(db.Boolean, nullable=False, default=False)
+    # unlimited = db.Column(db.Boolean, nullable=False, default=False)
+    usage_limit = db.Column(db.Integer, nullable=True, default=1)
 
     discount_policy_id = db.Column(None, db.ForeignKey('discount_policy.id'), nullable=False)
     discount_policy = db.relationship(DiscountPolicy, backref=db.backref('discount_coupons', cascade='all, delete-orphan'))
 
-    @classmethod
-    def get_valid_coupons(cls, discount_policies, codes):
-        """
-        Returns valid coupons, given a list of discount policies and discount codes
-        """
-        return cls.query.filter(cls.code.in_(codes),
-            db.or_(cls.used != True, cls.unlimited == True),  # noqa
-            cls.discount_policy_id.in_([discount_policy.id
-                for discount_policy in discount_policies.filter(DiscountPolicy.discount_type == DISCOUNT_TYPE.COUPON)])).all()
+    # @classmethod
+    # def get_valid_coupons(cls, discount_policies, codes):
+    #     """
+    #     Returns valid coupons, given a list of discount policies and discount codes
+    #     """
+    #     # LineItem.query.filter(LineItem.discount_coupon.id.)
+    #     coupons = cls.query.filter(cls.code.in_(codes),
+    #         cls.usage_limit > 0,
+    #         cls.discount_policy_id.in_([discount_policy.id
+    #             for discount_policy in discount_policies.filter(DiscountPolicy.discount_type == DISCOUNT_TYPE.COUPON)])).all()
+    #     used_count = LineItem.query.filter(LineItem.discount_coupon_id.in_([coupon.id for coupon in coupons]).count()
+    #     return [coupon for coupon in coupons if coupon]
 
-    def register_use(self):
-        """
-        Decrement the quantity available by 1 to register usage.
-        """
-        self.used = True
+    # def register_use(self):
+    #     """
+    #     Decrement the quantity available by 1 to register usage.
+    #     """
+    #     self.used = True
