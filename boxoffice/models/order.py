@@ -83,3 +83,13 @@ class Order(BaseMixin, db.Model):
             discounted_amount += line_item.discounted_amount
             final_amount += line_item.final_amount
         return order_amounts_ntuple(base_amount, discounted_amount, final_amount)
+
+    def cancel(self):
+        """
+        Cancels the order and all its confirmed line items
+        """
+        for line_item in self.line_items:
+            if line_item.is_confirmed:
+                line_item.cancel()
+        self.status = ORDER_STATUS.CANCELLED
+        self.cancelled_at = datetime.utcnow

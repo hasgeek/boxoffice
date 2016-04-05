@@ -26,7 +26,7 @@ class OnlinePayment(BaseMixin, db.Model):
     __tablename__ = 'online_payment'
     __uuid_primary_key__ = True
     customer_order_id = db.Column(None, db.ForeignKey('customer_order.id'), nullable=False)
-    order = db.relationship(Order, backref=db.backref('online_payments', cascade='all, delete-orphan'))
+    order = db.relationship(Order, backref=db.backref('online_payments', cascade='all, delete-orphan'), lazy='dynamic')
 
     # Payment id issued by the payment gateway
     pg_paymentid = db.Column(db.Unicode(80), nullable=False)

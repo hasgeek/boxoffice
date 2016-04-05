@@ -7,7 +7,7 @@ from coaster.views import load_models
 from .. import app
 from ..models import db
 from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy
-from ..models import Order, OnlinePayment, PaymentTransaction, User, CURRENCY
+from ..models import Order, OnlinePayment, PaymentTransaction, User, CURRENCY, TRANSACTION_METHOD, TRANSACTION_TYPE
 from ..extapi import razorpay
 from ..forms import LineItemForm, BuyerForm
 from custom_exceptions import APIError
@@ -207,3 +207,20 @@ def payment(order):
     )
 def receipt(order):
     return render_template('cash_receipt.html', order=order, org=order.organization)
+
+
+def cancel(order):
+    order.cancel()
+    transaction = order.transactions.filter_by(transaction_type=TRANSACTION_TYPE.PAYMENT,
+        method=TRANSACTION_METHOD.ONLINE).one_or_none()
+    if not transaction:
+        abort(401)
+    payment = transaction.online_payment
+    net_value = order.transaction
+    rp_resp = razorpay.refund_payment(payment.pg_paymentid, transaction.amount)
+    if rp_resp.status_code == 200:
+        order_amounts = order.get_amounts()
+        order.cancel()
+        cancel_transaction = PaymentTransaction(order=order, online_payment=payment,
+            amount=order_amounts.final_amount, currency=CURRENCY.INR)
+        db.session.add(cancel_transaction)

@@ -1,5 +1,6 @@
 import itertools
 from decimal import Decimal
+from datetime import datetime
 from collections import namedtuple
 from boxoffice.models import db, BaseMixin, Order, Item, DiscountPolicy
 from coaster.utils import LabeledEnum
@@ -72,6 +73,17 @@ class LineItem(BaseMixin, db.Model):
             item_line_items[item_id] = discounter.get_discounted_line_items(item_line_items[item_id], coupon_list)
             line_items.extend(item_line_items[item_id])
         return line_items
+
+    @property
+    def is_confirmed(self):
+        return self.status == LINE_ITEM_STATUS.CONFIRMED
+
+    def cancel(self):
+        """
+        Sets status and cancelled_at.
+        """
+        self.status = LINE_ITEM_STATUS.CANCELLED
+        self.cancelled_at = datetime.utcnow()
 
 
 class LineItemDiscounter():
