@@ -79,6 +79,7 @@ class DiscountCoupon(IdMixin, db.Model):
 
     code = db.Column(db.Unicode(20), nullable=False, default=generate_coupon_code)
     used = db.Column(db.Boolean, nullable=False, default=False)
+    unlimited = db.Column(db.Boolean, nullable=False, default=False)
 
     discount_policy_id = db.Column(None, db.ForeignKey('discount_policy.id'), nullable=False)
     discount_policy = db.relationship(DiscountPolicy, backref=db.backref('discount_coupons', cascade='all, delete-orphan'))
@@ -89,7 +90,7 @@ class DiscountCoupon(IdMixin, db.Model):
         Returns valid coupons, given a list of discount policies and discount codes
         """
         return cls.query.filter(cls.code.in_(codes),
-            cls.used != True,
+            db.or_(cls.used != True, cls.unlimited == True),  # noqa
             cls.discount_policy_id.in_([discount_policy.id
                 for discount_policy in discount_policies.filter(DiscountPolicy.discount_type == DISCOUNT_TYPE.COUPON)])).all()
 
