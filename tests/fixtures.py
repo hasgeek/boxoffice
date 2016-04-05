@@ -110,6 +110,11 @@ def init_data():
     db.session.add(forever_coupon)
     db.session.commit()
 
+    forever_unlimited_coupon = DiscountCoupon(code='unlimited', discount_policy=forever_early_geek,
+        used=True, unlimited=True)
+    db.session.add(forever_unlimited_coupon)
+    db.session.commit()
+
     discount_price = Price(item=conf_ticket,
         discount_policy=forever_early_geek, title='Forever Early Geek',
         start_at=date.today(), end_at=one_month_from_now, amount=3400)

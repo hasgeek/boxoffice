@@ -118,6 +118,8 @@ class LineItemDiscounter():
         """
         Returns the line_items with the given discount_policy and
         the discounted amount assigned to each line item.
+
+        Assumes that the discount policies and discount coupons passed as arguments are valid and usable.
         """
         discounted_line_items = []
         coupon_used = False
@@ -125,7 +127,7 @@ class LineItemDiscounter():
         discount_policy, coupon = policy_coupon
         for line_item in line_items:
             discounted_amount = self.calculate_discounted_amount(discount_policy, line_item)
-            if ((coupon and not coupon_used and discounted_amount > 0) or discount_policy.is_automatic) and (
+            if ((coupon and (coupon.unlimited or not coupon_used)) or discount_policy.is_automatic) and discounted_amount > 0 and (
                     not line_item.discount_policy_id or (combo and line_item.discounted_amount < discounted_amount)):
                 # if the line item's assigned discount is lesser
                 # than the current discount, assign the current discount to the line item
