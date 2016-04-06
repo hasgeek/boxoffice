@@ -34,22 +34,33 @@ class Item(BaseScopedNameMixin, db.Model):
         """
         return self.price_at(datetime.utcnow())
 
+    def discounted_price(self, discount_policy):
+        """
+        Returns the discounted price for an item
+        """
+        return Price.query.filter(Price.item == self, Price.discount_policy == discount_policy).one_or_none()
+
     def price_at(self, timestamp):
         """
         Returns the price for an item at a given time
         """
         return Price.query.filter(Price.item == self, Price.start_at <= timestamp,
-            Price.end_at > timestamp).order_by('created_at desc').first()
+            Price.end_at > timestamp, Price.discount_policy == None).order_by('created_at desc').first()  # noqa
 
 
 class Price(BaseScopedNameMixin, db.Model):
     __tablename__ = 'price'
     __uuid_primary_key__ = True
     __table_args__ = (db.UniqueConstraint('item_id', 'name'),
-        db.CheckConstraint('start_at < end_at', 'price_start_at_lt_end_at_check'))
+        db.CheckConstraint('start_at < end_at', 'price_start_at_lt_end_at_check'),
+        db.UniqueConstraint('item_id', 'discount_policy_id'))
 
     item_id = db.Column(None, db.ForeignKey('item.id'), nullable=False)
     item = db.relationship(Item, backref=db.backref('prices', cascade='all, delete-orphan'))
+
+    discount_policy_id = db.Column(None, db.ForeignKey('discount_policy.id'), nullable=True)
+    discount_policy = db.relationship('DiscountPolicy', backref=db.backref('price', cascade='all, delete-orphan'))
+
     parent = db.synonym('item')
     start_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     end_at = db.Column(db.DateTime, nullable=False)

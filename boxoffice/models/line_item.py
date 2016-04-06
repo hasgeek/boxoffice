@@ -102,44 +102,44 @@ class LineItemDiscounter():
             return None
 
         item = Item.query.get(line_items[0].item_id)
-        if not coupons:
-            return DiscountPolicy.get_from_item(item, len(line_items))
         return DiscountPolicy.get_from_item(item, len(line_items), coupons)
 
-    def calculate_discounted_amount(self, percentage, base_amount):
-        return (percentage * base_amount/Decimal(100))
+    def calculate_discounted_amount(self, discount_policy, line_item):
+        if discount_policy.is_price_based:
+            item = Item.query.get(line_item.item_id)
+            discounted_price = item.discounted_price(discount_policy).amount
+            if discounted_price >= line_item.base_amount:
+                # No discount, base_amount is cheaper
+                return Decimal(0)
+            return line_item.base_amount - discounted_price
+        return (discount_policy.percentage * line_item.base_amount/Decimal(100))
 
     def apply_discount(self, policy_coupon, line_items, combo=False):
         """
         Returns the line_items with the given discount_policy and
         the discounted amount assigned to each line item.
         """
-        should_apply_discount = True
         discounted_line_items = []
-
-        # keep track of how many line items have been assigned this discount
-        applied_to_count = 0
+        coupon_used = False
         # unpack (discount_policy, dicount_coupon)
         discount_policy, coupon = policy_coupon
         for line_item in line_items:
-            discounted_amount = self.calculate_discounted_amount(discount_policy.percentage, line_item.base_amount)
-            if should_apply_discount and (not line_item.discount_policy_id or (combo and line_item.discounted_amount < discounted_amount)):
-                # if the discount policy's upper limit hasn't been reached,and if the line
-                # item hasn't been assigned a discount or if the line item's assigned discount is lesser
+            discounted_amount = self.calculate_discounted_amount(discount_policy, line_item)
+            if ((coupon and not coupon_used and discounted_amount > 0) or discount_policy.is_automatic) and (
+                    not line_item.discount_policy_id or (combo and line_item.discounted_amount < discounted_amount)):
+                # if the line item's assigned discount is lesser
                 # than the current discount, assign the current discount to the line item
-
-                discount_coupon_id = coupon.id if coupon else None
+                if coupon:
+                    discount_coupon_id = coupon.id
+                    coupon_used = True
+                else:
+                    discount_coupon_id = None
                 discounted_line_items.append(make_ntuple(item_id=line_item.item_id,
                     base_amount=line_item.base_amount,
                     discount_policy_id=discount_policy.id,
                     discount_coupon_id=discount_coupon_id,
                     discounted_amount=discounted_amount))
 
-                applied_to_count += 1
-                if discount_policy.item_quantity_max and applied_to_count == discount_policy.item_quantity_max:
-                    # If the discount policy has a upper limit and the upper limit on the discount's allowed item quantity
-                    # is reached, stop iterating through line items.
-                    should_apply_discount = False
             else:
                 # Current discount is not applicable, copy over the line item as it is.
                 discounted_line_items.append(line_item)

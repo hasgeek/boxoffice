@@ -149,6 +149,7 @@ def free(order):
                 line_item.discount_coupon.register_use()
                 db.session.add(line_item.discount_coupon)
         db.session.commit()
+        boxofficeq.enqueue(send_receipt_email, order.id)
         return make_response(jsonify(message="Free order confirmed"), 201)
     else:
         return make_response(jsonify(message='Free order confirmation failed'), 402)
