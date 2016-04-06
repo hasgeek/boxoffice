@@ -27,6 +27,9 @@
                     <div class="ticket-details">
                       <p class="ticket-title text-primary">{{ line_item.item_title }}</p>
                       <div class="ticket-description">{{{ line_item.item_description }}}</div>
+                      <div class="ticket-description">
+                        <p class="valid-upto">Prices go up after {{line_item.price_valid_upto}}</p>
+                      </div>
                       {{#line_item.discount_policies}}
                         {{#if is_automatic || activated}}
                           <p class="discount {{#activated}}applied{{/}}">
@@ -34,9 +37,6 @@
                           </p>
                         {{/if}}
                       {{/line_item.discount_policies}}
-                      <div class="ticket-description">
-                        <p class="valid-upto">Prices go up after {{line_item.price_valid_upto}}</p>
-                      </div>
                     </div>
                     <div class="ticket-price-qty">
                       <p class="ticket-price"><i class="fa fa-inr rupee-sign"></i>{{ line_item.base_price }}</p>
@@ -336,7 +336,7 @@
   }
   .discount {
     color: red;
-    font-size: 14px;
+    font-size: 15px;
   }
   .discount.applied {
     color: green;
