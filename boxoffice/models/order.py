@@ -93,3 +93,9 @@ class Order(BaseMixin, db.Model):
                 line_item.cancel()
         self.status = ORDER_STATUS.CANCELLED
         self.cancelled_at = datetime.utcnow
+
+    @property
+    def is_cancelled(self):
+        # And order is considered cancelled if it's directly set as cancelled or
+        # if all of its line items
+        return self.status == ORDER_STATUS.CANCELLED

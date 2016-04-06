@@ -210,17 +210,39 @@ def receipt(order):
 
 
 def cancel(order):
-    order.cancel()
-    transaction = order.transactions.filter_by(transaction_type=TRANSACTION_TYPE.PAYMENT,
-        method=TRANSACTION_METHOD.ONLINE).one_or_none()
-    if not transaction:
+    if order.is_cancelled:
+        # Already cancelled
         abort(401)
-    payment = transaction.online_payment
-    net_value = order.transaction
-    rp_resp = razorpay.refund_payment(payment.pg_paymentid, transaction.amount)
+    original_transaction = order.transactions.filter_by(transaction_type=TRANSACTION_TYPE.PAYMENT,
+        method=TRANSACTION_METHOD.ONLINE).one_or_none()
+    if not original_transaction:
+        # No transaction in the first place. Possible a free order. So, no refund.
+        abort(401)
+    # net_value = order.get_amounts().final_amount - transaction.amount
+    # Full refund
+    rp_resp = razorpay.refund_payment(transaction.online_payment.pg_paymentid, transaction.amount)
     if rp_resp.status_code == 200:
         order_amounts = order.get_amounts()
         order.cancel()
         cancel_transaction = PaymentTransaction(order=order, online_payment=payment,
             amount=order_amounts.final_amount, currency=CURRENCY.INR)
         db.session.add(cancel_transaction)
+
+
+def cancel_line_item(line_item):
+    if line_item.is_cancelled:
+        abort(401)
+    transaction = line_item.order.transactions.filter_by(transaction_type=TRANSACTION_TYPE.PAYMENT,
+        method=TRANSACTION_METHOD.ONLINE).one_or_none()
+    if not transaction:
+        # No transaction in the first place. Possible a free order. So, no refund.
+        abort(401)
+    payment = transaction.online_payment
+    # Partial refund
+    rp_resp = razorpay.refund_payment(payment.pg_paymentid, line_item.final_amount)
+    if rp_resp.status_code == 200:
+        line_item.cancel()
+        cancel_transaction = PaymentTransaction(order=line_item.order, online_payment=payment,
+            amount=line_item.final_amount, currency=CURRENCY.INR)
+        db.session.add(cancel_transaction)
+        db.session.commit()

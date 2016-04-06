@@ -78,6 +78,10 @@ class LineItem(BaseMixin, db.Model):
     def is_confirmed(self):
         return self.status == LINE_ITEM_STATUS.CONFIRMED
 
+    @property
+    def is_cancelled(self):
+        return self.status == LINE_ITEM_STATUS.CANCELLED
+
     def cancel(self):
         """
         Sets status and cancelled_at.
