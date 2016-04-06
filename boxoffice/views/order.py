@@ -146,7 +146,6 @@ def free(order):
         db.session.add(order)
         for line_item in order.line_items:
             if line_item.discount_coupon:
-                line_item.discount_coupon.register_use()
                 db.session.add(line_item.discount_coupon)
         db.session.commit()
         boxofficeq.enqueue(send_receipt_email, order.id)
@@ -188,7 +187,6 @@ def payment(order):
         db.session.add(order)
         for line_item in order.line_items:
             if line_item.discount_coupon:
-                line_item.discount_coupon.register_use()
                 db.session.add(line_item.discount_coupon)
 
         db.session.commit()
