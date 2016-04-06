@@ -17,6 +17,7 @@ from sqlalchemy.sql import table, column
 
 
 discount_coupon = table('discount_coupon',
+  column('id', sqlalchemy_utils.types.uuid.UUIDType()),
   column('used', sa.Boolean()),
   column('usage_limit', sa.Boolean()))
 
@@ -26,7 +27,7 @@ line_item = table('line_item',
 
 def upgrade():
     op.add_column('discount_coupon', sa.Column('usage_limit', sa.Integer(), nullable=True))
-    op.execute(discount_coupon.update().values({'usage_limit': 1}))  # noqa
+    op.execute(discount_coupon.update().values({'usage_limit': 1}))
     op.alter_column('discount_coupon', 'usage_limit',
                existing_type=sa.INTEGER(),
                nullable=False)
@@ -34,6 +35,9 @@ def upgrade():
 
 
 def downgrade():
-    op.add_column('discount_coupon', sa.Column('used', sa.Boolean(), nullable=False, server_default=False))
-    op.execute(discount_coupon.update().where(discount_coupon.c.usage_limit == 1).values({'used': True}))  # noqa
+    op.add_column('discount_coupon', sa.Column('used', sa.Boolean(), nullable=True, server_default='False'))
+    op.execute(discount_coupon.update().where(line_item.c.discount_coupon_id == discount_coupon.c.id).values({'used': True}))  # noqa
+    op.alter_column('discount_coupon', 'used',
+               existing_type=sa.BOOLEAN(),
+               nullable=False)
     op.drop_column('discount_coupon', 'usage_limit')
