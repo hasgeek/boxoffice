@@ -27,6 +27,7 @@ def jsonify_item(item):
 
 def jsonify_category(category):
     category_items = []
+    category.items.sort(key=lambda item: item.seq)
     for item in category.items:
         item_json = jsonify_item(item)
         if item_json:
