@@ -74,7 +74,6 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
             coupon_policy_ids = [cp.id for cp in coupon_policies]
             for coupon_code in coupon_codes:
                 coupon = DiscountCoupon.query.filter(DiscountCoupon.discount_policy_id.in_(coupon_policy_ids), DiscountCoupon.code==coupon_code).one_or_none()
-                print coupon.usage_limit
                 print len([line_item for line_item in item.line_items if line_item.discount_coupon == coupon])
                 if coupon and coupon.usage_limit > len([line_item for line_item in item.line_items if line_item.discount_coupon == coupon]):
                     policies.append((coupon.discount_policy, coupon))
