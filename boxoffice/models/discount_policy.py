@@ -51,27 +51,6 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     def is_coupon(self):
         return self.discount_type == DISCOUNT_TYPE.COUPON
 
-    @classmethod
-    def get_from_item(cls, item, qty, coupon_codes=[]):
-        """
-        Returns a list of (discount_policy, discount_coupon) tuples
-        applicable for an item, given the quantity of line items and coupons if any.
-        """
-        automatic_discounts = item.discount_policies.filter(DiscountPolicy.discount_type == DISCOUNT_TYPE.AUTOMATIC,
-            DiscountPolicy.item_quantity_min <= qty).all()
-        policies = [(discount, None) for discount in automatic_discounts]
-        if not coupon_codes:
-            return policies
-        else:
-            coupon_policies = item.discount_policies.filter(DiscountPolicy.discount_type == DISCOUNT_TYPE.COUPON).all()
-            coupon_policy_ids = [cp.id for cp in coupon_policies]
-            for coupon_code in coupon_codes:
-                coupon = DiscountCoupon.query.filter(DiscountCoupon.discount_policy_id.in_(coupon_policy_ids), DiscountCoupon.code==coupon_code).one_or_none()
-                if coupon and coupon.usage_limit > len([line_item for line_item in item.line_items if line_item.discount_coupon == coupon]):
-                    policies.append((coupon.discount_policy, coupon))
-
-        return policies
-
 
 def generate_coupon_code(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
@@ -83,7 +62,7 @@ class DiscountCoupon(IdMixin, db.Model):
     __table_args__ = (db.UniqueConstraint('discount_policy_id', 'code'),)
 
     code = db.Column(db.Unicode(20), nullable=False, default=generate_coupon_code)
-    usage_limit = db.Column(db.Integer, nullable=True, default=1)
+    usage_limit = db.Column(db.Integer, nullable=False, default=1)
 
     discount_policy_id = db.Column(None, db.ForeignKey('discount_policy.id'), nullable=False)
     discount_policy = db.relationship(DiscountPolicy, backref=db.backref('discount_coupons', cascade='all, delete-orphan'))

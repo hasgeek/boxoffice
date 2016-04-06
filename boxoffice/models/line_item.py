@@ -1,7 +1,7 @@
 import itertools
 from decimal import Decimal
 from collections import namedtuple
-from boxoffice.models import db, BaseMixin, Order, Item, DiscountPolicy
+from boxoffice.models import db, BaseMixin, Order, Item, DiscountPolicy, DiscountCoupon, DISCOUNT_TYPE
 from coaster.utils import LabeledEnum
 from baseframe import __
 
@@ -9,8 +9,9 @@ __all__ = ['LineItem']
 
 
 class LINE_ITEM_STATUS(LabeledEnum):
-    CONFIRMED = (0, __("Confirmed"))
-    CANCELLED = (1, __("Cancelled"))
+    ADDED = (0, __("Added"))
+    CONFIRMED = (1, __("Confirmed"))
+    CANCELLED = (2, __("Cancelled"))
 
 
 def make_ntuple(item_id, base_amount, **kwargs):
@@ -48,7 +49,7 @@ class LineItem(BaseMixin, db.Model):
     base_amount = db.Column(db.Numeric, default=Decimal(0), nullable=False)
     discounted_amount = db.Column(db.Numeric, default=Decimal(0), nullable=False)
     final_amount = db.Column(db.Numeric, default=Decimal(0), nullable=False)
-    status = db.Column(db.Integer, default=LINE_ITEM_STATUS.CONFIRMED, nullable=False)
+    status = db.Column(db.Integer, default=LINE_ITEM_STATUS.ADDED, nullable=False)
     ordered_at = db.Column(db.DateTime, nullable=True)
     cancelled_at = db.Column(db.DateTime, nullable=True)
 
@@ -77,6 +78,32 @@ class LineItem(BaseMixin, db.Model):
     def coupon_used_count(cls, coupon):
         # return self.usage_limit - self.line_items.filter_by(status=LINE_ITEM_STATUS.CONFIRMED).count()
         return cls.query.filter(cls.discount_coupon == coupon, cls.status == LINE_ITEM_STATUS.CONFIRMED).count()
+
+    def confirm(self):
+        self.status = LINE_ITEM_STATUS.CONFIRMED
+
+
+def get_from_item(cls, item, qty, coupon_codes=[]):
+    """
+    Returns a list of (discount_policy, discount_coupon) tuples
+    applicable for an item, given the quantity of line items and coupons if any.
+    """
+    automatic_discounts = item.discount_policies.filter(DiscountPolicy.discount_type == DISCOUNT_TYPE.AUTOMATIC,
+        DiscountPolicy.item_quantity_min <= qty).all()
+    policies = [(discount, None) for discount in automatic_discounts]
+    if not coupon_codes:
+        return policies
+    else:
+        coupon_policies = item.discount_policies.filter(DiscountPolicy.discount_type == DISCOUNT_TYPE.COUPON).all()
+        coupon_policy_ids = [cp.id for cp in coupon_policies]
+        for coupon_code in coupon_codes:
+            coupon = DiscountCoupon.query.filter(DiscountCoupon.discount_policy_id.in_(coupon_policy_ids), DiscountCoupon.code == coupon_code).one_or_none()
+            if coupon and coupon.usage_limit > LineItem.coupon_used_count(coupon):
+                policies.append((coupon.discount_policy, coupon))
+
+    return policies
+
+DiscountPolicy.get_from_item = classmethod(get_from_item)
 
 
 class LineItemDiscounter():
