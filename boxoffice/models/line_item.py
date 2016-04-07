@@ -1,8 +1,8 @@
 import itertools
-from sqlalchemy.sql import select, func
 from decimal import Decimal
 from collections import namedtuple
-from boxoffice.models import db, BaseMixin, Order, Item, DiscountPolicy, DiscountCoupon, DISCOUNT_TYPE
+from sqlalchemy.sql import select, func
+from boxoffice.models import db, BaseMixin, Order, Item, DiscountPolicy, DISCOUNT_TYPE, DiscountCoupon
 from coaster.utils import LabeledEnum
 from baseframe import __
 
@@ -10,9 +10,9 @@ __all__ = ['LineItem']
 
 
 class LINE_ITEM_STATUS(LabeledEnum):
-    ADDED = (0, __("Added"))
-    CONFIRMED = (1, __("Confirmed"))
-    CANCELLED = (2, __("Cancelled"))
+    CONFIRMED = (0, __("Confirmed"))
+    CANCELLED = (1, __("Cancelled"))
+    PURCHASE_ORDER = (2, __("Purchase Order"))
 
 
 def make_ntuple(item_id, base_amount, **kwargs):
@@ -33,24 +33,24 @@ class LineItem(BaseMixin, db.Model):
     __uuid_primary_key__ = True
     __table_args__ = (db.UniqueConstraint('customer_order_id', 'line_item_seq'),)
 
-    customer_order_id = db.Column(None, db.ForeignKey('customer_order.id'), nullable=False)
+    customer_order_id = db.Column(None, db.ForeignKey('customer_order.id'), nullable=False, index=True, unique=False)
     order = db.relationship(Order, backref=db.backref('line_items', cascade='all, delete-orphan'))
     # line_item_seq is the relative number of the line item per order.
     line_item_seq = db.Column(db.Integer, nullable=False)
 
-    item_id = db.Column(None, db.ForeignKey('item.id'), nullable=False)
+    item_id = db.Column(None, db.ForeignKey('item.id'), nullable=False, index=True, unique=False)
     item = db.relationship(Item, backref=db.backref('line_items', cascade='all, delete-orphan'))
 
-    discount_policy_id = db.Column(None, db.ForeignKey('discount_policy.id'), nullable=True)
+    discount_policy_id = db.Column(None, db.ForeignKey('discount_policy.id'), nullable=True, index=True, unique=False)
     discount_policy = db.relationship('DiscountPolicy', backref=db.backref('line_items'))
 
-    discount_coupon_id = db.Column(None, db.ForeignKey('discount_coupon.id'), nullable=True)
+    discount_coupon_id = db.Column(None, db.ForeignKey('discount_coupon.id'), nullable=True, index=True, unique=False)
     discount_coupon = db.relationship('DiscountCoupon', backref=db.backref('line_items'))
 
     base_amount = db.Column(db.Numeric, default=Decimal(0), nullable=False)
     discounted_amount = db.Column(db.Numeric, default=Decimal(0), nullable=False)
     final_amount = db.Column(db.Numeric, default=Decimal(0), nullable=False)
-    status = db.Column(db.Integer, default=LINE_ITEM_STATUS.ADDED, nullable=False)
+    status = db.Column(db.Integer, default=LINE_ITEM_STATUS.PURCHASE_ORDER, nullable=False)
     ordered_at = db.Column(db.DateTime, nullable=True)
     cancelled_at = db.Column(db.DateTime, nullable=True)
 
@@ -75,12 +75,6 @@ class LineItem(BaseMixin, db.Model):
             line_items.extend(item_line_items[item_id])
         return line_items
 
-    @classmethod
-    def coupon_used_count(cls, coupon):
-        count_query = select([func.count(LineItem.discount_coupon_id)]).where(LineItem.discount_coupon_id == coupon.id)
-        result = db.session.execute(count_query)
-        return result.first()[0]
-
     def confirm(self):
         self.status = LINE_ITEM_STATUS.CONFIRMED
 
@@ -100,12 +94,19 @@ def get_from_item(cls, item, qty, coupon_codes=[]):
         coupon_policy_ids = [cp.id for cp in coupon_policies]
         for coupon_code in coupon_codes:
             coupon = DiscountCoupon.query.filter(DiscountCoupon.discount_policy_id.in_(coupon_policy_ids), DiscountCoupon.code == coupon_code).one_or_none()
-            if coupon and coupon.usage_limit > LineItem.coupon_used_count(coupon):
+            if coupon and coupon.usage_limit > coupon.used_count:
                 policies.append((coupon.discount_policy, coupon))
 
     return policies
 
 DiscountPolicy.get_from_item = classmethod(get_from_item)
+
+
+def update_used_count(self):
+    self.used_count = select([func.count(LineItem.discount_coupon_id)]).where(LineItem.discount_coupon_id == self.id).where(LineItem.status == LINE_ITEM_STATUS.CONFIRMED).as_scalar()
+
+
+DiscountCoupon.update_used_count = update_used_count
 
 
 class LineItemDiscounter():
@@ -149,7 +150,7 @@ class LineItemDiscounter():
         return (discount_policy.percentage * line_item.base_amount/Decimal(100))
 
     def is_coupon_usable(self, coupon, applied_to_count):
-        return (coupon.usage_limit - LineItem.coupon_used_count(coupon)) > applied_to_count
+        return (coupon.usage_limit - coupon.used_count) > applied_to_count
 
     def apply_discount(self, policy_coupon, line_items, combo=False):
         """

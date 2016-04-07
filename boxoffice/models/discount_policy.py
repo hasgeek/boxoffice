@@ -4,7 +4,7 @@ from datetime import datetime
 from werkzeug import cached_property
 from baseframe import __
 from coaster.utils import LabeledEnum
-from boxoffice.models import db, BaseScopedNameMixin, IdMixin
+from boxoffice.models import db, IdMixin, BaseScopedNameMixin
 from boxoffice.models import Organization
 
 __all__ = ['DiscountPolicy', 'DiscountCoupon', 'item_discount_policy', 'DISCOUNT_TYPE']
@@ -63,6 +63,7 @@ class DiscountCoupon(IdMixin, db.Model):
 
     code = db.Column(db.Unicode(20), nullable=False, default=generate_coupon_code)
     usage_limit = db.Column(db.Integer, nullable=False, default=1)
+    used_count = db.Column(db.Integer, nullable=False, default=0)
 
     discount_policy_id = db.Column(None, db.ForeignKey('discount_policy.id'), nullable=False)
     discount_policy = db.relationship(DiscountPolicy, backref=db.backref('discount_coupons', cascade='all, delete-orphan'))

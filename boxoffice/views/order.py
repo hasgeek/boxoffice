@@ -145,6 +145,11 @@ def free(order):
         order.confirm_sale()
         db.session.add(order)
         db.session.commit()
+        for line_item in order.line_items:
+            if line_item.discount_coupon:
+                line_item.discount_coupon.update_used_count()
+                db.session.add(line_item.discount_coupon)
+        db.session.commit()
         boxofficeq.enqueue(send_receipt_email, order.id)
         return make_response(jsonify(message="Free order confirmed"), 201)
     else:
@@ -182,6 +187,11 @@ def payment(order):
         db.session.add(transaction)
         order.confirm_sale()
         db.session.add(order)
+        db.session.commit()
+        for line_item in order.line_items:
+            if line_item.discount_coupon:
+                line_item.discount_coupon.update_used_count()
+                db.session.add(line_item.discount_coupon)
         db.session.commit()
         boxofficeq.enqueue(send_receipt_email, order.id)
         return make_response(jsonify(message="Payment verified"), 201)
