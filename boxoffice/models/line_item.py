@@ -1,4 +1,5 @@
 import itertools
+from sqlalchemy.sql import select, func
 from decimal import Decimal
 from collections import namedtuple
 from boxoffice.models import db, BaseMixin, Order, Item, DiscountPolicy, DiscountCoupon, DISCOUNT_TYPE
@@ -76,8 +77,9 @@ class LineItem(BaseMixin, db.Model):
 
     @classmethod
     def coupon_used_count(cls, coupon):
-        # return self.usage_limit - self.line_items.filter_by(status=LINE_ITEM_STATUS.CONFIRMED).count()
-        return cls.query.filter(cls.discount_coupon == coupon, cls.status == LINE_ITEM_STATUS.CONFIRMED).count()
+        count_query = select([func.count(LineItem.discount_coupon_id)]).where(LineItem.discount_coupon_id == coupon.id)
+        result = db.session.execute(count_query)
+        return result.first()[0]
 
     def confirm(self):
         self.status = LINE_ITEM_STATUS.CONFIRMED
