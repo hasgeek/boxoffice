@@ -19,6 +19,7 @@ from sqlalchemy.sql import table, column
 discount_coupon = table('discount_coupon',
   column('id', sqlalchemy_utils.types.uuid.UUIDType()),
   column('used', sa.Boolean()),
+  column('used_count', sa.Integer()),
   column('usage_limit', sa.Integer()))
 
 line_item = table('line_item',
@@ -27,6 +28,8 @@ line_item = table('line_item',
 
 def upgrade():
     op.add_column('discount_coupon', sa.Column('usage_limit', sa.Integer(), nullable=True, server_default='1'))
+    op.add_column('discount_coupon', sa.Column('used_count', sa.Integer(), nullable=False, server_default='0'))
+    op.execute(discount_coupon.update().where(line_item.c.discount_coupon_id == discount_coupon.c.id).values({'used_count': 1}))  # noqa
     op.drop_column('discount_coupon', 'used')
 
 
