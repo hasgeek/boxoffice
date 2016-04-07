@@ -19,10 +19,10 @@ from sqlalchemy.sql import table, column
 discount_coupon = table('discount_coupon',
   column('id', sqlalchemy_utils.types.uuid.UUIDType()),
   column('used', sa.Boolean()),
-  column('usage_limit', sa.Boolean()))
+  column('usage_limit', sa.Integer()))
 
 line_item = table('line_item',
-  column('discount_coupon_id', sqlalchemy_utils.types.uuid.UUIDType()))
+  column('discount_coupon_id', sqlalchemy_utils.types.uuid.UUIDType(binary=False)))
 
 
 def upgrade():
@@ -31,6 +31,7 @@ def upgrade():
 
 
 def downgrade():
-    op.add_column('discount_coupon', sa.Column('used', sa.Boolean(), nullable=False, server_default='False'))
+    op.add_column('discount_coupon', sa.Column('used', sa.Boolean(), nullable=False, server_default='0'))
     op.execute(discount_coupon.update().where(line_item.c.discount_coupon_id == discount_coupon.c.id).values({'used': True}))  # noqa
+    op.alter_column('discount_coupon', 'used', server_default=None)
     op.drop_column('discount_coupon', 'usage_limit')
