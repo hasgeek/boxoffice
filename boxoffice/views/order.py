@@ -38,7 +38,6 @@ def jsonify_line_items(line_items):
 
 
 def jsonify_order(data):
-    print('data', data)
     order = data['order']
     line_items = []
     for line_item in order.line_items:
@@ -52,7 +51,7 @@ def jsonify_order(data):
         }
         line_items.append(item)
     line_items.sort(key=lambda category_seq: category_seq)
-    return jsonify(order_id=order.id, item_collection_name=order.item_collection.description_text, buyer_name=order.buyer_fullname, buyer_email=order.buyer_email,
+    return jsonify(order_id=order.id, access_token=order.access_token, item_collection_name=order.item_collection.description_text, buyer_name=order.buyer_fullname, buyer_email=order.buyer_email,
         buyer_phone=order.buyer_phone, line_items=line_items)
 
 

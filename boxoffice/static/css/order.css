@@ -110,6 +110,7 @@
   box-shadow: 0 0 2px rgba(0,0,0,0.6);
   border-radius: 0 0 5px 5px;
   padding: 20px;
+  background-color: #fff;
 }
 
 .assign-form-wrapper {
@@ -174,7 +175,7 @@
 }
 
 .attendee-form .group-input:focus ~ .group-label, 
-.attendee-form .group-input:valid ~ .group-label {
+.attendee-form .group-input.filled ~ .group-label {
   top: -20px;
   font-size: 14px;
   color: #800080;
@@ -214,6 +215,10 @@
   font-size: 16px;
   margin: 0 0 5px;
   font-weight: normal;
+}
+
+.field-title.filled {
+  color: #800080;
 }
 
 .assign-btn-wrapper {
