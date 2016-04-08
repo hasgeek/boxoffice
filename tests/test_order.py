@@ -115,6 +115,30 @@ class TestOrder(unittest.TestCase):
         conf_final_amount = (conf_price * (conf_quantity-2)) - ((conf_quantity-2) * (conf_policy.percentage * conf_price)/decimal.Decimal(100))
         self.assertEquals(tshirt_final_amount+conf_final_amount, order.get_amounts().final_amount)
 
+    def test_free_order(self):
+        item = Item.query.filter_by(name='conference-ticket').first()
+        data = {
+            'line_items': [{'item_id': unicode(item.id), 'quantity': 1}],
+            'buyer': {
+                'fullname': 'Testing',
+                'phone': '9814141414',
+                'email': 'test@hasgeek.com',
+                },
+            'discount_coupons': ['coupon2']
+            }
+        ic = ItemCollection.query.first()
+        resp = self.client.post('/ic/{ic}/order'.format(ic=ic.id), data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
+        data = json.loads(resp.data)
+        self.assertEquals(resp.status_code, 201)
+        order = Order.query.get(data.get('order_id'))
+        self.assertEquals(order.status, ORDER_STATUS.PURCHASE_ORDER)
+        self.assertEquals(data['final_amount'], 0)
+        resp = self.client.post('/order/{order_id}/free'.format(order_id=order.id), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
+        self.assertEquals(resp.status_code, 201)
+        coupon = DiscountCoupon.query.filter_by(code='coupon2').first()
+        self.assertEquals(coupon.used_count, 1)
+        self.assertEquals(order.status, ORDER_STATUS.SALES_ORDER)
+
     def tearDown(self):
         db.session.rollback()
         db.drop_all()
