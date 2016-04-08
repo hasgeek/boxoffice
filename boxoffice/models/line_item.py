@@ -103,7 +103,7 @@ DiscountPolicy.get_from_item = classmethod(get_from_item)
 
 
 def update_used_count(self):
-    self.used_count = select([func.count(LineItem.discount_coupon_id)]).where(LineItem.discount_coupon_id == self.id).where(LineItem.status == LINE_ITEM_STATUS.CONFIRMED).as_scalar()
+    self.used_count = select([func.count()]).where(LineItem.discount_coupon == self).where(LineItem.status == LINE_ITEM_STATUS.CONFIRMED).as_scalar()
 
 
 DiscountCoupon.update_used_count = update_used_count
