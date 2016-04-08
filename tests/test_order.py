@@ -132,12 +132,14 @@ class TestOrder(unittest.TestCase):
         self.assertEquals(resp.status_code, 201)
         order = Order.query.get(data.get('order_id'))
         self.assertEquals(order.status, ORDER_STATUS.PURCHASE_ORDER)
+        self.assertEquals(order.line_items[0].status, LINE_ITEM_STATUS.PURCHASE_ORDER)
         self.assertEquals(data['final_amount'], 0)
         resp = self.client.post('/order/{order_id}/free'.format(order_id=order.id), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
         self.assertEquals(resp.status_code, 201)
         coupon = DiscountCoupon.query.filter_by(code='coupon2').first()
         self.assertEquals(coupon.used_count, 1)
         self.assertEquals(order.status, ORDER_STATUS.SALES_ORDER)
+        self.assertEquals(order.line_items[0].status, LINE_ITEM_STATUS.CONFIRMED)
 
     def tearDown(self):
         db.session.rollback()

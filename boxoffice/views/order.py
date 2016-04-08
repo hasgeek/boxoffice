@@ -146,6 +146,8 @@ def free(order):
         db.session.add(order)
         db.session.commit()
         for line_item in order.line_items:
+            line_item.confirm()
+            db.session.add(line_item)
             if line_item.discount_coupon:
                 line_item.discount_coupon.update_used_count()
                 db.session.add(line_item.discount_coupon)
@@ -189,6 +191,8 @@ def payment(order):
         db.session.add(order)
         db.session.commit()
         for line_item in order.line_items:
+            line_item.confirm()
+            db.session.add(line_item)
             if line_item.discount_coupon:
                 line_item.discount_coupon.update_used_count()
                 db.session.add(line_item.discount_coupon)

@@ -6,7 +6,7 @@ from boxoffice.models import db, BaseMixin, Order, Item, DiscountPolicy, DISCOUN
 from coaster.utils import LabeledEnum
 from baseframe import __
 
-__all__ = ['LineItem']
+__all__ = ['LineItem', 'LINE_ITEM_STATUS']
 
 
 class LINE_ITEM_STATUS(LabeledEnum):
