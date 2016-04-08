@@ -205,6 +205,50 @@ $(function() {
           boxoffice.ractive.set('activeTab', boxoffice.ractive.get('tabs.selectItems.id'));
           boxoffice.ractive.scrollTop();
         },
+        applyDiscount: function(discountCoupons) {
+          //Ask server for the corresponding line_item for the discount coupon. Add one quantity of that line_item
+          $.post({
+            url: boxoffice.config.resources.kharcha.urlFor(),
+            crossDomain: true,
+            dataType: 'json',
+            headers: {'X-Requested-With': 'XMLHttpRequest'},
+            contentType: 'application/json',
+            data: JSON.stringify({
+              line_items: boxoffice.ractive.get('order.line_items').map(function(line_item) {
+                return {
+                  quantity: 1,
+                  item_id: line_item.item_id
+                };
+              }),
+              discount_coupons: discountCoupons
+            }),
+            timeout: 5000,
+            retries: 5,
+            retryInterval: 5000,
+            success: function(data) {
+              var line_items = boxoffice.ractive.get('order.line_items');
+              line_items.forEach(function(line_item) {
+                if (data.line_items.hasOwnProperty(line_item.item_id)) {
+                  if(data.line_items[line_item.item_id].discounted_amount) {
+                    line_item.quantity = 1;
+                  }
+                }
+              });
+              boxoffice.ractive.set('order.line_items',line_items);
+              boxoffice.ractive.calculateOrder();
+              boxoffice.ractive.scrollTop();
+            },
+            error: function(response) {
+              var ajaxLoad = this;
+              ajaxLoad.retries -= 1;
+              if (response.readyState === 0 && ajaxLoad.retries > 0) {
+                setTimeout(function() {
+                  $.post(ajaxLoad);
+                }, ajaxLoad.retryInterval);
+              }
+            }
+          });
+        },
         updateOrder: function(event, item_name, quantityAvailable, increment) {
           // Increments or decrements a line item's quantity
           event.original.preventDefault();
@@ -588,6 +632,11 @@ $(function() {
               ga('send', { hitType: 'event', eventCategory: 'ticketing', eventAction: userAction, eventLabel: label});
             }
           });
+
+          discountCoupons = boxoffice.util.getDiscountCodes()
+          if(discountCoupons.length) {
+            boxoffice.ractive.applyDiscount(discountCoupons);
+          }
         }
       });
     });
