@@ -72,6 +72,22 @@ $(function() {
     return date.toLocaleTimeString(['en-US'], {hour: '2-digit', minute: '2-digit'}) + ", " + date.toDateString();
   };
 
+  boxoffice.util.formatIndiaRupee = function(value) {
+    value = value.toString();
+    value = value.replace(/[^0-9.]/g, '');  // Remove non-digits, assume . for decimals
+    var afterPoint = '';
+    if (value.indexOf('.') > 0)
+      afterPoint = value.substring(value.indexOf('.'), value.length);
+    value = Math.floor(value);
+    value = value.toString();
+    var lastThree = value.substring(value.length - 3);
+    var otherNumbers = value.substring(0, value.length - 3);
+    if (otherNumbers !== '')
+        lastThree = ',' + lastThree;
+    var res = otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + lastThree + afterPoint;
+    return res;
+  };
+
   boxoffice.initResources = function(config) {
     this.config.resources = {
       itemCollection: {
@@ -136,7 +152,7 @@ $(function() {
             'item_name': item.name,
             'quantity': 0,
             'item_title': item.title,
-            'base_price': item.price,
+            'base_price': boxoffice.util.formatIndiaRupee(item.price),
             'item_description': item.description,
             'price_valid_upto': boxoffice.util.formatDate(item.price_valid_upto),
             'discount_policies': item.discount_policies
@@ -271,8 +287,8 @@ $(function() {
                 line_items.forEach(function(line_item){
                   // TODO: Refactor this to iterate through data.line_items
                   if (data.line_items.hasOwnProperty(line_item.item_id) && line_item.quantity ===  data.line_items[line_item.item_id].quantity) {
-                    line_item.final_amount = data.line_items[line_item.item_id].final_amount;
-                    line_item.discounted_amount = data.line_items[line_item.item_id].discounted_amount;
+                    line_item.final_amount = boxoffice.util.formatIndiaRupee(data.line_items[line_item.item_id].final_amount);
+                    line_item.discounted_amount = boxoffice.util.formatIndiaRupee(data.line_items[line_item.item_id].discounted_amount);
 
                     if (!readyToCheckout && data.line_items[line_item.item_id].quantity > 0) {
                       readyToCheckout = true;
@@ -291,7 +307,7 @@ $(function() {
                 if (readyToCheckout) {
                   boxoffice.ractive.set({
                     'order.line_items': line_items,
-                    'order.final_amount': data.order.final_amount
+                    'order.final_amount': boxoffice.util.formatIndiaRupee(data.order.final_amount)
                   });
                 }
                 boxoffice.ractive.set({

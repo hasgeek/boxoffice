@@ -1,0 +1,13 @@
+{% extends "baseframe.html" -%}
+
+{% block description %}{% if g.profile %}{{ g.profile.description|striptags }}{% endif %}{% endblock %}
+
+{% block headerbox %}
+{% endblock %}
+
+{% block baseheadline -%}
+{%- endblock %}
+
+{% block basecontent -%}
+  {% block content %}{% endblock %}
+{%- endblock %}

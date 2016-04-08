@@ -1,0 +1,166 @@
+{% extends "layout.html" %}
+
+{% block headline %}
+  <div class="page-header">
+    <h1>Boxoffice Ticket Assignment</h1>
+  </div>
+{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <h1 class="header">Boxoffice Ticket Assignment</h1>
+     
+    <div class="clearfix">
+      <div class="organization-logo">
+       <img src="{{org.details.get('logo')}}"/>
+      </div> 
+
+      <div class="inventory">
+       <p class="title">{{order.item_collection.description_text}}</p>
+      </div> 
+    </div>
+    
+    <div class="row" id="boxoffice-order">
+      {%- raw %}
+        <script id='boxoffice-ticket-template' type='text/ractive'>
+          {{#line_items:line_item}}
+            <div class="ticket col-sm-6 col-xs-12" id="item-{{ item_id }}">
+              <div class="heading">
+                <div class="ticket-type">
+                  <p>{{ title }}</p>
+                </div>
+                <div class="ticket-edit">
+                  {{#if isTicketAssigned}}
+                    <span><i class="fa fa-user"></i><i class="fa fa-check"></i></span>
+                    <span class="edit-btn" on-click="assign(event)"><i class="fa fa-edit"></i></span>
+                  {{else}}
+                    <span><i class="fa fa-user"></i><i class="fa fa-question"></i></span>
+                  {{/if}}
+                </div>
+              </div>
+              <div class="content">
+                {{#if !toAssign}}
+                  <div class="content-box clearfix" intro='fly:{"x":200,"y":"0"}'>
+                    <div class="item-description">{{{ category_seq }}}</div>
+                    <div class="item-description">{{{ description }}}</div>
+                    <p class="price center">&#8377;{{ final_amount }}</p>
+                    {{#if isTicketAssigned}}
+                      <p class="confirmation-msg"><i class="fa fa-check"></i> This ticket has been assigned to {{.name}}</p>
+                    {{/if}}
+                    <div class="assign-form-wrapper">
+                      {{#if !isTicketAssigned}}
+                        <p class="assign-form-title">Assign this ticket</p>
+                      {{else}}
+                        <p class="assign-form-title">Update attendee details</p>
+                      {{/if}}
+                      <form class="form-horizontal assignee-form" role="form" name="assignee-form">       
+                        {{#if !isTicketAssigned}}                
+                          <div class="form-group">
+                            <label class="radio-inline">
+                              <input type="radio" name="{{.assignee}}" value="self" checked>
+                              Self
+                            </label>
+                            <label class="radio-inline">
+                              <input type="radio" name="{{.assignee}}" value="other">
+                              Other
+                            </label>
+                          </div>
+                        {{/if}}
+                        <div class="form-group text-center continue-btn-wrapper">
+                          <button class="boxoffice-button boxoffice-button-action" on-click="assign(event)">Continue</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                {{else}}
+                  <div class="content-box clearfix" intro='fly:{"x":200,"y":"0"}'>
+                    <h4 class="text-center attendee-form-title">Please fill the attendee details</h4>   
+                    <form class="attendee-form" role="form" name="attendee-form-{{item_id}}"> 
+                        <div class="group">      
+                          <input class="group-input" type="text" name="name" required value="{{.name}}">
+                          <span class="bar"></span>
+                          <label class="group-label">Name</label>
+                        </div>
+                          
+                        <div class="group">      
+                          <input class="group-input" type="text" name="email" required value="{{.email}}">
+                          <span class="bar"></span>
+                          <label class="group-label">Email</label>
+                        </div>
+
+                        <div class="group">      
+                          <input class="group-input" type="text" name="phone" required value="{{.phone}}">
+                          <span class="bar"></span>
+                          <label class="group-label">Phone</label>
+                        </div>
+
+                        <div class="group">      
+                          <input class="group-input" type="text" name="company" value="{{.company}}">
+                          <span class="bar"></span>
+                          <label class="group-label">Company</label>
+                        </div>
+
+                        <div class="group">      
+                          <input class="group-input" type="text" name="twitter" value="{{.twitter}}">
+                          <span class="bar"></span>
+                          <label class="group-label">Twitter</label>
+                        </div>
+
+                        <div class="group">      
+                          <input class="group-input" type="text" name="designation" value="{{.designation}}">
+                          <span class="bar"></span>
+                          <label class="group-label">Job designation</label>
+                        </div>
+
+                        <div class="group">      
+                          <input class="group-input" type="text" name="city" value="{{.city}}">
+                          <span class="bar"></span>
+                          <label class="group-label">City, State</label>
+                        </div>
+
+                        <div class="group">
+                          <p class="field-title">Food preference</p>
+                          <label class="radio-inline">
+                            <input type="radio" name="{{.foodchoice}}" value="veg" checked>
+                            Veg
+                          </label>
+                          <label class="radio-inline">
+                            <input type="radio" name="{{.foodchoice}}" value="non-veg">
+                            Non-Veg
+                          </label>
+                          <label>
+                        </div>
+
+                        <div class="form-group">
+                          <label class="field-title">How did you hear about {{eventName}}?</label>
+                          <textarea class="form-control" value="{{.source}}" name="source"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                          <label class="field-title">Comments</label>
+                          <textarea class="form-control" value="{{.comments}}" name="comments"></textarea>
+                        </div>
+
+                        <div class="assign-btn-wrapper">
+                          {{#if isTicketAssigned}}
+                            <button type="button" class="boxoffice-button boxoffice-button-info" on-click="view(event, event.keypath, item_id)">Back</button>
+                          {{/if}}
+                          <button type="submit" class="boxoffice-button boxoffice-button-action" on-click="addAttendeDetails(event, event.keypath, item_id)">Assign ticket {{#assigningTicket}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'>{{/}}</button>
+                        </div>
+                      {{#errorMsg}}
+                          <p class="error-msg">{{ errorMsg }}</p>
+                      {{/}}
+                    </form>
+                  </div>
+                {{/if}}
+            </div>
+          {{/line_item}}
+        </script>
+      {%- endraw %}
+    </div>
+
+  
+  </div>
+{% endblock %}
+{% block footerscripts %}
+{% endblock %}

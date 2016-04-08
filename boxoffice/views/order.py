@@ -3,7 +3,7 @@ from decimal import Decimal
 from flask import url_for, request, jsonify, render_template, make_response
 from rq import Queue
 from redis import Redis
-from coaster.views import load_models
+from coaster.views import render_with, load_models
 from .. import app
 from ..models import db
 from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy
@@ -35,6 +35,25 @@ def jsonify_line_items(line_items):
         if line_item.discount_policy_id and line_item.discount_policy_id not in items_json[unicode(line_item.item_id)]['discount_policy_ids']:
             items_json[unicode(line_item.item_id)]['discount_policy_ids'].append(line_item.discount_policy_id)
     return items_json
+
+
+def jsonify_order(data):
+    print('data', data)
+    order = data['order']
+    line_items = []
+    for line_item in order.line_items:
+        item = {
+            'item_id': line_item.line_item_seq,
+            'title': line_item.item.title,
+            'category': line_item.item.category.title,
+            'category_seq': line_item.item.category.seq,
+            'description': line_item.item.description.text,
+            'final_amount': line_item.final_amount
+        }
+        line_items.append(item)
+    line_items.sort(key=lambda category_seq: category_seq)
+    return jsonify(order_id=order.id, item_collection_name=order.item_collection.description_text, buyer_name=order.buyer_fullname, buyer_email=order.buyer_email,
+        buyer_phone=order.buyer_phone, line_items=line_items)
 
 
 @app.route('/order/kharcha', methods=['OPTIONS', 'POST'])
@@ -212,3 +231,12 @@ def payment(order):
     )
 def receipt(order):
     return render_template('cash_receipt.html', order=order, org=order.organization)
+
+
+@app.route('/order/<access_token>/ticket', methods=['GET', 'POST'])
+@render_with({'text/html': 'order.html', 'application/json': jsonify_order}, json=True)
+@load_models(
+    (Order, {'access_token': 'access_token'}, 'order')
+    )
+def line_items(order):
+    return dict(order=order, org=order.organization)
