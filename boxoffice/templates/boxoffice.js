@@ -109,7 +109,7 @@ $(function() {
           return boxoffice.config.baseURL + "/order/" + accessToken + "/receipt";
         }
       }
-    }
+    };
   };
 
   boxoffice.init = function(widgetConfig) {
@@ -625,7 +625,7 @@ $(function() {
         oncomplete: function() {
           boxoffice.ractive.on('eventAnalytics', function(userAction, label) {
             if(typeof boxoffice.ractive.get('sendEventHits') === "undefined") {
-              boxoffice.ractive.set('sendEventHits', 0)
+              boxoffice.ractive.set('sendEventHits', 0);
               userAction = 'First interaction';
             }
             if(typeof ga !== "undefined") {
@@ -633,7 +633,7 @@ $(function() {
             }
           });
 
-          discountCoupons = boxoffice.util.getDiscountCodes()
+          discountCoupons = boxoffice.util.getDiscountCodes();
           if(discountCoupons.length) {
             boxoffice.ractive.applyDiscount(discountCoupons);
           }
