@@ -1,6 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
-from ..models import db, BaseScopedNameMixin, MarkdownColumn
+from ..models import db, JsonDict, BaseScopedNameMixin, MarkdownColumn
 from ..models import ItemCollection, Category
 from ..models.discount_policy import item_discount_policy
 
@@ -27,6 +27,8 @@ class Item(BaseScopedNameMixin, db.Model):
     quantity_total = db.Column(db.Integer, default=0, nullable=False)
 
     discount_policies = db.relationship('DiscountPolicy', secondary=item_discount_policy, lazy='dynamic')
+
+    assignee_details = db.Column(JsonDict, default='{}', nullable=False)
 
     def current_price(self):
         """
