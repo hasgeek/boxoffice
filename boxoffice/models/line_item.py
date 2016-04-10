@@ -26,21 +26,20 @@ def make_ntuple(item_id, base_amount, **kwargs):
 
 class Assignee(BaseMixin, db.Model):
     __tablename__ = 'assignee'
-    __table_args__ = (db.UniqueConstraint('item_collection_id', 'email'),)
+
+    # lastuser id
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
 
     fullname = db.Column(db.Unicode(80), nullable=False)
     #: Unvalidated email address
     email = db.Column(db.Unicode(254), nullable=False)
     #: Unvalidated phone number
     phone = db.Column(db.Unicode(80), nullable=True)
-    details = db.Column(JsonDict, nullable=False, server_default='{}')
+    details = db.Column(JsonDict, nullable=False, default={})
 
     # Track the assignee from whom the line_item was transferred from
-    parent_id = db.Column(None, db.ForeignKey('assignee.id'), nullable=True)
-    parent = db.relationship('Assignee', uselist=False)
-
-    item_collection_id = db.Column(None, db.ForeignKey('item_collection.id'), nullable=False)
-    item_collection = db.relationship(ItemCollection, backref=db.backref('assignees', cascade='all, delete-orphan'))
+    previous_id = db.Column(None, db.ForeignKey('assignee.id'), nullable=True)
+    previous = db.relationship('Assignee', uselist=False)
 
 
 class LineItem(BaseMixin, db.Model):
