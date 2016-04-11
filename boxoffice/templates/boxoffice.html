@@ -45,7 +45,12 @@
                         </div>
                       {{/if}}
                       {{#if item.quantity_available > 0}}
-                        <p class="ticket-price"><i class="fa fa-inr rupee-sign"></i>{{ line_item.base_price }}</p>
+                        <div class="ticket-price-wrapper">
+                          {{#if show_discountprice}}
+                            <p class="discount-price ticket-price"><i class="fa fa-inr rupee-sign"></i>{{ line_item.discount_price }}</p>
+                          {{/if}}
+                          <p class="ticket-price {{#if show_discountprice}}strike{{/if}}"><i class="fa fa-inr rupee-sign"></i>{{ line_item.base_price }}</p>
+                        </div>
                         <span class="multiplier">&times;</span>
                         <div class="ticket-qty-wrapper">
                           <button class="decrement" on-click="updateOrder(event, line_item.item_name, item.quantity_available, false)">-</button>
@@ -376,13 +381,24 @@
     float: right;
     margin-top: 10px;
   }
-  .ticket-price {
+  .ticket-price-wrapper {
     float: left;
     margin-top: 2px;
+    position: relative;
+  }
+  .ticket-price {
     font-size: 18px;
   }
   .ticket-price .rupee-sign {
     font-size: 16px;
+  }
+  .discount-price {
+    position: absolute;
+    bottom: 30px;
+  }
+  .strike {
+    text-decoration: line-through;
+    color: #aaa;
   }
   @media (min-width: 768px) {
     .ticket-price-qty {
@@ -483,6 +499,11 @@
     .ticket-qty {
       top: -4px;
       width: 40px;
+    }
+  }
+  @media (min-width: 1024px) {
+    .discount-price {
+      bottom: 20px;
     }
   }
   .discount-code {

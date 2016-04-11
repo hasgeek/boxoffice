@@ -226,11 +226,19 @@ $(function() {
             retries: 5,
             retryInterval: 5000,
             success: function(data) {
+              var applyDiscount;
               var line_items = boxoffice.ractive.get('order.line_items');
               line_items.forEach(function(line_item) {
                 if (data.line_items.hasOwnProperty(line_item.item_id)) {
                   if(data.line_items[line_item.item_id].discounted_amount) {
-                    line_item.quantity = 1;
+                    if(!applyDiscount) {
+                      line_item.quantity = 1;
+                      applyDiscount = true;
+                    }
+                    else {
+                      line_item.show_discountprice = true;
+                    }
+                    line_item.discount_price = data.line_items[line_item.item_id].final_amount;
                   }
                 }
               });
@@ -258,6 +266,7 @@ $(function() {
               if (increment) {
                 if (lineItem.quantity < quantityAvailable) {
                   lineItem.quantity += 1;
+                  lineItem.show_discountprice = false;
                 }
                 boxoffice.ractive.fire('eventAnalytics', 'add ticket', item_name);
               } else if (lineItem.quantity !== 0) {
@@ -266,6 +275,9 @@ $(function() {
               }
             }
             if (lineItem.quantity === 0) {
+              if(lineItem.discount_price >= 0) {
+                lineItem.show_discountprice = true;
+              }
               lineItem.discounted_amount = 0;
               lineItem.final_amount = 0;
               lineItem.discount_policies.forEach(function(discount_policy) {
