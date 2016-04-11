@@ -26,10 +26,14 @@ def make_ntuple(item_id, base_amount, **kwargs):
 
 class Assignee(BaseMixin, db.Model):
     __tablename__ = 'assignee'
+    __table_args__ = (db.UniqueConstraint('line_item_id', 'current'),)
 
     # lastuser id
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     user = db.relationship('User', backref=db.backref('assignees', cascade='all, delete-orphan'))
+
+    line_item_id = db.Column(db.Integer, db.ForeignKey('line_item.id'), nullable=False)
+    line_item = db.relationship('LineItem', backref=db.backref('line_item', cascade='all, delete-orphan'))
 
     fullname = db.Column(db.Unicode(80), nullable=False)
     #: Unvalidated email address
@@ -37,10 +41,11 @@ class Assignee(BaseMixin, db.Model):
     #: Unvalidated phone number
     phone = db.Column(db.Unicode(16), nullable=True)
     details = db.Column(JsonDict, nullable=False, default={})
+    current = db.Column(db.Boolean, default=False, nullable=True)
 
-    # Track the assignee from whom the line_item was transferred from
-    previous_id = db.Column(None, db.ForeignKey('assignee.id'), nullable=True)
-    previous = db.relationship('Assignee', uselist=False)
+    # # Track the assignee from whom the line_item was transferred from
+    # previous_id = db.Column(None, db.ForeignKey('assignee.id'), nullable=True)
+    # previous = db.relationship('Assignee', uselist=False)
 
 
 class LineItem(BaseMixin, db.Model):
@@ -65,9 +70,6 @@ class LineItem(BaseMixin, db.Model):
 
     discount_coupon_id = db.Column(None, db.ForeignKey('discount_coupon.id'), nullable=True, index=True, unique=False)
     discount_coupon = db.relationship('DiscountCoupon', backref=db.backref('line_items'))
-
-    assignee_id = db.Column(None, db.ForeignKey('assignee.id'), nullable=True, index=True, unique=False)
-    assignee = db.relationship('Assignee', backref=db.backref('line_items'))
 
     base_amount = db.Column(db.Numeric, default=Decimal(0), nullable=False)
     discounted_amount = db.Column(db.Numeric, default=Decimal(0), nullable=False)
