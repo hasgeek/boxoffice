@@ -12,6 +12,7 @@ from ..extapi import razorpay
 from ..forms import LineItemForm, BuyerForm
 from custom_exceptions import APIError
 from boxoffice.mailclient import send_receipt_email
+from ..extapi import slack
 from utils import xhr_only, cors
 
 redis_connection = Redis()
@@ -82,7 +83,6 @@ def order(item_collection):
     line_item_forms = LineItemForm.process_list(request.json.get('line_items'))
     if not line_item_forms:
         return make_response(jsonify(message='Invalid line items'), 400)
-
     buyer_form = BuyerForm.from_json(request.json.get('buyer'))
     # See comment in LineItemForm about CSRF
     buyer_form.csrf_enabled = False
@@ -152,6 +152,9 @@ def free(order):
                 line_item.discount_coupon.update_used_count()
                 db.session.add(line_item.discount_coupon)
         db.session.commit()
+        webhook_url = order.organization.details.get('slack_webhook_url')
+        if webhook_url:
+            boxofficeq.enqueue(slack.post_stats, order.item_collection_id, webhook_url)
         boxofficeq.enqueue(send_receipt_email, order.id)
         return make_response(jsonify(message="Free order confirmed"), 201)
     else:
@@ -197,6 +200,9 @@ def payment(order):
                 line_item.discount_coupon.update_used_count()
                 db.session.add(line_item.discount_coupon)
         db.session.commit()
+        webhook_url = order.organization.details.get('slack_webhook_url')
+        if webhook_url:
+            boxofficeq.enqueue(slack.post_stats, order.item_collection_id, webhook_url)
         boxofficeq.enqueue(send_receipt_email, order.id)
         return make_response(jsonify(message="Payment verified"), 201)
     else:
