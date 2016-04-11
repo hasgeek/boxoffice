@@ -39,8 +39,8 @@ def upgrade():
 
 
 def downgrade():
-    op.drop_constraint('line_item_assignee_id_fkey', 'line_item', type_='foreignkey')
     op.drop_index(op.f('assignee_email_key'), table_name='assignee')
-    op.drop_column(u'line_item', 'assignee_id')
+    op.drop_constraint('line_item_assignee_id_fkey', 'line_item', type_='foreignkey')
     op.drop_column(u'item', 'assignee_details')
+    op.drop_column(u'line_item', 'assignee_id')
     op.drop_table('assignee')
