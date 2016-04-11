@@ -2,11 +2,11 @@ import itertools
 from decimal import Decimal
 from collections import namedtuple
 from sqlalchemy.sql import select, func
-from boxoffice.models import db, BaseMixin, Order, Item, DiscountPolicy, DISCOUNT_TYPE, DiscountCoupon
+from boxoffice.models import db, JsonDict, BaseMixin, Order, Item, ItemCollection, DiscountPolicy, DISCOUNT_TYPE, DiscountCoupon
 from coaster.utils import LabeledEnum
 from baseframe import __
 
-__all__ = ['LineItem', 'LINE_ITEM_STATUS']
+__all__ = ['LineItem', 'LINE_ITEM_STATUS', 'Assignee']
 
 
 class LINE_ITEM_STATUS(LabeledEnum):
@@ -22,6 +22,24 @@ def make_ntuple(item_id, base_amount, **kwargs):
         kwargs.get('discount_policy_id', None),
         kwargs.get('discount_coupon_id', None),
         kwargs.get('discounted_amount', Decimal(0)))
+
+
+class Assignee(BaseMixin, db.Model):
+    __tablename__ = 'assignee'
+
+    # lastuser id
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+
+    fullname = db.Column(db.Unicode(80), nullable=False)
+    #: Unvalidated email address
+    email = db.Column(db.Unicode(254), nullable=False)
+    #: Unvalidated phone number
+    phone = db.Column(db.Unicode(80), nullable=True)
+    details = db.Column(JsonDict, nullable=False, default={})
+
+    # Track the assignee from whom the line_item was transferred from
+    previous_id = db.Column(None, db.ForeignKey('assignee.id'), nullable=True)
+    previous = db.relationship('Assignee', uselist=False)
 
 
 class LineItem(BaseMixin, db.Model):
@@ -46,6 +64,9 @@ class LineItem(BaseMixin, db.Model):
 
     discount_coupon_id = db.Column(None, db.ForeignKey('discount_coupon.id'), nullable=True, index=True, unique=False)
     discount_coupon = db.relationship('DiscountCoupon', backref=db.backref('line_items'))
+
+    assignee_id = db.Column(None, db.ForeignKey('assignee.id'), nullable=True, index=True, unique=False)
+    assignee = db.relationship('Assignee', backref=db.backref('line_items'))
 
     base_amount = db.Column(db.Numeric, default=Decimal(0), nullable=False)
     discounted_amount = db.Column(db.Numeric, default=Decimal(0), nullable=False)
