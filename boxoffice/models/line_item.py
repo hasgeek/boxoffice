@@ -29,12 +29,13 @@ class Assignee(BaseMixin, db.Model):
 
     # lastuser id
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    user = db.relationship('User', backref=db.backref('assignees', cascade='all, delete-orphan'))
 
     fullname = db.Column(db.Unicode(80), nullable=False)
     #: Unvalidated email address
     email = db.Column(db.Unicode(254), nullable=False)
     #: Unvalidated phone number
-    phone = db.Column(db.Unicode(80), nullable=True)
+    phone = db.Column(db.Unicode(16), nullable=True)
     details = db.Column(JsonDict, nullable=False, default={})
 
     # Track the assignee from whom the line_item was transferred from
