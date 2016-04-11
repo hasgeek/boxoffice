@@ -42,12 +42,14 @@ def jsonify_order(data):
     line_items = []
     for line_item in order.line_items:
         item = {
-            'item_id': line_item.line_item_seq,
+            'seq': line_item.line_item_seq,
+            'id': line_item.id,
             'title': line_item.item.title,
             'category': line_item.item.category.title,
             'category_seq': line_item.item.category.seq,
             'description': line_item.item.description.text,
-            'final_amount': line_item.final_amount
+            'final_amount': line_item.final_amount,
+            'assignee_details': line_item.item.assignee_details
         }
         line_items.append(item)
     line_items.sort(key=lambda category_seq: category_seq)

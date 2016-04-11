@@ -24,7 +24,7 @@
       {%- raw %}
         <script id='boxoffice-ticket-template' type='text/ractive'>
           {{#line_items:line_item}}
-            <div class="ticket col-sm-6 col-xs-12" id="item-{{ item_id }}">
+            <div class="ticket col-sm-6 col-xs-12" id="item-{{ seq }}">
               <div class="heading">
                 <div class="ticket-type">
                   <p>{{ title }}</p>
@@ -44,7 +44,7 @@
                     <div class="item-description">{{{ description }}}</div>
                     <p class="price center">&#8377;{{ final_amount }}</p>
                     {{#if isTicketAssigned}}
-                      <p class="confirmation-msg"><i class="fa fa-check"></i> This ticket has been assigned to {{.name}}</p>
+                      <p class="confirmation-msg"><i class="fa fa-check"></i> This ticket has been assigned to {{.fullname}}</p>
                     {{/if}}
                     <div class="assign-form-wrapper">
                       {{#if !isTicketAssigned}}
@@ -74,11 +74,11 @@
                 {{else}}
                   <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
                     <h4 class="text-center attendee-form-title">Please fill the attendee details</h4>   
-                    <form class="attendee-form" role="form" name="attendee-form-{{item_id}}" id="attendee-details-{{item_id}}"> 
+                    <form class="attendee-form" role="form" name="attendee-form-{{seq}}" id="attendee-details-{{seq}}"> 
                         <div class="group">      
-                          <input class="group-input {{#filled}}filled{{/}}" type="text" name="name" required value="{{.name}}" on-blur="inputFieldEdit(event, event.keypath)">
+                          <input class="group-input {{#filled}}filled{{/}}" type="text" name="fullname" required value="{{.fullname}}" on-blur="inputFieldEdit(event, event.keypath)">
                           <span class="bar"></span>
-                          <label class="group-label">Name</label>
+                          <label class="group-label">Fullname</label>
                         </div>
                           
                         <div class="group">      
@@ -142,9 +142,9 @@
 
                         <div class="assign-btn-wrapper">
                           {{#if isTicketAssigned}}
-                            <button type="button" class="boxoffice-button boxoffice-button-info" on-click="viewTicket(event, event.keypath, item_id)">Back</button>
+                            <button type="button" class="boxoffice-button boxoffice-button-info" on-click="viewTicket(event, event.keypath, seq)">Back</button>
                           {{/if}}
-                          <button type="submit" class="boxoffice-button boxoffice-button-action" on-click="addAttendeDetails(event, event.keypath, item_id)">Assign ticket {{#assigningTicket}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'>{{/}}</button>
+                          <button type="submit" class="boxoffice-button boxoffice-button-action" on-click="addAttendeDetails(event, event.keypath, seq, id)">Assign ticket {{#assigningTicket}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'>{{/}}</button>
                         </div>
                       {{#errorMsg}}
                           <p class="error-msg">{{ errorMsg }}</p>
