@@ -2,5 +2,9 @@
 .sass-cache
 error.log
 instance/settings.py
+instance/production.py
 instance/development.py
 instance/testing.py
+.webassets-cache
+baseframe-packed.js
+baseframe-packed.css
