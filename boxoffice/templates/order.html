@@ -45,12 +45,9 @@
                     <p class="price center">&#8377;{{ final_amount }}</p>
                     {{#if assignee.id || isTicketAssigned}}
                       <p class="confirmation-msg"><i class="fa fa-check"></i> This ticket has been assigned to {{assignee.fullname}}</p>
-                    {{/if}}
-                    <div class="assign-form-wrapper">
-                      <form class="form-horizontal assignee-form" role="form" name="assignee-form">  
-                        {{#if assignee.id || isTicketAssigned}}
-                          <p class="assign-form-title">Update attendee details</p>
-                        {{else}}
+                    {{else}}
+                      <div class="assign-form-wrapper">
+                        <form class="form-horizontal assignee-form" role="form" name="assignee-form">  
                           <p class="assign-form-title">Assign this ticket</p>             
                           <div class="form-group">
                             <label class="radio-inline">
@@ -62,12 +59,12 @@
                               Other
                             </label>
                           </div>
-                        {{/if}}
-                        <div class="form-group text-center continue-btn-wrapper">
-                          <button class="boxoffice-button boxoffice-button-action" on-click="assign(event, event.keypath)">Continue</button>
-                        </div>
-                      </form>
-                    </div>
+                          <div class="form-group text-center continue-btn-wrapper">
+                            <button class="boxoffice-button boxoffice-button-action" on-click="assign(event, event.keypath)">Continue</button>
+                          </div>
+                        </form>
+                      </div>
+                    {{/if}}
                   </div>
                 {{else}}
                   <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
@@ -98,15 +95,14 @@
                               <span class="bar"></span>
                               <label class="group-label">{{label}}</label>
                             </div>
-                          {{elseif field_type === 'radio'}}
-                            <div class="group radio-group">  
+                          {{elseif field_type === 'select'}}
+                            <div class="group">
                               <p class="field-title filled">{{label}}</p>
-                              {{#options: option}}
-                                <label class="radio-inline">
-                                  <input type="radio" value="{{option}}" checked>
-                                  {{option}}
-                                </label>
-                              {{/options}}
+                              <select name="{{field}}">
+                                {{#options: option}}
+                                  <option value="{{options[option]}}">{{options[option]}} {{#if assignee.details[field] === options[option]}}selected{{/if}}</option>
+                                {{/options}}
+                              </select>
                             </div>
                           {{elseif field_type === 'textbox'}}
                             <div class="form-group">
@@ -114,7 +110,8 @@
                               <textarea class="form-control" name="{{field}}" value="{{assignee.details[field]}}"></textarea>
                             </div>
                           {{/if}}
-                        {{/assignee_details}}
+                        {{/}}
+
 
                         <div class="assign-btn-wrapper">
                           <button type="button" class="boxoffice-button boxoffice-button-info" on-click="viewTicket(event, event.keypath, seq)">Back</button>
