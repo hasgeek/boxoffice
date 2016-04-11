@@ -32,7 +32,7 @@ class Assignee(BaseMixin, db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     user = db.relationship('User', backref=db.backref('assignees', cascade='all, delete-orphan'))
 
-    line_item_id = db.Column(db.Integer, db.ForeignKey('line_item.id'), nullable=False)
+    line_item_id = db.Column(None, db.ForeignKey('line_item.id'), nullable=False)
     line_item = db.relationship('LineItem', backref=db.backref('line_item', cascade='all, delete-orphan'))
 
     fullname = db.Column(db.Unicode(80), nullable=False)
