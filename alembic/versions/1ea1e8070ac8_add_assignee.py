@@ -33,9 +33,11 @@ def upgrade():
     op.add_column(u'line_item', sa.Column('assignee_id', sa.Integer(), nullable=True))
     op.add_column(u'item', sa.Column('assignee_details', JsonDict(), server_default='{}', nullable=True))
     op.create_foreign_key('line_item_assignee_id_fkey', 'line_item', 'assignee', ['assignee_id'], ['id'])
+    op.create_index(op.f('ix_assignee_email'), 'assignee', ['email'], unique=True)
 
 
 def downgrade():
     op.drop_constraint('line_item_assignee_id_fkey', 'line_item', type_='foreignkey')
     op.drop_column(u'line_item', 'assignee_id')
+    op.drop_column(u'item', 'assignee_details')
     op.drop_table('assignee')
