@@ -83,15 +83,12 @@ window.Boxoffice.Order = {
         assign: function(event, line_item) {
           event.original.preventDefault();
 
-          var assignee = order.ractive.get(line_item +'.assignee');
+          var assignment = order.ractive.get(line_item +'.assignment');
 
-          if(assignee === 'self') {
-            order.ractive.set(line_item + '.fullname', order.ractive.get('buyer_name'));
-            order.ractive.set(line_item + '.email', order.ractive.get('buyer_email'));
-            order.ractive.set(line_item + '.phone', order.ractive.get('buyer_phone'));
-          }
-          else {
-            order.ractive.set(line_item + '.phone', '+91');
+          if(assignment === 'self') {
+            order.ractive.set(line_item + '.assignee.fullname', order.ractive.get('buyer_name'));
+            order.ractive.set(line_item + '.assignee.email', order.ractive.get('buyer_email'));
+            order.ractive.set(line_item + '.assignee.phone', order.ractive.get('buyer_phone'));
           }
           order.ractive.set(line_item + '.toAssign', true);
         },
@@ -148,6 +145,7 @@ window.Boxoffice.Order = {
               attendeeDetails[formElements[formIndex].name] = formElements[formIndex].value;
             }
           }
+          attendeeDetails['email'] = order.ractive.get(line_item + '.assignee.email');
           console.log("Sending participant details to server:", attendeeDetails, line_item_id);
           url = Boxoffice.Order.config.assign.urlFor(order.ractive.get('order_id'));
           console.log('url',url);

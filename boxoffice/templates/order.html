@@ -30,7 +30,7 @@
                   <p>{{ title }}</p>
                 </div>
                 <div class="ticket-edit">
-                  {{#if isTicketAssigned}}
+                  {{#if assignee.id || isTicketAssigned}}
                     <span><i class="fa fa-user"></i><i class="fa fa-check"></i></span>
                     <span class="edit-btn" on-click="assign(event, event.keypath)"><i class="fa fa-edit"></i></span>
                   {{else}}
@@ -43,24 +43,22 @@
                   <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
                     <div class="item-description">{{{ description }}}</div>
                     <p class="price center">&#8377;{{ final_amount }}</p>
-                    {{#if isTicketAssigned}}
-                      <p class="confirmation-msg"><i class="fa fa-check"></i> This ticket has been assigned to {{.fullname}}</p>
+                    {{#if assignee.id || isTicketAssigned}}
+                      <p class="confirmation-msg"><i class="fa fa-check"></i> This ticket has been assigned to {{assignee.fullname}}</p>
                     {{/if}}
                     <div class="assign-form-wrapper">
-                      {{#if !isTicketAssigned}}
-                        <p class="assign-form-title">Assign this ticket</p>
-                      {{else}}
-                        <p class="assign-form-title">Update attendee details</p>
-                      {{/if}}
-                      <form class="form-horizontal assignee-form" role="form" name="assignee-form">       
-                        {{#if !isTicketAssigned}}                
+                      <form class="form-horizontal assignee-form" role="form" name="assignee-form">  
+                        {{#if assignee.id || isTicketAssigned}}
+                          <p class="assign-form-title">Update attendee details</p>
+                        {{else}}
+                          <p class="assign-form-title">Assign this ticket</p>             
                           <div class="form-group">
                             <label class="radio-inline">
-                              <input type="radio" name="{{.assignee}}" value="self" checked>
+                              <input type="radio" name="{{.assignment}}" value="self" checked>
                               Self
                             </label>
                             <label class="radio-inline">
-                              <input type="radio" name="{{.assignee}}" value="other">
+                              <input type="radio" name="{{.assignment}}" value="other">
                               Other
                             </label>
                           </div>
@@ -75,76 +73,55 @@
                   <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
                     <h4 class="text-center attendee-form-title">Please fill the attendee details</h4>   
                     <form class="attendee-form" role="form" name="attendee-form-{{seq}}" id="attendee-details-{{seq}}"> 
-                        <div class="group">      
-                          <input class="group-input {{#filled}}filled{{/}}" type="text" name="fullname" required value="{{.fullname}}" on-blur="inputFieldEdit(event, event.keypath)">
+                        <div class="group">   
+                          <input class="group-input {{#filled || assignee.fullname}}filled disabled{{/}}" type="text" name="fullname" required value="{{assignee.fullname}}" on-blur="inputFieldEdit(event, event.keypath)">
                           <span class="bar"></span>
                           <label class="group-label">Fullname</label>
                         </div>
                           
-                        <div class="group">      
-                          <input class="group-input {{#filled}}filled{{/}}" type="text" name="email" required value="{{.email}}" on-blur="inputFieldEdit(event, event.keypath)">
+                        <div class="group">  
+                          <input class="group-input {{#filled || assignee.email}}filled disabled{{/}}" type="text" name="email" required value="{{assignee.email}}" on-blur="inputFieldEdit(event, event.keypath)" {{#assignee.email}}disabled{{/}}>
                           <span class="bar"></span>
                           <label class="group-label">Email</label>
                         </div>
 
                         <div class="group">      
-                          <input class="group-input {{#filled}}filled{{/}}" type="text" name="phone" required value="{{.phone}}" on-blur="inputFieldEdit(event, event.keypath)">
+                          <input class="group-input {{#filled || assignee.phone}}filled disabled{{/}}" type="text" name="phone" required value="{{assignee.phone}}" on-blur="inputFieldEdit(event, event.keypath)">
                           <span class="bar"></span>
                           <label class="group-label">Phone</label>
                         </div>
 
-                        <div class="group">      
-                          <input class="group-input {{#filled}}filled{{/}}" type="text" name="company" value="{{.company}}" on-blur="inputFieldEdit(event, event.keypath)">
-                          <span class="bar"></span>
-                          <label class="group-label">Company</label>
-                        </div>
-
-                        <div class="group">      
-                          <input class="group-input {{#filled}}filled{{/}}" type="text" name="twitter" value="{{.twitter}}" on-blur="inputFieldEdit(event, event.keypath)">
-                          <span class="bar"></span>
-                          <label class="group-label">Twitter</label>
-                        </div>
-
-                        <div class="group">      
-                          <input class="group-input {{#filled}}filled{{/}}" type="text" name="designation" value="{{.designation}}" on-blur="inputFieldEdit(event, event.keypath)">
-                          <span class="bar"></span>
-                          <label class="group-label">Job designation</label>
-                        </div>
-
-                        <div class="group">      
-                          <input class="group-input {{#filled}}filled{{/}}" type="text" name="city" value="{{.city}}" on-blur="inputFieldEdit(event, event.keypath)">
-                          <span class="bar"></span>
-                          <label class="group-label">City, State</label>
-                        </div>
-
-                        <div class="group">
-                          <p class="field-title filled">Food preference</p>
-                          <label class="radio-inline">
-                            <input type="radio" name="{{.foodchoice}}" value="veg" checked>
-                            Veg
-                          </label>
-                          <label class="radio-inline">
-                            <input type="radio" name="{{.foodchoice}}" value="non-veg">
-                            Non-Veg
-                          </label>
-                          <label>
-                        </div>
-
-                        <div class="form-group">
-                          <label class="field-title">How did you hear about {{eventName}}?</label>
-                          <textarea class="form-control" value="{{.source}}" name="source"></textarea>
-                        </div>
-
-                        <div class="form-group">
-                          <label class="field-title">Comments</label>
-                          <textarea class="form-control" value="{{.comments}}" name="comments"></textarea>
-                        </div>
+                        {{#assignee_details: field}}
+                          {{#if field_type === 'string'}}
+                            <div class="group">  
+                              <input class="group-input {{#filled || assignee.details[field]}}filled{{/}}" type="text" name="{{field}}" value="{{assignee.details[field]}}" on-blur="inputFieldEdit(event, event.keypath)">
+                              <span class="bar"></span>
+                              <label class="group-label">{{label}}</label>
+                            </div>
+                          {{elseif field_type === 'radio'}}
+                            <div class="group radio-group">  
+                              <p class="field-title filled">{{label}}</p>
+                              {{#options:option}}
+                                <label class="radio-inline">
+                                  <input type="radio" name="{{field}}" value="{{options[option]}}" checked>
+                                  {{options[option]}}
+                                </label>
+                              {{/options}}
+                            </div>
+                          {{elseif field_type === 'textbox'}}
+                            <div class="form-group">
+                              <label class="field-title">{{label}}</label>
+                              <textarea class="form-control" name="{{field}}" value="{{assignee.details[field]}}"></textarea>
+                            </div>
+                          {{/if}}
+                        {{/assignee_details}}
 
                         <div class="assign-btn-wrapper">
-                          {{#if isTicketAssigned}}
-                            <button type="button" class="boxoffice-button boxoffice-button-info" on-click="viewTicket(event, event.keypath, seq)">Back</button>
-                          {{/if}}
-                          <button type="submit" class="boxoffice-button boxoffice-button-action" on-click="addAttendeDetails(event, event.keypath, seq, id)">Assign ticket {{#assigningTicket}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'>{{/}}</button>
+                          <button type="button" class="boxoffice-button boxoffice-button-info" on-click="viewTicket(event, event.keypath, seq)">Back</button>
+                          <button type="submit" class="boxoffice-button boxoffice-button-action" on-click="addAttendeDetails(event, event.keypath, seq, id)">
+                              {{#assignee.id}}Update{{else}}Assign ticket{{/assignee.id}} 
+                              {{#assigningTicket}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'>{{/}}
+                          </button>
                         </div>
                       {{#errorMsg}}
                           <p class="error-msg">{{ errorMsg }}</p>

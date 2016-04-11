@@ -37,6 +37,17 @@ def jsonify_line_items(line_items):
     return items_json
 
 
+def jsonify_assignee(assignee_id, assignee):
+    if assignee:
+        return {
+            'id': assignee_id,
+            'fullname': assignee.fullname,
+            'email': assignee.email,
+            'phone': assignee.phone,
+            'details': assignee.details
+        }
+
+
 def jsonify_order(data):
     order = data['order']
     line_items = []
@@ -49,7 +60,8 @@ def jsonify_order(data):
             'category_seq': line_item.item.category.seq,
             'description': line_item.item.description.text,
             'final_amount': line_item.final_amount,
-            'assignee_details': line_item.item.assignee_details
+            'assignee_details': line_item.item.assignee_details,
+            'assignee': jsonify_assignee(line_item.assignee_id, line_item.assignee)
         }
         line_items.append(item)
     line_items.sort(key=lambda category_seq: category_seq)

@@ -147,6 +147,12 @@
   position: relative; 
   margin-bottom: 45px; 
 }
+.radio-group {
+  margin-bottom: 25px; 
+}
+.attendee-form .control-group, .form-group {
+  margin-bottom: 45px;
+}
 
 .attendee-form .group-input {
   font-size: 18px;
@@ -172,6 +178,12 @@
   transition: 0.2s ease all; 
   -moz-transition: 0.2s ease all; 
   -webkit-transition: 0.2s ease all;
+}
+
+.attendee-form .group-input.disabled {
+  position: relative;
+  background-color: transparent;
+  color: #ccc;
 }
 
 .attendee-form .group-input:focus ~ .group-label, 
