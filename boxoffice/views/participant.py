@@ -31,12 +31,12 @@ def assign(order):
             assignee_details[key] = assignee_dict.get(key)
         print('assignee_details', assignee_details)
         assignee = Assignee(email=assignee_dict.get('email'), fullname=assignee_dict.get('fullname'),
-            phone=assignee_dict.get('phone'), details=assignee_details[unicode(line_item.item_id)])
+            phone=assignee_dict.get('phone'), details=assignee_details)
         db.session.add(assignee)
     else:
         item_assignee_details = line_item.item.assignee_details
         for key in item_assignee_details.keys():
-            assignee.details[unicode(line_item.item_id)][key] = assignee_dict.get(key)
+            assignee.details[key] = assignee_dict.get(key)
     line_item.assignee = assignee
     db.session.add(line_item)
     db.session.commit()

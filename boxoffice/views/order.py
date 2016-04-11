@@ -6,7 +6,7 @@ from redis import Redis
 from coaster.views import render_with, load_models
 from .. import app
 from ..models import db
-from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy
+from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy, LINE_ITEM_STATUS
 from ..models import Order, OnlinePayment, PaymentTransaction, User, CURRENCY
 from ..extapi import razorpay
 from ..forms import LineItemForm, BuyerForm
@@ -243,6 +243,7 @@ def payment(order):
     (Order, {'access_token': 'access_token'}, 'order')
     )
 def receipt(order):
+    line_items = LineItem.query.filter(LineItem.order == order, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).order_by("line_item_seq asc").all()
     return render_template('cash_receipt.html', order=order, org=order.organization)
 
 
