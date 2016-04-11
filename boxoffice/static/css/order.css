@@ -110,6 +110,7 @@
   box-shadow: 0 0 2px rgba(0,0,0,0.6);
   border-radius: 0 0 5px 5px;
   padding: 20px;
+  background-color: #fff;
 }
 
 .assign-form-wrapper {
@@ -146,6 +147,12 @@
   position: relative; 
   margin-bottom: 45px; 
 }
+.radio-group {
+  margin-bottom: 25px; 
+}
+.attendee-form .control-group, .form-group {
+  margin-bottom: 45px;
+}
 
 .attendee-form .group-input {
   font-size: 18px;
@@ -173,8 +180,14 @@
   -webkit-transition: 0.2s ease all;
 }
 
+.attendee-form .group-input.disabled {
+  position: relative;
+  background-color: transparent;
+  color: #ccc;
+}
+
 .attendee-form .group-input:focus ~ .group-label, 
-.attendee-form .group-input:valid ~ .group-label {
+.attendee-form .group-input.filled ~ .group-label {
   top: -20px;
   font-size: 14px;
   color: #800080;
@@ -214,6 +227,10 @@
   font-size: 16px;
   margin: 0 0 5px;
   font-weight: normal;
+}
+
+.field-title.filled {
+  color: #800080;
 }
 
 .assign-btn-wrapper {

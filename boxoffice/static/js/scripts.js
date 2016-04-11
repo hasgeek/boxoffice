@@ -1,17 +1,32 @@
-console.log("Participant");
 window.Boxoffice = {};
 
-window.Boxoffice.Body = {
+window.Boxoffice.Order = {
+  config: {
+    baseURL: window.location.origin,
+    order: {
+      method: 'GET',
+      urlFor: function() {
+        return window.location.href;
+      }
+    },
+    assign: {
+      method: 'POST',
+      urlFor: function(order_id) {
+        return Boxoffice.Order.config.baseURL + '/participant/' + order_id + '/assign';
+      }
+    }
+  },
   init: function() {
     $.ajax({
-      url: window.location.href,
+      url: Boxoffice.Order.config.order.urlFor(),
+      type: Boxoffice.Order.config.order.method,
       timeout: 5000,
       retries: 5,
       dataType: 'json',
       retryInterval: 5000,
       success: function(data) {
-        console.log("data", data);
-        window.Boxoffice.Order.init(data);
+        console.log("Order details:", data);
+        window.Boxoffice.Order.view(data);
       },
       error: function(response) {
         var ajaxLoad = this;
@@ -32,50 +47,52 @@ window.Boxoffice.Body = {
         }
       }
     });
-  }
-};
-
-window.Boxoffice.Order = {
-  init: function(data) {
+  },
+  view: function(data) {
     var order = this;
     order.ractive = new Ractive({
         el: '#boxoffice-order',
         template: '#boxoffice-ticket-template',
         data: {
           order_id: data.order_id,
+          access_token: data.access_token,
           eventName: data.item_collection_name,
           line_items: data.line_items,
           buyer_name: data.buyer_name,
           buyer_email: data.buyer_email,
           buyer_phone: data.buyer_phone
         },
-        scrollTop: function(line_item_id){
+        scrollTop: function(line_item_seq){
           //Scroll to the corresponding line_item.
-          var domElem =  order.ractive.nodes[ 'item-' + line_item_id ];
+          var domElem =  order.ractive.nodes[ 'item-' + line_item_seq ];
           $('html,body').animate({ scrollTop: $(domElem).offset().top }, '300');
         },
-        view: function(event, line_item, line_item_id) {
+        viewTicket: function(event, line_item, line_item_seq) {
           event.original.preventDefault();
           order.ractive.set(line_item + '.toAssign', false);
-          order.ractive.scrollTop(line_item_id);
+          order.ractive.scrollTop(line_item_seq);
         },
-        assign: function(event) {
-          event.original.preventDefault();
-
-          var line_item = event.keypath;
-          var assignee = order.ractive.get(line_item +'.assignee');
-
-          if(assignee === 'self') {
-            order.ractive.set(line_item + '.name', order.ractive.get('buyer_name'));
-            order.ractive.set(line_item + '.email', order.ractive.get('buyer_email'));
-            order.ractive.set(line_item + '.phone', order.ractive.get('buyer_phone'));
+        inputFieldEdit: function(event, line_item) {
+          if(event.node.value) {
+            event.node.classList.add('filled');
           }
           else {
-            order.ractive.set(line_item + '.phone', '+91');
+            event.node.classList.remove('filled');
+          }
+        },
+        assign: function(event, line_item) {
+          event.original.preventDefault();
+
+          var assignment = order.ractive.get(line_item +'.assignment');
+
+          if(assignment === 'self') {
+            order.ractive.set(line_item + '.assignee.fullname', order.ractive.get('buyer_name'));
+            order.ractive.set(line_item + '.assignee.email', order.ractive.get('buyer_email'));
+            order.ractive.set(line_item + '.assignee.phone', order.ractive.get('buyer_phone'));
           }
           order.ractive.set(line_item + '.toAssign', true);
         },
-        addAttendeDetails: function(event, line_item, line_item_id) {
+        addAttendeDetails: function(event, line_item, line_item_seq, line_item_id) {
 
           var validationConfig = [{
               name: 'name',
@@ -91,18 +108,17 @@ window.Boxoffice.Order = {
             }
           ];
 
-          var attendeeForm = 'attendee-form-' + line_item_id;
+          var attendeeForm = 'attendee-form-' + line_item_seq;
 
           var formValidator = new FormValidator(attendeeForm, validationConfig, function(errors, event) {
             event.preventDefault();
             if (errors.length > 0) {
-              console.log("errors", errors[0].message);
+              console.log("Form validation errors", errors[0].message);
               order.ractive.set(line_item + '.errorMsg', errors[0].message);
             } else {
-              console.log("no errors");
               order.ractive.set(line_item + '.errorMsg', '');
               order.ractive.set(line_item + '.assigningTicket', true);
-              order.ractive.sendAttendeDetails(line_item, line_item_id);
+              order.ractive.sendAttendeDetails(line_item, line_item_seq, line_item_id);
             }
           });
 
@@ -120,19 +136,26 @@ window.Boxoffice.Order = {
             }
           });
         },
-        sendAttendeDetails: function(line_item, line_item_id) {
-          console.log('assignTicket - send to server');
-          var attendeeForm = 'attendee-details-' + line_item_id
+        sendAttendeDetails: function(line_item, line_item_seq, line_item_id) {
+          var attendeeForm = 'attendee-details-' + line_item_seq
           var formElements = $('#'+ attendeeForm).serializeArray();
           var attendeeDetails ={};
           for (var formIndex=0; formIndex < formElements.length; formIndex++) {
-            attendeeDetails[formElements[formIndex].name] = formElements[formIndex].value;
+            if(formElements[formIndex].value) {
+              attendeeDetails[formElements[formIndex].name] = formElements[formIndex].value;
+            }
           }
-          $.post({
-            url: '/participant/' + order.ractive.get('order_id') + '/assign',
-            dataType: 'json',
+          attendeeDetails['email'] = order.ractive.get(line_item + '.assignee.email');
+          console.log("Sending participant details to server:", attendeeDetails, line_item_id);
+          url = Boxoffice.Order.config.assign.urlFor(order.ractive.get('order_id'));
+          console.log('url',url);
+          $.ajax({
+            url: Boxoffice.Order.config.assign.urlFor(order.ractive.get('order_id')),
+            type: Boxoffice.Order.config.assign.method,
+            contentType: 'application/json',
             data: JSON.stringify({
-              attendee: attendeeDetails
+              attendee: attendeeDetails,
+              line_item_id: line_item_id
             }),
             timeout: 5000,
             retries: 5,
@@ -141,7 +164,7 @@ window.Boxoffice.Order = {
               order.ractive.set(line_item + '.assigningTicket', false);
               order.ractive.set(line_item + '.toAssign', false);
               order.ractive.set(line_item + '.isTicketAssigned', true);
-              order.ractive.scrollTop(line_item_id);
+              order.ractive.scrollTop(line_item_seq);
             },
             error: function(response) {
               var ajaxLoad = this;
@@ -161,16 +184,6 @@ window.Boxoffice.Order = {
               }
             }
           });
-        },
-        complete: function() {
-          $('#boxoffice-order').on('blur', 'input', function() {
-            // check if the input has any value (if we've typed into it)
-            console.log("blur");
-            if ($(this).val())
-              $(this).addClass('used');
-            else
-              $(this).removeClass('used');
-          });
         }
     });
   }
@@ -179,6 +192,6 @@ window.Boxoffice.Order = {
 $(function() {
   Ractive.DEBUG = false;
 
-  window.Boxoffice.Body.init();
+  window.Boxoffice.Order.init();
 
 });
