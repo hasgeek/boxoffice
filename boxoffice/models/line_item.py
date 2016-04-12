@@ -44,10 +44,6 @@ class Assignee(BaseMixin, db.Model):
     details = db.Column(JsonDict, nullable=False, default={})
     current = db.Column(db.Boolean, default=False, nullable=True)
 
-    # # Track the assignee from whom the line_item was transferred from
-    # previous_id = db.Column(None, db.ForeignKey('assignee.id'), nullable=True)
-    # previous = db.relationship('Assignee', uselist=False)
-
 
 class LineItem(BaseMixin, db.Model):
     """
