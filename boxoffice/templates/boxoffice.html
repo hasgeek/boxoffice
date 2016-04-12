@@ -27,6 +27,9 @@
                     <div class="ticket-details">
                       <p class="ticket-title text-primary">{{ line_item.item_title }}</p>
                       <div class="ticket-description">{{{ line_item.item_description }}}</div>
+                      <div class="ticket-description">
+                        <p class="valid-upto">Prices go up after {{line_item.price_valid_upto}}</p>
+                      </div>
                       {{#line_item.discount_policies}}
                         {{#if is_automatic || activated}}
                           <p class="discount {{#activated}}applied{{/}}">
@@ -34,9 +37,6 @@
                           </p>
                         {{/if}}
                       {{/line_item.discount_policies}}
-                      <div class="ticket-description">
-                        <p class="valid-upto">Prices go up after {{line_item.price_valid_upto}}</p>
-                      </div>
                     </div>
                     <div class="ticket-price-qty">
                       {{#if item.quantity_available > 0 && item.quantity_available < 5}}
@@ -45,7 +45,12 @@
                         </div>
                       {{/if}}
                       {{#if item.quantity_available > 0}}
-                        <p class="ticket-price"><i class="fa fa-inr rupee-sign"></i>{{ line_item.base_price }}</p>
+                        <div class="ticket-price-wrapper">
+                          {{#if show_discountprice}}
+                            <p class="discount-price ticket-price"><i class="fa fa-inr rupee-sign"></i>{{ line_item.discount_price }}</p>
+                          {{/if}}
+                          <p class="ticket-price {{#if show_discountprice}}strike{{/if}}"><i class="fa fa-inr rupee-sign"></i>{{ line_item.base_price }}</p>
+                        </div>
                         <span class="multiplier">&times;</span>
                         <div class="ticket-qty-wrapper">
                           <button class="decrement" on-click="updateOrder(event, line_item.item_name, item.quantity_available, false)">-</button>
@@ -354,7 +359,7 @@
   }
   .discount {
     color: red;
-    font-size: 14px;
+    font-size: 15px;
   }
   .discount.applied {
     color: green;
@@ -376,13 +381,24 @@
     float: right;
     margin-top: 10px;
   }
-  .ticket-price {
+  .ticket-price-wrapper {
     float: left;
     margin-top: 2px;
+    position: relative;
+  }
+  .ticket-price {
     font-size: 18px;
   }
   .ticket-price .rupee-sign {
     font-size: 16px;
+  }
+  .discount-price {
+    position: absolute;
+    bottom: 30px;
+  }
+  .strike {
+    text-decoration: line-through;
+    color: #aaa;
   }
   @media (min-width: 768px) {
     .ticket-price-qty {
@@ -483,6 +499,11 @@
     .ticket-qty {
       top: -4px;
       width: 40px;
+    }
+  }
+  @media (min-width: 1024px) {
+    .discount-price {
+      bottom: 20px;
     }
   }
   .discount-code {
