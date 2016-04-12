@@ -6,12 +6,12 @@ import json
 from tabulate import tabulate
 from rq.decorators import job
 
-def discount_stats(item_collection):
-    stats = []
-    for policy in DiscountPolicy.query.get(item_collection):
-        line_item_count = line_item_count=LineItem.query.filter(LineItem.item_id.in_([li_item.id for li_item in policy.items]), LineItem.status==LINE_ITEM_STATUS.CONFIRMED, LineItem.discount_policy == policy).count()
-        stats.append([policy.title, line_item_count])
-    return tabulate(stats, headers=["Policy Title", "Count"])
+# def discount_stats(item_collection):
+#     stats = []
+#     for policy in DiscountPolicy.query.get(item_collection):
+#         line_item_count = line_item_count=LineItem.query.filter(LineItem.item_id.in_([li_item.id for li_item in policy.items]), LineItem.status==LINE_ITEM_STATUS.CONFIRMED, LineItem.discount_policy == policy).count()
+#         stats.append([policy.title, line_item_count])
+#     return tabulate(stats, headers=["Policy Title", "Count"])
 
 def ticket_stats(item_collection):
     started = [ORDER_STATUS.PURCHASE_ORDER]
@@ -33,8 +33,7 @@ def post_stats(id, webhook_url):
     with app.test_request_context():
         item_collection = ItemCollection.query.get(id)
         tickets = ticket_stats(item_collection)
-        discounts = discount_stats(item_collection)
-        stats = ":moneybag: " + item_collection.title + "\n```" + tickets + "\n\n" + discounts + "```"
+        stats = ":moneybag: " + item_collection.title + "\n```" + tickets + "```"
         data = {"username": "boxoffice", "text": stats}
         response = requests.post(webhook_url, data=json.dumps(data))
 
