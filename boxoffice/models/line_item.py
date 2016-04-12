@@ -99,6 +99,8 @@ class LineItem(BaseMixin, db.Model):
     def confirm(self):
         self.status = LINE_ITEM_STATUS.CONFIRMED
 
+    # TODO: assignee = db.relationship(Assignee, primaryjoin=Assignee.line_item == self and Assignee.current == True, uselist=False)
+    # Don't use current_assignee -- we want to imply that there can only be one assignee and the rest are historical (and hence not 'assignees')
     @property
     def current_assignee(self):
         return self.assignees.filter(Assignee.current == True).one_or_none()
