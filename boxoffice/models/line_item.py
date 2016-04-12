@@ -2,7 +2,7 @@ import itertools
 from decimal import Decimal
 from collections import namedtuple
 from sqlalchemy.sql import select, func
-from boxoffice.models import db, JsonDict, BaseMixin, Order, Item, ItemCollection, DiscountPolicy, DISCOUNT_TYPE, DiscountCoupon
+from boxoffice.models import db, JsonDict, BaseMixin, Order, Item, DiscountPolicy, DISCOUNT_TYPE, DiscountCoupon
 from coaster.utils import LabeledEnum
 from baseframe import __
 
@@ -42,7 +42,7 @@ class Assignee(BaseMixin, db.Model):
     #: Unvalidated phone number
     phone = db.Column(db.Unicode(16), nullable=True)
     details = db.Column(JsonDict, nullable=False, default={})
-    current = db.Column(db.Boolean, default=False, nullable=True)
+    current = db.Column(db.Boolean, nullable=True)
 
 
 class LineItem(BaseMixin, db.Model):
