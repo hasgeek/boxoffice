@@ -23,7 +23,7 @@ def ticket_stats(item_collection):
 
         sold_line_items = LineItem.query.join(Order).filter(LineItem.item == item, Order.status.in_(sold), LineItem.status==LINE_ITEM_STATUS.CONFIRMED).count()
 
-        cancelled_line_items = LineItem.query.join(Order).filter(LineItem.item == item, Order.status.in_(cancelled)).count()
+        cancelled_line_items = LineItem.query.filter(LineItem.item == item, LineItem.status==LINE_ITEM_STATUS.CANCELLED).count()
 
         stats.append([item.title, initiated_line_items, sold_line_items, cancelled_line_items])
     return tabulate(stats, headers=["Ticket", "Initiated", "Sold", "Cancelled"])
