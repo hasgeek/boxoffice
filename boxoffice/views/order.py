@@ -61,7 +61,7 @@ def jsonify_order(data):
             'description': line_item.item.description.text,
             'final_amount': line_item.final_amount,
             'assignee_details': line_item.item.assignee_details,
-            'assignee': jsonify_assignee(line_item.current_assignee())
+            'assignee': jsonify_assignee(line_item.current_assignee)
         }
         line_items.append(item)
     line_items.sort(key=lambda category_seq: category_seq)

@@ -34,7 +34,7 @@ class Assignee(BaseMixin, db.Model):
 
     line_item_id = db.Column(None, db.ForeignKey('line_item.id'), nullable=False)
     line_item = db.relationship('LineItem',
-        backref=db.backref('assignees', cascade='all, delete-orphan'))
+        backref=db.backref('assignees', cascade='all, delete-orphan', lazy='dynamic'))
 
     fullname = db.Column(db.Unicode(80), nullable=False)
     #: Unvalidated email address
@@ -103,8 +103,9 @@ class LineItem(BaseMixin, db.Model):
     def confirm(self):
         self.status = LINE_ITEM_STATUS.CONFIRMED
 
+    @property
     def current_assignee(self):
-        return Assignee.query.filter(Assignee.line_item == self, Assignee.current == True).one_or_none()
+        return self.assignees.filter(Assignee.current == True).one_or_none()
 
 
 def get_from_item(cls, item, qty, coupon_codes=[]):
