@@ -2,7 +2,7 @@ import itertools
 from decimal import Decimal
 from collections import namedtuple
 from sqlalchemy.sql import select, func
-from boxoffice.models import db, JsonDict, BaseMixin, Order, Item, ItemCollection, DiscountPolicy, DISCOUNT_TYPE, DiscountCoupon
+from boxoffice.models import db, JsonDict, BaseMixin, Order, Item, DiscountPolicy, DISCOUNT_TYPE, DiscountCoupon
 from coaster.utils import LabeledEnum
 from baseframe import __
 
@@ -26,10 +26,16 @@ def make_ntuple(item_id, base_amount, **kwargs):
 
 class Assignee(BaseMixin, db.Model):
     __tablename__ = 'assignee'
+    __table_args__ = (db.UniqueConstraint('line_item_id', 'current'),
+        db.CheckConstraint("current != '0'", 'assignee_current_check'))
 
     # lastuser id
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     user = db.relationship('User', backref=db.backref('assignees', cascade='all, delete-orphan'))
+
+    line_item_id = db.Column(None, db.ForeignKey('line_item.id'), nullable=False)
+    line_item = db.relationship('LineItem',
+        backref=db.backref('assignees', cascade='all, delete-orphan', lazy='dynamic'))
 
     fullname = db.Column(db.Unicode(80), nullable=False)
     #: Unvalidated email address
@@ -37,10 +43,7 @@ class Assignee(BaseMixin, db.Model):
     #: Unvalidated phone number
     phone = db.Column(db.Unicode(16), nullable=True)
     details = db.Column(JsonDict, nullable=False, default={})
-
-    # Track the assignee from whom the line_item was transferred from
-    previous_id = db.Column(None, db.ForeignKey('assignee.id'), nullable=True)
-    previous = db.relationship('Assignee', uselist=False)
+    current = db.Column(db.Boolean, nullable=True)
 
 
 class LineItem(BaseMixin, db.Model):
@@ -65,9 +68,6 @@ class LineItem(BaseMixin, db.Model):
 
     discount_coupon_id = db.Column(None, db.ForeignKey('discount_coupon.id'), nullable=True, index=True, unique=False)
     discount_coupon = db.relationship('DiscountCoupon', backref=db.backref('line_items'))
-
-    assignee_id = db.Column(None, db.ForeignKey('assignee.id'), nullable=True, index=True, unique=False)
-    assignee = db.relationship('Assignee', backref=db.backref('line_items'))
 
     base_amount = db.Column(db.Numeric, default=Decimal(0), nullable=False)
     discounted_amount = db.Column(db.Numeric, default=Decimal(0), nullable=False)
@@ -99,6 +99,12 @@ class LineItem(BaseMixin, db.Model):
 
     def confirm(self):
         self.status = LINE_ITEM_STATUS.CONFIRMED
+
+    # TODO: assignee = db.relationship(Assignee, primaryjoin=Assignee.line_item == self and Assignee.current == True, uselist=False)
+    # Don't use current_assignee -- we want to imply that there can only be one assignee and the rest are historical (and hence not 'assignees')
+    @property
+    def current_assignee(self):
+        return self.assignees.filter(Assignee.current == True).one_or_none()
 
 
 def get_from_item(cls, item, qty, coupon_codes=[]):
