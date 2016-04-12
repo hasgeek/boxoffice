@@ -17,7 +17,7 @@ import sqlalchemy_utils
 
 def upgrade():
     op.add_column('assignee', sa.Column('current', sa.Boolean(), nullable=True))
-    op.create_check_constraint('assignee_true_or_none_check', 'assignee', u"current != 'f'")
+    op.create_check_constraint('assignee_current_check', 'assignee', u"current != 'f'")
     op.add_column('assignee', sa.Column('line_item_id', sqlalchemy_utils.types.uuid.UUIDType(binary=False), nullable=False))
     op.drop_index('assignee_email_key', table_name='assignee')
     op.create_unique_constraint('assignee_line_item_current_key', 'assignee', ['line_item_id', 'current'])
@@ -37,5 +37,5 @@ def downgrade():
     op.drop_constraint('assignee_line_item_current_key', 'assignee', type_='unique')
     op.create_index('assignee_email_key', 'assignee', ['email'], unique=False)
     op.drop_column('assignee', 'line_item_id')
-    op.drop_constraint('assignee_true_or_none_check', 'assignee')
+    op.drop_constraint('assignee_current_check', 'assignee')
     op.drop_column('assignee', 'current')

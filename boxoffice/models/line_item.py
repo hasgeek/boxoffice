@@ -27,7 +27,7 @@ def make_ntuple(item_id, base_amount, **kwargs):
 class Assignee(BaseMixin, db.Model):
     __tablename__ = 'assignee'
     __table_args__ = (db.UniqueConstraint('line_item_id', 'current'),
-        db.CheckConstraint("current != 'f'", 'assignee_true_or_none_check'))
+        db.CheckConstraint("current != 'f'", 'assignee_current_check'))
 
     # lastuser id
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
