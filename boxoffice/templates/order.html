@@ -119,7 +119,7 @@
                         <div class="assign-btn-wrapper">
                           <button type="button" class="boxoffice-button boxoffice-button-info" on-click="viewTicket(event, event.keypath, seq)">Back</button>
                           <button type="submit" class="boxoffice-button boxoffice-button-action" on-click="addAttendeDetails(event, event.keypath, seq, id)">
-                              {{#assignee.id}}Update{{else}}Assign ticket{{/assignee.id}} 
+                              {{#if assignee.id || isTicketAssigned}}Update{{else}}Assign ticket{{/if}}
                               {{#assigningTicket}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'>{{/}}
                           </button>
                         </div>
