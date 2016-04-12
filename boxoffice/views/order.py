@@ -52,7 +52,8 @@ def jsonify_assignee(assignee):
 def jsonify_order(data):
     order = data['order']
     line_items = []
-    for line_item in order.line_items:
+    all_line_items = LineItem.query.filter(LineItem.order == order, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).all()
+    for line_item in all_line_items:
         item = {
             'seq': line_item.line_item_seq,
             'id': line_item.id,
