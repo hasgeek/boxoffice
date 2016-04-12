@@ -121,7 +121,7 @@ window.Boxoffice.Order = {
           });
         },
         sendAttendeDetails: function(line_item, line_item_seq, line_item_id) {
-          var attendeeForm = 'attendee-details-' + line_item_seq
+          var attendeeForm = 'attendee-details-' + line_item_seq;
           var formElements = $('#'+ attendeeForm).serializeArray();
           var attendeeDetails ={};
           for (var formIndex=0; formIndex < formElements.length; formIndex++) {
@@ -155,7 +155,7 @@ window.Boxoffice.Order = {
                 order.ractive.set(line_item + '.assigningTicket', false);
               } else if (response.readyState === 0) {
                 if(ajaxLoad.retries < 0) {
-                  order.ractive.set(line_item + '.errorMsg', "Unable to connect. Please try again later.")
+                  order.ractive.set(line_item + '.errorMsg', "Unable to connect. Please try again later.");
                   order.ractive.set(line_item + '.assigningTicket', false);
                 } else {
                   setTimeout(function() {
