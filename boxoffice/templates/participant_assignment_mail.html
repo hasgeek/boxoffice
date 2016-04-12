@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset='UTF-8'>  
+  <title>Receipt</title>  
+  <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400italic,600italic,400,600" />
+  <style type="text/css">
+    * { 
+      margin: 0; 
+      padding: 0; 
+    }
+
+    body {
+      font-family: "Source Sans Pro",Arial,sans-serif;
+      font-size: 16px;
+      line-height: 1.2;
+      color: #333;
+      background-color: #fff
+    }
+
+    a {
+      text-decoration: none;
+    }
+
+    p { 
+      margin: 5px 0 5px;
+    }
+
+    .wrapper { 
+      max-width: 800px; 
+      margin: 20px auto; 
+    }
+
+    .header { 
+      font-size: 35px; 
+      text-align: center; 
+      margin-bottom: 30px; 
+      padding-bottom: 10px; 
+      border-bottom: 1px solid #000;
+    }
+
+    .company-details { 
+      margin-bottom: 40px; 
+    }
+
+    .logo { 
+      float: left;
+      max-width: 150px; 
+    }
+
+    .logo img {
+      width: 100%;
+    }
+
+    .address { 
+      float: right; 
+    }
+
+    .company-name {
+      font-size: 20px;
+      margin: 0 0 10px;
+    }
+
+    .customer {
+      padding-top: 20px;
+      clear: both;
+    }
+
+    table { 
+      border-collapse: collapse; 
+    }
+
+    table td, table th { 
+      border: 1px solid #000; 
+      padding: 5px; 
+    }
+
+    .center { 
+      text-align: center;
+    }
+
+    .cutomer-details {
+      display: inline-block;
+    }
+
+    .details { 
+      float: right; 
+    }
+
+    .items {
+      width: 100%;
+      margin-top: 20px;
+      clear: both;
+    }
+
+    .item-description {
+      max-width: 200px;
+    }
+
+    .gray { 
+      background-color: #eee; 
+    }
+
+    .total, .total-amount {
+      font-weight: 600;
+    }
+
+    .terms {
+      margin-top: 20px;
+    }
+
+    .terms-heading {
+      font-size: 15px;
+      font-weight: 600;
+      margin: 0 0 5px;
+    }
+
+    .terms-content {
+      font-size: 13px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrapper">
+    <h1 class="header">Cash Receipt</h1>
+    
+    <div class="company-details">  
+      <div class="logo">
+       <img src="https://hasgeek.com/static/img/hg-banner.png"/>
+      </div> 
+
+      <div class="address">
+        {{org.details.get('address') | safe}}
+        <p>CIN: {{org.details.get('cin')}}</p>
+        <p>PAN No: {{org.details.get('pan')}}</p>
+        <p>Service Tax No: {{org.details.get('service_tax_no')}}</p>
+        <p><a href="{{org.details.get('website')}}">{{org.details.get('website')}}</a></p>
+        <p><a href="mailto:{{org.contact_email}}">{{org.contact_email}}</a></p>
+      </div>    
+    </div>
+    
+    <div class="customer">
+
+    {{order.buyer_name}},
+
+    Thank you for choosing to attend Rootconf! We are preparing to print your badges. Please fill in your details as soon as possible.
+
+    <a href="/participant/{access_token}.assign".format(access_token=order.access_token) target='_blank'>Fill details</a>
+    
+    <div class="terms">
+      <h5 class="terms-heading">Terms &amp; Conditions</h5>
+      <p class="terms-content">For terms of service and refund policy, please visit <a href="https://hasgeek.com/about/policy/">https://hasgeek.com/about/policy</a></p>
+      <p class="terms-content">For further queries, please write to <a href="mailto:support@hasgeek.com">support@hasgeek.com</a></p>
+    </div>
+  
+  </div>
+</body>
+
+</html>
