@@ -103,7 +103,7 @@ window.Boxoffice.Order = {
             },
             {
               name: 'phone',
-              rules: 'required|max_length[16]|callback_validate_phone'
+              rules: 'required|max_length[16]'
             }
           ];
 
@@ -117,20 +117,6 @@ window.Boxoffice.Order = {
               order.ractive.set(line_item + '.errorMsg', '');
               order.ractive.set(line_item + '.assigningTicket', true);
               order.ractive.sendAttendeDetails(line_item, line_item_seq, line_item_id);
-            }
-          });
-
-          formValidator.registerCallback('validate_phone', function(phone) {
-            var validPhone = /^\+[0-9]+$/;
-            if (phone.match(validPhone)) {
-              //Indian number starting with '+91'
-              if (phone.indexOf('+91') === 0 && phone.length != 13) {
-                formValidator.setMessage('validate_phone', 'This does not appear to be a valid Indian mobile number');
-                return false;
-              }
-            } else {
-              formValidator.setMessage('validate_phone', 'Phone number must be in international format with a leading + symbol');
-              return false;
             }
           });
         },
