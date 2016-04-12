@@ -12,12 +12,14 @@ def tabulate_stats(item_collection):
     cancelled = [ORDER_STATUS.CANCELLED]
     results = []
     for item in item_collection.items:
-        print item
         initiated_line_items = LineItem.query.join(Order).filter(LineItem.item == item, Order.status.in_(started)).count()
+
         sold_line_items = LineItem.query.join(Order).filter(LineItem.item == item, Order.status.in_(sold)).count()
+
         cancelled_line_items = LineItem.query.join(Order).filter(LineItem.item == item, Order.status.in_(cancelled)).count()
-        results.append([initiated_line_items, sold_line_items, cancelled_line_items])
-    return tabulate(results, headers=["Event", "Initiated", "Sold", "Cancelled"])
+
+        results.append([item.title, initiated_line_items, sold_line_items, cancelled_line_items])
+    return tabulate(results, headers=["Ticket", "Initiated", "Sold", "Cancelled"])
 
 
 @job('boxoffice')
@@ -25,7 +27,7 @@ def post_stats(id, webhook_url):
     with app.test_request_context():
         item_collection = ItemCollection.query.get(id)
         table = tabulate_stats(item_collection)
-        stats = ":moneybag: " + "```" + table + "```"
+        stats = ":moneybag: " + item_collection.title + "\n```" + table + "```"
         data = {"username": "boxoffice", "text": stats}
         response = requests.post(webhook_url, data=json.dumps(data))
 
