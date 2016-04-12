@@ -180,7 +180,7 @@
   -webkit-transition: 0.2s ease all;
 }
 
-.attendee-form .group-input.disabled {
+.attendee-form .group-input:disabled {
   position: relative;
   background-color: transparent;
   color: #ccc;

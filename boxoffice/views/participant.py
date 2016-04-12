@@ -24,8 +24,12 @@ def assign(order):
     assignee_details = {}
     for key in item_assignee_details.keys():
         assignee_details[key] = assignee_dict.get(key)
-    assignee = Assignee(current=True, email=assignee_dict.get('email'), fullname=assignee_dict.get('fullname'),
+    if assignee_dict['email'] == line_item.current_assignee.email:
+        line_item.current_assignee.details = assignee_details
+        db.session.add(line_item.current_assignee)
+    else:
+        assignee = Assignee(current=True, email=assignee_dict.get('email'), fullname=assignee_dict.get('fullname'),
         phone=assignee_dict.get('phone'), details=assignee_details, line_item=line_item)
-    db.session.add(assignee)
+        db.session.add(assignee)
     db.session.commit()
     return make_response(jsonify(message="Ticket assigned"), 201)
