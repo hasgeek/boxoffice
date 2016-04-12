@@ -11,8 +11,8 @@ window.Boxoffice.Order = {
     },
     assign: {
       method: 'POST',
-      urlFor: function(order_id) {
-        return Boxoffice.Order.config.baseURL + '/participant/' + order_id + '/assign';
+      urlFor: function(access_token) {
+        return Boxoffice.Order.config.baseURL + '/participant/' + access_token + '/assign';
       }
     }
   },
@@ -147,10 +147,10 @@ window.Boxoffice.Order = {
           }
           attendeeDetails['email'] = order.ractive.get(line_item + '.assignee.email');
           console.log("Sending participant details to server:", attendeeDetails, line_item_id);
-          url = Boxoffice.Order.config.assign.urlFor(order.ractive.get('order_id'));
+          url = Boxoffice.Order.config.assign.urlFor(order.ractive.get('access_token'));
           console.log('url',url);
           $.ajax({
-            url: Boxoffice.Order.config.assign.urlFor(order.ractive.get('order_id')),
+            url: Boxoffice.Order.config.assign.urlFor(order.ractive.get('access_token')),
             type: Boxoffice.Order.config.assign.method,
             contentType: 'application/json',
             data: JSON.stringify({
