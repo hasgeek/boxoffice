@@ -25,7 +25,6 @@ window.Boxoffice.Order = {
       dataType: 'json',
       retryInterval: 5000,
       success: function(data) {
-        console.log("Order details:", data);
         window.Boxoffice.Order.view(data);
       },
       error: function(response) {
@@ -37,7 +36,7 @@ window.Boxoffice.Order = {
         }
         else if(response.readyState === 0) {
           if(ajaxLoad.retries < 0) {
-            errorMsg = "Unable to connect. Please write to us at support@hasgeek.com with your order id " + boxoffice.ractive.get('order.order_id') + ".";
+            errorMsg = "Unable to connect. Please write to us at support@hasgeek.com with your order number";
 
           } else {
             setTimeout(function() {
@@ -113,7 +112,6 @@ window.Boxoffice.Order = {
           var formValidator = new FormValidator(attendeeForm, validationConfig, function(errors, event) {
             event.preventDefault();
             if (errors.length > 0) {
-              console.log("Form validation errors", errors[0].message);
               order.ractive.set(line_item + '.errorMsg', errors[0].message);
             } else {
               order.ractive.set(line_item + '.errorMsg', '');
@@ -146,9 +144,6 @@ window.Boxoffice.Order = {
             }
           }
           attendeeDetails['email'] = order.ractive.get(line_item + '.assignee.email');
-          console.log("Sending participant details to server:", attendeeDetails, line_item_id);
-          url = Boxoffice.Order.config.assign.urlFor(order.ractive.get('access_token'));
-          console.log('url',url);
           $.ajax({
             url: Boxoffice.Order.config.assign.urlFor(order.ractive.get('access_token')),
             type: Boxoffice.Order.config.assign.method,

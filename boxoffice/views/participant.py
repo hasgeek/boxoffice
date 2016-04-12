@@ -7,9 +7,9 @@ from coaster.views import load_models
 from utils import xhr_only
 
 
-@app.route('/participant/<order>/assign', methods=['GET', 'OPTIONS', 'POST'])
+@app.route('/participant/<access_token>/assign', methods=['GET', 'OPTIONS', 'POST'])
 @load_models(
-    (Order, {'id': 'order'}, 'order')
+    (Order, {'access_token': 'access_token'}, 'order')
     )
 @xhr_only
 def assign(order):
