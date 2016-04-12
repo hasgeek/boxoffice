@@ -17,14 +17,15 @@ def assign(order):
     Assign a line_item to a participant
     """
     if not request.json or not request.json.get('attendee'):
-        return make_response(jsonify(message='<Missing></Missing> Attendee details'), 400)
+        return make_response(jsonify(message='Missing Attendee details'), 400)
     assignee_dict = request.json.get('attendee')
     line_item = LineItem.query.get(request.json.get('line_item_id'))
     item_assignee_details = line_item.item.assignee_details
     assignee_details = {}
     for key in item_assignee_details.keys():
         assignee_details[key] = assignee_dict.get(key)
-    if assignee_dict['email'] == line_item.current_assignee.email:
+    if line_item.current_assignee and assignee_dict['email'] == line_item.current_assignee.email:
+        # update
         line_item.current_assignee.details = assignee_details
         db.session.add(line_item.current_assignee)
     else:
