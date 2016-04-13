@@ -10,7 +10,7 @@ from . import mail, app
 
 def send_receipt_email(order_id, subject="Thank you for your order!"):
     """
-    Sends an invoice with a PDF attached, to the order's buyer
+    Sends an link to fill attendee details and cash receipt to the order's buyer
     """
     with app.test_request_context():
         order = Order.query.get(order_id)

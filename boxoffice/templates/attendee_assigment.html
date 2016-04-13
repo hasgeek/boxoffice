@@ -25,10 +25,15 @@
 
     p { 
       margin: 5px 0 5px;
+      font-size: 15px;
+    }
+
+    .content {
+      margin-top: 15px;
     }
 
     .header { 
-      font-size: 35px; 
+      font-size: 25px; 
       text-align: center; 
       margin-bottom: 30px; 
       padding-bottom: 10px; 
@@ -71,6 +76,10 @@
       padding: 5px; 
     }
 
+    table td {
+      font-size: 15px;
+    }
+
     .center { 
       text-align: center;
     }
@@ -106,13 +115,9 @@
     }
 
     .terms-heading {
-      font-size: 15px;
+      font-size: 16px;
       font-weight: 600;
       margin: 0 0 5px;
-    }
-
-    .terms-content {
-      font-size: 13px;
     }
 
     .button {
@@ -125,7 +130,11 @@
       display: inline-block;
       background-color: #5BC0DE;
       border-color: #46B8DA;
-      margin: 10px auto;
+      margin: 15px auto;
+    }
+
+    .footer {
+      margin-top: 15px;
     }
   </style>
 </head>
@@ -135,7 +144,7 @@
 
     <p>Hello {{ order.buyer_fullname }},</p>
 
-    <p>Thanks for your interest in {{ order.item_collection.title }}. Please take a moment to tell us who will be attending on your ticket(s).</p>
+    <p class="content">Thanks for your interest in {{ order.item_collection.title }}. Please take a moment to tell us who will be attending on your ticket(s).</p>
 
     <p><a class="button" href={{"{base_url}/order/{access_token}/ticket".format(base_url=base_url, access_token=order.access_token)}} target="_blank">Fill details</a></p>
 
@@ -221,7 +230,7 @@
       <p class="terms-content">For further queries, please write to <a href="mailto:support@hasgeek.com">support@hasgeek.com</a></p>
     </div>
 
-    <p>Thank you,</p>
+    <p class="footer">Thank you,</p>
     <p>{{ org.title }}</p>
   
   </div>
