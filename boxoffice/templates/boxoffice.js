@@ -108,6 +108,11 @@ $(function() {
         urlFor: function(accessToken){
           return boxoffice.config.baseURL + "/order/" + accessToken + "/receipt";
         }
+      },
+      attendeeAssignment: {
+        urlFor: function(accessToken){
+          return boxoffice.config.baseURL + "/order/" + accessToken + "/ticket";
+        }
       }
     }
   };
@@ -500,7 +505,8 @@ $(function() {
                 'tabs.payment.loadingPaymentConfirmation': false,
                 'tabs.payment.complete': true,
                 'activeTab': boxoffice.ractive.get('tabs.confirm.id'),
-                'tabs.confirm.section.cashReceiptURL': boxoffice.config.resources.receipt.urlFor(boxoffice.ractive.get('order.access_token'))
+                'tabs.confirm.section.cashReceiptURL': boxoffice.config.resources.receipt.urlFor(boxoffice.ractive.get('order.access_token')),
+                'tabs.confirm.section.attendeeAssignmentURL': boxoffice.config.resources.attendeeAssignment.urlFor(boxoffice.ractive.get('order.access_token'))
               });
               boxoffice.ractive.fire('eventAnalytics', 'booking complete', 'confirmPayment success');
             },
@@ -547,7 +553,8 @@ $(function() {
                 'tabs.payment.loadingPaymentConfirmation': false,
                 'tabs.payment.complete': true,
                 'activeTab': boxoffice.ractive.get('tabs.confirm.id'),
-                'tabs.confirm.section.cashReceiptURL': boxoffice.config.resources.receipt.urlFor(boxoffice.ractive.get('order.access_token'))
+                'tabs.confirm.section.cashReceiptURL': boxoffice.config.resources.receipt.urlFor(boxoffice.ractive.get('order.access_token')),
+                'tabs.confirm.section.attendeeAssignmentURL': boxoffice.config.resources.attendeeAssignment.urlFor(boxoffice.ractive.get('order.access_token'))
               });
               boxoffice.ractive.fire('eventAnalytics', 'booking complete', 'completeFreeOrder success');
             },
