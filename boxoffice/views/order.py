@@ -291,7 +291,7 @@ def jsonify_orders(orders):
     return api_orders
 
 
-@app.route('/ic/<item_collection>/orders', methods=['GET', 'OPTIONS'])
+@app.route('/api/1/ic/<item_collection>/orders', methods=['GET', 'OPTIONS'])
 @load_models(
     (ItemCollection, {'id': 'item_collection'}, 'item_collection')
     )
