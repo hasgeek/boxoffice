@@ -4,9 +4,9 @@ from flask import url_for, request, jsonify, render_template, make_response
 from rq import Queue
 from redis import Redis
 from coaster.views import render_with, load_models
-from .. import app
+from .. import app, lastuser
 from ..models import db
-from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy, LINE_ITEM_STATUS
+from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy, LINE_ITEM_STATUS, ORDER_STATUS
 from ..models import Order, OnlinePayment, PaymentTransaction, User, CURRENCY
 from ..extapi import razorpay
 from ..forms import LineItemForm, BuyerForm
@@ -261,3 +261,21 @@ def receipt(order):
     )
 def line_items(order):
     return dict(order=order, org=order.organization)
+
+
+@app.route('/ic/<item_collection>/dashboard', methods=['GET'])
+@lastuser.requires_login
+@load_models(
+    (ItemCollection, {'id': 'item_collection'}, 'item_collection')
+    )
+def all_order(item_collection):
+    started = [ORDER_STATUS.PURCHASE_ORDER]
+    sold = [ORDER_STATUS.SALES_ORDER, ORDER_STATUS.INVOICE]
+    cancelled = [ORDER_STATUS.CANCELLED]
+    stats = []
+    for item in item_collection.items:
+        sold_line_items = LineItem.query.join(Order).filter(LineItem.item == item, Order.status.in_(sold), LineItem.status==LINE_ITEM_STATUS.CONFIRMED).count()
+        cancelled_line_items = LineItem.query.filter(LineItem.item == item, LineItem.status==LINE_ITEM_STATUS.CANCELLED).count()
+        stats.append([item.title, sold_line_items, cancelled_line_items])
+    orders = Order.query.filter_by(item_collection=item_collection, status=1).all()
+    return render_template('dashboard.html', orders=orders, base_url=app.config['BASE_URL'], item_collection=item_collection, stats=stats)
