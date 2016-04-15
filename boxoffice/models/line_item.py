@@ -107,10 +107,9 @@ class LineItem(BaseMixin, db.Model):
         return self.assignees.filter(Assignee.current == True).one_or_none()
 
 
-@property
 def get_confirmed_line_items(self):
     return LineItem.query.filter(LineItem.order == self, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).all()
-Order.get_confirmed_line_items = get_confirmed_line_items
+Order.get_confirmed_line_items = property(get_confirmed_line_items)
 
 
 def get_from_item(cls, item, qty, coupon_codes=[]):

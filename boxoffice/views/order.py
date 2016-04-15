@@ -297,6 +297,7 @@ def jsonify_orders(orders):
     )
 def item_collection_orders(item_collection):
     organization = item_collection.organization
+    # TODO: Replace with a better authentication system
     if not request.args.get('access_token') or request.args.get('access_token') != organization.details.get("access_token"):
         abort(401)
     orders = item_collection.orders.filter(Order.status.in_([ORDER_STATUS.SALES_ORDER, ORDER_STATUS.INVOICE])).all()
