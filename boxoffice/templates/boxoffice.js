@@ -139,7 +139,8 @@ $(function() {
             'base_price': item.price,
             'item_description': item.description,
             'price_valid_upto': boxoffice.util.formatDate(item.price_valid_upto),
-            'discount_policies': item.discount_policies
+            'discount_policies': item.discount_policies,
+            'quantity_available': item.quantity_available
           });
         });
       });
@@ -231,7 +232,7 @@ $(function() {
               line_items.forEach(function(line_item) {
                 if (data.line_items.hasOwnProperty(line_item.item_id)) {
                   if(data.line_items[line_item.item_id].discounted_amount) {
-                    if(!applyDiscount) {
+                    if(!applyDiscount & line_item.quantity_available > 0) {
                       line_item.quantity = 1;
                       applyDiscount = true;
                     }

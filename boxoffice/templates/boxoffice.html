@@ -39,12 +39,12 @@
                       </div>
                     </div>
                     <div class="ticket-price-qty">
-                      {{#if item.quantity_available > 0 && item.quantity_available < 5}}
+                      {{#if line_item.quantity_available > 0 && line_item.quantity_available < 5}}
                         <div class="ticket-description">
                           <p class="few-ticket">Only a few tickets left</p>
                         </div>
                       {{/if}}
-                      {{#if item.quantity_available > 0}}
+                      {{#if line_item.quantity_available > 0}}
                         <div class="ticket-price-wrapper">
                           {{#if show_discountprice}}
                             <p class="discount-price ticket-price"><i class="fa fa-inr rupee-sign"></i>{{ line_item.discount_price }}</p>
@@ -53,9 +53,9 @@
                         </div>
                         <span class="multiplier">&times;</span>
                         <div class="ticket-qty-wrapper">
-                          <button class="decrement" on-click="updateOrder(event, line_item.item_name, item.quantity_available, false)">-</button>
-                          <input type="number" class="ticket-qty" name="quantity" min="0" max="{{ item.quantity_available }}" value="{{ line_item.quantity }}" disabled>
-                          <button class="increment" on-click="updateOrder(event, line_item.item_name, item.quantity_available, true)">+</button>
+                          <button class="decrement" on-click="updateOrder(event, line_item.item_name, line_item.quantity_available, false)">-</button>
+                          <input type="number" class="ticket-qty" name="quantity" min="0" max="{{ line_item.quantity_available }}" value="{{ line_item.quantity }}" disabled>
+                          <button class="increment" on-click="updateOrder(event, line_item.item_name, line_item.quantity_available, true)">+</button>
                         </div>
                       {{else}}
                         <div class="sold-out-wrapper">
