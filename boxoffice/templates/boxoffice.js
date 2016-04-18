@@ -232,7 +232,7 @@ $(function() {
               line_items.forEach(function(line_item) {
                 if (data.line_items.hasOwnProperty(line_item.item_id)) {
                   if(data.line_items[line_item.item_id].discounted_amount) {
-                    if(!applyDiscount & line_item.quantity_available > 0) {
+                    if(!applyDiscount && line_item.quantity_available > 0) {
                       line_item.quantity = 1;
                       applyDiscount = true;
                     }
