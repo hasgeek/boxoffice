@@ -269,13 +269,15 @@ def jsonify_orders(orders):
     def format_assignee(line_item):
         if not line_item.current_assignee:
             return dict()
-        return {
+        assignee = {
             'fullname': line_item.current_assignee.fullname,
             'email': line_item.current_assignee.email,
-            'phone': line_item.current_assignee.phone,
-            'twitter': line_item.current_assignee.details.get('twitter'),
-            'company': line_item.current_assignee.details.get('company')
+            'phone': line_item.current_assignee.phone
         }
+
+        for key in line_item.item.assignee_details:
+            assignee[key] = line_item.current_assignee.details.get(key)
+        return assignee
 
     for order in orders:
         order_dict = {'invoice_no': order.invoice_no, 'line_items': []}
