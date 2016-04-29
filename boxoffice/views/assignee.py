@@ -7,7 +7,7 @@ from coaster.views import load_models
 from utils import xhr_only
 
 
-@app.route('/participant/<access_token>/assign', methods=['GET', 'OPTIONS', 'POST'])
+@app.route('/assignee/<access_token>/assign', methods=['GET', 'OPTIONS', 'POST'])
 @load_models(
     (Order, {'access_token': 'access_token'}, 'order')
     )
@@ -17,7 +17,7 @@ def assign(order):
     Assign a line_item to a participant
     """
     assignee_dict = request.json.get('attendee')
-    if not request.json or not assignee_dict or not assignee_dict.get('email') or not assignee_dict.get('fullname'):
+    if not request.json or not assignee_dict or not assignee_dict.get('email'):
         return make_response(jsonify(message='Missing Attendee details'), 400)
     line_item = LineItem.query.get(request.json.get('line_item_id'))
     item_assignee_details = line_item.item.assignee_details

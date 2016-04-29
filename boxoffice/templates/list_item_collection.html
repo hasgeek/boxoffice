@@ -1,0 +1,105 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ org.title }}{% endblock %}
+
+{% block pageheaders %}
+{% endblock %}
+{% block headline %}
+  <div class="page-header">
+    <h1>{{ org.title }}</h1>
+  </div>
+{% endblock %}
+
+{% block content %}
+  <h1 class="header">{{ org.title }} Item collection</h1>
+  <div class="row" id="boxoffice-item-collections">
+    {%- raw %}
+      <script id='boxoffice-item-collections-template' type='text/ractive'>
+        {{#item_collections:item_collection}}
+          <div class="box col-sm-6 col-xs-12" id="item-collection-{{ @index }}">
+            <div class="heading">
+              {{#title}}
+                <p class="heading-title">{{ title }}</p>
+                <div class="heading-edit">
+                  <span class="action-btn" on-click="editDetails(event.keypath, @index)"><i class="fa fa-edit"></i></span>
+                  <span class="action-btn" on-click="deleteItemCollection(event.keypath, @index)"><i class="fa fa-remove"></i></span>
+                </div>
+              {{/title}}
+            </div>
+            <div class="content">
+              {{#if !view}}
+                <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
+                  {{#if id}}
+                    <p class="section-title">Item collection id</p>
+                    <p class="section-content">{{id}}</p>
+                    <p class="section-title">Item collection description</p>
+                    <div class="section-content">{{{description_html}}}</div>
+                    <div class="btn-wrapper">
+                      <a class="boxoffice-button boxoffice-button-action" href="{{url}}">View {{title}} dashboard</a>
+                    </div>
+                    {{#infoMsg}}
+                      <p class="info-msg">{{ infoMsg }} <i class="fa fa-check"></i></p>
+                    {{/}}
+                  {{else}}
+                    <p class="add-item-icon" on-click="editDetails(event.keypath, @index)">
+                      <i class="fa fa-plus-circle"></i><br>
+                      <span class="section-title">Add a new item collection</span>
+                    </p>
+                  {{/if}}
+                </div>
+              {{else}}
+                <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
+                  {{#if id}}
+                    <p class="form-title">Update {{ title }} details</p>
+                  {{else}}
+                    <p class="form-title">Add details for item collection</p>
+                  {{/if}}
+                  <form class="form" role="form" name="item-collection-form-{{@index}}" id="item-collection-details-{{@index}}">
+                    {{#id}}
+                      <div class="group">   
+                        <input class="group-input filled" type="text" name="id" value="{{id}}" disabled>
+                        <span class="bar"></span>
+                        <label class="group-label">ID</label>
+                      </div>
+                    {{/id}}
+                    <div class="group">   
+                      <input class="group-input {{#title}}filled{{/}}" type="text" name="title" required value="{{title}}">
+                      <span class="bar"></span>
+                      <label class="group-label">Title</label>
+                    </div>
+                    <div class="form-group">
+                      <label class="field-title {{#description_text}}filled{{/}}">Description</label>
+                      <textarea class="form-control" name="description" value="{{description_text}}" placeholder="Description in markdown format"></textarea>
+                    </div>
+                    <div class="btn-wrapper">
+                      {{#if id}}
+                      <button type="button" class="boxoffice-button boxoffice-button-info" on-click="viewDetails(event, event.keypath, @index)">Back</button>
+                      <button type="submit" class="boxoffice-button boxoffice-button-action" on-click="addDetails(event, event.keypath, @index, false)">Update
+                          {{#updating}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'></i>{{/}}
+                      </button>
+                      {{else}}
+                        <button type="submit" class="boxoffice-button boxoffice-button-action" on-click="addDetails(event, event.keypath, @index, true)">Add
+                            {{#updating}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'></i>{{/}}
+                        </button>
+                      {{/if}}
+                    </div>
+                    {{#errorMsg}}
+                      <p class="error-msg">{{ errorMsg }}</p>
+                    {{/}}
+                  </form>
+                </div>
+              {{/if}}
+          </div>
+        {{/item_collections}}
+      </script>
+    {%- endraw %}
+  </div> 
+{% endblock %}
+
+{% block footerscripts %}
+<script>
+  $(function() {
+    window.Boxoffice.Itemcollections.init();
+  });
+</script>
+{% endblock %}

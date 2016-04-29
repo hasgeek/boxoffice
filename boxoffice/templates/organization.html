@@ -1,0 +1,184 @@
+{% extends "layout.html" %}
+
+{% block titletags -%}
+  <title>{{ config['SITE_TITLE'] }}</title>
+  <meta name="DC.title" content="{{ config['SITE_TITLE'] }}"/>
+{%- endblock %}
+
+{% block pageheaders %}
+{% endblock %}
+{% block headline %}
+  <div class="page-header">
+    <h1>{{ config['SITE_TITLE'] }}</h1>
+  </div>
+{% endblock %}
+
+{% block content %}
+  <h1 class="header">Organizations</h1>
+  <div class="row" id="boxoffice-organizations">
+    {%- raw %}
+      <script id='boxoffice-organizations-template' type='text/ractive'>
+        {{#organizations:organization}}
+          <div class="box col-sm-6 col-xs-12" id="organization-{{ @index }}">
+            <div class="heading">
+              {{#title}}
+                <p class="heading-title">{{ title }}</p>
+                <div class="heading-edit">
+                  <span class="action-btn" on-click="editDetails(event.keypath, @index)"><i class="fa fa-edit"></i></span>
+                  <span class="action-btn" on-click="deleteOrganization(event.keypath, @index)"><i class="fa fa-remove"></i></span>
+                </div>
+              {{/title}}
+            </div>
+            <div class="content">
+              {{#if !view}}
+                <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
+                  {{#if id}}
+                    <div class="org-logo"><img src="{{details['logo']}}"/></div>
+                    <p class="section-title">Organization id</p>
+                    <p class="section-content">{{id}}</p>
+                    {{#details:k,v}}
+                      {{#if k !== 'logo'}}
+                        <p class="section-title">{{k}}</p>
+                        <div class="section-content">{{details[k]}}</div>
+                      {{/if}}
+                    {{/details}}
+                    <p class="section-title">Contact email</p>
+                    <div class="section-content">{{contact_email}}</div>
+                    <div class="btn-wrapper">
+                      <a class="boxoffice-button boxoffice-button-action" href="{{url}}">View item collections</a>
+                    </div>
+                    {{#infoMsg}}
+                      <p class="info-msg">{{ infoMsg }} <i class="fa fa-check"></i></p>
+                    {{/}}
+                  {{else}}
+                    <p class="add-item-icon" on-click="editDetails(event.keypath, @index)">
+                      <i class="fa fa-plus-circle"></i><br>
+                      <span class="section-title">Add a new organization</span>
+                    </p>
+                  {{/if}}
+                </div>
+              {{else}}
+                <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
+                  {{#if id}}
+                    <p class="form-title">Update {{ title }} details</p>
+                  {{else}}
+                    <p class="form-title">Add details for organization</p>
+                  {{/if}}
+                  <form class="form" role="form" name="organization-form-{{@index}}" id="organization-details-{{@index}}">
+                    {{#id}}
+                      <div class="group">   
+                        <input class="group-input filled" type="text" name="id" value="{{id}}" disabled>
+                        <span class="bar"></span>
+                        <label class="group-label">ID</label>
+                      </div>
+                    {{/id}}
+                    <div class="group">   
+                      <input class="group-input {{#title}}filled{{/title}}" type="text" name="title" required value="{{title}}">
+                      <span class="bar"></span>
+                      <label class="group-label">Title</label>
+                    </div>
+                    {{#access_token}}
+                      <div class="group">   
+                        <input class="group-input {{#details.access_token}}filled{{/details.access_token}}" type="text" name="access_token" value="{{details.access_token}}" disabled>
+                        <span class="bar"></span>
+                        <label class="group-label">Access token</label>
+                      </div>
+                    {{/access_token}}
+                    <div class="group">   
+                      <input class="group-input {{#details.cin}}filled{{/details.cin}}" type="text" name="cin" required value="{{details.cin}}">
+                      <span class="bar"></span>
+                      <label class="group-label">CIN</label>
+                    </div>
+                    <div class="group">   
+                      <input class="group-input {{#details.pan}}filled{{/details.pan}}" type="text" name="pan" required value="{{details.pan}}">
+                      <span class="bar"></span>
+                      <label class="group-label">Pan</label>
+                    </div>
+                    <div class="group">   
+                      <input class="group-input {{#details.service_tax_no}}filled{{/details..service_tax_no}}" type="text" name="service_tax_no" required value="{{details.service_tax_no}}">
+                      <span class="bar"></span>
+                      <label class="group-label">Service tax no</label>
+                    </div>
+                    <div class="group">   
+                      <input class="group-input {{#details.website}}filled{{/details.website}}" type="text" name="website" required value="{{details.website}}">
+                      <span class="bar"></span>
+                      <label class="group-label">Website</label>
+                    </div>
+                    <div class="form-group">
+                      <label class="field-title {{#details.address}}filled{{/details.address}}">Address</label>
+                      <textarea class="form-control" name="address" value="{{details.address}}"></textarea>
+                    </div>
+                    <div class="group">   
+                      <input class="group-input {{#contact_email}}filled{{/contact_email}}" type="text" name="contact_email" required value="{{contact_email}}">
+                      <span class="bar"></span>
+                      <label class="group-label">Contact email</label>
+                    </div>
+                    {{#newFields:newField}}
+                      <div class="new-field-box" intro='fly:{"x":0,"y":"150"}'>
+                        <div class="group">
+                          <input class="group-input {{#fieldName}}filled{{/fieldName}}" type="text" name="" value="{{fieldName}}">
+                          <span class="bar"></span>
+                          <label class="group-label">Field name</label>
+                        </div>
+                        {{#if fieldType === "inputbox"}}
+                          <div class="group">
+                            <input class="group-input {{#fieldValue}}filled{{/fieldValue}}" type="text" name="{{fieldName}}" value="{{fieldValue}}">
+                            <span class="bar"></span>
+                            <label class="group-label">Field value</label>
+                          </div>
+                        {{elseif fieldType === "textbox"}}
+                          <div class="form-group">
+                            <textarea class="form-control" name="{{fieldName}}" value="{{fieldValue}}" placeholder="Field name"></textarea>
+                          </div>
+                        {{/if}}
+                      </div>
+                    {{/}}
+                    <div>
+                      <form class="form" role="form" name="add-field-form">         
+                        <div class="group">
+                          <label class="radio-inline">
+                            <input type="radio" name="{{.fieldtype}}" value="inputbox" checked>
+                            Input Box
+                          </label>
+                          <label class="radio-inline">
+                            <input type="radio" name="{{.fieldtype}}" value="textbox">
+                            Text box
+                          </label>
+                          <button type="button" class="boxoffice-button boxoffice-button-small boxoffice-button-info btn-inline" on-click="addNewField(event, event.keypath, fieldtype, @index)">Add a new detail</button>
+                        </div>
+                      </form>
+                    </div>
+                    <div class="btn-wrapper">
+                      {{#if id}}
+                      <button type="button" class="boxoffice-button boxoffice-button-info" on-click="viewDetails(event, event.keypath, @index)">Back</button>
+                      <button type="submit" class="boxoffice-button boxoffice-button-action" on-click="addDetails(event, event.keypath, @index, false)">Update
+                          {{#updating}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'></i>{{/}}
+                      </button>
+                      {{else}}
+                        <button type="submit" class="boxoffice-button boxoffice-button-action" on-click="addDetails(event, event.keypath, @index, true)">Add
+                            {{#updating}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'></i>{{/}}
+                        </button>
+                      {{/if}}
+                    </div>
+                    {{#errorMsg}}
+                      <p class="error-msg">{{ errorMsg }}</p>
+                    {{/}}
+                  </form>
+                </div>
+              {{/if}}
+          </div>
+        {{/organizations}}
+        <div class="">
+        </div>
+      </script>
+    {%- endraw %}
+  </div> 
+{% endblock %}
+
+{% block footerscripts %}
+<script>
+  $(function() {
+    window.Boxoffice.Organizations.init();
+  });
+</script>
+{% endblock %}

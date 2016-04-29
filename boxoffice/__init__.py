@@ -20,7 +20,7 @@ mail = Mail()
 
 version = Version(__version__)
 assets['boxoffice.js'][version] = 'js/scripts.js'
-assets['boxoffice.css'][version] = 'css/order.css'
+assets['boxoffice.css'][version] = 'css/app.css'
 
 
 from boxoffice.models import db, User  # noqa

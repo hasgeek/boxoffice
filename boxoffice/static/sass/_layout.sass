@@ -1,0 +1,158 @@
+/* boxoffice css*/
+.boxoffice-button 
+  border-width: 0px 0px 3px
+  border-style: solid
+  border-radius: 5px
+  padding: 6px 12px
+  color: $color-btn-text
+  font-size: 15px
+
+.boxoffice-button-small 
+  padding: 4px 6px
+
+.btn-inline
+  margin: 0 10px
+
+.boxoffice-button-action 
+  background-color: $color-action-btn-background
+  border-color: $color-action-btn-border
+
+.boxoffice-button-action:hover 
+  background-color: $color-action-btn-hover-background
+  border-color: $color-action-btn-hover-border
+
+.boxoffice-button-info 
+  background-color: $color-info-btn-background
+  border-color: $color-info-btn-border
+
+.boxoffice-button-info:hover 
+  background-color: $color-info-btn-hover-background
+  border-color: $color-info-btn-hover-border
+
+a.boxoffice-button:hover,
+a.boxoffice-button:focus 
+  text-decoration: none
+  color: $color-btn-text
+  outline: none
+
+.action-btn
+  cursor: pointer
+  padding-left: 10px
+
+.clearfix:after 
+  content: " "
+  display: table
+
+.form-title 
+  font-size: 18px
+  font-weight: bold
+  padding: 5px 0
+  margin: 0 0 40px
+  text-align: center
+
+.form 
+  font-size: 16px
+
+.group
+  position: relative
+  margin-bottom: 45px
+
+.radio-group 
+  margin-bottom: 25px
+
+.control-group, .form-group 
+  margin-bottom: 45px
+
+.group-input 
+  font-size: 18px
+  padding: 10px 10px 10px 5px
+  display: block
+  width: 100%
+  border: none
+  border-bottom: 1px solid $color-form-field-border
+  box-shadow: none
+
+.group-input:focus
+  outline:none
+
+.group-label 
+  color: $color-form-label
+  font-size: 16px
+  font-weight: normal
+  position: absolute
+  pointer-events: none
+  left: 5px
+  top: 10px
+  transition: 0.2s ease all
+  -moz-transition: 0.2s ease all
+  -webkit-transition: 0.2s ease all
+
+.group-input:disabled 
+  position: relative
+  background-color: transparent
+  color: $color-form-disabled-label
+
+.group-input:focus ~ .group-label,
+.group-input.filled ~ .group-label 
+  top: -20px
+  font-size: 14px
+  color: $color-form-filled-label
+
+.bar
+  position: relative
+  display:block
+  width: 100%
+
+.bar:before,
+.bar:after 
+  content: ''
+  height: 2px
+  width: 0
+  bottom: -1px
+  position: absolute
+  background: $color-form-filled-label
+  transition: 0.2s ease all
+  -moz-transition: 0.2s ease all
+  -webkit-transition: 0.2s ease all
+
+.bar:before 
+  left: 50%
+
+.bar:after 
+  right: 50%
+
+.group-input:focus ~ .bar:before,
+.group-input:focus ~ .bar:after 
+  width: 50%
+
+.field-title 
+  color: $color-form-label
+  font-size: 16px
+  margin: 0 0 5px
+  font-weight: normal
+
+.field-title.filled 
+  color: $color-form-filled-label
+
+.form-group textarea
+  border: 1px solid $color-form-field-border
+
+.btn-wrapper 
+  float: right
+  text-align: center
+  margin-bottom: 10px
+  clear: both
+
+.error-msg 
+  font-size: 14px
+  margin: 5px auto
+  color: red
+  clear: both
+  text-align: right
+
+.info-msg 
+  font-size: 14px
+  margin: 5px auto
+  color: green
+  clear: both
+  text-align: right
