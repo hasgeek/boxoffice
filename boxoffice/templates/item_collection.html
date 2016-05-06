@@ -1,0 +1,324 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ org.title }}{% endblock %}
+{% block pageheaders %}
+{% endblock %}
+{% block headline %}
+  <div class="page-header">
+    <h1>{{ org.title }}</h1>
+  </div>
+{% endblock %}
+
+{% block content %}
+  <div class="item-collection">
+
+    <div id="boxoffice-ic-sidebar">
+      {%- raw %}
+        <script id='boxoffice-ic-sidebar-template' type='text/ractive'>
+          <button class="sidebar-toggle {{#sidebarOn}}open{{/}}" type="button" on-click="toggle(event)">
+            <i class="fa {{#sidebarOn}}fa-angle-double-left{{else}}fa-angle-double-right{{/}}"></i>
+          </button>
+          <div class="ic-sidebar {{#sidebarOn}}active{{/}}">
+            <div class="ic-sidebar-content">
+              {{#sideBar}}
+                <a class="sidebar-title" href="{{ url }}" on-click="refresh(event, url, method)"><i class="sidebar-title-icon fa {{icon}}"></i>{{ title }}</a>
+              {{/sideBar}}
+            </div>
+          </div>
+        </script>
+      {%- endraw %}
+    </div>
+
+    <div id="boxoffice-ic">
+      {%- raw %}
+        <script id='boxoffice-ic-template' type='text/ractive'>
+          <div class="ic">
+            <h1 class="header">{{ title }}</h1>
+            {{#if activeView == 'dashboard'}}
+              {{#dashboard}}
+                <h2>Dashboard</h2>
+                
+                {{#if item_stats}}
+                {{#each item_stats}}
+                  <h3>{{ @key }}</h3>
+                  <div class="table-responsive stats">
+                    <table class="table table-bordered table-hover stats-table"> 
+                      <thead>   
+                        <tr class="info">
+                          <th>#</th>
+                          <th>Item</th>
+                          <th>Total Tickets</th>
+                          <th>Sold</th>
+                          <th>Cancelled</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {{#each this}}
+                          <tr>
+                            <td>{{ @index + 1 }}</td>
+                            <td>{{ title }}</td>
+                            <td>{{ total }}</td>
+                            <td>{{ sold }}</td>
+                            <td>{{ cancelled }}</td>
+                          </tr>
+                        {{/each}}
+                      </tbody>
+                    </table>
+                  </div>
+                {{/each}}
+                {{/if}}
+
+                {{#if item_collection}}
+                  {{#item_collection}}
+                    <div class="box">
+                      <div class="heading">
+                        <p class="heading-title">Items</p>
+                        <div class="heading-edit">
+                          <span class="action-btn" on-click="editItems()"><i class="fa fa-edit"></i></span>
+                        </div>
+                      </div>
+                      <div class="content-box clearfix">
+                        <div class="event-description">
+                         {{{ description }}}
+                        </div>
+                        {{#categories:category}}
+                          <p class="category-title">{{ title }}</p>
+                            {{#items:item}}
+                              <p class="ticket-title">{{ title }}<p>
+                              <div class="ticket-description">{{{ description }}}</div>
+                              <p class="ticket-no"><b>Tickets remaining</b>: {{ quantity_available }}</p>
+                              <p class="ticket-price"><b>Current price</b>:{{#if current_price}} {{ current_price }} {{else}} None {{/if}}</p>
+                            {{/item}}
+                        {{/categories}}
+                      </div>
+                    </div>
+                  {{/item_collection}}
+                {{else}}
+                  <p>Currently there are no items.</p>
+                  <p><a class="boxoffice-button boxoffice-button-action" on-click="editItems()">Add items</a></p>
+                {{/if}}
+              {{/dashboard}}
+            {{elseif activeView == 'items'}}
+              // WIP
+              <h2>Item Collection</h2>
+              <div class="heading">
+                <p class="heading-title">Categories</p>
+              </div>
+              <div class="content-box clearfix">
+                <form class="form ic-form" role="form" name="category-form" id="ic-categories">
+                  {{#items}}{{# { item_collection: . } }}
+                    {{#categories}}{{# { category: . } }}
+                      <div class="group">   
+                        <input class="group-input {{#category.title}}filled{{/category.title}}" type="text" name="category{{@index}}" required value="{{category.title}}">
+                        <span class="bar"></span>
+                        <label class="group-label">Category title</label>
+                      </div>
+                    {{/categories}}{{/category}}
+                  {{/items}}{{/item_collection}}
+                  <div>
+                    <button type="button" class="boxoffice-button boxoffice-button-small boxoffice-button-info btn-inline" on-click="addNewCategory(event, 'items.categories')">Add Category</button>
+                  </div>
+                  {{#if items.categories}}
+                    <div class="btn-wrapper">
+                      <button type="submit" class="boxoffice-button boxoffice-button-action" on-click="editCategories(event, event.keypath, 'category-form')">Done
+                          {{#updatingCategories}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'></i>{{/}}
+                      </button>
+                    </div>
+                  {{/if}}
+                </form>
+              </div>
+              {{#if items.categories && items.categories.length && items.categories[0].title}}
+                <div class="heading">
+                  <p class="heading-title">Items</p>
+                  <div class="ticket-edit">
+                    <span class="action-btn" on-click="addItem(event, event.keypath)"><i class="fa fa-plus-circle"></i> Add Item</span>
+                  </div>
+                </div>
+                <div class="content">
+                  <div class="content-box clearfix">
+                    {{#items.categories}}{{# { category: . } }}
+                      {{#category.items}}{{# { item: . } }}
+                        {{#if !toEdit}}
+                          <div class="item-box clearfix">
+                            <p class="ticket-title">{{ item.title }}<p>
+                            <p><b>Category</b>: {{ item.category }}</p>
+                            <p class="ticket-no"><b>Tickets remaining</b>: {{ item.quantity_available }}</p>
+                            <p class="ticket-price"><b>Current price</b>:{{#if item.current_price}} {{ item.current_price }} {{else}} None {{/if}}</p>
+                            <div class="btn-wrapper clearfix">
+                              <button class="boxoffice-button boxoffice-button-action" on-click="editItem(event, event.keypath)">Edit {{item.title}}</button>
+                            </div>
+                          </div>
+                        {{else}}
+                          <div class="item-box clearfix">
+                            <form class="form ic-form" role="form" name="item-{{@index}}-form" id="ic-item-{{@index}}">
+                              <div class="group">   
+                                <input class="group-input {{#item.title}}filled{{/item.title}}" type="text" name="item-{{@index}}" required value="{{item.title}}">
+                                <span class="bar"></span>
+                                <label class="group-label">Item title</label>
+                              </div>
+                              <div class="group">
+                                <p class="field-title filled">Category</p>
+                                <select name="item-{{@index}}-category">
+                                  {{#categories}}{{# { inner_category: . } }}
+                                    <option value="{{inner_category.title}}" {{#if item.category === inner_category.title}}selected{{/if}}>{{inner_category.title}}</option>
+                                  {{/categories}}{{/inner_category}}
+                                </select>
+                              </div>
+                              <div class="group">   
+                                <input class="group-input {{#item.quantity_total}}filled{{/item.quantity_total}}" type="text" name="item-quantity-{{@index}}" required value="{{item.quantity_total}}">
+                                <span class="bar"></span>
+                                <label class="group-label">Total tickets</label>
+                              </div>
+                              {{#prices:price}}
+                                <div class="price-box">
+                                  <div class="group">   
+                                    <input class="group-input {{#title}}filled{{/title}}" type="text" name="item-price-title-{{@index}}" required value="{{title}}">
+                                    <span class="bar"></span>
+                                    <label class="group-label">Price title</label>
+                                  </div>
+                                  <div class="group">   
+                                    <input class="group-input {{#start_at}}filled{{/start_at}}" type="text" name="item-price-start-time-{{@index}}" required value="{{start_at}}">
+                                    <span class="bar"></span>
+                                    <label class="group-label">Start time</label>
+                                  </div>
+                                  <div class="group">   
+                                    <input class="group-input {{#end_at}}filled{{/end_at}}" type="text" name="item-price-end-time-{{@index}}" required value="{{end_at}}">
+                                    <span class="bar"></span>
+                                    <label class="group-label">End time</label>
+                                  </div>
+                                  <div class="group">   
+                                    <input class="group-input {{#amount}}filled{{/amount}}" type="text" name="item-price-amount-{{@index}}" required value="{{amount}}">
+                                    <span class="bar"></span>
+                                    <label class="group-label">Amount</label>
+                                  </div>
+                                  <div class="group">   
+                                    <input class="group-input {{#currency}}filled{{/currency}}" type="text" name="item-currency-{{@index}}" required value="{{currency}}">
+                                    <span class="bar"></span>
+                                    <label class="group-label">Currency</label>
+                                  </div>
+                                </div>
+                              {{/prices}}
+                              <div class="btn-wrapper clearfix">
+                                <button class="boxoffice-button boxoffice-button-action" on-click="completeItemEdit(event, event.keypath)">Done</button>
+                              </div>
+                            </form>
+                          </div>
+                        {{/if}}
+                      {{/category.item}}{{/item}}
+                    {{/items.categories}}{{/category}}
+                  </div>
+                </div>
+              {{/if}}
+            {{elseif activeView == 'orders'}}
+              <h2>Orders</h2>
+              {{#if orders}}
+                <div class="table-responsive">
+                  <table class="table table-bordered table-hover stats-table" id='orders-table'> 
+                    <thead>   
+                      <tr>
+                        <th>#</th>
+                        <th>Date</th>
+                        <th>Order No:</th>
+                        <th>Transaction Status</th>
+                        <th>Buyer name</th>
+                        <th>Buyer email</th>
+                        <th>Buyer phone</th>
+                        <th>Attendee list</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                    {{#orders:order}}
+                      <tr {{#if status === "Incomplete"}}class="danger"{{/if}}>
+                        <td>{{ @index + 1 }}</td>
+                        <td>{{ order_date }}</td>
+                        <td>{{ invoice_no }}</td>
+                        <td>{{ status }}</td>
+                        <td>{{ buyer_fullname }}</td>
+                        <td>{{ buyer_email }}</td>
+                        <td>{{ buyer_phone }}</td>
+                        <td>
+                          <ol class="line-item-details">
+                            {{#line_items:line_item}}
+                              <li>
+                                <span>{{ title }} - </span>
+                                <span>{{#if assignee}}{{ assignee }}{{else}}Not assigned{{/if}}</span>
+                                {{#if discount_policy}}
+                                  <p class="line-item-discount">Discount: {{ discount_policy }} - {{ discount_coupon }}</p>
+                                {{/if}}
+                              </li>
+                            {{/line_items}}
+                          </ol>
+                          {{#if status === "Complete"}}
+                            <p><a class="boxoffice-button boxoffice-button-small boxoffice-button-info" href={{ assignee_details }} target="_blank" >Assignee details</a></p>
+                          {{/if}}
+                        </td>
+                      </tr>
+                    {{/orders}}
+                    </tbody>
+                  </table>
+                </div>
+              {{else}}
+                <p>Currently no orders.</p>
+              {{/if}}
+            {{elseif activeView == 'assignees'}}
+              <h2>Assignees</h2>
+              {{#if assignees}}
+                {{#each assignees}}
+                  <h3>{{ @key }}</h3>
+                  <div class="table-responsive">
+                    <table class="table table-bordered table-hover stats-table" id="{{ @key }}-table"> 
+                      <thead>   
+                        <tr>
+                          <th>#</th>
+                          <th>Order No</th>
+                          <th>Discount Policy</th>
+                          <th>Discount Coupon</th>
+                          <th>Full name</th>
+                          <th>Email</th>
+                          <th>Phone</th>
+                          {{#each this[0].details}}
+                            <th>{{ @key }}</th>
+                          {{/each}}
+                        </tr>
+                      </thead>
+                      <tbody>
+                      {{#this:assignee}}
+                        <tr>
+                          <td>{{ @index + 1 }}</td>
+                          <td>{{ invoice_no }}</td>
+                          <td>{{ discount_policy }}</td>
+                          <td>{{ discount_coupon }}</td>
+                          <td>{{ fullname }}</td>
+                          <td>{{ email }}</td>
+                          <td>{{ phone }}</td>
+                          {{#each details}}
+                            <td>{{ this }}</td>
+                          {{/each}}
+                        </tr>
+                      {{/this}}
+                      </tbody>
+                    </table>
+                  </div>
+                {{/each}}
+              {{else}}
+                <p>Currently no tickets have been assigned.</p>
+              {{/if}}
+            {{/if}}
+          </div>
+        </script>
+      {%- endraw %}
+    </div>
+
+  </div>  <!-- eof item-collection-->
+
+{% endblock %}
+
+{% block footerscripts %}
+<script>
+  $(function() {
+    var org = "{{ org.name }}";
+    var item_collection = "{{ item_collection.name }}";
+    window.Boxoffice.Item_Collection.init(org,item_collection);
+  });
+</script>
+{% endblock %}

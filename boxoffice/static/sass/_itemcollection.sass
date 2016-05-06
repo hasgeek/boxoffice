@@ -1,0 +1,186 @@
+.ic-sidebar
+  position: fixed
+  top: 35px
+  min-height: 100vh
+  left: -120%
+  width: 110%
+  margin: 0
+  max-height: 100%
+  -webkit-transition: left 0.15s ease-out
+  -moz-transition: left 0.15s ease-out
+  -ms-transition: left 0.15s ease-out
+  -o-transition: left 0.15s ease-out
+  transition: left 0.15s ease-out
+  z-index: 2
+
+.ic-sidebar.active
+  left: 0
+  background-color: rgba(0, 0, 0, 0.3)
+
+.sidebar-toggle
+  position: fixed
+  top: 36px
+  left: 0px
+  z-index: 3
+  font-size: 30px
+  border: none
+  padding: 5px 12px 5px 8px
+  background: #ccc
+  border-radius: 0 5px 5px 0
+  color: #18a1c8
+  -webkit-transition: left 0.10s ease-out
+  -moz-transition: left 0.10s ease-out
+  -ms-transition: left 0.10s ease-out
+  -o-transition: left 0.10s ease-out
+  transition: left 0.10s ease-out
+
+.sidebar-toggle:focus
+  outline: 0
+
+.sidebar-toggle.open
+  left: 140px
+  background: #fff
+
+.ic-sidebar-content
+  padding: 56px 0 20px
+  background-color: #fff
+  width: 140px
+  min-height: 100vh
+
+.ic-sidebar .sidebar-title
+  display: block
+  padding: 15px
+  text-decoration: none
+  color: #18a1c8
+
+.ic-sidebar .sidebar-title:active,
+.ic-sidebar .sidebar-title:focus
+  color: #18a1c8
+  text-decoration: none
+  outline: 0
+
+.ic-sidebar .sidebar-title:hover
+  background-color: #eef
+  text-decoration: none
+  color: #856a91
+
+.sidebar-title-icon
+  padding-right: 10px
+
+@media (min-width: 1200px) 
+  .sidebar-toggle 
+    display: none 
+
+  .ic-sidebar 
+    top: 37px
+    left: 0
+    width: 10%
+  
+  .ic-sidebar-content 
+    width: 100%
+    background-color: #856a91
+    padding: 81px 0 20px
+  
+  .ic-sidebar .sidebar-title 
+    color: #fff
+    padding: 10px
+
+  .ic-sidebar .sidebar-title:active,
+  .ic-sidebar .sidebar-title:focus
+    color: #fff
+
+  .ic-sidebar .sidebar-title:hover
+    color: #856a91
+
+  .ic
+    width: 90%
+    margin: 0 9% 30px
+
+@media (min-width: 1400px)
+  .ic-sidebar 
+    width: 9%
+    max-width: 130px
+
+  .ic-sidebar-content
+    padding: 81px 0 20px
+
+  .ic
+    width: 100%
+    margin: 0 auto 30px
+
+.stats-table > thead > tr > th
+  background-color: #eef
+  text-transform: capitalize
+
+.table-bordered,
+.table-bordered > thead > tr > th, 
+.table-bordered > tbody > tr > td
+  border: 1px solid #aaa
+
+.line-item-details
+  padding-left: 15px
+
+.line-item-discount
+  color: green
+
+.ic-form
+  margin-top: 20px
+
+.ic-title
+  color: #df5e0e
+  margin: 10px 0 45px
+  font-size: 25px
+
+.event-description
+  font-size: 16px
+
+.category-title
+  background-color: #EEF
+  border-bottom: 3px solid #babacb
+  color: #333
+  position: relative
+  font-size: 16px
+  width: 70%
+  margin: 0 0 0 -22px
+  padding: 10px 20px
+  z-index: 1
+  text-transform: uppercase
+
+.category-title:after
+  content: ""
+  display: block
+  position: absolute
+  right: 0px
+  top: 0px
+  border-style: solid
+  border-color: #EEF transparent #EEF #EEF
+  border-width: 22px
+  z-index: 2
+  background-color: #fff
+
+@media (min-width: 480px) 
+  .category-title
+    font-size: 18px
+    width: 55%
+  
+  .category-title:after 
+    border-width: 23px
+
+.ticket-title
+  font-size: 18px
+  font-weight: bold
+  margin: 10px 0
+  color: #18a1c8
+
+.event-description .fa
+.ticket-description .fa
+  padding-right: 5px
+
+.item-box
+  margin: 0 0 30px
+  border-bottom: 2px solid #ccc
+
+.price-box
+  border: 1px solid #ccc
+  padding: 40px 20px 20px
+  margin: 20px 0

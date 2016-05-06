@@ -1,8 +1,8 @@
-from flask import make_response, render_template, jsonify, request
+from flask import make_response, render_template, jsonify, request, url_for
 from coaster.views import load_models, render_with
 from boxoffice import app, lastuser
-from boxoffice.models import Organization, ItemCollection
-from utils import xhr_only, cors
+from boxoffice.models import ItemCollection, Order, Organization, Price, LineItem, LINE_ITEM_STATUS, ORDER_STATUS
+from utils import xhr_only, cors, invoice_date_filter
 
 
 def jsonify_item(item):
@@ -64,6 +64,7 @@ def jsonify_item_details(item):
         'id': item.id,
         'name': item.name,
         'title': item.title,
+        'category': item.category.title,
         'description': item.description.text,
         'quantity_total': item.quantity_total,
         'quantity_available': item.quantity_available,
@@ -86,15 +87,13 @@ def jsonify_all_category(category):
         'items': category_items
     }
 
-
-def jsonify_item_collection(data):
-    item_collection = data['item_collection']
+def jsonify_item_collection(item_collection):
     categories_json = []
     if item_collection.categories:
         for category in item_collection.categories:
             category_json = jsonify_all_category(category)
             categories_json.append(category_json)
-    item_collection_details = {
+    return {
         'id': item_collection.id,
         'name': item_collection.name,
         'title': item_collection.title,
@@ -102,7 +101,84 @@ def jsonify_item_collection(data):
         'description_html': item_collection.description_html,
         'categories': categories_json
     }
-    return jsonify(item_collection=item_collection_details)
+
+def jsonify_dashboard(data):
+    item_collection = data['item_collection']
+    item_collection_details = jsonify_item_collection(item_collection)
+    started = [ORDER_STATUS.PURCHASE_ORDER]
+    sold = [ORDER_STATUS.SALES_ORDER, ORDER_STATUS.INVOICE]
+    cancelled = [ORDER_STATUS.CANCELLED]
+    item_stats = {}
+    for item in item_collection.items:
+        #Group items based on category
+        if item.category.title not in item_stats:
+            item_stats[item.category.title] = []
+        total_items = item.quantity_total
+        sold_line_items = LineItem.query.join(Order).filter(LineItem.item == item, Order.status.in_(sold), LineItem.status==LINE_ITEM_STATUS.CONFIRMED).count()
+        cancelled_line_items = LineItem.query.filter(LineItem.item == item, LineItem.status==LINE_ITEM_STATUS.CANCELLED).count()
+        item_stats[item.category.title].append({'title': item.title, 'total': total_items, 'sold': sold_line_items, 'cancelled': cancelled_line_items})
+    dashboard = {
+        'item_collection': item_collection_details, 
+        'item_stats': item_stats
+    }
+    return jsonify(title=item_collection.title, dashboard=dashboard, view=data['view'])
+
+def jsonify_items(data):
+    item_collection = data['item_collection']
+    item_collection_details = jsonify_item_collection(item_collection)
+    return jsonify(title=item_collection.title, items=item_collection_details, view=data['view'])   
+
+def jsonify_all_orders(data):
+    item_collection = data['item_collection']
+    orders_json = []
+    orders = data['orders']
+    orders.sort(key=lambda order: order.initiated_at, reverse=True)
+    for order in orders:
+        all_line_items = []
+        for line_item in order.line_items:
+            all_line_items.append({
+                'title': line_item.item.title,
+                'assignee': line_item.current_assignee.fullname if line_item.current_assignee else "",
+                'discount_policy': line_item.discount_policy.title if line_item.discount_policy else "",
+                'discount_coupon': line_item.discount_coupon.code if line_item.discount_coupon else ""
+            })
+        orders_json.append({
+            'invoice_no': order.invoice_no,
+            'order_date': invoice_date_filter(order.paid_at, '%d %b %Y %H:%M:%S') if order.paid_at else invoice_date_filter(order.initiated_at, '%d %b %Y %H:%M:%S'),
+            'status': 'Complete' if order.status else 'Incomplete',
+            'buyer_fullname': order.buyer_fullname,
+            'buyer_email': order.buyer_email,
+            'buyer_phone': order.buyer_phone,
+            'tickets': len(order.line_items),
+            'total': order.get_amounts(),
+            'line_items': all_line_items,
+            'assignee_details': url_for('line_items', access_token=order.access_token)
+        })
+    return jsonify(title=item_collection.title, orders=orders_json, view=data['view'])
+
+
+def jsonify_all_assignees(data):
+    item_collection = data['item_collection']
+    orders_json = []
+    orders = data['orders']
+    assignees_json = {}
+    for order in orders:
+        # Group line_items based on line_item.item since details will be vary for different items
+        for line_item in order.line_items:
+            if line_item.current_assignee:
+                if line_item.item.title not in assignees_json:
+                    assignees_json[line_item.item.title] = []
+                assignees_json[line_item.item.title].append({
+                    'invoice_no': order.invoice_no,
+                    'title': line_item.item.title,
+                    'fullname': line_item.current_assignee.fullname,
+                    'email': line_item.current_assignee.email,
+                    'phone': line_item.current_assignee.phone,
+                    'details': line_item.current_assignee.details,
+                    'discount_policy': line_item.discount_policy.title if line_item.discount_policy else "",
+                    'discount_coupon': line_item.discount_coupon.code if line_item.discount_coupon else ""
+                })
+    return jsonify(title=item_collection.title, assignees=assignees_json, view=data['view'])
 
 
 @app.route('/api/1/boxoffice.js')
@@ -143,13 +219,13 @@ def add_item_collection(organization):
 
 @app.route('/<organization>/<item_collection>', methods=['GET', 'POST'])
 @lastuser.requires_login
-@render_with({'text/html': 'item_collection.html', 'application/json': jsonify_item_collection}, json=True)
+@render_with({'text/html': 'item_collection.html', 'application/json': jsonify_dashboard}, json=True)
 @load_models(
     (Organization, {'name': 'organization'}, 'organization'),
     (ItemCollection, {'name': 'item_collection'}, 'item_collection')
     )
 def view_item_collection(organization, item_collection):
-    return dict(org=organization, item_collection=item_collection)
+    return dict(org=organization, item_collection=item_collection, view='dashboard')
 
 
 @app.route('/<organization>/<item_collection>/edit', methods=['GET', 'POST'])
@@ -172,3 +248,38 @@ def update_item_collection(item_collection):
 def delete_item_collection(item_collection):
     # Delete item_collection
     return make_response(jsonify(message="Item collection deleted"), 201)
+
+
+@app.route('/<organization>/<item_collection>/items', methods=['GET'])
+@lastuser.requires_login
+@load_models(
+    (Organization, {'name': 'organization'}, 'organization'),
+    (ItemCollection, {'name': 'item_collection'}, 'item_collection')
+    )
+@render_with({'text/html': 'item_collection.html', 'application/json': jsonify_items}, json=True)
+def all_items(organization, item_collection):
+    return dict(org=organization, item_collection=item_collection, view='items')
+
+
+@app.route('/<organization>/<item_collection>/orders', methods=['GET'])
+@lastuser.requires_login
+@load_models(
+    (Organization, {'name': 'organization'}, 'organization'),
+    (ItemCollection, {'name': 'item_collection'}, 'item_collection')
+    )
+@render_with({'text/html': 'item_collection.html', 'application/json': jsonify_all_orders}, json=True)
+def all_order(organization, item_collection):
+    orders = Order.query.filter_by(item_collection=item_collection).all()
+    return dict(org=organization, item_collection=item_collection, orders=orders, view='orders')
+
+
+@app.route('/<organization>/<item_collection>/assignees', methods=['GET'])
+@lastuser.requires_login
+@load_models(
+    (Organization, {'name': 'organization'}, 'organization'),
+    (ItemCollection, {'name': 'item_collection'}, 'item_collection')
+    )
+@render_with({'text/html': 'item_collection.html', 'application/json': jsonify_all_assignees}, json=True)
+def all_assignees(organization, item_collection):
+    orders = Order.query.filter_by(item_collection=item_collection, status=ORDER_STATUS.SALES_ORDER).all()
+    return dict(org=organization, item_collection=item_collection, orders=orders, view='assignees')

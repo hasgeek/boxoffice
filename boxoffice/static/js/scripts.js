@@ -42,13 +42,12 @@ window.Boxoffice.Organizations = {
         var ajaxLoad = this;
         ajaxLoad.retries -= 1;
         var errorMsg;
-        if(response.readyState === 4) {
-          //Add error message
+        if (response.readyState === 4) {
+          errorMsg = "Unable to connect.";
         }
-        else if(response.readyState === 0) {
-          if(ajaxLoad.retries < 0) {
+        else if (response.readyState === 0) {
+          if (ajaxLoad.retries < 0) {
             errorMsg = "Unable to connect.";
-
           } else {
             setTimeout(function() {
               $.ajax(ajaxLoad);
@@ -84,14 +83,14 @@ window.Boxoffice.Organizations = {
       },
       deleteOrganization: function(organization, organization_index) {
         var confirm = window.confirm("Are you sure? This organization will be deleted");
-        if(confirm) {
+        if (confirm) {
           var org_id = organizations.ractive.get(organization + '.id');
           var data = JSON.stringify({ organization: { id: org_id } });
           organizations.ractive.postToServer(Boxoffice.Organizations.config.del.urlFor(org_id), Boxoffice.Organizations.config.del.method, data, organization, organizations.ractive.refresh);
         }
       },
       addNewField: function(event, organization, fieldtype, organization_index) {
-        if(organizations.ractive.get(organization + '.newFields')) {
+        if (organizations.ractive.get(organization + '.newFields')) {
           organizations.ractive.push(organization + '.newFields', {'fieldName': '', 'fieldValue': '', 'fieldType': fieldtype});
         }
         else {
@@ -148,7 +147,7 @@ window.Boxoffice.Organizations = {
         var organizationDetails = {};
         var url;
         for (var formIndex=0; formIndex < formElements.length; formIndex++) {
-          if(formElements[formIndex].value && formElements[formIndex].name) {
+          if (formElements[formIndex].value && formElements[formIndex].name) {
             organizationDetails[formElements[formIndex].name] = formElements[formIndex].value;
           }
         }
@@ -189,13 +188,12 @@ window.Boxoffice.Organizations = {
             var ajaxLoad = this;
             ajaxLoad.retries -= 1;
             var errorMsg;
-            if(response.readyState === 4) {
-              //Add error message
+            if (response.readyState === 4) {
+              errorMsg = "Unable to connect.";
             }
-            else if(response.readyState === 0) {
-              if(ajaxLoad.retries < 0) {
+            else if (response.readyState === 0) {
+              if (ajaxLoad.retries < 0) {
                 errorMsg = "Unable to connect.";
-
               } else {
                 setTimeout(function() {
                   $.ajax(ajaxLoad);
@@ -256,13 +254,12 @@ window.Boxoffice.Itemcollections = {
         var ajaxLoad = this;
         ajaxLoad.retries -= 1;
         var errorMsg;
-        if(response.readyState === 4) {
-          //Add error message
+        if (response.readyState === 4) {
+          errorMsg = "Unable to connect.";
         }
-        else if(response.readyState === 0) {
-          if(ajaxLoad.retries < 0) {
+        else if (response.readyState === 0) {
+          if (ajaxLoad.retries < 0) {
             errorMsg = "Unable to connect.";
-
           } else {
             setTimeout(function() {
               $.ajax(ajaxLoad);
@@ -298,7 +295,7 @@ window.Boxoffice.Itemcollections = {
       },
       deleteItemCollection: function(item_collection, item_collection_index) {
         var confirm = window.confirm("Are you sure? This item collection will be deleted");
-        if(confirm) {
+        if (confirm) {
           var item_collection_id = itemCollections.ractive.get(item_collection + '.id');
           var data = JSON.stringify({ item_collection: { id: item_collection } });
           itemCollections.ractive.postToServer(Boxoffice.Itemcollections.config.del.urlFor(item_collection_id), Boxoffice.Itemcollections.config.del.method, data, item_collection, itemCollections.ractive.refresh);
@@ -334,7 +331,7 @@ window.Boxoffice.Itemcollections = {
         var itemCollectionDetails = {};
         var url;
         for (var formIndex=0; formIndex < formElements.length; formIndex++) {
-          if(formElements[formIndex].value) {
+          if (formElements[formIndex].value) {
             itemCollectionDetails[formElements[formIndex].name] = formElements[formIndex].value;
           }
         }
@@ -375,13 +372,12 @@ window.Boxoffice.Itemcollections = {
             var ajaxLoad = this;
             ajaxLoad.retries -= 1;
             var errorMsg;
-            if(response.readyState === 4) {
-              //Add error message
+            if (response.readyState === 4) {
+              errorMsg = "Unable to connect.";
             }
-            else if(response.readyState === 0) {
-              if(ajaxLoad.retries < 0) {
+            else if (response.readyState === 0) {
+              if (ajaxLoad.retries < 0) {
                 errorMsg = "Unable to connect.";
-
               } else {
                 setTimeout(function() {
                   $.ajax(ajaxLoad);
@@ -393,6 +389,221 @@ window.Boxoffice.Itemcollections = {
       },
       oncomplete: function() {
         itemCollections.ractive.addEmptyItemCollection();
+      }
+    });
+  }
+};
+
+/* View categories, items of item collections */
+window.Boxoffice.Item_Collection = {
+  config: {
+    baseURL: '',
+    dashboard: {
+      method: 'GET',
+      urlFor: function() {
+        return Boxoffice.Item_Collection.config.baseURL;
+      },
+      title: 'DashBoard',
+      icon: 'fa-dashboard',
+      view: 'dashboard'
+    },
+    items: {
+      method: 'GET',
+      urlFor: function() {
+        return Boxoffice.Item_Collection.config.baseURL + '/items';
+      },
+      title: 'Items',
+      icon: 'fa-ticket',
+      view: 'items'
+    },
+    discounts: {
+      method: 'GET',
+      urlFor: function() {
+        return Boxoffice.Item_Collection.config.baseURL + '/discounts';
+      },
+      title: 'Discounts',
+      icon: 'fa-tag',
+      view: 'discounts'
+    },
+    orders: {
+      method: 'GET',
+      urlFor: function() {
+        return Boxoffice.Item_Collection.config.baseURL + '/orders';
+      },
+      title: 'Orders',
+      icon: 'fa-shopping-cart',
+      view: 'orders'
+    },
+    assignees: {
+      method: 'GET',
+      urlFor: function() {
+        return Boxoffice.Item_Collection.config.baseURL + '/assignees';
+      },
+      title: 'Assignees',
+      icon: 'fa-users',
+      view: 'assignees'
+    },
+    report: {
+      method: 'GET',
+      urlFor: function() {
+        return Boxoffice.Item_Collection.config.baseURL + '/report';
+      },
+      title: 'Report',
+      icon: 'fa-area-chart',
+      view: 'report'      
+    }
+  },
+  init: function(org, item_collection) {
+    Boxoffice.Item_Collection.config.baseURL = window.location.origin + "/" + org + "/" + item_collection;
+    $.ajax({
+      url: window.location.href,
+      timeout: 5000,
+      retries: 5,
+      dataType: 'json',
+      retryInterval: 5000,
+      success: function(data) {
+        var sideBar = [];
+        var navItem;
+        for (navItem in Boxoffice.Item_Collection.config) {
+          if (Boxoffice.Item_Collection.config[navItem].view) {
+            sideBar.push({
+              view: Boxoffice.Item_Collection.config[navItem].view,
+              url: Boxoffice.Item_Collection.config[navItem].urlFor(),
+              method: Boxoffice.Item_Collection.config[navItem].method,
+              title: Boxoffice.Item_Collection.config[navItem].title,
+              icon: Boxoffice.Item_Collection.config[navItem].icon
+            });
+          }
+        }
+        window.Boxoffice.Item_Collection.view(data, sideBar);
+      },
+      error: function(response) {
+        var ajaxLoad = this;
+        ajaxLoad.retries -= 1;
+        var errorMsg;
+        if (response.readyState === 4) {
+          errorMsg = "Unable to connect.";
+        }
+        else if (response.readyState === 0) {
+          if(ajaxLoad.retries < 0) {
+            errorMsg = "Unable to connect.";
+          } else {
+            setTimeout(function() {
+              $.ajax(ajaxLoad);
+            }, ajaxLoad.retryInterval);
+          }
+        }
+      }
+    });
+  },
+  view: function(data, sideBar) {
+    var ic = this;
+    ic.sidebar_ractive = new Ractive({
+      el: '#boxoffice-ic-sidebar',
+      template: '#boxoffice-ic-sidebar-template',
+      data: {
+        sideBar: sideBar,
+        sidebarOn: false
+      },
+      toggle: function(event) {
+        console.log("toggle");
+        event.original.preventDefault();
+        if(ic.sidebar_ractive.get('sidebarOn')) {
+          ic.sidebar_ractive.set('sidebarOn', false);
+        }
+        else {
+          ic.sidebar_ractive.set('sidebarOn', true);
+        }
+      },
+      refresh: function(event, url, method) {
+        event.original.preventDefault();
+        console.log('refresh', url, method);
+        ic.content_ractive.refreshView(url, method);
+      }
+    });
+
+    ic.content_ractive = new Ractive({
+      el: '#boxoffice-ic',
+      template: '#boxoffice-ic-template',
+      data: {
+        activeView: ''
+      },
+      editItems: function() {
+        var url, method, view;
+        ic.sidebar_ractive.get('sideBar').forEach(function(sidebar) {
+          if (sidebar.view === 'items') {
+            url = sidebar.url;
+            method = sidebar.method;
+          }
+        });
+        ic.content_ractive.refreshView(url, method);
+      },
+      refreshView: function(url, method) {
+        NProgress.configure({ showSpinner: false});
+        NProgress.start();
+        var currentUrl = window.location.href;
+        $.ajax({
+          url: url,
+          type: method,
+          timeout: 5000,
+          retries: 5,
+          dataType: 'json',
+          retryInterval: 5000,
+          headers: {
+            'X-PJAX': true
+          },
+          success: function(data) {
+            //Refresh view: set ractive activeView and data to refresh content on page.
+            console.log('Refresh - View:', data.view, ', data:', data[data.view]);
+            ic.content_ractive.set('activeView', data.view);
+            ic.content_ractive.set(data.view, data[data.view]);
+            NProgress.done();
+            history.replaceState({reloadOnPop: true}, '', currentUrl);
+            history.pushState({reloadOnPop: true}, '', url);
+          },
+          error: function(response) {
+            var ajaxLoad = this;
+            ajaxLoad.retries -= 1;
+            var errorMsg;
+            if (response.readyState === 4) {
+              errorMsg = "Unable to connect.";
+            }
+            else if (response.readyState === 0) {
+              if (ajaxLoad.retries < 0) {
+                errorMsg = "Unable to connect.";
+              } else {
+                setTimeout(function() {
+                  $.ajax(ajaxLoad);
+                }, ajaxLoad.retryInterval);
+              }
+            }
+          }
+        });
+      },
+      addNewCategory: function(event, dataName) {
+        event.original.preventDefault();
+        if (!ic.content_ractive.get(dataName)) {
+          ic.content_ractive.set(dataName, []);
+        }
+        ic.content_ractive.push(dataName, {});
+      },
+      editItem: function(event, Item) {
+        event.original.preventDefault();
+        //To access all categories inside items loop in the template
+        console.log('editItem');
+        ic.content_ractive.set(Item + '.categories', ic.content_ractive.get('items.categories'));
+        ic.content_ractive.set(Item + '.toEdit', true);
+      },
+      oncomplete: function() {
+        console.log('oncomplete - View:', data.view, ', data:', data[data.view]);
+        //For initial page load: Set ractive view and data to display content on page.
+        ic.content_ractive.set(data.view, data[data.view]);
+        ic.content_ractive.set('activeView', data.view);
+        ic.content_ractive.set('title', data.title);
+
+        window.onpopstate = function(event) {
+          ic.content_ractive.refreshView(window.location.href, 'GET');
+        };
       }
     });
   }
@@ -430,13 +641,12 @@ window.Boxoffice.Order = {
         var ajaxLoad = this;
         ajaxLoad.retries -= 1;
         var errorMsg;
-        if(response.readyState === 4) {
-          //Add error message
+        if (response.readyState === 4) {
+          errorMsg = "Unable to connect. Please write to us at support@hasgeek.com with your order number";
         }
-        else if(response.readyState === 0) {
-          if(ajaxLoad.retries < 0) {
+        else if (response.readyState === 0) {
+          if (ajaxLoad.retries < 0) {
             errorMsg = "Unable to connect. Please write to us at support@hasgeek.com with your order number";
-
           } else {
             setTimeout(function() {
               $.ajax(ajaxLoad);
@@ -471,7 +681,7 @@ window.Boxoffice.Order = {
           order.ractive.scrollTop(line_item_seq);
         },
         inputFieldEdit: function(event, line_item) {
-          if(event.node.value) {
+          if (event.node.value) {
             event.node.classList.add('filled');
           }
           else {
@@ -568,7 +778,7 @@ window.Boxoffice.Order = {
                 order.ractive.set(line_item + '.errorMsg', 'Server error');
                 order.ractive.set(line_item + '.assigningTicket', false);
               } else if (response.readyState === 0) {
-                if(ajaxLoad.retries < 0) {
+                if (ajaxLoad.retries < 0) {
                   order.ractive.set(line_item + '.errorMsg', "Unable to connect. Please try again later.");
                   order.ractive.set(line_item + '.assigningTicket', false);
                 } else {
