@@ -1,21 +1,22 @@
 
-import {IndexModel} from '../models/index.js';
-import {IndexTemplate} from '../templates/index.html.js';
+import {ItemCollectionModel} from '../models/item_collection.js';
+import {ItemCollectionTemplate} from '../templates/item_collection.html.js';
 
-export const IndexView = {
-  render: function() {
+export const ItemCollectionView = {
+  render: function(initData) {
     console.log(!this.ractive);
-    if (!this.indexModel) {
-      this.indexModel = new IndexModel();
+    if (!this.model) {
+      this.model = new ItemCollectionModel({
+        id: initData.id
+      });
     }
-    this.indexModel.fetch().then(function(data){
+    this.model.fetch().then(function(data){
       if (!this.ractive) {
-        console.log("ractive")
         this.ractive = new Ractive({
           el: '#main-content-area',
-          template: IndexTemplate,
+          template: ItemCollectionTemplate,
           data: {
-            orgs: data.orgs
+            items: data.items
           }
         });
         this.ractive.on('navigate', function(event, method){

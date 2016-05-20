@@ -1,13 +1,13 @@
 
 import {IndexView} from './index.js';
 import {OrgView} from './org.js';
-import {ItemCollectionView} from './org.js';
+import {ItemCollectionView} from './item_collection.js';
 
 export const Router = Backbone.Router.extend({
   routes: {
     "": "index",
     "o/:org": "org",
-    "ic/:ic": "item_collection"
+    "ic/:icId": "item_collection"
   },
   index: function() {
     IndexView.render();
@@ -15,7 +15,7 @@ export const Router = Backbone.Router.extend({
   org: function(org){
     OrgView.render({name: org});
   },
-  item_collection: function(ic){
-    ItemCollectionView.render({name: ic});
+  item_collection: function(icId){
+    ItemCollectionView.render({id: icId});
   }
 });
