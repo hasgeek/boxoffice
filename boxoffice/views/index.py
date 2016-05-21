@@ -1,7 +1,7 @@
 from flask import g, jsonify, make_response, render_template
 from .. import app, lastuser
 from coaster.views import load_models, render_with
-from boxoffice.models import Organization, ItemCollection
+from boxoffice.models import Organization, ItemCollection, LineItem, LINE_ITEM_STATUS
 
 
 @app.route('/admin')
@@ -15,7 +15,7 @@ def jsonify_org(data):
     return jsonify(id=data['org'].id,
         name=data['org'].name,
         title=data['org'].title,
-        item_collections=[{'id': ic.id, 'name': ic.name} for ic in data['org'].item_collections])
+        item_collections=[{'id': ic.id, 'name': ic.name, 'title': ic.title, 'url': '/ic/' + unicode(ic.id)} for ic in data['org'].item_collections])
 
 
 @app.route('/admin/o/<org>')
@@ -29,9 +29,17 @@ def org(organization):
 
 
 def jsonify_item(item):
+    sold = LineItem.query.filter(LineItem.item == item, LineItem.final_amount > 0, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).count()
+    free = LineItem.query.filter(LineItem.item == item, LineItem.final_amount == 0, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).count()
+    cancelled = LineItem.query.filter(LineItem.item == item, LineItem.status == LINE_ITEM_STATUS.CANCELLED).count()
+    available = item.quantity_total - (sold + free - cancelled)
     return {
         'id': item.id,
-        'title': item.title
+        'title': item.title,
+        'available': available,
+        'sold': sold,
+        'free': free,
+        'cancelled': cancelled
     }
 
 

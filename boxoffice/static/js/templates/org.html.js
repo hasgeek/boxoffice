@@ -1,6 +1,9 @@
 export const orgTemplate = `
-  <p>Hello, {{name}}!</p>
-  {{#item_collections}}
-    <h3>{{name}}</h3>
-  {{/}}
+  <ul>
+    {{#item_collections}}
+      <li>
+        <a href="javascript:void(0)" on-click="navigate">{{title}}</a>
+      </li>
+    {{/}}
+  </ul>
 `

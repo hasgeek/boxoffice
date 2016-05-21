@@ -1,10 +1,10 @@
 
 import {OrgModel} from '../models/org.js';
+// import {renderview} from './renderview.js';
 import {orgTemplate} from '../templates/org.html.js';
 
 export const OrgView = {
   render: function(org) {
-    console.log(orgTemplate);
     if (!this.orgModel) {
       this.orgModel = new OrgModel({
         name: org.name
@@ -21,6 +21,11 @@ export const OrgView = {
             item_collections: data.item_collections
           }
         });
+        this.ractive.on('navigate', function(event, method){
+          // console.log(event.context.url);
+          eventBus.trigger('navigate', event.context.url);
+        });
+
       } else {
         this.ractive.render();
       }
