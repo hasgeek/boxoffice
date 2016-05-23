@@ -31,8 +31,7 @@ class Organization(ProfileBase, db.Model):
     contact_email = db.Column(db.Unicode(254), nullable=False)
 
     def permissions(self, user, inherited=None):
-        print "perms"
         perms = super(Organization, self).permissions(user, inherited)
         if self.userid in user.organizations_owned_ids():
-            perms.update(['org_view'])
+            perms.update(['admin'])
         return perms

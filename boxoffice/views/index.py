@@ -21,6 +21,7 @@ def jsonify_org(data):
 @lastuser.requires_login
 @load_models(
     (Organization, {'name': 'org'}, 'organization'),
+    permission='admin'
     )
 @render_with({'text/html': 'index.html', 'application/json': jsonify_org}, json=True)
 def org(organization):
