@@ -106,6 +106,39 @@ class LineItem(BaseMixin, db.Model):
     def current_assignee(self):
         return self.assignees.filter(Assignee.current == True).one_or_none()
 
+    @classmethod
+    def counts_per_date_per_item(cls, item_collection):
+        """
+        Returns number of line items sold per date per item.
+        Eg: {'2016-01-01': {'item-xxx': 20}}
+        """
+        date_item_counts = {}
+        for item in item_collection.items:
+            item_id = unicode(item.id)
+            item_results = db.session.query(func.date(cls.ordered_at), func.count(cls.id)).filter(
+                cls.item == item, cls.status == LINE_ITEM_STATUS.CONFIRMED).order_by(
+                func.date(cls.ordered_at).asc()).group_by(func.date(cls.ordered_at)).all()
+            for res in item_results:
+                if not date_item_counts.get(res[0].isoformat()):
+                    date_item_counts[res[0].isoformat()] = {item_id: res[1]}
+                else:
+                    date_item_counts[res[0].isoformat()][item_id] = res[1]
+        return date_item_counts
+
+    @classmethod
+    def sales_by_date(cls, dates):
+        """
+        Returns the net sales of line items sold on a date.
+        Accepts a list of dates.
+        ['2016-01-01', '2016-01-02'] => {'2016-01-01': }
+        """
+        date_sales = {}
+        for sales_date in dates:
+            date_sale_res = db.session.query(func.sum(cls.final_amount)).filter(
+                LineItem.status == LINE_ITEM_STATUS.CONFIRMED, func.date(LineItem.ordered_at) == sales_date).first()
+            date_sales[sales_date] = date_sale_res[0]
+        return date_sales
+
 
 def get_confirmed_line_items(self):
     return LineItem.query.filter(LineItem.order == self, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).all()

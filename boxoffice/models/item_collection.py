@@ -1,3 +1,4 @@
+from sqlalchemy import func
 from ..models import db, BaseScopedNameMixin, Organization, MarkdownColumn
 
 __all__ = ['ItemCollection']
