@@ -1,13 +1,19 @@
-from flask import g, jsonify, make_response, render_template
+from flask import g, jsonify
 from .. import app, lastuser
 from coaster.views import load_models, render_with
 from boxoffice.models import Organization
 
 
+def jsonify_dashboard(data):
+    return jsonify(orgs=[{'id': org.id, 'name': org.name, 'title': org.title, 'url': '/o/'+org.name}
+        for org in data['user'].orgs])
+
+
 @app.route('/admin')
 @lastuser.requires_login
+@render_with({'text/html': 'index.html', 'application/json': jsonify_dashboard}, json=True)
 def index():
-    return render_template('index.html')
+    return dict(user=g.user)
 
 
 def jsonify_org(data):
@@ -26,9 +32,3 @@ def jsonify_org(data):
 @render_with({'text/html': 'index.html', 'application/json': jsonify_org}, json=True)
 def org(organization):
     return dict(org=organization)
-
-
-@app.route('/admin/dashboard')
-@lastuser.requires_login
-def dashboard():
-    return make_response(jsonify(orgs=[{'id': org.id, 'name': org.name, 'title': org.title, 'url': '/o/'+org.name} for org in g.user.orgs]), 201)
