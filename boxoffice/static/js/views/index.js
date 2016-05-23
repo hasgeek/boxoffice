@@ -14,7 +14,6 @@ export const IndexView = {
         }
       });
       this.ractive.on('navigate', function(event, method){
-        // console.log(event.context.url);
         eventBus.trigger('navigate', event.context.url);
       });
     })
