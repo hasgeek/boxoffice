@@ -37,7 +37,7 @@ def jsonify_item_collection(item_collection_dict):
 @lastuser.requires_login
 @load_models(
     (ItemCollection, {'id': 'ic_id'}, 'item_collection'),
-    permission='admin'
+    permission='org_admin'
     )
 @render_with({'text/html': 'index.html', 'application/json': jsonify_item_collection}, json=True)
 def admin_item_collection(item_collection):

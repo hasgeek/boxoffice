@@ -71,10 +71,15 @@ let AggChartComponent = Ractive.extend({
           type: 'timeseries',
           tick: {
             format: '%d-%m'
-          }
+          },
+          label: 'Date'
+        },
+        y: {
+          label: 'No. of tickets'
         },
         y2: {
-          show: true
+          show: true,
+          label: 'Sales'
         }
       }
     });
