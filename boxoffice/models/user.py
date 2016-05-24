@@ -33,5 +33,5 @@ class Organization(ProfileBase, db.Model):
     def permissions(self, user, inherited=None):
         perms = super(Organization, self).permissions(user, inherited)
         if self.userid in user.organizations_owned_ids():
-            perms.update(['admin'])
+            perms.update(['org_admin'])
         return perms
