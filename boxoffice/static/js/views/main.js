@@ -1,6 +1,10 @@
 
-import {Router} from './router';
+window._ = require("underscore");
+window.Backbone = require("backbone");
+window.d3 = require("d3");
+window.c3 = require("c3");
 
+import {Router} from './router';
 
 $(function(){
   let appRouter = new Router();
