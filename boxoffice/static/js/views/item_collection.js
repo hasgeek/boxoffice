@@ -87,11 +87,12 @@ let AggChartComponent = Ractive.extend({
 })
 
 export const ItemCollectionView = {
-  init: function(data){
+  init: function(){
     this.ractive = new Ractive({
       el: '#main-content-area',
       template: ItemCollectionTemplate,
       data: {
+        title: this.model.get('title'),
         items: this.model.get('items'),
         date_item_counts: this.model.get('date_item_counts'),
         date_sales: this.model.get('date_sales'),
@@ -114,6 +115,7 @@ export const ItemCollectionView = {
   },
   fetch: function(){
     return this.model.fetch().then(data => {
+      this.model.set('title', data.title);
       this.model.set('items', data.items);
       this.model.set('date_item_counts', data.date_item_counts);
       this.model.set('date_sales', data.date_sales);

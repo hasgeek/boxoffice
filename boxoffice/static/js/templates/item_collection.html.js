@@ -32,12 +32,12 @@ export const TableTemplate = `
 `
 
 export const AggChartTemplate = `
-  <div id="chart" class="c3" style="max-height: 280px; position: relative;">
+  <div id="chart" class="sales-chart">
   </div>
 `
 
 export const ItemCollectionTemplate = `
-  <br>
+  <h1 class="header">{{ title }}</h1>
   <div class="row">
     <div class="col-md-4">
       <div class="panel panel-default">

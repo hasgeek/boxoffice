@@ -26,8 +26,8 @@ def jsonify_item(item):
 def jsonify_item_collection(item_collection_dict):
     item_ids = [item.id for item in item_collection_dict['item_collection'].items]
     net_sales = db.session.query(func.sum(LineItem.final_amount)).filter(LineItem.item_id.in_(item_ids), LineItem.status == LINE_ITEM_STATUS.CONFIRMED).first()
-    return jsonify(items=[jsonify_item(item)
-        for item in item_collection_dict['item_collection'].items],
+    return jsonify(title=item_collection_dict['item_collection'].title,
+        items=[jsonify_item(item) for item in item_collection_dict['item_collection'].items],
         date_item_counts=item_collection_dict['date_item_counts'],
         date_sales=item_collection_dict['date_sales'],
         net_sales=net_sales[0] if net_sales[0] else 0)

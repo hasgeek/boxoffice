@@ -5,23 +5,13 @@
 {% endblock %}
 
 {% block headline %}
-  <div class="page-header">
-  </div>
-  <style>
-    #main-content-area {
-      padding-top: 30px;
-    }
-  </style>
 {% endblock %}
+
 {% block content %}
-  <div class="container-fluid">
-    <div class="row">
-      <div class="col-md-12">
-        <div id='main-content-area'></div>
-      </div>
-    </div>
+  <div class="row">
+    <div id="main-content-area" class="content-wrapper"></div>
   </div>
 {% endblock %}
 {% block footerscripts %}
-  <script src='/static/js/dist/bundle.js'></script>
+  <script src="/static/js/dist/bundle.js"></script>
 {% endblock %}
