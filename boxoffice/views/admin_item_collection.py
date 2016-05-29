@@ -1,4 +1,4 @@
-from flask import jsonify
+from flask import jsonify, g
 from .. import app, lastuser
 from sqlalchemy import func
 from coaster.views import load_models, render_with
@@ -41,6 +41,6 @@ def jsonify_item_collection(item_collection_dict):
     )
 @render_with({'text/html': 'index.html', 'application/json': jsonify_item_collection}, json=True)
 def admin_item_collection(item_collection):
-    date_item_counts = LineItem.counts_per_date_per_item(item_collection)
-    date_sales = LineItem.sales_by_date(date_item_counts.keys())
+    date_item_counts = LineItem.counts_per_date_per_item(item_collection, g.user.timezone)
+    date_sales = LineItem.sales_by_date(date_item_counts.keys(), g.user.timezone)
     return dict(item_collection=item_collection, date_item_counts=date_item_counts, date_sales=date_sales)
