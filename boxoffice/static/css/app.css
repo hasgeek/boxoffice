@@ -8,7 +8,7 @@ body {
 }
 
 .heading {
-  background-color: #856a91;
+  background-color: #856A91;
   color: white;
   padding: 10px 20px;
   border-radius: 5px 5px 0 0;
@@ -355,8 +355,42 @@ a.boxoffice-button:focus {
   width: 100%;
 }
 
+.card {
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0.6);
+  border-radius: 5px;
+  margin: 20px 0;
+}
+
+.card-left {
+  float: left;
+  width: 40%;
+  background-color: #EEEEFF;
+  text-align: center;
+}
+
+.card-left-content {
+  font-size: 40px;
+  text-align: center;
+  margin: 10px 0px;
+}
+
+.card-right {
+  float: right;
+  width: 60%;
+  text-align: center;
+}
+
+.card-right-content {
+  margin: 10px 0;
+}
+
+.chart-wrapper {
+  min-height: 350px;
+  margin: 40px 15px;
+}
+
 .sales-chart {
   position: relative;
-  min-height: 280px;
-  margin-bottom: 50px;
+  min-height: 300px;
+  padding: 20px 0px 0px;
 }

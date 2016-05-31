@@ -1,5 +1,5 @@
 export const TableTemplate = `
-  <div class="table-responsive stats">
+  <div class="table-responsive item-stats-table">
     <table class="table table-bordered table-hover stats-table">
       <thead>
         <tr class="info">
@@ -32,26 +32,49 @@ export const TableTemplate = `
 `
 
 export const AggChartTemplate = `
-  <div id="chart" class="sales-chart">
+  <div class="chart-wrapper card">
+    <div id="chart" class="sales-chart">
+    </div>
   </div>
 `
 
 export const ItemCollectionTemplate = `
   <h1 class="header">{{ title }}</h1>
-  <div class="row">
-    <div class="col-md-4">
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <h3 class="panel-title">Net Sales</h3>
+  <div class="stats clearfix">
+    <div class="col-md-4 col-sm-6 col-xs-12">
+      <div class="card clearfix">
+        <div class="card-left">
+          <p class="card-left-content"><i class="fa fa-inr"></i></p>
         </div>
-        <div class="panel-body">
-          {{net_sales}}
+        <div class="card-right">
+          <h3 class="card-right-content">Net sales</h3>
+          <p class="card-right-content">{{net_sales}}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 col-sm-6 col-xs-12">
+      <div class="card clearfix">
+        <div class="card-left">
+          <p class="card-left-content"><i class="fa fa-ticket"></i></p>
+        </div>
+        <div class="card-right">
+          <h3 class="card-right-content">Ticket sales</h3>
+          <p class="card-right-content">{{ticket_sold}}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 col-sm-6 col-xs-12">
+      <div class="card clearfix">
+        <div class="card-left">
+          <p class="card-left-content"><i class="fa fa-arrow-up"></i></p>
+        </div>
+        <div class="card-right">
+          <h3 class="card-right-content">{{sales_delta}}</h3>
+          <p class="card-right-content">Ticket sales from yesterday</p>
         </div>
       </div>
     </div>
   </div>
-  <hr>
   <AggChartComponent></AggChartComponent>
-  <hr>
   <TableComponent></TableComponent>
 `
