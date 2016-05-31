@@ -108,6 +108,11 @@ $(function() {
         urlFor: function(accessToken){
           return boxoffice.config.baseURL + "/order/" + accessToken + "/receipt";
         }
+      },
+      attendeeAssignment: {
+        urlFor: function(accessToken){
+          return boxoffice.config.baseURL + "/order/" + accessToken + "/ticket";
+        }
       }
     };
   };
@@ -513,7 +518,7 @@ $(function() {
             "key": boxoffice.config.razorpayKeyId,
             //Razorpay expects amount in paisa
             "amount": boxoffice.ractive.get('order.final_amount') * 100,
-            "name": boxoffice.config.org,
+            "name": boxoffice.config.orgName,
             "description": boxoffice.widgetConfig.paymentDesc,
             "image": boxoffice.config.razorpayBanner,
             // Order id is for razorpay's reference, useful for querying
@@ -559,7 +564,8 @@ $(function() {
                 'tabs.payment.loadingPaymentConfirmation': false,
                 'tabs.payment.complete': true,
                 'activeTab': boxoffice.ractive.get('tabs.confirm.id'),
-                'tabs.confirm.section.cashReceiptURL': boxoffice.config.resources.receipt.urlFor(boxoffice.ractive.get('order.access_token'))
+                'tabs.confirm.section.cashReceiptURL': boxoffice.config.resources.receipt.urlFor(boxoffice.ractive.get('order.access_token')),
+                'tabs.confirm.section.attendeeAssignmentURL': boxoffice.config.resources.attendeeAssignment.urlFor(boxoffice.ractive.get('order.access_token'))
               });
               boxoffice.ractive.fire('eventAnalytics', 'booking complete', 'confirmPayment success');
             },
@@ -606,7 +612,8 @@ $(function() {
                 'tabs.payment.loadingPaymentConfirmation': false,
                 'tabs.payment.complete': true,
                 'activeTab': boxoffice.ractive.get('tabs.confirm.id'),
-                'tabs.confirm.section.cashReceiptURL': boxoffice.config.resources.receipt.urlFor(boxoffice.ractive.get('order.access_token'))
+                'tabs.confirm.section.cashReceiptURL': boxoffice.config.resources.receipt.urlFor(boxoffice.ractive.get('order.access_token')),
+                'tabs.confirm.section.attendeeAssignmentURL': boxoffice.config.resources.attendeeAssignment.urlFor(boxoffice.ractive.get('order.access_token'))
               });
               boxoffice.ractive.fire('eventAnalytics', 'booking complete', 'completeFreeOrder success');
             },

@@ -16,9 +16,9 @@ def assign(order):
     """
     Assign a line_item to a participant
     """
-    if not request.json or not request.json.get('attendee'):
-        return make_response(jsonify(message='Missing Attendee details'), 400)
     assignee_dict = request.json.get('attendee')
+    if not request.json or not assignee_dict or not assignee_dict.get('email') or not assignee_dict.get('fullname'):
+        return make_response(jsonify(message='Missing Attendee details'), 400)
     line_item = LineItem.query.get(request.json.get('line_item_id'))
     item_assignee_details = line_item.item.assignee_details
     assignee_details = {}

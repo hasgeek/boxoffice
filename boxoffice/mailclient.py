@@ -10,13 +10,13 @@ from . import mail, app
 
 def send_receipt_email(order_id, subject="Thank you for your order!"):
     """
-    Sends an invoice with a PDF attached, to the order's buyer
+    Sends an link to fill attendee details and cash receipt to the order's buyer
     """
     with app.test_request_context():
         order = Order.query.get(order_id)
         msg = Message(subject=subject, recipients=[order.buyer_email], bcc=[order.organization.contact_email])
         line_items = LineItem.query.filter(LineItem.order == order, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).order_by("line_item_seq asc").all()
-        html = email_transform(render_template('cash_receipt.html', order=order, org=order.organization, line_items=line_items))
+        html = email_transform(render_template('attendee_assigment.html', order=order, org=order.organization, line_items=line_items, base_url=app.config['BASE_URL']))
         msg.html = html
         msg.body = html2text(html)
         mail.send(msg)

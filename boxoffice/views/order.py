@@ -1,13 +1,13 @@
 from datetime import datetime
 from decimal import Decimal
-from flask import url_for, request, jsonify, render_template, make_response
+from flask import url_for, request, jsonify, render_template, make_response, abort
 from rq import Queue
 from redis import Redis
 from coaster.views import render_with, load_models
 from .. import app
 from ..models import db
 from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy, LINE_ITEM_STATUS
-from ..models import Order, OnlinePayment, PaymentTransaction, User, CURRENCY
+from ..models import Order, OnlinePayment, PaymentTransaction, User, CURRENCY, ORDER_STATUS
 from ..extapi import razorpay
 from ..forms import LineItemForm, BuyerForm
 from custom_exceptions import APIError
@@ -261,3 +261,46 @@ def receipt(order):
     )
 def line_items(order):
     return dict(order=order, org=order.organization)
+
+
+def jsonify_orders(orders):
+    api_orders = []
+
+    def format_assignee(line_item):
+        if not line_item.current_assignee:
+            return dict()
+        assignee = {
+            'fullname': line_item.current_assignee.fullname,
+            'email': line_item.current_assignee.email,
+            'phone': line_item.current_assignee.phone
+        }
+
+        for key in line_item.item.assignee_details:
+            assignee[key] = line_item.current_assignee.details.get(key)
+        return assignee
+
+    for order in orders:
+        order_dict = {'invoice_no': order.invoice_no, 'line_items': []}
+        for line_item in order.get_confirmed_line_items:
+            order_dict['line_items'].append({
+                'assignee': format_assignee(line_item),
+                'line_item_seq': line_item.line_item_seq,
+                'item': {
+                    'title': line_item.item.title
+                }
+            })
+        api_orders.append(order_dict)
+    return api_orders
+
+
+@app.route('/api/1/ic/<item_collection>/orders', methods=['GET', 'OPTIONS'])
+@load_models(
+    (ItemCollection, {'id': 'item_collection'}, 'item_collection')
+    )
+def item_collection_orders(item_collection):
+    organization = item_collection.organization
+    # TODO: Replace with a better authentication system
+    if not request.args.get('access_token') or request.args.get('access_token') != organization.details.get("access_token"):
+        abort(401)
+    orders = item_collection.orders.filter(Order.status.in_([ORDER_STATUS.SALES_ORDER, ORDER_STATUS.INVOICE])).all()
+    return jsonify(orders=jsonify_orders(orders))
