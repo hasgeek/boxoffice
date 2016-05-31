@@ -2,10 +2,6 @@
 import {ItemCollectionModel} from '../models/item_collection.js';
 import {TableTemplate, AggChartTemplate, ItemCollectionTemplate} from '../templates/item_collection.html.js';
 
-// Components
-// table
-// chart
-
 let TableComponent = Ractive.extend({
   isolated: false,
   template: TableTemplate
@@ -96,7 +92,9 @@ export const ItemCollectionView = {
         items: this.model.get('items'),
         date_item_counts: this.model.get('date_item_counts'),
         date_sales: this.model.get('date_sales'),
-        net_sales: this.model.get('net_sales')
+        net_sales: this.model.get('net_sales'),
+        sales_delta: this.model.get('sales_delta'),
+        today_sales: this.model.get('today_sales')
       },
       components: {TableComponent: TableComponent, AggChartComponent: AggChartComponent}
     });
@@ -120,6 +118,8 @@ export const ItemCollectionView = {
       this.model.set('date_item_counts', data.date_item_counts);
       this.model.set('date_sales', data.date_sales);
       this.model.set('net_sales', data.net_sales);
+      this.model.set('sales_delta', data.sales_delta);
+      this.model.set('today_sales', data.today_sales);
     });
   },
   refresh: function(){

@@ -1,4 +1,6 @@
+import datetime
 from flask import jsonify, g
+from decimal import Decimal
 from .. import app, lastuser
 from sqlalchemy import func
 from coaster.views import load_models, render_with
@@ -30,7 +32,9 @@ def jsonify_item_collection(item_collection_dict):
         items=[jsonify_item(item) for item in item_collection_dict['item_collection'].items],
         date_item_counts=item_collection_dict['date_item_counts'],
         date_sales=item_collection_dict['date_sales'],
-        net_sales=net_sales[0] if net_sales[0] else 0)
+        today_sales=item_collection_dict['today_sales'],
+        net_sales=net_sales[0] if net_sales[0] else 0,
+        sales_delta=item_collection_dict['sales_delta'])
 
 
 @app.route('/admin/ic/<ic_id>')
@@ -43,4 +47,8 @@ def jsonify_item_collection(item_collection_dict):
 def admin_item_collection(item_collection):
     date_item_counts = LineItem.counts_per_date_per_item(item_collection, g.user.timezone)
     date_sales = LineItem.sales_by_date(date_item_counts.keys(), g.user.timezone)
-    return dict(item_collection=item_collection, date_item_counts=date_item_counts, date_sales=date_sales)
+    sales_delta = LineItem.sales_delta(g.user.timezone)
+    today_sales = date_sales.get(datetime.datetime.now().strftime("%Y-%m-%d"), Decimal(0))
+    return dict(item_collection=item_collection, date_item_counts=date_item_counts,
+        date_sales=date_sales, today_sales=today_sales,
+        sales_delta=sales_delta)

@@ -1,5 +1,6 @@
 import itertools
 from decimal import Decimal
+import datetime
 from collections import namedtuple
 from sqlalchemy.sql import select, func
 from boxoffice.models import db, JsonDict, BaseMixin, Order, Item, DiscountPolicy, DISCOUNT_TYPE, DiscountCoupon
@@ -138,8 +139,20 @@ class LineItem(BaseMixin, db.Model):
             date_sale_res = db.session.query('sum').from_statement('''SELECT SUM(final_amount) FROM line_item
                 WHERE status=:status AND DATE_TRUNC('day', line_item.ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone)::date = :sales_date
                 ''').params(timezone=user_tz, status=LINE_ITEM_STATUS.CONFIRMED, sales_date=sales_date).first()
-            date_sales[sales_date] = date_sale_res[0]
+            date_sales[sales_date] = date_sale_res[0] or Decimal(0)
         return date_sales
+
+    @classmethod
+    def sales_delta(cls, user_tz):
+        """
+        Calculates the percentage difference in sales between today and yesterday
+        """
+        today = datetime.datetime.now().strftime("%Y-%m-%d")
+        yesterday = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+        sales = cls.sales_by_date([today, yesterday], user_tz)
+        if not sales[yesterday]:
+            return 0
+        return Decimal('100') * (sales[today] - sales[yesterday])/sales[yesterday]
 
 
 def get_confirmed_line_items(self):
