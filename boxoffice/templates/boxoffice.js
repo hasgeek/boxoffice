@@ -248,9 +248,11 @@ $(function() {
                   }
                 }
               });
-              boxoffice.ractive.set('order.line_items',line_items);
-              boxoffice.ractive.calculateOrder();
-              boxoffice.ractive.scrollTop();
+              if(applyDiscount) {
+                boxoffice.ractive.set('order.line_items',line_items);
+                boxoffice.ractive.calculateOrder();
+                boxoffice.ractive.scrollTop();
+              }
             },
             error: function(response) {
               var ajaxLoad = this;
