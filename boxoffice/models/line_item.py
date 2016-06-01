@@ -108,7 +108,7 @@ class LineItem(BaseMixin, db.Model):
         return self.assignees.filter(Assignee.current == True).one_or_none()
 
 
-def counts_per_date_per_item(item_collection, timezone):
+def counts_per_date_per_item(item_collection, user_tz):
     """
     Returns number of line items sold per date per item.
     Eg: {'2016-01-01': {'item-xxx': 20}}
@@ -119,7 +119,7 @@ def counts_per_date_per_item(item_collection, timezone):
         item_results = db.session.query('date', 'count').from_statement(
             '''SELECT DATE_TRUNC('day', line_item.ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone)::date as date, count(line_item.id)
             from line_item where item_id = :item_id and status = :status group by date order by date asc'''
-        ).params(timezone=timezone, status=LINE_ITEM_STATUS.CONFIRMED, item_id=item.id)
+        ).params(timezone=user_tz, status=LINE_ITEM_STATUS.CONFIRMED, item_id=item.id)
         for res in item_results:
             if not date_item_counts.get(res[0].isoformat()):
                 date_item_counts[res[0].isoformat()] = {item_id: res[1]}
