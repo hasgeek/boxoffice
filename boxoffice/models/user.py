@@ -14,6 +14,10 @@ class User(UserBase2, db.Model):
     def __repr__(self):
         return self.fullname
 
+    @property
+    def orgs(self):
+        return Organization.query.filter(Organization.userid.in_(self.organizations_owned_ids()))
+
 
 def default_user(context):
     return g.user.id if g.user else None
@@ -25,3 +29,9 @@ class Organization(ProfileBase, db.Model):
 
     details = db.Column(JsonDict, nullable=False, server_default='{}')
     contact_email = db.Column(db.Unicode(254), nullable=False)
+
+    def permissions(self, user, inherited=None):
+        perms = super(Organization, self).permissions(user, inherited)
+        if self.userid in user.organizations_owned_ids():
+            perms.add('org_admin')
+        return perms

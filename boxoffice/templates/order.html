@@ -1,23 +1,21 @@
 {% extends "layout.html" %}
 
+{% block headerbox %}
+{% endblock %}
+
 {% block headline %}
-  <div class="page-header">
-    <h1>Boxoffice Ticket Assignment</h1>
-  </div>
 {% endblock %}
 
 {% block content %}
-  <div class="container">
-    <h1 class="header">Boxoffice Ticket Assignment</h1>
-     
+  <div class="order">
+
+    <h1 class="header">{{order.item_collection.title}} Ticket Assignment</h1>
+    <p class="item-collection-description">{{order.item_collection.description_text}}</p>
+
     <div class="clearfix">
       <div class="organization-logo">
        <img src="{{org.details.get('logo')}}"/>
-      </div> 
-
-      <div class="inventory">
-       <p class="title">{{order.item_collection.description_text}}</p>
-      </div> 
+      </div>
     </div>
     
     <div class="row" id="boxoffice-order">
@@ -139,4 +137,5 @@
   </div>
 {% endblock %}
 {% block footerscripts %}
+  <script src='/static/js/views/order.js'></script>
 {% endblock %}
