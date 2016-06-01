@@ -236,21 +236,20 @@ $(function() {
               var line_items = boxoffice.ractive.get('order.line_items');
               line_items.forEach(function(line_item) {
                 if (data.line_items.hasOwnProperty(line_item.item_id)) {
-                  if(data.line_items[line_item.item_id].discounted_amount) {
-                    if(!applyDiscount && line_item.quantity_available > 0) {
-                      line_item.quantity = 1;
-                      applyDiscount = true;
-                    }
-                    else {
-                      line_item.show_discountprice = true;
-                    }
+                  if(data.line_items[line_item.item_id].discounted_amount && line_item.quantity_available > 0) {
+                    applyDiscount = true;
+                    line_item.show_discountprice = true;
                     line_item.discount_price = data.line_items[line_item.item_id].final_amount;
+                    line_item.discount_policies.forEach(function(discount_policy){
+                      if (data.line_items[line_item.item_id].discount_policy_ids.indexOf(discount_policy.id) >= 0) {
+                        discount_policy.applyCoupon = true;
+                      }
+                    });
                   }
                 }
               });
               if(applyDiscount) {
                 boxoffice.ractive.set('order.line_items',line_items);
-                boxoffice.ractive.calculateOrder();
                 boxoffice.ractive.scrollTop();
               }
             },
