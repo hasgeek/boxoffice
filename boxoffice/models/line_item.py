@@ -107,52 +107,52 @@ class LineItem(BaseMixin, db.Model):
     def current_assignee(self):
         return self.assignees.filter(Assignee.current == True).one_or_none()
 
-    @classmethod
-    def counts_per_date_per_item(cls, item_collection, timezone):
-        """
-        Returns number of line items sold per date per item.
-        Eg: {'2016-01-01': {'item-xxx': 20}}
-        """
-        date_item_counts = {}
-        for item in item_collection.items:
-            item_id = unicode(item.id)
-            item_results = db.session.query('date', 'count').from_statement(
-                '''SELECT DATE_TRUNC('day', line_item.ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone)::date as date, count(line_item.id)
-                from line_item where item_id = :item_id and status = :status group by date order by date asc'''
-            ).params(timezone=timezone, status=LINE_ITEM_STATUS.CONFIRMED, item_id=item.id)
-            for res in item_results:
-                if not date_item_counts.get(res[0].isoformat()):
-                    date_item_counts[res[0].isoformat()] = {item_id: res[1]}
-                else:
-                    date_item_counts[res[0].isoformat()][item_id] = res[1]
-        return date_item_counts
 
-    @classmethod
-    def sales_by_date(cls, dates, user_tz):
-        """
-        Returns the net sales of line items sold on a date.
-        Accepts a list of dates.
-        ['2016-01-01', '2016-01-02'] => {'2016-01-01': }
-        """
-        date_sales = {}
-        for sales_date in dates:
-            date_sale_res = db.session.query('sum').from_statement('''SELECT SUM(final_amount) FROM line_item
-                WHERE status=:status AND DATE_TRUNC('day', line_item.ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone)::date = :sales_date
-                ''').params(timezone=user_tz, status=LINE_ITEM_STATUS.CONFIRMED, sales_date=sales_date).first()
-            date_sales[sales_date] = date_sale_res[0] or Decimal(0)
-        return date_sales
+def counts_per_date_per_item(item_collection, timezone):
+    """
+    Returns number of line items sold per date per item.
+    Eg: {'2016-01-01': {'item-xxx': 20}}
+    """
+    date_item_counts = {}
+    for item in item_collection.items:
+        item_id = unicode(item.id)
+        item_results = db.session.query('date', 'count').from_statement(
+            '''SELECT DATE_TRUNC('day', line_item.ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone)::date as date, count(line_item.id)
+            from line_item where item_id = :item_id and status = :status group by date order by date asc'''
+        ).params(timezone=timezone, status=LINE_ITEM_STATUS.CONFIRMED, item_id=item.id)
+        for res in item_results:
+            if not date_item_counts.get(res[0].isoformat()):
+                date_item_counts[res[0].isoformat()] = {item_id: res[1]}
+            else:
+                date_item_counts[res[0].isoformat()][item_id] = res[1]
+    return date_item_counts
 
-    @classmethod
-    def sales_delta(cls, user_tz):
-        """
-        Calculates the percentage difference in sales between today and yesterday
-        """
-        today = datetime.datetime.now().strftime("%Y-%m-%d")
-        yesterday = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
-        sales = cls.sales_by_date([today, yesterday], user_tz)
-        if not sales[yesterday]:
-            return 0
-        return Decimal('100') * (sales[today] - sales[yesterday])/sales[yesterday]
+
+def sales_by_date(dates, user_tz):
+    """
+    Returns the net sales of line items sold on a date.
+    Accepts a list of dates.
+    ['2016-01-01', '2016-01-02'] => {'2016-01-01': }
+    """
+    date_sales = {}
+    for sales_date in dates:
+        date_sale_res = db.session.query('sum').from_statement('''SELECT SUM(final_amount) FROM line_item
+            WHERE status=:status AND DATE_TRUNC('day', line_item.ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone)::date = :sales_date
+            ''').params(timezone=user_tz, status=LINE_ITEM_STATUS.CONFIRMED, sales_date=sales_date).first()
+        date_sales[sales_date] = date_sale_res[0] or Decimal(0)
+    return date_sales
+
+
+def sales_delta(user_tz):
+    """
+    Calculates the percentage difference in sales between today and yesterday
+    """
+    today = datetime.datetime.now().strftime("%Y-%m-%d")
+    yesterday = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+    sales = sales_by_date([today, yesterday], user_tz)
+    if not sales[yesterday]:
+        return 0
+    return Decimal('100') * (sales[today] - sales[yesterday])/sales[yesterday]
 
 
 def get_confirmed_line_items(self):
