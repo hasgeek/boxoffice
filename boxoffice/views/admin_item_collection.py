@@ -46,9 +46,10 @@ def jsonify_item_collection(item_collection_dict):
     )
 @render_with({'text/html': 'index.html', 'application/json': jsonify_item_collection}, json=True)
 def admin_item_collection(item_collection):
+    item_ids = [str(item.id) for item in item_collection.items]
     date_item_counts = counts_per_date_per_item(item_collection, g.user.timezone)
-    date_sales = sales_by_date(date_item_counts.keys(), g.user.timezone)
+    date_sales = sales_by_date(date_item_counts.keys(), g.user.timezone, item_ids)
     today_sales = date_sales.get(datetime.datetime.now().strftime("%Y-%m-%d"), Decimal(0))
     return dict(item_collection=item_collection, date_item_counts=date_item_counts,
         date_sales=date_sales, today_sales=today_sales,
-        sales_delta=sales_delta(g.user.timezone))
+        sales_delta=sales_delta(g.user.timezone, item_ids))
