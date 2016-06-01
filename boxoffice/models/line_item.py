@@ -155,7 +155,7 @@ def sales_delta(user_tz, item_ids):
     sales = sales_by_date([today, yesterday], user_tz, item_ids)
     if not sales[yesterday]:
         return 0
-    return Decimal('100') * (sales[today] - sales[yesterday])/sales[yesterday]
+    return round(Decimal('100') * (sales[today] - sales[yesterday])/sales[yesterday], 2)
 
 
 def get_confirmed_line_items(self):
