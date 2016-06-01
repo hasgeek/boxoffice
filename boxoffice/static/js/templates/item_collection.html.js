@@ -10,7 +10,7 @@ export const TableTemplate = `
           <th>Free</th>
           <th>Cancelled</th>
           <th>Current Price</th>
-          <th>Net Sales (<i class="fa fa-inr"></i>)</th>
+          <th>Net Sales</th>
         </tr>
       </thead>
       <tbody>
@@ -48,7 +48,7 @@ export const ItemCollectionTemplate = `
         </div>
         <div class="card-right">
           <h3 class="card-right-content">Net sales</h3>
-          <p class="card-right-content"><i class="fa fa-inr">&nbsp;&nbsp;{{net_sales}}</p>
+          <p class="card-right-content">{{net_sales}}</p>
         </div>
       </div>
     </div>
@@ -59,7 +59,7 @@ export const ItemCollectionTemplate = `
         </div>
         <div class="card-right">
           <h3 class="card-right-content">Today's sales</h3>
-          <p class="card-right-content"><i class="fa fa-inr">&nbsp;&nbsp;{{today_sales}}</p>
+          <p class="card-right-content">{{today_sales}}</p>
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 
 import {ItemCollectionModel} from '../models/item_collection.js';
 import {TableTemplate, AggChartTemplate, ItemCollectionTemplate} from '../templates/item_collection.html.js';
+import {Util} from './util.js';
 
 let TableComponent = Ractive.extend({
   isolated: false,
@@ -83,23 +84,33 @@ let AggChartComponent = Ractive.extend({
 })
 
 export const ItemCollectionView = {
+  formatItems: function(items){
+    var formattedItems = _.extend(items);
+    formattedItems.forEach(function(item){
+      item.net_sales = Util.formatToIndianRupee(item.net_sales);
+    })
+    return formattedItems;
+  },
   init: function(){
+
     this.ractive = new Ractive({
       el: '#main-content-area',
       template: ItemCollectionTemplate,
       data: {
         title: this.model.get('title'),
-        items: this.model.get('items'),
+        items: this.formatItems(this.model.get('items')),
         date_item_counts: this.model.get('date_item_counts'),
         date_sales: this.model.get('date_sales'),
-        net_sales: this.model.get('net_sales'),
+        net_sales: Util.formatToIndianRupee(this.model.get('net_sales')),
         sales_delta: this.model.get('sales_delta'),
-        today_sales: this.model.get('today_sales')
+        today_sales: Util.formatToIndianRupee(this.model.get('today_sales'))
       },
       components: {TableComponent: TableComponent, AggChartComponent: AggChartComponent}
     });
 
-    this.model.on('change:items', (model, items) => this.ractive.set('items', items));
+    this.model.on('change:items', function(model, items){
+      this.ractive.set('items', this.formatItems(items));
+    });
 
     this.ractive.on('navigate', function(event, method){
       // kill interval
