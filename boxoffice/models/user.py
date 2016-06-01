@@ -14,6 +14,7 @@ class User(UserBase2, db.Model):
     def __repr__(self):
         return self.fullname
 
+    @property
     def orgs(self):
         return Organization.query.filter(Organization.userid.in_(self.organizations_owned_ids()))
 
