@@ -122,8 +122,10 @@ def counts_per_date_per_item(item_collection, user_tz):
         ).params(timezone=user_tz, status=LINE_ITEM_STATUS.CONFIRMED, item_id=item.id)
         for res in item_results:
             if not date_item_counts.get(res[0].isoformat()):
+                # if this date hasn't been been mapped in date_item_counts yet
                 date_item_counts[res[0].isoformat()] = {item_id: res[1]}
             else:
+                # if it has been mapped, assign the count
                 date_item_counts[res[0].isoformat()][item_id] = res[1]
     return date_item_counts
 
