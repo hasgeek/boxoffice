@@ -14,6 +14,8 @@ export const IndexView = {
         }
       });
       this.ractive.on('navigate', function(event, method){
+        NProgress.configure({ showSpinner: false});
+        NProgress.start();
         eventBus.trigger('navigate', event.context.url);
       });
     })
