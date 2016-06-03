@@ -1,6 +1,7 @@
 
 import {ItemCollectionModel} from '../models/item_collection.js';
 import {TableTemplate, AggChartTemplate, ItemCollectionTemplate} from '../templates/item_collection.html.js';
+import {SideBarView} from './sidebar.js'
 import {Util} from './util.js';
 
 let TableComponent = Ractive.extend({
@@ -92,6 +93,7 @@ export const ItemCollectionView = {
     return formattedItems;
   },
   init: function(){
+    var itemCollectionView = this;
 
     this.ractive = new Ractive({
       el: '#main-content-area',
@@ -108,18 +110,23 @@ export const ItemCollectionView = {
       components: {TableComponent: TableComponent, AggChartComponent: AggChartComponent}
     });
 
+    NProgress.done();
+
     this.model.on('change:items', function(model, items){
-      this.ractive.set('items', this.formatItems(items));
+      itemCollectionView.ractive.set('items', itemCollectionView.formatItems(items));
     });
 
-    this.ractive.on('navigate', function(event, method){
+    amplify.subscribe('navigate', function(navigate) {
       // kill interval
-      clearInterval(this.intervalId);
-      eventBus.trigger('navigate', event.context.url);
+      clearInterval(itemCollectionView.intervalId);
+      eventBus.trigger('navigate', navigate.url);
     });
+
     window.addEventListener('popstate', (event) => {
       // kill interval
       clearInterval(this.intervalId);
+      NProgress.configure({ showSpinner: false});
+      NProgress.start();
     });
   },
   fetch: function(){
@@ -140,6 +147,8 @@ export const ItemCollectionView = {
     this.model = new ItemCollectionModel({
       id: initData.id
     });
+
+    SideBarView.render({id: this.model.get('id')});
 
     this.fetch().then(() => this.init());
 

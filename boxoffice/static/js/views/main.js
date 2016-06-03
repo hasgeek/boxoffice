@@ -3,6 +3,7 @@ window._ = require("underscore");
 window.Backbone = require("backbone");
 window.d3 = require("d3");
 window.c3 = require("c3");
+window.amplify = require("amplifier");
 
 import {Router} from './router';
 
