@@ -10,13 +10,13 @@ export const SideBarModel = Backbone.Model.extend({
         view: 'dashboard'
       },
       {
-        // url: baseUrl + '/items',
+        url: baseUrl + '/items',
         title: 'Items',
         icon: 'fa-ticket',
         view: 'items'
       },
       {
-        // url: baseUrl + '/discounts',
+        url: baseUrl + '/discounts',
         title: 'Discounts',
         icon: 'fa-tag',
         view: 'discounts'
@@ -28,13 +28,13 @@ export const SideBarModel = Backbone.Model.extend({
         view: 'orders'
       },
       {
-        // url: baseUrl + '/assignees',
+        url: baseUrl + '/assignees',
         title: 'Assignees',
         icon: 'fa-users',
         view: 'assignees'
       },
       {
-        // url: baseUrl + '/reports',
+        url: baseUrl + '/reports',
         title: 'Reports',
         icon: 'fa-area-chart',
         view: 'report'      
