@@ -1,8 +1,7 @@
 
 import {ItemCollectionModel} from '../models/item_collection.js';
-import {SideBarModel} from '../models/sidebar.js'
 import {TableTemplate, AggChartTemplate, ItemCollectionTemplate} from '../templates/item_collection.html.js';
-import {SideBarComponent} from './sidebar.js'
+import {SideBarView} from './sidebar.js'
 import {Util} from './util.js';
 
 let TableComponent = Ractive.extend({
@@ -94,13 +93,13 @@ export const ItemCollectionView = {
     return formattedItems;
   },
   init: function(){
+    var itemCollectionView = this;
 
     this.ractive = new Ractive({
       el: '#main-content-area',
       template: ItemCollectionTemplate,
       data: {
         title: this.model.get('title'),
-        sideBar: this.model.get('sidebar'),
         items: this.formatItems(this.model.get('items')),
         date_item_counts: this.model.get('date_item_counts'),
         date_sales: this.model.get('date_sales'),
@@ -108,27 +107,29 @@ export const ItemCollectionView = {
         sales_delta: this.model.get('sales_delta'),
         today_sales: Util.formatToIndianRupee(this.model.get('today_sales'))
       },
-      components: {SideBarComponent: SideBarComponent, TableComponent: TableComponent, AggChartComponent: AggChartComponent},
-      navigate: function(url) {
-        // kill interval
-        clearInterval(this.intervalId);
-        eventBus.trigger('navigate', url);
-      }
+      components: {TableComponent: TableComponent, AggChartComponent: AggChartComponent}
     });
 
+    NProgress.done();
+
     this.model.on('change:items', function(model, items){
-      this.ractive.set('items', this.formatItems(items));
+      itemCollectionView.ractive.set('items', itemCollectionView.formatItems(items));
+    });
+
+    amplify.subscribe('navigate', function(navigate) {
+      // kill interval
+      clearInterval(itemCollectionView.intervalId);
+      eventBus.trigger('navigate', navigate.url);
     });
 
     window.addEventListener('popstate', (event) => {
       // kill interval
       clearInterval(this.intervalId);
+      NProgress.configure({ showSpinner: false});
+      NProgress.start();
     });
   },
   fetch: function(){
-    var sidebar = new SideBarModel();
-    this.model.set('sidebar', sidebar.sideBarItems(this.model.get('id')));
-
     return this.model.fetch().then(data => {
       this.model.set('title', data.title);
       this.model.set('items', data.items);
@@ -147,9 +148,9 @@ export const ItemCollectionView = {
       id: initData.id
     });
 
-    this.fetch().then(() => this.init());
+    SideBarView.render({id: this.model.get('id')});
 
-    NProgress.done();
+    this.fetch().then(() => this.init());
 
     this.intervalId = setInterval(() => this.refresh(), 3000);
   }

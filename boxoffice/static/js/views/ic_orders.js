@@ -1,41 +1,42 @@
 
 import {OrdersModel} from '../models/orders.js';
-import {SideBarModel} from '../models/sidebar.js'
 import {OrdersTableTemplate, OrdersTemplate} from '../templates/orders.html.js';
-import {SideBarComponent} from './sidebar.js'
+import {SideBarView} from './sidebar.js'
 
 export const OrdersView = {
   init: function(){
+    var ordersView = this;
 
     this.ractive = new Ractive({
       el: '#main-content-area',
       template: OrdersTemplate,
       data: {
         title: this.model.get('title'),
-        sideBar: this.model.get('sidebar'),
         orders: this.model.get('orders'),
-      },
-      components: {SideBarComponent: SideBarComponent},
-      navigate: function(url) {
-        // kill interval
-        clearInterval(this.intervalId);
-        eventBus.trigger('navigate', url);
+        fileUrl: this.model.fileUrl()
       }
     });
 
+    NProgress.done();
+
     this.model.on('change:orders', function(model, orders){
-      this.ractive.set('orders', orders);
+      ordersView.ractive.set('orders', orders);
+    });
+
+    amplify.subscribe('navigate', function(navigate) {
+      // kill interval
+      clearInterval(ordersView.intervalId);
+      eventBus.trigger('navigate', navigate.url);
     });
 
     window.addEventListener('popstate', (event) => {
       // kill interval
       clearInterval(this.intervalId);
+      NProgress.configure({ showSpinner: false});
+      NProgress.start();
     });
   },
   fetch: function(){
-    var sidebar = new SideBarModel();
-    this.model.set('sidebar', sidebar.sideBarItems(this.model.get('id')));
-
     return this.model.fetch().then(data => {
       this.model.set('title', data.title);
       this.model.set('orders', data.orders);
@@ -49,9 +50,9 @@ export const OrdersView = {
       id: initData.id
     });
 
-    this.fetch().then(() => this.init());
+    SideBarView.render({id: this.model.get('id')});
 
-    NProgress.done();
+    this.fetch().then(() => this.init());
 
     this.intervalId = setInterval(() => this.refresh(), 3000);
   }
