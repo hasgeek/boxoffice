@@ -5,7 +5,6 @@ export const OrdersTemplate = `
     <div class="col-xs-12">
       <h2>Orders</h2>
       {{#if orders}}
-        <p><a class="boxoffice-button boxoffice-button-small boxoffice-button-info" href={{ fileUrl }} download target="_blank">Download orders</a></p>
         <div class="table-responsive item-stats-table">
           <table class="table table-bordered table-hover stats-table" id='orders-table'> 
             <thead>   
