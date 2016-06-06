@@ -28,7 +28,7 @@
                       <p class="ticket-title text-primary">{{ line_item.item_title }}</p>
                       <div class="ticket-description">{{{ line_item.item_description }}}</div>
                       {{#line_item.discount_policies}}
-                        {{#if is_automatic || activated || applyCoupon }}
+                        {{#if is_automatic || activated || apply_coupon }}
                           <p class="discount {{#activated}}applied{{/}}">
                             {{ title }}{{#activated && !isLoadingFail}} <i class="fa fa-check"></i>{{/}}
                           </p>
@@ -46,10 +46,10 @@
                       {{/if}}
                       {{#if line_item.quantity_available > 0}}
                         <div class="ticket-price-wrapper">
-                          {{#if show_discountprice}}
+                          {{#if line_item.discount_price >= 0 && line_item.quantity === 0}}
                             <p class="discount-price ticket-price"><i class="fa fa-inr rupee-sign"></i>{{ line_item.discount_price }}</p>
                           {{/if}}
-                          <p class="ticket-price {{#if show_discountprice}}strike{{/if}}"><i class="fa fa-inr rupee-sign"></i>{{ line_item.base_price }}</p>
+                          <p class="ticket-price {{#if line_item.discount_price >= 0 && line_item.quantity === 0}}strike{{/if}}"><i class="fa fa-inr rupee-sign"></i>{{ line_item.base_price }}</p>
                         </div>
                         <span class="multiplier">&times;</span>
                         <div class="ticket-qty-wrapper">

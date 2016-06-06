@@ -211,7 +211,7 @@ $(function() {
           boxoffice.ractive.set('activeTab', boxoffice.ractive.get('tabs.selectItems.id'));
           boxoffice.ractive.scrollTop();
         },
-        applyDiscount: function(discountCoupons) {
+        applyDiscount: function(discount_coupons) {
           //Ask server for the corresponding line_item for the discount coupon. Add one quantity of that line_item
           $.post({
             url: boxoffice.config.resources.kharcha.urlFor(),
@@ -226,29 +226,28 @@ $(function() {
                   item_id: line_item.item_id
                 };
               }),
-              discount_coupons: discountCoupons
+              discount_coupons: discount_coupons
             }),
             timeout: 5000,
             retries: 5,
             retryInterval: 5000,
             success: function(data) {
-              var applyDiscount;
+              var valid_discount_coupon;
               var line_items = boxoffice.ractive.get('order.line_items');
               line_items.forEach(function(line_item) {
                 if (data.line_items.hasOwnProperty(line_item.item_id)) {
                   if(data.line_items[line_item.item_id].discounted_amount && line_item.quantity_available > 0) {
-                    applyDiscount = true;
-                    line_item.show_discountprice = true;
+                    valid_discount_coupon = true;
                     line_item.discount_price = data.line_items[line_item.item_id].final_amount;
                     line_item.discount_policies.forEach(function(discount_policy){
                       if (data.line_items[line_item.item_id].discount_policy_ids.indexOf(discount_policy.id) >= 0) {
-                        discount_policy.applyCoupon = true;
+                        discount_policy.apply_coupon = true;
                       }
                     });
                   }
                 }
               });
-              if(applyDiscount) {
+              if(valid_discount_coupon) {
                 boxoffice.ractive.set('order.line_items',line_items);
                 boxoffice.ractive.scrollTop();
               }
@@ -273,9 +272,6 @@ $(function() {
               if (increment) {
                 if (lineItem.quantity < quantityAvailable) {
                   lineItem.quantity += 1;
-                  if(lineItem.discount_price >= 0) {
-                    lineItem.show_discountprice = false;
-                  }
                 }
                 boxoffice.ractive.fire('eventAnalytics', 'add ticket', item_name);
               } else if (lineItem.quantity !== 0) {
@@ -284,9 +280,6 @@ $(function() {
               }
             }
             if (lineItem.quantity === 0) {
-              if(lineItem.discount_price >= 0) {
-                lineItem.show_discountprice = true;
-              }
               lineItem.discounted_amount = 0;
               lineItem.final_amount = 0;
               lineItem.discount_policies.forEach(function(discount_policy) {
@@ -656,9 +649,9 @@ $(function() {
             }
           });
 
-          discountCoupons = boxoffice.util.getDiscountCodes();
-          if(discountCoupons.length) {
-            boxoffice.ractive.applyDiscount(discountCoupons);
+          discount_coupons = boxoffice.util.getDiscountCodes();
+          if(discount_coupons.length) {
+            boxoffice.ractive.applyDiscount(discount_coupons);
           }
         }
       });
