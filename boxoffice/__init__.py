@@ -19,8 +19,8 @@ mail = Mail()
 # --- Assets ------------------------------------------------------------------
 
 version = Version(__version__)
+assets['boxoffice.css'][version] = 'css/app.css'
 assets['boxoffice.js'][version] = 'js/scripts.js'
-assets['boxoffice.css'][version] = 'css/order.css'
 
 
 from boxoffice.models import db, User  # noqa
