@@ -142,7 +142,7 @@ $(function() {
             'quantity': 0,
             'item_title': item.title,
             'base_price': item.price,
-            'discount_price': undefined,
+            'unit_final_amount': undefined,
             'discounted_amount': undefined,
             'final_amount': undefined,
             'item_description': item.description,
@@ -241,7 +241,7 @@ $(function() {
                 if (data.line_items.hasOwnProperty(line_item.item_id)) {
                   if(data.line_items[line_item.item_id].discounted_amount && line_item.quantity_available > 0) {
                     valid_discount_coupon = true;
-                    line_item.discount_price = data.line_items[line_item.item_id].final_amount;
+                    line_item.unit_final_amount = data.line_items[line_item.item_id].final_amount;
                     line_item.discount_policies.forEach(function(discount_policy){
                       if (data.line_items[line_item.item_id].discount_policy_ids.indexOf(discount_policy.id) >= 0) {
                         discount_policy.apply_coupon = true;

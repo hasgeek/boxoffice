@@ -46,10 +46,10 @@
                       {{/if}}
                       {{#if line_item.quantity_available > 0}}
                         <div class="ticket-price-wrapper">
-                          {{#if line_item.discount_price >= 0 && line_item.quantity === 0}}
-                            <p class="discount-price ticket-price"><i class="fa fa-inr rupee-sign"></i>{{ line_item.discount_price }}</p>
+                          {{#if line_item.unit_final_amount >= 0 && line_item.quantity === 0}}
+                            <p class="discount-price ticket-price"><i class="fa fa-inr rupee-sign"></i>{{ line_item.unit_final_amount }}</p>
                           {{/if}}
-                          <p class="ticket-price {{#if line_item.discount_price >= 0 && line_item.quantity === 0}}strike{{/if}}"><i class="fa fa-inr rupee-sign"></i>{{ line_item.base_price }}</p>
+                          <p class="ticket-price {{#if line_item.unit_final_amount >= 0 && line_item.quantity === 0}}strike{{/if}}"><i class="fa fa-inr rupee-sign"></i>{{ line_item.base_price }}</p>
                         </div>
                         <span class="multiplier">&times;</span>
                         <div class="ticket-qty-wrapper">
