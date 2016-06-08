@@ -108,7 +108,7 @@ export const ItemCollectionView = {
       components: {TableComponent: TableComponent, AggChartComponent: AggChartComponent}
     });
 
-    this.model.on('change:items', function(model, items){
+    this.model.on('change:items', (model, items) => {
       this.ractive.set('items', this.formatItems(items));
     });
 
