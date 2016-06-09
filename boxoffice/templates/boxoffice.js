@@ -214,7 +214,7 @@ $(function() {
           boxoffice.ractive.set('activeTab', boxoffice.ractive.get('tabs.selectItems.id'));
           boxoffice.ractive.scrollTop();
         },
-        applyDiscount: function(discount_coupons) {
+        preApplyDiscount: function(discount_coupons) {
           //Ask server for the corresponding line_item for the discount coupon. Add one quantity of that line_item
           $.post({
             url: boxoffice.config.resources.kharcha.urlFor(),
@@ -235,7 +235,7 @@ $(function() {
             retries: 5,
             retryInterval: 5000,
             success: function(data) {
-              var valid_discount_coupon;
+              var valid_discount_coupon = false;
               var line_items = boxoffice.ractive.get('order.line_items');
               line_items.forEach(function(line_item) {
                 if (data.line_items.hasOwnProperty(line_item.item_id)) {
@@ -244,12 +244,13 @@ $(function() {
                     line_item.unit_final_amount = data.line_items[line_item.item_id].final_amount;
                     line_item.discount_policies.forEach(function(discount_policy){
                       if (data.line_items[line_item.item_id].discount_policy_ids.indexOf(discount_policy.id) >= 0) {
-                        discount_policy.apply_coupon = true;
+                        discount_policy.pre_applied = true;
                       }
                     });
                   }
                 }
               });
+
               if(valid_discount_coupon) {
                 boxoffice.ractive.set('order.line_items',line_items);
                 boxoffice.ractive.scrollTop();
@@ -654,7 +655,7 @@ $(function() {
 
           var discount_coupons = boxoffice.util.getDiscountCodes();
           if(discount_coupons.length) {
-            boxoffice.ractive.applyDiscount(discount_coupons);
+            boxoffice.ractive.preApplyDiscount(discount_coupons);
           }
         }
       });

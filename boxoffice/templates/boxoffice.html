@@ -28,7 +28,7 @@
                       <p class="ticket-title text-primary">{{ line_item.item_title }}</p>
                       <div class="ticket-description">{{{ line_item.item_description }}}</div>
                       {{#line_item.discount_policies}}
-                        {{#if is_automatic || activated || apply_coupon }}
+                        {{#if is_automatic || activated || pre_applied }}
                           <p class="discount {{#activated}}applied{{/}}">
                             {{ title }}<i class="fa fa-check {{#if !activated && !isLoadingFail}}hidden{{/if}}"></i>
                           </p>
