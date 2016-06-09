@@ -652,7 +652,7 @@ $(function() {
             }
           });
 
-          discount_coupons = boxoffice.util.getDiscountCodes();
+          var discount_coupons = boxoffice.util.getDiscountCodes();
           if(discount_coupons.length) {
             boxoffice.ractive.applyDiscount(discount_coupons);
           }
