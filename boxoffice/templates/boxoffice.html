@@ -30,7 +30,7 @@
                       {{#line_item.discount_policies}}
                         {{#if is_automatic || activated || apply_coupon }}
                           <p class="discount {{#activated}}applied{{/}}">
-                            {{ title }}{{#activated && !isLoadingFail}} <i class="fa fa-check"></i>{{/}}
+                            {{ title }}<i class="fa fa-check {{#if !activated && !isLoadingFail}}hidden{{/if}}"></i>
                           </p>
                         {{/if}}
                       {{/line_item.discount_policies}}
