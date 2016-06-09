@@ -80,7 +80,6 @@ class TestItemCollectionAPI(unittest.TestCase):
                 self.assertEquals(item['title'], expected_item_data['title'])
                 self.assertEquals(item['price'], expected_item_data['price'])
                 self.assertEquals(item['description'], expected_item_data['description'])
-                self.assertEquals(item['quantity_available'], expected_item_data['quantity_available'])
                 self.assertEquals(item['quantity_total'], expected_item_data['quantity_total'])
 
     def tearDown(self):

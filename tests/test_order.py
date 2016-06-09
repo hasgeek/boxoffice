@@ -35,6 +35,20 @@ class TestOrder(unittest.TestCase):
         # 3500*2 = 7000
         self.assertEquals(data['final_amount'], 7000)
 
+    def test_order_with_invalid_quantity(self):
+        item = Item.query.filter_by(name='conference-ticket').first()
+        data = {
+            'line_items': [{'item_id': unicode(item.id), 'quantity': 1001}],
+            'buyer': {
+                'fullname': 'Testing',
+                'phone': '9814141414',
+                'email': 'test@hasgeek.com',
+                }
+            }
+        ic = ItemCollection.query.first()
+        resp = self.client.post('/ic/{ic}/order'.format(ic=ic.id), data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
+        self.assertEquals(resp.status_code, 400)
+
     def test_simple_discounted_item(self):
         discounted_item = Item.query.filter_by(name='t-shirt').first()
         data = {

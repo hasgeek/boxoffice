@@ -26,6 +26,8 @@ def jsonify_line_items(line_items):
     """
     items_json = dict()
     for line_item in line_items:
+        item = Item.query.get(line_item.item_id)
+        quantity_available = item.quantity_total - item.get_confirmed_line_items.count()
         if not items_json.get(unicode(line_item.item_id)):
             items_json[unicode(line_item.item_id)] = {'quantity': 0, 'final_amount': Decimal(0), 'discounted_amount': Decimal(0), 'discount_policy_ids': []}
         if not items_json[unicode(line_item.item_id)].get('final_amount'):
@@ -33,6 +35,7 @@ def jsonify_line_items(line_items):
         items_json[unicode(line_item.item_id)]['final_amount'] += line_item.base_amount - line_item.discounted_amount
         items_json[unicode(line_item.item_id)]['discounted_amount'] += line_item.discounted_amount
         items_json[unicode(line_item.item_id)]['quantity'] += 1
+        items_json[unicode(line_item.item_id)]['quantity_available'] = quantity_available
         if line_item.discount_policy_id and line_item.discount_policy_id not in items_json[unicode(line_item.item_id)]['discount_policy_ids']:
             items_json[unicode(line_item.item_id)]['discount_policy_ids'].append(line_item.discount_policy_id)
     return items_json
@@ -82,7 +85,7 @@ def kharcha():
     {item_id: {'quantity': Y, 'final_amount': Z, 'discounted_amount': Z, 'discount_policy_ids': ['d1', 'd2']}}
     """
     if not request.json or not request.json.get('line_items'):
-        return make_response(jsonify(message='<Missing></Missing> line items'), 400)
+        return make_response(jsonify(message='Missing line items'), 400)
     line_item_forms = LineItemForm.process_list(request.json.get('line_items'))
     if not line_item_forms:
         return make_response(jsonify(message='Invalid line items'), 400)
@@ -121,6 +124,11 @@ def order(item_collection):
     buyer_form.csrf_enabled = False
     if not buyer_form.validate():
         return make_response(jsonify(message='Invalid buyer details'), 400)
+
+    for line_item_form in line_item_forms:
+        item = Item.query.get(line_item_form.data.get('item_id'))
+        if (item.get_confirmed_line_items.count() + line_item_form.data.get('quantity')) > item.quantity_total:
+            return make_response(jsonify(error_type='order_calculation', message='The selected quantity for {item} is not available. Please edit the order and update the quantity.'.format(item=item.title)), 400)
 
     user = User.query.filter_by(email=buyer_form.email.data).first()
     order = Order(user=user,

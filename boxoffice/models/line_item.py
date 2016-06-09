@@ -108,6 +108,12 @@ class LineItem(BaseMixin, db.Model):
         return self.assignees.filter(Assignee.current == True).one_or_none()
 
 
+def get_confirmed_line_items(self):
+    """Returns a SQLAlchemy query object preset with an item's confirmed line items"""
+    return LineItem.query.filter(LineItem.item == self, LineItem.status == LINE_ITEM_STATUS.CONFIRMED)
+Item.get_confirmed_line_items = property(get_confirmed_line_items)
+
+
 def counts_per_date_per_item(item_collection, user_tz):
     """
     Returns number of line items sold per date per item.
