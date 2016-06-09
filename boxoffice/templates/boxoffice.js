@@ -114,7 +114,7 @@ $(function() {
           return boxoffice.config.baseURL + "/order/" + accessToken + "/ticket";
         }
       }
-    }
+    };
   };
 
   boxoffice.init = function(widgetConfig) {
@@ -142,9 +142,13 @@ $(function() {
             'quantity': 0,
             'item_title': item.title,
             'base_price': item.price,
+            'unit_final_amount': undefined,
+            'discounted_amount': undefined,
+            'final_amount': undefined,
             'item_description': item.description,
             'price_valid_upto': boxoffice.util.formatDate(item.price_valid_upto),
-            'discount_policies': item.discount_policies
+            'discount_policies': item.discount_policies,
+            'quantity_available': item.quantity_available
           });
         });
       });
@@ -209,6 +213,59 @@ $(function() {
           boxoffice.ractive.fire('eventAnalytics', 'edit order', 'Edit order');
           boxoffice.ractive.set('activeTab', boxoffice.ractive.get('tabs.selectItems.id'));
           boxoffice.ractive.scrollTop();
+        },
+        preApplyDiscount: function(discount_coupons) {
+          //Ask server for the corresponding line_item for the discount coupon. Add one quantity of that line_item
+          $.post({
+            url: boxoffice.config.resources.kharcha.urlFor(),
+            crossDomain: true,
+            dataType: 'json',
+            headers: {'X-Requested-With': 'XMLHttpRequest'},
+            contentType: 'application/json',
+            data: JSON.stringify({
+              line_items: boxoffice.ractive.get('order.line_items').map(function(line_item) {
+                return {
+                  quantity: 1,
+                  item_id: line_item.item_id
+                };
+              }),
+              discount_coupons: discount_coupons
+            }),
+            timeout: 5000,
+            retries: 5,
+            retryInterval: 5000,
+            success: function(data) {
+              var valid_discount_coupon = false;
+              var line_items = boxoffice.ractive.get('order.line_items');
+              line_items.forEach(function(line_item) {
+                if (data.line_items.hasOwnProperty(line_item.item_id)) {
+                  if(data.line_items[line_item.item_id].discounted_amount && line_item.quantity_available > 0) {
+                    valid_discount_coupon = true;
+                    line_item.unit_final_amount = data.line_items[line_item.item_id].final_amount;
+                    line_item.discount_policies.forEach(function(discount_policy){
+                      if (data.line_items[line_item.item_id].discount_policy_ids.indexOf(discount_policy.id) >= 0) {
+                        discount_policy.pre_applied = true;
+                      }
+                    });
+                  }
+                }
+              });
+
+              if(valid_discount_coupon) {
+                boxoffice.ractive.set('order.line_items',line_items);
+                boxoffice.ractive.scrollTop();
+              }
+            },
+            error: function(response) {
+              var ajaxLoad = this;
+              ajaxLoad.retries -= 1;
+              if (response.readyState === 0 && ajaxLoad.retries > 0) {
+                setTimeout(function() {
+                  $.post(ajaxLoad);
+                }, ajaxLoad.retryInterval);
+              }
+            }
+          });
         },
         updateOrder: function(event, item_name, quantityAvailable, increment) {
           // Increments or decrements a line item's quantity
@@ -588,13 +645,18 @@ $(function() {
         oncomplete: function() {
           boxoffice.ractive.on('eventAnalytics', function(userAction, label) {
             if(typeof boxoffice.ractive.get('sendEventHits') === "undefined") {
-              boxoffice.ractive.set('sendEventHits', 0)
+              boxoffice.ractive.set('sendEventHits', 0);
               userAction = 'First interaction';
             }
             if(typeof ga !== "undefined") {
               ga('send', { hitType: 'event', eventCategory: 'ticketing', eventAction: userAction, eventLabel: label});
             }
           });
+
+          var discount_coupons = boxoffice.util.getDiscountCodes();
+          if(discount_coupons.length) {
+            boxoffice.ractive.preApplyDiscount(discount_coupons);
+          }
         }
       });
     });

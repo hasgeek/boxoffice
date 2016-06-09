@@ -28,9 +28,9 @@
                       <p class="ticket-title text-primary">{{ line_item.item_title }}</p>
                       <div class="ticket-description">{{{ line_item.item_description }}}</div>
                       {{#line_item.discount_policies}}
-                        {{#if is_automatic || activated}}
+                        {{#if is_automatic || activated || pre_applied }}
                           <p class="discount {{#activated}}applied{{/}}">
-                            {{ title }}{{#activated && !isLoadingFail}} <i class="fa fa-check"></i>{{/}}
+                            {{ title }}<i class="fa fa-check {{#if !activated && !isLoadingFail}}hidden{{/if}}"></i>
                           </p>
                         {{/if}}
                       {{/line_item.discount_policies}}
@@ -39,18 +39,23 @@
                       </div>
                     </div>
                     <div class="ticket-price-qty">
-                      {{#if item.quantity_available > 0 && item.quantity_available < 5}}
+                      {{#if line_item.quantity_available > 0 && line_item.quantity_available < 5}}
                         <div class="ticket-description">
                           <p class="few-ticket">Only a few tickets left</p>
                         </div>
                       {{/if}}
-                      {{#if item.quantity_available > 0}}
-                        <p class="ticket-price"><i class="fa fa-inr rupee-sign"></i>{{ line_item.base_price }}</p>
+                      {{#if line_item.quantity_available > 0}}
+                        <div class="ticket-price-wrapper">
+                          {{#if line_item.unit_final_amount >= 0 && line_item.quantity === 0}}
+                            <p class="discount-price ticket-price"><i class="fa fa-inr rupee-sign"></i>{{ line_item.unit_final_amount }}</p>
+                          {{/if}}
+                          <p class="ticket-price {{#if line_item.unit_final_amount >= 0 && line_item.quantity === 0}}strike{{/if}}"><i class="fa fa-inr rupee-sign"></i>{{ line_item.base_price }}</p>
+                        </div>
                         <span class="multiplier">&times;</span>
                         <div class="ticket-qty-wrapper">
-                          <button class="decrement" on-click="updateOrder(event, line_item.item_name, item.quantity_available, false)">-</button>
-                          <input type="number" class="ticket-qty" name="quantity" min="0" max="{{ item.quantity_available }}" value="{{ line_item.quantity }}" disabled>
-                          <button class="increment" on-click="updateOrder(event, line_item.item_name, item.quantity_available, true)">+</button>
+                          <button class="decrement" on-click="updateOrder(event, line_item.item_name, line_item.quantity_available, false)">-</button>
+                          <input type="number" class="ticket-qty" name="quantity" min="0" max="{{ line_item.quantity_available }}" value="{{ line_item.quantity }}" disabled>
+                          <button class="increment" on-click="updateOrder(event, line_item.item_name, line_item.quantity_available, true)">+</button>
                         </div>
                       {{else}}
                         <div class="sold-out-wrapper">
@@ -372,18 +377,32 @@
   .few-ticket {
     color: #e42c42;
     text-align: right;
+    margin: 0 0 10px;
   }
   .ticket-price-qty {
     float: right;
     margin-top: 10px;
   }
-  .ticket-price {
+  .ticket-price-wrapper {
     float: left;
     margin-top: 2px;
+    position: relative;
+  }
+  .ticket-price {
     font-size: 18px;
+    margin: 0;
+    padding-right: 20px;
   }
   .ticket-price .rupee-sign {
     font-size: 16px;
+  }
+  .discount-price {
+    position: absolute;
+    bottom: 30px;
+  }
+  .strike {
+    text-decoration: line-through;
+    color: #aaa;
   }
   @media (min-width: 768px) {
     .ticket-price-qty {
@@ -434,13 +453,13 @@
   .increment:focus, .decrement:focus {
     outline:0;
   }
-  .ticket-price {
-    padding-right: 20px;
-  }
   .multiplier {
     padding-right: 20px;
     font-size: 20px;
     margin-top: 2px;
+  }
+  .discount-amount, .subtotal {
+    margin: 5px 0;
   }
   .sold-out-wrapper {
     float: right;
@@ -484,6 +503,11 @@
     .ticket-qty {
       top: -4px;
       width: 40px;
+    }
+  }
+  @media (min-width: 1024px) {
+    .discount-price {
+      bottom: 20px;
     }
   }
   .discount-code {
@@ -626,12 +650,13 @@
     color: green;
     text-align: center;
     line-height: 1;
+    margin: 20px 0 0;
   }
   .confirmation-header {
     font-size: 24px;
     color: green;
     text-align: center;
-    margin-bottom: 20px;
+    margin: 20px 0;
   }
   .confirmation-msg {
     font-size: 16px;
