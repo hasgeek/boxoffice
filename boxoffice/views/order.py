@@ -1,9 +1,11 @@
+# -*- coding: utf-8 -*-
 from datetime import datetime
 from decimal import Decimal
 from flask import url_for, request, jsonify, render_template, make_response, abort
 from rq import Queue
 from redis import Redis
 from coaster.views import render_with, load_models
+from baseframe import _
 from .. import app
 from ..models import db
 from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy, LINE_ITEM_STATUS
@@ -26,6 +28,7 @@ def jsonify_line_items(line_items):
     """
     items_json = dict()
     for line_item in line_items:
+        item = Item.query.get(line_item.item_id)
         if not items_json.get(unicode(line_item.item_id)):
             items_json[unicode(line_item.item_id)] = {'quantity': 0, 'final_amount': Decimal(0), 'discounted_amount': Decimal(0), 'discount_policy_ids': []}
         if not items_json[unicode(line_item.item_id)].get('final_amount'):
@@ -33,6 +36,7 @@ def jsonify_line_items(line_items):
         items_json[unicode(line_item.item_id)]['final_amount'] += line_item.base_amount - line_item.discounted_amount
         items_json[unicode(line_item.item_id)]['discounted_amount'] += line_item.discounted_amount
         items_json[unicode(line_item.item_id)]['quantity'] += 1
+        items_json[unicode(line_item.item_id)]['quantity_available'] = item.quantity_available
         if line_item.discount_policy_id and line_item.discount_policy_id not in items_json[unicode(line_item.item_id)]['discount_policy_ids']:
             items_json[unicode(line_item.item_id)]['discount_policy_ids'].append(line_item.discount_policy_id)
     return items_json
@@ -82,7 +86,7 @@ def kharcha():
     {item_id: {'quantity': Y, 'final_amount': Z, 'discounted_amount': Z, 'discount_policy_ids': ['d1', 'd2']}}
     """
     if not request.json or not request.json.get('line_items'):
-        return make_response(jsonify(message='<Missing></Missing> line items'), 400)
+        return make_response(jsonify(message='Missing line items'), 400)
     line_item_forms = LineItemForm.process_list(request.json.get('line_items'))
     if not line_item_forms:
         return make_response(jsonify(message='Invalid line items'), 400)
@@ -90,7 +94,7 @@ def kharcha():
     # Make line item splits and compute amounts and discounts
     line_items = LineItem.calculate([{'item_id': li_form.data.get('item_id')}
         for li_form in line_item_forms
-        for _ in range(li_form.data.get('quantity'))], coupons=request.json.get('discount_coupons'))
+            for x in range(li_form.data.get('quantity'))], coupons=request.json.get('discount_coupons'))
     items_json = jsonify_line_items(line_items)
     order_final_amount = sum([values['final_amount'] for values in items_json.values()])
     return jsonify(line_items=items_json, order={'final_amount': order_final_amount})
@@ -122,6 +126,22 @@ def order(item_collection):
     if not buyer_form.validate():
         return make_response(jsonify(message='Invalid buyer details'), 400)
 
+    invalid_quantity_error_msg = _(u'Selected quantity for ‘{item}’ is not available. Please edit the order and update the quantity')
+    item_dicts = Item.get_availability([line_item_form.data.get('item_id') for line_item_form in line_item_forms])
+
+    for line_item_form in line_item_forms:
+        title_quantity_count = item_dicts.get(line_item_form.data.get('item_id'))
+        if title_quantity_count:
+            item_title, item_quantity_total, line_item_count = title_quantity_count
+            if (line_item_count + line_item_form.data.get('quantity')) > item_quantity_total:
+                return make_response(jsonify(error_type='order_calculation',
+                    message=invalid_quantity_error_msg.format(item=item_title)), 400)
+        else:
+            item = Item.query.get(line_item_form.data.get('item_id'))
+            if line_item_form.data.get('quantity') > item.quantity_total:
+                return make_response(jsonify(error_type='order_calculation',
+                    message=invalid_quantity_error_msg.format(item=item.title)), 400)
+
     user = User.query.filter_by(email=buyer_form.email.data).first()
     order = Order(user=user,
         organization=item_collection.organization,
@@ -132,7 +152,7 @@ def order(item_collection):
 
     line_item_tups = LineItem.calculate([{'item_id': li_form.data.get('item_id')}
         for li_form in line_item_forms
-        for _ in range(li_form.data.get('quantity'))], coupons=request.json.get('discount_coupons'))
+            for x in range(li_form.data.get('quantity'))], coupons=request.json.get('discount_coupons'))
 
     for idx, line_item_tup in enumerate(line_item_tups):
         item = Item.query.get(line_item_tup.item_id)

@@ -210,6 +210,7 @@ $(function() {
         selectItems: function(event) {
           // Makes the 'Select Items' tab active
           event.original.preventDefault();
+          boxoffice.ractive.calculateOrder();
           boxoffice.ractive.fire('eventAnalytics', 'edit order', 'Edit order');
           boxoffice.ractive.set('activeTab', boxoffice.ractive.get('tabs.selectItems.id'));
           boxoffice.ractive.scrollTop();
@@ -335,8 +336,11 @@ $(function() {
                   if (data.line_items.hasOwnProperty(line_item.item_id) && line_item.quantity ===  data.line_items[line_item.item_id].quantity) {
                     line_item.final_amount = data.line_items[line_item.item_id].final_amount;
                     line_item.discounted_amount = data.line_items[line_item.item_id].discounted_amount;
+                    line_item.quantity_available = data.line_items[line_item.item_id].quantity_available;
 
-                    if (!readyToCheckout && data.line_items[line_item.item_id].quantity > 0) {
+                    if (!readyToCheckout
+                      && data.line_items[line_item.item_id].quantity > 0
+                      && data.line_items[line_item.item_id].quantity <= data.line_items[line_item.item_id].quantity_available) {
                       readyToCheckout = true;
                     }
 
@@ -353,7 +357,8 @@ $(function() {
                 if (readyToCheckout) {
                   boxoffice.ractive.set({
                     'order.line_items': line_items,
-                    'order.final_amount': data.order.final_amount
+                    'order.final_amount': data.order.final_amount,
+                    'tabs.selectItems.errorMsg': ''
                   });
                 }
                 boxoffice.ractive.set({
@@ -398,7 +403,8 @@ $(function() {
           // the validator.
           event.original.preventDefault();
           boxoffice.ractive.fire('eventAnalytics', 'checkout', 'Checkout');
-          boxoffice.ractive.set( {
+          boxoffice.ractive.set({
+            'tabs.payment.errorMsg': '',
             'tabs.selectItems.complete': true,
             'activeTab': boxoffice.ractive.get('tabs.payment.id')
           });
@@ -489,9 +495,13 @@ $(function() {
             error: function(response) {
               var ajaxLoad = this;
               ajaxLoad.retries -= 1;
+              var resp = JSON.parse(response.responseText);
               if (response.readyState === 4) {
+                if (resp.error_type === 'order_calculation') {
+                  boxoffice.ractive.calculateOrder();
+                }
                 boxoffice.ractive.set({
-                  'tabs.payment.errorMsg': JSON.parse(response.responseText).message,
+                  'tabs.payment.errorMsg': resp.message,
                   'tabs.payment.loadingOrder': false
                 });
               } else if (response.readyState === 0) {

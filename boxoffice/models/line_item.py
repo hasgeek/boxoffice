@@ -108,6 +108,27 @@ class LineItem(BaseMixin, db.Model):
         return self.assignees.filter(Assignee.current == True).one_or_none()
 
 
+def get_availability(cls, item_ids):
+    """Returns a dict -> {'item_id': ('item title', 'quantity_total', 'line_item_count')}"""
+    items_dict = {}
+    item_tups = db.session.query(cls.id, cls.title, cls.quantity_total, func.count(cls.id)).join(LineItem).filter(
+        LineItem.item_id.in_(item_ids), LineItem.status == LINE_ITEM_STATUS.CONFIRMED).group_by(cls.id).all()
+    for item_tup in item_tups:
+        items_dict[unicode(item_tup[0])] = item_tup[1:]
+    return items_dict
+
+
+Item.get_availability = classmethod(get_availability)
+
+
+def get_confirmed_line_items(self):
+    """Returns a SQLAlchemy query object preset with an item's confirmed line items"""
+    return LineItem.query.filter(LineItem.item == self, LineItem.status == LINE_ITEM_STATUS.CONFIRMED)
+
+
+Item.get_confirmed_line_items = property(get_confirmed_line_items)
+
+
 def counts_per_date_per_item(item_collection, user_tz):
     """
     Returns number of line items sold per date per item.
