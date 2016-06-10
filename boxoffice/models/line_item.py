@@ -98,6 +98,12 @@ class LineItem(BaseMixin, db.Model):
             line_items.extend(item_line_items[item_id])
         return line_items
 
+    @classmethod
+    def count_title_quantity(cls, item_id):
+        """Returns a tuple consisting of (confirmed_line_item_count, item_title, item_quantity_total)"""
+        return db.session.query(func.count(cls.id), Item.title, Item.quantity_total).join(Item).filter(
+            cls.item_id == item_id, cls.status == LINE_ITEM_STATUS.CONFIRMED).group_by(Item.title, Item.quantity_total).first()
+
     def confirm(self):
         self.status = LINE_ITEM_STATUS.CONFIRMED
 

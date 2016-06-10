@@ -4,6 +4,7 @@ from flask import url_for, request, jsonify, render_template, make_response, abo
 from rq import Queue
 from redis import Redis
 from coaster.views import render_with, load_models
+from baseframe import _
 from .. import app
 from ..models import db
 from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy, LINE_ITEM_STATUS
@@ -93,7 +94,7 @@ def kharcha():
     # Make line item splits and compute amounts and discounts
     line_items = LineItem.calculate([{'item_id': li_form.data.get('item_id')}
         for li_form in line_item_forms
-        for _ in range(li_form.data.get('quantity'))], coupons=request.json.get('discount_coupons'))
+            for x in range(li_form.data.get('quantity'))], coupons=request.json.get('discount_coupons'))
     items_json = jsonify_line_items(line_items)
     order_final_amount = sum([values['final_amount'] for values in items_json.values()])
     return jsonify(line_items=items_json, order={'final_amount': order_final_amount})
@@ -125,10 +126,19 @@ def order(item_collection):
     if not buyer_form.validate():
         return make_response(jsonify(message='Invalid buyer details'), 400)
 
+    invalid_quantity_error_msg = "Selected quantity for '{item}' is not available. Please edit the order and update the quantity."
     for line_item_form in line_item_forms:
-        item = Item.query.get(line_item_form.data.get('item_id'))
-        if (item.get_confirmed_line_items.count() + line_item_form.data.get('quantity')) > item.quantity_total:
-            return make_response(jsonify(error_type='order_calculation', message='The selected quantity for {item} is not available. Please edit the order and update the quantity.'.format(item=item.title)), 400)
+        line_item_details = LineItem.count_title_quantity(line_item_form.data.get('item_id'))
+        if line_item_details:
+            line_item_count, item_title, item_quantity = line_item_details
+            if (line_item_count + line_item_form.data.get('quantity')) > item_quantity:
+                return make_response(jsonify(error_type='order_calculation',
+                    message=_(invalid_quantity_error_msg.format(item=item_title))), 400)
+        else:
+            item = Item.query.get(line_item_form.data.get('item_id'))
+            if line_item_form.data.get('quantity') > item.quantity_total:
+                return make_response(jsonify(error_type='order_calculation',
+                    message=_(invalid_quantity_error_msg.format(item=item.title))), 400)
 
     user = User.query.filter_by(email=buyer_form.email.data).first()
     order = Order(user=user,
@@ -140,7 +150,7 @@ def order(item_collection):
 
     line_item_tups = LineItem.calculate([{'item_id': li_form.data.get('item_id')}
         for li_form in line_item_forms
-        for _ in range(li_form.data.get('quantity'))], coupons=request.json.get('discount_coupons'))
+            for x in range(li_form.data.get('quantity'))], coupons=request.json.get('discount_coupons'))
 
     for idx, line_item_tup in enumerate(line_item_tups):
         item = Item.query.get(line_item_tup.item_id)
