@@ -127,7 +127,7 @@ def order(item_collection):
     if not buyer_form.validate():
         return make_response(jsonify(message='Invalid buyer details'), 400)
 
-    invalid_quantity_error_msg = u'Selected quantity for ‘{item}’ is not available. Please edit the order and update the quantity'
+    invalid_quantity_error_msg = _(u'Selected quantity for ‘{item}’ is not available. Please edit the order and update the quantity')
     item_dicts = Item.get_availability([line_item_form.data.get('item_id') for line_item_form in line_item_forms])
 
     for line_item_form in line_item_forms:
@@ -136,12 +136,12 @@ def order(item_collection):
             item_title, item_quantity_total, line_item_count = title_quantity_count
             if (line_item_count + line_item_form.data.get('quantity')) > item_quantity_total:
                 return make_response(jsonify(error_type='order_calculation',
-                    message=_(invalid_quantity_error_msg.format(item=item_title))), 400)
+                    message=invalid_quantity_error_msg.format(item=item_title)), 400)
         else:
             item = Item.query.get(line_item_form.data.get('item_id'))
             if line_item_form.data.get('quantity') > item.quantity_total:
                 return make_response(jsonify(error_type='order_calculation',
-                    message=_(invalid_quantity_error_msg.format(item=item.title))), 400)
+                    message=invalid_quantity_error_msg.format(item=item.title)), 400)
 
     user = User.query.filter_by(email=buyer_form.email.data).first()
     order = Order(user=user,
