@@ -39,19 +39,15 @@
                       </div>
                     </div>
                     <div class="ticket-price-qty">
-                      {{#if line_item.quantity > 0}}
-                        {{#if line_item.quantity >= line_item.quantity_available}}
-                          <div class="ticket-description">
-                            <p class="few-ticket">Only {{line_item.quantity_available}} available.</p>
-                          </div>
-                        {{/if}}
-                      {{else}}
-                        {{#if line_item.quantity_available > 0 && line_item.quantity_available < 5}}
-                          <div class="ticket-description">
-                            <p class="few-ticket">Only a few tickets left</p>
-                          </div>
-                        {{/if}}
-                      {{/if}}
+                      <div class="ticket-description">
+                        <p class="few-ticket">
+                          {{#if line_item.quantity >= line_item.quantity_available}}
+                            Only {{line_item.quantity_available}} available
+                          {{elseif line_item.quantity_available > 0 && line_item.quantity_available < 5}}
+                            Only a few tickets left
+                          {{/if}}
+                        </p>
+                      </div>
                       {{#if line_item.quantity_available > 0}}
                         <div class="ticket-price-wrapper">
                           {{#if line_item.unit_final_amount >= 0 && line_item.quantity === 0}}
