@@ -116,12 +116,16 @@ def get_availability(cls, item_ids):
     for item_tup in item_tups:
         items_dict[unicode(item_tup[0])] = item_tup[1:]
     return items_dict
+
+
 Item.get_availability = classmethod(get_availability)
 
 
 def get_confirmed_line_items(self):
     """Returns a SQLAlchemy query object preset with an item's confirmed line items"""
     return LineItem.query.filter(LineItem.item == self, LineItem.status == LINE_ITEM_STATUS.CONFIRMED)
+
+
 Item.get_confirmed_line_items = property(get_confirmed_line_items)
 
 
