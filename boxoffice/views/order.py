@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from datetime import datetime
 from decimal import Decimal
 from flask import url_for, request, jsonify, render_template, make_response, abort
@@ -126,12 +127,14 @@ def order(item_collection):
     if not buyer_form.validate():
         return make_response(jsonify(message='Invalid buyer details'), 400)
 
-    invalid_quantity_error_msg = "Selected quantity for '{item}' is not available. Please edit the order and update the quantity."
+    invalid_quantity_error_msg = u'Selected quantity for ‘{item}’ is not available. Please edit the order and update the quantity'
+    item_dicts = Item.get_availability([line_item_form.data.get('item_id') for line_item_form in line_item_forms])
+
     for line_item_form in line_item_forms:
-        line_item_details = LineItem.count_title_quantity(line_item_form.data.get('item_id'))
-        if line_item_details:
-            line_item_count, item_title, item_quantity = line_item_details
-            if (line_item_count + line_item_form.data.get('quantity')) > item_quantity:
+        title_quantity_count = item_dicts.get(line_item_form.data.get('item_id'))
+        if title_quantity_count:
+            item_title, item_quantity_total, line_item_count = title_quantity_count
+            if (line_item_count + line_item_form.data.get('quantity')) > item_quantity_total:
                 return make_response(jsonify(error_type='order_calculation',
                     message=_(invalid_quantity_error_msg.format(item=item_title))), 400)
         else:

@@ -98,12 +98,6 @@ class LineItem(BaseMixin, db.Model):
             line_items.extend(item_line_items[item_id])
         return line_items
 
-    @classmethod
-    def count_title_quantity(cls, item_id):
-        """Returns a tuple consisting of (confirmed_line_item_count, item_title, item_quantity_total)"""
-        return db.session.query(func.count(cls.id), Item.title, Item.quantity_total).join(Item).filter(
-            cls.item_id == item_id, cls.status == LINE_ITEM_STATUS.CONFIRMED).group_by(Item.title, Item.quantity_total).first()
-
     def confirm(self):
         self.status = LINE_ITEM_STATUS.CONFIRMED
 
@@ -112,6 +106,17 @@ class LineItem(BaseMixin, db.Model):
     @property
     def current_assignee(self):
         return self.assignees.filter(Assignee.current == True).one_or_none()
+
+
+def get_availability(cls, item_ids):
+    """Returns a dict -> {'item_id': ('item title', 'quantity_total', 'line_item_count')}"""
+    items_dict = {}
+    item_tups = db.session.query(cls.id, cls.title, cls.quantity_total, func.count(cls.id)).join(LineItem).filter(
+        LineItem.item_id.in_(item_ids), LineItem.status == LINE_ITEM_STATUS.CONFIRMED).group_by(cls.id).all()
+    for item_tup in item_tups:
+        items_dict[unicode(item_tup[0])] = item_tup[1:]
+    return items_dict
+Item.get_availability = classmethod(get_availability)
 
 
 def get_confirmed_line_items(self):
