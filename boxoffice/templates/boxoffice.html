@@ -332,7 +332,7 @@
     }
   }
   .ticket-booking {
-    padding: 0 20px 20px;
+    padding: 20px;
     margin: 0 -20px;
   }
   .ticket-selected {
@@ -351,7 +351,7 @@
   }
   .ticket-title {
     font-size: 18px;
-    margin-top: 10px;
+    margin: 10px 0;
   }
   @media (min-width: 768px) {
     .ticket-title {
@@ -361,27 +361,38 @@
   .discount {
     color: red;
     font-size: 14px;
+    margin: 10px 0;
   }
   .discount.applied {
     color: green;
   }
   .valid-upto {
     color: #20b200;
+    margin: 10px 0 20px;
   }
   .ticket-description {
     font-size: 13px;
   }
+  .ticket-description p{
+    margin: 10px 0;
+  }
   .ticket-description .fa {
     padding-right: 5px;
   }
-  .few-ticket {
+  .ticket-description .few-ticket {
     color: #e42c42;
+    margin: 0;
+    position: absolute;
+    right: 0;
+    top: -35px;
+    width: 200px;
     text-align: right;
-    margin: 0 0 10px;
   }
   .ticket-price-qty {
     float: right;
-    margin-top: 10px;
+    margin-top: 30px;
+    position: relative;
+    min-width: 190px;
   }
   .ticket-price-wrapper {
     float: left;
@@ -398,17 +409,13 @@
   }
   .discount-price {
     position: absolute;
-    bottom: 30px;
+    bottom: 23px;
     padding: 0;
+    line-height: 1;
   }
   .strike {
     text-decoration: line-through;
     color: #aaa;
-  }
-  @media (min-width: 768px) {
-    .ticket-price-qty {
-      margin-top: 35px;
-    }
   }
   .ticket-qty-wrapper {
     border: 1px solid #CCC;
@@ -492,6 +499,10 @@
       width: 105px;
       margin-top: 4px;
     }
+    .ticket-price-qty {
+      margin-top: 20px;
+      width: 230px;
+    }
     .ticket-price .rupee-sign {
       font-size: 22px;
     }
@@ -505,27 +516,17 @@
       top: -4px;
       width: 40px;
     }
+    .discount-price {
+      bottom: 34px;
+    }
   }
   @media (min-width: 1024px) {
     .discount-price {
-      bottom: 20px;
+      bottom: 24px;
     }
-  }
-  .discount-code {
-    clear: both;
-    font-size: 15px;
-    float: right;
-    margin: 25px 0 0;
-  }
-  .discount-code input {
-    width: 202px;
-    padding: 3px 3px 3px 11px;
-    line-height: 1.42857;
-    height: 35px;
-    position: relative;
-    top: 2px;
-    border-radius: 5px;
-    border: 1px solid #eee;
+    .ticket-price-qty {
+      margin-top: 25px;
+    }
   }
   .item-amount {
     clear: both;
