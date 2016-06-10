@@ -10,9 +10,7 @@ __all__ = ['Item', 'Price']
 class Item(BaseScopedNameMixin, db.Model):
     __tablename__ = 'item'
     __uuid_primary_key__ = True
-    __table_args__ = (db.UniqueConstraint('item_collection_id', 'name'),
-        db.CheckConstraint('quantity_available <= quantity_total',
-            'item_quantity_available_lte_quantity_total_check'))
+    __table_args__ = (db.UniqueConstraint('item_collection_id', 'name'),)
 
     description = MarkdownColumn('description', default=u'', nullable=False)
 
@@ -23,7 +21,6 @@ class Item(BaseScopedNameMixin, db.Model):
     category_id = db.Column(None, db.ForeignKey('category.id'), nullable=False)
     category = db.relationship(Category, backref=db.backref('items', cascade='all, delete-orphan'))
 
-    quantity_available = db.Column(db.Integer, default=0, nullable=False)
     quantity_total = db.Column(db.Integer, default=0, nullable=False)
 
     discount_policies = db.relationship('DiscountPolicy', secondary=item_discount_policy, lazy='dynamic')
@@ -48,6 +45,10 @@ class Item(BaseScopedNameMixin, db.Model):
         """
         return Price.query.filter(Price.item == self, Price.start_at <= timestamp,
             Price.end_at > timestamp, Price.discount_policy == None).order_by('created_at desc').first()  # noqa
+
+    @property
+    def quantity_available(self):
+        return self.quantity_total - self.get_confirmed_line_items.count()
 
 
 class Price(BaseScopedNameMixin, db.Model):

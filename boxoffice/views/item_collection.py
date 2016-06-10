@@ -13,7 +13,7 @@ def jsonify_item(item):
             'title': item.title,
             'id': item.id,
             'description': item.description.text,
-            'quantity_available': item.quantity_total - item.get_confirmed_line_items.count(),
+            'quantity_available': item.quantity_available,
             'quantity_total': item.quantity_total,
             'category_id': item.category_id,
             'item_collection_id': item.item_collection_id,

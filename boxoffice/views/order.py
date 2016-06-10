@@ -29,7 +29,6 @@ def jsonify_line_items(line_items):
     items_json = dict()
     for line_item in line_items:
         item = Item.query.get(line_item.item_id)
-        quantity_available = item.quantity_total - item.get_confirmed_line_items.count()
         if not items_json.get(unicode(line_item.item_id)):
             items_json[unicode(line_item.item_id)] = {'quantity': 0, 'final_amount': Decimal(0), 'discounted_amount': Decimal(0), 'discount_policy_ids': []}
         if not items_json[unicode(line_item.item_id)].get('final_amount'):
@@ -37,7 +36,7 @@ def jsonify_line_items(line_items):
         items_json[unicode(line_item.item_id)]['final_amount'] += line_item.base_amount - line_item.discounted_amount
         items_json[unicode(line_item.item_id)]['discounted_amount'] += line_item.discounted_amount
         items_json[unicode(line_item.item_id)]['quantity'] += 1
-        items_json[unicode(line_item.item_id)]['quantity_available'] = quantity_available
+        items_json[unicode(line_item.item_id)]['quantity_available'] = item.quantity_available
         if line_item.discount_policy_id and line_item.discount_policy_id not in items_json[unicode(line_item.item_id)]['discount_policy_ids']:
             items_json[unicode(line_item.item_id)]['discount_policy_ids'].append(line_item.discount_policy_id)
     return items_json
