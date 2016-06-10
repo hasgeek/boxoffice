@@ -1,5 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
+from sqlalchemy.ext.hybrid import hybrid_property
 from ..models import db, JsonDict, BaseScopedNameMixin, MarkdownColumn
 from ..models import ItemCollection, Category
 from ..models.discount_policy import item_discount_policy
@@ -46,7 +47,7 @@ class Item(BaseScopedNameMixin, db.Model):
         return Price.query.filter(Price.item == self, Price.start_at <= timestamp,
             Price.end_at > timestamp, Price.discount_policy == None).order_by('created_at desc').first()  # noqa
 
-    @property
+    @hybrid_property
     def quantity_available(self):
         return self.quantity_total - self.get_confirmed_line_items.count()
 
