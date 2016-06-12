@@ -41,7 +41,7 @@
                     <div class="ticket-price-qty">
                       <div class="ticket-description">
                         <p class="few-ticket">
-                          {{#if line_item.quantity >= line_item.quantity_available}}
+                          {{#if line_item.quantity_available > 0 && line_item.quantity >= line_item.quantity_available}}
                             Only {{line_item.quantity_available}} available
                           {{elseif line_item.quantity_available > 0 && line_item.quantity_available < 5}}
                             Only a few tickets left
