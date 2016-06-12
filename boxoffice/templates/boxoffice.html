@@ -39,16 +39,16 @@
                       </div>
                     </div>
                     <div class="ticket-price-qty">
-                      <div class="ticket-description">
-                        <p class="few-ticket">
-                          {{#if line_item.quantity_available > 0 && line_item.quantity >= line_item.quantity_available}}
-                            Only {{line_item.quantity_available}} available
-                          {{elseif line_item.quantity_available > 0 && line_item.quantity_available < 5}}
-                            Only a few tickets left
-                          {{/if}}
-                        </p>
-                      </div>
                       {{#if line_item.quantity_available > 0}}
+                        <div class="ticket-description">
+                          <p class="few-ticket">
+                            {{#if line_item.quantity >= line_item.quantity_available}}
+                              Only {{line_item.quantity_available}} available
+                            {{elseif line_item.quantity_available < 5}}
+                              Only a few tickets left
+                            {{/if}}
+                          </p>
+                        </div>
                         <div class="ticket-price-wrapper">
                           {{#if line_item.unit_final_amount >= 0 && line_item.quantity === 0}}
                             <p class="discount-price ticket-price"><i class="fa fa-inr rupee-sign"></i>{{ line_item.unit_final_amount }}</p>
@@ -61,23 +61,23 @@
                           <input type="number" class="ticket-qty" name="quantity" min="0" max="{{ line_item.quantity_available }}" value="{{ line_item.quantity }}" disabled>
                           <button class="increment" on-click="updateOrder(event, line_item.item_name, line_item.quantity_available, true)">+</button>
                         </div>
+                        <div class="item-amount">
+                          {{#line_item.discounted_amount && !isLoadingFail}}
+                            <p intro-outro='fly:{"x":0,"y":"0"}' class="discount-amount">Discount <span><i class="fa fa-inr rupee-sign"></i>{{line_item.discounted_amount}}</span></p>
+                          {{/}}
+                          {{#line_item.discounted_amount || line_item.final_amount && !isLoadingFail}}
+                            <p intro-outro='fly:{"x":0,"y":"0"}' class="subtotal">Subtotal <span><i class="fa fa-inr rupee-sign"></i>{{line_item.final_amount}}</span></p>
+                          {{/}}
+                        </div>
                       {{else}}
-                        <div class="sold-out-wrapper">
+                        <div class="sold-out-wrapper" intro='fly:{"x":100,"y":"0"}'>
                           <p class="sold-out">Sold out</p>
                         </div>
                       {{/if}}
-                      <div class="item-amount">
-                        {{#line_item.discounted_amount && !isLoadingFail}}
-                          <p intro-outro='fly:{"x":0,"y":"0"}' class="discount-amount">Discount <span><i class="fa fa-inr rupee-sign"></i>{{line_item.discounted_amount}}</span></p>
-                        {{/}}
-                        {{#line_item.discounted_amount || line_item.final_amount && !isLoadingFail}}
-                          <p intro-outro='fly:{"x":0,"y":"0"}' class="subtotal">Subtotal <span><i class="fa fa-inr rupee-sign"></i>{{line_item.final_amount}}</span></p>
-                        {{/}}
-                      </div>
-                      </div>
                     </div>
-                  {{/if}}
-                {{/}}{{/order.line_items}}
+                  </div>
+                {{/if}}
+              {{/}}{{/order.line_items}}
             {{/}}{{/items}}
             </div>
           </div>
