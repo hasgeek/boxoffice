@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import datetime
 from flask import jsonify, g
 from decimal import Decimal

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from baseframe import __
 import baseframe.forms as forms
 

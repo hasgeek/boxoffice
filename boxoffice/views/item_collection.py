@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from flask import make_response, render_template, jsonify, request
 from coaster.views import load_models
 from boxoffice import app

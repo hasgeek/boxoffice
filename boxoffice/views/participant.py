@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from flask import request, jsonify, make_response
 from .. import app
 from ..models import db

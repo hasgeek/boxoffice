@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 from flask import g
 from flask.ext.lastuser.sqlalchemy import UserBase2, ProfileBase
 from boxoffice.models import db, JsonDict
