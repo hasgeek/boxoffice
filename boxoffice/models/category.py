@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from boxoffice.models import db, BaseScopedNameMixin
 from boxoffice.models import ItemCollection
 

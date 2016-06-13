@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from boxoffice import app
 from boxoffice.models import DiscountPolicy, ItemCollection, LineItem, Order, ORDER_STATUS
 from boxoffice.models.line_item import LINE_ITEM_STATUS

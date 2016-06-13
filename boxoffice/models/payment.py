@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from datetime import datetime
 from coaster.utils import LabeledEnum
 from baseframe import __

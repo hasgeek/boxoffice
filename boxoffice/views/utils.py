@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from pytz import utc, timezone
 from flask import request, abort
 from functools import wraps
