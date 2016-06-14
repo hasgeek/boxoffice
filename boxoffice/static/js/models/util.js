@@ -1,4 +1,4 @@
-// A collection of utility functions for views
+// A collection of utility functions
 
 export const Util = {
   formatToIndianRupee: function(value) {

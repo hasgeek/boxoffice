@@ -1,7 +1,6 @@
 
 import {ItemCollectionModel} from '../models/item_collection.js';
 import {TableTemplate, AggChartTemplate, ItemCollectionTemplate} from '../templates/item_collection.html.js';
-import {Util} from './util.js';
 
 let TableComponent = Ractive.extend({
   isolated: false,
@@ -10,7 +9,7 @@ let TableComponent = Ractive.extend({
 
 let AggChartComponent = Ractive.extend({
   template: AggChartTemplate,
-  oncomplete: function(){
+  format_columns: function(){
     let date_item_counts = this.parent.get('date_item_counts');
     const items = this.parent.get('items');
     const date_sales = this.parent.get('date_sales');
@@ -39,14 +38,19 @@ let AggChartComponent = Ractive.extend({
       columns.push([item.title].concat(item_counts[item.id]));
     })
 
-    let bar_graph_headers = columns.map((col) => col[0]).filter((header) => header !== 'x');
+    // let bar_graph_headers = columns.map((col) => col[0]).filter((header) => header !== 'x');
 
     columns.push(date_sales_column);
+    return columns;
+  },
+  oncomplete: function(){
+    let columns = this.format_columns();
+    let bar_graph_headers = _.without(_.map(columns, _.first), 'x', 'date_sales')
 
     this.chart = c3.generate({
       data: {
         x: 'x',
-        columns: columns,
+        columns: this.format_columns(),
         type: 'bar',
         types: {
           date_sales: 'line'
@@ -80,69 +84,51 @@ let AggChartComponent = Ractive.extend({
         }
       }
     });
+
+    this.parent.on('data_update', () => {
+      this.chart.load({
+        columns: this.format_columns()
+      });
+    });
+
   }
 })
 
 export const ItemCollectionView = {
-  formatItems: function(items){
-    var formattedItems = _.extend(items);
-    formattedItems.forEach(function(item){
-      item.net_sales = Util.formatToIndianRupee(item.net_sales);
-    })
-    return formattedItems;
-  },
-  init: function(){
+  render: function(config) {
+    let url = `/admin/ic/${config.id}`;
+    ItemCollectionModel.fetch({
+      url: url
+    }).done((remoteData) => {
+      // Initial render
+      let main_ractive = new Ractive({
+        el: '#main-content-area',
+        template: ItemCollectionTemplate,
+        data: ItemCollectionModel.formatData(remoteData),
+        components: {TableComponent: TableComponent, AggChartComponent: AggChartComponent}
+      });
 
-    this.ractive = new Ractive({
-      el: '#main-content-area',
-      template: ItemCollectionTemplate,
-      data: {
-        title: this.model.get('title'),
-        items: this.formatItems(this.model.get('items')),
-        date_item_counts: this.model.get('date_item_counts'),
-        date_sales: this.model.get('date_sales'),
-        net_sales: Util.formatToIndianRupee(this.model.get('net_sales')),
-        sales_delta: this.model.get('sales_delta'),
-        today_sales: Util.formatToIndianRupee(this.model.get('today_sales'))
-      },
-      components: {TableComponent: TableComponent, AggChartComponent: AggChartComponent}
+      // Setup polling
+      let intervalId = setInterval(() => {
+        ItemCollectionModel.fetch({
+          url: url
+        }).done((freshData) => {
+          main_ractive.set(ItemCollectionModel.formatData(freshData));
+          main_ractive.fire('data_update');
+        });
+      }, 3000);
+
+      main_ractive.on('navigate', function(event, method){
+        // kill interval
+        clearInterval(this.intervalId);
+        eventBus.trigger('navigate', event.context.url);
+      });
+
     });
 
-    this.model.on('change:items', (model, items) => {
-      this.ractive.set('items', this.formatItems(items));
-    });
-
-    this.ractive.on('navigate', function(event, method){
-      // kill interval
-      clearInterval(this.intervalId);
-      eventBus.trigger('navigate', event.context.url);
-    });
     window.addEventListener('popstate', (event) => {
       // kill interval
       clearInterval(this.intervalId);
     });
-  },
-  fetch: function(){
-    return this.model.fetch().then(data => {
-      this.model.set('title', data.title);
-      this.model.set('items', data.items);
-      this.model.set('date_item_counts', data.date_item_counts);
-      this.model.set('date_sales', data.date_sales);
-      this.model.set('net_sales', data.net_sales);
-      this.model.set('sales_delta', data.sales_delta);
-      this.model.set('today_sales', data.today_sales);
-    });
-  },
-  refresh: function(){
-    this.fetch();
-  },
-  render: function(initData) {
-    this.model = new ItemCollectionModel({
-      id: initData.id
-    });
-
-    this.fetch().then(() => this.init());
-
-    this.intervalId = setInterval(() => this.refresh(), 3000);
   }
 }
