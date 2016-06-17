@@ -1,6 +1,5 @@
 
 import {OrgModel} from '../models/org.js';
-// import {renderview} from './renderview.js';
 import {orgTemplate} from '../templates/org.html.js';
 
 export const OrgView = {
@@ -10,7 +9,6 @@ export const OrgView = {
     }).then(function(data){
       let ractive = new Ractive({
         el: '#main-content-area',
-        // template: '#org-content-template',
         template: orgTemplate,
         data: {
           name: data.name,
