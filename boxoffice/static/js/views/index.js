@@ -7,16 +7,17 @@ export const IndexView = {
     IndexModel.fetch({
       url: '/admin'
     }).then(function(data){
-      this.ractive = new Ractive({
+      let ractive = new Ractive({
         el: '#main-content-area',
         template: IndexTemplate,
         data: {
           orgs: data.orgs
         }
       });
-      this.ractive.on('navigate', function(event, method){
+
+      ractive.on('navigate', function(event, method){
         eventBus.trigger('navigate', event.context.url);
       });
-    })
+    });
   }
 }
