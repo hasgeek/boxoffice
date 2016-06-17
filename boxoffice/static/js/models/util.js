@@ -20,3 +20,10 @@ export const Util = {
     return res;
   }
 }
+
+export const fetch = function(config){
+  return $.ajax({
+    url: config.url,
+    dataType: 'json'
+  });
+}

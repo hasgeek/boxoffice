@@ -5,11 +5,10 @@ import {orgTemplate} from '../templates/org.html.js';
 
 export const OrgView = {
   render: function(org) {
-    this.orgModel = new OrgModel({
-      name: org.name
-    });
-    this.orgModel.fetch().then(function(data){
-      this.ractive = new Ractive({
+    OrgModel.fetch({
+      url: '/admin/o/' + org.name
+    }).then(function(data){
+      let ractive = new Ractive({
         el: '#main-content-area',
         // template: '#org-content-template',
         template: orgTemplate,
@@ -18,10 +17,10 @@ export const OrgView = {
           item_collections: data.item_collections
         }
       });
-      this.ractive.on('navigate', function(event, method){
+
+      ractive.on('navigate', function(event, method){
         eventBus.trigger('navigate', event.context.url);
       });
     });
-
   }
 }

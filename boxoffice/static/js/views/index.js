@@ -4,8 +4,9 @@ import {IndexTemplate} from '../templates/index.html.js';
 
 export const IndexView = {
   render: function() {
-    this.indexModel = new IndexModel();
-    this.indexModel.fetch().then(function(data){
+    IndexModel.fetch({
+      url: '/admin'
+    }).then(function(data){
       this.ractive = new Ractive({
         el: '#main-content-area',
         template: IndexTemplate,
