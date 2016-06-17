@@ -1,6 +1,5 @@
+import {fetch} from './util.js';
 
-export const IndexModel = Backbone.Model.extend({
-  url : function(){
-    return '/admin';
-  }
-});
+export const IndexModel = {
+  fetch: fetch
+};

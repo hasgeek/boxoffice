@@ -1,6 +1,5 @@
+import {fetch} from './util.js';
 
-export const OrgModel = Backbone.Model.extend({
-  url : function(name){
-    return '/admin/o/' + this.get('name');
-  }
-});
+export const OrgModel = {
+  fetch: fetch
+};

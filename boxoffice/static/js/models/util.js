@@ -1,4 +1,4 @@
-// A collection of utility functions for views
+// A collection of utility functions
 
 export const Util = {
   formatToIndianRupee: function(value) {
@@ -19,4 +19,11 @@ export const Util = {
     var res = '₹' + otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + lastThree + afterPoint;
     return res;
   }
+}
+
+export const fetch = function(config){
+  return $.ajax({
+    url: config.url,
+    dataType: 'json'
+  });
 }

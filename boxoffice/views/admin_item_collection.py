@@ -14,12 +14,11 @@ def jsonify_item(item):
     sold = LineItem.query.filter(LineItem.item == item, LineItem.final_amount > 0, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).count()
     free = LineItem.query.filter(LineItem.item == item, LineItem.final_amount == 0, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).count()
     cancelled = LineItem.query.filter(LineItem.item == item, LineItem.status == LINE_ITEM_STATUS.CANCELLED).count()
-    available = item.quantity_total - (sold + free - cancelled)
     net_sales = db.session.query(func.sum(LineItem.final_amount)).filter(LineItem.item == item, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).first()
     return {
         'id': item.id,
         'title': item.title,
-        'available': available,
+        'available': item.quantity_available,
         'sold': sold,
         'free': free,
         'cancelled': cancelled,
