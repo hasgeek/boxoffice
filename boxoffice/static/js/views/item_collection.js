@@ -120,15 +120,14 @@ export const ItemCollectionView = {
 
       main_ractive.on('navigate', function(event, method){
         // kill interval
-        clearInterval(this.intervalId);
+        clearInterval(intervalId);
         eventBus.trigger('navigate', event.context.url);
       });
 
-    });
-
-    window.addEventListener('popstate', (event) => {
-      // kill interval
-      clearInterval(this.intervalId);
+      window.addEventListener('popstate', (event) => {
+        // kill interval
+        clearInterval(intervalId);
+      });
     });
   }
 }
