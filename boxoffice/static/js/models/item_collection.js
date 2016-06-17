@@ -1,14 +1,8 @@
-import {Util} from './util.js';
+import {Util, fetch} from './util.js';
 
 
 export const ItemCollectionModel = {
-  fetch: function(config){
-    // Returns a promise
-    return $.ajax({
-      url: config.url,
-      dataType: 'json'
-    });
-  },
+  fetch: fetch,
   formatItems: function(items){
     var formattedItems = _.extend(items);
     formattedItems.forEach(function(item){
