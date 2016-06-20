@@ -109,6 +109,17 @@ class LineItem(BaseMixin, db.Model):
     def current_assignee(self):
         return self.assignees.filter(Assignee.current == True).one_or_none()
 
+    @property
+    def is_confirmed(self):
+        return self.status == LINE_ITEM_STATUS.CONFIRMED
+
+    def cancel(self):
+        """
+        Sets status and cancelled_at.
+        """
+        self.status = LINE_ITEM_STATUS.CANCELLED
+        self.cancelled_at = datetime.datetime.utcnow()
+
 
 def get_availability(cls, item_ids):
     """Returns a dict -> {'item_id': ('item title', 'quantity_total', 'line_item_count')}"""

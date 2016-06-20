@@ -34,3 +34,12 @@ def capture_payment(paymentid, amount):
     resp = requests.post(url, data={'amount': amount*100},
         auth=(app.config['RAZORPAY_KEY_ID'], app.config['RAZORPAY_KEY_SECRET']), verify=verify_https)
     return resp
+
+
+def refund_payment(paymentid, amount):
+    """
+    Sends a POST request to Razorpay, to initiate a refund
+    """
+    url = '{base_url}/{paymentid}/refund'.format(base_url=base_url, paymentid=paymentid)
+    resp = requests.post(url, data={'amount': amount*100}, auth=(app.config['RAZORPAY_KEY_ID'], app.config['RAZORPAY_KEY_SECRET']))
+    return resp
