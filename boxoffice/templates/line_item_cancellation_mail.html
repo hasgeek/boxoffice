@@ -30,25 +30,6 @@
     .terms {
       margin-top: 20px;
     }
-
-    .terms-heading {
-      font-size: 16px;
-      font-weight: 600;
-      margin: 0 0 5px;
-    }
-
-    .button {
-      border-width: 0px 0px 3px;
-      border-style: solid;
-      border-radius: 5px;
-      padding: 6px 12px;
-      color: #fff;
-      font-size: 15px;
-      display: inline-block;
-      background-color: #5BC0DE;
-      border-color: #46B8DA;
-      margin: 15px auto;
-    }
   </style>
 </head>
 
@@ -59,7 +40,7 @@
 
     <p>With reference to your order (Receipt No: {{ order.invoice_no }}), "{{ item_title }}" has been cancelled.</p>
     {%- if is_paid %}
-      <p>A refund of {{line_item.final_amount}} has been initiated. You should receive the refund in 2-5 days.</p>
+      <p>A refund of &#8377; {{line_item.final_amount}} has been initiated. You should receive the refund in 2-5 days.</p>
     {%- endif %}
   
     <div class="terms">
