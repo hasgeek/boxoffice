@@ -46,14 +46,12 @@
 
     <p>Hello {{ order.buyer_fullname }},</p>
 
-    <p>With reference to your order (Invoice No: {{ order.invoice_no }}, {{ item_title }} has been cancelled.</p>
+    <p>With reference to your order (Receipt No: {{ order.invoice_no }}), "{{ item_title }}" has been cancelled.</p>
     {%- if is_paid %}
-      <p>A refund of {line_item.final_amount} has been initiated. You should receive the refund within 3 working days.</p>
+      <p>A refund of {{line_item.final_amount}} has been initiated. You should receive the refund within 3 working days.</p>
     {%- endif %}
   
     <div class="terms">
-      <h5 class="terms-heading">Terms &amp; Conditions</h5>
-      <p class="terms-content">For terms of service and refund policy, please visit <a href="https://hasgeek.com/about/policy/">https://hasgeek.com/about/policy</a></p>
       <p class="terms-content">For further queries, please write to <a href="mailto:support@hasgeek.com">support@hasgeek.com</a></p>
     </div>
 
