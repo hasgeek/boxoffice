@@ -214,6 +214,11 @@ a.boxoffice-button:focus {
   text-align: right;
 }
 
+hr {
+  margin-top: 6px;
+  margin-bottom: 6px;
+}
+
 .organization-logo {
   float: left;
   max-width: 80px;

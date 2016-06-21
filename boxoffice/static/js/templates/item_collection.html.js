@@ -17,7 +17,7 @@ export const TableTemplate = `
         {{#items}}
           <tr>
             <td>{{ @index + 1 }}</td>
-            <td>{{ title }}</td>
+            <td><a href="javascript:void(0)" on-click="navigate">{{ title }}</a></td>
             <td>{{ available }}</td>
             <td>{{ sold }}</td>
             <td>{{ free }}</td>

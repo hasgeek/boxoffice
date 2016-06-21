@@ -17,6 +17,7 @@ def jsonify_item(item):
     net_sales = db.session.query(func.sum(LineItem.final_amount)).filter(LineItem.item == item, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).first()
     return {
         'id': item.id,
+        'url': '/item/{item_id}'.format(item_id=item.id),
         'title': item.title,
         'available': item.quantity_available,
         'sold': sold,

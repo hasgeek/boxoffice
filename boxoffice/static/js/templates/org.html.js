@@ -12,7 +12,7 @@ export const orgTemplate = `
           <p class="section-title">Item collection id</p>
           <p class="section-content">{{id}}</p>
           <p class="section-title">Item collection description</p>
-          <div class="section-content">{{{description_html}}}</div>
+          <div class="section-content">{{{description_text}}}</div>
           <div class="btn-wrapper">
             <a class="boxoffice-button boxoffice-button-action" href="javascript:void(0)" on-click="navigate">View {{title}} dashboard</a>
           </div>
