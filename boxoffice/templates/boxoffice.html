@@ -34,9 +34,11 @@
                           </p>
                         {{/if}}
                       {{/line_item.discount_policies}}
+                      {{#if line_item.quantity_available > 0}}
                       <div class="ticket-description">
                         <p class="valid-upto">Prices go up after {{line_item.price_valid_upto}}</p>
                       </div>
+                      {{/if}}
                     </div>
                     <div class="ticket-price-qty">
                       {{#if line_item.quantity_available > 0}}
