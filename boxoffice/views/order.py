@@ -323,7 +323,7 @@ def jsonify_orders(orders):
 def cancel_line_item(line_item):
     if not line_item.is_confirmed:
         # only confirmed line items can be cancelled
-        abort(401)
+        abort(403)
 
     if line_item.final_amount > Decimal('0'):
         payment = OnlinePayment.query.filter_by(order=line_item.order).first()
