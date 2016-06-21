@@ -326,20 +326,18 @@ def cancel_line_item(line_item):
         abort(403)
 
     if line_item.final_amount > Decimal('0'):
-        payment = OnlinePayment.query.filter_by(order=line_item.order).first()
+        payment = OnlinePayment.query.filter_by(order=line_item.order).one()
         rp_resp = razorpay.refund_payment(payment.pg_paymentid, line_item.final_amount)
         if rp_resp.status_code == 200:
             line_item.cancel()
             cancel_transaction = PaymentTransaction(order=line_item.order, transaction_type=TRANSACTION_TYPE.REFUND,
                 online_payment=payment, amount=line_item.final_amount, currency=CURRENCY.INR)
-            db.session.add(line_item)
             db.session.add(cancel_transaction)
             db.session.commit()
         else:
             raise APIError("Cancellation failed for order - {order}".format(order=line_item.order.id), 502)
     else:
         line_item.cancel()
-        db.session.add(line_item)
         db.session.commit()
     boxofficeq.enqueue(send_line_item_cancellation_mail, line_item.id)
 
