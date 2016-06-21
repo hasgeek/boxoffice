@@ -41,5 +41,6 @@ def refund_payment(paymentid, amount):
     Sends a POST request to Razorpay, to initiate a refund
     """
     url = '{base_url}/{paymentid}/refund'.format(base_url=base_url, paymentid=paymentid)
-    resp = requests.post(url, data={'amount': amount*100}, auth=(app.config['RAZORPAY_KEY_ID'], app.config['RAZORPAY_KEY_SECRET']))
+    # Razorpay requires the amount to be in paisa and of type integer
+    resp = requests.post(url, data={'amount': int(amount*100)}, auth=(app.config['RAZORPAY_KEY_ID'], app.config['RAZORPAY_KEY_SECRET']))
     return resp
