@@ -302,6 +302,13 @@ a.boxoffice-button:focus {
   text-align: center;
 }
 
+.form-error-msg {
+  font-size: 14px;
+  margin: 0;
+  padding: 0 5px;
+  color: #b94a48;
+}
+
 .box {
   display: inline-block;
   vertical-align: top;

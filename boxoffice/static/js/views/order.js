@@ -89,6 +89,9 @@ window.Boxoffice.Order = {
             order.ractive.set(line_item + '.assignee.email', order.ractive.get('buyer_email'));
             order.ractive.set(line_item + '.assignee.phone', order.ractive.get('buyer_phone'));
           }
+          else if(!order.ractive.get(line_item + '.assignee.phone')) {
+            order.ractive.set(line_item + '.assignee.phone', '+91');
+          }
           order.ractive.set(line_item + '.toAssign', true);
         },
         addAttendeDetails: function(event, line_item, line_item_seq, line_item_id) {
@@ -103,7 +106,7 @@ window.Boxoffice.Order = {
             },
             {
               name: 'phone',
-              rules: 'required|max_length[16]'
+              rules: 'required|max_length[16]|callback_validate_phone'
             }
           ];
 
@@ -111,12 +114,29 @@ window.Boxoffice.Order = {
 
           var formValidator = new FormValidator(attendeeForm, validationConfig, function(errors, event) {
             event.preventDefault();
+            order.ractive.set(line_item +  '.assignee.errormsg', '');
             if (errors.length > 0) {
-              order.ractive.set(line_item + '.errorMsg', errors[0].message);
+              order.ractive.set(line_item +  '.assignee.errormsg.'+ errors[0].name, errors[0].message);
             } else {
-              order.ractive.set(line_item + '.errorMsg', '');
               order.ractive.set(line_item + '.assigningTicket', true);
               order.ractive.sendAttendeDetails(line_item, line_item_seq, line_item_id);
+            }
+          });
+
+          formValidator.setMessage('required', 'Please fill out the %s field.');
+          formValidator.setMessage('valid_email', 'Please enter a valid email.');
+
+          formValidator.registerCallback('validate_phone', function(phone) {
+            var validPhone = /^\+[0-9]+$/;
+            if (phone.match(validPhone)) {
+              //Indian number starting with '+91'
+              if (phone.indexOf('+91') === 0 && phone.length != 13) {
+                formValidator.setMessage('validate_phone', 'Please enter a valid Indian mobile number.');
+                return false;
+              }
+            } else {
+              formValidator.setMessage('validate_phone', "Please prefix your phone number with '+' and country code.");
+              return false;
             }
           });
         },

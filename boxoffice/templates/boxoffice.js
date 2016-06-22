@@ -425,27 +425,27 @@ $(function() {
 
           var formValidator = new FormValidator('buyer-form', validationConfig, function(errors, event) {
             event.preventDefault();
+            boxoffice.ractive.set('tabs.payment.errormsg', '');
             if (errors.length > 0) {
-              boxoffice.ractive.set('tabs.payment.errorMsg', errors[0].message);
+              boxoffice.ractive.set('tabs.payment.errormsg.' + errors[0].name, errors[0].message);
             } else {
-              boxoffice.ractive.set({
-                'tabs.payment.errorMsg': '',
-                'tabs.payment.loadingOrder': true
-              });
               boxoffice.ractive.sendOrder();
             }
           });
+
+          formValidator.setMessage('required', 'Please fill out the %s field.');
+          formValidator.setMessage('valid_email', 'Please enter a valid email.');
 
           formValidator.registerCallback('validate_phone', function(phone) {
             var validPhone = /^\+[0-9]+$/;
             if (phone.match(validPhone)) {
               //Indian number starting with '+91'
               if (phone.indexOf('+91') === 0 && phone.length != 13) {
-                formValidator.setMessage('validate_phone', 'This does not appear to be a valid Indian mobile number');
+                formValidator.setMessage('validate_phone', 'Please enter a valid Indian mobile number.');
                 return false;
               }
             } else {
-              formValidator.setMessage('validate_phone', 'Phone number must be in international format with a leading + symbol');
+              formValidator.setMessage('validate_phone', "Please prefix your phone number with '+' and country code.");
               return false;
             }
           });
