@@ -330,9 +330,8 @@ def cancel_line_item(line_item):
         rp_resp = razorpay.refund_payment(payment.pg_paymentid, line_item.final_amount)
         if rp_resp.status_code == 200:
             line_item.cancel()
-            cancel_transaction = PaymentTransaction(order=line_item.order, transaction_type=TRANSACTION_TYPE.REFUND,
+            PaymentTransaction(order=line_item.order, transaction_type=TRANSACTION_TYPE.REFUND,
                 online_payment=payment, amount=line_item.final_amount, currency=CURRENCY.INR)
-            db.session.add(cancel_transaction)
             db.session.commit()
         else:
             raise APIError("Cancellation failed for order - {order}".format(order=line_item.order.id), 502)

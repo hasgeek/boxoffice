@@ -6,7 +6,7 @@ from baseframe import __
 from boxoffice.models import db, BaseMixin, Order
 from ..extapi import RAZORPAY_PAYMENT_STATUS
 
-__all__ = ['OnlinePayment', 'PaymentTransaction', 'CURRENCY']
+__all__ = ['OnlinePayment', 'PaymentTransaction', 'CURRENCY', 'CURRENCY_SYMBOL']
 
 
 class TRANSACTION_METHOD(LabeledEnum):
@@ -72,3 +72,7 @@ class PaymentTransaction(BaseMixin, db.Model):
 
 class CURRENCY(LabeledEnum):
     INR = (u"INR", __("INR"))
+
+
+class CURRENCY_SYMBOL(LabeledEnum):
+    INR = (u"INR", u'₹')

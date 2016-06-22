@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from decimal import Decimal
-from flask import render_template, request
+from flask import render_template
 from flask.ext.mail import Message
 from html2text import html2text
 from premailer import transform as email_transform
-from .models import Order, LineItem, LINE_ITEM_STATUS
+from .models import Order, LineItem, LINE_ITEM_STATUS, CURRENCY_SYMBOL
 from . import mail, app
 
 
@@ -40,9 +40,11 @@ def send_line_item_cancellation_mail(line_item_id, subject="Ticket Cancellation"
         order = line_item.order
         is_paid = line_item.final_amount > Decimal('0')
         msg = Message(subject=subject, recipients=[order.buyer_email], bcc=[order.organization.contact_email])
+        # Only INR is supported as of now
         html = email_transform(render_template('line_item_cancellation_mail.html',
             base_url=app.config['BASE_URL'],
-            order=order, line_item=line_item, item_title=item_title, org=order.organization, is_paid=is_paid))
+            order=order, line_item=line_item, item_title=item_title, org=order.organization, is_paid=is_paid,
+            currency_symbol=CURRENCY_SYMBOL['INR']))
         msg.html = html
         msg.body = html2text(html)
         mail.send(msg)
