@@ -75,4 +75,4 @@ class CURRENCY(LabeledEnum):
 
 
 class CURRENCY_SYMBOL(LabeledEnum):
-    INR = (u"INR", u'₹')
+    INR = (u"INR", u"₹")
