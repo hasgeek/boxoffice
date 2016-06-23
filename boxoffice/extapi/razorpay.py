@@ -31,7 +31,7 @@ def capture_payment(paymentid, amount):
     verify_https = False if app.config.get('VERIFY_RAZORPAY_HTTPS') is False else True
     url = '{base_url}/{paymentid}/capture'.format(base_url=base_url, paymentid=paymentid)
     # Razorpay requires the amount to be in paisa and of type integer
-    resp = requests.post(url, data={'amount': int(amount*100)},
+    resp = requests.post(url, data={'amount': int(amount * 100)},
         auth=(app.config['RAZORPAY_KEY_ID'], app.config['RAZORPAY_KEY_SECRET']), verify=verify_https)
     return resp
 
@@ -42,5 +42,5 @@ def refund_payment(paymentid, amount):
     """
     url = '{base_url}/{paymentid}/refund'.format(base_url=base_url, paymentid=paymentid)
     # Razorpay requires the amount to be in paisa and of type integer
-    resp = requests.post(url, data={'amount': int(amount*100)}, auth=(app.config['RAZORPAY_KEY_ID'], app.config['RAZORPAY_KEY_SECRET']))
+    resp = requests.post(url, data={'amount': int(amount * 100)}, auth=(app.config['RAZORPAY_KEY_ID'], app.config['RAZORPAY_KEY_SECRET']))
     return resp
