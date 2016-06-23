@@ -321,8 +321,7 @@ def jsonify_orders(orders):
 #     (Order, {'id': 'line_item_id'}, 'line_item')
 #     )
 def cancel_line_item(line_item):
-    if not line_item.is_confirmed:
-        # only confirmed line items can be cancelled
+    if not line_item.is_cancellable():
         abort(403)
 
     if line_item.final_amount > Decimal('0'):

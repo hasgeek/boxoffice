@@ -30,6 +30,8 @@ class Item(BaseScopedNameMixin, db.Model):
 
     assignee_details = db.Column(JsonDict, default={}, nullable=False)
 
+    cancellable_until = db.Column(db.DateTime, nullable=True)
+
     def current_price(self):
         """
         Returns the current price for an item

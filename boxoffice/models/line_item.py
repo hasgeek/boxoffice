@@ -120,6 +120,10 @@ class LineItem(BaseMixin, db.Model):
         self.status = LINE_ITEM_STATUS.CANCELLED
         self.cancelled_at = func.utcnow()
 
+    def is_cancellable(self):
+        return self.is_confirmed and (datetime.datetime.now() < self.item.cancellable_until
+            if self.item.cancellable_until else True)
+
 
 def get_availability(cls, item_ids):
     """Returns a dict -> {'item_id': ('item title', 'quantity_total', 'line_item_count')}"""
