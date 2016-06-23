@@ -160,7 +160,7 @@ window.Boxoffice.Order = {
                   order.ractive.set(line_item + '.assigningTicket', false);
                 } else {
                   setTimeout(function() {
-                    $.post(ajaxLoad);
+                    $.ajax(ajaxLoad);
                   }, ajaxLoad.retryInterval);
                 }
               }
