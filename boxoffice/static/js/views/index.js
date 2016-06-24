@@ -15,9 +15,16 @@ export const IndexView = {
         }
       });
 
+      NProgress.done();
+
       ractive.on('navigate', function(event, method){
         eventBus.trigger('navigate', event.context.url);
       });
+    });
+
+    window.addEventListener('popstate', (event) => {
+      NProgress.configure({ showSpinner: false});
+      NProgress.start();
     });
   }
 }

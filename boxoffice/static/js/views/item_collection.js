@@ -1,6 +1,7 @@
 
 import {ItemCollectionModel} from '../models/item_collection.js';
 import {TableTemplate, AggChartTemplate, ItemCollectionTemplate} from '../templates/item_collection.html.js';
+import {SideBarView} from './sidebar.js'
 
 let TableComponent = Ractive.extend({
   isolated: false,
@@ -108,6 +109,10 @@ export const ItemCollectionView = {
         components: {TableComponent: TableComponent, AggChartComponent: AggChartComponent}
       });
 
+      NProgress.done();
+
+      SideBarView.render({id: config.id});
+
       // Setup polling
       let intervalId = setInterval(() => {
         ItemCollectionModel.fetch({
@@ -127,6 +132,8 @@ export const ItemCollectionView = {
       window.addEventListener('popstate', (event) => {
         // kill interval
         clearInterval(intervalId);
+        NProgress.configure({ showSpinner: false});
+        NProgress.start();
       });
     });
   }
