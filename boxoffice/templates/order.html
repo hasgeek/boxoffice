@@ -115,7 +115,7 @@
 
 
                         <div class="assign-btn-wrapper">
-                          <button type="submit" class="boxoffice-button boxoffice-button-action" on-click="addAttendeDetails(event, event.keypath, seq, id)">
+                          <button type="submit" class="boxoffice-button boxoffice-button-action" on-click="addAttendeDetails(event, event.keypath, seq, id)" {{#assigningTicket}}disabled{{/}}>
                               {{#if assignee.id || isTicketAssigned}}Update{{else}}Assign ticket{{/if}}
                               {{#assigningTicket}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'>{{/}}
                           </button>
