@@ -118,9 +118,9 @@ export const ItemCollectionView = {
         });
       }, 3000);
 
-      main_ractive.on('navigate', function(event, method){
+      // listen to events on components too
+      main_ractive.on('*.navigate', function(event, method){
         // kill interval
-        console.log(event.context.url);
         clearInterval(intervalId);
         eventBus.trigger('navigate', event.context.url);
       });
