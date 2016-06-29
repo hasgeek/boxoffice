@@ -3,7 +3,7 @@
 
 <head>
   <meta charset='UTF-8'>  
-  <title>Receipt</title>  
+  <title>{{ org.title }}</title>  
   <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400italic,600italic,400,600" />
   <style type="text/css">
     * { 
@@ -46,14 +46,14 @@
 
     <p>Hello {{ order.buyer_fullname }},</p>
 
-    <p>Rootconf is another day away. We are preparing to print your badge and need a few more details.</p>
+    <p>{%- if item_collection_title %}{{ item_collection_title }} is another day away. {% endif %}We are preparing to print your badge and need a few more details.</p>
 
     <p>I manage the check-in counter and our ticketing software. Please respond now so we can avoid a queue at the venue. See you at the event.</p>
 
     <p><a class="button" href={{"{base_url}/order/{access_token}/ticket".format(base_url=base_url, access_token=order.access_token)}} target="_blank" >Fill details</a></p>
 
-    <p>Vidya Ramakrishnan</p>
-    <p>For HasGeek</p>
+    {%- if team_member %}<p>{{ team_member }}</p>{%- endif %}
+    <p>For {{ org.title }}</p>
   
   </div>
 </body>
