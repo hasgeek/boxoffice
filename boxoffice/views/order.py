@@ -315,14 +315,13 @@ def jsonify_orders(orders):
     return api_orders
 
 
-# TODO activate route when front-end becomes available
-# @app.route('/line_item/<line_item_id>/cancel', methods=['POST'])
-# @load_models(
-#     (Order, {'id': 'line_item_id'}, 'line_item')
-#     )
+@app.route('/line_item/<line_item_id>/cancel', methods=['POST'])
+@load_models(
+    (Order, {'id': 'line_item_id'}, 'line_item')
+    )
 def cancel_line_item(line_item):
     if not line_item.is_cancellable():
-        abort(403)
+        return make_response(jsonify(message='This ticket is not cancellable'), 403)
 
     if line_item.final_amount > Decimal('0'):
         payment = OnlinePayment.query.filter_by(order=line_item.order).one()
@@ -338,6 +337,7 @@ def cancel_line_item(line_item):
         line_item.cancel()
         db.session.commit()
     boxofficeq.enqueue(send_line_item_cancellation_mail, line_item.id)
+    return
 
 
 @app.route('/api/1/ic/<item_collection>/orders', methods=['GET', 'OPTIONS'])

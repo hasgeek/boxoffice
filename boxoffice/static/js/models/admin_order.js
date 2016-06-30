@@ -1,5 +1,6 @@
-import {fetch} from './util.js';
+import {fetch, post} from './util.js';
 
 export const OrderModel = {
-  fetch: fetch
+  fetch: fetch,
+  post: post
 };

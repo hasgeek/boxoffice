@@ -70,6 +70,7 @@ def jsonify_admin_order(order_dict):
     for line_item in order.line_items:
         item = {
             'title': line_item.item.title,
+            'id': line_item.id,
             'category': line_item.item.category.title,
             'description': line_item.item.description.text,
             'currency': CURRENCY_SYMBOL['INR'],
@@ -79,7 +80,8 @@ def jsonify_admin_order(order_dict):
             'discount_policy': line_item.discount_policy.title if line_item.discount_policy else "",
             'discount_coupon': line_item.discount_coupon.code if line_item.discount_coupon else "",
             'cancelled_at': line_item.cancelled_at,
-            'assignee_details': jsonify_assignee(line_item.current_assignee)
+            'assignee_details': jsonify_assignee(line_item.current_assignee),
+            'cancel_ticket': url_for('cancel_line_item', line_item_id=line_item.id) if line_item.is_cancellable() else ""
         }
         all_line_items.append(item)
     all_line_items.sort(key=lambda category_seq: category_seq)

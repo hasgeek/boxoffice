@@ -28,6 +28,14 @@ export const fetch = function(config){
   });
 }
 
+export const post = function(config){
+  return $.ajax({
+    url: config.url,
+    type: 'POST',
+    dataType: 'json'
+  });
+}
+
 export const TableSearch = function(tableId){
   return {
     tableId : tableId,

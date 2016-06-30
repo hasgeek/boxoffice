@@ -14,13 +14,13 @@ export const OrdersTemplate = `
               <tr>
                 <th>#</th>
                 <th>Receipt</th>
-                <th data-hide="phone, tablet, desktop">Order id</th>
-                <th data-hide="phone, tablet, desktop">Transaction Status</th>
                 <th>Buyer name</th>
                 <th data-hide="phone">Buyer email</th>
                 <th data-hide="phone, tablet, desktop">Buyer phone</th>
                 <th data-hide="phone, tablet">Amount</th>
                 <th data-hide="phone, tablet, desktop">Date</th>
+                <th data-hide="phone, tablet, desktop">Order id</th>
+                <th data-hide="phone, tablet, desktop">Transaction Status</th>
                 <th data-hide="phone, tablet">View</th>
               </tr>
             </thead>
@@ -28,15 +28,15 @@ export const OrdersTemplate = `
             {{#orders:order}}
               <tr id="order-{{ id }}">
                 <td></td>
-                <td class="js-searchable">{{ invoice_no }}</td>
-                <td class="js-searchable">{{ id }}</td>
-                <td class="js-searchable"><span {{#if status === "Incomplete"}}class="text-danger"{{/if}}>{{ status }}</span></td>
+                <td class="js-searchable">{{#if status === "Incomplete"}}<span class="text-danger">{{ status }} Order</span> {{else}} {{ invoice_no }} {{/if}}</td>
                 <td class="js-searchable">{{ buyer_fullname }}</td>
                 <td class="js-searchable">{{ buyer_email }}</td>
                 <td class="js-searchable">{{ buyer_phone }}</td>
                 <td class="js-searchable">{{currency}}{{ amount }}</td>
                 <td class="js-searchable">{{ order_date }}</td>
-                <td><a class="boxoffice-button boxoffice-button-small boxoffice-button-info" href="javascript:void(0)" on-click="navigate">View Order</a></td>
+                <td class="js-searchable">{{ id }}</td>
+                <td class="js-searchable"><span {{#if status === "Incomplete"}}class="text-danger"{{/if}}>{{ status }}</span></td>
+                <td><a class="boxoffice-button boxoffice-button-small boxoffice-button-info" href="javascript:void(0)" on-click="navigate">View Tickets</a></td>
               </tr>
             {{/orders}}
             </tbody>

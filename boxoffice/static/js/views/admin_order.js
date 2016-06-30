@@ -40,6 +40,20 @@ export const OrderView = {
         eventBus.trigger('navigate', event.context.url);
       });
 
+      main_ractive.on('cancelTicket', function(event, method){
+        console.log("cancelTicket", event.context.cancel_ticket);
+        clearInterval(intervalId);
+        main_ractive.set(event.keypath + '.cancel_error', "");
+        OrderModel.post({
+          url: event.context.cancel_ticket
+        }).done(function(response) {
+          main_ractive.set(event.keypath + '.is_cancelled', true);
+        }).fail(function(response) {
+          let resp = JSON.parse(response.responseText);
+          main_ractive.set(event.keypath + '.cancel_error', resp.message);
+        });
+      });
+
       window.addEventListener('popstate', (event) => {
         // kill interval
         clearInterval(intervalId);
