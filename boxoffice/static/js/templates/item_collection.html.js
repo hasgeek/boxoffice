@@ -1,8 +1,8 @@
 export const TableTemplate = `
-  <div class="table-responsive item-stats-table">
-    <table class="table table-bordered table-hover stats-table">
+  <div class="table-responsive">
+    <table class="table table-bordered item-stats-table table-hover stats-table">
       <thead>
-        <tr class="info">
+        <tr>
           <th>#</th>
           <th>Item</th>
           <th>Available</th>
