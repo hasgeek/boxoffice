@@ -46,7 +46,6 @@ def jsonify_admin_orders(data_dict):
     ic_id = data_dict['item_collection'].id
     orders_json = []
     orders = data_dict['orders']
-    orders.sort(key=lambda order: order.initiated_at, reverse=True)
     for order in orders:
         orders_json.append({
             'invoice_no': order.invoice_no,
@@ -58,7 +57,7 @@ def jsonify_admin_orders(data_dict):
             'buyer_phone': order.buyer_phone,
             'currency': CURRENCY_SYMBOL['INR'],
             'amount': order.get_amounts().final_amount,
-            'url': url_for('admin_order', ic_id=ic_id, order_id=order.id)
+            'url': '/ic/' + unicode(ic_id) + '/' + unicode(order.id)
         })
     return jsonify(title=title, orders=orders_json)
 

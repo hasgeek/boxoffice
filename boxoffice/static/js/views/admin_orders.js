@@ -26,7 +26,7 @@ export const OrdersView = {
 
       let tableSearch = new TableSearch('orders-table');
       $('#main-content input#search').keyup(function(e){
-        $('#orders-table tbody tr.footable-detail-show').addClass('hidden');
+        $('#orders-table tbody tr').addClass('hidden');
         let hits = tableSearch.searchRows($(this).val());
         $(hits.join(",")).removeClass('hidden');
       });
