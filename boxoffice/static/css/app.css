@@ -422,3 +422,19 @@ a.boxoffice-button:focus {
 .right-button {
   margin-left: 10px;
 }
+
+.search-query {
+  margin-bottom: 10px;
+}
+
+@media (min-width: 768px) {
+  .search-query {
+    width: 50%;
+    float: right;
+  }
+}
+@media (min-width: 1200px) {
+  .search-query {
+    width: 30%;
+  }
+}

@@ -4,6 +4,9 @@ export const OrdersTemplate = `
     <h1 class="header">{{ title }}</h1>
     <div class="col-xs-12">
       <h2>Orders</h2>
+      <form class="search-participant clearfix">
+          <input autofocus class="form-control search-query" id="search" type="text" name="key" value="" placeholder="Search"/>
+      </form>
       {{#if orders}}
         <div class="table-responsive">
           <table class="table table-hover stats-table" id='orders-table'> 
@@ -23,16 +26,16 @@ export const OrdersTemplate = `
             </thead>
             <tbody>
             {{#orders:order}}
-              <tr>
+              <tr id="order-{{ invoice_no }}">
                 <td>{{ @index + 1 }}</td>
-                <td>{{ order_date }}</td>
-                <td>{{ invoice_no }}</td>
-                <td>{{ id }}</td>
-                <td><span {{#if status === "Incomplete"}}class="text-danger"{{/if}}>{{ status }}</span></td>
-                <td>{{ buyer_fullname }}</td>
-                <td>{{ buyer_email }}</td>
-                <td>{{ buyer_phone }}</td>
-                <td>{{currency}}{{ amount }}</td>
+                <td class="js-searchable">{{ order_date }}</td>
+                <td class="js-searchable">{{ invoice_no }}</td>
+                <td class="js-searchable">{{ id }}</td>
+                <td class="js-searchable"><span {{#if status === "Incomplete"}}class="text-danger"{{/if}}>{{ status }}</span></td>
+                <td class="js-searchable">{{ buyer_fullname }}</td>
+                <td class="js-searchable">{{ buyer_email }}</td>
+                <td class="js-searchable">{{ buyer_phone }}</td>
+                <td class="js-searchable">{{currency}}{{ amount }}</td>
                 <td><a class="boxoffice-button boxoffice-button-small boxoffice-button-info" href="{{url}}">View Order</a></td>
               </tr>
             {{/orders}}

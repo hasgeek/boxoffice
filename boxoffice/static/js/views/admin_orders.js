@@ -1,8 +1,7 @@
 
 import {OrdersModel} from '../models/admin_orders.js';
-// import {SideBarModel} from '../models/sidebar.js'
 import {OrdersTemplate} from '../templates/admin_orders.html.js';
-// import {SideBarComponent} from './sidebar.js'
+import {TableSearch} from '../models/util.js';
 
 export const OrdersView = {
   render: function(config) {
@@ -25,15 +24,23 @@ export const OrdersView = {
         }
       });
 
+      let tableSearch = new TableSearch('orders-table');
+      $('#main-content input#search').keyup(function(e){
+        $('#orders-table tbody tr.footable-detail-show').addClass('hidden');
+        let hits = tableSearch.searchRows($(this).val());
+        $(hits.join(",")).removeClass('hidden');
+      });
+
       // Setup polling
       let intervalId = setInterval(() => {
         OrdersModel.fetch({
           url: url
         }).done((freshData) => {
           main_ractive.set(freshData);
-          $('#orders-table').trigger('footable_redraw'); //force a redraw
+           //force a redraw
+          $('#orders-table').trigger('footable_redraw');
         });
-      }, 3000);
+      }, 30000);
 
       main_ractive.on('navigate', function(event, method){
         // kill interval
