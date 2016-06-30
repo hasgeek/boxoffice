@@ -11,7 +11,7 @@ export const Router = Backbone.Router.extend({
     "o/:org": "org",
     "ic/:icId": "item_collection",
     "ic/:icId/orders": "orders",
-    "ic/:icId/:orderId": "order",
+    "ic/:icId/:orderId": "order"
   },
   index: function() {
     IndexView.render();
