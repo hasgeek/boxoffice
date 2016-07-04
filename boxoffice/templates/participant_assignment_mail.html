@@ -46,11 +46,13 @@
 
     <p>Hello {{ order.buyer_fullname }},</p>
 
-    <p>{%- if item_collection_title %}{{ item_collection_title }} is another day away. {% endif %}We are preparing to print your badge and need a few more details.</p>
+    <p>{%- if item_collection_title %}{{ item_collection_title }} is another day away. {% endif %}We need a few more details before we can print your badge.</p>
 
-    <p>I manage the check-in counter and our ticketing software. Please respond now so we can avoid a queue at the venue. See you at the event.</p>
+    <p>I manage the check-in counter and our ticketing software. Please respond now so we can avoid a queue at the venue.</p>
 
     <p><a class="button" href={{"{base_url}/order/{access_token}/ticket".format(base_url=base_url, access_token=order.access_token)}} target="_blank" >Fill details</a></p>
+
+    <p>See you at the event!</p>
 
     {%- if team_member %}<p>{{ team_member }}</p>{%- endif %}
     <p>For {{ org.title }}</p>
