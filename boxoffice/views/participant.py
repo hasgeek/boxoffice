@@ -1,12 +1,18 @@
 # -*- coding: utf-8 -*-
 
 from flask import request, jsonify, make_response
+from rq import Queue
+from redis import Redis
 from .. import app
 from ..models import db
 from ..models import LineItem, Assignee
 from ..models import Order
 from coaster.views import load_models
+from boxoffice.mailclient import send_ticket_assignment_email
 from utils import xhr_only
+
+redis_connection = Redis()
+boxofficeq = Queue('boxoffice', connection=redis_connection)
 
 
 @app.route('/participant/<access_token>/assign', methods=['GET', 'OPTIONS', 'POST'])
@@ -35,4 +41,5 @@ def assign(order):
         phone=assignee_dict.get('phone'), details=assignee_details, line_item=line_item)
         db.session.add(assignee)
     db.session.commit()
+    boxofficeq.enqueue(send_ticket_assignment_email, order.id, line_item.id)
     return make_response(jsonify(message="Ticket assigned"), 201)
