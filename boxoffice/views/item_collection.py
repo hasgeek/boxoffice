@@ -60,7 +60,7 @@ def boxofficejs():
 @cors
 def item_collection(item_collection):
     categories_json = []
-    for category in Category.query.filter(Category.item_collection == item_collection).order_by("seq ASC").all():
+    for category in Category.query.filter(Category.item_collection == item_collection).order_by('seq ASC').all():
         category_json = jsonify_category(category)
         if category_json:
             categories_json.append(category_json)
