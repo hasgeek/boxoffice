@@ -30,7 +30,7 @@ def upgrade():
     item_collections = connection.execute(sa.select([item_collection.c.id]))
     item_collection_ids = [ic_tuple[0] for ic_tuple in item_collections]
     for item_collection_id in item_collection_ids:
-        items = connection.execute(sa.select([item.c.id]).where(item.c.item_collection_id == item_collection_id))
+        items = connection.execute(sa.select([item.c.id]).where(item.c.item_collection_id == item_collection_id).order_by('created_at'))
         item_ids = [item_tuple[0] for item_tuple in items]
         for idx, item_id in enumerate(item_ids):
             op.execute(item.update().where(item.c.id == item_id).values({'seq': idx + 1}))
