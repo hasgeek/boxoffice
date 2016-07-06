@@ -3,7 +3,7 @@
 from flask import make_response, render_template, jsonify, request
 from coaster.views import load_models
 from boxoffice import app
-from boxoffice.models import ItemCollection
+from boxoffice.models import ItemCollection, Item, Category
 from utils import xhr_only, cors
 
 
@@ -29,7 +29,7 @@ def jsonify_item(item):
 
 def jsonify_category(category):
     category_items = []
-    for item in category.items:
+    for item in Item.query.filter(Item.category == category).order_by('seq ASC').all():
         item_json = jsonify_item(item)
         if item_json:
             category_items.append(item_json)
@@ -60,8 +60,7 @@ def boxofficejs():
 @cors
 def item_collection(item_collection):
     categories_json = []
-    item_collection.categories.sort(key=lambda category: category.seq)
-    for category in item_collection.categories:
+    for category in Category.query.filter(Category.item_collection == item_collection).order_by("seq ASC").all():
         category_json = jsonify_category(category)
         if category_json:
             categories_json.append(category_json)
