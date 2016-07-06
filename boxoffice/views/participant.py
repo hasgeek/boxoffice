@@ -40,6 +40,6 @@ def assign(order):
         assignee = Assignee(current=True, email=assignee_dict.get('email'), fullname=assignee_dict.get('fullname'),
         phone=assignee_dict.get('phone'), details=assignee_details, line_item=line_item)
         db.session.add(assignee)
+        boxofficeq.enqueue(send_ticket_assignment_email, line_item.id)
     db.session.commit()
-    boxofficeq.enqueue(send_ticket_assignment_email, order.id, line_item.id)
     return make_response(jsonify(message="Ticket assigned"), 201)

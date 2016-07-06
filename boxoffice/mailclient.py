@@ -50,15 +50,15 @@ def send_line_item_cancellation_mail(line_item_id, subject="Ticket Cancellation"
         mail.send(msg)
 
 
-def send_ticket_assignment_email(order_id, line_item_id):
+def send_ticket_assignment_email(line_item_id):
     """
     Sends a confirmation email once details are filled and ticket has been assigned.
     """
     with app.test_request_context():
-        order = Order.query.get(order_id)
         line_item = LineItem.query.get(line_item_id)
         item_title = line_item.item.title
-        subject = order.item_collection.title + ": Here's your " + item_title
+        order = line_item.order
+        subject = order.item_collection.title + ": Here's your ticket"
         msg = Message(subject=subject, recipients=[line_item.current_assignee.email])
         html = email_transform(render_template('ticket_assigment.html', order=order, org=order.organization, line_item=line_item, base_url=app.config['BASE_URL']))
         msg.html = html

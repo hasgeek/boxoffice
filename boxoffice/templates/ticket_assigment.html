@@ -46,7 +46,7 @@
 
     <p>Hello {{ line_item.current_assignee.fullname }},</p>
 
-    <p>Thank you for filling in the details. {{line_item.item.title}} has been assigned to you.</p>
+    <p>{{line_item.item.title}} has been assigned to you.</p>
 
     <p><a class="button" href={{"{base_url}/order/{access_token}/ticket".format(base_url=base_url, access_token=order.access_token)}} target="_blank" >Edit details</a></p>
 
