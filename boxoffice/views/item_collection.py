@@ -29,7 +29,7 @@ def jsonify_item(item):
 
 def jsonify_category(category):
     category_items = []
-    for item in Item.query.filter(Item.category == category).order_by('seq ASC').all():
+    for item in Item.get_by_category(category):
         item_json = jsonify_item(item)
         if item_json:
             category_items.append(item_json)
@@ -60,7 +60,7 @@ def boxofficejs():
 @cors
 def item_collection(item_collection):
     categories_json = []
-    for category in Category.query.filter(Category.item_collection == item_collection).order_by('seq ASC').all():
+    for category in Category.get_by_item_collection(item_collection):
         category_json = jsonify_category(category)
         if category_json:
             categories_json.append(category_json)

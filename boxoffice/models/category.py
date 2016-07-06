@@ -15,3 +15,7 @@ class Category(BaseScopedNameMixin, db.Model):
     item_collection = db.relationship(ItemCollection, backref=db.backref('categories', cascade='all, delete-orphan'))
 
     parent = db.synonym('item_collection')
+
+    @classmethod
+    def get_by_item_collection(cls, item_collection):
+        return cls.query.filter(Category.item_collection == item_collection).order_by('seq')
