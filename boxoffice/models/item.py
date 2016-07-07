@@ -3,6 +3,7 @@
 from datetime import datetime
 from decimal import Decimal
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.ext.orderinglist import ordering_list
 from ..models import db, JsonDict, BaseScopedNameMixin, MarkdownColumn
 from ..models import ItemCollection, Category
 from ..models.discount_policy import item_discount_policy
@@ -16,9 +17,13 @@ class Item(BaseScopedNameMixin, db.Model):
     __table_args__ = (db.UniqueConstraint('item_collection_id', 'name'),)
 
     description = MarkdownColumn('description', default=u'', nullable=False)
+    seq = db.Column(db.Integer, nullable=False)
 
     item_collection_id = db.Column(None, db.ForeignKey('item_collection.id'), nullable=False)
-    item_collection = db.relationship(ItemCollection, backref=db.backref('items', cascade='all, delete-orphan'))
+    item_collection = db.relationship(ItemCollection,
+        backref=db.backref('items', cascade='all, delete-orphan', order_by=seq,
+            collection_class=ordering_list('seq', count_from=1)))
+
     parent = db.synonym('item_collection')
 
     category_id = db.Column(None, db.ForeignKey('category.id'), nullable=False)
@@ -50,6 +55,10 @@ class Item(BaseScopedNameMixin, db.Model):
         """
         return Price.query.filter(Price.item == self, Price.start_at <= timestamp,
             Price.end_at > timestamp, Price.discount_policy == None).order_by('created_at desc').first()  # noqa
+
+    @classmethod
+    def get_by_category(cls, category):
+        return cls.query.filter(Item.category == category).order_by('seq')
 
     @hybrid_property
     def quantity_available(self):
