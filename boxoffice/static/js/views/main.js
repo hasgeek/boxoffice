@@ -14,4 +14,3 @@ $(function(){
     appRouter.navigate(msg, {trigger: true});
   })
 });
-

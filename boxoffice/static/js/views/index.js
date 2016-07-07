@@ -18,13 +18,13 @@ export const IndexView = {
       NProgress.done();
 
       ractive.on('navigate', function(event, method){
+        NProgress.configure({ showSpinner: false}).start();
         eventBus.trigger('navigate', event.context.url);
       });
     });
 
     window.addEventListener('popstate', (event) => {
-      NProgress.configure({ showSpinner: false});
-      NProgress.start();
+      NProgress.configure({ showSpinner: false}).start();
     });
   }
 }

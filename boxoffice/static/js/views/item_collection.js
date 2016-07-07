@@ -126,14 +126,14 @@ export const ItemCollectionView = {
       main_ractive.on('navigate', function(event, method){
         // kill interval
         clearInterval(intervalId);
+        NProgress.configure({ showSpinner: false}).start();
         eventBus.trigger('navigate', event.context.url);
       });
 
       window.addEventListener('popstate', (event) => {
         // kill interval
         clearInterval(intervalId);
-        NProgress.configure({ showSpinner: false});
-        NProgress.start();
+        NProgress.configure({ showSpinner: false}).start();
       });
     });
   }

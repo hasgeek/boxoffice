@@ -15,12 +15,7 @@ export const SideBarView = {
       },
       toggle: function(event) {
         event.original.preventDefault();
-        if(this.get('sidebarOn')) {
-          this.set('sidebarOn', false);
-        }
-        else {
-          this.set('sidebarOn', true);
-        }
+        this.set('sidebarOn', !this.get('sidebarOn'));
       },
       navigate: function(event) {
         NProgress.configure({ showSpinner: false});
