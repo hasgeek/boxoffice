@@ -6,7 +6,7 @@ export const SideBarTemplate = `
   <div class="ic-sidebar {{#sidebarOn}}active{{/}}">
     <div class="ic-sidebar-content">
       {{#sideBar}}
-        <a class="sidebar-title" href="javascript:void(0)" on-click="navigate(event)"><i class="sidebar-title-icon fa {{icon}}"></i>{{ title }}</a>
+        <a class="sidebar-title" href="javascript:void(0)" on-click="navigate(event)"><i class="sidebar-title-icon fa fa-fw {{icon}}"></i>{{ title }}</a>
       {{/sideBar}}
     </div>
   </div>

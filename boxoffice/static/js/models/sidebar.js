@@ -4,7 +4,7 @@ export const SideBarModel = {
     return [
       {
         url: baseUrl,
-        title: 'DashBoard',
+        title: 'Dashboard',
         icon: 'fa-dashboard',
         view: 'dashboard'
       }
