@@ -23,11 +23,11 @@ def send_receipt_email(order_id, subject="Thank you for your order!"):
         mail.send(msg)
 
 
-def send_participant_assignment_mail(order_id, subject="Please tell us who's coming!"):
+def send_participant_assignment_mail(order_id, item_collection_title, team_member, subject="Please tell us who's coming!"):
     with app.test_request_context():
         order = Order.query.get(order_id)
         msg = Message(subject=subject, recipients=[order.buyer_email], bcc=[order.organization.contact_email])
-        html = email_transform(render_template('participant_assignment_mail.html', base_url=app.config['BASE_URL'], order=order, org=order.organization))
+        html = email_transform(render_template('participant_assignment_mail.html', base_url=app.config['BASE_URL'], order=order, org=order.organization, item_collection_title=item_collection_title, team_member=team_member))
         msg.html = html
         msg.body = html2text(html)
         mail.send(msg)
