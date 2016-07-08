@@ -5,7 +5,6 @@ import {SideBarView} from './sidebar.js'
 
 export const OrgView = {
   render: function(org) {
-    SideBarView.hide();
 
     OrgModel.fetch({
       url: '/admin/o/' + org.name
@@ -18,6 +17,8 @@ export const OrgView = {
           item_collections: data.item_collections
         }
       });
+
+      SideBarView.render(org.name);
 
       NProgress.done();
 

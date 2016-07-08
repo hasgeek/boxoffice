@@ -1,6 +1,7 @@
 
 import {IndexModel} from '../models/index.js';
 import {IndexTemplate} from '../templates/index.html.js';
+import {SideBarView} from './sidebar.js'
 
 export const IndexView = {
   render: function() {
@@ -14,6 +15,8 @@ export const IndexView = {
           orgs: data.orgs
         }
       });
+
+      SideBarView.render();
 
       NProgress.done();
 

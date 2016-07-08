@@ -1,13 +1,30 @@
 export const SideBarModel = {
-  items: function(id) {
-    let baseUrl = 'ic/' + id;
-    return [
+  items: function(org, ic) {
+    var sidebarItems = [
       {
-        url: baseUrl,
-        title: 'Dashboard',
-        icon: 'fa-dashboard',
-        view: 'dashboard'
+        url: '/',
+        title: 'Home',
+        icon: 'fa-home'
       }
-    ]
+    ];
+    if(org) {
+      sidebarItems.push({
+        url: '/o/' + org,
+        title: 'Organization',
+        icon: 'fa-sitemap'
+      });
+    }
+    if(ic) {
+      var icUrl = '/ic/' + ic;
+      var itemcollectionSidebar = [
+        {
+          url: icUrl,
+          title: 'Dashboard',
+          icon: 'fa-dashboard'
+        }
+      ]
+      sidebarItems = sidebarItems.concat(itemcollectionSidebar);
+    }
+    return sidebarItems;
   }
 };

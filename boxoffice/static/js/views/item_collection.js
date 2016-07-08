@@ -111,7 +111,7 @@ export const ItemCollectionView = {
 
       NProgress.done();
 
-      SideBarView.render({id: config.id});
+      SideBarView.render(remoteData.org, config.id);
 
       // Setup polling
       let intervalId = setInterval(() => {
@@ -123,11 +123,9 @@ export const ItemCollectionView = {
         });
       }, 3000);
 
-      main_ractive.on('navigate', function(event, method){
+      eventBus.on('stop-refresh', function(){
         // kill interval
         clearInterval(intervalId);
-        NProgress.configure({ showSpinner: false}).start();
-        eventBus.trigger('navigate', event.context.url);
       });
 
       window.addEventListener('popstate', (event) => {
