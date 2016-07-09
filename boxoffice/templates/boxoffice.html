@@ -34,9 +34,11 @@
                           </p>
                         {{/if}}
                       {{/line_item.discount_policies}}
+                      {{#if line_item.quantity_available > 0}}
                       <div class="ticket-description">
                         <p class="valid-upto">Prices go up after {{line_item.price_valid_upto}}</p>
                       </div>
+                      {{/if}}
                     </div>
                     <div class="ticket-price-qty">
                       {{#if line_item.quantity_available > 0}}
@@ -148,7 +150,7 @@
           </div>
           <div class="proceed-button-wrapper">
             <button class="boxoffice-button boxoffice-button-info edit-order" type="button" on-click="selectItems(event)">Edit order</button>
-            <button type="submit" class="boxoffice-button boxoffice-button-action">
+            <button type="submit" class="boxoffice-button boxoffice-button-action" {{#loadingOrder}}disabled{{/}}>
               Checkout {{#loadingOrder}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'>{{/}}
             </button>
           </div>

@@ -265,6 +265,10 @@ hr {
   bottom: 0px;
 }
 
+.edit-btn {
+  cursor: pointer;
+}
+
 .content {
   clear: both;
 }
@@ -291,10 +295,14 @@ hr {
   font-weight: 500;
 }
 
+.assignee-form .form-group {
+  margin: 10px auto;
+}
+
 .assign-form-title {
   font-size: 16px;
   font-weight: bold;
-  padding: 5px 0;
+  padding: 5px 0 0;
   margin: 0;
   text-align: center;
 }

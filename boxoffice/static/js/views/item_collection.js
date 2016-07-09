@@ -108,20 +108,7 @@ export const ItemCollectionView = {
         components: {TableComponent: TableComponent, AggChartComponent: AggChartComponent}
       });
 
-      // Setup polling
-      let intervalId = setInterval(() => {
-        ItemCollectionModel.fetch({
-          url: url
-        }).done((freshData) => {
-          main_ractive.set(ItemCollectionModel.formatData(freshData));
-          main_ractive.fire('data_update');
-        });
-      }, 3000);
-
-      // listen to events on components too
-      main_ractive.on('*.navigate', function(event, method){
-        // kill interval
-        clearInterval(intervalId);
+      main_ractive.on('navigate', function(event, method){
         eventBus.trigger('navigate', event.context.url);
       });
 

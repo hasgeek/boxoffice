@@ -6,12 +6,13 @@ from baseframe import __
 from boxoffice.models import db, BaseMixin, Order
 from ..extapi import RAZORPAY_PAYMENT_STATUS
 
-__all__ = ['OnlinePayment', 'PaymentTransaction', 'CURRENCY']
+__all__ = ['OnlinePayment', 'PaymentTransaction', 'CURRENCY', 'CURRENCY_SYMBOL']
 
 
 class TRANSACTION_METHOD(LabeledEnum):
     ONLINE = (0, __("Online"))
     CASH = (1, __("Cash"))
+    BANK_TRANSFER = (2, __("Bank Transfer"))
 
 
 class TRANSACTION_TYPE(LabeledEnum):
@@ -68,7 +69,13 @@ class PaymentTransaction(BaseMixin, db.Model):
     currency = db.Column(db.Unicode(3), nullable=False)
     transaction_type = db.Column(db.Integer, default=TRANSACTION_TYPE.PAYMENT, nullable=False)
     transaction_method = db.Column(db.Integer, default=TRANSACTION_METHOD.ONLINE, nullable=False)
+    # Eg: reference number for a bank transfer
+    transaction_ref = db.Column(db.Unicode(80), nullable=True)
 
 
 class CURRENCY(LabeledEnum):
     INR = (u"INR", __("INR"))
+
+
+class CURRENCY_SYMBOL(LabeledEnum):
+    INR = (u"INR", u"₹")

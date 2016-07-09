@@ -139,9 +139,9 @@ window.Boxoffice.Order = {
               attendee: attendeeDetails,
               line_item_id: line_item_id
             }),
-            timeout: 5000,
+            timeout: 30000,
             retries: 5,
-            retryInterval: 5000,
+            retryInterval: 30000,
             success: function(data) {
               order.ractive.set(line_item + '.assigningTicket', false);
               order.ractive.set(line_item + '.toAssign', false);
@@ -160,7 +160,7 @@ window.Boxoffice.Order = {
                   order.ractive.set(line_item + '.assigningTicket', false);
                 } else {
                   setTimeout(function() {
-                    $.post(ajaxLoad);
+                    $.ajax(ajaxLoad);
                   }, ajaxLoad.retryInterval);
                 }
               }
