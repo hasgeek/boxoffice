@@ -18,7 +18,6 @@ export const SideBarView = {
       },
       navigate: function(event) {
         NProgress.configure({ showSpinner: false}).start();
-        eventBus.trigger('stop-refresh');
         eventBus.trigger('navigate', event.context.url);
       }
     });

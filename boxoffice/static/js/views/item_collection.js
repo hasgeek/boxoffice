@@ -113,21 +113,6 @@ export const ItemCollectionView = {
 
       SideBarView.render(remoteData.org, config.id);
 
-      // Setup polling
-      let intervalId = setInterval(() => {
-        ItemCollectionModel.fetch({
-          url: url
-        }).done((freshData) => {
-          main_ractive.set(ItemCollectionModel.formatData(freshData));
-          main_ractive.fire('data_update');
-        });
-      }, 3000);
-
-      eventBus.on('stop-refresh', function(){
-        // kill interval
-        clearInterval(intervalId);
-      });
-
       window.addEventListener('popstate', (event) => {
         // kill interval
         clearInterval(intervalId);
