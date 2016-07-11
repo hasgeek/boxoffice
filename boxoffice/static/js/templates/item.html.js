@@ -23,6 +23,18 @@ export const ItemTemplate = `
         <p>
           {{quantity_total}}
         </p>
+        {{#if discount_policies.length}}
+        <h3>Discounts</h3>
+        <hr>
+        {{/if}}
+        {{#discount_policies}}
+          <div class="panel panel-default">
+            <div class="panel-body">
+              <strong>{{title}}</strong>
+              <br>
+            </div>
+          </div>
+        {{/}}
       </div>
     </div>
     <div class="col-sm-6 col-xs-12">
@@ -41,24 +53,6 @@ export const ItemTemplate = `
           </div>
         </div>
       {{/}}
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-sm-6 col-xs-12">
-      <div class="content">
-        {{#if discount_policies.length}}
-        <h3>Discounts</h3>
-        <hr>
-        {{/if}}
-        {{#discount_policies}}
-          <div class="panel panel-default">
-            <div class="panel-body">
-              <strong>{{title}}</strong>
-              <br>
-            </div>
-          </div>
-        {{/}}
-      </div>
     </div>
   </div>
 `
