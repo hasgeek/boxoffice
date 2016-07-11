@@ -15,6 +15,8 @@ export const ItemView = {
           title: data.title,
           description: data.description,
           category_title: data.category_title,
+          quantity_available: data.quantity_available,
+          quantity_total: data.quantity_total,
           prices: data.prices,
           discount_policies: data.discount_policies
         }

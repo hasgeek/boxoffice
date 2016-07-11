@@ -108,7 +108,9 @@ export const ItemCollectionView = {
         components: {TableComponent: TableComponent, AggChartComponent: AggChartComponent}
       });
 
-      main_ractive.on('navigate', function(event, method){
+
+      // listen to events on components too
+      main_ractive.on('*.navigate', function(event, method){
         eventBus.trigger('navigate', event.context.url);
       });
 

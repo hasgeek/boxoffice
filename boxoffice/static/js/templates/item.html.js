@@ -3,6 +3,16 @@ export const ItemTemplate = `
   <div class="row">
     <div class="col-sm-6 col-xs-12">
       <div class="content">
+        <h3>Quantity Available</h3>
+        <hr>
+        <p>
+          {{quantity_available}}
+        </p>
+        <h3>Quantity Total</h3>
+        <hr>
+        <p>
+          {{quantity_total}}
+        </p>
         <h3>Category</h3>
         <hr>
         <p>

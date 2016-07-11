@@ -20,6 +20,8 @@ def jsonify_item(item):
     } for policy in item['discount_policies']]
     return jsonify(title=item['title'],
         description=item['description'],
+        quantity_total=item['quantity_total'],
+        quantity_available=item['quantity_available'],
         category_title=item['category_title'],
         prices=prices, discount_policies=discount_policies)
 
@@ -34,4 +36,6 @@ def jsonify_item(item):
 def admin_item(item):
     return dict(title=item.title, description=item.description_text,
         category_title=item.category.title, prices=item.prices,
+        quantity_total=item.quantity_total,
+        quantity_available=item.quantity_available,
         discount_policies=item.discount_policies.all())
