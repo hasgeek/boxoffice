@@ -2,7 +2,7 @@ import {SideBarModel} from '../models/sidebar.js';
 import {SideBarTemplate} from '../templates/sidebar.html.js';
 
 export const SideBarView = {
-  init: function(org, ic) {
+  init: function(sidebar_item, org, ic) {
     this.on = true;
 
     this.ractive = new Ractive({
@@ -10,24 +10,37 @@ export const SideBarView = {
       template: SideBarTemplate,
       data: {
         sidebarMobileOn: false,
-        sideBar: SideBarModel.items(org, ic)
+        sideBar: SideBarModel.items(org, ic),
+        activeItem: sidebar_item,
+        sidebarHide: false
       },
       toggle: function(event) {
         event.original.preventDefault();
         this.set('sidebarMobileOn', !this.get('sidebarMobileOn'));
       },
       navigate: function(event) {
-        NProgress.configure({ showSpinner: false}).start();
-        eventBus.trigger('navigate', event.context.url);
+        if(event.context.title !== this.get('activeItem')) {
+          NProgress.configure({ showSpinner: false}).start();
+          eventBus.trigger('navigate', event.context.url);
+        }
       }
     });
   },
-  render: function(org="", ic="") {
+  render: function(sidebar_item="", org="", ic="") {
     if(this.on) {
-      this.ractive.set('sideBar', SideBarModel.items(org, ic));
+      this.ractive.set({
+        'sideBar': SideBarModel.items(org, ic),
+        'activeTab': sidebar_item,
+        'sidebarHide': false
+      });
     }
     else {
-      this.init(org, ic);
+      this.init(sidebar_item, org, ic);
+    }
+  },
+  hide: function() {
+    if(this.on) {
+      this.ractive.set('sidebarHide', true);
     }
   }
 };

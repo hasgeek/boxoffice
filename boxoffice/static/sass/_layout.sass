@@ -11,9 +11,6 @@ body
   #hgnav .page-header h1
     margin-left: 0
 
-#main-content
-  width: 100%
-
 .header 
   text-align: center
   font-size: 25px
@@ -112,7 +109,7 @@ a.boxoffice-button:focus
   box-shadow: none
 
 .group-input:focus
-  outline:none
+  outline: none
 
 .group-label 
   color: $color-form-label
@@ -139,7 +136,7 @@ a.boxoffice-button:focus
 
 .bar
   position: relative
-  display:block
+  display: block
   width: 100%
 
 .bar:before,
@@ -247,17 +244,17 @@ a.boxoffice-button:focus
   text-decoration: none
   color: #18a1c8
 
-.admin-sidebar .sidebar-title:active
+.admin-sidebar .sidebar-title:active,
 .admin-sidebar .sidebar-title:focus 
   color: #18a1c8
   text-decoration: none
   outline: 0
 
-.admin-sidebar .sidebar-title:hover,
 .admin-sidebar .sidebar-title.active  
   background-color: #eef
   text-decoration: none
   color: #856a91
+  cursor: default
 
 .sidebar-title-icon 
   padding-right: 10px
@@ -269,7 +266,7 @@ a.boxoffice-button:focus
   .admin-sidebar 
     top: 37px
     left: 0
-    width: 11%
+    width: 13%
   
   .admin-sidebar-content 
     width: 100%
@@ -278,23 +275,22 @@ a.boxoffice-button:focus
   .admin-sidebar .sidebar-title 
     color: #fff
   
-  .admin-sidebar .sidebar-title:active
+  .admin-sidebar .sidebar-title:active,
   .admin-sidebar .sidebar-title:focus 
     color: #fff
   
-  .admin-sidebar .sidebar-title:hover,
   .admin-sidebar .sidebar-title.active 
     color: #856a91
+    cursor: default
   
   .content-wrapper
-    width: 88%
-    margin: 0 12% 30px
+    width: 87%
+    margin: 0 13% 30px
   
 @media (min-width: 1400px) 
   .admin-sidebar 
-    width: 9.5%
-    max-width: 140px
+    width: 11%
   
   .content-wrapper
-    width: 90.5%
-    margin: 0 9.5% 30px
+    width: 89%
+    margin: 0 11% 30px

@@ -111,11 +111,9 @@ export const ItemCollectionView = {
 
       NProgress.done();
 
-      SideBarView.render(remoteData.org, config.id);
+      SideBarView.render('Dashboard', remoteData.org, config.id);
 
       window.addEventListener('popstate', (event) => {
-        // kill interval
-        clearInterval(intervalId);
         NProgress.configure({ showSpinner: false}).start();
       });
     });

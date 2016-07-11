@@ -18,7 +18,7 @@ export const OrgView = {
         }
       });
 
-      SideBarView.render(org.name);
+      SideBarView.hide();
 
       NProgress.done();
 

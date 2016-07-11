@@ -16,7 +16,7 @@ export const IndexView = {
         }
       });
 
-      SideBarView.render();
+      SideBarView.hide();
 
       NProgress.done();
 
