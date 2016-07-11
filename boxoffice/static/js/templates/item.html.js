@@ -2,17 +2,7 @@ export const ItemTemplate = `
   <h1 class="header">{{ title }}</h1>
   <div class="row">
     <div class="col-sm-6 col-xs-12">
-      <div class="content">
-        <h3>Quantity Available</h3>
-        <hr>
-        <p>
-          {{quantity_available}}
-        </p>
-        <h3>Quantity Total</h3>
-        <hr>
-        <p>
-          {{quantity_total}}
-        </p>
+      <div>
         <h3>Category</h3>
         <hr>
         <p>
@@ -22,6 +12,16 @@ export const ItemTemplate = `
         <hr>
         <p>
           {{{description}}}
+        </p>
+        <h3>Quantity Available</h3>
+        <hr>
+        <p>
+          {{quantity_available}}
+        </p>
+        <h3>Quantity Total</h3>
+        <hr>
+        <p>
+          {{quantity_total}}
         </p>
       </div>
     </div>
