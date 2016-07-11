@@ -1,4 +1,4 @@
-import {SideBarModel} from '../models/sidebar.js'
+import {SideBarModel} from '../models/sidebar.js';
 import {SideBarTemplate} from '../templates/sidebar.html.js';
 
 export const SideBarView = {
@@ -31,4 +31,4 @@ export const SideBarView = {
       this.init(org, ic);
     }
   }
-}
+};

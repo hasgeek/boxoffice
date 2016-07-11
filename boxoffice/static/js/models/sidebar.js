@@ -1,6 +1,6 @@
 export const SideBarModel = {
   items: function(org, ic) {
-    var sidebarItems = [
+    var sidebar_items = [
       {
         url: '/',
         title: 'Home',
@@ -8,7 +8,7 @@ export const SideBarModel = {
       }
     ];
     if(org) {
-      sidebarItems.push({
+      sidebar_items.push({
         url: '/o/' + org,
         title: 'Organization',
         icon: 'fa-sitemap'
@@ -16,15 +16,15 @@ export const SideBarModel = {
     }
     if(ic) {
       var icUrl = '/ic/' + ic;
-      var itemcollectionSidebar = [
+      var itemcollection_sidebar = [
         {
           url: icUrl,
           title: 'Dashboard',
           icon: 'fa-dashboard'
         }
-      ]
-      sidebarItems = sidebarItems.concat(itemcollectionSidebar);
+      ];
+      sidebar_items = sidebar_items.concat(itemcollection_sidebar);
     }
-    return sidebarItems;
+    return sidebar_items;
   }
 };
