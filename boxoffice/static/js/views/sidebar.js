@@ -10,7 +10,7 @@ export const SideBarView = {
       template: SideBarTemplate,
       data: {
         sidebarMobileOn: false,
-        sideBar: SideBarModel.items(org, ic),
+        sideBar: SideBarModel.getItems(org, ic),
         activeItem: sidebar_item,
         sidebarHide: false
       },
@@ -29,9 +29,10 @@ export const SideBarView = {
   render: function(sidebar_item="", org="", ic="") {
     if(this.on) {
       this.ractive.set({
-        'sideBar': SideBarModel.items(org, ic),
+        'sideBar': SideBarModel.getItems(org, ic),
         'activeTab': sidebar_item,
-        'sidebarHide': false
+        'sidebarHide': false,
+        'sidebarMobileOn': false
       });
     }
     else {

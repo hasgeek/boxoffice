@@ -1,5 +1,5 @@
 export const SideBarModel = {
-  items: function(org, ic) {
+  getItems: function(org, ic) {
     var sidebar_items = [
       {
         url: '/',
