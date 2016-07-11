@@ -3,8 +3,10 @@ body {
 }
 
 .header {
-  text-align: center;
+  text-align: left;
   font-size: 25px;
+  margin-left: 14px;
+  margin-top: 28px;
 }
 
 .heading {
