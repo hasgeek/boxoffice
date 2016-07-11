@@ -1,29 +1,27 @@
 export const SideBarModel = {
-  getItems: function(org, ic) {
-    var sidebar_items = [
-      {
-        url: '/',
-        title: 'Home',
-        icon: 'fa-home'
-      }
-    ];
-    if(org) {
-      sidebar_items.push({
-        url: '/o/' + org,
-        title: 'Organization',
-        icon: 'fa-sitemap'
-      });
-    }
-    if(ic) {
-      var icUrl = '/ic/' + ic;
-      var itemcollection_sidebar = [
+  getItems: function(config) {
+    var sidebar_items = [];
+    if(config.org_name && config.ic_id) {
+      sidebar_items = [
         {
-          url: icUrl,
+          url: '/',
+          title: 'Home',
+          icon: 'fa-home',
+          view: 'home'
+        },
+        {
+          url: '/o/' + config.org_name,
+          title: 'Organization',
+          icon: 'fa-sitemap',
+          view: 'org'
+        },
+        {
+          url: '/ic/' + config.ic_id,
           title: 'Dashboard',
-          icon: 'fa-dashboard'
+          icon: 'fa-dashboard',
+          view: 'dashboard'
         }
-      ];
-      sidebar_items = sidebar_items.concat(itemcollection_sidebar);
+      ]
     }
     return sidebar_items;
   }

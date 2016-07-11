@@ -2,7 +2,7 @@ import {SideBarModel} from '../models/sidebar.js';
 import {SideBarTemplate} from '../templates/sidebar.html.js';
 
 export const SideBarView = {
-  init: function(sidebar_item, org, ic) {
+  init: function(ic_config, view) {
     this.on = true;
 
     this.ractive = new Ractive({
@@ -10,8 +10,8 @@ export const SideBarView = {
       template: SideBarTemplate,
       data: {
         sidebarMobileOn: false,
-        sideBar: SideBarModel.getItems(org, ic),
-        activeItem: sidebar_item,
+        sideBar: SideBarModel.getItems(ic_config),
+        activeItem: view,
         sidebarHide: false
       },
       toggle: function(event) {
@@ -26,17 +26,17 @@ export const SideBarView = {
       }
     });
   },
-  render: function(sidebar_item="", org="", ic="") {
+  render: function(ic_config, view) {
     if(this.on) {
       this.ractive.set({
-        'sideBar': SideBarModel.getItems(org, ic),
+        'sideBar': SideBarModel.getItems(ic_config),
         'activeTab': sidebar_item,
         'sidebarHide': false,
         'sidebarMobileOn': false
       });
     }
     else {
-      this.init(sidebar_item, org, ic);
+      this.init(ic_config, view);
     }
   },
   hide: function() {
