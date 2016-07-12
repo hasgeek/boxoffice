@@ -40,10 +40,6 @@ export const OrdersView = {
       main_ractive.on('navigate', function(event, method){
         eventBus.trigger('navigate', event.context.url);
       });
-
-      window.addEventListener('popstate', (event) => {
-      });
-
     });
   }
 }

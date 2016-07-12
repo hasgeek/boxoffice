@@ -55,12 +55,7 @@ export const OrderView = {
           main_ractive.set(event.keypath + '.cancel_error', error_text);
           main_ractive.set(event.keypath + '.cancelling', false);
         });
-
       });
-
-      window.addEventListener('popstate', (event) => {
-      });
-
     });
   }
 }
