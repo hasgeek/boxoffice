@@ -22,21 +22,23 @@ export const OrderTemplate = `
           <tbody>
             <tr>
               <td></td>
-              <td>{{#if status === "Incomplete"}}<span class="text-danger">{{ status }} Order</span> {{else}} {{ invoice_no }} {{/if}}</td>
-              <td>{{ buyer_fullname }}</td>
-              <td>{{ buyer_email }}</td>
-              <td>{{ buyer_phone }}</td>
-              <td>{{currency}}{{ amount }}</td>
-              <td>{{ formatDate(order_date) }}</td>
-              <td>{{ id }}</td>
-              <td><span {{#if status === "Incomplete"}}class="text-danger"{{/if}}>{{ status }}</span></td>
+              <td><p class="table-content">{{#if status === "Purchase Order"}}<span class="text-danger">{{ status }} Order</span> {{else}} {{ invoice_no }} {{/if}}</p></td>
+              <td><p class="table-content">{{ buyer_fullname }}</p></td>
+              <td><p class="table-content">{{ buyer_email }}</p></td>
+              <td><p class="table-content">{{ buyer_phone }}</p></td>
+              <td><p class="table-content">{{currency}}{{ amount }}</p></td>
+              <td><p class="table-content">{{ order_date }}</p></td>
+              <td><p class="table-content">{{ id }}</p></td>
+              <td><p class="table-content"><span {{#if status === "Purchase Order"}}class="text-danger"{{/if}}>{{ status }}</span></p></td>
               <td>
-                {{#if status === "Complete"}}
+                <p class="table-content">
+                {{#if status === "Sales Order"}}
                   <a class="boxoffice-button boxoffice-button-small boxoffice-button-info" href={{ receipt }} target="_blank" >View Receipt</a>
                   <a class="boxoffice-button boxoffice-button-small boxoffice-button-info right-button" href={{ assignee }} target="_blank" >View Assignee details</a>
                 {{else}}
                   No details
                 {{/if}}
+                </p>
               </td>
             </tr>
           </tbody>

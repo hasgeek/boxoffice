@@ -1,8 +1,7 @@
 
 import {OrderModel} from '../models/admin_order.js';
 import {OrderTemplate} from '../templates/admin_order.html.js';
-import {Util} from '../models/util.js';
-import {SideBarView} from './sidebar.js'
+import {SideBarView} from './sidebar.js';
 
 export const OrderView = {
   render: function(config) {
@@ -16,10 +15,7 @@ export const OrderView = {
         template: OrderTemplate,
         data:  {
           title: remoteData.title,
-          order: remoteData.order,
-          formatDate: function(date) {
-            return Util.formatDate(date)
-          }
+          order: remoteData.order
         }
       });
 

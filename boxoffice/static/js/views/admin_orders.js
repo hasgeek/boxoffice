@@ -1,8 +1,8 @@
 
 import {OrdersModel} from '../models/admin_orders.js';
 import {OrdersTemplate} from '../templates/admin_orders.html.js';
-import {Util, TableSearch} from '../models/util.js';
-import {SideBarView} from './sidebar.js'
+import {TableSearch} from '../models/util.js';
+import {SideBarView} from './sidebar.js';
 
 export const OrdersView = {
   render: function(config) {
@@ -16,10 +16,7 @@ export const OrdersView = {
         template: OrdersTemplate,
         data:  {
           title: remoteData.title,
-          orders: remoteData.orders,
-          formatDate: function(date) {
-            return Util.formatDate(date)
-          }
+          orders: remoteData.orders
         }
       });
 
@@ -33,13 +30,6 @@ export const OrdersView = {
           tablet: 768,
           desktop: 1400
         }
-      });
-
-      let tableSearch = new TableSearch('orders-table');
-      $('#main-content input#search').keyup(function(e){
-        $('#orders-table tbody tr').addClass('hidden');
-        let hits = tableSearch.searchRows($(this).val());
-        $(hits.join(",")).removeClass('hidden');
       });
 
       main_ractive.on('navigate', function(event, method){

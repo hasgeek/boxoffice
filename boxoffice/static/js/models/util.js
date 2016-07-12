@@ -18,11 +18,6 @@ export const Util = {
         lastThree = ',' + lastThree;
     var res = '₹' + otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + lastThree + afterPoint;
     return res;
-  },
-  formatDate: function(date) {
-    // Returns date in the format 00:00:00 AM, Sun Apr 10 2016
-    var local_date = new Date(date);
-    return local_date.toLocaleTimeString(['en-US'], {hour: '2-digit', minute: '2-digit'}) + ", " + local_date.toDateString();
   }
 }
 
