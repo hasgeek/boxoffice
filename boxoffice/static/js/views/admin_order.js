@@ -1,8 +1,8 @@
 
 import {OrderModel} from '../models/admin_order.js';
-// import {SideBarModel} from '../models/sidebar.js'
 import {OrderTemplate} from '../templates/admin_order.html.js';
-// import {SideBarComponent} from './sidebar.js'
+import {Util} from '../models/util.js';
+import {SideBarView} from './sidebar.js'
 
 export const OrderView = {
   render: function(config) {
@@ -14,35 +14,56 @@ export const OrderView = {
       let main_ractive = new Ractive({
         el: '#main-content-area',
         template: OrderTemplate,
-        data: remoteData
+        data:  {
+          title: remoteData.title,
+          order: remoteData.order,
+          formatDate: function(date) {
+            return Util.formatDate(date)
+          }
+        }
       });
+
+      SideBarView.render('', {'org_name': remoteData.org_name, 'ic_id': config.id});
+
+      NProgress.done();
 
       $('#order-table').footable({
         breakpoints: {
           phone: 600,
           tablet: 768,
-          desktop: 1200
+          desktop: 1400
         }
       });
 
-      // Setup polling
-      let intervalId = setInterval(() => {
-        OrderModel.fetch({
-          url: url
-        }).done((freshData) => {
-          main_ractive.set(freshData);
-        });
-      }, 3000);
+      main_ractive.on('cancelTicket', function(event, method){
+        main_ractive.set(event.keypath + '.cancel_error', "");
+        main_ractive.set(event.keypath + '.cancelling', true);
 
-      main_ractive.on('navigate', function(event, method){
-        // kill interval
-        clearInterval(intervalId);
-        eventBus.trigger('navigate', event.context.url);
+        OrderModel.post({
+          url: event.context.cancel_ticket_url
+        }).done(function(response) {
+          main_ractive.set(event.keypath + '.cancelled_at', response.cancelled_at);
+          main_ractive.set(event.keypath + '.cancelling', false);
+        }).fail(function(response) {
+          let error_text;
+          if(response.readyState === 4) {
+            if(response.status === 500) {
+              error_text = "Server Error";
+            }
+            else {
+              error_text = JSON.parse(response.responseText).message;
+            }
+          }
+          else {
+            error_text = "Unable to connect. Please try again later."
+          }
+          main_ractive.set(event.keypath + '.cancel_error', error_text);
+          main_ractive.set(event.keypath + '.cancelling', false);
+        });
       });
 
       window.addEventListener('popstate', (event) => {
-        // kill interval
-        clearInterval(intervalId);
+        NProgress.configure({ showSpinner: false}).start();
       });
     });
   }
