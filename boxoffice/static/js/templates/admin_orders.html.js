@@ -29,7 +29,7 @@ export const OrdersTemplate = `
           {{#orders:order}}
             <tr id="order-{{ id }}">
               <td></td>
-              <td><p class="table-content">{{#if status === "Purchase Order"}} <span class="text-danger">{{ status }} Order</span> {{else}} {{ invoice_no }} {{/if}}</p></td>
+              <td><p class="table-content">{{#if status === "Purchase Order"}} <span class="text-danger">Incomplete Order</span> {{else}} {{ invoice_no }} {{/if}}</p></td>
               <td><p class="table-content">{{ buyer_fullname }}</p></td>
               <td><p class="table-content">{{ buyer_email }}</p></td>
               <td><p class="table-content">{{ buyer_phone }}</p></td>
