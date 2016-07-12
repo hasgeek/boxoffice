@@ -1,7 +1,6 @@
 
 import {OrdersModel} from '../models/admin_orders.js';
 import {OrdersTemplate} from '../templates/admin_orders.html.js';
-import {TableSearch} from '../models/util.js';
 import {SideBarView} from './sidebar.js';
 
 export const OrdersView = {
@@ -43,4 +42,4 @@ export const OrdersView = {
       });
     });
   }
-}
+};

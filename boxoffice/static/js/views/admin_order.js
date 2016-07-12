@@ -1,12 +1,12 @@
 
-import {OrderModel} from '../models/admin_order.js';
+import {OrdersModel} from '../models/admin_orders.js';
 import {OrderTemplate} from '../templates/admin_order.html.js';
 import {SideBarView} from './sidebar.js';
 
 export const OrderView = {
   render: function(config) {
     let url = `/admin/ic/${config.id}/${config.orderId}`;
-    OrderModel.fetch({
+    OrdersModel.fetch({
       url: url
     }).done((remoteData) => {
       // Initial render
@@ -35,7 +35,7 @@ export const OrderView = {
         main_ractive.set(event.keypath + '.cancel_error', "");
         main_ractive.set(event.keypath + '.cancelling', true);
 
-        OrderModel.post({
+        OrdersModel.post({
           url: event.context.cancel_ticket_url
         }).done(function(response) {
           main_ractive.set(event.keypath + '.cancelled_at', response.cancelled_at);
@@ -51,7 +51,7 @@ export const OrderView = {
             }
           }
           else {
-            error_text = "Unable to connect. Please try again later."
+            error_text = "Unable to connect. Please try again later.";
           }
           main_ractive.set(event.keypath + '.cancel_error', error_text);
           main_ractive.set(event.keypath + '.cancelling', false);
@@ -63,4 +63,4 @@ export const OrderView = {
       });
     });
   }
-}
+};
