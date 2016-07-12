@@ -1,6 +1,6 @@
 
 export const OrderTemplate = `
-  <div class="ic-main-content">
+  <div class="content-wrapper">
     <h1 class="header">{{ title }}</h1>
     {{#order:order}}
       <div class="col-xs-12 table-responsive">
@@ -75,7 +75,7 @@ export const OrderTemplate = `
                     Cancel Ticket {{#cancelling}}<i class="fa fa-spinner fa-spin"></i>{{/}}
                   </button>
                 </p>
-                <p class="error-msg">{{cancel_error}}</p>
+                <p>{{cancel_error}}</p>
               {{/}}
             </div>
           </div>

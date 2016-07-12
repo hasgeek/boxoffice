@@ -2,6 +2,7 @@
 import {OrdersModel} from '../models/admin_orders.js';
 import {OrdersTemplate} from '../templates/admin_orders.html.js';
 import {Util, TableSearch} from '../models/util.js';
+import {SideBarView} from './sidebar.js'
 
 export const OrdersView = {
   render: function(config) {
@@ -22,11 +23,15 @@ export const OrdersView = {
         }
       });
 
+      SideBarView.render('orders', {'org_name': remoteData.org_name, 'ic_id': config.id});
+
+      NProgress.done();
+
       $('#orders-table').footable({
         breakpoints: {
           phone: 600,
           tablet: 768,
-          desktop: 1200
+          desktop: 1400
         }
       });
 
@@ -38,7 +43,13 @@ export const OrdersView = {
       });
 
       main_ractive.on('navigate', function(event, method){
+        //View each order
+        NProgress.configure({ showSpinner: false}).start();
         eventBus.trigger('navigate', event.context.url);
+      });
+
+      window.addEventListener('popstate', (event) => {
+        NProgress.configure({ showSpinner: false}).start();
       });
     });
   }

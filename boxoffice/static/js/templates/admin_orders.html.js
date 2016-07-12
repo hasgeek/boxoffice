@@ -1,13 +1,13 @@
 
 export const OrdersTemplate = `
-  <div class="ic-main-content">
+  <div class="content-wrapper">
     <h1 class="header">{{ title }}</h1>
     <div class="col-xs-12">
       <h2>Orders</h2>
-      <form class="search-participant clearfix">
-          <input autofocus class="form-control search-query" id="search" type="text" name="key" value="" placeholder="Search"/>
-      </form>
       {{#if orders}}
+        <form class="search-participant clearfix">
+            <input autofocus class="form-control search-query" id="search" type="text" name="key" value="" placeholder="Search"/>
+        </form>
         <div class="table-responsive">
           <table class="table table-hover stats-table table-orders" id='orders-table'>
             <thead>   
@@ -22,7 +22,7 @@ export const OrdersTemplate = `
                 <th data-hide="phone, tablet, desktop">Order id</th>
                 <th data-hide="phone, tablet, desktop">Transaction status</th>
                 <th data-hide="phone, tablet">View</th>
-                <th data-hide="phone, tablet, desktop">Ticket Assigment status</th>
+                <th data-hide="phone, tablet, desktop">Ticket Assigment status</th> 
               </tr>
             </thead>
             <tbody>

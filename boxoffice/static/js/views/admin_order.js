@@ -2,6 +2,7 @@
 import {OrderModel} from '../models/admin_order.js';
 import {OrderTemplate} from '../templates/admin_order.html.js';
 import {Util} from '../models/util.js';
+import {SideBarView} from './sidebar.js'
 
 export const OrderView = {
   render: function(config) {
@@ -22,11 +23,15 @@ export const OrderView = {
         }
       });
 
+      SideBarView.render('', {'org_name': remoteData.org_name, 'ic_id': config.id});
+
+      NProgress.done();
+
       $('#order-table').footable({
         breakpoints: {
           phone: 600,
           tablet: 768,
-          desktop: 1200
+          desktop: 1400
         }
       });
 
@@ -55,6 +60,10 @@ export const OrderView = {
           main_ractive.set(event.keypath + '.cancel_error', error_text);
           main_ractive.set(event.keypath + '.cancelling', false);
         });
+      });
+
+      window.addEventListener('popstate', (event) => {
+        NProgress.configure({ showSpinner: false}).start();
       });
     });
   }

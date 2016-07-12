@@ -1,6 +1,7 @@
 
 import {ItemCollectionModel} from '../models/item_collection.js';
 import {TableTemplate, AggChartTemplate, ItemCollectionTemplate} from '../templates/item_collection.html.js';
+import {SideBarView} from './sidebar.js'
 
 let TableComponent = Ractive.extend({
   isolated: false,
@@ -108,8 +109,12 @@ export const ItemCollectionView = {
         components: {TableComponent: TableComponent, AggChartComponent: AggChartComponent}
       });
 
-      main_ractive.on('navigate', function(event, method){
-        eventBus.trigger('navigate', event.context.url);
+      NProgress.done();
+
+      SideBarView.render('dashboard', {'org_name': remoteData.org_name, 'ic_id': config.id});
+
+      window.addEventListener('popstate', (event) => {
+        NProgress.configure({ showSpinner: false}).start();
       });
     });
   }

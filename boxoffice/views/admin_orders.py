@@ -37,7 +37,7 @@ def jsonify_admin_orders(data_dict):
             'url': '/ic/' + unicode(ic_id) + '/' + unicode(order.id),
             'ticket_assignment': tickets_assignment_complete(order) if order.status else ''
         })
-    return jsonify(title=title, orders=orders_json)
+    return jsonify(org_name=data_dict['org_name'], title=title, orders=orders_json)
 
 
 def jsonify_admin_order(order_dict):
@@ -78,7 +78,7 @@ def jsonify_admin_order(order_dict):
         'receipt': url_for('receipt', access_token=order.access_token),
         'assignee': url_for('line_items', access_token=order.access_token)
     })
-    return jsonify(title=title, order=order_json)
+    return jsonify(org_name=order_dict['org_name'], title=title, order=order_json)
 
 
 @app.route('/admin/ic/<ic_id>/orders')
@@ -90,7 +90,7 @@ def jsonify_admin_order(order_dict):
 @render_with({'text/html': 'index.html', 'application/json': jsonify_admin_orders}, json=True)
 def admin_all_order(item_collection):
     orders = Order.query.filter_by(item_collection=item_collection).all()
-    return dict(item_collection=item_collection, orders=orders)
+    return dict(org_name=item_collection.organization.name, item_collection=item_collection, orders=orders)
 
 
 @app.route('/admin/ic/<ic_id>/<order_id>')
@@ -102,4 +102,4 @@ def admin_all_order(item_collection):
     )
 @render_with({'text/html': 'index.html', 'application/json': jsonify_admin_order}, json=True)
 def admin_order(item_collection, order):
-    return dict(title=item_collection.title, order=order)
+    return dict(org_name=item_collection.organization.name, title=item_collection.title, order=order)
