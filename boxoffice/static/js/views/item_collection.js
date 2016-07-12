@@ -111,7 +111,7 @@ export const ItemCollectionView = {
 
       NProgress.done();
 
-      SideBarView.render({'org_name': remoteData.org, 'ic_id': config.id}, 'dashboard');
+      SideBarView.render('dashboard', {'org_name': remoteData.org, 'ic_id': config.id});
 
       window.addEventListener('popstate', (event) => {
         NProgress.configure({ showSpinner: false}).start();

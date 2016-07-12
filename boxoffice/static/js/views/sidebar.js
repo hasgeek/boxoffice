@@ -2,7 +2,7 @@ import {SideBarModel} from '../models/sidebar.js';
 import {SideBarTemplate} from '../templates/sidebar.html.js';
 
 export const SideBarView = {
-  init: function(ic_config, view) {
+  init: function(view, ic_config) {
     this.on = true;
 
     this.ractive = new Ractive({
@@ -10,7 +10,7 @@ export const SideBarView = {
       template: SideBarTemplate,
       data: {
         sidebarMobileOn: false,
-        sideBar: SideBarModel.getItems(ic_config),
+        sidebarItems: SideBarModel.getItems(ic_config),
         activeItem: view,
         sidebarHide: false
       },
@@ -19,24 +19,24 @@ export const SideBarView = {
         this.set('sidebarMobileOn', !this.get('sidebarMobileOn'));
       },
       navigate: function(event) {
-        if(event.context.title !== this.get('activeItem')) {
+        if(event.context.view !== this.get('activeItem')) {
           NProgress.configure({ showSpinner: false}).start();
           eventBus.trigger('navigate', event.context.url);
         }
       }
     });
   },
-  render: function(ic_config, view) {
+  render: function(view, ic_config) {
     if(this.on) {
       this.ractive.set({
-        'sideBar': SideBarModel.getItems(ic_config),
-        'activeTab': sidebar_item,
+        'sidebarItems': SideBarModel.getItems(ic_config),
+        'activeTab': view,
         'sidebarHide': false,
         'sidebarMobileOn': false
       });
     }
     else {
-      this.init(ic_config, view);
+      this.init(view, ic_config);
     }
   },
   hide: function() {

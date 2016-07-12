@@ -1,6 +1,6 @@
 export const SideBarModel = {
   getItems: function(config) {
-    var sidebar_items = [];
+    let sidebar_items = [];
     if(config.org_name && config.ic_id) {
       sidebar_items = [
         {
