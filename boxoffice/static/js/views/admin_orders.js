@@ -31,6 +31,19 @@ export const OrdersView = {
         }
       });
 
+      $('#orders-table').bind('footable_filtering', function (e) {
+        let selected = $('#filter-status').find(':selected').val();
+        if (selected && selected.length > 0) {
+          e.filter += (e.filter && e.filter.length > 0) ? ' ' + selected : selected;
+          e.clear = !e.filter;
+        }
+      });
+
+      $('#filter-status').change(function (e) {
+        e.preventDefault();
+        $('#orders-table').trigger('footable_filter', {filter: $('#filter').val()});
+      });
+
       main_ractive.on('navigate', function(event, method){
         //View each order
         NProgress.configure({ showSpinner: false}).start();

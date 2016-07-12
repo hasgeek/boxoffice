@@ -3,8 +3,8 @@ export const OrderTemplate = `
   <div class="content-wrapper">
     <h1 class="header">{{ title }}</h1>
     {{#order:order}}
-      <div class="col-xs-12 table-responsive">
-        <table class="table table-hover stats-table" id='order-table'> 
+      <div class="col-xs-12">
+        <table class="table table-hover stats-table table-orders" id='order-table'>
           <thead>   
             <tr>
               <th>#</th>
@@ -33,8 +33,8 @@ export const OrderTemplate = `
               <td>
                 <p class="table-content">
                 {{#if status === "Sales Order"}}
-                  <a class="boxoffice-button boxoffice-button-small boxoffice-button-info" href={{ receipt }} target="_blank" >View Receipt</a>
-                  <a class="boxoffice-button boxoffice-button-small boxoffice-button-info right-button" href={{ assignee }} target="_blank" >View Assignee details</a>
+                  <a class="boxoffice-button boxoffice-button-small boxoffice-button-info orders-btn" href={{ receipt }} target="_blank" >View Receipt</a>
+                  <a class="boxoffice-button boxoffice-button-small boxoffice-button-info right-button orders-btn" href={{ assignee }} target="_blank" >View Assignee details</a>
                 {{else}}
                   No details
                 {{/if}}
@@ -77,7 +77,7 @@ export const OrderTemplate = `
                     Cancel Ticket {{#cancelling}}<i class="fa fa-spinner fa-spin"></i>{{/}}
                   </button>
                 </p>
-                <p>{{cancel_error}}</p>
+                <p class="error-msg">{{cancel_error}}</p>
               {{/}}
             </div>
           </div>

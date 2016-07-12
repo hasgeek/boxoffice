@@ -551,23 +551,19 @@ a.boxoffice-button:focus {
   margin-left: 10px;
 }
 
-.search-query {
+.table-title {
   margin: 12px 0;
+  font-size: 18px;
+  font-weight: normal;
 }
 
-@media (min-width: 768px) {
-  .search-query {
-    width: 50%;
-    float: right;
-  }
+.table-title .status-select-label {
+  width: 20%;
 }
-@media (min-width: 1200px) {
-  .search-query {
-    width: 30%;
-  }
-}
-.table-responsive {
-  border-width: 0px;
+
+.table-title .status-select {
+  display: inline-block;
+  width: 60%;
 }
 
 .table-orders {
@@ -581,6 +577,16 @@ a.boxoffice-button:focus {
   margin: 0 0 5px;
 }
 
+.table-orders .orders-btn {
+  display: inline-block;
+  margin: 5px 0px;
+}
+
+@media (min-width: 768px) {
+  .table-orders .orders-btn.right-button {
+    margin-left: 10px;
+  }
+}
 .table-orders.footable.breakpoint > tbody > tr > td > span.footable-toggle {
   color: #df5e0e;
   padding-top: 5px;
