@@ -438,3 +438,34 @@ a.boxoffice-button:focus {
     width: 30%;
   }
 }
+.table-responsive {
+  border-width: 0px;
+}
+
+.table-orders {
+  border-width: 0px;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+.table-orders.footable > thead > tr:first-child > th {
+  border: 1px solid #ccc;
+}
+
+.table-orders tfoot tr td {
+  background-color: transparent;
+  border-color: transparent;
+}
+
+.table-orders > tfoot .pagination {
+  float: right;
+  margin: 15px auto;
+}
+
+.table-orders tfoot .pagination ul li a {
+  color: #888;
+}
+
+.table-orders tfoot .pagination ul li.active a {
+  border-color: #888;
+}

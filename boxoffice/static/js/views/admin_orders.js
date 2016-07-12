@@ -1,7 +1,7 @@
 
 import {OrdersModel} from '../models/admin_orders.js';
 import {OrdersTemplate} from '../templates/admin_orders.html.js';
-import {TableSearch} from '../models/util.js';
+import {Util, TableSearch} from '../models/util.js';
 
 export const OrdersView = {
   render: function(config) {
@@ -13,7 +13,13 @@ export const OrdersView = {
       let main_ractive = new Ractive({
         el: '#main-content-area',
         template: OrdersTemplate,
-        data: remoteData
+        data:  {
+          title: remoteData.title,
+          orders: remoteData.orders,
+          formatDate: function(date) {
+            return Util.formatDate(date)
+          }
+        }
       });
 
       $('#orders-table').footable({
@@ -31,27 +37,13 @@ export const OrdersView = {
         $(hits.join(",")).removeClass('hidden');
       });
 
-      // Setup polling
-      let intervalId = setInterval(() => {
-        OrdersModel.fetch({
-          url: url
-        }).done((freshData) => {
-          main_ractive.set(freshData);
-           //force a redraw
-          $('#orders-table').trigger('footable_redraw');
-        });
-      }, 30000);
-
       main_ractive.on('navigate', function(event, method){
-        // kill interval
-        clearInterval(intervalId);
         eventBus.trigger('navigate', event.context.url);
       });
 
       window.addEventListener('popstate', (event) => {
-        // kill interval
-        clearInterval(intervalId);
       });
+
     });
   }
 }

@@ -27,7 +27,7 @@ export const OrderTemplate = `
               <td>{{ buyer_email }}</td>
               <td>{{ buyer_phone }}</td>
               <td>{{currency}}{{ amount }}</td>
-              <td>{{ order_date }}</td>
+              <td>{{ formatDate(order_date) }}</td>
               <td>{{ id }}</td>
               <td><span {{#if status === "Incomplete"}}class="text-danger"{{/if}}>{{ status }}</span></td>
               <td>
@@ -57,7 +57,7 @@ export const OrderTemplate = `
               <p><span class="italic-title">Final amount:</span> {{ currency }}{{ final_amount }}</p>
               {{#discount_policy}}<p><span class="italic-title">Discount policy:</span> <span class="line-item-discount">{{ discount_policy }}</span>{{/}}
               {{#discount_coupon}}<p><span class="italic-title">Discount coupon:</span> <span class="line-item-discount">{{ discount_coupon }}</span>{{/}}
-              {{#cancelled_at}}<p><b><span class="italic-title cancelled">Cancelled at: {{ cancelled_at }}</span></b></p>{{/}}
+              {{#cancelled_at}}<p><b><span class="italic-title cancelled">Cancelled at: {{ formatDate(cancelled_at) }}</span></b></p>{{/}}
               {{#assignee_details}}
                 <p><span class="italic-title">Assignee id:</span> {{ id }}</p>
                 <p><span class="italic-title">Fullname:</span> {{ fullname }}</p>
@@ -69,9 +69,13 @@ export const OrderTemplate = `
               {{else}}
                 <p><b>Ticket not assigned</b></p>
               {{/}}
-              {{#cancel_ticket && !is_cancelled}}
-                <p><a class="boxoffice-button boxoffice-button-small boxoffice-button-info" href="javascript:void(0)" on-click="cancelTicket">Cancel Ticket</a></p>
-                <p>{{cancel_error}}</p>
+              {{#cancel_ticket_url && !cancelled_at}}
+                <p>
+                  <button class="boxoffice-button boxoffice-button-small boxoffice-button-info" href="javascript:void(0)" on-click="cancelTicket" {{#cancelling}}disabled{{/}}>
+                    Cancel Ticket {{#cancelling}}<i class="fa fa-spinner fa-spin"></i>{{/}}
+                  </button>
+                </p>
+                <p class="error-msg">{{cancel_error}}</p>
               {{/}}
             </div>
           </div>

@@ -317,7 +317,7 @@ def jsonify_orders(orders):
 
 @app.route('/line_item/<line_item_id>/cancel', methods=['POST'])
 @load_models(
-    (Order, {'id': 'line_item_id'}, 'line_item')
+    (LineItem, {'id': 'line_item_id'}, 'line_item')
     )
 def cancel_line_item(line_item):
     if not line_item.is_cancellable():
@@ -337,7 +337,7 @@ def cancel_line_item(line_item):
         line_item.cancel()
         db.session.commit()
     boxofficeq.enqueue(send_line_item_cancellation_mail, line_item.id)
-    return
+    return make_response(jsonify(message='Ticket cancelled', cancelled_at=line_item.cancelled_at), 201)
 
 
 @app.route('/api/1/ic/<item_collection>/orders', methods=['GET', 'OPTIONS'])

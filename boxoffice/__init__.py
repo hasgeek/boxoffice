@@ -37,7 +37,7 @@ def init_for(env):
     lastuser.init_app(app)
     lastuser.init_usermanager(UserManager(db, User))
     app.config['tz'] = timezone(app.config['TIMEZONE'])
-    baseframe.init_app(app, requires=['boxoffice'], ext_requires=['baseframe-bs3', 'fontawesome>=4.0.0', 'ractive', 'ractive-transitions-fly', 'validate', 'footable'])
+    baseframe.init_app(app, requires=['boxoffice'], ext_requires=['baseframe-bs3', 'fontawesome>=4.0.0', 'ractive', 'ractive-transitions-fly', 'validate', 'footable', 'footable-pagination'])
 
     mail.init_app(app)
     wtforms_json.init()
