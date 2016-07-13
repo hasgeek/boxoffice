@@ -28,7 +28,7 @@ export const OrderTemplate = `
               <th data-hide="phone, tablet, desktop, largescreen">Order id</th>
               <th data-hide="phone, tablet, desktop, largescreen">Transaction status</th>
               <th data-sort-ignore="true">View</th>
-              <th data-hide="phone, tablet, desktop, largescreen">Ticket Assigment status</th>
+              <th data-hide="phone, tablet, desktop, largescreen">Assigment status</th>
               <th data-hide="phone, tablet, desktop, largescreen" data-sort-ignore="true">Details</th>
             </tr>
           </thead>
@@ -44,7 +44,7 @@ export const OrderTemplate = `
               <td><p class="table-content">{{ order_date }}</p></td>
               <td><p class="table-content">{{ id }}</p></td>
               <td><p class="table-content"><span {{#if status === "Purchase Order"}} class="text-danger" {{/if}}>{{ status }}</span></p></td>
-              <td><p class="table-content"><a class="boxoffice-button boxoffice-button-info" href="javascript:void(0)" on-click="showOrder">Tickets</a></p></td>
+              <td><p class="table-content"><a class="boxoffice-button boxoffice-button-info" href="javascript:void(0)" on-click="showOrder">Line Items</a></p></td>
               <td><p class="table-content">{{#fully_assigned}} Complete {{else}} Pending {{/}}</p></td>
               <td>
                 <p class="table-content">
@@ -71,7 +71,7 @@ export const OrderTemplate = `
                       </div>
                       <div class="content">
                         <div class="content-box">
-                          <p><span class="italic-title">Ticket id:</span> {{ id }}</p>
+                          <p><span class="italic-title">id:</span> {{ id }}</p>
                           <p><span class="italic-title">Base amount:</span> {{ currency }}{{ base_amount }}</p>
                           <p><span class="italic-title">Discounted amount:</span> {{ currency }}{{ discounted_amount }}</p>
                           <p><span class="italic-title">Final amount:</span> {{ currency }}{{ final_amount }}</p>
@@ -87,12 +87,12 @@ export const OrderTemplate = `
                               <p><span class="italic-title">{{ key }}:</span> {{ . }}</p>
                             {{/}}
                           {{else}}
-                            <p><b>Ticket not assigned</b></p>
+                            <p><b>Not assigned</b></p>
                           {{/}}
                           {{#cancel_ticket_url && !cancelled_at}}
                             <p>
                               <button class="boxoffice-button boxoffice-button-small boxoffice-button-info" href="javascript:void(0)" on-click="cancelTicket" {{#cancelling}}disabled{{/}}>
-                                Cancel Ticket {{#cancelling}}<i class="fa fa-spinner fa-spin"></i>{{/}}
+                                Cancel {{#cancelling}}<i class="fa fa-spinner fa-spin"></i>{{/}}
                               </button>
                             </p>
                             <p class="error-msg">{{cancel_error}}</p>
