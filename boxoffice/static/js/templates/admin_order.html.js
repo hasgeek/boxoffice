@@ -1,5 +1,5 @@
 
-export const OrdersTemplate = `
+export const OrderTemplate = `
   <div class="content-wrapper">
     <h1 class="header">{{ title }}</h1>
     {{#if orders}}
