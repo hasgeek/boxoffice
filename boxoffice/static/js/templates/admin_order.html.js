@@ -45,7 +45,7 @@ export const OrderTemplate = `
               <td><p class="table-content">{{ id }}</p></td>
               <td><p class="table-content"><span {{#if status === "Purchase Order"}} class="text-danger" {{/if}}>{{ status }}</span></p></td>
               <td><p class="table-content"><a class="boxoffice-button boxoffice-button-info" href="javascript:void(0)" on-click="showOrder">Tickets</a></p></td>
-              <td><p class="table-content">{{#ticket_assignment}} Complete {{else}} Pending {{/}}</p></td>
+              <td><p class="table-content">{{#fully_assigned}} Complete {{else}} Pending {{/}}</p></td>
               <td>
                 <p class="table-content">
                   {{#if status === "Sales Order"}}
