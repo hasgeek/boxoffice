@@ -1,6 +1,6 @@
 import {fetch, post} from './util.js';
 
-export const OrdersModel = {
+export const OrderModel = {
   fetch: fetch,
   post: post
 };

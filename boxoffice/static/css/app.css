@@ -307,6 +307,10 @@ a.boxoffice-button:focus {
   padding-right: 10px;
 }
 
+.content-wrapper {
+  position: relative;
+}
+
 @media (min-width: 1200px) {
   .sidebar-toggle {
     display: none;
@@ -575,7 +579,6 @@ a.boxoffice-button:focus {
   border-width: 0px;
   border-collapse: collapse;
   border-spacing: 0;
-  position: relative;
 }
 
 .table-orders p.table-content {
@@ -623,7 +626,7 @@ a.boxoffice-button:focus {
 .order-slider {
   position: absolute;
   top: -115px;
-  left: 0;
+  left: 15px;
   background: #fff;
   z-index: 1020;
   width: 100%;
