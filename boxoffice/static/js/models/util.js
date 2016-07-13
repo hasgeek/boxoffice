@@ -18,11 +18,6 @@ export const Util = {
         lastThree = ',' + lastThree;
     var res = '₹' + otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + lastThree + afterPoint;
     return res;
-  },
-  formatDate: function(date) {
-    // Returns date in the format 00:00:00 AM, Sun Apr 10 2016
-    var local_date = new Date(date);
-    return local_date.toLocaleTimeString(['en-US'], {hour: '2-digit', minute: '2-digit'}) + ", " + local_date.toDateString();
   }
 }
 
@@ -39,51 +34,4 @@ export const post = function(config){
     type: 'POST',
     dataType: 'json'
   });
-}
-
-export const TableSearch = function(tableId){
-  return {
-    tableId : tableId,
-    rowData : [],
-    allMatchedIds : [],
-    getRows: function(){
-      return $('#' + this.tableId +' tbody tr');
-    },
-    setRowData: function(rowD){
-      // Builds a list of objects and sets it the object's rowData
-      var rowMap = [];
-      $.each(this.getRows(), function(rowIndex, row){
-        rowMap.push({
-          'rid': '#' + $(row).attr('id'),
-          'text': $(row).find('td.js-searchable').text().toLowerCase()
-        });
-      });
-      this.rowData = rowMap;
-    },
-    setAllMatchedIds: function(ids){
-      this.allMatchedIds = ids;
-    },
-    searchRows: function(q){
-      // Search the rows of the table for a supplied query.
-      // reset data collection on first search or if table has changed
-      if (this.rowData.length !== this.getRows().length) {
-        this.setRowData();
-      }
-      // return cached matched ids if query is blank
-      if (q === '' && this.allMatchedIds.length !== 0) {
-        return this.allMatchedIds;
-      }
-      var matchedIds = [];
-      for (var i = this.rowData.length - 1; i >= 0; i--) {
-        if (this.rowData[i].text.indexOf(q.toLowerCase()) !== -1) {
-          matchedIds.push(this.rowData[i]['rid']);
-        }
-      }
-      // cache ids if query is blank
-      if (q === '') {
-        this.setAllMatchedIds(matchedIds);
-      }
-      return matchedIds;
-    }
-  }
 }

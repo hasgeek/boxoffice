@@ -6,8 +6,9 @@ from decimal import Decimal
 from .. import app, lastuser
 from sqlalchemy import func
 from coaster.views import load_models, render_with
-from boxoffice.models import db, ItemCollection, Order, LineItem, LINE_ITEM_STATUS, CURRENCY_SYMBOL
+from boxoffice.models import db, ItemCollection, Order, LineItem, LINE_ITEM_STATUS, CURRENCY_SYMBOL, ORDER_STATUS
 from boxoffice.views.order import jsonify_assignee
+from utils import invoice_date_filter
 
 
 def tickets_assignment_complete(order):
@@ -24,61 +25,43 @@ def jsonify_admin_orders(data_dict):
     orders_json = []
     orders = data_dict['orders']
     for order in orders:
+        all_line_items = []
+        for line_item in order.line_items:
+            item = {
+                'title': line_item.item.title,
+                'seq': line_item.line_item_seq,
+                'id': line_item.id,
+                'category': line_item.item.category.title,
+                'description': line_item.item.description.text,
+                'currency': CURRENCY_SYMBOL['INR'],
+                'base_amount': line_item.base_amount,
+                'discounted_amount': line_item.discounted_amount,
+                'final_amount': line_item.final_amount,
+                'discount_policy': line_item.discount_policy.title if line_item.discount_policy else "",
+                'discount_coupon': line_item.discount_coupon.code if line_item.discount_coupon else "",
+                'cancelled_at': invoice_date_filter(line_item.cancelled_at, '%d %b %Y %H:%M:%S') if line_item.cancelled_at else "",
+                'assignee_details': jsonify_assignee(line_item.current_assignee),
+                'cancel_ticket_url': url_for('cancel_line_item', line_item_id=line_item.id) if line_item.is_cancellable() else ""
+            }
+            all_line_items.append(item)
+        all_line_items.sort(key=lambda category_seq: category_seq)
         orders_json.append({
             'invoice_no': order.invoice_no,
             'id': order.id,
-            'order_date': order.paid_at if order.paid_at else order.initiated_at,
-            'status': 'Complete' if order.status else 'Incomplete',
+            'order_date': invoice_date_filter(order.paid_at, '%d %b %Y %H:%M:%S') if order.paid_at else invoice_date_filter(order.initiated_at, '%d %b %Y %H:%M:%S'),
+            'status': ORDER_STATUS.get(order.status).value,
             'buyer_fullname': order.buyer_fullname,
             'buyer_email': order.buyer_email,
             'buyer_phone': order.buyer_phone,
             'currency': CURRENCY_SYMBOL['INR'],
             'amount': order.get_amounts().final_amount,
             'url': '/ic/' + unicode(ic_id) + '/' + unicode(order.id),
-            'ticket_assignment': tickets_assignment_complete(order) if order.status else ''
+            'ticket_assignment': tickets_assignment_complete(order) if order.status else '',
+            'receipt': url_for('receipt', access_token=order.access_token),
+            'assignee': url_for('line_items', access_token=order.access_token),
+            'line_items': all_line_items
         })
     return jsonify(org_name=data_dict['org_name'], title=title, orders=orders_json)
-
-
-def jsonify_admin_order(order_dict):
-    title = order_dict['title']
-    order = order_dict['order']
-    all_line_items = []
-    order_json = []
-    for line_item in order.line_items:
-        item = {
-            'title': line_item.item.title,
-            'id': line_item.id,
-            'category': line_item.item.category.title,
-            'description': line_item.item.description.text,
-            'currency': CURRENCY_SYMBOL['INR'],
-            'base_amount': line_item.base_amount,
-            'discounted_amount': line_item.discounted_amount,
-            'final_amount': line_item.final_amount,
-            'discount_policy': line_item.discount_policy.title if line_item.discount_policy else "",
-            'discount_coupon': line_item.discount_coupon.code if line_item.discount_coupon else "",
-            'cancelled_at': line_item.cancelled_at,
-            'assignee_details': jsonify_assignee(line_item.current_assignee),
-            'cancel_ticket_url': url_for('cancel_line_item', line_item_id=line_item.id) if line_item.is_cancellable() else ""
-        }
-        all_line_items.append(item)
-    all_line_items.sort(key=lambda category_seq: category_seq)
-    order_json.append({
-        'invoice_no': order.invoice_no,
-        'id': order.id,
-        'order_date': order.paid_at if order.paid_at else order.initiated_at,
-        'status': 'Complete' if order.status else 'Incomplete',
-        'buyer_fullname': order.buyer_fullname,
-        'buyer_email': order.buyer_email,
-        'buyer_phone': order.buyer_phone,
-        'tickets': len(order.line_items),
-        'currency': CURRENCY_SYMBOL['INR'],
-        'amount': order.get_amounts().final_amount,
-        'line_items': all_line_items,
-        'receipt': url_for('receipt', access_token=order.access_token),
-        'assignee': url_for('line_items', access_token=order.access_token)
-    })
-    return jsonify(org_name=order_dict['org_name'], title=title, order=order_json)
 
 
 @app.route('/admin/ic/<ic_id>/orders')
@@ -89,17 +72,4 @@ def jsonify_admin_order(order_dict):
     )
 @render_with({'text/html': 'index.html', 'application/json': jsonify_admin_orders}, json=True)
 def admin_all_order(item_collection):
-    orders = Order.query.filter_by(item_collection=item_collection).all()
-    return dict(org_name=item_collection.organization.name, item_collection=item_collection, orders=orders)
-
-
-@app.route('/admin/ic/<ic_id>/<order_id>')
-@lastuser.requires_login
-@load_models(
-    (ItemCollection, {'id': 'ic_id'}, 'item_collection'),
-    (Order, {'id': 'order_id'}, 'order'),
-    permission='org_admin'
-    )
-@render_with({'text/html': 'index.html', 'application/json': jsonify_admin_order}, json=True)
-def admin_order(item_collection, order):
-    return dict(org_name=item_collection.organization.name, title=item_collection.title, order=order)
+    return dict(org_name=item_collection.organization.name, item_collection=item_collection, orders=item_collection.orders)

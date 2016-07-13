@@ -16,7 +16,7 @@ let AggChartComponent = Ractive.extend({
     const date_sales = this.parent.get('date_sales');
     let dates = ['x'];
     let item_counts = {}
-    let date_sales_column = ['date_sales']
+    let date_sales_column = ['sales']
     for (let item_date in date_item_counts) {
       dates.push(item_date);
       date_sales_column.push(date_sales[item_date]);
@@ -46,7 +46,7 @@ let AggChartComponent = Ractive.extend({
   },
   oncomplete: function(){
     let columns = this.format_columns();
-    let bar_graph_headers = _.without(_.map(columns, _.first), 'x', 'date_sales')
+    let bar_graph_headers = _.without(_.map(columns, _.first), 'x', 'sales')
 
     this.chart = c3.generate({
       data: {
@@ -54,13 +54,13 @@ let AggChartComponent = Ractive.extend({
         columns: this.format_columns(),
         type: 'bar',
         types: {
-          date_sales: 'line'
+          sales: 'line'
         },
         groups: [
           bar_graph_headers
         ],
         axes: {
-          date_sales: 'y2'
+          sales: 'y2'
         }
       },
       bar: {
