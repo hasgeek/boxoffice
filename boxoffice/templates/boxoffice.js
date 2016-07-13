@@ -334,6 +334,7 @@ $(function() {
                 line_items.forEach(function(line_item){
                   // TODO: Refactor this to iterate through data.line_items
                   if (data.line_items.hasOwnProperty(line_item.item_id) && line_item.quantity ===  data.line_items[line_item.item_id].quantity) {
+                    line_item.base_price = data.line_items[line_item.item_id].base_amount;
                     line_item.final_amount = data.line_items[line_item.item_id].final_amount;
                     line_item.discounted_amount = data.line_items[line_item.item_id].discounted_amount;
                     line_item.quantity_available = data.line_items[line_item.item_id].quantity_available;
@@ -351,12 +352,15 @@ $(function() {
                         discount_policy.activated = false;
                       }
                     });
+                  } else {
+                    // The item is no longer available.
+                    line_item.quantity_available = 0;
                   }
                 });
 
+                boxoffice.ractive.set('order.line_items', line_items);
                 if (readyToCheckout) {
                   boxoffice.ractive.set({
-                    'order.line_items': line_items,
                     'order.final_amount': data.order.final_amount,
                     'tabs.selectItems.errorMsg': ''
                   });

@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+    # -*- coding: utf-8 -*-
 
 import itertools
 from decimal import Decimal
@@ -89,15 +89,16 @@ class LineItem(BaseMixin, db.Model):
         line_items = []
         for line_item_dict in line_item_dicts:
             item = Item.query.get(line_item_dict['item_id'])
-            if not item_line_items.get(unicode(item.id)):
-                item_line_items[unicode(item.id)] = []
-            item_line_items[unicode(item.id)].append(make_ntuple(item_id=item.id,
-                base_amount=item.current_price().amount))
+            if item.current_price():
+                if not item_line_items.get(unicode(item.id)):
+                    item_line_items[unicode(item.id)] = []
+                item_line_items[unicode(item.id)].append(make_ntuple(item_id=item.id, base_amount=item.current_price().amount))
         coupon_list = list(set(coupons)) if coupons else []
         discounter = LineItemDiscounter()
         for item_id in item_line_items.keys():
             item_line_items[item_id] = discounter.get_discounted_line_items(item_line_items[item_id], coupon_list)
             line_items.extend(item_line_items[item_id])
+        print line_items
         return line_items
 
     def confirm(self):
