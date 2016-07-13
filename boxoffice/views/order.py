@@ -35,6 +35,7 @@ def jsonify_line_items(line_items):
             items_json[unicode(line_item.item_id)] = {'quantity': 0, 'final_amount': Decimal(0), 'discounted_amount': Decimal(0), 'discount_policy_ids': []}
         if not items_json[unicode(line_item.item_id)].get('final_amount'):
             items_json[unicode(line_item.item_id)]['final_amount'] = Decimal(0)
+        items_json[unicode(line_item.item_id)]['base_amount'] = line_item.base_amount
         items_json[unicode(line_item.item_id)]['final_amount'] += line_item.base_amount - line_item.discounted_amount
         items_json[unicode(line_item.item_id)]['discounted_amount'] += line_item.discounted_amount
         items_json[unicode(line_item.item_id)]['quantity'] += 1
