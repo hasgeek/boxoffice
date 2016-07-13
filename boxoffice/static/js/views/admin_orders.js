@@ -27,7 +27,8 @@ export const OrdersView = {
         breakpoints: {
           phone: 600,
           tablet: 768,
-          desktop: 1400
+          desktop: 1200,
+          largescreen: 1400
         }
       });
 

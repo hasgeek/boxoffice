@@ -24,12 +24,12 @@ export const OrdersTemplate = `
               <th data-hide="phone">Buyer email</th>
               <th data-hide="phone, tablet, desktop">Buyer phone</th>
               <th data-hide="phone, tablet" data-type="numeric">Amount</th>
-              <th data-hide="phone, tablet, desktop" data-type="numeric">Date</th>
-              <th data-hide="phone, tablet, desktop">Order id</th>
-              <th data-hide="phone, tablet, desktop">Transaction status</th>
+              <th data-hide="phone, tablet, desktop, largescreen" data-type="numeric">Date</th>
+              <th data-hide="phone, tablet, desktop, largescreen">Order id</th>
+              <th data-hide="phone, tablet, desktop, largescreen">Transaction status</th>
               <th data-sort-ignore="true">View</th>
-              <th data-hide="phone, tablet, desktop">Ticket Assigment status</th>
-              <th data-hide="phone, tablet, desktop" data-sort-ignore="true">Details</th>
+              <th data-hide="phone, tablet, desktop, largescreen">Ticket Assigment status</th>
+              <th data-hide="phone, tablet, desktop, largescreen" data-sort-ignore="true">Details</th>
             </tr>
           </thead>
           <tbody>
