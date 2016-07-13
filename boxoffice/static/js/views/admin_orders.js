@@ -45,10 +45,43 @@ export const OrdersView = {
         $('#orders-table').trigger('footable_filter', {filter: $('#filter').val()});
       });
 
-      main_ractive.on('navigate', function(event, method){
-        //View each order
-        NProgress.configure({ showSpinner: false}).start();
-        eventBus.trigger('navigate', event.context.url);
+      main_ractive.on('showOrder', function(event, method){
+        //Show individual order
+        main_ractive.set(event.keypath + '.show_order', true);
+      });
+
+      main_ractive.on('hideOrder', function(event, method){
+        //Show individual order
+        main_ractive.set(event.keypath + '.show_order', false);
+      });
+
+      main_ractive.on('cancelTicket', function(event, method) {
+        if(window.confirm("Are you sure you want to cancel this ticket?")) {
+          main_ractive.set(event.keypath + '.cancel_error', "");
+          main_ractive.set(event.keypath + '.cancelling', true);
+
+          OrdersModel.post({
+            url: event.context.cancel_ticket_url
+          }).done(function(response) {
+            main_ractive.set(event.keypath + '.cancelled_at', response.cancelled_at);
+            main_ractive.set(event.keypath + '.cancelling', false);
+          }).fail(function(response) {
+            let error_text;
+            if(response.readyState === 4) {
+              if(response.status === 500) {
+                error_text = "Server Error";
+              }
+              else {
+                error_text = JSON.parse(response.responseText).message;
+              }
+            }
+            else {
+              error_text = "Unable to connect. Please try again later.";
+            }
+            main_ractive.set(event.keypath + '.cancel_error', error_text);
+            main_ractive.set(event.keypath + '.cancelling', false);
+          });
+        }
       });
 
       window.addEventListener('popstate', (event) => {
