@@ -15,28 +15,28 @@ export const OrdersTemplate = `
         </select>
       </div>
       <div class="col-xs-12">
-        <table class="table table-hover stats-table table-orders" id='orders-table' data-filter="#filter">
+        <table class="table table-hover stats-table table-orders footable toggle-arrow-tiny" id='orders-table' data-filter="#filter">
           <thead>   
             <tr>
-              <th>#</th>
-              <th data-hide="phone">Receipt</th>
+              <th data-sort-ignore="true">#</th>
+              <th data-hide="phone" data-type="numeric" data-sort-initial="true" data-sort-initial="descending">Receipt</th>
               <th>Buyer name</th>
               <th data-hide="phone">Buyer email</th>
               <th data-hide="phone, tablet, desktop">Buyer phone</th>
-              <th data-hide="phone, tablet">Amount</th>
-              <th data-hide="phone, tablet, desktop">Date</th>
+              <th data-hide="phone, tablet" data-type="numeric">Amount</th>
+              <th data-hide="phone, tablet, desktop" data-type="numeric">Date</th>
               <th data-hide="phone, tablet, desktop">Order id</th>
               <th data-hide="phone, tablet, desktop">Transaction status</th>
-              <th>View</th>
+              <th data-sort-ignore="true">View</th>
               <th data-hide="phone, tablet, desktop">Ticket Assigment status</th>
-              <th data-hide="phone, tablet, desktop">Details</th>
+              <th data-hide="phone, tablet, desktop" data-sort-ignore="true">Details</th>
             </tr>
           </thead>
           <tbody>
           {{#orders:order}}
             <tr id="order-{{ id }}">
               <td></td>
-              <td><p class="table-content">{{#if status === "Purchase Order"}} <span class="text-danger">Incomplete</span> {{else}} {{ invoice_no }} {{/if}}</p></td>
+              <td><p class="table-content">{{ invoice_no }}</p></td>
               <td><p class="table-content">{{ buyer_fullname }}</p></td>
               <td><p class="table-content">{{ buyer_email }}</p></td>
               <td><p class="table-content">{{ buyer_phone }}</p></td>
