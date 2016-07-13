@@ -7,14 +7,6 @@ from boxoffice.models import ItemCollection, CURRENCY_SYMBOL, ORDER_STATUS
 from utils import invoice_date_filter
 
 
-def tickets_assignment_complete(order):
-    tickets_assign = True
-    for line_item in order.line_items:
-        if not line_item.current_assignee:
-            tickets_assign = False
-    return tickets_assign
-
-
 def format_assignee(assignee):
     if assignee:
         return {
@@ -63,7 +55,7 @@ def jsonify_admin_orders(data_dict):
             'currency': CURRENCY_SYMBOL['INR'],
             'amount': order.get_amounts().final_amount,
             'url': '/ic/' + unicode(item_collection_id) + '/' + unicode(order.id),
-            'ticket_assignment': tickets_assignment_complete(order) if order.status else '',
+            'fully_assigned': order.is_fully_assigned() if order.is_confirmed else False,
             'receipt': url_for('receipt', access_token=order.access_token),
             'assignee': url_for('line_items', access_token=order.access_token),
             'line_items': format_line_items(order.line_items)

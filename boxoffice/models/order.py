@@ -89,3 +89,14 @@ class Order(BaseMixin, db.Model):
             discounted_amount += line_item.discounted_amount
             final_amount += line_item.final_amount
         return order_amounts_ntuple(base_amount, discounted_amount, final_amount)
+
+    @property
+    def is_confirmed(self):
+        return self.status in [ORDER_STATUS.SALES_ORDER, ORDER_STATUS.INVOICE]
+
+    def is_fully_assigned(self):
+        """Checks if all the line items in an order have an assignee"""
+        for line_item in self.line_items:
+            if not line_item.current_assignee:
+                return False
+        return True
