@@ -7,7 +7,7 @@ from rq import Queue
 from redis import Redis
 from coaster.views import render_with, load_models
 from baseframe import _
-from .. import app
+from .. import app, lastuser
 from ..models import db
 from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy, LINE_ITEM_STATUS
 from ..models import Order, OnlinePayment, PaymentTransaction, User, CURRENCY, ORDER_STATUS
@@ -316,8 +316,10 @@ def jsonify_orders(orders):
 
 
 @app.route('/line_item/<line_item_id>/cancel', methods=['POST'])
+@lastuser.requires_login
 @load_models(
-    (LineItem, {'id': 'line_item_id'}, 'line_item')
+    (LineItem, {'id': 'line_item_id'}, 'line_item'),
+    permission='org_admin'
     )
 def cancel_line_item(line_item):
     if not line_item.is_cancellable():

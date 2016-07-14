@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import datetime
-from flask import jsonify, g, url_for
+from flask import jsonify, g
 from decimal import Decimal
 from .. import app, lastuser
 from sqlalchemy import func
 from coaster.views import load_models, render_with
-from boxoffice.models import db, ItemCollection, Order, LineItem, LINE_ITEM_STATUS, CURRENCY_SYMBOL
+from boxoffice.models import db, ItemCollection, LineItem, LINE_ITEM_STATUS
 from boxoffice.models.line_item import sales_delta, sales_by_date, counts_per_date_per_item
-from boxoffice.views.order import jsonify_assignee
-from utils import invoice_date_filter
 
 
 def jsonify_item(item):
