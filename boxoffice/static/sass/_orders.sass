@@ -30,12 +30,19 @@
 .table-orders p.table-content
   padding: 5px 0 0
   margin: 0 0 5px
+  word-break: break-all
+
+.table-orders .orders-sm-btn
+  font-size: 10px
 
 .table-orders .orders-btn
   display: inline-block
   margin: 5px 0px
 
-@media (min-width:768px)
+@media (min-width:468px)
+  .table-orders .orders-sm-btn
+    font-size: 15px
+
   .table-orders .orders-btn.right-button
     margin-left: 10px
 
@@ -63,17 +70,19 @@
 .order-slider
   position: absolute
   top: -115px
-  left: 15px
+  left: 3%
+  bottom: 0
   background: #fff
   z-index: 1020
-  width: 100%
+  width: 97%
   box-shadow: 0 0 2px rgba(0,0,0,0.8)
   min-height: 100vh
-  height: auto
 
 @media (min-width: 768px)
   .order-slider
     top: -50px
+    left: 1%
+    width: 99%
 
 .order-title
   padding: 10px 0
@@ -87,8 +96,8 @@
 
 .close-button
   position: absolute
-  top: -10px
-  left: -10px
+  top: -15px
+  left: -5px
   background: #fff
   border: 2px solid #999
   font-size: 18px

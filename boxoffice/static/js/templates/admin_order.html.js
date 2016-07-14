@@ -21,7 +21,7 @@ export const OrderTemplate = `
               <th data-sort-ignore="true">#</th>
               <th data-hide="phone" data-type="numeric" data-sort-initial="true" data-sort-initial="descending">Receipt No.</th>
               <th>Buyer name</th>
-              <th data-hide="phone">Buyer email</th>
+              <th data-hide="phone, tablet">Buyer email</th>
               <th data-hide="phone, tablet, desktop">Buyer phone</th>
               <th data-hide="phone, tablet" data-type="numeric">Amount</th>
               <th data-hide="phone, tablet, desktop, largescreen" data-type="numeric">Date</th>
@@ -44,7 +44,7 @@ export const OrderTemplate = `
               <td><p class="table-content">{{ order_date }}</p></td>
               <td><p class="table-content">{{ id }}</p></td>
               <td><p class="table-content"><span {{#if status === "Purchase Order"}} class="text-danger" {{/if}}>{{ status }}</span></p></td>
-              <td><p class="table-content"><a class="boxoffice-button boxoffice-button-info" href="javascript:void(0)" on-click="showOrder">Line Items</a></p></td>
+              <td><p class="table-content"><a class="boxoffice-button boxoffice-button-info orders-sm-btn" href="javascript:void(0)" on-click="showOrder">Line Items</a></p></td>
               <td><p class="table-content">{{#fully_assigned}} Complete {{else}} Pending {{/}}</p></td>
               <td>
                 <p class="table-content">
