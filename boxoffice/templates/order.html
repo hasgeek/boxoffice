@@ -28,7 +28,7 @@
                   <p>{{ title }}</p>
                 </div>
                 <div class="ticket-edit">
-                  {{#if assignee.id || isTicketAssigned}}
+                  {{#if !cancelled_at && assignee.id || isTicketAssigned }}
                     <span><i class="fa fa-user"></i><i class="fa fa-check"></i></span>
                     <span class="edit-btn" on-click="assign(event, event.keypath)"><i class="fa fa-edit"></i></span>
                   {{else}}
@@ -41,31 +41,35 @@
                   <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
                     <div class="item-description">{{{ description }}}</div>
                     <p class="price center">&#8377;{{ final_amount }}</p>
-                    {{#if assignee.id || isTicketAssigned}}
-                      <p class="confirmation-msg"><i class="fa fa-check"></i> This ticket has been assigned to {{assignee.fullname}}</p>
-                    {{/if}}
-                    <div class="assign-form-wrapper">
-                      <form class="form-horizontal assignee-form" role="form" name="assignee-form">
+                    {{#if !cancelled_at}}
                       {{#if assignee.id || isTicketAssigned}}
-                          <p class="assign-form-title">Update attendee details</p> 
-                      {{else}}
-                          <p class="assign-form-title">Assign this ticket</p>             
-                          <div class="form-group">
-                            <label class="radio-inline">
-                              <input type="radio" name="{{.assignment}}" value="self" checked>
-                              Self
-                            </label>
-                            <label class="radio-inline">
-                              <input type="radio" name="{{.assignment}}" value="other">
-                              Other
-                            </label>
+                        <p class="confirmation-msg"><i class="fa fa-check"></i> This ticket has been assigned to {{assignee.fullname}}</p>
+                      {{/if}}
+                      <div class="assign-form-wrapper">
+                        <form class="form-horizontal assignee-form" role="form" name="assignee-form">
+                        {{#if assignee.id || isTicketAssigned}}
+                            <p class="assign-form-title">Update attendee details</p>
+                        {{else}}
+                            <p class="assign-form-title">Assign this ticket</p>
+                            <div class="form-group">
+                              <label class="radio-inline">
+                                <input type="radio" name="{{.assignment}}" value="self" checked>
+                                Self
+                              </label>
+                              <label class="radio-inline">
+                                <input type="radio" name="{{.assignment}}" value="other">
+                                Other
+                              </label>
+                            </div>
+                          {{/if}}
+                          <div class="form-group text-center continue-btn-wrapper">
+                            <button class="boxoffice-button boxoffice-button-action" on-click="assign(event, event.keypath)">Continue</button>
                           </div>
-                        {{/if}}
-                        <div class="form-group text-center continue-btn-wrapper">
-                          <button class="boxoffice-button boxoffice-button-action" on-click="assign(event, event.keypath)">Continue</button>
-                        </div>
-                      </form>
-                    </div>
+                        </form>
+                      </div>
+                    {{else}}
+                      <p class="cancel-msg">Cancelled at: {{ cancelled_at }}</p>
+                    {{/if}}
                   </div>
                 {{else}}
                   <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
@@ -132,7 +136,6 @@
         </script>
       {%- endraw %}
     </div>
-
   
   </div>
 {% endblock %}

@@ -17,7 +17,7 @@ from ..forms import LineItemForm, BuyerForm
 from custom_exceptions import APIError
 from boxoffice.mailclient import send_receipt_email, send_line_item_cancellation_mail
 from ..extapi import slack
-from utils import xhr_only, cors
+from utils import xhr_only, cors, invoice_date_filter
 
 redis_connection = Redis()
 boxofficeq = Queue('boxoffice', connection=redis_connection)
@@ -58,7 +58,7 @@ def jsonify_assignee(assignee):
 def jsonify_order(data):
     order = data['order']
     line_items = []
-    all_line_items = LineItem.query.filter(LineItem.order == order, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).all()
+    all_line_items = LineItem.query.filter(LineItem.order == order).all()
     for line_item in all_line_items:
         item = {
             'seq': line_item.line_item_seq,
@@ -69,7 +69,8 @@ def jsonify_order(data):
             'description': line_item.item.description.text,
             'final_amount': line_item.final_amount,
             'assignee_details': line_item.item.assignee_details,
-            'assignee': jsonify_assignee(line_item.current_assignee)
+            'assignee': jsonify_assignee(line_item.current_assignee),
+            'cancelled_at': invoice_date_filter(line_item.cancelled_at, '%d %b %Y %H:%M:%S') if line_item.cancelled_at else "",
         }
         line_items.append(item)
     line_items.sort(key=lambda category_seq: category_seq)
@@ -272,7 +273,7 @@ def payment(order):
     (Order, {'access_token': 'access_token'}, 'order')
     )
 def receipt(order):
-    line_items = LineItem.query.filter(LineItem.order == order, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).order_by("line_item_seq asc").all()
+    line_items = LineItem.query.filter(LineItem.order == order).order_by("line_item_seq asc").all()
     return render_template('cash_receipt.html', order=order, org=order.organization, line_items=line_items)
 
 

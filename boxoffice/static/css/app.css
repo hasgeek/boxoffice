@@ -394,6 +394,7 @@ a.boxoffice-button:focus {
 
 .content {
   clear: both;
+  position: relative;
 }
 
 .item-description,
@@ -422,7 +423,8 @@ a.boxoffice-button:focus {
   margin: 10px auto;
 }
 
-.assign-form-title {
+.assign-form-title,
+.cancel-msg {
   font-size: 16px;
   font-weight: bold;
   padding: 5px 0 0;
@@ -436,6 +438,14 @@ a.boxoffice-button:focus {
   padding: 15px 0;
   margin: 0 0 40px;
   text-align: center;
+}
+
+.cancel-msg {
+  font-style: italic;
+  position: absolute;
+  right: 0;
+  left: 0;
+  bottom: 20px;
 }
 
 .box {
