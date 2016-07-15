@@ -58,8 +58,7 @@ def jsonify_assignee(assignee):
 def jsonify_order(data):
     order = data['order']
     line_items = []
-    all_line_items = LineItem.query.filter(LineItem.order == order).all()
-    for line_item in all_line_items:
+    for line_item in order.line_items:
         item = {
             'seq': line_item.line_item_seq,
             'id': line_item.id,
@@ -70,10 +69,10 @@ def jsonify_order(data):
             'final_amount': line_item.final_amount,
             'assignee_details': line_item.item.assignee_details,
             'assignee': jsonify_assignee(line_item.current_assignee),
+            'is_cancelled': line_item.status == LINE_ITEM_STATUS.CANCELLED,
             'cancelled_at': invoice_date_filter(line_item.cancelled_at, '%d %b %Y %H:%M:%S') if line_item.cancelled_at else "",
         }
         line_items.append(item)
-    line_items.sort(key=lambda category_seq: category_seq)
     return jsonify(order_id=order.id, access_token=order.access_token, item_collection_name=order.item_collection.description_text, buyer_name=order.buyer_fullname, buyer_email=order.buyer_email,
         buyer_phone=order.buyer_phone, line_items=line_items)
 

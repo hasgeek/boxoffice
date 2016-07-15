@@ -48,6 +48,7 @@ window.Boxoffice.Order = {
     });
   },
   view: function(data) {
+    console.log("data",data);
     var order = this;
     order.ractive = new Ractive({
         el: '#boxoffice-order',
