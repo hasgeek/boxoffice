@@ -237,7 +237,7 @@ def payment(order):
     order_amounts = order.get_amounts()
     online_payment = OnlinePayment(pg_paymentid=request.json.get('pg_paymentid'), order=order)
 
-    rp_resp = razorpay.capture_payment(online_payment.pg_paymentid, order_amounts.final_amount)
+    rp_resp = razorpay.capture_payment('xxx', order_amounts.final_amount)
     if rp_resp.status_code == 200:
         online_payment.confirm()
         db.session.add(online_payment)
@@ -264,7 +264,8 @@ def payment(order):
         online_payment.fail()
         db.session.add(online_payment)
         db.session.commit()
-        raise APIError("Online payment failed for order - {order}".format(order=order.id), 502)
+        raise APIError("Online payment failed for order - {order} with the following details - {msg}".format(order=order.id,
+            msg=rp_resp.content), 500, 'Your payment failed. Please try again or contact us at {email}.'.format(email=order.organization.contact_email))
 
 
 @app.route('/order/<access_token>/receipt', methods=['GET'])
@@ -333,7 +334,9 @@ def cancel_line_item(line_item):
                 online_payment=payment, amount=line_item.final_amount, currency=CURRENCY.INR))
             db.session.commit()
         else:
-            raise APIError("Cancellation failed for order - {order}".format(order=line_item.order.id), 502)
+            raise APIError("Cancellation failed for order - {order} with the following details - {msg}".format(order=order.id,
+                msg=rp_resp.content), 500,
+            'Refund failed. Please try again or write to us at {email}.'.format(email=line_item.order.organization.contact_email))
     else:
         line_item.cancel()
         db.session.commit()
