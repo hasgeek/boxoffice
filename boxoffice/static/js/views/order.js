@@ -129,8 +129,7 @@ window.Boxoffice.Order = {
               attendeeDetails[formElements[formIndex].name] = formElements[formIndex].value;
             }
           }
-          attendeeDetails['email'] = order.ractive.get(line_item + '.assignee.email');
-          attendeeDetails['fullname'] = order.ractive.get(line_item + '.assignee.fullname');
+
           $.ajax({
             url: Boxoffice.Order.config.assign.urlFor(order.ractive.get('access_token')),
             type: Boxoffice.Order.config.assign.method,

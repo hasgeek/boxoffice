@@ -28,6 +28,8 @@ def assign(order):
         assignee_details[key] = assignee_dict.get(key)
     if line_item.current_assignee and assignee_dict['email'] == line_item.current_assignee.email:
         # update
+        line_item.current_assignee.fullname = assignee_dict['fullname']
+        line_item.current_assignee.phone = assignee_dict['phone']
         line_item.current_assignee.details = assignee_details
     else:
         if line_item.current_assignee:
