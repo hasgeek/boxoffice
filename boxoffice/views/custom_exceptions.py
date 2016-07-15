@@ -2,7 +2,8 @@
 
 from .. import mail, app
 from flask.ext.mail import Message
-from flask import make_response, jsonify
+from flask import jsonify, make_response
+from utils import cors
 
 
 class APIError(Exception):
@@ -15,6 +16,7 @@ class APIError(Exception):
 
 
 @app.errorhandler(APIError)
+@cors
 def handle_api_error(error):
     msg = Message(subject='API Error', recipients=app.config['ADMINS'])
     msg.body = error.message
