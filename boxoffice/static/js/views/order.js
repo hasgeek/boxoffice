@@ -89,7 +89,9 @@ window.Boxoffice.Order = {
             order.ractive.set(line_item + '.assignee.email', order.ractive.get('buyer_email'));
             order.ractive.set(line_item + '.assignee.phone', order.ractive.get('buyer_phone'));
           }
-          else if(!order.ractive.get(line_item + '.assignee.phone')) {
+          else if(assignment === 'other') {
+            order.ractive.set(line_item + '.assignee.fullname', "");
+            order.ractive.set(line_item + '.assignee.email', "");
             order.ractive.set(line_item + '.assignee.phone', '+91');
           }
           order.ractive.set(line_item + '.toAssign', true);
@@ -97,7 +99,7 @@ window.Boxoffice.Order = {
         addAttendeDetails: function(event, line_item, line_item_seq, line_item_id) {
 
           var validationConfig = [{
-              name: 'name',
+              name: 'fullname',
               rules: 'required'
             },
             {
@@ -123,15 +125,15 @@ window.Boxoffice.Order = {
             }
           });
 
-          formValidator.setMessage('required', 'Please fill out the %s field.');
-          formValidator.setMessage('valid_email', 'Please enter a valid email.');
+          formValidator.setMessage('required', 'Please fill out the %s');
+          formValidator.setMessage('valid_email', 'Please enter a valid email');
 
           formValidator.registerCallback('validate_phone', function(phone) {
             var validPhone = /^\+[0-9]+$/;
             if (phone.match(validPhone)) {
               //Indian number starting with '+91'
               if (phone.indexOf('+91') === 0 && phone.length != 13) {
-                formValidator.setMessage('validate_phone', 'Please enter a valid Indian mobile number.');
+                formValidator.setMessage('validate_phone', 'Please enter a valid Indian mobile number');
                 return false;
               }
             } else {
@@ -141,7 +143,7 @@ window.Boxoffice.Order = {
           });
         },
         sendAttendeDetails: function(line_item, line_item_seq, line_item_id) {
-          var attendeeForm = 'attendee-details-' + line_item_seq
+          var attendeeForm = 'attendee-details-' + line_item_seq;
           var formElements = $('#'+ attendeeForm).serializeArray();
           var attendeeDetails ={};
           for (var formIndex=0; formIndex < formElements.length; formIndex++) {

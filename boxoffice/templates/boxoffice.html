@@ -113,22 +113,22 @@
         <form role="form" name="buyer-form" class="buyer-details">
           <p class="buyer-form-title">Buyer Details</p>
           <div class="group">
-            <input class="group-input {{#buyer.name}}filled{{/}}" type="text" name="name" required value="{{buyer.name}}">
+            <input class="group-input {{#buyer.name}}filled{{/}}" type="text" name="name" value="{{buyer.name}}">
             <span class="bar"></span>
             <label class="group-label">Name</label>
-            <p class="form-error-msg">{{ errormsg.name }}</p>
+            {{#errormsg.name}}<p class="form-error-msg">{{ errormsg.name }}</p>{{/}}
           </div>
           <div class="group">
-            <input class="group-input {{#buyer.email}}filled{{/}}" type="text" name="email" required value="{{buyer.email}}">
+            <input class="group-input {{#buyer.email}}filled{{/}}" type="text" name="email" value="{{buyer.email}}">
             <span class="bar"></span>
             <label class="group-label">Email</label>
-            <p class="form-error-msg">{{ errormsg.email }}</p>
+            {{#errormsg.email}}<p class="form-error-msg">{{ errormsg.email }}</p>{{/}}
           </div>
           <div class="group">
-            <input class="group-input {{#buyer.phone}}filled{{/}}" type="text" name="phone" required value="{{buyer.phone}}">
+            <input class="group-input {{#buyer.phone}}filled{{/}}" type="text" name="phone" value="{{buyer.phone}}">
             <span class="bar"></span>
             <label class="group-label">Phone</label>
-            <p class="form-error-msg">{{ errormsg.phone }}</p>
+            {{#errormsg.phone}}<p class="form-error-msg">{{ errormsg.phone }}</p>{{/}}
           </div>
           <div class="checkout-confirmation">
             <p class="summary">Booking Summary</p>
@@ -455,7 +455,6 @@
     padding-left: 8px;
     font-size: 16px;
     position: relative;
-    top: -1px;
   }
   input[type=number]::-webkit-inner-spin-button, 
   input[type=number]::-webkit-outer-spin-button { 
@@ -528,7 +527,7 @@
       height: 37px;
     }
     .ticket-qty {
-      top: -4px;
+      top: -1px;
       width: 40px;
     }
     .discount-price {
@@ -667,10 +666,24 @@
     width: 50%;
   }
   .form-error-msg {
-    font-size: 14px;
-    margin: 0;
-    padding: 0 5px;
-    color: #b94a48;
+    color: white;
+    font-size: 12px;
+    border-radius: 3px;
+    border: 1px solid #b94a48;
+    background: #b94a48;
+    margin: 10px 0 0;
+    padding: 5px;
+    position: relative;
+    display: inline-block;
+  }
+  .form-error-msg::before {
+    display: block;
+    content: "";
+    position: absolute;
+    border: 6px solid transparent;
+    border-bottom: 6px solid #b94a48;
+    top: -13px;
+    left: 20px;
   }
   .buyer-form-title, .summary {
     text-align: center;

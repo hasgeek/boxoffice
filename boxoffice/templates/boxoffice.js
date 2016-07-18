@@ -433,15 +433,15 @@ $(function() {
             }
           });
 
-          formValidator.setMessage('required', 'Please fill out the %s field.');
-          formValidator.setMessage('valid_email', 'Please enter a valid email.');
+          formValidator.setMessage('required', 'Please fill out the %s field');
+          formValidator.setMessage('valid_email', 'Please enter a valid email');
 
           formValidator.registerCallback('validate_phone', function(phone) {
             var validPhone = /^\+[0-9]+$/;
             if (phone.match(validPhone)) {
               //Indian number starting with '+91'
               if (phone.indexOf('+91') === 0 && phone.length != 13) {
-                formValidator.setMessage('validate_phone', 'Please enter a valid Indian mobile number.');
+                formValidator.setMessage('validate_phone', 'Please enter a valid Indian mobile number');
                 return false;
               }
             } else {
