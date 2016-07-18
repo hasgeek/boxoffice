@@ -10,13 +10,14 @@ export const OrderTemplate = `
         <label for="filter-status" class="status-select-label">Filter:</label>
         <select class="form-control status-select" id="filter-status">
           <option value="">All orders</option>
-          <option value="Sales Order">Sales Orders</option>
-          <option value="Purchase Order">Purchase Orders</option>
+          <option value="Paid order">Paid orders</option>
+          <option value="Free order">Free orders</option>
+          <option value="Unpaid order">Unpaid orders</option>
         </select>
       </div>
       <div class="col-xs-12">
         <table class="table table-hover stats-table table-orders footable toggle-circle-filled" id='orders-table' data-filter="#filter">
-          <thead>   
+          <thead>
             <tr>
               <th data-sort-ignore="true">#</th>
               <th data-hide="phone" data-type="numeric" data-sort-initial="true" data-sort-initial="descending">Receipt No.</th>
@@ -30,6 +31,7 @@ export const OrderTemplate = `
               <th data-sort-ignore="true">View</th>
               <th data-hide="phone, tablet, desktop, largescreen">Assigment status</th>
               <th data-hide="phone, tablet, desktop, largescreen" data-sort-ignore="true">Details</th>
+              <th data-hide="phone, tablet, desktop, largescreen" data-sort-ignore="true">Line items</th>
             </tr>
           </thead>
           <tbody>
@@ -43,9 +45,25 @@ export const OrderTemplate = `
               <td><p class="table-content">{{currency}}{{ amount }}</p></td>
               <td><p class="table-content">{{ order_date }}</p></td>
               <td><p class="table-content">{{ id }}</p></td>
-              <td><p class="table-content"><span {{#if status === "Purchase Order"}} class="text-danger" {{/if}}>{{ status }}</span></p></td>
+              <td>
+                <p class="table-content">
+                  {{#if amount === 0}}
+                    <span>Free order</span>
+                  {{elseif status === "Sales Order"}}
+                    <span>Paid order</span>
+                  {{elseif status === "Purchase Order"}}
+                    <span>Unpaid order</span>
+                  {{/if}}
+                </p>
+              </td>
               <td><p class="table-content"><a class="boxoffice-button boxoffice-button-info orders-sm-btn" href="javascript:void(0)" on-click="showOrder">Line Items</a></p></td>
-              <td><p class="table-content">{{#fully_assigned}} Complete {{else}} Pending {{/}}</p></td>
+              <td>
+                <p class="table-content">
+                  {{#if status === "Sales Order"}}
+                    {{#fully_assigned}} Complete {{else}} Pending {{/}}
+                  {{/if}}
+                  </p>
+              </td>
               <td>
                 <p class="table-content">
                   {{#if status === "Sales Order"}}
@@ -55,6 +73,13 @@ export const OrderTemplate = `
                     No details
                   {{/if}}
                 </p>
+              </td>
+              <td>
+                <div class="table-content">
+                {{#line_items:line_item}}
+                  <p>{{@index+1}}. {{ title }}</p>
+                {{/}}
+                </div>
               </td>
             </tr>
             {{#show_order}}
@@ -79,7 +104,6 @@ export const OrderTemplate = `
                           {{#discount_coupon}}<p><span class="italic-title">Discount coupon:</span> <span class="line-item-discount">{{ discount_coupon }}</span>{{/}}
                           {{#cancelled_at}}<p><b><span class="italic-title cancelled">Cancelled at: {{ cancelled_at }}</span></b></p>{{/}}
                           {{#assignee_details}}
-                            <p><span class="italic-title">Assignee id:</span> {{ id }}</p>
                             <p><span class="italic-title">Fullname:</span> {{ fullname }}</p>
                             <p><span class="italic-title">Email:</span> {{ email }}</p>
                             <p><span class="italic-title">Phone:</span> {{ phone }}</p>

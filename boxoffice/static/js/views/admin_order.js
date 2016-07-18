@@ -28,7 +28,7 @@ export const OrderView = {
           phone: 600,
           tablet: 768,
           desktop: 1200,
-          largescreen: 1400
+          largescreen: 1900
         }
       });
 

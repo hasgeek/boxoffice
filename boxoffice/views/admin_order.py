@@ -60,7 +60,7 @@ def jsonify_admin_orders(data_dict):
             'assignee': url_for('line_items', access_token=order.access_token),
             'line_items': format_line_items(order.line_items)
         })
-    return jsonify(org_name=data_dict['org_name'], title=data_dict['item_collection'].title, orders=order_dicts)
+    return jsonify(org_name=data_dict['item_collection'].organization.name, title=data_dict['item_collection'].title, orders=order_dicts)
 
 
 @app.route('/admin/ic/<ic_id>/orders')
@@ -71,4 +71,4 @@ def jsonify_admin_orders(data_dict):
     )
 @render_with({'text/html': 'index.html', 'application/json': jsonify_admin_orders}, json=True)
 def admin_orders(item_collection):
-    return dict(org_name=item_collection.organization.name, item_collection=item_collection, orders=item_collection.orders)
+    return dict(title=item_collection.organization.title, item_collection=item_collection, orders=item_collection.orders)

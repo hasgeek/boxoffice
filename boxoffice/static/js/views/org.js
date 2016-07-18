@@ -13,7 +13,7 @@ export const OrgView = {
         el: '#main-content-area',
         template: orgTemplate,
         data: {
-          name: data.name,
+          title: data.title,
           item_collections: data.item_collections
         }
       });
