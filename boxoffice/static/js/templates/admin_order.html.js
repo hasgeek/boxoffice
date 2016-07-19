@@ -12,7 +12,7 @@ export const OrderTemplate = `
           <option value="">All orders</option>
           <option value="Paid order">Paid orders</option>
           <option value="Free order">Free orders</option>
-          <option value="Unpaid order">Unpaid orders</option>
+          <option value="Incomplete order">Incomplete orders</option>
         </select>
       </div>
       <div class="col-xs-12">
@@ -49,24 +49,24 @@ export const OrderTemplate = `
                 <p class="table-content">
                   {{#if amount === 0}}
                     <span>Free order</span>
-                  {{elseif status === "Sales Order"}}
+                  {{elseif status}}
                     <span>Paid order</span>
-                  {{elseif status === "Purchase Order"}}
-                    <span>Unpaid order</span>
+                  {{else}}
+                    <span>Incomplete order</span>
                   {{/if}}
                 </p>
               </td>
               <td><p class="table-content"><a class="boxoffice-button boxoffice-button-info orders-sm-btn" href="javascript:void(0)" on-click="showOrder">Line Items</a></p></td>
               <td>
                 <p class="table-content">
-                  {{#if status === "Sales Order"}}
+                  {{#if status}}
                     {{#fully_assigned}} Complete {{else}} Pending {{/}}
                   {{/if}}
                   </p>
               </td>
               <td>
                 <p class="table-content">
-                  {{#if status === "Sales Order"}}
+                  {{#if status}}
                     <a class="boxoffice-button boxoffice-button-small boxoffice-button-info orders-btn" href={{ receipt }} target="_blank" >View Receipt</a>
                     <a class="boxoffice-button boxoffice-button-small boxoffice-button-info right-button orders-btn" href={{ assignee }} target="_blank" >View Assignee details</a>
                   {{else}}

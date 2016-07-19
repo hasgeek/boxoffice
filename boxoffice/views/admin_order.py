@@ -48,7 +48,7 @@ def jsonify_admin_orders(data_dict):
             'invoice_no': order.invoice_no,
             'id': order.id,
             'order_date': invoice_date_filter(order.paid_at, '%d %b %Y %H:%M:%S') if order.paid_at else invoice_date_filter(order.initiated_at, '%d %b %Y %H:%M:%S'),
-            'status': ORDER_STATUS.get(order.status).value,
+            'status': order.is_confirmed,
             'buyer_fullname': order.buyer_fullname,
             'buyer_email': order.buyer_email,
             'buyer_phone': order.buyer_phone,

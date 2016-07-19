@@ -96,7 +96,7 @@ class Order(BaseMixin, db.Model):
 
     def is_fully_assigned(self):
         """Checks if all the line items in an order have an assignee"""
-        for line_item in self.line_items:
+        for line_item in self.get_confirmed_line_items:
             if not line_item.current_assignee:
                 return False
         return True
