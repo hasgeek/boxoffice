@@ -22,9 +22,14 @@ def localize(datetime, tz):
     return utc.localize(datetime).astimezone(timezone(tz))
 
 
-@app.template_filter('invoice_date')
-def invoice_date_filter(date, format):
-    return localize(date, app.config['TIMEZONE']).strftime(format)
+@app.template_filter('date_time_format')
+def date_time_format(date):
+    return localize(date, app.config['TIMEZONE']).strftime('%d %b %Y %H:%M:%S')
+
+
+@app.template_filter('date_format')
+def date_format(date):
+    return localize(date, app.config['TIMEZONE']).strftime('%d %b %Y')
 
 
 def cors(f):

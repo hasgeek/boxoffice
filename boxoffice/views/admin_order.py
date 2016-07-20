@@ -4,7 +4,7 @@ from flask import jsonify, url_for
 from .. import app, lastuser
 from coaster.views import load_models, render_with
 from boxoffice.models import ItemCollection, CURRENCY_SYMBOL, ORDER_STATUS
-from utils import invoice_date_filter
+from utils import date_time_format
 
 
 def format_assignee(assignee):
@@ -33,7 +33,7 @@ def format_line_items(line_items):
             'final_amount': line_item.final_amount,
             'discount_policy': line_item.discount_policy.title if line_item.discount_policy else "",
             'discount_coupon': line_item.discount_coupon.code if line_item.discount_coupon else "",
-            'cancelled_at': invoice_date_filter(line_item.cancelled_at, '%d %b %Y %H:%M:%S') if line_item.cancelled_at else "",
+            'cancelled_at': date_time_format(line_item.cancelled_at) if line_item.cancelled_at else "",
             'assignee_details': format_assignee(line_item.current_assignee),
             'cancel_ticket_url': url_for('cancel_line_item', line_item_id=line_item.id) if line_item.is_cancellable() else ""
         })
@@ -47,7 +47,7 @@ def jsonify_admin_orders(data_dict):
         order_dicts.append({
             'invoice_no': order.invoice_no,
             'id': order.id,
-            'order_date': invoice_date_filter(order.paid_at, '%d %b %Y %H:%M:%S') if order.paid_at else invoice_date_filter(order.initiated_at, '%d %b %Y %H:%M:%S'),
+            'order_date': date_time_format(order.paid_at) if order.paid_at else date_time_format(order.initiated_at),
             'status': order.is_confirmed,
             'buyer_fullname': order.buyer_fullname,
             'buyer_email': order.buyer_email,

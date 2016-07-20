@@ -17,7 +17,7 @@ from ..forms import LineItemForm, BuyerForm
 from custom_exceptions import APIError
 from boxoffice.mailclient import send_receipt_email, send_line_item_cancellation_mail
 from ..extapi import slack
-from utils import xhr_only, cors
+from utils import xhr_only, cors, date_time_format
 
 redis_connection = Redis()
 boxofficeq = Queue('boxoffice', connection=redis_connection)
@@ -339,7 +339,7 @@ def cancel_line_item(line_item):
         line_item.cancel()
         db.session.commit()
     boxofficeq.enqueue(send_line_item_cancellation_mail, line_item.id)
-    return make_response(jsonify(status='ok', result={'message': 'Ticket cancelled', 'cancelled_at': line_item.cancelled_at}), 201)
+    return make_response(jsonify(status='ok', result={'message': 'Ticket cancelled', 'cancelled_at': date_time_format(line_item.cancelled_at)}), 201)
 
 
 @app.route('/api/1/ic/<item_collection>/orders', methods=['GET', 'OPTIONS'])
