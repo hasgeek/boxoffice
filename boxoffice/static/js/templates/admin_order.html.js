@@ -119,7 +119,7 @@ export const OrderTemplate = `
                                 Cancel {{#cancelling}}<i class="fa fa-spinner fa-spin"></i>{{/}}
                               </button>
                             </p>
-                            <p class="error-msg">{{cancel_error}}</p>
+                            <p class="error-msg left-aligned">{{cancel_error}}</p>
                           {{/}}
                         </div>
                       </div>

@@ -224,6 +224,10 @@ a.boxoffice-button:focus {
   text-align: right;
 }
 
+.error-msg.left-aligned {
+  text-align: left;
+}
+
 .info-msg {
   font-size: 14px;
   margin: 5px auto;
@@ -636,7 +640,6 @@ a.boxoffice-button:focus {
   position: absolute;
   top: -115px;
   left: 3%;
-  bottom: 0;
   background: #fff;
   z-index: 1020;
   width: 97%;

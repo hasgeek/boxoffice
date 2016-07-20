@@ -63,7 +63,7 @@ export const OrderView = {
           OrderModel.post({
             url: event.context.cancel_ticket_url
           }).done(function(response) {
-            main_ractive.set(event.keypath + '.cancelled_at', response.cancelled_at);
+            main_ractive.set(event.keypath + '.cancelled_at', response.result.cancelled_at);
             main_ractive.set(event.keypath + '.cancelling', false);
           }).fail(function(response) {
             let error_text;
@@ -72,7 +72,7 @@ export const OrderView = {
                 error_text = "Server Error";
               }
               else {
-                error_text = JSON.parse(response.responseText).message;
+                error_text = JSON.parse(response.responseText).error_description;
               }
             }
             else {

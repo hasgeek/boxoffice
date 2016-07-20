@@ -15,7 +15,7 @@ def format_assignee(assignee):
             'email': assignee.email,
             'phone': assignee.phone,
             'details': assignee.details
-        }
+            }
 
 
 def format_line_items(line_items):

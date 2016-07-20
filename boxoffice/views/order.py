@@ -323,7 +323,7 @@ def jsonify_orders(orders):
     )
 def cancel_line_item(line_item):
     if not line_item.is_cancellable():
-        return make_response(jsonify(message='This ticket is not cancellable'), 403)
+        return make_response(jsonify(status='error', error='non_cancellable', error_description='This ticket is not cancellable'), 403)
 
     if line_item.final_amount > Decimal('0'):
         payment = OnlinePayment.query.filter_by(order=line_item.order).one()
@@ -339,7 +339,7 @@ def cancel_line_item(line_item):
         line_item.cancel()
         db.session.commit()
     boxofficeq.enqueue(send_line_item_cancellation_mail, line_item.id)
-    return make_response(jsonify(message='Ticket cancelled', cancelled_at=line_item.cancelled_at), 201)
+    return make_response(jsonify(status='ok', result={'message': 'Ticket cancelled', 'cancelled_at': line_item.cancelled_at}), 201)
 
 
 @app.route('/api/1/ic/<item_collection>/orders', methods=['GET', 'OPTIONS'])
