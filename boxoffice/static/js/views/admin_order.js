@@ -5,9 +5,9 @@ import {SideBarView} from './sidebar.js';
 
 export const OrderView = {
   render: function(config) {
-    let url = `/admin/ic/${config.id}/orders`;
+
     OrderModel.fetch({
-      url: url
+      url: OrderModel.getUrl(config.id)
     }).done((remoteData) => {
       // Initial render
       let main_ractive = new Ractive({

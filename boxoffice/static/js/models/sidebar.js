@@ -1,3 +1,7 @@
+import {OrgModel} from './org.js';
+import {ItemCollectionModel} from './item_collection.js';
+import {OrderModel} from './admin_order.js';
+
 export const SideBarModel = {
   getItems: function(config) {
     let sidebar_items = [];
@@ -10,19 +14,19 @@ export const SideBarModel = {
           view: 'home'
         },
         {
-          url: '/o/' + config.org_name,
+          url: OrgModel.getUrl(config.org_name, true),
           title: 'Organization',
           icon: 'fa-sitemap',
           view: 'org'
         },
         {
-          url: '/ic/' + config.ic_id,
+          url: ItemCollectionModel.getUrl(config.ic_id, true),
           title: 'Dashboard',
           icon: 'fa-dashboard',
           view: 'dashboard'
         },
         {
-          url: '/ic/' + config.ic_id + '/orders',
+          url: OrderModel.getUrl(config.ic_id, true),
           title: 'Orders',
           icon: 'fa-shopping-cart',
           view: 'orders'

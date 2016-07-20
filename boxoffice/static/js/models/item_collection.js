@@ -1,8 +1,15 @@
 import {Util, fetch} from './util.js';
+import {IndexModel} from './index.js';
 
 
 export const ItemCollectionModel = {
   fetch: fetch,
+  getUrl: function(ic_id, relativeUrl=false){
+    if(relativeUrl) {
+      return '/ic/' + ic_id;
+    }
+    return IndexModel.url_root + '/ic/' + ic_id;
+  },
   formatItems: function(items){
     var formattedItems = _.extend(items);
     formattedItems.forEach(function(item){

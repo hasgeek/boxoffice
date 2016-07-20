@@ -1,5 +1,6 @@
 import {fetch} from './util.js';
 
 export const IndexModel = {
-  fetch: fetch
+  fetch: fetch,
+  url_root: '/admin'
 };
