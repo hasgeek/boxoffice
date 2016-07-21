@@ -9,7 +9,7 @@ from utils import cors
 class APIError(Exception):
 
     def __init__(self, message, status_code, response_message):
-        Exception.__init__(self)
+        super(APIError, self).__init__()
         self.message = message
         self.status_code = status_code
         self.response_message = response_message
