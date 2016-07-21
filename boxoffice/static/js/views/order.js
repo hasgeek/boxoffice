@@ -27,15 +27,15 @@ window.Boxoffice.Order = {
       success: function(data) {
         window.Boxoffice.Order.view(data);
       },
-      error: function(response) {`
+      error: function(response) {
         var ajaxLoad = this;
         ajaxLoad.retries -= 1;
         var errorMsg;
-        if(response.readyState === 4) {
+        if (response.readyState === 4) {
           errorMsg = "Server error. ";
           $("#error-description").html(errorMsg);
         }
-        else if(response.readyState === 0) {
+        else if (response.readyState === 0) {
           if(ajaxLoad.retries < 0) {
             errorMsg = "Unable to connect. Please try again later.";
             $("#notify-msg").html(errorMsg);
@@ -83,15 +83,15 @@ window.Boxoffice.Order = {
         assign: function(event, line_item, ticket_assigned) {
           event.original.preventDefault();
 
-          if(!ticket_assigned) {
+          if (!ticket_assigned) {
             var assignment = order.ractive.get(line_item +'.assignment');
 
-            if(assignment === 'self') {
+            if (assignment === 'self') {
               order.ractive.set(line_item + '.assignee.fullname', order.ractive.get('buyer_name'));
               order.ractive.set(line_item + '.assignee.email', order.ractive.get('buyer_email'));
               order.ractive.set(line_item + '.assignee.phone', order.ractive.get('buyer_phone'));
             }
-            else if(assignment === 'other') {
+            else if (assignment === 'other') {
               order.ractive.set(line_item + '.assignee.fullname', "");
               order.ractive.set(line_item + '.assignee.email', "");
               order.ractive.set(line_item + '.assignee.phone', '+91');
@@ -136,7 +136,7 @@ window.Boxoffice.Order = {
             phone = phone.replace(/[\t .()\[\]-]+/g, '');
             order.ractive.set(line_item + '.assignee.phone', phone);
 
-            if(phone.length > 16) {
+            if (phone.length > 16) {
               formValidator.setMessage('validate_phone', 'Please enter a valid mobile number');
               return false;
             }
@@ -158,7 +158,7 @@ window.Boxoffice.Order = {
           var formElements = $('#'+ attendeeForm).serializeArray();
           var attendeeDetails ={};
           for (var formIndex=0; formIndex < formElements.length; formIndex++) {
-            if(formElements[formIndex].value) {
+            if (formElements[formIndex].value) {
               attendeeDetails[formElements[formIndex].name] = formElements[formIndex].value;
             }
           }
@@ -188,7 +188,7 @@ window.Boxoffice.Order = {
                 order.ractive.set(line_item + '.errorMsg', 'Server error');
                 order.ractive.set(line_item + '.assigningTicket', false);
               } else if (response.readyState === 0) {
-                if(ajaxLoad.retries < 0) {
+                if (ajaxLoad.retries < 0) {
                   order.ractive.set(line_item + '.errorMsg', "Unable to connect. Please try again later.");
                   order.ractive.set(line_item + '.assigningTicket', false);
                 } else {

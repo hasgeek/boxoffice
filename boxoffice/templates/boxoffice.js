@@ -240,7 +240,7 @@ $(function() {
               var line_items = boxoffice.ractive.get('order.line_items');
               line_items.forEach(function(line_item) {
                 if (data.line_items.hasOwnProperty(line_item.item_id)) {
-                  if(data.line_items[line_item.item_id].discounted_amount && line_item.quantity_available > 0) {
+                  if (data.line_items[line_item.item_id].discounted_amount && line_item.quantity_available > 0) {
                     valid_discount_coupon = true;
                     line_item.unit_final_amount = data.line_items[line_item.item_id].final_amount;
                     line_item.discount_policies.forEach(function(discount_policy){
@@ -252,7 +252,7 @@ $(function() {
                 }
               });
 
-              if(valid_discount_coupon) {
+              if (valid_discount_coupon) {
                 boxoffice.ractive.set('order.line_items',line_items);
                 boxoffice.ractive.scrollTop();
               }
@@ -369,7 +369,7 @@ $(function() {
               error: function(response) {
                 var ajaxLoad = this;
                 ajaxLoad.retries -= 1;
-                if(response.readyState === 4) {
+                if (response.readyState === 4) {
                   boxoffice.ractive.set({
                     'tabs.selectItems.errorMsg': JSON.parse(response.responseText).message,
                     'tabs.selectItems.isLoadingFail': true,
@@ -441,7 +441,7 @@ $(function() {
             phone = phone.replace(/[\t .()\[\]-]+/g,'');
             boxoffice.ractive.set('buyer.phone', phone);
 
-            if(phone.length > 16) {
+            if (phone.length > 16) {
               formValidator.setMessage('validate_phone', 'Please enter a valid mobile number');
               return false;
             }
@@ -589,15 +589,15 @@ $(function() {
               var ajaxLoad = this;
               ajaxLoad.retries -= 1;
               var errorMsg;
-              if(response.readyState === 4) {
+              if (response.readyState === 4) {
                 errorMsg = JSON.parse(response.responseText).message + ". Sorry, something went wrong. We will get in touch with you shortly. This is your order id " + boxoffice.ractive.get('order.order_id') + ".";
                 boxoffice.ractive.set({
                   'tabs.payment.errorMsg': errorMsg,
                   'tabs.payment.loadingPaymentConfirmation': false
                 });
               }
-              else if(response.readyState === 0) {
-                if(ajaxLoad.retries < 0) {
+              else if (response.readyState === 0) {
+                if (ajaxLoad.retries < 0) {
                   errorMsg = "Unable to connect. Please write to us at support@hasgeek.com with your order id " + boxoffice.ractive.get('order.order_id') + ".";
                   boxoffice.ractive.set({
                     'tabs.payment.errorMsg': errorMsg,
@@ -637,15 +637,15 @@ $(function() {
               var ajaxLoad = this;
               ajaxLoad.retries -= 1;
               var errorMsg;
-              if(response.readyState === 4) {
+              if (response.readyState === 4) {
                 errorMsg = JSON.parse(response.responseText).message + ". Sorry, something went wrong. We will get in touch with you shortly. This is your order id " + boxoffice.ractive.get('order.order_id') + ".";
                 boxoffice.ractive.set({
                   'tabs.payment.errorMsg': errorMsg,
                   'tabs.payment.loadingPaymentConfirmation': false
                 });
               }
-              else if(response.readyState === 0) {
-                if(ajaxLoad.retries < 0) {
+              else if (response.readyState === 0) {
+                if (ajaxLoad.retries < 0) {
                   errorMsg = "Unable to connect. Please write to us at support@hasgeek.com with your order id " + boxoffice.ractive.get('order.order_id') + ".";
                   boxoffice.ractive.set({
                     'tabs.payment.errorMsg': errorMsg,
@@ -662,17 +662,17 @@ $(function() {
         },
         oncomplete: function() {
           boxoffice.ractive.on('eventAnalytics', function(userAction, label) {
-            if(typeof boxoffice.ractive.get('sendEventHits') === "undefined") {
+            if (typeof boxoffice.ractive.get('sendEventHits') === "undefined") {
               boxoffice.ractive.set('sendEventHits', 0);
               userAction = 'First interaction';
             }
-            if(typeof ga !== "undefined") {
+            if (typeof ga !== "undefined") {
               ga('send', { hitType: 'event', eventCategory: 'ticketing', eventAction: userAction, eventLabel: label});
             }
           });
 
           var discount_coupons = boxoffice.util.getDiscountCodes();
-          if(discount_coupons.length) {
+          if (discount_coupons.length) {
             boxoffice.ractive.preApplyDiscount(discount_coupons);
           }
         }
