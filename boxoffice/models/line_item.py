@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import itertools
+import uuid
 from decimal import Decimal
 import datetime
 from collections import namedtuple
@@ -201,6 +202,10 @@ def get_confirmed_line_items(self):
 Order.get_confirmed_line_items = property(get_confirmed_line_items)
 
 
+def is_signed_code_format(code):
+    return len(code.split('.')) == 3
+
+
 def get_from_item(cls, item, qty, coupon_codes=[]):
     """
     Returns a list of (discount_policy, discount_coupon) tuples
@@ -215,7 +220,17 @@ def get_from_item(cls, item, qty, coupon_codes=[]):
         coupon_policies = item.discount_policies.filter(DiscountPolicy.discount_type == DISCOUNT_TYPE.COUPON).all()
         coupon_policy_ids = [cp.id for cp in coupon_policies]
         for coupon_code in coupon_codes:
-            coupon = DiscountCoupon.query.filter(DiscountCoupon.discount_policy_id.in_(coupon_policy_ids), DiscountCoupon.code == coupon_code).one_or_none()
+            if is_signed_code_format(coupon_code):
+                policy = DiscountPolicy.get_from_signed_code(coupon_code)
+                if policy and policy.id in coupon_policy_ids:
+                    coupon = DiscountCoupon.query.filter_by(discount_policy=policy, code=coupon_code).one_or_none()
+                    if not coupon:
+                        coupon = DiscountCoupon(id=uuid.uuid4(), discount_policy=policy, code=coupon_code, usage_limit=1, used_count=0)
+                        db.session.add(coupon)
+                else:
+                    coupon = None
+            else:
+                coupon = DiscountCoupon.query.filter(DiscountCoupon.discount_policy_id.in_(coupon_policy_ids), DiscountCoupon.code == coupon_code).one_or_none()
             if coupon and coupon.usage_limit > coupon.used_count:
                 policies.append((coupon.discount_policy, coupon))
 

@@ -4,10 +4,12 @@ import string
 import random
 from datetime import datetime
 from werkzeug import cached_property
+from itsdangerous import Signer, BadSignature
 from baseframe import __
 from coaster.utils import LabeledEnum
 from boxoffice.models import db, IdMixin, BaseScopedNameMixin
 from boxoffice.models import Organization
+from boxoffice import app
 
 __all__ = ['DiscountPolicy', 'DiscountCoupon', 'item_discount_policy', 'DISCOUNT_TYPE']
 
@@ -30,6 +32,7 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     __tablename__ = 'discount_policy'
     __uuid_primary_key__ = True
     __table_args__ = (db.UniqueConstraint('organization_id', 'name'),
+        db.UniqueConstraint('discount_code_base'),
         db.CheckConstraint('percentage > 0 and percentage <= 100', 'discount_policy_percentage_check'))
 
     organization_id = db.Column(None, db.ForeignKey('organization.id'), nullable=False)
@@ -43,6 +46,8 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     percentage = db.Column(db.Integer, nullable=True)
     # price-based discount
     is_price_based = db.Column(db.Boolean, default=False, nullable=False)
+    discount_code_base = db.Column(db.Unicode(20), nullable=True)
+
     items = db.relationship('Item', secondary=item_discount_policy)
 
     @cached_property
@@ -52,6 +57,23 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     @cached_property
     def is_coupon(self):
         return self.discount_type == DISCOUNT_TYPE.COUPON
+
+    def gen_signed_code(self):
+        """Generates a signed code in the format discount_code_base.randint.signature"""
+        signer = Signer(app.config['SECRET_KEY'])
+        key = "{base}.{randint}".format(base=self.discount_code_base, randint=random.randint(1, 10000))
+        return signer.sign(key)
+
+    @classmethod
+    def get_from_signed_code(cls, code):
+        """Returns a discount policy from a signed code"""
+        signer = Signer(app.config['SECRET_KEY'])
+        try:
+            key = signer.unsign(code)
+        except BadSignature:
+            return None
+        discount_code_base = key.split('.')[0]
+        return cls.query.filter_by(discount_code_base=discount_code_base).one_or_none()
 
 
 def generate_coupon_code(size=6, chars=string.ascii_uppercase + string.digits):
@@ -63,7 +85,7 @@ class DiscountCoupon(IdMixin, db.Model):
     __uuid_primary_key__ = True
     __table_args__ = (db.UniqueConstraint('discount_policy_id', 'code'),)
 
-    code = db.Column(db.Unicode(20), nullable=False, default=generate_coupon_code)
+    code = db.Column(db.Unicode(50), nullable=False, default=generate_coupon_code)
     usage_limit = db.Column(db.Integer, nullable=False, default=1)
     used_count = db.Column(db.Integer, nullable=False, default=0)
 
