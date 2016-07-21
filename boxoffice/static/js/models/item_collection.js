@@ -5,7 +5,7 @@ import {IndexModel} from './index.js';
 export const ItemCollectionModel = {
   fetch: fetch,
   getUrl: function(ic_id, relativeUrl=false){
-    if(relativeUrl) {
+    if (relativeUrl) {
       return '/ic/' + ic_id;
     }
     return IndexModel.url_root + '/ic/' + ic_id;

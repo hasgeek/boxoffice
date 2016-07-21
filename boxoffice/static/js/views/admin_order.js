@@ -56,7 +56,7 @@ export const OrderView = {
       });
 
       main_ractive.on('cancelTicket', function(event, method) {
-        if(window.confirm("Are you sure you want to cancel this ticket?")) {
+        if (window.confirm("Are you sure you want to cancel this ticket?")) {
           main_ractive.set(event.keypath + '.cancel_error', "");
           main_ractive.set(event.keypath + '.cancelling', true);
 
@@ -67,8 +67,8 @@ export const OrderView = {
             main_ractive.set(event.keypath + '.cancelling', false);
           }).fail(function(response) {
             let error_text;
-            if(response.readyState === 4) {
-              if(response.status === 500) {
+            if (response.readyState === 4) {
+              if (response.status === 500) {
                 error_text = "Server Error";
               }
               else {

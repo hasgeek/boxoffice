@@ -5,7 +5,7 @@ import {OrderModel} from './admin_order.js';
 export const SideBarModel = {
   getItems: function(config) {
     let sidebar_items = [];
-    if(config.org_name && config.ic_id) {
+    if (config.org_name && config.ic_id) {
       sidebar_items = [
         {
           url: '/',

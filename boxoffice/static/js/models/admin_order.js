@@ -5,7 +5,7 @@ export const OrderModel = {
   fetch: fetch,
   post: post,
   getUrl: function(ic_id, relativeUrl=false){
-    if(relativeUrl) {
+    if (relativeUrl) {
       return '/ic/' + ic_id + '/orders';
     }
     return IndexModel.url_root + '/ic/' + ic_id + '/orders';
