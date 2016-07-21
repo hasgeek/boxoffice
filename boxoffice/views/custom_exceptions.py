@@ -18,7 +18,7 @@ class APIError(Exception):
 @app.errorhandler(APIError)
 @cors
 def handle_api_error(error):
-    msg = Message(subject='API Error', recipients=app.config['ADMINS'])
+    msg = Message(subject='Boxoffice API Error', recipients=app.config['ADMINS'])
     msg.body = error.message
     mail.send(msg)
     return make_response(jsonify(message=error.response_message), error.status_code)
