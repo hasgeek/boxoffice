@@ -5,6 +5,7 @@ import {ItemCollectionView} from './item_collection.js';
 import {OrderView} from './admin_order.js';
 
 export const Router = Backbone.Router.extend({
+  url_root: '/admin/',
   routes: {
     "": "index",
     "o/:org": "org",

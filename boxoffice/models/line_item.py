@@ -118,7 +118,7 @@ class LineItem(BaseMixin, db.Model):
         Sets status and cancelled_at.
         """
         self.status = LINE_ITEM_STATUS.CANCELLED
-        self.cancelled_at = datetime.datetime.utcnow()
+        self.cancelled_at = func.utcnow()
 
     def is_cancellable(self):
         return self.is_confirmed and (datetime.datetime.now() < self.item.cancellable_until

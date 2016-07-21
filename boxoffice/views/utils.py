@@ -23,13 +23,13 @@ def localize(datetime, tz):
 
 
 @app.template_filter('date_time_format')
-def date_time_format(date):
-    return localize(date, app.config['TIMEZONE']).strftime('%d %b %Y %H:%M:%S')
+def date_time_format(datetime):
+    return utc.localize(datetime).astimezone(timezone(app.config['TIMEZONE'])).strftime('%d %b %Y %H:%M:%S')
 
 
 @app.template_filter('date_format')
-def date_format(date):
-    return localize(date, app.config['TIMEZONE']).strftime('%d %b %Y')
+def date_format(datetime):
+    return utc.localize(datetime).astimezone(timezone(app.config['TIMEZONE'])).strftime('%d %b %Y')
 
 
 def cors(f):

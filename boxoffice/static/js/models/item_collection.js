@@ -6,9 +6,9 @@ export const ItemCollectionModel = {
   fetch: fetch,
   getUrl: function(ic_id, relativeUrl=false){
     if (relativeUrl) {
-      return '/ic/' + ic_id;
+      return 'ic/' + ic_id;
     }
-    return IndexModel.url_root + '/ic/' + ic_id;
+    return IndexModel.getUrl() + 'ic/' + ic_id;
   },
   formatItems: function(items){
     var formattedItems = _.extend(items);

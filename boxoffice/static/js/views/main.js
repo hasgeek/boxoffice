@@ -5,11 +5,10 @@ window.d3 = require("d3");
 window.c3 = require("c3");
 
 import {Router} from './router';
-import {IndexModel} from '../models/index.js';
 
 $(function(){
   let appRouter = new Router();
-  Backbone.history.start({pushState: true, root: IndexModel.url_root});
+  Backbone.history.start({pushState: true, root: appRouter.url_root});
   window.eventBus = _.clone(Backbone.Events);
   window.eventBus.on('navigate', function(msg){
     appRouter.navigate(msg, {trigger: true});

@@ -5,8 +5,8 @@ export const OrgModel = {
   fetch: fetch,
   getUrl: function(org_name, relativeUrl=false){
     if (relativeUrl) {
-      return '/o/' + org_name;
+      return 'o/' + org_name;
     }
-    return IndexModel.url_root + '/o/' + org_name;
+    return IndexModel.getUrl() + 'o/' + org_name;
   },
 };

@@ -4,10 +4,14 @@ import {IndexModel} from './index.js';
 export const OrderModel = {
   fetch: fetch,
   post: post,
-  getUrl: function(ic_id, relativeUrl=false){
-    if (relativeUrl) {
-      return '/ic/' + ic_id + '/orders';
+  urlFor: function(action, config){
+    let urls = {
+      'index': {
+        'path': IndexModel.getUrl() + 'ic/' + config.ic_id + '/orders',
+        'relative_path': 'ic/' + config.ic_id + '/orders',
+        'method': 'GET'
+      }
     }
-    return IndexModel.url_root + '/ic/' + ic_id + '/orders';
+    return urls[action];
   }
 };

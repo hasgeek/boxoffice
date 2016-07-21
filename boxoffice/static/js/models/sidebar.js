@@ -26,7 +26,7 @@ export const SideBarModel = {
           view: 'dashboard'
         },
         {
-          url: OrderModel.getUrl(config.ic_id, true),
+          url: OrderModel.urlFor('index', {ic_id: config.ic_id})['relative_path'],
           title: 'Orders',
           icon: 'fa-shopping-cart',
           view: 'orders'

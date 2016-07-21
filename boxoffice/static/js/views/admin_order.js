@@ -7,7 +7,7 @@ export const OrderView = {
   render: function(config) {
 
     OrderModel.fetch({
-      url: OrderModel.getUrl(config.id)
+      url: OrderModel.urlFor('index', {ic_id: config.id})['path']
     }).done((remoteData) => {
       // Initial render
       let main_ractive = new Ractive({
