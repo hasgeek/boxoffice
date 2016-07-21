@@ -79,27 +79,29 @@ window.Boxoffice.Order = {
             event.node.classList.remove('filled');
           }
         },
-        assign: function(event, line_item) {
+        assign: function(event, line_item, ticket_assigned) {
           event.original.preventDefault();
 
-          var assignment = order.ractive.get(line_item +'.assignment');
+          if(!ticket_assigned) {
+            var assignment = order.ractive.get(line_item +'.assignment');
 
-          if(assignment === 'self') {
-            order.ractive.set(line_item + '.assignee.fullname', order.ractive.get('buyer_name'));
-            order.ractive.set(line_item + '.assignee.email', order.ractive.get('buyer_email'));
-            order.ractive.set(line_item + '.assignee.phone', order.ractive.get('buyer_phone'));
-          }
-          else if(assignment === 'other') {
-            order.ractive.set(line_item + '.assignee.fullname', "");
-            order.ractive.set(line_item + '.assignee.email', "");
-            order.ractive.set(line_item + '.assignee.phone', '+91');
+            if(assignment === 'self') {
+              order.ractive.set(line_item + '.assignee.fullname', order.ractive.get('buyer_name'));
+              order.ractive.set(line_item + '.assignee.email', order.ractive.get('buyer_email'));
+              order.ractive.set(line_item + '.assignee.phone', order.ractive.get('buyer_phone'));
+            }
+            else if(assignment === 'other') {
+              order.ractive.set(line_item + '.assignee.fullname', "");
+              order.ractive.set(line_item + '.assignee.email', "");
+              order.ractive.set(line_item + '.assignee.phone', '+91');
+            }
           }
           order.ractive.set(line_item + '.toAssign', true);
         },
         addAttendeDetails: function(event, line_item, line_item_seq, line_item_id) {
 
           var validationConfig = [{
-              name: 'fullname',
+              name: 'name',
               rules: 'required'
             },
             {
@@ -108,7 +110,7 @@ window.Boxoffice.Order = {
             },
             {
               name: 'phone',
-              rules: 'required|max_length[16]|callback_validate_phone'
+              rules: 'required|callback_validate_phone'
             }
           ];
 
@@ -130,13 +132,21 @@ window.Boxoffice.Order = {
 
           formValidator.registerCallback('validate_phone', function(phone) {
             var validPhone = /^\+[0-9]+$/;
-            if (phone.match(validPhone)) {
+            phone = phone.replace(/[\t .()\[\]-]+/g, '');
+            order.ractive.set(line_item + '.assignee.phone', phone);
+
+            if(phone.length > 16) {
+              formValidator.setMessage('validate_phone', 'Please enter a valid mobile number');
+              return false;
+            }
+            else if (phone.match(validPhone)) {
               //Indian number starting with '+91'
               if (phone.indexOf('+91') === 0 && phone.length != 13) {
                 formValidator.setMessage('validate_phone', 'Please enter a valid Indian mobile number');
                 return false;
               }
-            } else {
+            }
+            else {
               formValidator.setMessage('validate_phone', "Please prefix your phone number with '+' and country code.");
               return false;
             }

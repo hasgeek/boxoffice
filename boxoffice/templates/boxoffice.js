@@ -420,7 +420,7 @@ $(function() {
           },
           {
             name: 'phone',
-            rules: 'required|max_length[16]|callback_validate_phone'
+            rules: 'required|callback_validate_phone'
           }];
 
           var formValidator = new FormValidator('buyer-form', validationConfig, function(errors, event) {
@@ -438,13 +438,21 @@ $(function() {
 
           formValidator.registerCallback('validate_phone', function(phone) {
             var validPhone = /^\+[0-9]+$/;
-            if (phone.match(validPhone)) {
+            phone = phone.replace(/[\t .()\[\]-]+/g,'');
+            boxoffice.ractive.set('buyer.phone', phone);
+
+            if(phone.length > 16) {
+              formValidator.setMessage('validate_phone', 'Please enter a valid mobile number');
+              return false;
+            }
+            else if (phone.match(validPhone)) {
               //Indian number starting with '+91'
               if (phone.indexOf('+91') === 0 && phone.length != 13) {
                 formValidator.setMessage('validate_phone', 'Please enter a valid Indian mobile number');
                 return false;
               }
-            } else {
+            } 
+            else {
               formValidator.setMessage('validate_phone', "Please prefix your phone number with '+' and country code.");
               return false;
             }
