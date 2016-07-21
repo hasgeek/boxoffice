@@ -265,7 +265,7 @@ def payment(order):
         db.session.add(online_payment)
         db.session.commit()
         raise APIError("Online payment failed for order - {order} with the following details - {msg}".format(order=order.id,
-            msg=rp_resp.content), 500, 'Your payment failed. Please try again or contact us at {email}.'.format(email=order.organization.contact_email))
+            msg=rp_resp.content), 200, 'Your payment failed. Please try again or contact us at {email}.'.format(email=order.organization.contact_email))
 
 
 @app.route('/order/<access_token>/receipt', methods=['GET'])
@@ -335,7 +335,7 @@ def cancel_line_item(line_item):
             db.session.commit()
         else:
             raise APIError("Cancellation failed for order - {order} with the following details - {msg}".format(order=order.id,
-                msg=rp_resp.content), 500,
+                msg=rp_resp.content), 200,
             'Refund failed. Please try again or write to us at {email}.'.format(email=line_item.order.organization.contact_email))
     else:
         line_item.cancel()
