@@ -27,17 +27,18 @@ window.Boxoffice.Order = {
       success: function(data) {
         window.Boxoffice.Order.view(data);
       },
-      error: function(response) {
+      error: function(response) {`
         var ajaxLoad = this;
         ajaxLoad.retries -= 1;
         var errorMsg;
         if(response.readyState === 4) {
-          //Add error message
+          errorMsg = "Server error. ";
+          $("#error-description").html(errorMsg);
         }
         else if(response.readyState === 0) {
           if(ajaxLoad.retries < 0) {
-            errorMsg = "Unable to connect. Please write to us at support@hasgeek.com with your order number";
-
+            errorMsg = "Unable to connect. Please try again later.";
+            $("#notify-msg").html(errorMsg);
           } else {
             setTimeout(function() {
               $.ajax(ajaxLoad);
@@ -188,7 +189,7 @@ window.Boxoffice.Order = {
                 order.ractive.set(line_item + '.assigningTicket', false);
               } else if (response.readyState === 0) {
                 if(ajaxLoad.retries < 0) {
-                  order.ractive.set(line_item + '.errorMsg', "Unable to connect. Please try again later.")
+                  order.ractive.set(line_item + '.errorMsg', "Unable to connect. Please try again later.");
                   order.ractive.set(line_item + '.assigningTicket', false);
                 } else {
                   setTimeout(function() {
