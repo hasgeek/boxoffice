@@ -1,5 +1,6 @@
 import decimal
 import json
+import uuid
 import unittest
 from flask import url_for
 from boxoffice import app, init_for
@@ -35,6 +36,24 @@ class TestKharchaAPI(unittest.TestCase):
         self.assertEquals(resp_json.get('line_items')[unicode(first_item.id)].get('final_amount'), undiscounted_quantity * first_item.current_price().amount)
         expected_discount_policy_ids = []
         self.assertEquals(expected_discount_policy_ids, policy_ids)
+
+    def test_nonexistent_item_kharcha(self):
+        nonexistent_item_id = uuid.uuid1()
+        kharcha_req = {'line_items': [{'item_id': unicode(nonexistent_item_id), 'quantity': 1}]}
+        resp = self.client.post(url_for('kharcha'), data=json.dumps(kharcha_req), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
+        self.assertEquals(resp.status_code, 200)
+        resp_json = json.loads(resp.get_data())
+        # Test that item_id does not exist
+        self.assertIsNone(resp_json.get('line_items').get(nonexistent_item_id))
+
+    def test_expired_item_kharcha(self):
+        expired_item = Item.query.filter_by(name='expired-item').first()
+        kharcha_req = {'line_items': [{'item_id': unicode(expired_item.id), 'quantity': 1}]}
+        resp = self.client.post(url_for('kharcha'), data=json.dumps(kharcha_req), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
+        self.assertEquals(resp.status_code, 200)
+        resp_json = json.loads(resp.get_data())
+        # Test that item_id does not exist
+        self.assertIsNone(resp_json.get('line_items').get(unicode(expired_item.id)))
 
     def test_discounted_bulk_kharcha(self):
         first_item = Item.query.filter_by(name='conference-ticket').first()

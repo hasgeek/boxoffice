@@ -43,6 +43,14 @@ def init_data():
         db.session.add(price)
         db.session.commit()
 
+        expired_item = Item(title='Expired item', description='<p><i class="fa fa-calendar"></i>14 - 15 April 2016</p><p><i class="fa fa-map-marker ticket-venue"></i>MLR Convention Center, JP Nagar</p><p>This ticket gets you access to rootconf conference on 14th and 15th April 2016.</p>', item_collection=rc2016, category=Category.query.filter_by(name='conference').first(), quantity_total=10)
+        rc2016.items.append(expired_item)
+        db.session.commit()
+
+        expired_price = Price(item=expired_item, title='Expired', start_at=date(2016, 01, 01), end_at=date(2016, 01, 02), amount=3500)
+        db.session.add(expired_price)
+        db.session.commit()
+
         single_day_conf_ticket = Item(title='Single Day', description='<p><i class="fa fa-calendar"></i>14 April 2016</p><p><i class="fa fa-map-marker ticket-venue"></i>MLR Convention Center, JP Nagar</p><p>This ticket gets you access to rootconf conference on 14th April 2016.</p>', item_collection=rc2016, category=Category.query.filter_by(name='conference').first(), quantity_total=1000)
         rc2016.items.append(single_day_conf_ticket)
         db.session.commit()

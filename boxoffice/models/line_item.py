@@ -1,10 +1,11 @@
-    # -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 import itertools
 from decimal import Decimal
 import datetime
 from collections import namedtuple
 from sqlalchemy.sql import select, func
+from sqlalchemy.exc import StatementError
 from boxoffice.models import db, JsonDict, BaseMixin, Order, Item, DiscountPolicy, DISCOUNT_TYPE, DiscountCoupon
 from coaster.utils import LabeledEnum
 from baseframe import __
@@ -88,8 +89,12 @@ class LineItem(BaseMixin, db.Model):
         item_line_items = {}
         line_items = []
         for line_item_dict in line_item_dicts:
-            item = Item.query.get(line_item_dict['item_id'])
-            if item.current_price():
+            try:
+                item = Item.query.get(line_item_dict['item_id'])
+            except StatementError:
+                # item_id is likely not a UUID
+                item = None
+            if item and item.current_price():
                 if not item_line_items.get(unicode(item.id)):
                     item_line_items[unicode(item.id)] = []
                 item_line_items[unicode(item.id)].append(make_ntuple(item_id=item.id, base_amount=item.current_price().amount))
@@ -98,7 +103,6 @@ class LineItem(BaseMixin, db.Model):
         for item_id in item_line_items.keys():
             item_line_items[item_id] = discounter.get_discounted_line_items(item_line_items[item_id], coupon_list)
             line_items.extend(item_line_items[item_id])
-        print line_items
         return line_items
 
     def confirm(self):
