@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import uuid
 from boxoffice.models import *
 from datetime import date
 from dateutil.relativedelta import relativedelta
@@ -140,4 +141,15 @@ def init_data():
             discount_policy=zero_discount, title='Zero Discount',
             start_at=date.today(), end_at=one_month_from_now, amount=3600)
         db.session.add(zero_discount_price)
+        db.session.commit()
+
+        signed = DiscountPolicy(title='Signed',
+            item_quantity_min=1,
+            discount_type=DISCOUNT_TYPE.COUPON,
+            percentage=10,
+            discount_code_base='signed',
+            secret=uuid.uuid4().hex,
+            organization=rootconf)
+        signed.items.append(conf_ticket)
+        db.session.add(signed)
         db.session.commit()
