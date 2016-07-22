@@ -4,11 +4,15 @@ import {IndexModel} from './index.js';
 
 export const ItemCollectionModel = {
   fetch: fetch,
-  getUrl: function(ic_id, relativeUrl=false){
-    if (relativeUrl) {
-      return 'ic/' + ic_id;
+  urlFor: function(action, config){
+    let urls = {
+      'index': {
+        'path': IndexModel.urlFor('index')['path'] + 'ic/' + config.ic_id,
+        'relative_path': 'ic/' + config.ic_id,
+        'method': 'GET'
+      }
     }
-    return IndexModel.getUrl() + 'ic/' + ic_id;
+    return urls[action];
   },
   formatItems: function(items){
     var formattedItems = _.extend(items);

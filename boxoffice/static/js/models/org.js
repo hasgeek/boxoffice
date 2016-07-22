@@ -3,10 +3,14 @@ import {IndexModel} from './index.js';
 
 export const OrgModel = {
   fetch: fetch,
-  getUrl: function(org_name, relativeUrl=false){
-    if (relativeUrl) {
-      return 'o/' + org_name;
+  urlFor: function(action, config){
+    let urls = {
+      'index': {
+        'path': IndexModel.urlFor('index')['path'] + 'o/' + config.org_name,
+        'relative_path': 'o/' + config.org_name,
+        'method': 'GET'
+      }
     }
-    return IndexModel.getUrl() + 'o/' + org_name;
-  },
+    return urls[action];
+  }
 };

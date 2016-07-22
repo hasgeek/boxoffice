@@ -7,7 +7,7 @@ export const IndexView = {
   render: function() {
 
     IndexModel.fetch({
-      url: IndexModel.getUrl()
+      url: IndexModel.urlFor('index')['path']
     }).then(function(data){
       let ractive = new Ractive({
         el: '#main-content-area',

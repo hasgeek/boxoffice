@@ -1,3 +1,4 @@
+import {IndexModel} from './index.js';
 import {OrgModel} from './org.js';
 import {ItemCollectionModel} from './item_collection.js';
 import {OrderModel} from './admin_order.js';
@@ -8,19 +9,19 @@ export const SideBarModel = {
     if (config.org_name && config.ic_id) {
       sidebar_items = [
         {
-          url: '/',
+          url: IndexModel.urlFor('index')['relative_path'],
           title: 'Home',
           icon: 'fa-home',
           view: 'home'
         },
         {
-          url: OrgModel.getUrl(config.org_name, true),
+          url: OrgModel.urlFor('index', {org_name: config.org_name})['relative_path'],
           title: 'Organization',
           icon: 'fa-sitemap',
           view: 'org'
         },
         {
-          url: ItemCollectionModel.getUrl(config.ic_id, true),
+          url: ItemCollectionModel.urlFor('index', {ic_id: config.ic_id})['relative_path'],
           title: 'Dashboard',
           icon: 'fa-dashboard',
           view: 'dashboard'

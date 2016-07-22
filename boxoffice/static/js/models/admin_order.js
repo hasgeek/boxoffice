@@ -7,11 +7,12 @@ export const OrderModel = {
   urlFor: function(action, config){
     let urls = {
       'index': {
-        'path': IndexModel.getUrl() + 'ic/' + config.ic_id + '/orders',
+        'path': IndexModel.urlFor('index')['path'] + 'ic/' + config.ic_id + '/orders',
         'relative_path': 'ic/' + config.ic_id + '/orders',
         'method': 'GET'
       }
     }
+    console.log("urls[action]", urls[action])
     return urls[action];
   }
 };
