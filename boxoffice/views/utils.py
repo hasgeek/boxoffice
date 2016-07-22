@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from pytz import utc, timezone
 from flask import request, abort
 from functools import wraps
+from baseframe import localize_timezone
 from boxoffice import app
 
 
@@ -18,13 +18,14 @@ def xhr_only(f):
     return wrapper
 
 
-def localize(datetime, tz):
-    return utc.localize(datetime).astimezone(timezone(tz))
+@app.template_filter('date_time_format')
+def date_time_format(datetime):
+    return localize_timezone(datetime).strftime('%d %b %Y %H:%M:%S')
 
 
-@app.template_filter('invoice_date')
-def invoice_date_filter(date, format):
-    return localize(date, app.config['TIMEZONE']).strftime(format)
+@app.template_filter('date_format')
+def date_format(datetime):
+    return localize_timezone(datetime).strftime('%d %b %Y')
 
 
 def cors(f):

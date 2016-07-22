@@ -5,8 +5,9 @@ import {SideBarView} from './sidebar.js'
 
 export const IndexView = {
   render: function() {
+
     IndexModel.fetch({
-      url: '/admin'
+      url: IndexModel.urlFor('index')['path']
     }).then(function(data){
       let ractive = new Ractive({
         el: '#main-content-area',

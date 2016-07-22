@@ -33,4 +33,4 @@ def jsonify_org(data):
     )
 @render_with({'text/html': 'index.html', 'application/json': jsonify_org}, json=True)
 def org(organization):
-    return dict(org=organization)
+    return dict(org=organization, title=organization.title)
