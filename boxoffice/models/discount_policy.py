@@ -9,7 +9,6 @@ from baseframe import __
 from coaster.utils import LabeledEnum
 from boxoffice.models import db, IdMixin, BaseScopedNameMixin
 from boxoffice.models import Organization
-from boxoffice import app
 
 __all__ = ['DiscountPolicy', 'DiscountCoupon', 'item_discount_policy', 'DISCOUNT_TYPE']
 
