@@ -31,14 +31,16 @@ window.Boxoffice.Order = {
         var ajaxLoad = this;
         ajaxLoad.retries -= 1;
         var errorMsg;
-        if(response.readyState === 4) {
-          //Add error message
+        if (response.readyState === 4) {
+          errorMsg = "Server error. ";
+          $("#error-description").html(errorMsg);
         }
-        else if(response.readyState === 0) {
-          if(ajaxLoad.retries < 0) {
-            errorMsg = "Unable to connect. Please write to us at support@hasgeek.com with your order number";
-
-          } else {
+        else if (response.readyState === 0) {
+          if (ajaxLoad.retries < 0) {
+            errorMsg = "Unable to connect. Please try again later.";
+            $("#notify-msg").html(errorMsg);
+          }
+          else {
             setTimeout(function() {
               $.ajax(ajaxLoad);
             }, ajaxLoad.retryInterval);
@@ -72,7 +74,7 @@ window.Boxoffice.Order = {
           order.ractive.scrollTop(line_item_seq);
         },
         inputFieldEdit: function(event, line_item) {
-          if(event.node.value) {
+          if (event.node.value) {
             event.node.classList.add('filled');
           }
           else {
@@ -84,10 +86,10 @@ window.Boxoffice.Order = {
 
           //On initial assignment of ticket, fill the ticket with details
           // depending on option(self/other) selected by the user
-          if(!edit) {
+          if (!edit) {
             var assignment = order.ractive.get(line_item +'.assignment');
 
-            if(assignment === 'self') {
+            if (assignment === 'self') {
               order.ractive.set(line_item + '.assignee.fullname', order.ractive.get('buyer_name'));
               order.ractive.set(line_item + '.assignee.email', order.ractive.get('buyer_email'));
               order.ractive.set(line_item + '.assignee.phone', order.ractive.get('buyer_phone'));
@@ -122,7 +124,8 @@ window.Boxoffice.Order = {
             event.preventDefault();
             if (errors.length > 0) {
               order.ractive.set(line_item + '.errorMsg', errors[0].message);
-            } else {
+            }
+            else {
               order.ractive.set(line_item + '.errorMsg', '');
               order.ractive.set(line_item + '.assigningTicket', true);
               order.ractive.sendAttendeDetails(line_item, line_item_seq, line_item_id);
@@ -134,7 +137,7 @@ window.Boxoffice.Order = {
           var formElements = $('#'+ attendeeForm).serializeArray();
           var attendeeDetails ={};
           for (var formIndex=0; formIndex < formElements.length; formIndex++) {
-            if(formElements[formIndex].value) {
+            if (formElements[formIndex].value) {
               attendeeDetails[formElements[formIndex].name] = formElements[formIndex].value;
             }
           }
@@ -163,7 +166,7 @@ window.Boxoffice.Order = {
                 order.ractive.set(line_item + '.errorMsg', 'Server error');
                 order.ractive.set(line_item + '.assigningTicket', false);
               } else if (response.readyState === 0) {
-                if(ajaxLoad.retries < 0) {
+                if (ajaxLoad.retries < 0) {
                   order.ractive.set(line_item + '.errorMsg', "Unable to connect. Please try again later.");
                   order.ractive.set(line_item + '.assigningTicket', false);
                 } else {
