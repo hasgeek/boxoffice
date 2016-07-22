@@ -141,3 +141,13 @@ def init_data():
             start_at=date.today(), end_at=one_month_from_now, amount=3600)
         db.session.add(zero_discount_price)
         db.session.commit()
+
+        signed = DiscountPolicy(title='Signed',
+            item_quantity_min=1,
+            discount_type=DISCOUNT_TYPE.COUPON,
+            percentage=10,
+            discount_code_base='signed',
+            organization=rootconf)
+        signed.items.append(conf_ticket)
+        db.session.add(signed)
+        db.session.commit()

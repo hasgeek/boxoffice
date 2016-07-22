@@ -65,6 +65,28 @@ class TestOrder(unittest.TestCase):
         self.assertEquals(resp.status_code, 201)
         self.assertEquals(data['final_amount'], 2375)
 
+    def test_signed_discounted_coupon_order(self):
+        first_item = Item.query.filter_by(name='conference-ticket').first()
+        signed_policy = DiscountPolicy.query.filter_by(name='signed').first()
+        signed_code = signed_policy.gen_signed_code()
+        discounted_quantity = 1
+        data = {
+            'line_items': [{'item_id': unicode(first_item.id), 'quantity': discounted_quantity}],
+            'discount_coupons': [signed_code],
+            'buyer': {
+                'fullname': 'Testing',
+                'phone': '9814141414',
+                'email': 'test@hasgeek.com',
+                }
+            }
+        ic = ItemCollection.query.first()
+        resp = self.client.post('/ic/{ic}/order'.format(ic=ic.id), data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
+        resp_data = json.loads(resp.data)
+        self.assertEquals(resp.status_code, 201)
+        self.assertEquals(resp_data['final_amount'], first_item.current_price().amount - (signed_policy.percentage*first_item.current_price().amount)/decimal.Decimal(100.0))
+        line_item = LineItem.query.filter_by(customer_order_id=resp_data['order_id']).first()
+        self.assertEquals(line_item.discount_coupon.code, signed_code)
+
     def test_complex_discounted_item(self):
         discounted_item1 = Item.query.filter_by(name='t-shirt').first()
         discounted_item2 = Item.query.filter_by(name='conference-ticket').first()
