@@ -97,9 +97,9 @@ let AggChartComponent = Ractive.extend({
 
 export const ItemCollectionView = {
   render: function(config) {
-    let url = `/admin/ic/${config.id}`;
+
     ItemCollectionModel.fetch({
-      url: url
+      url: ItemCollectionModel.urlFor('index', {ic_id: config.id})['path']
     }).done((remoteData) => {
       // Initial render
       let main_ractive = new Ractive({

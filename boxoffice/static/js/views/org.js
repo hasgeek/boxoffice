@@ -7,13 +7,13 @@ export const OrgView = {
   render: function(org) {
 
     OrgModel.fetch({
-      url: '/admin/o/' + org.name
+      url: OrgModel.urlFor('index', {org_name: org.name})['path']
     }).then(function(data){
       let ractive = new Ractive({
         el: '#main-content-area',
         template: orgTemplate,
         data: {
-          name: data.name,
+          title: data.title,
           item_collections: data.item_collections
         }
       });

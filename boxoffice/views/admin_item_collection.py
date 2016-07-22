@@ -30,7 +30,7 @@ def jsonify_item(item):
 def jsonify_item_collection(item_collection_dict):
     item_ids = [item.id for item in item_collection_dict['item_collection'].items]
     net_sales = db.session.query(func.sum(LineItem.final_amount)).filter(LineItem.item_id.in_(item_ids), LineItem.status == LINE_ITEM_STATUS.CONFIRMED).first()
-    return jsonify(org_name=item_collection_dict['org_name'],
+    return jsonify(org_name=item_collection_dict['item_collection'].organization.name,
         title=item_collection_dict['item_collection'].title,
         items=[jsonify_item(item) for item in item_collection_dict['item_collection'].items],
         date_item_counts=item_collection_dict['date_item_counts'],
@@ -52,6 +52,6 @@ def admin_item_collection(item_collection):
     date_item_counts = counts_per_date_per_item(item_collection, g.user.timezone)
     date_sales = sales_by_date(date_item_counts.keys(), g.user.timezone, item_ids)
     today_sales = date_sales.get(datetime.datetime.now().strftime("%Y-%m-%d"), Decimal(0))
-    return dict(org_name=item_collection.organization.name, item_collection=item_collection, date_item_counts=date_item_counts,
+    return dict(title=item_collection.organization.title, item_collection=item_collection, date_item_counts=date_item_counts,
         date_sales=date_sales, today_sales=today_sales,
         sales_delta=sales_delta(g.user.timezone, item_ids))
