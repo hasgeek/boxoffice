@@ -3,7 +3,7 @@
 from flask import jsonify, url_for
 from .. import app, lastuser
 from coaster.views import load_models, render_with
-from boxoffice.models import ItemCollection, CURRENCY_SYMBOL, ORDER_STATUS
+from boxoffice.models import ItemCollection, CURRENCY_SYMBOL
 from utils import date_time_format
 
 
