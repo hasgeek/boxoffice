@@ -27,16 +27,25 @@ def assign(order):
     for key in item_assignee_details.keys():
         assignee_details[key] = assignee_dict.get(key)
     if line_item.current_assignee and assignee_dict['email'] == line_item.current_assignee.email:
-        # update
+        # updating details of the current assignee
         line_item.current_assignee.fullname = assignee_dict['fullname']
         line_item.current_assignee.phone = assignee_dict['phone']
         line_item.current_assignee.details = assignee_details
     else:
+        # change of assignee
         if line_item.current_assignee:
             # Archive current assignee
             line_item.current_assignee.current = None
-        new_assignee = Assignee(current=True, email=assignee_dict.get('email'), fullname=assignee_dict.get('fullname'),
-        phone=assignee_dict.get('phone'), details=assignee_details, line_item=line_item)
-        db.session.add(new_assignee)
+        existing_assignee = Assignee.query.filter(Assignee.email == assignee_dict.get('email'), Assignee.line_item == line_item).first()
+        if existing_assignee:
+            # Line item transferred back to a previous assignee
+            existing_assignee.current = True
+            existing_assignee.fullname = assignee_dict['fullname']
+            existing_assignee.phone = assignee_dict['phone']
+            existing_assignee.details = assignee_details
+        else:
+            new_assignee = Assignee(current=True, email=assignee_dict.get('email'), fullname=assignee_dict.get('fullname'),
+                phone=assignee_dict.get('phone'), details=assignee_details, line_item=line_item)
+            db.session.add(new_assignee)
     db.session.commit()
     return make_response(jsonify(message="Ticket assigned"), 201)
