@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import uuid
 from boxoffice.models import *
 from datetime import date
 from dateutil.relativedelta import relativedelta
@@ -147,6 +148,7 @@ def init_data():
             discount_type=DISCOUNT_TYPE.COUPON,
             percentage=10,
             discount_code_base='signed',
+            secret=uuid.uuid4().hex,
             organization=rootconf)
         signed.items.append(conf_ticket)
         db.session.add(signed)

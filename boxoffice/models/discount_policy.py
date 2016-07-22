@@ -47,6 +47,7 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     # price-based discount
     is_price_based = db.Column(db.Boolean, default=False, nullable=False)
     discount_code_base = db.Column(db.Unicode(20), nullable=True)
+    secret = db.Column(db.Unicode(50), nullable=True)
 
     items = db.relationship('Item', secondary=item_discount_policy)
 
@@ -60,20 +61,30 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
 
     def gen_signed_code(self):
         """Generates a signed code in the format discount_code_base.randint.signature"""
-        signer = Signer(app.config['SECRET_KEY'])
+        signer = Signer(self.secret)
         key = "{base}.{randint}".format(base=self.discount_code_base, randint=random.randint(1, 10000))
         return signer.sign(key)
 
     @classmethod
+    def is_signed_code_format(cls, code):
+        """Checks if the code is in the {x.y.z} format"""
+        return len(code.split('.')) == 3
+
+    @classmethod
     def get_from_signed_code(cls, code):
-        """Returns a discount policy from a signed code"""
-        signer = Signer(app.config['SECRET_KEY'])
+        """Returns a discount policy given a valid signed code, returns None otherwise"""
+        if not cls.is_signed_code_format(code):
+            return None
+        discount_code_base = code.split('.')[0]
+        policy = DiscountPolicy.query.filter_by(discount_code_base=discount_code_base).one_or_none()
+        if not policy:
+            return None
+        signer = Signer(policy.secret)
         try:
-            key = signer.unsign(code)
+            signer.unsign(code)
+            return policy
         except BadSignature:
             return None
-        discount_code_base = key.split('.')[0]
-        return cls.query.filter_by(discount_code_base=discount_code_base).one_or_none()
 
 
 def generate_coupon_code(size=6, chars=string.ascii_uppercase + string.digits):
