@@ -64,8 +64,8 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
         key = "{base}.{randint}".format(base=self.discount_code_base, randint=random.randint(1, 10000))
         return signer.sign(key)
 
-    @classmethod
-    def is_signed_code_format(cls, code):
+    @staticmethod
+    def is_signed_code_format(code):
         """Checks if the code is in the {x.y.z} format"""
         return len(code.split('.')) == 3
 
