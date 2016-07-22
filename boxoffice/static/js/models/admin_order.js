@@ -12,7 +12,6 @@ export const OrderModel = {
         'method': 'GET'
       }
     }
-    console.log("urls[action]", urls[action])
     return urls[action];
   }
 };
