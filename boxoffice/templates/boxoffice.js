@@ -582,7 +582,7 @@ $(function() {
               ajaxLoad.retries -= 1;
               var errorMsg;
               if(response.readyState === 4) {
-                errorMsg = JSON.parse(response.responseText).message + ". Sorry, something went wrong. We will get in touch with you shortly. This is your order id " + boxoffice.ractive.get('order.order_id') + ".";
+                errorMsg = JSON.parse(response.responseText).message;
                 boxoffice.ractive.set({
                   'tabs.payment.errorMsg': errorMsg,
                   'tabs.payment.loadingPaymentConfirmation': false
