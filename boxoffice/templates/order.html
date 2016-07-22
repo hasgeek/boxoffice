@@ -19,6 +19,7 @@
     </div>
     
     <div class="row" id="boxoffice-order">
+      <p class="text-center" id="notify-msg"><span id="error-description">Error. </span>Please write to us at {{order.item_collection.organization.contact_email}} with your receipt number.</p>
       {%- raw %}
         <script id='boxoffice-ticket-template' type='text/ractive'>
           {{#line_items:line_item}}
@@ -30,7 +31,7 @@
                 <div class="ticket-edit">
                   {{#if assignee.id || isTicketAssigned}}
                     <span><i class="fa fa-user"></i><i class="fa fa-check"></i></span>
-                    <span class="edit-btn" on-click="assign(event, event.keypath)"><i class="fa fa-edit"></i></span>
+                    <span class="edit-btn" on-click="assign(event, event.keypath, true)"><i class="fa fa-edit"></i></span>
                   {{else}}
                     <span><i class="fa fa-user"></i><i class="fa fa-question"></i></span>
                   {{/if}}
@@ -47,7 +48,10 @@
                     <div class="assign-form-wrapper">
                       <form class="form-horizontal assignee-form" role="form" name="assignee-form">
                       {{#if assignee.id || isTicketAssigned}}
-                          <p class="assign-form-title">Update attendee details</p> 
+                          <p class="assign-form-title">Update attendee details</p>
+                          <div class="form-group text-center continue-btn-wrapper">
+                            <button class="boxoffice-button boxoffice-button-action" on-click="assign(event, event.keypath, true)">Continue</button>
+                          </div>
                       {{else}}
                           <p class="assign-form-title">Assign this ticket</p>             
                           <div class="form-group">
@@ -60,10 +64,10 @@
                               Other
                             </label>
                           </div>
+                          <div class="form-group text-center continue-btn-wrapper">
+                            <button class="boxoffice-button boxoffice-button-action" on-click="assign(event, event.keypath, false)">Continue</button>
+                          </div>
                         {{/if}}
-                        <div class="form-group text-center continue-btn-wrapper">
-                          <button class="boxoffice-button boxoffice-button-action" on-click="assign(event, event.keypath)">Continue</button>
-                        </div>
                       </form>
                     </div>
                   </div>
@@ -72,19 +76,19 @@
                     <h4 class="text-center attendee-form-title">Please fill the attendee details</h4>   
                     <form class="attendee-form" role="form" name="attendee-form-{{seq}}" id="attendee-details-{{seq}}"> 
                         <div class="group">   
-                          <input class="group-input {{#filled || assignee.fullname}}filled{{/}}" type="text" name="fullname" required value="{{assignee.fullname}}" on-blur="inputFieldEdit(event, event.keypath)" {{#if isTicketAssigned || assignee.id}}disabled{{/if}}>
+                          <input class="group-input {{#filled || assignee.fullname}}filled{{/}}" type="text" name="fullname" required value="{{assignee.fullname}}" on-blur="inputFieldEdit(event, event.keypath)">
                           <span class="bar"></span>
                           <label class="group-label">Fullname</label>
                         </div>
                           
                         <div class="group">  
-                          <input class="group-input {{#filled || assignee.email}}filled{{/}}" type="text" name="email" required value="{{assignee.email}}" on-blur="inputFieldEdit(event, event.keypath)" {{#if isTicketAssigned || assignee.id}}disabled{{/if}}>
+                          <input class="group-input {{#filled || assignee.email}}filled{{/}}" type="text" name="email" required value="{{assignee.email}}" on-blur="inputFieldEdit(event, event.keypath)">
                           <span class="bar"></span>
                           <label class="group-label">Email</label>
                         </div>
 
                         <div class="group">      
-                          <input class="group-input {{#filled || assignee.phone}}filled{{/}}" type="text" name="phone" required value="{{assignee.phone}}" on-blur="inputFieldEdit(event, event.keypath)" {{#if isTicketAssigned || assignee.id}}disabled{{/if}}>
+                          <input class="group-input {{#filled || assignee.phone}}filled{{/}}" type="text" name="phone" required value="{{assignee.phone}}" on-blur="inputFieldEdit(event, event.keypath)">
                           <span class="bar"></span>
                           <label class="group-label">Phone</label>
                         </div>
