@@ -17,6 +17,8 @@ class ORDER_STATUS(LabeledEnum):
     INVOICE = (2, __("Invoice"))
     CANCELLED = (3, __("Cancelled Order"))
 
+ORDER_STATUS.CONFIRMED = [ORDER_STATUS.SALES_ORDER, ORDER_STATUS.INVOICE]
+
 
 def get_latest_invoice_no(organization):
     """
@@ -92,7 +94,7 @@ class Order(BaseMixin, db.Model):
 
     @property
     def is_confirmed(self):
-        return self.status in [ORDER_STATUS.SALES_ORDER, ORDER_STATUS.INVOICE]
+        return self.status in ORDER_STATUS.CONFIRMED
 
     def is_fully_assigned(self):
         """Checks if all the line items in an order have an assignee"""
