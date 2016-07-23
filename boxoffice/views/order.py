@@ -237,7 +237,7 @@ def payment(order):
     order_amounts = order.get_amounts()
     online_payment = OnlinePayment(pg_paymentid=request.json.get('pg_paymentid'), order=order)
 
-    rp_resp = razorpay.capture_payment('online_payment.pg_paymentid', order_amounts.final_amount)
+    rp_resp = razorpay.capture_payment(online_payment.pg_paymentid, order_amounts.final_amount)
     if rp_resp.status_code == 200:
         online_payment.confirm()
         db.session.add(online_payment)
