@@ -143,13 +143,8 @@ def init_data():
         db.session.add(zero_discount_price)
         db.session.commit()
 
-        signed = DiscountPolicy(title='Signed',
-            item_quantity_min=1,
-            discount_type=DISCOUNT_TYPE.COUPON,
-            percentage=10,
-            discount_code_base='signed',
-            secret=uuid.uuid4().hex,
-            organization=rootconf)
-        signed.items.append(conf_ticket)
-        db.session.add(signed)
+        bulk = DiscountPolicy.make_bulk(rootconf, 'Signed', 'signed',
+            percentage=10)
+        bulk.items.append(conf_ticket)
+        db.session.add(bulk)
         db.session.commit()
