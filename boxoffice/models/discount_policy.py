@@ -6,7 +6,7 @@ from datetime import datetime
 from werkzeug import cached_property
 from itsdangerous import Signer, BadSignature
 from baseframe import __
-from coaster.utils import LabeledEnum, uuid1mc
+from coaster.utils import LabeledEnum, uuid1mc, buid
 from boxoffice.models import db, IdMixin, BaseScopedNameMixin
 from boxoffice.models import Organization
 
@@ -58,10 +58,10 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     def is_coupon(self):
         return self.discount_type == DISCOUNT_TYPE.COUPON
 
-    def gen_signed_code(self):
+    def gen_signed_code(self, identifier=buid()):
         """Generates a signed code in the format discount_code_base.randint.signature"""
         signer = Signer(self.secret)
-        key = "{base}.{randint}".format(base=self.discount_code_base, randint=random.randint(1, 10000))
+        key = "{base}.{identifier}".format(base=self.discount_code_base, identifier=identifier)
         return signer.sign(key)
 
     @staticmethod
@@ -85,6 +85,19 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
         except BadSignature:
             return None
 
+    @classmethod
+    def make_bulk(cls, organization, title, discount_code_base, percentage=None, is_price_based=False):
+        """
+        Returns a discount policy for the purpose of issuing signed discount coupons in bulk.
+        """
+        return cls(title=title,
+            organization=organization,
+            percentage=percentage,
+            discount_type=DISCOUNT_TYPE.COUPON,
+            discount_code_base=discount_code_base,
+            is_price_based=is_price_based,
+            secret=buid())
+
 
 def generate_coupon_code(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
@@ -99,7 +112,7 @@ class DiscountCoupon(IdMixin, db.Model):
         self.id = uuid1mc()
         super(DiscountCoupon, self).__init__(*args, **kwargs)
 
-    code = db.Column(db.Unicode(50), nullable=False, default=generate_coupon_code)
+    code = db.Column(db.Unicode(100), nullable=False, default=generate_coupon_code)
     usage_limit = db.Column(db.Integer, nullable=False, default=1)
     used_count = db.Column(db.Integer, nullable=False, default=0)
 
