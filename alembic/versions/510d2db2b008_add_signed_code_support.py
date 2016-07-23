@@ -15,10 +15,16 @@ import sqlalchemy as sa
 
 
 def upgrade():
-    op.alter_column('discount_coupon', 'code', existing_type=sa.VARCHAR(length=20), type_=sa.VARCHAR(length=50))
+    op.drop_column('discount_policy', 'discount_code_base')
+    op.add_column('discount_policy', sa.Column('discount_code_base', sa.Unicode(length=50), nullable=True))
     op.create_unique_constraint('discount_policy_discount_code_base_key', 'discount_policy', ['discount_code_base'])
+    op.add_column('discount_policy', sa.Column('secret', sa.Unicode(length=50), nullable=True))
+
+    op.alter_column('discount_coupon', 'code', existing_type=sa.VARCHAR(length=20), type_=sa.VARCHAR(length=100))
 
 
 def downgrade():
+    op.drop_column('discount_policy', 'secret')
     op.drop_constraint('discount_policy_discount_code_base_key', 'discount_policy', type_='unique')
-    op.alter_column('discount_coupon', 'code', existing_type=sa.VARCHAR(length=50), type_=sa.VARCHAR(length=20))
+    op.drop_column('discount_policy', 'discount_code_base')
+    op.add_column('discount_policy', sa.Column('discount_code_base', sa.Unicode(length=20), nullable=True))
