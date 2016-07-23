@@ -579,12 +579,13 @@ $(function() {
             },
             error: function(response) {
               var ajaxLoad = this;
-              ajaxLoad.retries -= 1;
+              var responseText = JSON.parse(response.responseText);
               var errorMsg;
+
+              ajaxLoad.retries -= 1;
               if(response.readyState === 4) {
-                errorMsg = JSON.parse(response.responseText).message;
                 boxoffice.ractive.set({
-                  'tabs.payment.errorMsg': errorMsg,
+                  'tabs.payment.errorMsg': responseText.error_description,
                   'tabs.payment.loadingPaymentConfirmation': false
                 });
               }
