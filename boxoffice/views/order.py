@@ -14,7 +14,7 @@ from ..models import Order, OnlinePayment, PaymentTransaction, User, CURRENCY, O
 from ..models.payment import TRANSACTION_TYPE
 from ..extapi import razorpay
 from ..forms import LineItemForm, BuyerForm
-from custom_exceptions import APIError
+from custom_exceptions import PaymentGatewayError
 from boxoffice.mailclient import send_receipt_email, send_line_item_cancellation_mail
 from ..extapi import slack
 from utils import xhr_only, cors, date_time_format
@@ -264,7 +264,8 @@ def payment(order):
         online_payment.fail()
         db.session.add(online_payment)
         db.session.commit()
-        raise APIError("Online payment failed for order - {order}".format(order=order.id), 502)
+        raise PaymentGatewayError("Online payment failed for order - {order} with the following details - {msg}".format(order=order.id,
+            msg=rp_resp.content), 424, 'Your payment failed. Please try again or contact us at {email}.'.format(email=order.organization.contact_email))
 
 
 @app.route('/order/<access_token>/receipt', methods=['GET'])
@@ -334,7 +335,9 @@ def cancel_line_item(line_item):
                 online_payment=payment, amount=line_item.final_amount, currency=CURRENCY.INR))
             db.session.commit()
         else:
-            raise APIError("Cancellation failed for order - {order}".format(order=line_item.order.id), 502)
+            raise PaymentGatewayError("Cancellation failed for order - {order} with the following details - {msg}".format(order=order.id,
+                msg=rp_resp.content), 424,
+            'Refund failed. Please try again or write to us at {email}.'.format(email=line_item.order.organization.contact_email))
     else:
         line_item.cancel()
         db.session.commit()
