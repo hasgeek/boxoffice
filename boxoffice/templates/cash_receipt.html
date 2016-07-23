@@ -167,7 +167,7 @@
         </tr>
         <tr>
           <td class="gray">Date</td>
-          <td>{{ order.paid_at | date_format }}</td>
+          <td>{{ order.paid_at | invoice_date('%d %b %Y') }}</td>
         </tr>
       </table>  
     </div>
