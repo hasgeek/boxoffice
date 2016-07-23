@@ -12,7 +12,7 @@ from ..models import db
 from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy, LINE_ITEM_STATUS
 from ..models import Order, OnlinePayment, PaymentTransaction, User, CURRENCY, ORDER_STATUS
 from ..models.payment import TRANSACTION_TYPE
-from ..extapi import razorpay
+from ..extapi import razorpay, RAZORPAY_PAYMENT_STATUS
 from ..forms import LineItemForm, BuyerForm
 from custom_exceptions import PaymentGatewayError
 from boxoffice.mailclient import send_receipt_email, send_line_item_cancellation_mail
@@ -327,7 +327,7 @@ def cancel_line_item(line_item):
         return make_response(jsonify(status='error', error='non_cancellable', error_description='This ticket is not cancellable'), 403)
 
     if line_item.final_amount > Decimal('0'):
-        payment = OnlinePayment.query.filter_by(order=line_item.order).one()
+        payment = OnlinePayment.query.filter_by(order=line_item.order, pg_payment_status=RAZORPAY_PAYMENT_STATUS.CAPTURED).one()
         rp_resp = razorpay.refund_payment(payment.pg_paymentid, line_item.final_amount)
         if rp_resp.status_code == 200:
             line_item.cancel()
