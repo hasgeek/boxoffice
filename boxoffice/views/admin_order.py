@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from flask import jsonify, url_for, make_response
+from flask import jsonify, make_response, url_for
 from .. import app, lastuser
 from coaster.views import load_models, render_with
 from boxoffice.models import ItemCollection, Order, CURRENCY_SYMBOL
-from utils import date_time_format, xhr_only
+from utils import date_time_format
 
 
 def format_assignee(assignee):
@@ -16,6 +16,28 @@ def format_assignee(assignee):
             'phone': assignee.phone,
             'details': assignee.details
             }
+
+
+def format_line_items(line_items):
+    line_item_dicts = []
+    for line_item in line_items:
+        line_item_dicts.append({
+            'title': line_item.item.title,
+            'seq': line_item.line_item_seq,
+            'id': line_item.id,
+            'category': line_item.item.category.title,
+            'description': line_item.item.description.text,
+            'currency': CURRENCY_SYMBOL['INR'],
+            'base_amount': line_item.base_amount,
+            'discounted_amount': line_item.discounted_amount,
+            'final_amount': line_item.final_amount,
+            'discount_policy': line_item.discount_policy.title if line_item.discount_policy else "",
+            'discount_coupon': line_item.discount_coupon.code if line_item.discount_coupon else "",
+            'cancelled_at': date_time_format(line_item.cancelled_at) if line_item.cancelled_at else "",
+            'assignee_details': format_assignee(line_item.current_assignee),
+            'cancel_ticket_url': url_for('cancel_line_item', line_item_id=line_item.id) if line_item.is_cancellable() else ""
+        })
+    return line_item_dicts
 
 
 def jsonify_admin_orders(data_dict):
@@ -59,23 +81,4 @@ def admin_orders(item_collection):
     permission='org_admin'
     )
 def admin_order(order):
-    line_item_dicts = []
-    for line_item in order.line_items:
-        line_item_dicts.append({
-            'title': line_item.item.title,
-            'seq': line_item.line_item_seq,
-            'id': line_item.id,
-            'category': line_item.item.category.title,
-            'description': line_item.item.description.text,
-            'currency': CURRENCY_SYMBOL['INR'],
-            'base_amount': line_item.base_amount,
-            'discounted_amount': line_item.discounted_amount,
-            'final_amount': line_item.final_amount,
-            'discount_policy': line_item.discount_policy.title if line_item.discount_policy else "",
-            'discount_coupon': line_item.discount_coupon.code if line_item.discount_coupon else "",
-            'cancelled_at': date_time_format(line_item.cancelled_at) if line_item.cancelled_at else "",
-            'assignee_details': format_assignee(line_item.current_assignee),
-            'cancel_ticket_url': url_for('cancel_line_item', line_item_id=line_item.id) if line_item.is_cancellable() else ""
-        })
-    return make_response(jsonify(line_items=line_item_dicts))
-
+    return make_response(jsonify(line_items=format_line_items(order.line_items)))
