@@ -80,6 +80,12 @@ class LineItem(BaseMixin, db.Model):
     ordered_at = db.Column(db.DateTime, nullable=True)
     cancelled_at = db.Column(db.DateTime, nullable=True)
 
+    def permissions(self, user, inherited=None):
+        perms = super(LineItem, self).permissions(user, inherited)
+        if self.order.organization.userid in user.organizations_owned_ids():
+            perms.add('org_admin')
+        return perms
+
     @classmethod
     def calculate(cls, line_item_dicts, coupons=[]):
         """

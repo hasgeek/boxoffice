@@ -27,3 +27,11 @@ export const fetch = function(config){
     dataType: 'json'
   });
 }
+
+export const post = function(config){
+  return $.ajax({
+    url: config.url,
+    type: 'POST',
+    dataType: 'json'
+  });
+}

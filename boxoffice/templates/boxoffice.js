@@ -583,12 +583,13 @@ $(function() {
             },
             error: function(response) {
               var ajaxLoad = this;
-              ajaxLoad.retries -= 1;
+              var responseText = JSON.parse(response.responseText);
               var errorMsg;
+
+              ajaxLoad.retries -= 1;
               if(response.readyState === 4) {
-                errorMsg = JSON.parse(response.responseText).message + ". Sorry, something went wrong. We will get in touch with you shortly. This is your order id " + boxoffice.ractive.get('order.order_id') + ".";
                 boxoffice.ractive.set({
-                  'tabs.payment.errorMsg': errorMsg,
+                  'tabs.payment.errorMsg': responseText.error_description,
                   'tabs.payment.loadingPaymentConfirmation': false
                 });
               }
