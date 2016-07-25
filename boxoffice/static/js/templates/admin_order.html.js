@@ -47,10 +47,8 @@ export const OrderTemplate = `
                 <p class="table-content">
                   {{#if amount === 0}}
                     <span>Free order</span>
-                  {{elseif status}}
-                    <span>Paid order</span>
                   {{else}}
-                    <span>Incomplete order</span>
+                    <span>Paid order</span>
                   {{/if}}
                 </p>
               </td>

@@ -27,7 +27,6 @@ def jsonify_admin_orders(data_dict):
                 'invoice_no': order.invoice_no,
                 'id': order.id,
                 'order_date': date_time_format(order.paid_at) if order.paid_at else date_time_format(order.initiated_at),
-                'status': order.is_confirmed,
                 'buyer_fullname': order.buyer_fullname,
                 'buyer_email': order.buyer_email,
                 'buyer_phone': order.buyer_phone,
@@ -60,9 +59,7 @@ def admin_orders(item_collection):
     )
 def admin_order(order):
     line_item_dicts = []
-    print order.line_items
     for line_item in order.line_items:
-        print line_item
         line_item_dicts.append({
             'title': line_item.item.title,
             'seq': line_item.line_item_seq,
