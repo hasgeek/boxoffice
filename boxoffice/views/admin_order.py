@@ -48,15 +48,14 @@ def jsonify_admin_orders(data_dict):
             order_dicts.append({
                 'invoice_no': order.invoice_no,
                 'id': order.id,
-                'order_date': date_time_format(order.paid_at) if order.paid_at else date_time_format(order.initiated_at),
-                'confirmed': order.is_confirmed,
+                'order_date': date_time_format(order.paid_at),
                 'buyer_fullname': order.buyer_fullname,
                 'buyer_email': order.buyer_email,
                 'buyer_phone': order.buyer_phone,
                 'currency': CURRENCY_SYMBOL['INR'],
                 'amount': order.get_amounts().final_amount,
                 'url': '/ic/' + unicode(item_collection_id) + '/' + unicode(order.id),
-                'fully_assigned': order.is_fully_assigned() if order.is_confirmed else False,
+                'fully_assigned': order.is_fully_assigned(),
                 'receipt': url_for('receipt', access_token=order.access_token),
                 'assignee': url_for('line_items', access_token=order.access_token)
             })

@@ -11,7 +11,7 @@ export const OrderModel = {
         'relative_path': 'ic/' + config.ic_id + '/orders',
         'method': 'GET'
       },
-      'view_order': {
+      'view': {
         'path': IndexModel.urlFor('index')['path'] + 'order/' + config.order_id,
         'method': 'GET'
       }
