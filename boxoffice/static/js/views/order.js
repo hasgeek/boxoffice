@@ -26,6 +26,7 @@ window.Boxoffice.Order = {
       retryInterval: 5000,
       success: function(data) {
         window.Boxoffice.Order.view(data);
+        console.log("data", data);
       },
       error: function(response) {
         var ajaxLoad = this;
