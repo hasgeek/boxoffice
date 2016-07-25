@@ -81,7 +81,8 @@ class Order(BaseMixin, db.Model):
     def get_amounts(self):
         """
         Calculates and returns the order's base_amount, discounted_amount and
-        final_amount as a namedtuple
+        final_amount as a namedtuple, for ALL of its line items, regardless of the
+        status of the line item
         """
         base_amount = Decimal(0)
         discounted_amount = Decimal(0)
@@ -91,6 +92,10 @@ class Order(BaseMixin, db.Model):
             discounted_amount += line_item.discounted_amount
             final_amount += line_item.final_amount
         return order_amounts_ntuple(base_amount, discounted_amount, final_amount)
+
+    def get_confirmed_amount(self):
+        """Returns the total amount of an order's confirmed line items"""
+        return Decimal(sum([line_item.final_amount for line_item in self.line_items if line_item.is_confirmed]))
 
     @property
     def is_confirmed(self):
