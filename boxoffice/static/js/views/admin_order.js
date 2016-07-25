@@ -47,13 +47,10 @@ export const OrderView = {
 
       main_ractive.on('showOrder', function(event){
         //Show individual order
-        console.log("showOrder", event.keypath);
         let order_id = event.context.id;
-        console.log("order.id", order_id);
         OrderModel.fetch({
           url: OrderModel.urlFor('view_order', {order_id: order_id})['path']
         }).done((remoteData) => {
-          console.log("remoteData", remoteData);
           main_ractive.set(event.keypath + '.line_items', remoteData.line_items);
           main_ractive.set(event.keypath + '.show_order', true);
         });

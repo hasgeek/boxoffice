@@ -63,6 +63,12 @@ class Order(BaseMixin, db.Model):
 
     invoice_no = db.Column(db.Integer, nullable=True)
 
+    def permissions(self, user, inherited=None):
+        perms = super(Order, self).permissions(user, inherited)
+        if self.organization.userid in user.organizations_owned_ids():
+            perms.add('org_admin')
+        return perms
+
     def confirm_sale(self):
         """Updates the status to ORDER_STATUS.SALES_ORDER"""
         for line_item in self.line_items:
