@@ -27,6 +27,7 @@ def jsonify_admin_orders(data_dict):
                 'invoice_no': order.invoice_no,
                 'id': order.id,
                 'order_date': date_time_format(order.paid_at) if order.paid_at else date_time_format(order.initiated_at),
+                'confirmed': order.is_confirmed,
                 'buyer_fullname': order.buyer_fullname,
                 'buyer_email': order.buyer_email,
                 'buyer_phone': order.buyer_phone,
