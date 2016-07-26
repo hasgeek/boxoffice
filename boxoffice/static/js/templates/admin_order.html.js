@@ -12,11 +12,10 @@ export const OrderTemplate = `
           <option value="">All orders</option>
           <option value="Paid order">Paid orders</option>
           <option value="Free order">Free orders</option>
-          <option value="Incomplete order">Incomplete orders</option>
         </select>
       </div>
       <div class="col-xs-12">
-        <table class="table table-hover stats-table table-orders footable toggle-circle-filled" id='orders-table' data-filter="#filter">
+        <table class="table table-hover stats-table table-orders footable toggle-circle-filled" id='orders-table' data-filter="#filter" data-page-size="50">
           <thead>
             <tr>
               <th data-sort-ignore="true">#</th>
@@ -31,7 +30,6 @@ export const OrderTemplate = `
               <th data-sort-ignore="true">View</th>
               <th data-hide="phone, tablet, desktop, largescreen">Assigment status</th>
               <th data-hide="phone, tablet, desktop, largescreen" data-sort-ignore="true">Details</th>
-              <th data-hide="phone, tablet, desktop, largescreen" data-sort-ignore="true">Line items</th>
             </tr>
           </thead>
           <tbody>
@@ -49,37 +47,22 @@ export const OrderTemplate = `
                 <p class="table-content">
                   {{#if amount === 0}}
                     <span>Free order</span>
-                  {{elseif status}}
-                    <span>Paid order</span>
                   {{else}}
-                    <span>Incomplete order</span>
+                    <span>Paid order</span>
                   {{/if}}
                 </p>
               </td>
               <td><p class="table-content"><a class="boxoffice-button boxoffice-button-info orders-sm-btn" href="javascript:void(0)" on-click="showOrder">Line Items</a></p></td>
               <td>
                 <p class="table-content">
-                  {{#if status}}
-                    {{#fully_assigned}} Complete {{else}} Pending {{/}}
-                  {{/if}}
-                  </p>
-              </td>
-              <td>
-                <p class="table-content">
-                  {{#if status}}
-                    <a class="boxoffice-button boxoffice-button-small boxoffice-button-info orders-btn" href={{ receipt }} target="_blank" >View Receipt</a>
-                    <a class="boxoffice-button boxoffice-button-small boxoffice-button-info right-button orders-btn" href={{ assignee }} target="_blank" >View Assignee details</a>
-                  {{else}}
-                    No details
-                  {{/if}}
+                  {{#fully_assigned}} Complete {{else}} Pending {{/}}
                 </p>
               </td>
               <td>
-                <div class="table-content">
-                {{#line_items:line_item}}
-                  <p>{{@index+1}}. {{ title }}</p>
-                {{/}}
-                </div>
+                <p class="table-content">
+                  <a class="boxoffice-button boxoffice-button-small boxoffice-button-info orders-btn" href={{ receipt }} target="_blank" >View Receipt</a>
+                  <a class="boxoffice-button boxoffice-button-small boxoffice-button-info right-button orders-btn" href={{ assignee }} target="_blank" >View Assignee details</a>
+                </p>
               </td>
             </tr>
             {{#show_order}}
