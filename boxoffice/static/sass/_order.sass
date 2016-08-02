@@ -17,9 +17,6 @@
   margin-bottom: 40px
   background-color: #fff
 
-.cancelled-ticket
-  background-color: #ddd
-
 .ticket-type
   float: left
   font-size: 18px
@@ -50,10 +47,6 @@
 .price
   font-size: 14px
 
-.cancelled-ticket .item-description, 
-.cancelled-ticket .price
-  opacity: 0.2
-
 .item-description .fa 
   padding-right: 5px
 
@@ -71,8 +64,7 @@
 .assignee-form .form-group
   margin: 10px auto
 
-.assign-form-title,
-.cancel-msg
+.assign-form-title
   font-size: 16px
   font-weight: bold
   padding: 5px 0 0
@@ -86,16 +78,9 @@
   margin: 0 0 40px
   text-align: center
 
+.cancelled-ticket
+  background-color: #eee
+
 .cancel-msg
-  font-style: italic
-  position: absolute
-  top: 25%
-  right: 0
-  left: 0
   color: red
-  font-size: 20px
-  -moz-transform: rotate(-10deg)
-  -webkit-transform: rotate(-10deg)
-  -o-transform: rotate(-10deg)
-  -ms-transform: rotate(-10deg)
-  transform: rotate(-10deg)
+  text-align: center

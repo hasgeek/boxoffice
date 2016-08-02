@@ -3,6 +3,7 @@
 from pytz import utc, timezone
 from flask import request, abort
 from functools import wraps
+from baseframe import localize_timezone
 from boxoffice import app
 
 
@@ -16,6 +17,16 @@ def xhr_only(f):
             abort(400)
         return f(*args, **kwargs)
     return wrapper
+
+
+@app.template_filter('date_time_format')
+def date_time_format(datetime):
+    return localize_timezone(datetime).strftime('%d %b %Y %H:%M:%S')
+
+
+@app.template_filter('date_format')
+def date_format(datetime):
+    return localize_timezone(datetime).strftime('%d %b %Y')
 
 
 def localize(datetime, tz):

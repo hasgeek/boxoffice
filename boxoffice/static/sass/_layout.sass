@@ -186,6 +186,9 @@ a.boxoffice-button:focus
   clear: both
   text-align: right
 
+.error-msg.left-aligned
+  text-align: left
+
 .info-msg 
   font-size: 14px
   margin: 5px auto
@@ -206,7 +209,7 @@ a.boxoffice-button:focus
   -ms-transition: left 0.15s ease-out
   -o-transition: left 0.15s ease-out
   transition: left 0.15s ease-out
-  z-index: 2
+  z-index: 1025
 
 .admin-sidebar.active 
   left: 0
@@ -239,7 +242,7 @@ a.boxoffice-button:focus
 
 .admin-sidebar .sidebar-title 
   display: block
-  padding: 10px 30px
+  padding: 10px 20px
   font-size: 16px
   text-decoration: none
   color: #18a1c8
@@ -258,6 +261,9 @@ a.boxoffice-button:focus
 
 .sidebar-title-icon 
   padding-right: 10px
+
+.content-wrapper
+  position: relative
 
 @media (min-width: 1200px)
   .sidebar-toggle 
@@ -286,3 +292,7 @@ a.boxoffice-button:focus
   .content-wrapper
     width: 87%
     margin: 0 13% 30px
+
+  .content-wrapper .header
+    text-align: left
+    padding: 0 15px

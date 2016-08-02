@@ -1,8 +1,19 @@
 import {Util, fetch} from './util.js';
+import {IndexModel} from './index.js';
 
 
 export const ItemCollectionModel = {
   fetch: fetch,
+  urlFor: function(action, config){
+    let urls = {
+      'index': {
+        'path': IndexModel.urlFor('index')['path'] + 'ic/' + config.ic_id,
+        'relative_path': 'ic/' + config.ic_id,
+        'method': 'GET'
+      }
+    }
+    return urls[action];
+  },
   formatItems: function(items){
     var formattedItems = _.extend(items);
     formattedItems.forEach(function(item){
