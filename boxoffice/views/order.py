@@ -63,8 +63,6 @@ def jsonify_order(data):
             'seq': line_item.line_item_seq,
             'id': line_item.id,
             'title': line_item.item.title,
-            'category': line_item.item.category.title,
-            'category_seq': line_item.item.category.seq,
             'description': line_item.item.description.text,
             'final_amount': line_item.final_amount,
             'assignee_details': line_item.item.assignee_details,
@@ -73,6 +71,7 @@ def jsonify_order(data):
             'cancelled_at': date_format(line_item.cancelled_at) if line_item.cancelled_at else "",
         }
         line_items.append(item)
+    line_items.sort(key=lambda seq: line_item.line_item_seq)
     return jsonify(order_id=order.id, access_token=order.access_token, item_collection_name=order.item_collection.description_text, buyer_name=order.buyer_fullname, buyer_email=order.buyer_email,
         buyer_phone=order.buyer_phone, line_items=line_items)
 
