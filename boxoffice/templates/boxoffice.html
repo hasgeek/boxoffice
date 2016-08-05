@@ -30,7 +30,7 @@
                       {{#line_item.discount_policies}}
                         {{#if is_automatic || activated || pre_applied }}
                           <p class="discount {{#activated}}applied{{/}}">
-                            {{ title }}<i class="fa fa-check {{#if !activated && !isLoadingFail}}hidden{{/if}}"></i>
+                            {{ title }} <i class="fa fa-check {{#if !activated && !isLoadingFail}}hidden{{/if}}"></i>
                           </p>
                         {{/if}}
                       {{/line_item.discount_policies}}
@@ -366,12 +366,12 @@
     }
   }
   .discount {
-    color: red;
+    color: #CF6F01;
     font-size: 14px;
     margin: 10px 0;
   }
   .discount.applied {
-    color: green;
+    color: #008000;
   }
   .valid-upto {
     font-style: italic;
