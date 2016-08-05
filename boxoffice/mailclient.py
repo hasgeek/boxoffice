@@ -17,7 +17,7 @@ def send_receipt_email(order_id, subject="Thank you for your order!"):
         order = Order.query.get(order_id)
         msg = Message(subject=subject, recipients=[order.buyer_email], bcc=[order.organization.contact_email])
         line_items = LineItem.query.filter(LineItem.order == order, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).order_by("line_item_seq asc").all()
-        html = email_transform(render_template('attendee_assigment.html', order=order, org=order.organization, line_items=line_items, base_url=app.config['BASE_URL']))
+        html = email_transform(render_template('order_confirmation_mail.html', order=order, org=order.organization, line_items=line_items, base_url=app.config['BASE_URL']))
         msg.html = html
         msg.body = html2text(html)
         mail.send(msg)
@@ -50,17 +50,17 @@ def send_line_item_cancellation_mail(line_item_id, subject="Ticket Cancellation"
         mail.send(msg)
 
 
-def send_ticket_assignment_email(line_item_id):
+def send_ticket_assignment_mail(line_item_id):
     """
     Sends a confirmation email once details are filled and ticket has been assigned.
     """
     with app.test_request_context():
         line_item = LineItem.query.get(line_item_id)
-        item_title = line_item.item.title
         order = line_item.order
+        buyer_email = order.buyer_email
         subject = order.item_collection.title + ": Here's your ticket"
-        msg = Message(subject=subject, recipients=[line_item.current_assignee.email])
-        html = email_transform(render_template('ticket_assigment.html', order=order, org=order.organization, line_item=line_item, base_url=app.config['BASE_URL']))
+        msg = Message(subject=subject, recipients=[line_item.current_assignee.email], bcc=[buyer_email])
+        html = email_transform(render_template('ticket_assignment_mail.html', order=order, org=order.organization, line_item=line_item, base_url=app.config['BASE_URL']))
         msg.html = html
         msg.body = html2text(html)
         mail.send(msg)

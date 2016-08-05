@@ -30,13 +30,13 @@
                       {{#line_item.discount_policies}}
                         {{#if is_automatic || activated || pre_applied }}
                           <p class="discount {{#activated}}applied{{/}}">
-                            {{ title }}<i class="fa fa-check {{#if !activated && !isLoadingFail}}hidden{{/if}}"></i>
+                            {{ title }}<i class="fa fa-fw fa-check {{#if !activated && !isLoadingFail}}hidden{{/if}}"></i>
                           </p>
                         {{/if}}
                       {{/line_item.discount_policies}}
                       {{#if line_item.quantity_available > 0}}
                       <div class="ticket-description">
-                        <p class="valid-upto">Prices go up after {{line_item.price_valid_upto}}</p>
+                        <p class="valid-upto"><i class="fa fa-fw fa-long-arrow-up"></i>Price goes up at {{line_item.price_valid_upto}}</p>
                       </div>
                       {{/if}}
                     </div>
@@ -102,6 +102,7 @@
         <div class="policy">
           <p class="policy-heading">Cancellation and refund policy</p>
           <p>We offer a 100% refund on attendee ticket cancellations until the day before the event and allow transfers up to 24 hours prior to the event.</p>
+          <p>If you've booked your ticket but forgotten to use your discount coupon, you can cancel your ticket for a 100% refund and book again using your coupon to avail the discount.</p>
           <p>For more information, please refer our <a href="https://hasgeek.com/about/policy/refunds" target="_blank">cancellation and refund policy</a>. For further queries, please write to us at <a href="mailto:support@hasgeek.com">support@hasgeek.com</a> or call us at <a href="tel:+917676332020">+91 7676 33 2020</a>.</p>
         </div>
       </div>
@@ -166,10 +167,10 @@
           <p class="confirmation-header">Thank you for your order!</p>
           <div class="confirmation-msg">
             <p class="name">Hello {{buyer.name}},</p>
-            <p>We have sent you a confirmation email with the cash receipt.</p>
+            <p>We’ve mailed you the cash receipt. Please click "Get ticket" to receive your ticket(s).</p>
             <div class="receipt-btn-wrapper">
               <a href="{{ cashReceiptURL }}" target="_blank" class="boxoffice-button boxoffice-button-action receipt-button" on-click="fire('eventAnalytics','view cash receipt', 'cash receipt')">View cash receipt</a>
-              <a href="{{ attendeeAssignmentURL }}" target="_blank" class="boxoffice-button boxoffice-button-action receipt-button" on-click="fire('eventAnalytics','fill attendee details', 'attendee details')">Fill attendee details</a>
+              <a href="{{ attendeeAssignmentURL }}" target="_blank" class="boxoffice-button boxoffice-button-action receipt-button" on-click="fire('eventAnalytics','fill attendee details', 'attendee details')">Get ticket</a>
             </div>
             <div class="social-icons">
               <p>Tell your friends!</p>
@@ -373,8 +374,8 @@
     color: green;
   }
   .valid-upto {
-    color: #20b200;
     margin: 10px 0 20px;
+    font-style: italic;
   }
   .ticket-description {
     font-size: 13px;

@@ -7,17 +7,17 @@ from rq import Queue
 from redis import Redis
 from coaster.views import render_with, load_models
 from baseframe import _
-from .. import app
+from .. import app, lastuser
 from ..models import db
 from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy, LINE_ITEM_STATUS
 from ..models import Order, OnlinePayment, PaymentTransaction, User, CURRENCY, ORDER_STATUS
 from ..models.payment import TRANSACTION_TYPE
-from ..extapi import razorpay
+from ..extapi import razorpay, RAZORPAY_PAYMENT_STATUS
 from ..forms import LineItemForm, BuyerForm
-from custom_exceptions import APIError
+from custom_exceptions import PaymentGatewayError
 from boxoffice.mailclient import send_receipt_email, send_line_item_cancellation_mail
 from ..extapi import slack
-from utils import xhr_only, cors
+from utils import xhr_only, cors, date_time_format
 
 redis_connection = Redis()
 boxofficeq = Queue('boxoffice', connection=redis_connection)
@@ -264,7 +264,8 @@ def payment(order):
         online_payment.fail()
         db.session.add(online_payment)
         db.session.commit()
-        raise APIError("Online payment failed for order - {order}".format(order=order.id), 502)
+        raise PaymentGatewayError("Online payment failed for order - {order} with the following details - {msg}".format(order=order.id,
+            msg=rp_resp.content), 424, 'Your payment failed. Please try again or contact us at {email}.'.format(email=order.organization.contact_email))
 
 
 @app.route('/order/<access_token>/receipt', methods=['GET'])
@@ -315,17 +316,18 @@ def jsonify_orders(orders):
     return api_orders
 
 
-# TODO activate route when front-end becomes available
-# @app.route('/line_item/<line_item_id>/cancel', methods=['POST'])
-# @load_models(
-#     (Order, {'id': 'line_item_id'}, 'line_item')
-#     )
+@app.route('/line_item/<line_item_id>/cancel', methods=['POST'])
+@lastuser.requires_login
+@load_models(
+    (LineItem, {'id': 'line_item_id'}, 'line_item'),
+    permission='org_admin'
+    )
 def cancel_line_item(line_item):
     if not line_item.is_cancellable():
-        abort(403)
+        return make_response(jsonify(status='error', error='non_cancellable', error_description='This ticket is not cancellable'), 403)
 
     if line_item.final_amount > Decimal('0'):
-        payment = OnlinePayment.query.filter_by(order=line_item.order).one()
+        payment = OnlinePayment.query.filter_by(order=line_item.order, pg_payment_status=RAZORPAY_PAYMENT_STATUS.CAPTURED).one()
         rp_resp = razorpay.refund_payment(payment.pg_paymentid, line_item.final_amount)
         if rp_resp.status_code == 200:
             line_item.cancel()
@@ -333,11 +335,14 @@ def cancel_line_item(line_item):
                 online_payment=payment, amount=line_item.final_amount, currency=CURRENCY.INR))
             db.session.commit()
         else:
-            raise APIError("Cancellation failed for order - {order}".format(order=line_item.order.id), 502)
+            raise PaymentGatewayError("Cancellation failed for order - {order} with the following details - {msg}".format(order=order.id,
+                msg=rp_resp.content), 424,
+            'Refund failed. Please try again or write to us at {email}.'.format(email=line_item.order.organization.contact_email))
     else:
         line_item.cancel()
         db.session.commit()
     boxofficeq.enqueue(send_line_item_cancellation_mail, line_item.id)
+    return make_response(jsonify(status='ok', result={'message': 'Ticket cancelled', 'cancelled_at': date_time_format(line_item.cancelled_at)}), 201)
 
 
 @app.route('/api/1/ic/<item_collection>/orders', methods=['GET', 'OPTIONS'])
