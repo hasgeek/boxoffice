@@ -166,7 +166,7 @@
           <p class="confirmation-icon"><i class="fa fa-check-circle"></i></p>
           <p class="confirmation-header">Thank you for your order!</p>
           <div class="confirmation-msg">
-            <p class="">We’ve mailed you the cash receipt. Please click "Get ticket" to receive your ticket(s).</p>
+            <p class="">We’ve mailed you the cash receipt. Please click <b>"Get ticket"</b> to receive your ticket(s).</p>
             <div class="receipt-btn-wrapper">
               <a href="{{ cashReceiptURL }}" target="_blank" class="boxoffice-button boxoffice-button-action receipt-button" on-click="fire('eventAnalytics','view cash receipt', 'cash receipt')">View cash receipt</a>
               <a href="{{ attendeeAssignmentURL }}" target="_blank" class="boxoffice-button boxoffice-button-action receipt-button" on-click="fire('eventAnalytics','fill attendee details', 'attendee details')">Get ticket</a>
@@ -710,6 +710,7 @@
     display: inline-block;
     line-height: 1;
     padding: 0px 0px 0px 10px !important;
+    top: -2px;
   }
   .tweet-button {
     line-height: 1;
