@@ -2,14 +2,19 @@
 
 from decimal import Decimal
 from flask import render_template
+from rq.decorators import job
+from redis import Redis
 from flask.ext.mail import Message
 from html2text import html2text
 from premailer import transform as email_transform
 from .models import Order, LineItem, LINE_ITEM_STATUS, CURRENCY_SYMBOL
 from . import mail, app
 
+redis_connection = Redis()
 
-def send_receipt_email(order_id, subject="Thank you for your order!"):
+
+@job('boxoffice', connection=redis_connection)
+def send_receipt_mail(order_id, subject="Thank you for your order!"):
     """
     Sends an link to fill attendee details and cash receipt to the order's buyer
     """
@@ -23,6 +28,7 @@ def send_receipt_email(order_id, subject="Thank you for your order!"):
         mail.send(msg)
 
 
+@job('boxoffice', connection=redis_connection)
 def send_participant_assignment_mail(order_id, item_collection_title, team_member, subject="Please tell us who's coming!"):
     with app.test_request_context():
         order = Order.query.get(order_id)
@@ -33,6 +39,7 @@ def send_participant_assignment_mail(order_id, item_collection_title, team_membe
         mail.send(msg)
 
 
+@job('boxoffice', connection=redis_connection)
 def send_line_item_cancellation_mail(line_item_id, subject="Ticket Cancellation"):
     with app.test_request_context():
         line_item = LineItem.query.get(line_item_id)
@@ -50,6 +57,7 @@ def send_line_item_cancellation_mail(line_item_id, subject="Ticket Cancellation"
         mail.send(msg)
 
 
+@job('boxoffice', connection=redis_connection)
 def send_ticket_assignment_mail(line_item_id):
     """
     Sends a confirmation email once details are filled and ticket has been assigned.
