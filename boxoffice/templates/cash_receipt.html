@@ -73,7 +73,8 @@
 
     table td, table th { 
       border: 1px solid #000; 
-      padding: 5px; 
+      padding: 5px;
+      max-width: 200px;
     }
 
     .center { 
@@ -94,8 +95,9 @@
       clear: both;
     }
 
-    .item-description {
-      max-width: 200px;
+    .item-description ol,
+    .item-description ul {
+      padding-left: 15px;
     }
 
     .gray { 
@@ -191,12 +193,22 @@
           <td class="center">&#8377; {{ line_item.discounted_amount }}</td>
           <td class="center">&#8377; {{ line_item.final_amount }}</td>
         </tr>
+        {% if not line_item.is_confirmed %}
+          <tr>
+            <td></td>
+            <td class="center">Refund: {{ line_item.item.title }}</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="center">&#8722; &#8377; {{ line_item.final_amount }}</td>
+          </tr>
+        {% endif %}
       {%- endfor %}
       
       <tr>
           <td colspan="3"></td>
           <td colspan="2" class="total gray">Total</td>
-          <td class="total-amount gray center"><div id="total">&#8377; {{ order.get_amounts().final_amount }}</div></td>
+          <td class="total-amount gray center"><div id="total">&#8377; {{ order.get_confirmed_amount() }}</div></td>
       </tr>
     </table>
     
