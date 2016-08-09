@@ -6,6 +6,7 @@ from ..models import db
 from ..models import LineItem, Assignee
 from ..models import Order
 from coaster.views import load_models
+from boxoffice.mailclient import send_ticket_assignment_mail
 from utils import xhr_only
 
 
@@ -20,7 +21,7 @@ def assign(order):
     """
     assignee_dict = request.json.get('attendee')
     if not request.json or not assignee_dict or not assignee_dict.get('email') or not assignee_dict.get('fullname'):
-        return make_response(jsonify(message='Missing Attendee details'), 400)
+        return make_response(jsonify(status='error', error='missing_attendee_details', error_description='Attendee details are missing'), 400)
     line_item = LineItem.query.get(request.json.get('line_item_id'))
     item_assignee_details = line_item.item.assignee_details
     assignee_details = {}
@@ -38,5 +39,6 @@ def assign(order):
         new_assignee = Assignee(current=True, email=assignee_dict.get('email'), fullname=assignee_dict.get('fullname'),
         phone=assignee_dict.get('phone'), details=assignee_details, line_item=line_item)
         db.session.add(new_assignee)
+        send_ticket_assignment_mail.delay(line_item.id)
     db.session.commit()
-    return make_response(jsonify(message="Ticket assigned"), 201)
+    return make_response(jsonify(status='ok', result={'message': 'Ticket assigned'}), 201)

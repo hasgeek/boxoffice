@@ -73,7 +73,8 @@
 
     table td, table th { 
       border: 1px solid #000; 
-      padding: 5px; 
+      padding: 5px;
+      max-width: 220px;
     }
 
     table td {
@@ -144,9 +145,9 @@
 
     <p>Hello {{ order.buyer_fullname }},</p>
 
-    <p class="content">Thanks for your interest in {{ order.item_collection.title }}. Please take a moment to tell us who will be attending on your ticket(s).</p>
+    <p class="content">Thanks for your interest in {{ order.item_collection.title }}. If you haven’t got your ticket(s) yet, please click on “Get ticket” below.</p>
 
-    <p><a class="button" href={{"{base_url}/order/{access_token}/ticket".format(base_url=base_url, access_token=order.access_token)}} target="_blank">Fill details</a></p>
+    <p><a class="button" href={{"{base_url}/order/{access_token}/ticket".format(base_url=base_url, access_token=order.access_token)}} target="_blank">Get ticket</a></p>
 
     <h1 class="header">Cash Receipt</h1>
     
@@ -226,8 +227,9 @@
     
     <div class="terms">
       <h5 class="terms-heading">Terms &amp; Conditions</h5>
-      <p class="terms-content">For terms of service and refund policy, please visit <a href="https://hasgeek.com/about/policy/">https://hasgeek.com/about/policy</a></p>
-      <p class="terms-content">For further queries, please write to <a href="mailto:support@hasgeek.com">support@hasgeek.com</a></p>
+      <p class="terms-content">For terms of service and refund policy, please visit <a href="https://hasgeek.com/about/policy/">https://hasgeek.com/about/policy</a>.</p>
+      <p class="terms-content">For further queries, please write to <a href="mailto:support@hasgeek.com">support@hasgeek.com</a>.</p>
+      <p class="terms-content">Print your cash receipt <a href={{"{base_url}/order/{access_token}/receipt".format(base_url=base_url, access_token=order.access_token)}} target="_blank">here</a>.</p>
     </div>
 
     <p class="footer">Thank you,</p>
