@@ -3,8 +3,7 @@
 
 <head>
   <meta charset='UTF-8'>  
-  <title>{{ org.title }}</title>  
-  <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400italic,600italic,400,600" />
+  <title>{{ org.title }}</title>
   <style type="text/css">
     * { 
       margin: 0; 
@@ -81,7 +80,7 @@
 
     <p>Hello {{ line_item.current_assignee.fullname }},</p>
 
-    <p>Congratulations! You have now got a ticket for {{line_item.item.title|replace("ticket", "")|trim}}.</p>
+    <p>Congratulations! You have a ticket for {{line_item.item.title|replace("ticket", "")|trim}}.</p>
 
     <div class="wrapper">
       <table class="ticket-table"> 
@@ -99,9 +98,8 @@
       </table>
     </div>
 
-    <p>All you have to do is walk-in with your photo id card and this email.</p>
     <p>For this order (receipt No: {{order.invoice_no}}), transfer ticket or edit your details <a href={{"{base_url}/order/{access_token}/ticket".format(base_url=base_url, access_token=order.access_token)}} target="_blank">here</a></p>
-    <p>If you want to cancel your ticket, please mail to <a href="mailto:{{org.details.get('support_email')}}">{{org.details.get('support_email')}}</a> with your receipt number.</p>
+    <div class="terms-content">{{org.details.get('ticket_faq') | safe}}</div>
 
     <p>Thank you,</p>
     <p>For {{ org.title }}</p>

@@ -3,6 +3,7 @@
 # imports in this file are order-sensitive
 from pytz import timezone
 from flask import Flask
+from flask.ext.rq import RQ
 from flask.ext.mail import Mail
 from flask.ext.lastuser import Lastuser
 from flask.ext.lastuser.sqlalchemy import UserManager
@@ -33,6 +34,8 @@ def init_for(env):
     coaster.app.init_app(app, env)
     db.init_app(app)
     db.app = app
+
+    RQ(app)
 
     lastuser.init_app(app)
     lastuser.init_usermanager(UserManager(db, User))

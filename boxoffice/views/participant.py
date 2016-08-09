@@ -21,7 +21,7 @@ def assign(order):
     """
     assignee_dict = request.json.get('attendee')
     if not request.json or not assignee_dict or not assignee_dict.get('email') or not assignee_dict.get('fullname'):
-        return make_response(jsonify(status='error', error='missing_attendee_details', error_description='Attendee details are missing'), 400)
+        return make_response(jsonify(status='error', error='missing_attendee_details', error_description="Attendee details are missing"), 400)
     line_item = LineItem.query.get(request.json.get('line_item_id'))
     item_assignee_details = line_item.item.assignee_details
     assignee_details = {}
