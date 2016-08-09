@@ -103,9 +103,9 @@
                           {{elseif field_type === 'select'}}
                             <div class="group">
                               <p class="field-title filled">{{label}}</p>
-                              <select name="{{field}}">
+                              <select name="{{field}}" value="{{assignee.details[field]}}">
                                 {{#options: option}}
-                                  <option value="{{options[option]}}" {{#if assignee.details[field] === options[option]}}selected{{/if}}>{{options[option]}}</option>
+                                  <option value="{{options[option]}}">{{options[option]}}</option>
                                 {{/options}}
                               </select>
                             </div>
