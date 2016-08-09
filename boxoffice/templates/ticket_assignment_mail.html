@@ -101,6 +101,7 @@
 
     <p>All you have to do is walk-in with your photo id card and this email.</p>
     <p>For this order (receipt No: {{order.invoice_no}}), transfer ticket or edit your details <a href={{"{base_url}/order/{access_token}/ticket".format(base_url=base_url, access_token=order.access_token)}} target="_blank">here</a></p>
+    <p>If you want to cancel your ticket, please mail to <a href="mailto:{{org.details.get('support_email')}}">{{org.details.get('support_email')}}</a> with your receipt number.</p>
 
     <p>Thank you,</p>
     <p>For {{ org.title }}</p>
