@@ -28,6 +28,8 @@ class Organization(ProfileBase, db.Model):
     __tablename__ = 'organization'
     __table_args__ = (db.UniqueConstraint('contact_email'),)
 
+    # The currently used fields in details are address(html), cin (Corporate Identity Number), pan, service_tax_no, support_email,
+    # logo (image url), refund_policy (html), ticket_faq (html), website (url)
     details = db.Column(JsonDict, nullable=False, server_default='{}')
     contact_email = db.Column(db.Unicode(254), nullable=False)
 
