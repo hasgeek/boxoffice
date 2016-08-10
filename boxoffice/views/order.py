@@ -14,7 +14,6 @@ from ..extapi import razorpay, RAZORPAY_PAYMENT_STATUS
 from ..forms import LineItemForm, BuyerForm
 from custom_exceptions import PaymentGatewayError
 from boxoffice.mailclient import send_receipt_mail, send_line_item_cancellation_mail
-from ..extapi import slack
 from utils import xhr_only, cors, date_time_format
 
 
