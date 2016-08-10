@@ -80,7 +80,7 @@
 
     <p>Hello {{ line_item.current_assignee.fullname }},</p>
 
-    <p>Congratulations! You have a ticket for {{line_item.item.title|replace("ticket", "")|trim}}.</p>
+    <p>Congratulations! You have a ticket for {{line_item.item.title | replace("ticket", "") | trim}}.</p>
 
     <div class="wrapper">
       <table class="ticket-table"> 
@@ -92,7 +92,7 @@
           <td>
             <p class="text-center name">{{ line_item.current_assignee.fullname }}</p>
             {%- if line_item.current_assignee.details.company -%}<p class="text-center company">{{ line_item.current_assignee.details.company }}</p>{%- endif %}
-            {%- if line_item.current_assignee.details.twitter -%}<p class="text-center twitter-handle">@{{ line_item.current_assignee.details.twitter|replace("@", "") }}</p>{%- endif %}
+            {%- if line_item.current_assignee.details.twitter -%}<p class="text-center twitter-handle">@{{ line_item.current_assignee.details.twitter | replace("@", "") }}</p>{%- endif %}
           </td>
         </tr>
       </table>
