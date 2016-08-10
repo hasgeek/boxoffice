@@ -45,6 +45,9 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     percentage = db.Column(db.Integer, nullable=True)
     # price-based discount
     is_price_based = db.Column(db.Boolean, default=False, nullable=False)
+
+    # Note: discount_code_base was added in the initial migration,
+    # but was removed from the model for a period of time
     discount_code_base = db.Column(db.Unicode(20), nullable=True)
     secret = db.Column(db.Unicode(50), nullable=True)
 
@@ -58,8 +61,10 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     def is_coupon(self):
         return self.discount_type == DISCOUNT_TYPE.COUPON
 
-    def gen_signed_code(self, identifier=buid()):
+    def gen_signed_code(self, identifier=None):
         """Generates a signed code in the format discount_code_base.randint.signature"""
+        if not identifier:
+            identifier = buid()
         signer = Signer(self.secret)
         key = "{base}.{identifier}".format(base=self.discount_code_base, identifier=identifier)
         return signer.sign(key)
