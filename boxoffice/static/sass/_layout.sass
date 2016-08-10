@@ -15,6 +15,13 @@ body
   text-align: center
   font-size: 25px
 
+.box 
+  display: inline-block
+  vertical-align: top
+  float: none
+  margin-bottom: 40px
+  background-color: #fff
+
 .heading
   background-color: $color-heading-box
   color: rgb(255, 255, 255)
@@ -22,11 +29,28 @@ body
   border-radius: 5px 5px 0 0
   min-height: 44px
   box-shadow: 0 0 2px rgba(0,0,0,0.6)
+  margin: 0
 
 .heading:after
   content: " "
   display: table
   clear: both
+
+.heading-title 
+  float: left
+  width: 70%
+  margin: 0
+
+.heading-edit 
+  float: right
+
+.heading-title,
+.heading-edit 
+  font-size: 16px
+
+.edit-btn
+  background: transparent
+  border: none
 
 .content-box
   box-shadow: 0 0 2px rgba(0,0,0,0.6)
@@ -34,6 +58,9 @@ body
   padding: 20px
   background-color: #fff
   min-height: 196px
+
+.content-details
+  margin: 5px 0
 
 .boxoffice-button 
   border-width: 0px 0px 3px
@@ -296,3 +323,61 @@ a.boxoffice-button:focus
   .content-wrapper .header
     text-align: left
     padding: 0 15px
+
+.content-slider
+  position: absolute
+  top: -115px
+  left: 3%
+  background: #fff
+  z-index: 1020
+  width: 97%
+  box-shadow: 0 0 2px rgba(0,0,0,0.8)
+  min-height: 100vh
+
+@media (min-width: 768px)
+  .content-slider
+    top: -50px
+    left: 1%
+    width: 99%
+
+.content-slider-title
+  padding: 10px 0
+  font-size: 18px
+  text-align: center
+  border-bottom: 2px solid #ddd
+  margin: 0
+
+.content-slider-wrapper
+  padding: 30px
+
+.close-button
+  position: absolute
+  top: -15px
+  left: -5px
+  background: #fff
+  border: 2px solid #999
+  font-size: 18px
+  border-radius: 50%
+  color: #000
+  background: #eee
+  width: 30px
+  height: 30px
+
+.close-button .fa
+  position: relative
+  top: -1px
+
+.search
+  border: 1px solid #ccc
+  border-radius: 5px
+  padding: 7px 14px
+  margin-bottom: 10px
+  width: 250px
+
+.search:focus
+  outline: none
+  border-color: #aaa
+
+@media (min-width: 768px)
+  .add-new-btn
+    float: right
