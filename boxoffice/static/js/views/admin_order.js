@@ -45,12 +45,18 @@ export const OrderView = {
         $('#orders-table').trigger('footable_filter', {filter: $('#filter').val()});
       });
 
-      main_ractive.on('showOrder', function(event, method){
+      main_ractive.on('showOrder', function(event){
         //Show individual order
-        main_ractive.set(event.keypath + '.show_order', true);
+        let order_id = event.context.id;
+        OrderModel.fetch({
+          url: OrderModel.urlFor('view', {order_id: order_id})['path']
+        }).done((remoteData) => {
+          main_ractive.set(event.keypath + '.line_items', remoteData.line_items);
+          main_ractive.set(event.keypath + '.show_order', true);
+        });
       });
 
-      main_ractive.on('hideOrder', function(event, method){
+      main_ractive.on('hideOrder', function(event){
         //Show individual order
         main_ractive.set(event.keypath + '.show_order', false);
       });

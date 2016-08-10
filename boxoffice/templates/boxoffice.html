@@ -30,13 +30,13 @@
                       {{#line_item.discount_policies}}
                         {{#if is_automatic || activated || pre_applied }}
                           <p class="discount {{#activated}}applied{{/}}">
-                            {{ title }}<i class="fa fa-check {{#if !activated && !isLoadingFail}}hidden{{/if}}"></i>
+                            {{ title }} <i class="fa fa-check {{#if !activated && !isLoadingFail}}hidden{{/if}}"></i>
                           </p>
                         {{/if}}
                       {{/line_item.discount_policies}}
                       {{#if line_item.quantity_available > 0}}
                       <div class="ticket-description">
-                        <p class="valid-upto">Prices go up after {{line_item.price_valid_upto}}</p>
+                        <p class="valid-upto"><i class="fa fa-fw fa-long-arrow-up"></i>Price goes up after {{line_item.price_valid_upto}}</p>
                       </div>
                       {{/if}}
                     </div>
@@ -102,6 +102,7 @@
         <div class="policy">
           <p class="policy-heading">Cancellation and refund policy</p>
           <p>We offer a 100% refund on attendee ticket cancellations until the day before the event and allow transfers up to 24 hours prior to the event.</p>
+          <p>If you've booked your ticket but forgotten to use your discount coupon, you can cancel your ticket for a 100% refund and book again using your coupon to avail the discount.</p>
           <p>For more information, please refer our <a href="https://hasgeek.com/about/policy/refunds" target="_blank">cancellation and refund policy</a>. For further queries, please write to us at <a href="mailto:support@hasgeek.com">support@hasgeek.com</a> or call us at <a href="tel:+917676332020">+91 7676 33 2020</a>.</p>
         </div>
       </div>
@@ -365,15 +366,15 @@
     }
   }
   .discount {
-    color: red;
+    color: #CF6F01;
     font-size: 14px;
     margin: 10px 0;
   }
   .discount.applied {
-    color: green;
+    color: #008000;
   }
   .valid-upto {
-    color: #20b200;
+    font-style: italic;
     margin: 10px 0 20px;
   }
   .ticket-description {
