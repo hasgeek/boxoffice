@@ -91,17 +91,12 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
             return None
 
     @classmethod
-    def make_bulk(cls, organization, title, discount_code_base, percentage=None, is_price_based=False):
+    # def make_bulk(cls, organization, title, discount_code_base, percentage=None, is_price_based=False):
+    def make_bulk(cls, discount_code_base, **kwargs):
         """
         Returns a discount policy for the purpose of issuing signed discount coupons in bulk.
         """
-        return cls(title=title,
-            organization=organization,
-            percentage=percentage,
-            discount_type=DISCOUNT_TYPE.COUPON,
-            discount_code_base=discount_code_base,
-            is_price_based=is_price_based,
-            secret=buid())
+        return cls(discount_type=DISCOUNT_TYPE.COUPON, discount_code_base=discount_code_base, secret=buid(), **kwargs)
 
 
 def generate_coupon_code(size=6, chars=string.ascii_uppercase + string.digits):

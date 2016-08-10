@@ -143,8 +143,7 @@ def init_data():
         db.session.add(zero_discount_price)
         db.session.commit()
 
-        bulk = DiscountPolicy.make_bulk(rootconf, 'Signed', 'signed',
-            percentage=10)
+        bulk = DiscountPolicy.make_bulk('signed', organization=rootconf, title='Signed', percentage=10)
         bulk.items.append(conf_ticket)
         db.session.add(bulk)
         db.session.commit()
