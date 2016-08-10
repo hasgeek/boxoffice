@@ -3,7 +3,6 @@
 from datetime import datetime
 from decimal import Decimal
 from flask import url_for, request, jsonify, render_template, make_response, abort
-from redis import Redis
 from coaster.views import render_with, load_models
 from baseframe import _
 from .. import app, lastuser
@@ -17,8 +16,6 @@ from custom_exceptions import PaymentGatewayError
 from boxoffice.mailclient import send_receipt_mail, send_line_item_cancellation_mail
 from ..extapi import slack
 from utils import xhr_only, cors, date_time_format
-
-redis_connection = Redis()
 
 
 def jsonify_line_items(line_items):
@@ -205,9 +202,6 @@ def free(order):
                 line_item.discount_coupon.update_used_count()
                 db.session.add(line_item.discount_coupon)
         db.session.commit()
-        webhook_url = order.organization.details.get('slack_webhook_url')
-        if webhook_url:
-            boxofficeq.enqueue(slack.post_stats, order.item_collection_id, webhook_url)
         send_receipt_mail.delay(order.id)
         return make_response(jsonify(message="Free order confirmed"), 201)
     else:
@@ -253,9 +247,6 @@ def payment(order):
                 line_item.discount_coupon.update_used_count()
                 db.session.add(line_item.discount_coupon)
         db.session.commit()
-        webhook_url = order.organization.details.get('slack_webhook_url')
-        if webhook_url:
-            boxofficeq.enqueue(slack.post_stats, order.item_collection_id, webhook_url)
         send_receipt_mail.delay(order.id)
         return make_response(jsonify(message="Payment verified"), 201)
     else:
