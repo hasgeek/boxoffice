@@ -2,6 +2,7 @@ import {IndexModel} from './index.js';
 import {OrgModel} from './org.js';
 import {ItemCollectionModel} from './item_collection.js';
 import {OrderModel} from './admin_order.js';
+import {DiscountPolicyModel} from './admin_discount_policy.js';
 import {DiscountCouponModel} from './admin_coupon.js';
 
 export const SideBarModel = {
@@ -36,14 +37,19 @@ export const SideBarModel = {
           view: 'orders'
         },
         {
+          url: DiscountPolicyModel.urlFor('index', {org_name: this.org_name})['relative_path'],
+          title: 'Discount Policies',
+          icon: 'fa-tags',
+          view: 'discount-policies'
+        },
+        {
           url: DiscountCouponModel.urlFor('index', {org_name: this.org_name})['relative_path'],
           title: 'Discount Coupons',
-          icon: 'fa-tag',
+          icon: 'fa-gift',
           view: 'coupons'
         }
       ]
     }
-    console.log("sidebar_items", sidebar_items);
     return sidebar_items;
   }
 };

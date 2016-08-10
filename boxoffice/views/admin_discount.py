@@ -7,16 +7,32 @@ from boxoffice.models import Organization, DiscountPolicy, DiscountCoupon, Price
 from utils import xhr_only
 
 
+def jsonify_discount_policies(data_dict):
+    discount_policies_list = []
+    for policy in data_dict['discount_policies']:
+        discount_policies_list.append({
+            'title': policy.title,
+            'discount_type': "Automatic" if policy.is_automatic else "Coupon based",
+            'item_quantity_min': policy.item_quantity_min,
+            'percentage': policy.percentage,
+            'is_price_based': policy.is_price_based,
+            'discount': Price.query.filter(Price.discount_policy == policy).first().amount if policy.is_price_based else policy.percentage,
+            'currency': CURRENCY_SYMBOL['INR'],
+            'items': [item.title for item in policy.items]
+            })
+    return jsonify(org_name=data_dict['org'].name, title=data_dict['org'].title, discount_policies=discount_policies_list)
+
+
 def format_line_items(line_items):
-    line_items_dict = []
+    line_items_list = []
     for line_item in line_items:
-        line_items_dict.append({
+        line_items_list.append({
             'item_title': line_item.item.title,
             'fullname': line_item.order.buyer_fullname,
             'email': line_item.order.buyer_email,
             'invoice_no': line_item.order.invoice_no
             })
-    return line_items_dict
+    return line_items_list
 
 
 def format_coupons(coupon):
@@ -33,14 +49,26 @@ def format_coupons(coupon):
             }
 
 
-def jsonify_admin_coupons(data_dict):
-    coupons_dicts = []
+def jsonify_discount_coupons(data_dict):
+    coupons_lists = []
     discount_policies = DiscountPolicy.query.filter(DiscountPolicy.organization == data_dict['org']).all()
     for discount_policy in discount_policies:
         discount_coupons = DiscountCoupon.query.filter(DiscountCoupon.discount_policy == discount_policy).all()
         for coupon in discount_coupons:
-            coupons_dicts.append(format_coupons(coupon))
+            coupons_list.append(format_coupons(coupon))
     return jsonify(org_name=data_dict['org'].name, title=data_dict['org'].title, coupons=coupons_dicts)
+
+
+@app.route('/admin/o/<org>/discount_policies')
+@lastuser.requires_login
+@load_models(
+    (Organization, {'name': 'org'}, 'organization'),
+    permission='org_admin'
+    )
+@render_with({'text/html': 'index.html', 'application/json': jsonify_discount_policies}, json=True)
+def admin_discount_policies(organization):
+    discount_policies = DiscountPolicy.query.filter(DiscountPolicy.organization == organization).all()
+    return dict(title=organization.title, org=organization, discount_policies=discount_policies)
 
 
 @app.route('/admin/o/<org>/coupons')
@@ -49,7 +77,7 @@ def jsonify_admin_coupons(data_dict):
     (Organization, {'name': 'org'}, 'organization'),
     permission='org_admin'
     )
-@render_with({'text/html': 'index.html', 'application/json': jsonify_admin_coupons}, json=True)
+@render_with({'text/html': 'index.html', 'application/json': jsonify_discount_coupons}, json=True)
 def admin_discount_coupons(organization):
     return dict(title=organization.title, org=organization)
 
