@@ -91,7 +91,6 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
             return None
 
     @classmethod
-    # def make_bulk(cls, organization, title, discount_code_base, percentage=None, is_price_based=False):
     def make_bulk(cls, discount_code_base, **kwargs):
         """
         Returns a discount policy for the purpose of issuing signed discount coupons in bulk.
