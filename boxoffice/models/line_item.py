@@ -5,6 +5,7 @@ from decimal import Decimal
 import datetime
 from collections import namedtuple
 from sqlalchemy.sql import select, func
+from sqlalchemy.ext.orderinglist import ordering_list
 from boxoffice.models import db, JsonDict, BaseMixin, Order, Item, DiscountPolicy, DISCOUNT_TYPE, DiscountCoupon
 from coaster.utils import LabeledEnum
 from baseframe import __
@@ -58,10 +59,12 @@ class LineItem(BaseMixin, db.Model):
     __uuid_primary_key__ = True
     __table_args__ = (db.UniqueConstraint('customer_order_id', 'line_item_seq'),)
 
-    customer_order_id = db.Column(None, db.ForeignKey('customer_order.id'), nullable=False, index=True, unique=False)
-    order = db.relationship(Order, backref=db.backref('line_items', cascade='all, delete-orphan'))
     # line_item_seq is the relative number of the line item per order.
     line_item_seq = db.Column(db.Integer, nullable=False)
+    customer_order_id = db.Column(None, db.ForeignKey('customer_order.id'), nullable=False, index=True, unique=False)
+    order = db.relationship(Order, backref=db.backref('line_items', cascade='all, delete-orphan',
+        order_by=line_item_seq,
+        collection_class=ordering_list('line_item_seq', count_from=1)))
 
     item_id = db.Column(None, db.ForeignKey('item.id'), nullable=False, index=True, unique=False)
     item = db.relationship(Item, backref=db.backref('line_items', cascade='all, delete-orphan'))
@@ -118,6 +121,10 @@ class LineItem(BaseMixin, db.Model):
     @property
     def is_confirmed(self):
         return self.status == LINE_ITEM_STATUS.CONFIRMED
+
+    @property
+    def is_cancelled(self):
+        return self.status == LINE_ITEM_STATUS.CANCELLED
 
     def cancel(self):
         """
