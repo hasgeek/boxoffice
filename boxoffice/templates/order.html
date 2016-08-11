@@ -19,7 +19,7 @@
     </div>
     
     <div class="row" id="boxoffice-order">
-      <p class="text-center" id="notify-msg"><span id="error-description">Error. </span>Please write to us at {{order.item_collection.organization.contact_email}} with your receipt number.</p>
+      <p class="text-center" id="notify-msg"><span id="error-description">Loading. </span>If this takes too long, please mail {{order.item_collection.organization.contact_email}} with your receipt number.</p>
       {%- raw %}
         <script id='boxoffice-ticket-template' type='text/ractive'>
           {{#line_items:line_item}}
