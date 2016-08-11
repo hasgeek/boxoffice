@@ -3,8 +3,7 @@
 
 <head>
   <meta charset='UTF-8'>  
-  <title>{{order.item_collection.description}}</title>  
-  <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400italic,600italic,400,600" />
+  <title>{{order.item_collection.description}}</title>
   <style type="text/css">
     * { 
       margin: 0; 
@@ -73,7 +72,8 @@
 
     table td, table th { 
       border: 1px solid #000; 
-      padding: 5px; 
+      padding: 5px;
+      max-width: 220px;
     }
 
     table td {
@@ -114,12 +114,6 @@
       margin-top: 20px;
     }
 
-    .terms-heading {
-      font-size: 16px;
-      font-weight: 600;
-      margin: 0 0 5px;
-    }
-
     .button {
       border-width: 0px 0px 3px;
       border-style: solid;
@@ -144,9 +138,9 @@
 
     <p>Hello {{ order.buyer_fullname }},</p>
 
-    <p class="content">Thanks for your interest in {{ order.item_collection.title }}. Please take a moment to tell us who will be attending on your ticket(s).</p>
+    <p class="content">Thanks for your interest in {{ order.item_collection.title }}.</p>
 
-    <p><a class="button" href={{"{base_url}/order/{access_token}/ticket".format(base_url=base_url, access_token=order.access_token)}} target="_blank">Fill details</a></p>
+    <p><a class="button" href={{"{base_url}/order/{access_token}/ticket".format(base_url=base_url, access_token=order.access_token)}} target="_blank">See ticket</a></p>
 
     <h1 class="header">Cash Receipt</h1>
     
@@ -220,14 +214,13 @@
       <tr>
           <td colspan="3"></td>
           <td colspan="2" class="total gray">Total</td>
-          <td class="total-amount gray center"><div id="total">&#8377; {{ order.get_amounts().final_amount }}</div></td>
+          <td class="total-amount gray center"><div id="total">&#8377; {{ order.get_amounts().confirmed_amount }}</div></td>
       </tr>
     </table>
     
     <div class="terms">
-      <h5 class="terms-heading">Terms &amp; Conditions</h5>
-      <p class="terms-content">For terms of service and refund policy, please visit <a href="https://hasgeek.com/about/policy/">https://hasgeek.com/about/policy</a></p>
-      <p class="terms-content">For further queries, please write to <a href="mailto:support@hasgeek.com">support@hasgeek.com</a></p>
+      <div>{{org.details.get('refund_policy') | safe}}</div>
+      <p>Print your cash receipt <a href={{"{base_url}/order/{access_token}/receipt".format(base_url=base_url, access_token=order.access_token)}} target="_blank">here</a>.</p>
     </div>
 
     <p class="footer">Thank you,</p>

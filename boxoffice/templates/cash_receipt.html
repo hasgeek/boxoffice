@@ -111,16 +111,6 @@
     .terms {
       margin-top: 20px;
     }
-
-    .terms-heading {
-      font-size: 15px;
-      font-weight: 600;
-      margin: 0 0 5px;
-    }
-
-    .terms-content {
-      font-size: 13px;
-    }
   </style>
 </head>
 
@@ -208,14 +198,12 @@
       <tr>
           <td colspan="3"></td>
           <td colspan="2" class="total gray">Total</td>
-          <td class="total-amount gray center"><div id="total">&#8377; {{ order.get_confirmed_amount() }}</div></td>
+          <td class="total-amount gray center"><div id="total">&#8377; {{ order.get_amounts().confirmed_amount }}</div></td>
       </tr>
     </table>
     
     <div class="terms">
-      <h5 class="terms-heading">Terms &amp; Conditions</h5>
-      <p class="terms-content">For terms of service and refund policy, please visit <a href="https://hasgeek.com/about/policy/">https://hasgeek.com/about/policy</a></p>
-      <p class="terms-content">For further queries, please write to <a href="mailto:support@hasgeek.com">support@hasgeek.com</a></p>
+      <div>{{org.details.get('refund_policy') | safe}}</div>
     </div>
   
   </div>

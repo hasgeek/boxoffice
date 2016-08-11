@@ -3,8 +3,6 @@
 from datetime import datetime
 from decimal import Decimal
 from flask import url_for, request, jsonify, render_template, make_response, abort
-from rq import Queue
-from redis import Redis
 from coaster.views import render_with, load_models
 from baseframe import _
 from .. import app, lastuser
@@ -15,12 +13,8 @@ from ..models.payment import TRANSACTION_TYPE
 from ..extapi import razorpay, RAZORPAY_PAYMENT_STATUS
 from ..forms import LineItemForm, BuyerForm
 from custom_exceptions import PaymentGatewayError
-from boxoffice.mailclient import send_receipt_email, send_line_item_cancellation_mail
-from ..extapi import slack
-from utils import xhr_only, cors, date_format, date_time_format
-
-redis_connection = Redis()
-boxofficeq = Queue('boxoffice', connection=redis_connection)
+from boxoffice.mailclient import send_receipt_mail, send_line_item_cancellation_mail
+from utils import xhr_only, cors, date_format
 
 
 def jsonify_line_items(line_items):
@@ -206,10 +200,7 @@ def free(order):
                 line_item.discount_coupon.update_used_count()
                 db.session.add(line_item.discount_coupon)
         db.session.commit()
-        webhook_url = order.organization.details.get('slack_webhook_url')
-        if webhook_url:
-            boxofficeq.enqueue(slack.post_stats, order.item_collection_id, webhook_url)
-        boxofficeq.enqueue(send_receipt_email, order.id)
+        send_receipt_mail.delay(order.id)
         return make_response(jsonify(message="Free order confirmed"), 201)
     else:
         return make_response(jsonify(message='Free order confirmation failed'), 402)
@@ -254,10 +245,7 @@ def payment(order):
                 line_item.discount_coupon.update_used_count()
                 db.session.add(line_item.discount_coupon)
         db.session.commit()
-        webhook_url = order.organization.details.get('slack_webhook_url')
-        if webhook_url:
-            boxofficeq.enqueue(slack.post_stats, order.item_collection_id, webhook_url)
-        boxofficeq.enqueue(send_receipt_email, order.id)
+        send_receipt_mail.delay(order.id)
         return make_response(jsonify(message="Payment verified"), 201)
     else:
         online_payment.fail()
@@ -340,7 +328,7 @@ def cancel_line_item(line_item):
     else:
         line_item.cancel()
         db.session.commit()
-    boxofficeq.enqueue(send_line_item_cancellation_mail, line_item.id)
+    send_line_item_cancellation_mail.delay(line_item.id)
     return make_response(jsonify(status='ok', result={'message': 'Ticket cancelled', 'cancelled_at': date_time_format(line_item.cancelled_at)}), 201)
 
 
