@@ -32,6 +32,7 @@ def assign(order):
         line_item.current_assignee.fullname = assignee_dict['fullname']
         line_item.current_assignee.phone = assignee_dict['phone']
         line_item.current_assignee.details = assignee_details
+        db.session.commit()
     else:
         if line_item.current_assignee:
             # Archive current assignee
@@ -39,6 +40,6 @@ def assign(order):
         new_assignee = Assignee(current=True, email=assignee_dict.get('email'), fullname=assignee_dict.get('fullname'),
         phone=assignee_dict.get('phone'), details=assignee_details, line_item=line_item)
         db.session.add(new_assignee)
+        db.session.commit()
         send_ticket_assignment_mail.delay(line_item.id)
-    db.session.commit()
     return make_response(jsonify(status='ok', result={'message': 'Ticket assigned'}), 201)

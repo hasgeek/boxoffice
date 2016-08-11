@@ -62,9 +62,8 @@ def send_ticket_assignment_mail(line_item_id):
     with app.test_request_context():
         line_item = LineItem.query.get(line_item_id)
         order = line_item.order
-        buyer_email = order.buyer_email
         subject = order.item_collection.title + ": Here's your ticket"
-        msg = Message(subject=subject, recipients=[line_item.current_assignee.email], bcc=[buyer_email])
+        msg = Message(subject=subject, recipients=[line_item.current_assignee.email], bcc=[order.buyer_email])
         html = email_transform(render_template('ticket_assignment_mail.html', order=order, org=order.organization, line_item=line_item, base_url=app.config['BASE_URL']))
         msg.html = html
         msg.body = html2text(html)
