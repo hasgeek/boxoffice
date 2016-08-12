@@ -7,7 +7,7 @@ from coaster.views import render_with, load_models
 from baseframe import _
 from .. import app, lastuser
 from ..models import db
-from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy, LINE_ITEM_STATUS
+from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy
 from ..models import Order, OnlinePayment, PaymentTransaction, User, CURRENCY, ORDER_STATUS
 from ..models.payment import TRANSACTION_TYPE
 from ..extapi import razorpay, RAZORPAY_PAYMENT_STATUS
