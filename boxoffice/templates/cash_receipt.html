@@ -2,7 +2,9 @@
 <html lang="en">
 
 <head>
-  <meta charset='UTF-8'>  
+  <meta charset='UTF-8'>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Receipt</title>  
   <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400italic,600italic,400,600" />
   <style type="text/css">
@@ -16,7 +18,8 @@
       font-size: 16px;
       line-height: 1.2;
       color: #333;
-      background-color: #fff
+      background-color: #fff;
+      padding: 15px;
     }
 
     a {
@@ -40,13 +43,10 @@
       border-bottom: 1px solid #000;
     }
 
-    .company-details { 
-      margin-bottom: 40px; 
-    }
-
     .logo { 
       float: left;
-      max-width: 150px; 
+      max-width: 150px;
+      margin-bottom: 10px;
     }
 
     .logo img {
@@ -54,7 +54,14 @@
     }
 
     .address { 
-      float: right; 
+      clear: both;
+    }
+
+    @media (min-width: 768px) {
+      .address {
+        clear: none;
+        float: right;
+      }
     }
 
     .company-name {
@@ -65,6 +72,7 @@
     .customer {
       padding-top: 20px;
       clear: both;
+      word-break: break-all;
     }
 
     table { 
@@ -82,17 +90,36 @@
     }
 
     .cutomer-details {
-      display: inline-block;
+      float: left;
+      min-width: 250px;
+      margin-bottom: 10px;
+    }
+
+    @media (min-width: 768px) {
+      .cutomer-details {
+        margin-bottom: 20px;
+      }
+    }
+
+    @media (min-width: 768px) {
+      .address {
+        clear: none;
+        float: right;
+      }
     }
 
     .details { 
-      float: right; 
+      float: right;
+      margin-bottom: 20px;
     }
 
     .items {
       width: 100%;
-      margin-top: 20px;
       clear: both;
+    }
+
+    .item-title {
+      font-weight: bold;
     }
 
     .item-description ol,
@@ -167,36 +194,41 @@
     <table class="items">    
       <tr>
         <th>Ticket No:</th>
-        <th>Item</th>
-        <th>Description</th>
         <th>Base Price</th>
         <th>Discount</th>
         <th>Final Price</th>
       </tr>
       
       {% for line_item in line_items -%}
-        <tr class="item-row">
-          <td class="center">{{ line_item.line_item_seq }}</td>
-          <td class="center">{{ line_item.item.title }}</td>
-          <td class="item-description">{{ line_item.item.description.text|safe }}</td>
+        <tr>
+          <td class="center" rowspan="2" valign="top">{{ line_item.line_item_seq }}</td>
+          <td colspan="3">
+            <span class="item-title">{{ line_item.item.title }}</span><br>
+            <span class="item-description">{{ line_item.item.description.text|safe }}</span>
+          </td>
+        </tr>
+        <tr>
           <td class="center">&#8377; {{ line_item.base_amount }}</td>
           <td class="center">&#8377; {{ line_item.discounted_amount }}</td>
           <td class="center">&#8377; {{ line_item.final_amount }}</td>
         </tr>
         {% if line_item.is_cancelled %}
           <tr>
-            <td></td>
-            <td class="center">Refund: {{ line_item.item.title }}</td>
-            <td></td>
-            <td></td>
-            <td></td>
+            <td class="center" rowspan="2" valign="top"></td>
+            <td colspan="3">
+               <span class="item-title">Refund: {{ line_item.item.title }}</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="center"></td>
+            <td class="center"></td>
             <td class="center">&#8722; &#8377; {{ line_item.final_amount }}</td>
           </tr>
         {% endif %}
       {%- endfor %}
       
       <tr>
-          <td colspan="3"></td>
+          <td></td>
           <td colspan="2" class="total gray">Total</td>
           <td class="total-amount gray center"><div id="total">&#8377; {{ order.get_amounts().confirmed_amount }}</div></td>
       </tr>
