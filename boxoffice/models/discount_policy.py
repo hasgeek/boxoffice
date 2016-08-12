@@ -78,7 +78,7 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
         if not cls.is_signed_code_format(code):
             return None
         discount_code_base = code.split('.')[0]
-        policy = DiscountPolicy.query.filter_by(discount_code_base=discount_code_base).one_or_none()
+        policy = cls.query.filter_by(discount_code_base=discount_code_base).one_or_none()
         if not policy:
             return None
         signer = Signer(policy.secret)
