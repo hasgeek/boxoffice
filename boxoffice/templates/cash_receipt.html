@@ -183,7 +183,7 @@
           <td class="center">&#8377; {{ line_item.discounted_amount }}</td>
           <td class="center">&#8377; {{ line_item.final_amount }}</td>
         </tr>
-        {% if not line_item.is_confirmed %}
+        {% if line_item.is_cancelled %}
           <tr>
             <td></td>
             <td class="center">Refund: {{ line_item.item.title }}</td>

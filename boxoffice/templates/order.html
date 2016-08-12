@@ -25,7 +25,7 @@
       {%- raw %}
         <script id='boxoffice-ticket-template' type='text/ractive'>
           {{#line_items:line_item}}
-            {{#if !is_cancelled}}
+            {{#if is_confirmed}}
               <div class="ticket col-sm-6 col-xs-12" id="item-{{ seq }}">
                 <div class="heading">
                   <div class="ticket-type">

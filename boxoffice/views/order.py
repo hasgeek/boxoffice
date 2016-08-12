@@ -61,6 +61,7 @@ def jsonify_order(data):
             'final_amount': line_item.final_amount,
             'assignee_details': line_item.item.assignee_details,
             'assignee': jsonify_assignee(line_item.current_assignee),
+            'is_confirmed': line_item.is_confirmed,
             'is_cancelled': line_item.is_cancelled,
             'cancelled_at': date_format(line_item.cancelled_at) if line_item.cancelled_at else "",
         })
