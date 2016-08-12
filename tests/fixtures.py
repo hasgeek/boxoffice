@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import uuid
 from boxoffice.models import *
 from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
