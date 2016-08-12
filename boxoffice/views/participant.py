@@ -23,6 +23,9 @@ def assign(order):
     if not request.json or not assignee_dict or not assignee_dict.get('email') or not assignee_dict.get('fullname'):
         return make_response(jsonify(status='error', error='missing_attendee_details', error_description="Attendee details are missing"), 400)
     line_item = LineItem.query.get(request.json.get('line_item_id'))
+    if line_item.is_cancelled:
+        return make_response(jsonify(status='error', error='cancelled_ticket', error_description="Ticket has been cancelled"), 400)
+
     item_assignee_details = line_item.item.assignee_details
     assignee_details = {}
     for key in item_assignee_details.keys():

@@ -407,6 +407,7 @@ a.boxoffice-button:focus {
 
 .content {
   clear: both;
+  position: relative;
 }
 
 .item-description,
@@ -448,6 +449,15 @@ a.boxoffice-button:focus {
   font-weight: bold;
   padding: 15px 0;
   margin: 0 0 40px;
+  text-align: center;
+}
+
+.cancelled-ticket {
+  background-color: #eee;
+}
+
+.cancel-msg {
+  color: red;
   text-align: center;
 }
 

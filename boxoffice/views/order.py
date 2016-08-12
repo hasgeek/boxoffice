@@ -7,14 +7,14 @@ from coaster.views import render_with, load_models
 from baseframe import _
 from .. import app, lastuser
 from ..models import db
-from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy, LINE_ITEM_STATUS
+from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy
 from ..models import Order, OnlinePayment, PaymentTransaction, User, CURRENCY, ORDER_STATUS
 from ..models.payment import TRANSACTION_TYPE
 from ..extapi import razorpay, RAZORPAY_PAYMENT_STATUS
 from ..forms import LineItemForm, BuyerForm
 from custom_exceptions import PaymentGatewayError
 from boxoffice.mailclient import send_receipt_mail, send_line_item_cancellation_mail
-from utils import xhr_only, cors, date_time_format
+from utils import xhr_only, cors, date_format
 
 
 def jsonify_line_items(line_items):
@@ -52,22 +52,22 @@ def jsonify_assignee(assignee):
 def jsonify_order(data):
     order = data['order']
     line_items = []
-    all_line_items = LineItem.query.filter(LineItem.order == order, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).all()
-    for line_item in all_line_items:
-        item = {
+    for line_item in order.line_items:
+        line_items.append({
             'seq': line_item.line_item_seq,
             'id': line_item.id,
             'title': line_item.item.title,
-            'category': line_item.item.category.title,
-            'category_seq': line_item.item.category.seq,
             'description': line_item.item.description.text,
             'final_amount': line_item.final_amount,
             'assignee_details': line_item.item.assignee_details,
-            'assignee': jsonify_assignee(line_item.current_assignee)
-        }
-        line_items.append(item)
-    line_items.sort(key=lambda category_seq: category_seq)
-    return jsonify(order_id=order.id, access_token=order.access_token, item_collection_name=order.item_collection.description_text, buyer_name=order.buyer_fullname, buyer_email=order.buyer_email,
+            'assignee': jsonify_assignee(line_item.current_assignee),
+            'is_confirmed': line_item.is_confirmed,
+            'is_cancelled': line_item.is_cancelled,
+            'cancelled_at': date_format(line_item.cancelled_at) if line_item.cancelled_at else "",
+        })
+    return jsonify(order_id=order.id, access_token=order.access_token,
+        item_collection_name=order.item_collection.description_text, buyer_name=order.buyer_fullname,
+        buyer_email=order.buyer_email,
         buyer_phone=order.buyer_phone, line_items=line_items)
 
 
@@ -261,8 +261,7 @@ def payment(order):
     (Order, {'access_token': 'access_token'}, 'order')
     )
 def receipt(order):
-    line_items = LineItem.query.filter(LineItem.order == order, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).order_by("line_item_seq asc").all()
-    return render_template('cash_receipt.html', order=order, org=order.organization, line_items=line_items)
+    return render_template('cash_receipt.html', order=order, org=order.organization, line_items=order.line_items)
 
 
 @app.route('/order/<access_token>/ticket', methods=['GET', 'POST'])
@@ -330,7 +329,7 @@ def cancel_line_item(line_item):
         line_item.cancel()
         db.session.commit()
     send_line_item_cancellation_mail.delay(line_item.id)
-    return make_response(jsonify(status='ok', result={'message': 'Ticket cancelled', 'cancelled_at': date_time_format(line_item.cancelled_at)}), 201)
+    return make_response(jsonify(status='ok', result={'message': 'Ticket cancelled', 'cancelled_at': date_format(line_item.cancelled_at)}), 201)
 
 
 @app.route('/api/1/ic/<item_collection>/orders', methods=['GET', 'OPTIONS'])
