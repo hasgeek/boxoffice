@@ -15,6 +15,8 @@ import sqlalchemy as sa
 
 
 def upgrade():
+    # Note: discount_code_base was added in the initial migration (4ffee334e82e),
+    # but was removed from the model for a period of time
     op.create_unique_constraint('discount_policy_discount_code_base_key', 'discount_policy', ['discount_code_base'])
     op.add_column('discount_policy', sa.Column('secret', sa.Unicode(length=50), nullable=True))
     op.alter_column('discount_coupon', 'code', existing_type=sa.VARCHAR(length=20), type_=sa.VARCHAR(length=100))

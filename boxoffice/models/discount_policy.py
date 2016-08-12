@@ -46,8 +46,6 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     # price-based discount
     is_price_based = db.Column(db.Boolean, default=False, nullable=False)
 
-    # Note: discount_code_base was added in the initial migration,
-    # but was removed from the model for a period of time
     discount_code_base = db.Column(db.Unicode(20), nullable=True)
     secret = db.Column(db.Unicode(50), nullable=True)
 
