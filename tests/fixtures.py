@@ -141,3 +141,8 @@ def init_data():
             start_at=datetime.utcnow(), end_at=one_month_from_now, amount=3600)
         db.session.add(zero_discount_price)
         db.session.commit()
+
+        bulk = DiscountPolicy.make_bulk('signed', organization=rootconf, title='Signed', percentage=10)
+        bulk.items.append(conf_ticket)
+        db.session.add(bulk)
+        db.session.commit()
