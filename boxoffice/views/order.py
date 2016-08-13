@@ -71,6 +71,13 @@ def jsonify_order(data):
         buyer_phone=order.buyer_phone, line_items=line_items)
 
 
+def sanitize_coupons(coupons):
+    if type(coupons) is not list:
+        return []
+    # Remove falsy values
+    return [coupon_code for coupon_code in coupons if coupon_code]
+
+
 @app.route('/order/kharcha', methods=['OPTIONS', 'POST'])
 @xhr_only
 @cors
@@ -90,7 +97,7 @@ def kharcha():
     # Make line item splits and compute amounts and discounts
     line_items = LineItem.calculate([{'item_id': li_form.data.get('item_id')}
         for li_form in line_item_forms
-            for x in range(li_form.data.get('quantity'))], coupons=request.json.get('discount_coupons'))
+            for x in range(li_form.data.get('quantity'))], coupons=sanitize_coupons(request.json.get('discount_coupons')))
     items_json = jsonify_line_items(line_items)
     order_final_amount = sum([values['final_amount'] for values in items_json.values()])
     return jsonify(line_items=items_json, order={'final_amount': order_final_amount})
@@ -148,7 +155,7 @@ def order(item_collection):
 
     line_item_tups = LineItem.calculate([{'item_id': li_form.data.get('item_id')}
         for li_form in line_item_forms
-            for x in range(li_form.data.get('quantity'))], coupons=request.json.get('discount_coupons'))
+            for x in range(li_form.data.get('quantity'))], coupons=sanitize_coupons(request.json.get('discount_coupons')))
 
     for idx, line_item_tup in enumerate(line_item_tups):
         item = Item.query.get(line_item_tup.item_id)

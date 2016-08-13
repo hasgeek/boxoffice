@@ -63,6 +63,8 @@ $(function() {
       if (paramSplit[0] === 'code') {
         return paramSplit[1];
       }
+    }).filter(function(val){
+      return typeof val !== 'undefined' && val !== "";
     });
   };
 

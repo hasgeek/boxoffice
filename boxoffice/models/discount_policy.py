@@ -70,7 +70,7 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     @staticmethod
     def is_signed_code_format(code):
         """Checks if the code is in the {x.y.z} format"""
-        return len(code.split('.')) == 3
+        return len(code.split('.')) == 3 if code else False
 
     @classmethod
     def get_from_signed_code(cls, code):
