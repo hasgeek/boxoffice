@@ -432,6 +432,7 @@ $(function() {
               boxoffice.ractive.set('tabs.payment.errormsg.' + errors[0].name, errors[0].message);
               boxoffice.ractive.scrollTop();
             } else {
+              boxoffice.ractive.set('tabs.payment.loadingOrder', true);
               boxoffice.ractive.sendOrder();
             }
           });
@@ -598,7 +599,6 @@ $(function() {
               var errorMsg;
               ajaxLoad.retries -= 1;
               if (response.readyState === 4) {
-                errorMsg = JSON.parse(response.responseText).message + ". Sorry, something went wrong. We will get in touch with you shortly. This is your order id " + boxoffice.ractive.get('order.order_id') + ".";
                 boxoffice.ractive.set({
                   'tabs.payment.errorMsg': responseText.error_description,
                   'tabs.payment.loadingPaymentConfirmation': false
