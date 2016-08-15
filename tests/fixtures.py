@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from boxoffice.models import *
-from datetime import date
+from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
 
 
@@ -39,7 +39,7 @@ def init_data():
         rc2016.items.append(conf_ticket)
         db.session.commit()
 
-        price = Price(item=conf_ticket, title='Super Early Geek', start_at=date.today(), end_at=one_month_from_now, amount=3500)
+        price = Price(item=conf_ticket, title='Super Early Geek', start_at=datetime.utcnow(), end_at=one_month_from_now, amount=3500)
         db.session.add(price)
         db.session.commit()
 
@@ -47,7 +47,7 @@ def init_data():
         rc2016.items.append(single_day_conf_ticket)
         db.session.commit()
 
-        single_day_price = Price(item=single_day_conf_ticket, title='Single Day', start_at=date.today(), end_at=one_month_from_now, amount=2500)
+        single_day_price = Price(item=single_day_conf_ticket, title='Single Day', start_at=datetime.utcnow(), end_at=one_month_from_now, amount=2500)
         db.session.add(single_day_price)
         db.session.commit()
 
@@ -55,7 +55,7 @@ def init_data():
         rc2016.items.append(tshirt)
         db.session.commit()
 
-        tshirt_price = Price(item=tshirt, title='T-shirt', start_at=date.today(), end_at=one_month_from_now, amount=500)
+        tshirt_price = Price(item=tshirt, title='T-shirt', start_at=datetime.utcnow(), end_at=one_month_from_now, amount=500)
         db.session.add(tshirt_price)
         db.session.commit()
 
@@ -63,7 +63,7 @@ def init_data():
         rc2016.items.append(dns_workshop)
         db.session.commit()
 
-        dns_workshop_price = Price(item=dns_workshop, title='DNSSEC workshop early', start_at=date.today(), end_at=one_month_from_now, amount=2500)
+        dns_workshop_price = Price(item=dns_workshop, title='DNSSEC workshop early', start_at=datetime.utcnow(), end_at=one_month_from_now, amount=2500)
         db.session.add(dns_workshop_price)
         db.session.commit()
 
@@ -119,7 +119,7 @@ def init_data():
 
         discount_price = Price(item=conf_ticket,
             discount_policy=forever_early_geek, title='Forever Early Geek',
-            start_at=date.today(), end_at=one_month_from_now, amount=3400)
+            start_at=datetime.utcnow(), end_at=one_month_from_now, amount=3400)
         db.session.add(discount_price)
         db.session.commit()
 
@@ -138,6 +138,11 @@ def init_data():
 
         zero_discount_price = Price(item=conf_ticket,
             discount_policy=zero_discount, title='Zero Discount',
-            start_at=date.today(), end_at=one_month_from_now, amount=3600)
+            start_at=datetime.utcnow(), end_at=one_month_from_now, amount=3600)
         db.session.add(zero_discount_price)
+        db.session.commit()
+
+        bulk = DiscountPolicy.make_bulk('signed', organization=rootconf, title='Signed', percentage=10)
+        bulk.items.append(conf_ticket)
+        db.session.add(bulk)
         db.session.commit()

@@ -3,6 +3,7 @@
 # imports in this file are order-sensitive
 from pytz import timezone
 from flask import Flask
+from flask.ext.rq import RQ
 from flask.ext.mail import Mail
 from flask.ext.lastuser import Lastuser
 from flask.ext.lastuser.sqlalchemy import UserManager
@@ -34,11 +35,12 @@ def init_for(env):
     db.init_app(app)
     db.app = app
 
+    RQ(app)
+
     lastuser.init_app(app)
     lastuser.init_usermanager(UserManager(db, User))
     app.config['tz'] = timezone(app.config['TIMEZONE'])
-
-    baseframe.init_app(app, requires=['boxoffice'], ext_requires=['baseframe-bs3', 'fontawesome>=4.0.0', 'ractive', 'ractive-transitions-fly', 'validate', 'nprogress'])
+    baseframe.init_app(app, requires=['boxoffice'], ext_requires=['baseframe-bs3', 'fontawesome>=4.0.0', 'ractive', 'ractive-transitions-fly', 'validate', 'nprogress', 'baseframe-footable'])
 
     mail.init_app(app)
     wtforms_json.init()

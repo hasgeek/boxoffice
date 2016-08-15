@@ -19,7 +19,7 @@ export const SideBarView = {
         this.set('sidebarMobileOn', !this.get('sidebarMobileOn'));
       },
       navigate: function(event) {
-        if(event.context.view !== this.get('activeItem')) {
+        if (event.context.view !== this.get('activeItem')) {
           NProgress.configure({ showSpinner: false}).start();
           eventBus.trigger('navigate', event.context.url);
         }
@@ -27,10 +27,10 @@ export const SideBarView = {
     });
   },
   render: function(view, ic_config) {
-    if(this.on) {
+    if (this.on) {
       this.ractive.set({
         'sidebarItems': SideBarModel.getItems(ic_config),
-        'activeTab': view,
+        'activeItem': view,
         'sidebarHide': false,
         'sidebarMobileOn': false
       });
@@ -40,7 +40,7 @@ export const SideBarView = {
     }
   },
   hide: function() {
-    if(this.on) {
+    if (this.on) {
       this.ractive.set('sidebarHide', true);
     }
   }

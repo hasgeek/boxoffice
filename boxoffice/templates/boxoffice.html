@@ -30,13 +30,13 @@
                       {{#line_item.discount_policies}}
                         {{#if is_automatic || activated || pre_applied }}
                           <p class="discount {{#activated}}applied{{/}}">
-                            {{ title }}<i class="fa fa-check {{#if !activated && !isLoadingFail}}hidden{{/if}}"></i>
+                            {{ title }} <i class="fa fa-check {{#if !activated && !isLoadingFail}}hidden{{/if}}"></i>
                           </p>
                         {{/if}}
                       {{/line_item.discount_policies}}
                       {{#if line_item.quantity_available > 0}}
                       <div class="ticket-description">
-                        <p class="valid-upto">Prices go up after {{line_item.price_valid_upto}}</p>
+                        <p class="valid-upto"><i class="fa fa-fw fa-long-arrow-up"></i>Price goes up after {{line_item.price_valid_upto}}</p>
                       </div>
                       {{/if}}
                     </div>
@@ -102,6 +102,7 @@
         <div class="policy">
           <p class="policy-heading">Cancellation and refund policy</p>
           <p>We offer a 100% refund on attendee ticket cancellations until the day before the event and allow transfers up to 24 hours prior to the event.</p>
+          <p>If you've booked your ticket but forgotten to use your discount coupon, you can cancel your ticket for a 100% refund and book again using your coupon to avail the discount.</p>
           <p>For more information, please refer our <a href="https://hasgeek.com/about/policy/refunds" target="_blank">cancellation and refund policy</a>. For further queries, please write to us at <a href="mailto:support@hasgeek.com">support@hasgeek.com</a> or call us at <a href="tel:+917676332020">+91 7676 33 2020</a>.</p>
         </div>
       </div>
@@ -111,7 +112,7 @@
       {{/}}
       <div id='{{id}}' class="boxoffice-section clearfix" intro='fly:{"x":0,"y":"0"}'>
         <form role="form" name="buyer-form" class="buyer-details">
-          <p class="buyer-form-title">Buyer Details</p>
+          <p class="buyer-form-title">Billing Details</p>
           <div class="group">
             <input class="group-input {{#buyer.name}}filled{{/}}" type="text" name="name" value="{{buyer.name}}">
             <span class="bar"></span>
@@ -168,11 +169,10 @@
           <p class="confirmation-icon"><i class="fa fa-check-circle"></i></p>
           <p class="confirmation-header">Thank you for your order!</p>
           <div class="confirmation-msg">
-            <p class="name">Hello {{buyer.name}},</p>
-            <p>We have sent you a confirmation email with the cash receipt.</p>
+            <p class="">We’ve mailed you the cash receipt.</p>
             <div class="receipt-btn-wrapper">
-              <a href="{{ cashReceiptURL }}" target="_blank" class="boxoffice-button boxoffice-button-action receipt-button" on-click="fire('eventAnalytics','view cash receipt', 'cash receipt')">View cash receipt</a>
-              <a href="{{ attendeeAssignmentURL }}" target="_blank" class="boxoffice-button boxoffice-button-action receipt-button" on-click="fire('eventAnalytics','fill attendee details', 'attendee details')">Fill attendee details</a>
+              <a href="{{ attendeeAssignmentURL }}" target="_blank" class="boxoffice-button boxoffice-button-action receipt-button" on-click="fire('eventAnalytics','fill attendee details', 'attendee details')">Your ticket</a>
+              <a href="{{ cashReceiptURL }}" target="_blank" class="boxoffice-button boxoffice-button-action receipt-button" on-click="fire('eventAnalytics','view cash receipt', 'cash receipt')">See cash receipt</a>
             </div>
             <div class="social-icons">
               <p>Tell your friends!</p>
@@ -219,11 +219,6 @@
     .box-widget-button-info {
       font-size: 17px;
     } 
-  }
-  .clearfix:before,
-  .clearfix:after {
-    display: table;
-    content: "";
   }
   .payment-progress-wrapper {
     background-color: #eee;
@@ -374,15 +369,15 @@
     }
   }
   .discount {
-    color: red;
+    color: #CF6F01;
     font-size: 14px;
     margin: 10px 0;
   }
   .discount.applied {
-    color: green;
+    color: #008000;
   }
   .valid-upto {
-    color: #20b200;
+    font-style: italic;
     margin: 10px 0 20px;
   }
   .ticket-description {
@@ -455,6 +450,7 @@
     padding-left: 8px;
     font-size: 16px;
     position: relative;
+    top: -1px;
   }
   input[type=number]::-webkit-inner-spin-button, 
   input[type=number]::-webkit-outer-spin-button { 
@@ -527,7 +523,7 @@
       height: 37px;
     }
     .ticket-qty {
-      top: -1px;
+      top: -4px;
       width: 40px;
     }
     .discount-price {
@@ -759,6 +755,7 @@
   }
   .confirmation-msg {
     font-size: 16px;
+    text-align: center;
   }
   @media (min-width: 768px) {
     .confirmation-icon {
@@ -800,6 +797,7 @@
     display: inline-block;
     line-height: 1;
     padding: 0px 0px 0px 10px !important;
+    top: -2px;
   }
   .tweet-button {
     line-height: 1;

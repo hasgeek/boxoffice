@@ -63,6 +63,8 @@ $(function() {
       if (paramSplit[0] === 'code') {
         return paramSplit[1];
       }
+    }).filter(function(val){
+      return typeof val !== 'undefined' && val !== "";
     });
   };
 
@@ -428,6 +430,7 @@ $(function() {
             boxoffice.ractive.set('tabs.payment.errormsg', '');
             if (errors.length > 0) {
               boxoffice.ractive.set('tabs.payment.errormsg.' + errors[0].name, errors[0].message);
+              boxoffice.ractive.scrollTop();
             } else {
               boxoffice.ractive.sendOrder();
             }
@@ -442,16 +445,20 @@ $(function() {
             boxoffice.ractive.set('buyer.phone', phone);
 
             if (phone.length > 16) {
-              formValidator.setMessage('validate_phone', 'Please enter a valid mobile number');
+              formValidator.setMessage('validate_phone', "Please enter a valid mobile number");
               return false;
             }
             else if (phone.match(validPhone)) {
               //Indian number starting with '+91'
               if (phone.indexOf('+91') === 0 && phone.length != 13) {
-                formValidator.setMessage('validate_phone', 'Please enter a valid Indian mobile number');
+                formValidator.setMessage('validate_phone', "Please enter a valid Indian mobile number");
                 return false;
               }
-            } 
+            }
+            else if(phone.indexOf('+') === 0) {
+              formValidator.setMessage('validate_phone', "Please enter a valid mobile number");
+              return false;
+            }
             else {
               formValidator.setMessage('validate_phone', "Please prefix your phone number with '+' and country code.");
               return false;
@@ -587,12 +594,13 @@ $(function() {
             },
             error: function(response) {
               var ajaxLoad = this;
-              ajaxLoad.retries -= 1;
+              var responseText = JSON.parse(response.responseText);
               var errorMsg;
+              ajaxLoad.retries -= 1;
               if (response.readyState === 4) {
                 errorMsg = JSON.parse(response.responseText).message + ". Sorry, something went wrong. We will get in touch with you shortly. This is your order id " + boxoffice.ractive.get('order.order_id') + ".";
                 boxoffice.ractive.set({
-                  'tabs.payment.errorMsg': errorMsg,
+                  'tabs.payment.errorMsg': responseText.error_description,
                   'tabs.payment.loadingPaymentConfirmation': false
                 });
               }
