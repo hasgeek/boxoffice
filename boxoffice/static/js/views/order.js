@@ -137,9 +137,11 @@ window.Boxoffice.Order = {
         formValidator.setMessage('valid_email', 'Please enter a valid email');
  
         formValidator.registerCallback('validate_phone', function(phone) {
-          var validPhone = /^\+[0-9]+$/;
-          phone = phone.replace(/[\t .()\[\]-]+/g, '');
+          //Remove all punctations (except +) and letters
+          phone = phone.replace(/[^0-9+]/g,'');
           order.ractive.set(line_item + '.assignee.phone', phone);
+
+          var validPhone = /^\+[0-9]+$/;
 
           if (phone.length > 16) {
             formValidator.setMessage('validate_phone', 'Please enter a valid mobile number');
@@ -151,10 +153,6 @@ window.Boxoffice.Order = {
               formValidator.setMessage('validate_phone', 'Please enter a valid Indian mobile number');
               return false;
             }
-          }
-          else if(phone.indexOf('+') === 0) {
-            formValidator.setMessage('validate_phone', "Please enter a valid mobile number");
-            return false;
           }
           else {
             formValidator.setMessage('validate_phone', "Please prefix your phone number with '+' and country code.");
