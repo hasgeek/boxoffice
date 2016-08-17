@@ -238,12 +238,12 @@ $(function() {
             retries: 5,
             retryInterval: 5000,
             success: function(data) {
-              var valid_discount_coupon = false;
+              var discount_applicable = false;
               var line_items = boxoffice.ractive.get('order.line_items');
               line_items.forEach(function(line_item) {
                 if (data.line_items.hasOwnProperty(line_item.item_id)) {
                   if (data.line_items[line_item.item_id].discounted_amount && line_item.quantity_available > 0) {
-                    valid_discount_coupon = true;
+                    discount_applicable = true;
                     line_item.unit_final_amount = data.line_items[line_item.item_id].final_amount;
                     line_item.discount_policies.forEach(function(discount_policy){
                       if (data.line_items[line_item.item_id].discount_policy_ids.indexOf(discount_policy.id) >= 0) {
@@ -254,8 +254,9 @@ $(function() {
                 }
               });
 
-              if (valid_discount_coupon) {
+              if (discount_applicable) {
                 boxoffice.ractive.set('order.line_items',line_items);
+                //When the discount coupon is valid, the page auto-scrolls to the top of boxoffice widget
                 boxoffice.ractive.scrollTop();
               }
             },
