@@ -25,12 +25,18 @@ def test_page():
 <body>
 <div id='boxoffice-widget'></div>
 <script>
-    $.getScript("http://boxoffice.travis.dev:6500/boxoffice.js").done(function(){
-      window.Boxoffice.init({
-        org: 'rootconf',
-        itemCollection: '2016'
-      });
+  $.get({
+    url: 'http://boxoffice.travis.dev:6500/api/1/boxoffice.js',
+    crossDomain: true
+  }).done(function(data) {
+    var boxofficeScript = document.createElement('script');
+    boxofficeScript.innerHTML = data.script;
+    document.getElementsByTagName('body')[0].appendChild(boxofficeScript);
+    window.Boxoffice.init({
+      org: 'hasgeek',
+      itemCollection: 'e9496b3d-645b-11e6-a7ea-cd716bd14ba7',
     });
+  });
 </script>
 </body>
 </html>"""
