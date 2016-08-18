@@ -3,7 +3,7 @@
 from flask import make_response, render_template, jsonify, request
 from coaster.views import load_models
 from boxoffice import app
-from boxoffice.models import ItemCollection, Item, Category
+from boxoffice.models import ItemCollection, Item
 from utils import xhr_only, cors
 
 
