@@ -41,7 +41,7 @@
                       {{/if}}
                     </div>
                     <div class="ticket-price-qty">
-                      {{#if line_item.quantity_available > 0}}
+                      {{#if line_item.quantity_available > 0 && !!line_item.base_amount}}
                         <div class="ticket-description">
                           <p class="few-ticket">
                             {{#if line_item.quantity >= line_item.quantity_available}}
@@ -55,7 +55,7 @@
                           {{#if line_item.unit_final_amount >= 0 && line_item.quantity === 0}}
                             <p class="discount-price ticket-price"><i class="fa fa-inr rupee-sign"></i>{{ line_item.unit_final_amount }}</p>
                           {{/if}}
-                          <p class="ticket-price {{#if line_item.unit_final_amount >= 0 && line_item.quantity === 0}}strike{{/if}}"><i class="fa fa-inr rupee-sign"></i>{{ line_item.base_price }}</p>
+                          <p class="ticket-price {{#if line_item.unit_final_amount >= 0 && line_item.quantity === 0}}strike{{/if}}"><i class="fa fa-inr rupee-sign"></i>{{ line_item.base_amount }}</p>
                         </div>
                         <span class="multiplier">&times;</span>
                         <div class="ticket-qty-wrapper">
@@ -72,7 +72,7 @@
                           {{/}}
                         </div>
                       {{else}}
-                        <div class="sold-out-wrapper" intro='fly:{"x":100,"y":"0"}'>
+                        <div class="sold-out-wrapper">
                           <p class="sold-out">Sold out</p>
                         </div>
                       {{/if}}
@@ -137,16 +137,22 @@
               {{#if line_item.quantity > 0 }}
                 <div class="item-summary">
                   <p class="booked-ticket-title"><i class="fa fa-ticket"></i>{{ line_item.item_title }}</p>
-                  <p class="booked-ticket-qty">Qty {{ line_item.quantity }} &times; <i class="fa fa-inr rupee-sign"></i>{{line_item.base_price}}</p>
-                  {{#line_item.discounted_amount}}
-                    <p class="booked-ticket-qty">Discount <i class="fa fa-inr rupee-sign"></i>{{line_item.discounted_amount}}</p>
-                  {{/line_item.discounted_amount}}
-                  {{#line_item.discount_policies}}
-                    {{#if activated}}
-                    <p class="discount-applied">Applied {{ title }}</p>
-                    {{/if}}
-                  {{/line_item.discount_policies}}
-                  <p class="booked-ticket-qty">Subtotal <i class="fa fa-inr rupee-sign"></i>{{line_item.final_amount}}</p>
+                  {{#if line_item.quantity_available > 0 && !!line_item.base_amount }}
+                    <p class="booked-ticket-qty">Qty {{ line_item.quantity }} &times; <i class="fa fa-inr rupee-sign"></i>{{line_item.base_amount}}</p>
+                    {{#line_item.discounted_amount}}
+                      <p class="booked-ticket-qty">Discount <i class="fa fa-inr rupee-sign"></i>{{line_item.discounted_amount}}</p>
+                    {{/line_item.discounted_amount}}
+                    {{#line_item.discount_policies}}
+                      {{#if activated}}
+                      <p class="discount-applied">Applied {{ title }}</p>
+                      {{/if}}
+                    {{/line_item.discount_policies}}
+                    <p class="booked-ticket-qty">Subtotal <i class="fa fa-inr rupee-sign"></i>{{line_item.final_amount}}</p>
+                  {{else}}
+                    <div class="booked-ticket-qty sold-out-wrapper">
+                      <p class="sold-out">Sold out</p>
+                    </div>
+                  {{/if}}
                 </div>
               {{/if}}
             {{/}}{{/order.line_items}}
