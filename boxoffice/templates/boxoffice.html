@@ -25,7 +25,7 @@
                 {{#if line_item.item_name === item.name }}
                   <div class="ticket-booking clearfix {{#line_item.quantity}}ticket-selected{{/}}" id="{{line_item.item_name}}">
                     <div class="ticket-details">
-                      <p class="ticket-title text-primary">{{ line_item.item_title }}</p>
+                      <p class="ticket-title">{{ line_item.item_title }}</p>
                       <div class="ticket-description">{{{ line_item.item_description }}}</div>
                       {{#line_item.discount_policies}}
                         {{#if is_automatic || activated || pre_applied }}
@@ -97,7 +97,7 @@
           </div>
         {{/order.readyToCheckout}}
         {{#errorMsg }}
-          <p class="stage-error-msg text-danger">{{ errorMsg }}</p>
+          <p class="stage-error-msg">{{ errorMsg }}</p>
         {{/}}
         <div class="policy">
           <p class="policy-heading">Cancellation and refund policy</p>
@@ -111,24 +111,27 @@
         <div class="loader payment-confirmation"><i class="fa fa-spinner fa-spin fa-3x"></i></div>
       {{/}}
       <div id='{{id}}' class="boxoffice-section clearfix" intro='fly:{"x":0,"y":"0"}'>
-        <p class="buyer-form">Billing Details</p>
-        <form class="form-horizontal" role="form" id="buyer-details-form" name="buyer-form">
-          <div class="form-group">
-            <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
-              <input type="text" class="form-control buyer-fields secondary" name="name" value = {{buyer.name }} placeholder="Name"/>
-            </div>
+        <form role="form" name="buyer-form" class="buyer-details">
+          <p class="buyer-form-title">Billing Details</p>
+          <div class="group">
+            <input class="group-input {{#buyer.name}}filled{{/}}" type="text" name="name" value="{{buyer.name}}">
+            <span class="bar"></span>
+            <label class="group-label">Name</label>
+            {{#errormsg.name}}<p class="form-error-msg">{{ errormsg.name }}</p>{{/}}
           </div>
-          <div class="form-group">
-            <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
-              <input type="text" class="form-control buyer-fields secondary" name="email" value = {{buyer.email }} placeholder="Email"/>
-            </div>
+          <div class="group">
+            <input class="group-input {{#buyer.email}}filled{{/}}" type="text" name="email" value="{{buyer.email}}">
+            <span class="bar"></span>
+            <label class="group-label">Email</label>
+            {{#errormsg.email}}<p class="form-error-msg">{{ errormsg.email }}</p>{{/}}
           </div>
-          <div class="form-group phone-number-wrapper">
-            <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
-              <input type="text" class="form-control buyer-fields secondary" name="phone" value = {{buyer.phone }} placeholder="Phone"/>
-            </div>
+          <div class="group">
+            <input class="group-input {{#buyer.phone}}filled{{/}}" type="text" name="phone" value="{{buyer.phone}}">
+            <span class="bar"></span>
+            <label class="group-label">Phone</label>
+            {{#errormsg.phone}}<p class="form-error-msg">{{ errormsg.phone }}</p>{{/}}
           </div>
-          <div class="checkout-confirmation col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
+          <div class="checkout-confirmation">
             <p class="summary">Booking Summary</p>
             {{#order.line_items}} {{# { line_item: . } }}
               {{#if line_item.quantity > 0 }}
@@ -156,7 +159,7 @@
             </button>
           </div>
           {{#errorMsg}}
-            <p class="stage-error-msg text-danger">{{ errorMsg }}</p>
+            <p class="stage-error-msg">{{ errorMsg }}</p>
           {{/}}
         </form> 
       </div>
@@ -358,6 +361,7 @@
   .ticket-title {
     font-size: 18px;
     margin: 10px 0;
+    color: #428bca;
   }
   @media (min-width: 768px) {
     .ticket-title {
@@ -585,11 +589,99 @@
     top: 20%;
     left: 48%;
   }
-  .buyer-fields {
+  .stage-error-msg {
     font-size: 15px;
-    margin: 0;
+    clear: both;
+    float: right;
+    margin: 0px 0 10px;
+    color: #b94a48;
   }
-  .buyer-form, .summary {
+  .buyer-details {
+    max-width: 650px;
+    margin: auto;
+  }
+  .buyer-details .group {
+    position: relative;
+    margin-bottom: 45px;
+  }
+  .buyer-details .group-input {
+    font-size: 16px;
+    padding: 10px 10px 10px 5px;
+    display: block;
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid #757575;
+    box-shadow: none;
+  }
+  .buyer-details .group-input:focus {
+    outline:none;
+  }
+  .buyer-details .group-label {
+    color: #999;
+    font-size: 16px;
+    margin: 0;
+    font-weight: normal;
+    position: absolute;
+    pointer-events: none;
+    left: 5px;
+    top: 10px;
+    transition: 0.2s ease all;
+    -moz-transition: 0.2s ease all;
+    -webkit-transition: 0.2s ease all;
+  }
+  .buyer-details .group-input:focus ~ .group-label,
+  .buyer-details .group-input.filled ~ .group-label {
+    top: -20px;
+    color: #800080;
+  }
+  .buyer-details .bar {
+    position: relative;
+    display:block;
+    width: 100%;
+  }
+  .buyer-details .bar:before,
+  .buyer-details .bar:after {
+    content: '';
+    height: 2px;
+    width: 0;
+    bottom: -1px;
+    position: absolute;
+    background: #800080;
+    transition: 0.2s ease all;
+    -moz-transition: 0.2s ease all;
+    -webkit-transition: 0.2s ease all;
+  }
+  .buyer-details .bar:before {
+    left: 50%;
+  }
+  .buyer-details .bar:after {
+    right: 50%;
+  }
+  .buyer-details .group-input:focus ~ .bar:before,
+  .buyer-details .group-input:focus ~ .bar:after {
+    width: 50%;
+  }
+  .form-error-msg {
+    color: white;
+    font-size: 12px;
+    border-radius: 3px;
+    border: 1px solid #b94a48;
+    background: #b94a48;
+    margin: 10px 0 0;
+    padding: 5px;
+    position: relative;
+    display: inline-block;
+  }
+  .form-error-msg::before {
+    display: block;
+    content: "";
+    position: absolute;
+    border: 6px solid transparent;
+    border-bottom: 6px solid #b94a48;
+    top: -13px;
+    left: 20px;
+  }
+  .buyer-form-title, .summary {
     text-align: center;
     font-size: 20px;
     margin: 20px 0;
@@ -641,11 +733,6 @@
   }
   .edit-order {
     margin-right: 10px;
-  }
-  .stage-error-msg {
-    clear: both;
-    float: right;
-    margin: 0px 0 10px;
   }
   .loader.payment-confirmation .fa-spin {
     position: relative;

@@ -114,7 +114,7 @@ window.Boxoffice.Order = {
           },
           {
             name: 'phone',
-            rules: 'required|max_length[16]'
+            rules: 'required|callback_validate_phone'
           }
         ];
 
@@ -122,13 +122,41 @@ window.Boxoffice.Order = {
 
         var formValidator = new FormValidator(attendeeForm, validationConfig, function(errors, event) {
           event.preventDefault();
+          order.ractive.set(line_item +  '.assignee.errormsg', '');
           if (errors.length > 0) {
-            order.ractive.set(line_item + '.errorMsg', errors[0].message);
+            order.ractive.set(line_item +  '.assignee.errormsg.'+ errors[0].name, errors[0].message);
+            order.ractive.scrollTop(line_item_seq);
           }
           else {
-            order.ractive.set(line_item + '.errorMsg', '');
             order.ractive.set(line_item + '.assigningTicket', true);
             order.ractive.sendAttendeeDetails(line_item, line_item_seq, line_item_id);
+          }
+        });
+
+        formValidator.setMessage('required', 'Please fill out the %s field');
+        formValidator.setMessage('valid_email', 'Please enter a valid email');
+ 
+        formValidator.registerCallback('validate_phone', function(phone) {
+          //Remove all punctations (except +) and letters
+          phone = phone.replace(/[^0-9+]/g,'');
+          order.ractive.set(line_item + '.assignee.phone', phone);
+
+          var validPhone = /^\+[0-9]+$/;
+
+          if (phone.length > 16) {
+            formValidator.setMessage('validate_phone', 'Please enter a valid mobile number');
+            return false;
+          }
+          else if (phone.match(validPhone)) {
+            //Indian number starting with '+91'
+            if (phone.indexOf('+91') === 0 && phone.length != 13) {
+              formValidator.setMessage('validate_phone', 'Please enter a valid Indian mobile number');
+              return false;
+            }
+          }
+          else {
+            formValidator.setMessage('validate_phone', "Please prefix your phone number with '+' and country code.");
+            return false;
           }
         });
       },

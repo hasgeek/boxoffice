@@ -118,7 +118,7 @@ a.boxoffice-button:focus {
   margin-bottom: 25px;
 }
 
-.control-group, .form-group {
+.control-group {
   margin-bottom: 45px;
 }
 
@@ -160,6 +160,47 @@ a.boxoffice-button:focus {
   top: -20px;
   font-size: 14px;
   color: #800080;
+}
+
+.group-select select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  width: 100%;
+  padding: 10px 10px 10px 5px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  border-bottom: 1px solid #757575;
+  position: relative;
+}
+
+.group-select select:-moz-focusring {
+  color: transparent;
+  text-shadow: 0 0 0 #000;
+}
+
+.group-select select:focus {
+  outline: 0;
+}
+
+.group-select {
+  position: relative;
+  margin-bottom: 45px;
+}
+
+.group-select:after {
+  position: absolute;
+  top: 50px;
+  right: 2px;
+  width: 0;
+  height: 0;
+  padding: 0;
+  content: "";
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid #757575;
+  pointer-events: none;
 }
 
 .bar {
@@ -205,8 +246,30 @@ a.boxoffice-button:focus {
   color: #800080;
 }
 
-.form-group textarea {
+.group textarea {
   border: 1px solid #757575;
+}
+
+.form-error-msg {
+  color: white;
+  font-size: 12px;
+  border-radius: 3px;
+  border: 1px solid #b94a48;
+  background: #b94a48;
+  margin: 10px 0 0;
+  padding: 5px;
+  position: relative;
+  display: inline-block;
+}
+
+.form-error-msg::before {
+  display: block;
+  content: "";
+  position: absolute;
+  border: 6px solid transparent;
+  border-bottom: 6px solid #b94a48;
+  top: -13px;
+  left: 20px;
 }
 
 .btn-wrapper {
@@ -432,15 +495,15 @@ a.boxoffice-button:focus {
   font-weight: 500;
 }
 
-.assignee-form .form-group {
-  margin: 10px auto;
+.continue-btn-wrapper {
+  margin: 10px 0;
 }
 
 .assign-form-title {
   font-size: 16px;
   font-weight: bold;
   padding: 5px 0 0;
-  margin: 0;
+  margin: 0 0 5px;
   text-align: center;
 }
 
@@ -450,6 +513,10 @@ a.boxoffice-button:focus {
   padding: 15px 0;
   margin: 0 0 40px;
   text-align: center;
+}
+
+.assign-btn-wrapper {
+  float: right;
 }
 
 .cancelled-ticket {

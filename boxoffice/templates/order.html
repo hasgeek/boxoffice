@@ -1,4 +1,3 @@
-
 {% extends "layout.html" %}
 {% block title %}{{ org.title }}{% endblock %}
 {% block headerbox %}
@@ -49,15 +48,15 @@
                         <p class="confirmation-msg"><i class="fa fa-check"></i> This ticket has been assigned to {{assignee.fullname}}</p>
                       {{/if}}
                       <div class="assign-form-wrapper">
-                        <form class="form-horizontal assignee-form" role="form" name="assignee-form">
+                        <form class="assignee-form" role="form" name="assignee-form">
                         {{#if assignee.id || isTicketAssigned}}
                             <p class="assign-form-title">Update attendee details</p>
-                            <div class="form-group text-center continue-btn-wrapper">
+                            <div class="text-center continue-btn-wrapper">
                               <button class="boxoffice-button boxoffice-button-action" on-click="assign(event, event.keypath, true)">Continue</button>
                             </div>
                         {{else}}
                             <p class="assign-form-title">Assign this ticket</p>             
-                            <div class="form-group">
+                            <div>
                               <label class="radio-inline">
                                 <input type="radio" name="{{.assignment}}" value="self" checked>
                                 Self
@@ -67,7 +66,7 @@
                                 Other
                               </label>
                             </div>
-                            <div class="form-group text-center continue-btn-wrapper">
+                            <div class="text-center continue-btn-wrapper">
                               <button class="boxoffice-button boxoffice-button-action" on-click="assign(event, event.keypath, false)">Continue</button>
                             </div>
                           {{/if}}
@@ -79,21 +78,24 @@
                       <h4 class="text-center attendee-form-title">Please fill the attendee details</h4>   
                       <form class="attendee-form" role="form" name="attendee-form-{{seq}}" id="attendee-details-{{seq}}"> 
                           <div class="group">   
-                            <input class="group-input {{#filled || assignee.fullname}}filled{{/}}" type="text" name="fullname" required value="{{assignee.fullname}}" on-blur="inputFieldEdit(event, event.keypath)">
+                            <input class="group-input {{#filled || assignee.fullname}}filled{{/}}" type="text" name="fullname" value="{{assignee.fullname}}" on-blur="inputFieldEdit(event, event.keypath)">
                             <span class="bar"></span>
                             <label class="group-label">Fullname</label>
+                            {{#assignee.errormsg.fullname}}<p class="form-error-msg">{{ assignee.errormsg.fullname }}</p>{{/}}
                           </div>
                             
                           <div class="group">  
-                            <input class="group-input {{#filled || assignee.email}}filled{{/}}" type="text" name="email" required value="{{assignee.email}}" on-blur="inputFieldEdit(event, event.keypath)">
+                            <input class="group-input {{#filled || assignee.email}}filled{{/}}" type="text" name="email" value="{{assignee.email}}" on-blur="inputFieldEdit(event, event.keypath)">
                             <span class="bar"></span>
                             <label class="group-label">Email</label>
+                            {{#assignee.errormsg.email}}<p class="form-error-msg">{{ assignee.errormsg.email }}</p>{{/}}
                           </div>
 
                           <div class="group">      
-                            <input class="group-input {{#filled || assignee.phone}}filled{{/}}" type="text" name="phone" required value="{{assignee.phone}}" on-blur="inputFieldEdit(event, event.keypath)">
+                            <input class="group-input {{#filled || assignee.phone}}filled{{/}}" type="text" name="phone" value="{{assignee.phone}}" on-blur="inputFieldEdit(event, event.keypath)">
                             <span class="bar"></span>
                             <label class="group-label">Phone</label>
+                            {{#assignee.errormsg.phone}}<p class="form-error-msg">{{ assignee.errormsg.phone }}</p>{{/}}
                           </div>
 
                           {{#assignee_details: field}}
@@ -104,27 +106,27 @@
                                 <label class="group-label">{{label}}</label>
                               </div>
                             {{elseif field_type === 'select'}}
-                              <div class="group">
+                              <div class="group-select">
                                 <p class="field-title filled">{{label}}</p>
-                                <select name="{{field}}">
+                                <select name="{{field}}" value="{{assignee.details[field]}}">
                                   {{#options: option}}
-                                    <option value="{{options[option]}}" {{#if assignee.details[field] === options[option]}}selected{{/if}}>{{options[option]}}</option>
+                                    <option value="{{options[option]}}">{{options[option]}}</option>
                                   {{/options}}
                                 </select>
                               </div>
                             {{elseif field_type === 'textbox'}}
-                              <div class="form-group">
+                              <div class="group">
                                 <label class="field-title">{{label}}</label>
                                 <textarea class="form-control" name="{{field}}" value="{{assignee.details[field]}}"></textarea>
                               </div>
                             {{/if}}
                           {{/}}
                           <div class="assign-btn-wrapper">
+                            <button type="button" class="boxoffice-button boxoffice-button-info" on-click="viewTicket(event, event.keypath, seq)">Back</button>
                             <button type="submit" class="boxoffice-button boxoffice-button-action" on-click="addAttendeeDetails(event, event.keypath, seq, id)" {{#assigningTicket}}disabled{{/}}>
                                 {{#if assignee.id || isTicketAssigned}}Update{{else}}Assign ticket{{/if}}
                                 {{#assigningTicket}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'>{{/}}
                             </button>
-                            <button type="button" class="boxoffice-button boxoffice-button-info" on-click="viewTicket(event, event.keypath, seq)">Back</button>
                           </div>
                         {{#errorMsg}}
                             <p class="error-msg">{{ errorMsg }}</p>
