@@ -100,8 +100,12 @@ class LineItem(BaseMixin, db.Model):
             item = Item.query.get(line_item_dict['item_id'])
             if not item_line_items.get(unicode(item.id)):
                 item_line_items[unicode(item.id)] = []
-            item_line_items[unicode(item.id)].append(make_ntuple(item_id=item.id,
-                base_amount=item.current_price().amount))
+            if item.current_price():
+                item_line_items[unicode(item.id)].append(make_ntuple(item_id=item.id,
+                    base_amount=item.current_price().amount))
+            else:
+                item_line_items[unicode(item.id)].append(make_ntuple(item_id=item.id, base_amount=None))
+
         coupon_list = list(set(coupons)) if coupons else []
         discounter = LineItemDiscounter()
         for item_id in item_line_items.keys():
@@ -285,6 +289,8 @@ class LineItemDiscounter():
         return DiscountPolicy.get_from_item(item, len(line_items), coupons)
 
     def calculate_discounted_amount(self, discount_policy, line_item):
+        if not discount_policy or not line_item.base_amount:
+            return Decimal(0)
         if discount_policy.is_price_based:
             item = Item.query.get(line_item.item_id)
             discounted_price = item.discounted_price(discount_policy).amount
@@ -310,7 +316,7 @@ class LineItemDiscounter():
         applied_to_count = 0
         for line_item in line_items:
             discounted_amount = self.calculate_discounted_amount(discount_policy, line_item)
-            if (coupon and self.is_coupon_usable(coupon, applied_to_count) or discount_policy.is_automatic) and discounted_amount > 0 and (
+            if line_item.base_amount and (coupon and self.is_coupon_usable(coupon, applied_to_count) or discount_policy.is_automatic) and discounted_amount > 0 and (
                     not line_item.discount_policy_id or (combo and line_item.discounted_amount < discounted_amount)):
                 # if the line item's assigned discount is lesser
                 # than the current discount, assign the current discount to the line item
