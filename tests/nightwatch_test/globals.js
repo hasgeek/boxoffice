@@ -1,5 +1,5 @@
 module.exports = {
-  delay: 1500,
+  delay: 3000,
   userName: 'Test',
   userEmail: 'test@hasgeek.com',
   userPhone: '7676332020',
