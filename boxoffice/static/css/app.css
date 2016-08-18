@@ -515,6 +515,10 @@ a.boxoffice-button:focus {
   text-align: center;
 }
 
+.assign-btn-wrapper {
+  float: right;
+}
+
 .cancelled-ticket {
   background-color: #eee;
 }
