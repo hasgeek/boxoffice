@@ -256,7 +256,7 @@ $(function() {
 
               if (discount_applicable) {
                 boxoffice.ractive.set('order.line_items',line_items);
-                //When the discount coupon is valid, the page auto-scrolls to the top of boxoffice widget
+                // Scroll to the top of the widget when a discount is pre-applied
                 boxoffice.ractive.scrollTop();
               }
             },
