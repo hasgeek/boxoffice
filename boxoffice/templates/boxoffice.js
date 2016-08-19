@@ -68,10 +68,16 @@ $(function() {
     });
   };
 
-  boxoffice.util.formatDate = function(valid_upto) {
+  boxoffice.util.formatDateTime = function(valid_upto) {
     // Returns date in the format 00:00:00 AM, Sun Apr 10 2016
     var date = new Date(valid_upto);
     return date.toLocaleTimeString(['en-US'], {hour: '2-digit', minute: '2-digit'}) + ", " + date.toDateString();
+  };
+
+  boxoffice.util.formatDate = function(valid_upto) {
+    // Returns date in the format Apr 10 2016
+    var date = new Date(valid_upto);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
   boxoffice.initResources = function(config) {

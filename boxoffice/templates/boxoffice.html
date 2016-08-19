@@ -27,17 +27,17 @@
                     <div class="ticket-details">
                       <p class="ticket-title">{{ line_item.item_title }}</p>
                       <div class="ticket-description">{{{ line_item.item_description }}}</div>
-                      {{#line_item.discount_policies}}
-                        {{#if is_automatic || activated || pre_applied }}
-                          <p class="discount {{#activated}}applied{{/}}">
-                            {{ title }} <i class="fa fa-check {{#if !activated && !isLoadingFail}}hidden{{/if}}"></i>
-                          </p>
-                        {{/if}}
-                      {{/line_item.discount_policies}}
-                      {{#if line_item.quantity_available > 0}}
-                      <div class="ticket-description">
-                        <p class="valid-upto"><i class="fa fa-fw fa-long-arrow-up"></i>Price goes up after {{line_item.price_valid_upto}}</p>
-                      </div>
+                      {{#if line_item.discount_policies}}
+                        <p class="discount"><i class="fa fa-fw fa-tags"></i> Discounts :</p>
+                        <ul>
+                        {{#line_item.discount_policies}}
+                          {{#if is_automatic || activated || pre_applied }}
+                            <li class="discount {{#activated}}applied{{/}}">
+                               {{ title }} <i class="fa fa-check {{#if !activated && !isLoadingFail}}hidden{{/if}}"></i>
+                            </li>
+                          {{/if}}
+                        {{/line_item.discount_policies}}
+                        </ul>
                       {{/if}}
                     </div>
                     <div class="ticket-price-qty">
@@ -45,32 +45,37 @@
                         <div class="ticket-description">
                           <p class="few-ticket">
                             {{#if line_item.quantity >= line_item.quantity_available}}
-                              Only {{line_item.quantity_available}} available
+                              <span class="available-count">Only {{line_item.quantity_available}} available</span>
                             {{elseif line_item.quantity_available < 5}}
-                              Only a few tickets left
+                              <span>Only a few tickets left</span>
                             {{/if}}
                           </p>
                         </div>
-                        <div class="ticket-price-wrapper">
-                          {{#if line_item.unit_final_amount >= 0 && line_item.quantity === 0}}
-                            <p class="discount-price ticket-price"><i class="fa fa-inr rupee-sign"></i>{{ line_item.unit_final_amount }}</p>
-                          {{/if}}
-                          <p class="ticket-price {{#if line_item.unit_final_amount >= 0 && line_item.quantity === 0}}strike{{/if}}"><i class="fa fa-inr rupee-sign"></i>{{ line_item.base_price }}</p>
-                        </div>
-                        <span class="multiplier">&times;</span>
-                        <div class="ticket-qty-wrapper">
-                          <button class="decrement" on-click="updateOrder(event, line_item.item_name, line_item.quantity_available, false)">-</button>
-                          <input type="number" class="ticket-qty" name="quantity" min="0" max="{{ line_item.quantity_available }}" value="{{ line_item.quantity }}" disabled>
-                          <button class="increment" on-click="updateOrder(event, line_item.item_name, line_item.quantity_available, true)">+</button>
+                        <div class="price-details-wrapper">
+                          <div class="ticket-qty-wrapper">
+                            <button class="decrement" on-click="updateOrder(event, line_item.item_name, line_item.quantity_available, false)">-</button>
+                            <input type="number" class="ticket-qty" name="quantity" min="0" max="{{ line_item.quantity_available }}" value="{{ line_item.quantity }}" disabled>
+                            <button class="increment" on-click="updateOrder(event, line_item.item_name, line_item.quantity_available, true)">+</button>
+                          </div>
+                          <span class="multiplier">&times;</span>
+                          <div class="ticket-price-wrapper">
+                            {{#if line_item.unit_final_amount >= 0 && line_item.quantity === 0}}
+                              <p class="discount-price ticket-price"><i class="fa fa-inr rupee-sign"></i>{{ line_item.unit_final_amount }}</p>
+                            {{/if}}
+                            <p class="ticket-price {{#if line_item.unit_final_amount >= 0 && line_item.quantity === 0}}strike{{/if}}"><i class="fa fa-inr rupee-sign"></i>{{ line_item.base_price }}</p>
+                          </div>
                         </div>
                         <div class="item-amount">
                           {{#line_item.discounted_amount && !isLoadingFail}}
-                            <p intro-outro='fly:{"x":0,"y":"0"}' class="discount-amount">Discount <span><i class="fa fa-inr rupee-sign"></i>{{line_item.discounted_amount}}</span></p>
+                            <p intro-outro='fly:{"x":10,"y":"0"}' class="discount-amount">Discount <span><i class="fa fa-inr rupee-sign"></i>{{line_item.discounted_amount}}</span></p>
                           {{/}}
                           {{#line_item.discounted_amount || line_item.final_amount && !isLoadingFail}}
-                            <p intro-outro='fly:{"x":0,"y":"0"}' class="subtotal">Subtotal <span><i class="fa fa-inr rupee-sign"></i>{{line_item.final_amount}}</span></p>
+                            <p intro-outro='fly:{"x":10,"y":"0"}' class="subtotal">Subtotal <span><i class="fa fa-inr rupee-sign"></i>{{line_item.final_amount}}</span></p>
                           {{/}}
                         </div>
+                        {{#if line_item.quantity_available > 0}}
+                          <p class="valid-upto"><i class="fa fa-fw fa-long-arrow-up"></i>Price goes up after {{line_item.price_valid_upto}}</p>
+                        {{/if}}
                       {{else}}
                         <div class="sold-out-wrapper" intro='fly:{"x":100,"y":"0"}'>
                           <p class="sold-out">Sold out</p>
@@ -352,11 +357,7 @@
     width: 100%;
     word-break: break-word;
     margin-top: 10px;
-  }
-  @media (min-width: 768px) {
-    .ticket-details {
-      width: 70%;
-    }
+    width: 100%;
   }
   .ticket-title {
     font-size: 18px;
@@ -365,48 +366,68 @@
   }
   @media (min-width: 768px) {
     .ticket-title {
-      font-size: 20px;
+      font-size: 23px;
+      font-weight: 500;
     }
   }
   .discount {
-    color: #CF6F01;
-    font-size: 14px;
-    margin: 10px 0;
+    font-size: 15px;
+    margin: 5px 0;
   }
   .discount.applied {
     color: #008000;
   }
   .valid-upto {
+    font-size: 15px;
     font-style: italic;
-    margin: 10px 0 20px;
+    margin: 5px 0;
+    text-align: right;
   }
   .ticket-description {
-    font-size: 13px;
+    font-size: 15px;
   }
-  .ticket-description p{
-    margin: 10px 0;
+  .ticket-description p {
+    margin: 7px 0;
   }
   .ticket-description .fa {
     padding-right: 5px;
   }
   .ticket-description .few-ticket {
-    color: #e42c42;
     margin: 0;
     position: absolute;
     right: 0;
-    top: -35px;
+    top: -30px;
     width: 200px;
     text-align: right;
+    font-size: 13px;
+    font-style: italic;
+  }
+  .available-count {
+    color: #e42c42;
   }
   .ticket-price-qty {
     float: right;
-    margin-top: 30px;
+    margin-top: 40px;
     position: relative;
     min-width: 190px;
+    width: 100%;
+  }
+  @media (min-width: 1024px) {
+    .ticket-details {
+      width: 60%;
+    }
+    .ticket-price-qty {
+      width: 40%;
+      margin-top: 20px;
+    }
+  }
+  .price-details-wrapper {
+    float: right;
+    margin: 0 0 10px;
   }
   .ticket-price-wrapper {
-    float: left;
-    margin-top: 2px;
+    float: right;
+    margin-top: 4px;
     position: relative;
   }
   .ticket-price {
@@ -440,7 +461,7 @@
     float: right;
   }
   .ticket-qty {
-    width: 30px;
+    width: 32px;
     border: 0px none;
     background: #f6f3c2;
     -webkit-text-fill-color:#333;
@@ -448,9 +469,16 @@
     line-height: 1;
     display: inline-block;
     padding-left: 8px;
-    font-size: 16px;
-    position: relative;
-    top: -1px;
+    font-size: 18px;
+  }
+  @media (min-width: 768px) {
+    .ticket-price,
+    .ticket-qty {
+      font-size: 20px;
+    }
+    .ticket-price .rupee-sign {
+      font-size: 18px;
+    }
   }
   input[type=number]::-webkit-inner-spin-button, 
   input[type=number]::-webkit-outer-spin-button { 
@@ -475,6 +503,7 @@
     padding-right: 20px;
     font-size: 20px;
     margin-top: 2px;
+    float: right;
   }
   .discount-amount, .subtotal {
     margin: 5px 0;
@@ -485,7 +514,7 @@
   .sold-out {
     font-size: 15px;
     color: #fff;
-    background: red;
+    background: #e42c42;
     width: 100px;
     border-radius: 0 10px 0 10px;
     padding: 5px;
@@ -501,17 +530,16 @@
     .category-heading:after {
       border-width: 26px;
     }
-    .ticket-title, .ticket-price, .multiplier, .ticket-qty {
+    .ticket-title,
+    .ticket-price,
+    .multiplier,
+    .ticket-qty {
      font-size: 25px;
     }
     .sold-out {
       font-size: 18px;
       width: 105px;
       margin-top: 4px;
-    }
-    .ticket-price-qty {
-      margin-top: 20px;
-      width: 230px;
     }
     .ticket-price .rupee-sign {
       font-size: 22px;
@@ -534,15 +562,15 @@
     .discount-price {
       bottom: 24px;
     }
-    .ticket-price-qty {
-      margin-top: 25px;
+    .ticket-price-wrapper {
+      margin-top: 2px;
     }
   }
   .item-amount {
     clear: both;
     font-size: 15px;
     color: #888;
-    margin-top: 10px;
+    margin: 10px 0 0;
     text-align: right;
   }
   .item-amount .rupee-sign {
@@ -570,9 +598,13 @@
   .policy {
     clear: both;
     padding-top: 10px;
+    font-size: 15px;
+  }
+  .policy p {
+    margin: 5px 0;
   }
   .policy-heading {
-    font-size: 18px;
+    font-size: 20px;
   }
   .loader {
     position: absolute;
