@@ -32,7 +32,7 @@ export const OrderView = {
         }
       });
 
-      $('#orders-table').bind('footable_filtering', function (e) {
+      $('#orders-table').on('footable_filtering', function (e) {
         let selected = $('#filter-status').find(':selected').val();
         if (selected && selected.length > 0) {
           e.filter += (e.filter && e.filter.length > 0) ? ' ' + selected : selected;
@@ -43,6 +43,12 @@ export const OrderView = {
       $('#filter-status').change(function (e) {
         e.preventDefault();
         $('#orders-table').trigger('footable_filter', {filter: $('#filter').val()});
+      });
+
+      $("#search-form").on("keypress", function(e) {
+        if (e.which == 13) {
+          return false;
+        }
       });
 
       main_ractive.on('showOrder', function(event){
