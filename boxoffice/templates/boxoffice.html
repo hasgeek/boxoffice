@@ -104,11 +104,11 @@
         {{#errorMsg }}
           <p class="stage-error-msg">{{ errorMsg }}</p>
         {{/}}
-        <div class="policy">
-          <p class="policy-heading">Cancellation and refund policy</p>
-          <p>We offer a 100% refund on attendee ticket cancellations until the day before the event and allow transfers up to 24 hours prior to the event.</p>
-          <p>For more information, please refer our <a href="https://hasgeek.com/about/policy/refunds" target="_blank">cancellation and refund policy</a>. For further queries, please write to us at <a href="mailto:support@hasgeek.com">support@hasgeek.com</a> or call us at <a href="tel:+917676332020">+91 7676 33 2020</a>.</p>
-        </div>
+        {{#refund_policy}}
+          <div class="policy">
+            {{{refund_policy}}}
+          </div>
+        {{/}}
       </div>
     {{elseif id === 'boxoffice-payment' && id === activeTab}}
       {{#loadingPaymentConfirmation}}
@@ -597,13 +597,10 @@
   .policy {
     clear: both;
     padding-top: 10px;
-    font-size: 15px;
+    font-size: 18px;
   }
   .policy p {
     margin: 5px 0;
-  }
-  .policy-heading {
-    font-size: 20px;
   }
   .loader {
     position: absolute;
@@ -817,9 +814,6 @@
     color: inherit;
     border-color: inherit;
     border-bottom: 3px solid;
-  }
-  .service-policy-msg {
-    margin: 30px 0;
   }
   .receipt-btn-wrapper, .social-icons {
     text-align: center;
