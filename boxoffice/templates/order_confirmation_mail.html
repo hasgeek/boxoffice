@@ -233,7 +233,7 @@
     </table>
     
     <div class="terms">
-      <div>{{org.details.get('refund_policy') | safe}}</div>
+      <div>{{org.details.get('refund_policy', '') | safe}}</div>
       <p>Print your cash receipt <a href={{"{base_url}/order/{access_token}/receipt".format(base_url=base_url, access_token=order.access_token)}} target="_blank">here</a>.</p>
     </div>
 
