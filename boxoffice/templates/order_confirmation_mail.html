@@ -145,15 +145,15 @@
     
     <div class="company-details">  
       <div class="logo">
-       <img src="{{org.details.get('logo')}}"/>
+       <img src="{{org.details.get('logo', '')}}"/>
       </div> 
 
       <div class="address">
-        {{org.details.get('address') | safe}}
-        <p>CIN: {{org.details.get('cin')}}</p>
-        <p>PAN No: {{org.details.get('pan')}}</p>
-        <p>Service Tax No: {{org.details.get('service_tax_no')}}</p>
-        <p><a href="{{org.details.get('website')}}">{{org.details.get('website')}}</a></p>
+        {{org.details.get('address', '') | safe}}
+        <p>CIN: {{org.details.get('cin', '')}}</p>
+        <p>PAN No: {{org.details.get('pan', '')}}</p>
+        <p>Service Tax No: {{org.details.get('service_tax_no', '')}}</p>
+        <p><a href="{{org.details.get('website')}}">{{org.details.get('website', '')}}</a></p>
         <p><a href="mailto:{{org.contact_email}}">{{org.contact_email}}</a></p>
       </div>    
     </div>
@@ -233,7 +233,7 @@
     </table>
     
     <div class="terms">
-      <div>{{org.details.get('refund_policy') | safe}}</div>
+      <div>{{org.details.get('refund_policy', '') | safe}}</div>
       <p>Print your cash receipt <a href={{"{base_url}/order/{access_token}/receipt".format(base_url=base_url, access_token=order.access_token)}} target="_blank">here</a>.</p>
     </div>
 

@@ -548,9 +548,9 @@ $(function() {
             "key": boxoffice.config.razorpayKeyId,
             //Razorpay expects amount in paisa
             "amount": boxoffice.ractive.get('order.final_amount') * 100,
-            "name": boxoffice.config.orgName,
+            "name": boxoffice.widgetConfig.org || boxoffice.config.orgName,
             "description": boxoffice.widgetConfig.paymentDesc,
-            "image": boxoffice.config.razorpayBanner,
+            "image": boxoffice.widgetConfig.razorpayBanner || boxoffice.config.razorpayBanner,
             // Order id is for razorpay's reference, useful for querying
             "notes": {
               "order_id": boxoffice.ractive.get('order.order_id')
