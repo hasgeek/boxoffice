@@ -123,7 +123,7 @@
     </div>
 
     <p><a class="button" href={{"{base_url}/order/{access_token}/ticket".format(base_url=base_url, access_token=order.access_token)}} target="_blank">Edit details</a></p>
-    <div class="terms-content">{{org.details.get('ticket_faq') | safe}}</div>
+    <div class="terms-content">{{org.details.get('ticket_faq', '') | safe}}</div>
 
     <p>Thank you,</p>
     <p>{{ org.title }}</p>
