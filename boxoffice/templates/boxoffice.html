@@ -27,18 +27,13 @@
                     <div class="ticket-details">
                       <p class="ticket-title">{{ line_item.item_title }}</p>
                       <div class="ticket-description">{{{ line_item.item_description }}}</div>
-                      {{#if line_item.discount_policies}}
-                        <p class="discount"><i class="fa fa-fw fa-tags"></i> Discounts :</p>
-                        <ul>
-                        {{#line_item.discount_policies}}
-                          {{#if is_automatic || activated || pre_applied }}
-                            <li class="discount {{#activated}}applied{{/}}">
-                               {{ title }} <i class="fa fa-check {{#if !activated && !isLoadingFail}}hidden{{/if}}"></i>
-                            </li>
-                          {{/if}}
-                        {{/line_item.discount_policies}}
-                        </ul>
-                      {{/if}}
+                      {{#line_item.discount_policies}}
+                        {{#if is_automatic || activated || pre_applied }}
+                          <p class="discount {{#activated}}applied{{/}}">
+                             {{ title }} <i class="fa fa-check {{#if !activated && !isLoadingFail}}hidden{{/if}}"></i>
+                          </p>
+                        {{/if}}
+                      {{/line_item.discount_policies}}
                     </div>
                     <div class="ticket-price-qty">
                       {{#if line_item.quantity_available > 0}}
@@ -372,6 +367,8 @@
   .discount {
     font-size: 15px;
     margin: 5px 0;
+    font-style: italic;
+    color: #e42c42;
   }
   .discount.applied {
     color: #008000;
