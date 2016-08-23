@@ -17,7 +17,7 @@ def init_data():
 
     rootconf = Organization(title='Rootconf', userid="U3_JesHfQ2OUmdihAXaAGQ",
         status=0, contact_email=u'test@gmail.com',
-        details={'service_tax_no': 'xx', 'address': u'<h2 class="company-name">XYZ</h2> <p>Bangalore - 560034</p> <p>India</p>', 'cin': u'1234', 'pan': u'abc', 'website': u'https://www.test.com'})
+        details={'service_tax_no': 'xx', 'address': u'<h2 class="company-name">XYZ</h2> <p>Bangalore - 560034</p> <p>India</p>', 'cin': u'1234', 'pan': u'abc', 'website': u'https://www.test.com', 'refund_policy': u'<p>We offer full refund.</p>', 'support_email': 'test@boxoffice.com', 'ticket_faq': '<p>To cancel your ticket, please mail <a href="mailto:test@boxoffice.com">test@boxoffice.com</a> with your receipt number.</p>'})
     db.session.add(rootconf)
     db.session.commit()
 

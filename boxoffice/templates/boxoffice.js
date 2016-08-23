@@ -165,6 +165,7 @@ $(function() {
         el: '#boxoffice-widget',
         template: data.html,
         data: {
+          refund_policy : data.refund_policy,
           order: {
             order_id: '',
             access_token: '',
