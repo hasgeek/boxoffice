@@ -25,52 +25,52 @@
                 {{#if line_item.item_name === item.name }}
                   <div class="ticket-booking clearfix {{#line_item.quantity}}ticket-selected{{/}}" id="{{line_item.item_name}}">
                     <div class="ticket-details">
-                      <p class="ticket-title text-primary">{{ line_item.item_title }}</p>
+                      <p class="ticket-title">{{ line_item.item_title }}</p>
                       <div class="ticket-description">{{{ line_item.item_description }}}</div>
                       {{#line_item.discount_policies}}
                         {{#if is_automatic || activated || pre_applied }}
                           <p class="discount {{#activated}}applied{{/}}">
-                            {{ title }} <i class="fa fa-check {{#if !activated && !isLoadingFail}}hidden{{/if}}"></i>
+                             {{ title }} <i class="fa fa-check {{#if !activated && !isLoadingFail}}hidden{{/if}}"></i>
                           </p>
                         {{/if}}
                       {{/line_item.discount_policies}}
-                      {{#if line_item.quantity_available > 0}}
-                      <div class="ticket-description">
-                        <p class="valid-upto"><i class="fa fa-fw fa-long-arrow-up"></i>Price goes up at {{line_item.price_valid_upto}}</p>
-                      </div>
-                      {{/if}}
                     </div>
                     <div class="ticket-price-qty">
                       {{#if line_item.quantity_available > 0}}
                         <div class="ticket-description">
                           <p class="few-ticket">
                             {{#if line_item.quantity >= line_item.quantity_available}}
-                              Only {{line_item.quantity_available}} available
+                              <span class="available-count">Only {{line_item.quantity_available}} available</span>
                             {{elseif line_item.quantity_available < 5}}
-                              Only a few tickets left
+                              <span>Only a few tickets left</span>
                             {{/if}}
                           </p>
                         </div>
-                        <div class="ticket-price-wrapper">
-                          {{#if line_item.unit_final_amount >= 0 && line_item.quantity === 0}}
-                            <p class="discount-price ticket-price"><i class="fa fa-inr rupee-sign"></i>{{ line_item.unit_final_amount }}</p>
-                          {{/if}}
-                          <p class="ticket-price {{#if line_item.unit_final_amount >= 0 && line_item.quantity === 0}}strike{{/if}}"><i class="fa fa-inr rupee-sign"></i>{{ line_item.base_price }}</p>
-                        </div>
-                        <span class="multiplier">&times;</span>
-                        <div class="ticket-qty-wrapper">
-                          <button class="decrement" on-click="updateOrder(event, line_item.item_name, line_item.quantity_available, false)">-</button>
-                          <input type="number" class="ticket-qty" name="quantity" min="0" max="{{ line_item.quantity_available }}" value="{{ line_item.quantity }}" disabled>
-                          <button class="increment" on-click="updateOrder(event, line_item.item_name, line_item.quantity_available, true)">+</button>
+                        <div class="price-details-wrapper">
+                          <div class="ticket-qty-wrapper">
+                            <button class="decrement" on-click="updateOrder(event, line_item.item_name, line_item.quantity_available, false)">-</button>
+                            <input type="number" class="ticket-qty" name="quantity" min="0" max="{{ line_item.quantity_available }}" value="{{ line_item.quantity }}" disabled>
+                            <button class="increment" on-click="updateOrder(event, line_item.item_name, line_item.quantity_available, true)">+</button>
+                          </div>
+                          <span class="multiplier">&times;</span>
+                          <div class="ticket-price-wrapper">
+                            {{#if line_item.unit_final_amount >= 0 && line_item.quantity === 0}}
+                              <p class="discount-price ticket-price"><i class="fa fa-inr rupee-sign"></i>{{ line_item.unit_final_amount }}</p>
+                            {{/if}}
+                            <p class="ticket-price {{#if line_item.unit_final_amount >= 0 && line_item.quantity === 0}}strike{{/if}}"><i class="fa fa-inr rupee-sign"></i>{{ line_item.base_price }}</p>
+                          </div>
                         </div>
                         <div class="item-amount">
                           {{#line_item.discounted_amount && !isLoadingFail}}
-                            <p intro-outro='fly:{"x":0,"y":"0"}' class="discount-amount">Discount <span><i class="fa fa-inr rupee-sign"></i>{{line_item.discounted_amount}}</span></p>
+                            <p intro-outro='fly:{"x":10,"y":"0"}' class="discount-amount">Discount <span><i class="fa fa-inr rupee-sign"></i>{{line_item.discounted_amount}}</span></p>
                           {{/}}
                           {{#line_item.discounted_amount || line_item.final_amount && !isLoadingFail}}
-                            <p intro-outro='fly:{"x":0,"y":"0"}' class="subtotal">Subtotal <span><i class="fa fa-inr rupee-sign"></i>{{line_item.final_amount}}</span></p>
+                            <p intro-outro='fly:{"x":10,"y":"0"}' class="subtotal">Subtotal <span><i class="fa fa-inr rupee-sign"></i>{{line_item.final_amount}}</span></p>
                           {{/}}
                         </div>
+                        {{#if line_item.quantity_available > 0}}
+                          <p class="valid-upto"><i class="fa fa-fw fa-long-arrow-up"></i>Price goes up after {{line_item.price_valid_upto}}</p>
+                        {{/if}}
                       {{else}}
                         <div class="sold-out-wrapper" intro='fly:{"x":100,"y":"0"}'>
                           <p class="sold-out">Sold out</p>
@@ -97,38 +97,40 @@
           </div>
         {{/order.readyToCheckout}}
         {{#errorMsg }}
-          <p class="stage-error-msg text-danger">{{ errorMsg }}</p>
+          <p class="stage-error-msg">{{ errorMsg }}</p>
         {{/}}
-        <div class="policy">
-          <p class="policy-heading">Cancellation and refund policy</p>
-          <p>We offer a 100% refund on attendee ticket cancellations until the day before the event and allow transfers up to 24 hours prior to the event.</p>
-          <p>If you've booked your ticket but forgotten to use your discount coupon, you can cancel your ticket for a 100% refund and book again using your coupon to avail the discount.</p>
-          <p>For more information, please refer our <a href="https://hasgeek.com/about/policy/refunds" target="_blank">cancellation and refund policy</a>. For further queries, please write to us at <a href="mailto:support@hasgeek.com">support@hasgeek.com</a> or call us at <a href="tel:+917676332020">+91 7676 33 2020</a>.</p>
-        </div>
+        {{#refund_policy}}
+          <div class="policy">
+            {{{refund_policy}}}
+          </div>
+        {{/}}
       </div>
     {{elseif id === 'boxoffice-payment' && id === activeTab}}
       {{#loadingPaymentConfirmation}}
         <div class="loader payment-confirmation"><i class="fa fa-spinner fa-spin fa-3x"></i></div>
       {{/}}
       <div id='{{id}}' class="boxoffice-section clearfix" intro='fly:{"x":0,"y":"0"}'>
-        <p class="buyer-form">Buyer Details</p>
-        <form class="form-horizontal" role="form" id="buyer-details-form" name="buyer-form">
-          <div class="form-group">
-            <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
-              <input type="text" class="form-control buyer-fields secondary" name="name" value = {{buyer.name }} placeholder="Name"/>
-            </div>
+        <form role="form" name="buyer-form" class="buyer-details">
+          <p class="buyer-form-title">Billing Details</p>
+          <div class="group">
+            <input class="group-input {{#buyer.name}}filled{{/}}" type="text" name="name" value="{{buyer.name}}">
+            <span class="bar"></span>
+            <label class="group-label">Name</label>
+            {{#errormsg.name}}<p class="form-error-msg">{{ errormsg.name }}</p>{{/}}
           </div>
-          <div class="form-group">
-            <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
-              <input type="text" class="form-control buyer-fields secondary" name="email" value = {{buyer.email }} placeholder="Email"/>
-            </div>
+          <div class="group">
+            <input class="group-input {{#buyer.email}}filled{{/}}" type="text" name="email" value="{{buyer.email}}">
+            <span class="bar"></span>
+            <label class="group-label">Email</label>
+            {{#errormsg.email}}<p class="form-error-msg">{{ errormsg.email }}</p>{{/}}
           </div>
-          <div class="form-group phone-number-wrapper">
-            <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
-              <input type="text" class="form-control buyer-fields secondary" name="phone" value = {{buyer.phone }} placeholder="Phone"/>
-            </div>
+          <div class="group">
+            <input class="group-input {{#buyer.phone}}filled{{/}}" type="text" name="phone" value="{{buyer.phone}}">
+            <span class="bar"></span>
+            <label class="group-label">Phone</label>
+            {{#errormsg.phone}}<p class="form-error-msg">{{ errormsg.phone }}</p>{{/}}
           </div>
-          <div class="checkout-confirmation col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
+          <div class="checkout-confirmation">
             <p class="summary">Booking Summary</p>
             {{#order.line_items}} {{# { line_item: . } }}
               {{#if line_item.quantity > 0 }}
@@ -156,7 +158,7 @@
             </button>
           </div>
           {{#errorMsg}}
-            <p class="stage-error-msg text-danger">{{ errorMsg }}</p>
+            <p class="stage-error-msg">{{ errorMsg }}</p>
           {{/}}
         </form> 
       </div>
@@ -166,11 +168,10 @@
           <p class="confirmation-icon"><i class="fa fa-check-circle"></i></p>
           <p class="confirmation-header">Thank you for your order!</p>
           <div class="confirmation-msg">
-            <p class="name">Hello {{buyer.name}},</p>
-            <p>We have sent you a confirmation email with the cash receipt.</p>
+            <p class="">We’ve mailed you the cash receipt.</p>
             <div class="receipt-btn-wrapper">
-              <a href="{{ cashReceiptURL }}" target="_blank" class="boxoffice-button boxoffice-button-action receipt-button" on-click="fire('eventAnalytics','view cash receipt', 'cash receipt')">View cash receipt</a>
-              <a href="{{ attendeeAssignmentURL }}" target="_blank" class="boxoffice-button boxoffice-button-action receipt-button" on-click="fire('eventAnalytics','fill attendee details', 'attendee details')">Fill attendee details</a>
+              <a href="{{ attendeeAssignmentURL }}" target="_blank" class="boxoffice-button boxoffice-button-action receipt-button" on-click="fire('eventAnalytics','fill attendee details', 'attendee details')">Your ticket</a>
+              <a href="{{ cashReceiptURL }}" target="_blank" class="boxoffice-button boxoffice-button-action receipt-button" on-click="fire('eventAnalytics','view cash receipt', 'cash receipt')">See cash receipt</a>
             </div>
             <div class="social-icons">
               <p>Tell your friends!</p>
@@ -230,7 +231,7 @@
       display: -ms-flexbox;
       display: -webkit-flex;
       display: flex;
-      margin: 0 0 1em;
+      margin: 0;
       padding: 0;
       font-size: 80%;
       text-transform: uppercase
@@ -350,60 +351,79 @@
     width: 100%;
     word-break: break-word;
     margin-top: 10px;
-  }
-  @media (min-width: 768px) {
-    .ticket-details {
-      width: 70%;
-    }
+    width: 100%;
   }
   .ticket-title {
     font-size: 18px;
     margin: 10px 0;
+    color: #428bca;
   }
   @media (min-width: 768px) {
     .ticket-title {
-      font-size: 20px;
+      font-size: 23px;
+      font-weight: 500;
     }
   }
   .discount {
-    color: #CF6F01;
-    font-size: 14px;
-    margin: 10px 0;
+    font-size: 15px;
+    margin: 5px 0;
+    font-style: italic;
+    color: #e42c42;
   }
   .discount.applied {
     color: #008000;
   }
   .valid-upto {
+    font-size: 15px;
     font-style: italic;
-    margin: 10px 0 20px;
+    margin: 5px 0;
+    text-align: right;
   }
   .ticket-description {
-    font-size: 13px;
+    font-size: 15px;
   }
-  .ticket-description p{
-    margin: 10px 0;
+  .ticket-description p {
+    margin: 7px 0;
   }
   .ticket-description .fa {
     padding-right: 5px;
   }
   .ticket-description .few-ticket {
-    color: #e42c42;
     margin: 0;
     position: absolute;
     right: 0;
-    top: -35px;
+    top: -30px;
     width: 200px;
     text-align: right;
+    font-size: 13px;
+    font-style: italic;
+  }
+  .available-count {
+    color: #e42c42;
   }
   .ticket-price-qty {
     float: right;
-    margin-top: 30px;
+    margin-top: 40px;
     position: relative;
     min-width: 190px;
+    width: 100%;
+  }
+  @media (min-width: 1024px) {
+    .ticket-details {
+      width: 60%;
+    }
+    .ticket-price-qty {
+      width: 40%;
+      margin-top: 20px;
+    }
+  }
+  .price-details-wrapper {
+    float: right;
+    margin: 0 0 10px;
   }
   .ticket-price-wrapper {
-    float: left;
-    margin-top: 2px;
+    float: right;
+    margin-top: 4px;
     position: relative;
   }
   .ticket-price {
@@ -437,7 +457,7 @@
     float: right;
   }
   .ticket-qty {
-    width: 30px;
+    width: 32px;
     border: 0px none;
     background: #f6f3c2;
     -webkit-text-fill-color:#333;
@@ -445,9 +465,16 @@
     line-height: 1;
     display: inline-block;
     padding-left: 8px;
-    font-size: 16px;
-    position: relative;
-    top: -1px;
+    font-size: 18px;
+  }
+  @media (min-width: 768px) {
+    .ticket-price,
+    .ticket-qty {
+      font-size: 20px;
+    }
+    .ticket-price .rupee-sign {
+      font-size: 18px;
+    }
   }
   input[type=number]::-webkit-inner-spin-button, 
   input[type=number]::-webkit-outer-spin-button { 
@@ -472,6 +499,7 @@
     padding-right: 20px;
     font-size: 20px;
     margin-top: 2px;
+    float: right;
   }
   .discount-amount, .subtotal {
     margin: 5px 0;
@@ -482,7 +510,7 @@
   .sold-out {
     font-size: 15px;
     color: #fff;
-    background: red;
+    background: #e42c42;
     width: 100px;
     border-radius: 0 10px 0 10px;
     padding: 5px;
@@ -498,17 +526,16 @@
     .category-heading:after {
       border-width: 26px;
     }
-    .ticket-title, .ticket-price, .multiplier, .ticket-qty {
+    .ticket-title,
+    .ticket-price,
+    .multiplier,
+    .ticket-qty {
      font-size: 25px;
     }
     .sold-out {
       font-size: 18px;
       width: 105px;
       margin-top: 4px;
-    }
-    .ticket-price-qty {
-      margin-top: 20px;
-      width: 230px;
     }
     .ticket-price .rupee-sign {
       font-size: 22px;
@@ -531,15 +558,15 @@
     .discount-price {
       bottom: 24px;
     }
-    .ticket-price-qty {
-      margin-top: 25px;
+    .ticket-price-wrapper {
+      margin-top: 2px;
     }
   }
   .item-amount {
     clear: both;
     font-size: 15px;
     color: #888;
-    margin-top: 10px;
+    margin: 10px 0 0;
     text-align: right;
   }
   .item-amount .rupee-sign {
@@ -567,9 +594,10 @@
   .policy {
     clear: both;
     padding-top: 10px;
-  }
-  .policy-heading {
     font-size: 18px;
+  }
+  .policy p {
+    margin: 5px 0;
   }
   .loader {
     position: absolute;
@@ -586,11 +614,99 @@
     top: 20%;
     left: 48%;
   }
-  .buyer-fields {
+  .stage-error-msg {
     font-size: 15px;
-    margin: 0;
+    clear: both;
+    float: right;
+    margin: 0px 0 10px;
+    color: #b94a48;
   }
-  .buyer-form, .summary {
+  .buyer-details {
+    max-width: 650px;
+    margin: auto;
+  }
+  .buyer-details .group {
+    position: relative;
+    margin-bottom: 45px;
+  }
+  .buyer-details .group-input {
+    font-size: 16px;
+    padding: 10px 10px 10px 5px;
+    display: block;
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid #757575;
+    box-shadow: none;
+  }
+  .buyer-details .group-input:focus {
+    outline:none;
+  }
+  .buyer-details .group-label {
+    color: #999;
+    font-size: 16px;
+    margin: 0;
+    font-weight: normal;
+    position: absolute;
+    pointer-events: none;
+    left: 5px;
+    top: 10px;
+    transition: 0.2s ease all;
+    -moz-transition: 0.2s ease all;
+    -webkit-transition: 0.2s ease all;
+  }
+  .buyer-details .group-input:focus ~ .group-label,
+  .buyer-details .group-input.filled ~ .group-label {
+    top: -20px;
+    color: #800080;
+  }
+  .buyer-details .bar {
+    position: relative;
+    display:block;
+    width: 100%;
+  }
+  .buyer-details .bar:before,
+  .buyer-details .bar:after {
+    content: '';
+    height: 2px;
+    width: 0;
+    bottom: -1px;
+    position: absolute;
+    background: #800080;
+    transition: 0.2s ease all;
+    -moz-transition: 0.2s ease all;
+    -webkit-transition: 0.2s ease all;
+  }
+  .buyer-details .bar:before {
+    left: 50%;
+  }
+  .buyer-details .bar:after {
+    right: 50%;
+  }
+  .buyer-details .group-input:focus ~ .bar:before,
+  .buyer-details .group-input:focus ~ .bar:after {
+    width: 50%;
+  }
+  .form-error-msg {
+    color: white;
+    font-size: 12px;
+    border-radius: 3px;
+    border: 1px solid #b94a48;
+    background: #b94a48;
+    margin: 10px 0 0;
+    padding: 5px;
+    position: relative;
+    display: inline-block;
+  }
+  .form-error-msg::before {
+    display: block;
+    content: "";
+    position: absolute;
+    border: 6px solid transparent;
+    border-bottom: 6px solid #b94a48;
+    top: -13px;
+    left: 20px;
+  }
+  .buyer-form-title, .summary {
     text-align: center;
     font-size: 20px;
     margin: 20px 0;
@@ -643,11 +759,6 @@
   .edit-order {
     margin-right: 10px;
   }
-  .stage-error-msg {
-    clear: both;
-    float: right;
-    margin: 0px 0 10px;
-  }
   .loader.payment-confirmation .fa-spin {
     position: relative;
     color: #000;
@@ -669,6 +780,7 @@
   }
   .confirmation-msg {
     font-size: 16px;
+    text-align: center;
   }
   @media (min-width: 768px) {
     .confirmation-icon {
@@ -700,9 +812,6 @@
     border-color: inherit;
     border-bottom: 3px solid;
   }
-  .service-policy-msg {
-    margin: 30px 0;
-  }
   .receipt-btn-wrapper, .social-icons {
     text-align: center;
   }
@@ -710,6 +819,7 @@
     display: inline-block;
     line-height: 1;
     padding: 0px 0px 0px 10px !important;
+    top: -2px;
   }
   .tweet-button {
     line-height: 1;
