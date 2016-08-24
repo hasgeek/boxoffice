@@ -145,17 +145,29 @@
   <div class="wrapper">
     <h1 class="header">Cash Receipt</h1>
     
-    <div class="company-details">  
-      <div class="logo">
-       <img src="{{org.details.get('logo')}}"/>
-      </div> 
+    <div class="company-details">
+      {%- if org.details.get('logo') %}
+        <div class="logo">
+         <img src="{{org.details.get('logo')}}"/>
+        </div>
+      {%- endif %}
 
       <div class="address">
-        {{org.details.get('address') | safe}}
-        <p>CIN: {{org.details.get('cin')}}</p>
-        <p>PAN No: {{org.details.get('pan')}}</p>
-        <p>Service Tax No: {{org.details.get('service_tax_no')}}</p>
-        <p><a href="{{org.details.get('website')}}">{{org.details.get('website')}}</a></p>
+        {%- if org.details.get('address') %}
+          {{org.details.get('address') | safe}}
+        {%- endif %}
+        {%- if org.details.get('cin') %}
+          <p>CIN: {{org.details.get('cin')}}</p>
+        {%- endif %}
+        {%- if org.details.get('pan') %}
+          <p>PAN No: {{org.details.get('pan')}}</p>
+        {%- endif %}
+        {%- if org.details.get('service_tax_no') %}
+          <p>Service Tax No: {{org.details.get('service_tax_no')}}</p>
+        {%- endif %}
+        {%- if org.details.get('website') %}
+          <p><a href="{{org.details.get('website')}}">{{org.details.get('website')}}</a></p>
+        {%- endif %}
         <p><a href="mailto:{{org.contact_email}}">{{org.contact_email}}</a></p>
       </div>    
     </div>
