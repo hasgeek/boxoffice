@@ -1,9 +1,11 @@
-Flask==0.10.1
+Flask
 Flask-SQLAlchemy
 Flask-Assets
 Flask-Mail
 Flask-WTF
 Flask-RQ
+git+https://github.com/hasgeek/baseframe
+git+https://github.com/hasgeek/coaster
 git+https://github.com/hasgeek/flask-lastuser
 jsmin
 pytz
@@ -12,7 +14,7 @@ wtforms_json
 rq
 itsdangerous
 html2text
-premailer==1.13
+premailer
 python-dateutil
 tabulate
 Flask-Admin
