@@ -14,9 +14,11 @@
     <p class="text-center">Receipt No: {{order.invoice_no}}</p>
 
     <div class="clearfix">
-      <div class="organization-logo">
-       <img src="{{org.details.get('logo')}}"/>
-      </div>
+      {%- if org.details.get('logo') %}
+        <div class="organization-logo">
+         <img src="{{org.details.get('logo')}}" />
+        </div>
+      {%- endif %}
     </div>
     
     <div class="row" id="boxoffice-order">
