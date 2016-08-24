@@ -7,11 +7,11 @@ from flask.ext.rq import RQ
 from flask.ext.mail import Mail
 from flask.ext.lastuser import Lastuser
 from flask.ext.lastuser.sqlalchemy import UserManager
+from flask_admin import Admin
 from baseframe import baseframe, assets, Version
 from ._version import __version__
 import coaster.app
 import wtforms_json
-from flask_admin import Admin
 
 
 app = Flask(__name__, instance_relative_config=True)
@@ -26,6 +26,7 @@ assets['boxoffice.css'][version] = 'css/app.css'
 assets['boxoffice.js'][version] = 'js/scripts.js'
 
 
+from . import extapi, views  # noqa
 from boxoffice.models import db, User, Item, Price, DiscountPolicy, DiscountCoupon, ItemCollection, Organization  # noqa
 from siteadmin import ItemCollectionModelView, ItemModelView, PriceModelView, DiscountPolicyModelView, DiscountCouponModelView, OrganizationModelView  # noqa
 
@@ -48,10 +49,13 @@ def init_for(env):
 
     # This is a temporary solution for an admin interface, only
     # to be used until the native admin interface is ready.
-    admin = Admin(app, name='Boxoffice Admin', template_mode='bootstrap3', url='/siteadmin')
-    admin.add_view(OrganizationModelView(Organization, db.session))
-    admin.add_view(ItemCollectionModelView(ItemCollection, db.session))
-    admin.add_view(ItemModelView(Item, db.session))
-    admin.add_view(PriceModelView(Price, db.session))
-    admin.add_view(DiscountPolicyModelView(DiscountPolicy, db.session))
-    admin.add_view(DiscountCouponModelView(DiscountCoupon, db.session))
+    try:
+        admin = Admin(app, name='Boxoffice Admin', template_mode='bootstrap3', url='/siteadmin')
+        admin.add_view(OrganizationModelView(Organization, db.session))
+        admin.add_view(ItemCollectionModelView(ItemCollection, db.session))
+        admin.add_view(ItemModelView(Item, db.session))
+        admin.add_view(PriceModelView(Price, db.session))
+        admin.add_view(DiscountPolicyModelView(DiscountPolicy, db.session))
+        admin.add_view(DiscountCouponModelView(DiscountCoupon, db.session))
+    except AssertionError:
+        pass
