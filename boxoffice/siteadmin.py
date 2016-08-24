@@ -3,7 +3,6 @@ from . import lastuser
 
 
 class SiteAdminModelView(ModelView):
-
     def is_accessible(self):
         return lastuser.has_permission('siteadmin')
 
