@@ -26,8 +26,8 @@ assets['boxoffice.css'][version] = 'css/app.css'
 assets['boxoffice.js'][version] = 'js/scripts.js'
 
 
-from boxoffice.models import db, User, Item, Price, DiscountPolicy, DiscountCoupon  # noqa
-from siteadmin import ItemModelView, PriceModelView, DiscountPolicyModelView, DiscountCouponModelView  # noqa
+from boxoffice.models import db, User, Item, Price, DiscountPolicy, DiscountCoupon, ItemCollection, Organization  # noqa
+from siteadmin import ItemCollectionModelView, ItemModelView, PriceModelView, DiscountPolicyModelView, DiscountCouponModelView, OrganizationModelView  # noqa
 
 
 # Configure the app
@@ -45,7 +45,12 @@ def init_for(env):
 
     mail.init_app(app)
     wtforms_json.init()
+
+    # This is a temporary solution for an admin interface, only
+    # to be used until the native admin interface is ready.
     admin = Admin(app, name='Boxoffice Admin', template_mode='bootstrap3', url='/siteadmin')
+    admin.add_view(OrganizationModelView(Organization, db.session))
+    admin.add_view(ItemCollectionModelView(ItemCollection, db.session))
     admin.add_view(ItemModelView(Item, db.session))
     admin.add_view(PriceModelView(Price, db.session))
     admin.add_view(DiscountPolicyModelView(DiscountPolicy, db.session))
