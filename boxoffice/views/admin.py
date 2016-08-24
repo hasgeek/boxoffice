@@ -7,7 +7,7 @@ from boxoffice.models import Organization
 
 
 def jsonify_dashboard(data):
-    return jsonify(orgs=[{'id': org.id, 'name': org.name, 'title': org.title, 'url': '/o/'+org.name, 'contact_email': org.contact_email, 'details': org.details,}
+    return jsonify(orgs=[{'id': org.id, 'name': org.name, 'title': org.title, 'url': '/o/' + org.name, 'contact_email': org.contact_email, 'details': org.details}
         for org in data['user'].orgs])
 
 
@@ -34,3 +34,20 @@ def jsonify_org(data):
 @render_with({'text/html': 'index.html', 'application/json': jsonify_org}, json=True)
 def org(organization):
     return dict(org=organization, title=organization.title)
+
+
+def jsonify_items(item_collections):
+    items_list = []
+    for ic in item_collections:
+        items_list.extend([{'id': str(item.id), 'title': item.title} for item in ic.items])
+    return items_list
+
+
+@app.route('/admin/o/<org>/items')
+@lastuser.requires_login
+@load_models(
+    (Organization, {'name': 'org'}, 'organization'),
+    permission='org_admin'
+    )
+def admin_items(organization):
+    return jsonify(items=jsonify_items(organization.item_collections))

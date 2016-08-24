@@ -59,6 +59,11 @@ body
   background-color: #fff
   min-height: 196px
 
+.content-box:after
+  content: " "
+  display: table
+  clear: both 
+
 .content-details
   margin: 5px 0
 
@@ -161,6 +166,9 @@ a.boxoffice-button:focus
   font-size: 14px
   color: $color-form-filled-label
 
+.group-input-btn:active
+  outline: none
+
 .bar
   position: relative
   display: block
@@ -190,7 +198,7 @@ a.boxoffice-button:focus
 
 .field-title 
   color: $color-form-label
-  font-size: 16px
+  font-size: 14px
   margin: 0 0 5px
   font-weight: normal
 
@@ -203,7 +211,7 @@ a.boxoffice-button:focus
 .btn-wrapper 
   float: right
   text-align: center
-  margin-bottom: 10px
+  margin: 20px 0 10px
   clear: both
 
 .error-msg 
@@ -334,6 +342,9 @@ a.boxoffice-button:focus
   box-shadow: 0 0 2px rgba(0,0,0,0.8)
   min-height: 100vh
 
+.content-slider.align-down
+  top: 0
+
 @media (min-width: 768px)
   .content-slider
     top: -50px
@@ -379,5 +390,5 @@ a.boxoffice-button:focus
   border-color: #aaa
 
 @media (min-width: 768px)
-  .add-new-btn
+  .btn-right
     float: right

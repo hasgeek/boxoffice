@@ -1,3 +1,29 @@
 .policies-wrapper
   clear: both
   position: relative
+
+.multiselect-container
+  width: 100%
+  max-height: 300px
+  overflow: scroll
+
+.multiselect.dropdown-toggle
+  border: none
+  border-bottom: 1px solid $color-form-field-border
+  border-radius: 0
+  background-color: transparent
+  padding: 10px 10px 10px 5px
+
+.multiselect.dropdown-toggle:hover
+  background-color: transparent
+
+.multiselect.dropdown-toggle:focus,
+.multiselect.dropdown-toggle:active
+  box-shadow: none
+  background-color: transparent
+  border-bottom: 1px solid $color-form-filled-label!important
+
+btn-group.open .multiselect.dropdown-toggle
+  box-shadow: none
+  background-color: transparent
+  border-bottom: 1px solid $color-form-filled-label!important

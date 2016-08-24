@@ -60,10 +60,10 @@ export const OrderTemplate = `
               </td>
             </tr>
             {{#show_order}}
-              <div class="order-slider" intro-outro='fly:{x:200,y:0,duration:200}'>
+              <div class="content-slider" intro-outro='fly:{x:200,y:0,duration:200}'>
                 <button on-click="hideOrder" class="close-button"><i class="fa fa-close"></i></button>
-                <p class="order-title">Order Invoice No: {{invoice_no}}</p>
-                <div class="line-items-wrapper">
+                <p class="content-slider-title">Order Invoice No: {{invoice_no}}</p>
+                <div class="content-slider-wrapper">
                   {{#line_items:line_item}}
                     <div class="ticket col-sm-6 col-xs-12" id="item-{{ @index }}">
                       <div class="heading">
