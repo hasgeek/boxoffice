@@ -12,7 +12,7 @@ class OrganizationModelView(SiteAdminModelView):
     column_display_pk = True
     column_list = ('id', 'title')
     form_list = ('id', 'userid', 'title')
-    form_excluded_columns = ['userid', 'item_collections', 'discount_policies', 'orders', 'name', 'created_at', 'updated_at', 'name']
+    form_excluded_columns = ['userid', 'item_collections', 'discount_policies', 'orders', 'created_at', 'updated_at']
 
 
 class ItemCollectionModelView(SiteAdminModelView):
@@ -20,7 +20,7 @@ class ItemCollectionModelView(SiteAdminModelView):
     column_display_pk = True
     column_filters = ['organization']
     column_list = ('id', 'title')
-    form_excluded_columns = ['parent', 'items', 'orders', 'categories', 'created_at', 'updated_at', 'name']
+    form_excluded_columns = ['parent', 'items', 'orders', 'categories', 'created_at', 'updated_at']
 
 
 class ItemModelView(SiteAdminModelView):
@@ -28,15 +28,15 @@ class ItemModelView(SiteAdminModelView):
     column_display_pk = True
     column_filters = ['item_collection']
     column_list = ('id', 'title')
-    form_excluded_columns = ['parent', 'line_items', 'created_at', 'updated_at', 'name']
+    form_excluded_columns = ['parent', 'line_items', 'created_at', 'updated_at']
 
 
 class PriceModelView(SiteAdminModelView):
     can_delete = False
     column_display_pk = True
     column_filters = ['item']
-    column_list = ('id', 'item', 'title', 'start_at', 'end_at')
-    form_excluded_columns = ['parent', 'created_at', 'updated_at', 'name']
+    column_list = ('id', 'item', 'title', 'start_at', 'end_at', 'currency', 'amount')
+    form_excluded_columns = ['parent', 'created_at', 'updated_at']
 
 
 class DiscountPolicyModelView(SiteAdminModelView):
@@ -44,7 +44,7 @@ class DiscountPolicyModelView(SiteAdminModelView):
     column_display_pk = True
     column_filters = ['organization']
     column_list = ('id', 'title')
-    form_excluded_columns = ['parent', 'line_items', 'created_at', 'updated_at', 'name', 'discount_coupons']
+    form_excluded_columns = ['parent', 'line_items', 'created_at', 'updated_at', 'discount_coupons']
 
 
 class DiscountCouponModelView(SiteAdminModelView):
