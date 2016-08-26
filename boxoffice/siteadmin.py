@@ -8,6 +8,7 @@ class SiteAdminModelView(ModelView):
 
 
 class OrganizationModelView(SiteAdminModelView):
+    can_delete = False
     column_display_pk = True
     column_list = ('id', 'title')
     form_list = ('id', 'userid', 'title')
@@ -15,6 +16,7 @@ class OrganizationModelView(SiteAdminModelView):
 
 
 class ItemCollectionModelView(SiteAdminModelView):
+    can_delete = False
     column_display_pk = True
     column_filters = ['organization']
     column_list = ('id', 'title')
@@ -22,6 +24,7 @@ class ItemCollectionModelView(SiteAdminModelView):
 
 
 class ItemModelView(SiteAdminModelView):
+    can_delete = False
     column_display_pk = True
     column_filters = ['item_collection']
     column_list = ('id', 'title')
@@ -29,6 +32,7 @@ class ItemModelView(SiteAdminModelView):
 
 
 class PriceModelView(SiteAdminModelView):
+    can_delete = False
     column_display_pk = True
     column_filters = ['item']
     column_list = ('id', 'item', 'title', 'start_at', 'end_at')
@@ -36,6 +40,7 @@ class PriceModelView(SiteAdminModelView):
 
 
 class DiscountPolicyModelView(SiteAdminModelView):
+    can_delete = False
     column_display_pk = True
     column_filters = ['organization']
     column_list = ('id', 'title')
@@ -43,6 +48,7 @@ class DiscountPolicyModelView(SiteAdminModelView):
 
 
 class DiscountCouponModelView(SiteAdminModelView):
+    can_delete = False
     column_filters = ['discount_policy']
     column_list = ('code', 'discount_policy')
     form_excluded_columns = ['line_items', 'created_at', 'updated_at']
