@@ -107,13 +107,6 @@ export const OrderTemplate = `
             {{/show_order}}
           {{/orders}}
           </tbody>
-          <tfoot>
-            <tr>
-              <td colspan="10">
-                <div class="pagination pagination-centered"></div>
-              </td>
-            </tr>
-          </tfoot>
         </table>
       </div>
     {{else}}

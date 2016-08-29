@@ -32,6 +32,30 @@ export const post = function(config){
   return $.ajax({
     url: config.url,
     type: 'POST',
+    data: config.data,
+    contentType : config.contentType,
     dataType: 'json'
   });
+}
+
+export const convertFormToJSON = function(form_id, multiple_option_fields){
+  let form_elements = $('#'+ form_id).serializeArray();
+  let details = {};
+  for (var form_index=0; form_index < form_elements.length; form_index++) {
+    console.log("form elements", form_elements[form_index].name);
+    if (form_elements[form_index].value) {
+      if(multiple_option_fields.indexOf(form_elements[form_index].name) !== -1) {
+        if(form_elements[form_index].name in details) {
+          details[form_elements[form_index].name].push(form_elements[form_index].value)
+        }
+        else {
+          details[form_elements[form_index].name] = [].concat(form_elements[form_index].value);
+        }
+      }
+      else {
+        details[form_elements[form_index].name] = form_elements[form_index].value;
+      }
+    }
+  }
+  return JSON.stringify(details);
 }

@@ -1,9 +1,10 @@
-import {fetch, post} from './util.js';
+import {fetch, post, convertFormToJSON} from './util.js';
 import {IndexModel} from './index.js';
 
 export const DiscountPolicyModel = {
   fetch: fetch,
   post: post,
+  convertFormToJSON: convertFormToJSON,
   urlFor: function(action, config){
     let urls = {
       'index': {
@@ -12,15 +13,15 @@ export const DiscountPolicyModel = {
         'method': 'GET'
       },
       'new': {
-        'path': IndexModel.urlFor('index')['path'] + 'o/' + config.org_name + '/discount_policies/new',
+        'path': IndexModel.urlFor('index')['path'] + 'o/' + config.org_name + '/discount_policy/new',
         'method': 'POST'
       },
       'edit': {
-        'path': IndexModel.urlFor('index')['path'] + config.discount_policy_id + '/edit',
+        'path': IndexModel.urlFor('index')['path'] + 'discount_policy/' + config.discount_policy_id + '/edit',
         'method': 'POST'
       },
       'generate_coupon': {
-        'path': IndexModel.urlFor('index')['path'] + config.discount_policy_id + '/coupon',
+        'path': IndexModel.urlFor('index')['path'] + 'discount_policy/' + config.discount_policy_id + '/coupon',
         'method': 'POST'
       },
     }

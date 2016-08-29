@@ -29,15 +29,21 @@ export const DiscountPolicyTemplate = `
             <div class="content">
               {{#if !show_policy_form && !show_add_coupon_form}}
                 <div class="content-box">
-                  <p class="content-details">Discount type: {{discount_type}}</p>
-                  {{#if discount_type == "Automatic"}}<p class="content-details">Minimum item quanity: {{item_quantity_min}}</p>{{/if}}
+                  <p class="content-details"><b>Discount type:</b></p>
+                  <p class="content-details-text">{{discount_type}}</p>
+                  {{#if discount_type == "Automatic"}}
+                    <p class="content-details"><b>Minimum item quanity:</b></p>
+                    <p class="content-details-text">{{item_quantity_min}}</p>
+                  {{/if}}
                   {{#if is_price_based}}
-                    <p class="content-details">Discount: {{currency}}{{discount}}</p>
+                    <p class="content-details"><b>Discount:</b></p>
+                    <p class="content-details-text">{{currency}}{{discount}}</p>
                   {{else}}
-                    <p class="content-details">Discount: {{discount}}%</p>
+                    <p class="content-details"><b>Discount:</b></p>
+                    <p class="content-details-text">{{discount}}%</p>
                   {{/if}}
                   {{#if dp_items}}
-                    <p class="content-details">Items:</p>                   
+                    <p class="content-details"><b>Items:</b></p>                   
                     <ol class="content-list">
                       {{#dp_items:item}}
                         <li class="content-details">{{dp_items[item].title}}</li>
@@ -46,6 +52,14 @@ export const DiscountPolicyTemplate = `
                   {{/if}}
                   {{#if discount_type == "Coupon based"}}
                     <button class="boxoffice-button boxoffice-button-action btn-right" on-click="generateCouponForm">Generate coupon</button>
+                  {{/if}}
+                  {{#if coupons}}
+                    <p class="content-details"><b>Recently generated coupons:</b></p>
+                    <ul class="content-list">
+                    {{#coupons:coupon}}
+                       <li class="content-details"><b>{{code}}</b>, usage limit: {{usage_limit}}</li>
+                    {{/}}
+                    </ul>
                   {{/if}}
                 </div>
               {{elseif show_policy_form}}
@@ -62,6 +76,37 @@ export const DiscountPolicyTemplate = `
                         <input class="group-input {{#item_quantity_min}}filled{{/}}" type="number" name="item_quantity_min" required value="{{item_quantity_min}}" twoway="false">
                         <span class="bar"></span>
                         <label class="group-label">Minimum item quanity</label>
+                      </div>
+                    {{/if}}
+                    {{#if is_price_based}}
+                      {{#price_details}}
+                        <p class="field-title filled">Price</p>
+                        <div class="group">   
+                          <input class="group-input {{#price_title}}filled{{/}}" type="number" name="price_title" required value="{{amount}}" twoway="false">
+                          <span class="bar"></span>
+                          <label class="group-label">Title</label>
+                        </div>
+                        <div class="group">   
+                          <input class="group-input {{#amount}}filled{{/}}" type="number" name="amount" required value="{{amount}}" twoway="false">
+                          <span class="bar"></span>
+                          <label class="group-label">Amount</label>
+                        </div>
+                        <div class="group">   
+                          <input class="group-input {{#start_at}}filled{{/}}" type="number" name="start_at" required value="{{start_at}}" twoway="false">
+                          <span class="bar"></span>
+                          <label class="group-label">Start at</label>
+                        </div>
+                        <div class="group">   
+                          <input class="group-input {{#end_at}}filled{{/}}" type="number" name="end_at" required value="{{end_at}}" twoway="false">
+                          <span class="bar"></span>
+                          <label class="group-label">End at</label>
+                        </div>
+                      {{/}}
+                    {{else}}
+                      <div class="group">   
+                        <input class="group-input {{#percentage}}filled{{/}}" type="percentage" name="percentage" required value="{{percentage}}" twoway="false">
+                        <span class="bar"></span>
+                        <label class="group-label">Percentage</label>
                       </div>
                     {{/if}}
                     <div class="group">
@@ -87,7 +132,7 @@ export const DiscountPolicyTemplate = `
                   <h4 class="text-center form-title">Generate coupon</h4> 
                   <form role="form" id="new-coupon-{{id}}"> 
                     <div class="group">   
-                      <input class="group-input {{#title}}filled{{/}}" type="number" name="usage" required value="{{usage}}" twoway="false">
+                      <input class="group-input filled" type="number" name="usage_limit" required min="1" value="1">
                       <span class="bar"></span>
                       <label class="group-label">Usage limit</label>
                     </div>
@@ -100,13 +145,6 @@ export const DiscountPolicyTemplate = `
                     </div>
                     <p class="error-msg">{{generate_coupon_error}}</p>
                   </form>
-                  {{#if coupons}}
-                    <p class="content-details">Recently generated coupons:</p>
-                    <p>{{coupons}}</p>
-                  {{/if}}
-                  {{#coupons:coupon}}
-                    <p class="content-details">{{coupon.code}}, usage limit: {{coupon.usage_limit}}</p>
-                  {{/}}
                 </div>
               {{/if}}
             </div>

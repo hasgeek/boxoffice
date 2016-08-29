@@ -78,8 +78,18 @@ body {
   clear: both;
 }
 
-.content-details {
+.content-details,
+.content-details-text {
   margin: 5px 0;
+}
+
+.content-details-text,
+.content-list {
+  padding-left: 25px;
+}
+
+.content-list {
+  list-style-position: inside;
 }
 
 .boxoffice-button {
