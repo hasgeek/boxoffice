@@ -19,18 +19,11 @@ def index():
 
 
 def jsonify_org(data):
-    item_collections = []
-    for item_collection in ItemCollection.query.filter(ItemCollection.organization == data['org']).order_by('created_at desc'):
-        item_collections.append({'id': item_collection.id,
-            'name': item_collection.name,
-            'title': item_collection.title,
-            'url': '/ic/' + unicode(item_collection.id),
-            'description_text': item_collection.description_text,
-            'description_html': item_collection.description_html})
+    item_collections_list = ItemCollection.query.filter(ItemCollection.organization == data['org']).order_by('created_at desc').all()
     return jsonify(id=data['org'].id,
         name=data['org'].name,
         title=data['org'].title,
-        item_collections=item_collections)
+        item_collections=[{'id': ic.id, 'name': ic.name, 'title': ic.title, 'url': '/ic/' + unicode(ic.id), 'description_text': ic.description_text, 'description_html': ic.description_html} for ic in item_collections_list])
 
 
 @app.route('/admin/o/<org>')
