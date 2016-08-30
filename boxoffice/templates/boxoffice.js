@@ -202,6 +202,11 @@ $(function() {
               }
             }
           },
+          modal: {
+            title: '',
+            content: '',
+            active: false
+          }
         },
         scrollTop: function(){
           //Scroll the page up to top of boxoffice widget.
@@ -504,6 +509,10 @@ $(function() {
                 } else if (data.line_items[lineItem.item_id].base_amount > lineItem.base_amount) {
                   // price has increased
                   itemUpdates.push({'item_id': lineItem.item_id, 'message': "The price for " + lineItem.item_title + " has increased to " + lineItem.base_amount + "."});
+                  invalidItemIds.push(lineItem.item_id);
+                } else if (data.line_items[lineItem.item_id].base_amount < lineItem.base_amount) {
+                  // price has decreased
+                  itemUpdates.push({'item_id': lineItem.item_id, 'message': "The price for " + lineItem.item_title + " has decreased to " + lineItem.base_amount + "."});
                   invalidItemIds.push(lineItem.item_id);
                 } else if (data.line_items[lineItem.item_id].quantity_available < lineItem.quantity) {
                   // quantity no longer available

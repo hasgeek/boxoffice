@@ -1,6 +1,11 @@
 {%raw%}
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
+<div id="boxoffice-modal" {{#if !modal.active}} style="display:none;"{{/if}}>
+  <h2>{{modal.title}}</h2>
+  <p>{{modal.content}}</p>
+</div>
+
 <div class="payment-progress-wrapper payment-stages-bg" id="payment-stages">
   <ul class="progress-indicator">
     {{#tabs:tab}}
