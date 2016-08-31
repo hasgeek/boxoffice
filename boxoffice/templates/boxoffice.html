@@ -1,11 +1,6 @@
 {%raw%}
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
-<div id="boxoffice-modal" {{#if !modal.active}} style="display:none;"{{/if}}>
-  <h2>{{modal.title}}</h2>
-  <p>{{modal.content}}</p>
-</div>
-
 <div class="payment-progress-wrapper payment-stages-bg" id="payment-stages">
   <ul class="progress-indicator">
     {{#tabs:tab}}
@@ -96,11 +91,11 @@
           {{/}}
           <p class="price">Total <span class="pull-right"><i class="fa fa-inr rupee-sign"></i>{{ order.final_amount }}</span></p>
         </div>
-        {{#order.readyToCheckout}}
+        {{#order.readyToContinue}}
           <div class="proceed-button-wrapper" intro='fly:{"x":200,"y":"0"}'>
             <button id="stage1-proceed" class="boxoffice-button boxoffice-button-action" on-click="checkout(event)">Continue</button>
           </div>
-        {{/order.readyToCheckout}}
+        {{/order.readyToContinue}}
         {{#errorMsg }}
           <p class="stage-error-msg">{{ errorMsg }}</p>
         {{/}}
@@ -161,11 +156,20 @@
             {{/}}{{/order.line_items}}
             <p class="price">Amount Payable <span class="final-amount"><b><i class="fa fa-inr rupee-sign"></i>{{ order.final_amount }}</b></span></p>
           </div>
+          <div id="boxoffice-item-updates" {{#if !modal.active}} style="display:none;"{{/if}}>
+            <h3>Heads up!</h3>
+            <p>{{modal.content}}</p>
+            {{#order.readyToCheckout}}
+              <p>Please hit Checkout again to confirm.</p>
+            {{/}}
+          </div>
           <div class="proceed-button-wrapper">
             <button class="boxoffice-button boxoffice-button-info edit-order" type="button" on-click="selectItems(event)">Edit order</button>
-            <button type="submit" class="boxoffice-button boxoffice-button-action" {{#loadingOrder}}disabled{{/}}>
-              Checkout {{#loadingOrder}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'>{{/}}
-            </button>
+            {{#order.readyToCheckout}}
+              <button type="submit" class="boxoffice-button boxoffice-button-action" {{#loadingOrder}}disabled{{/}}>
+                Checkout {{#loadingOrder}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'>{{/}}
+              </button>
+            {{/}}
           </div>
           {{#errorMsg}}
             <p class="stage-error-msg">{{ errorMsg }}</p>

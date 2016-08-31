@@ -164,7 +164,8 @@ $(function() {
             access_token: '',
             line_items: lineItems,
             final_amount: 0.0,
-            readyToCheckout: false
+            readyToContinue: false,
+            readyToCheckout: true
           },
           // Prefill name, email, phone if user is found to be logged in
           buyer: {
@@ -361,7 +362,7 @@ $(function() {
               retryInterval: 5000,
               success: function(data) {
                 var line_items = boxoffice.ractive.get('order.line_items');
-                var readyToCheckout = false;
+                var readyToContinue = false;
                 line_items.forEach(function(line_item){
                   if (data.line_items.hasOwnProperty(line_item.item_id) && line_item.quantity ===  data.line_items[line_item.item_id].quantity) {
                     line_item.base_amount = data.line_items[line_item.item_id].base_amount;
@@ -369,10 +370,10 @@ $(function() {
                     line_item.discounted_amount = data.line_items[line_item.item_id].discounted_amount;
                     line_item.quantity_available = data.line_items[line_item.item_id].quantity_available;
 
-                    if (!readyToCheckout
+                    if (!readyToContinue
                       && data.line_items[line_item.item_id].quantity > 0
                       && data.line_items[line_item.item_id].quantity <= data.line_items[line_item.item_id].quantity_available) {
-                      readyToCheckout = true;
+                      readyToContinue = true;
                     }
 
                     line_item.discount_policies.forEach(function(discount_policy){
@@ -385,7 +386,7 @@ $(function() {
                   }
                 });
 
-                if (readyToCheckout) {
+                if (readyToContinue) {
                   boxoffice.ractive.set('tabs.selectItems.errorMsg', '')
                 }
 
@@ -393,7 +394,7 @@ $(function() {
                   'order.line_items': line_items,
                   'order.final_amount': data.order.final_amount,
                   'tabs.selectItems.loadingPrice': false,
-                  'order.readyToCheckout': readyToCheckout
+                  'order.readyToContinue': readyToContinue
                 });
               },
               error: function(response) {
@@ -403,7 +404,7 @@ $(function() {
                   boxoffice.ractive.set({
                     'tabs.selectItems.errorMsg': JSON.parse(response.responseText).message,
                     'tabs.selectItems.isLoadingFail': true,
-                    'order.readyToCheckout': false
+                    'order.readyToContinue': false
                   });
                 }
                 else if (response.readyState === 0) {
@@ -411,7 +412,7 @@ $(function() {
                     boxoffice.ractive.set({
                       'tabs.selectItems.errorMsg': "Unable to connect. Please try again later.",
                       'tabs.selectItems.isLoadingFail': true,
-                      'order.readyToCheckout': false
+                      'order.readyToContinue': false
                     });
                   } else {
                     setTimeout(function() {
@@ -424,7 +425,7 @@ $(function() {
           } else {
             boxoffice.ractive.set({
               'order.final_amount': 0,
-              'order.readyToCheckout': false
+              'order.readyToContinue': false
             });
           }
         },
@@ -502,102 +503,130 @@ $(function() {
           boxoffice.ractive.getKharcha().done(function(data){
             lineItems.forEach(function(lineItem){
               if (data.line_items.hasOwnProperty(lineItem.item_id)) {
-                if (!data.line_items[lineItem.item_id].base_amount) {
+                if (!data.line_items[lineItem.item_id].base_amount || data.line_items[lineItem.item_id].quantity_available === 0) {
                   // price has expired
                   itemUpdates.push({'item_id': lineItem.item_id, 'message': lineItem.item_title + " is no longer available."});
                   invalidItemIds.push(lineItem.item_id);
+                  lineItem.quantity_available = 0;
+                  lineItem.quantity = 0;
                 } else if (data.line_items[lineItem.item_id].base_amount > lineItem.base_amount) {
                   // price has increased
-                  itemUpdates.push({'item_id': lineItem.item_id, 'message': "The price for " + lineItem.item_title + " has increased to " + lineItem.base_amount + "."});
+                  itemUpdates.push({'item_id': lineItem.item_id, 'message': "The price for " + lineItem.item_title + " has increased to " + data.line_items[lineItem.item_id].base_amount + "."});
                   invalidItemIds.push(lineItem.item_id);
+                  lineItem.base_amount = data.line_items[lineItem.item_id].base_amount;
+                  lineItem.discounted_amount = data.line_items[lineItem.item_id].discounted_amount;
+                  lineItem.final_amount = data.line_items[lineItem.item_id].final_amount;
                 } else if (data.line_items[lineItem.item_id].base_amount < lineItem.base_amount) {
                   // price has decreased
-                  itemUpdates.push({'item_id': lineItem.item_id, 'message': "The price for " + lineItem.item_title + " has decreased to " + lineItem.base_amount + "."});
+                  itemUpdates.push({'item_id': lineItem.item_id, 'message': "The price for " + lineItem.item_title + " has decreased to " + data.line_items[lineItem.item_id].base_amount + "."});
                   invalidItemIds.push(lineItem.item_id);
+                  lineItem.base_amount = data.line_items[lineItem.item_id].base_amount;
+                  lineItem.discounted_amount = data.line_items[lineItem.item_id].discounted_amount;
+                  lineItem.final_amount = data.line_items[lineItem.item_id].final_amount;
                 } else if (data.line_items[lineItem.item_id].quantity_available < lineItem.quantity) {
-                  // quantity no longer available
-                  itemUpdates.push({'item_id': lineItem.item_id, 'message': "Selected quantity for " + lineItem.item_title + " is no longer available."});
+                  // selected quantity is not available
+                  itemUpdates.push({'item_id': lineItem.item_id, 'message': "Only " + data.line_items[lineItem.item_id].quantity_available + " of " + lineItem.item_title + " available."});
                   invalidItemIds.push(lineItem.item_id);
+                  lineItem.quantity_available = data.line_items[lineItem.item_id].quantity_available;
+                  lineItem.quantity = lineItem.quantity_available;
+                  lineItem.base_amount = data.line_items[lineItem.item_id].base_amount;
+                  lineItem.discounted_amount = data.line_items[lineItem.item_id].discounted_amount;
+                  lineItem.final_amount = data.line_items[lineItem.item_id].final_amount;
                 }
               }
             });
-          }).done(function(){
 
-            if (lineItems.filter(function(lineItem){
-              return invalidItemIds.indexOf(lineItem.item_id) < 0
-            }).length < 1) {
-              proceedToPayment = false;
+            boxoffice.ractive.set('order.line_items', lineItems);
+            boxoffice.ractive.set('order.final_amount', data.order.final_amount);
+
+            if (invalidItemIds.length) {
+              var modal_content = itemUpdates.map(function(itemUpdate){
+                return itemUpdate.message;
+              }).join("<br />");
+              boxoffice.ractive.set('modal.active', true);
+              boxoffice.ractive.set('modal.title', 'Updates');
+              boxoffice.ractive.set('modal.content', modal_content);
+            } else {
+              boxoffice.ractive.set('modal.active', false);
+              boxoffice.ractive.fire('confirmPurchaseOrder');  
             }
+            boxoffice.ractive.set('tabs.payment.loadingOrder', false);
 
-            if (proceedToPayment) {
-              boxoffice.ractive.fire('eventAnalytics', 'order creation', 'sendOrder');
-              $.post({
-                url: boxoffice.config.resources.purchaseOrder.urlFor(),
-                crossDomain: true,
-                dataType: 'json',
-                headers: {'X-Requested-With': 'XMLHttpRequest'},
-                contentType: 'application/json',
-                data: JSON.stringify({
-                  buyer:{
-                    email: boxoffice.ractive.get('buyer.email'),
-                    fullname: boxoffice.ractive.get('buyer.name'),
-                    phone: boxoffice.ractive.get('buyer.phone')
-                  },
-                  line_items: boxoffice.ractive.get('order.line_items').filter(function(line_item) {
-                    return line_item.quantity > 0;
-                  }).map(function(line_item) {
-                    return {
-                      item_id: line_item.item_id,
-                      quantity: line_item.quantity
-                    };
-                  }),
-                  discount_coupons: boxoffice.util.getDiscountCodes()
-                }),
-                timeout: 5000,
-                retries: 5,
-                retryInterval: 5000,
-                success: function(data) {
-                  boxoffice.ractive.set({
-                    'tabs.payment.loadingOrder': false,
-                    'tabs.payment.errorMsg' : '',
-                    'order.order_id': data.order_id,
-                    'order.access_token': data.order_access_token,
-                    'order.final_amount': data.final_amount
-                  });
-                  if (boxoffice.ractive.get('order.final_amount') === 0){
-                    boxoffice.ractive.completeFreeOrder(data.free_order_url);
-                  } else {
-                    boxoffice.ractive.capturePayment(data.payment_url, data.razorpay_payment_id);
-                  }
-                  boxoffice.ractive.scrollTop();
+            if (lineItems.filter(function(lineItem){return lineItem.quantity > 0}).length) {
+              boxoffice.ractive.set('order.readyToCheckout', true);
+            } else {
+              boxoffice.ractive.set('order.readyToCheckout', false);
+            }
+          });
+
+          boxoffice.ractive.on('confirmPurchaseOrder', function() {
+            boxoffice.ractive.fire('eventAnalytics', 'order creation', 'sendOrder');
+            $.post({
+              url: boxoffice.config.resources.purchaseOrder.urlFor(),
+              crossDomain: true,
+              dataType: 'json',
+              headers: {'X-Requested-With': 'XMLHttpRequest'},
+              contentType: 'application/json',
+              data: JSON.stringify({
+                buyer:{
+                  email: boxoffice.ractive.get('buyer.email'),
+                  fullname: boxoffice.ractive.get('buyer.name'),
+                  phone: boxoffice.ractive.get('buyer.phone')
                 },
-                error: function(response) {
-                  var ajaxLoad = this;
-                  ajaxLoad.retries -= 1;
-                  var resp = JSON.parse(response.responseText);
-                  if (response.readyState === 4) {
-                    if (resp.error_type === 'order_calculation') {
-                      boxoffice.ractive.calculateOrder();
-                    }
+                line_items: boxoffice.ractive.get('order.line_items').filter(function(line_item) {
+                  return line_item.quantity > 0;
+                }).map(function(line_item) {
+                  return {
+                    item_id: line_item.item_id,
+                    quantity: line_item.quantity
+                  };
+                }),
+                discount_coupons: boxoffice.util.getDiscountCodes()
+              }),
+              timeout: 5000,
+              retries: 5,
+              retryInterval: 5000,
+              success: function(data) {
+                boxoffice.ractive.set({
+                  'tabs.payment.loadingOrder': false,
+                  'tabs.payment.errorMsg' : '',
+                  'order.order_id': data.order_id,
+                  'order.access_token': data.order_access_token,
+                  'order.final_amount': data.final_amount
+                });
+                if (boxoffice.ractive.get('order.final_amount') === 0){
+                  boxoffice.ractive.completeFreeOrder(data.free_order_url);
+                } else {
+                  boxoffice.ractive.capturePayment(data.payment_url, data.razorpay_payment_id);
+                }
+                boxoffice.ractive.scrollTop();
+              },
+              error: function(response) {
+                var ajaxLoad = this;
+                ajaxLoad.retries -= 1;
+                var resp = JSON.parse(response.responseText);
+                if (response.readyState === 4) {
+                  if (resp.error_type === 'order_calculation') {
+                    boxoffice.ractive.calculateOrder();
+                  }
+                  boxoffice.ractive.set({
+                    'tabs.payment.errorMsg': resp.message,
+                    'tabs.payment.loadingOrder': false
+                  });
+                } else if (response.readyState === 0) {
+                  if(ajaxLoad.retries < 0) {
                     boxoffice.ractive.set({
-                      'tabs.payment.errorMsg': resp.message,
+                      'tabs.payment.errorMsg': "Unable to connect. Please try again later.",
                       'tabs.payment.loadingOrder': false
                     });
-                  } else if (response.readyState === 0) {
-                    if(ajaxLoad.retries < 0) {
-                      boxoffice.ractive.set({
-                        'tabs.payment.errorMsg': "Unable to connect. Please try again later.",
-                        'tabs.payment.loadingOrder': false
-                      });
-                    } else {
-                      setTimeout(function() {
-                        $.post(ajaxLoad);
-                      }, ajaxLoad.retryInterval);
-                    }
+                  } else {
+                    setTimeout(function() {
+                      $.post(ajaxLoad);
+                    }, ajaxLoad.retryInterval);
                   }
                 }
-              });
-            }
+              }
+            });
           });
         },
         capturePayment: function(paymentUrl, razorpay_payment_id){
