@@ -32,7 +32,6 @@ def jsonify_line_items(line_items):
             items_json[unicode(line_item.item_id)]['final_amount'] += line_item.base_amount - line_item.discounted_amount
             items_json[unicode(line_item.item_id)]['discounted_amount'] += line_item.discounted_amount
         else:
-            items_json[unicode(line_item.item_id)]['base_amount'] = None
             items_json[unicode(line_item.item_id)]['final_amount'] = None
             items_json[unicode(line_item.item_id)]['discounted_amount'] = None
         items_json[unicode(line_item.item_id)]['quantity'] += 1
