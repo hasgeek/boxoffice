@@ -36,7 +36,7 @@
                       {{/line_item.discount_policies}}
                     </div>
                     <div class="ticket-price-qty">
-                      {{#if line_item.is_available > 0}}
+                      {{#if line_item.is_available}}
                         <div class="ticket-description">
                           <p class="few-ticket">
                             {{#if line_item.quantity >= line_item.quantity_available}}
