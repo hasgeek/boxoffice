@@ -65,6 +65,21 @@ class TestOrder(unittest.TestCase):
         self.assertEquals(resp.status_code, 201)
         self.assertEquals(data['final_amount'], 2375)
 
+    def test_expired_item_order(self):
+        expired_ticket = Item.query.filter_by(name='expired-ticket').first()
+        quantity = 2
+        data = {
+            'line_items': [{'item_id': unicode(expired_ticket.id), 'quantity': quantity}],
+            'buyer': {
+                'fullname': 'Testing',
+                'phone': '9814141414',
+                'email': 'test@hasgeek.com',
+                }
+            }
+        ic = ItemCollection.query.first()
+        resp = self.client.post('/ic/{ic}/order'.format(ic=ic.id), data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
+        self.assertEquals(resp.status_code, 400)
+
     def test_signed_discounted_coupon_order(self):
         first_item = Item.query.filter_by(name='conference-ticket').first()
         signed_policy = DiscountPolicy.query.filter_by(name='signed').first()

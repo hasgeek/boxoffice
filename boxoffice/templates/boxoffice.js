@@ -156,7 +156,8 @@ $(function() {
             'item_description': item.description,
             'price_valid_upto': boxoffice.util.formatDate(item.price_valid_upto),
             'discount_policies': item.discount_policies,
-            'quantity_available': item.quantity_available
+            'quantity_available': item.quantity_available,
+            'is_available': item.is_available
           });
         });
       });
@@ -347,6 +348,11 @@ $(function() {
                     line_item.final_amount = data.line_items[line_item.item_id].final_amount;
                     line_item.discounted_amount = data.line_items[line_item.item_id].discounted_amount;
                     line_item.quantity_available = data.line_items[line_item.item_id].quantity_available;
+                    line_item.is_available = data.line_items[line_item.item_id].is_available;
+                    if (!line_item.is_available) {
+                      // This item is no longer available, force set the selected quantity to 0.
+                      line_item.quantity = 0;
+                    }
 
                     if (!readyToCheckout
                       && data.line_items[line_item.item_id].quantity > 0

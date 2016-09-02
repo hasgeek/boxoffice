@@ -64,6 +64,10 @@ class Item(BaseScopedNameMixin, db.Model):
     def quantity_available(self):
         return self.quantity_total - self.get_confirmed_line_items.count()
 
+    def is_available(self):
+        """Checks if an item has a current price and has a positive quantity_available"""
+        return bool(self.current_price() and self.quantity_available > 0)
+
 
 class Price(BaseScopedNameMixin, db.Model):
     __tablename__ = 'price'

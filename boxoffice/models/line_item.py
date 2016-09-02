@@ -100,8 +100,11 @@ class LineItem(BaseMixin, db.Model):
             item = Item.query.get(line_item_dict['item_id'])
             if not item_line_items.get(unicode(item.id)):
                 item_line_items[unicode(item.id)] = []
-            item_line_items[unicode(item.id)].append(make_ntuple(item_id=item.id,
-                base_amount=item.current_price().amount))
+            if item.is_available():
+                item_line_items[unicode(item.id)].append(make_ntuple(item_id=item.id,
+                    base_amount=item.current_price().amount))
+            else:
+                item_line_items[unicode(item.id)].append(make_ntuple(item_id=item.id, base_amount=None))
         coupon_list = list(set(coupons)) if coupons else []
         discounter = LineItemDiscounter()
         for item_id in item_line_items.keys():
