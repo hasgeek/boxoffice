@@ -141,6 +141,7 @@ a.boxoffice-button:focus
 
 .group-input 
   font-size: 18px
+  line-height: 1
   padding: 10px 10px 10px 5px
   display: block
   width: 100%
@@ -212,6 +213,12 @@ a.boxoffice-button:focus
   border-right: 5px solid transparent
   border-top: 5px solid $color-form-field-border
   pointer-events: none
+
+.inline-group .input-group
+  width: 30%
+  margin: 0 3% 0 0
+  float: left
+  position: relative
 
 .bar
   position: relative
@@ -408,6 +415,7 @@ a.boxoffice-button:focus
 
 .content-slider.align-down
   top: 0
+  bottom: 0
 
 @media (min-width: 768px)
   .content-slider
@@ -456,3 +464,6 @@ a.boxoffice-button:focus
 @media (min-width: 768px)
   .btn-right
     float: right
+
+.table-responsive
+  overflow-x: inherit

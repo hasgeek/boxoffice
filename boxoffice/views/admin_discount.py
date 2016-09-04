@@ -142,15 +142,17 @@ def admin_edit_discount_policy(discount_policy):
     )
 @xhr_only
 def admin_create_coupon(discount_policy):
-    usage_limit = request.json.get('usage_limit')
-    print usage_limit
+    usage_limit = int(request.json.get('usage_limit'))
+    coupons = []
     if usage_limit >= 1:
-        coupon = DiscountCoupon(discount_policy=discount_policy, usage_limit=usage_limit)
-        db.session.add(coupon)
-        db.session.commit()
+        for x in range(int(request.json.get('count'))):
+            coupon = DiscountCoupon(discount_policy=discount_policy, usage_limit=usage_limit)
+            db.session.add(coupon)
+            db.session.commit()
+            coupons.append({'code': coupon.code, 'usage_limit': coupon.usage_limit})
     else:
         return make_response(jsonify(status='error', error='error_usage_limit', error_description="Discount coupon usage limit cannot be less than 1"), 400)
-    return make_response(jsonify(status='ok', result={'message': 'Discount coupon created', 'coupon': {'code': coupon.code, 'usage_limit': coupon.usage_limit}}), 201)
+    return make_response(jsonify(status='ok', result={'message': 'Discount coupon created', 'coupons': coupons}), 201)
 
 
 @app.route('/admin/o/<org>/coupons')

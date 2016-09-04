@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from flask import g, jsonify
+from flask import g, jsonify, request
 from .. import app, lastuser
 from coaster.views import load_models, render_with
-from boxoffice.models import Organization
+from boxoffice.models import Organization, Item
 
 
 def jsonify_dashboard(data):
@@ -50,4 +50,5 @@ def jsonify_items(item_collections):
     permission='org_admin'
     )
 def admin_items(organization):
+    query = request.args.getlist('search')
     return jsonify(items=jsonify_items(organization.item_collections))

@@ -38,11 +38,10 @@ export const post = function(config){
   });
 }
 
-export const convertFormToJSON = function(form_id, multiple_option_fields){
-  let form_elements = $('#'+ form_id).serializeArray();
+export const convertFormToJSON = function(form, multiple_option_fields){
+  let form_elements = $(form).serializeArray();
   let details = {};
   for (var form_index=0; form_index < form_elements.length; form_index++) {
-    console.log("form elements", form_elements[form_index].name);
     if (form_elements[form_index].value) {
       if(multiple_option_fields.indexOf(form_elements[form_index].name) !== -1) {
         if(form_elements[form_index].name in details) {
