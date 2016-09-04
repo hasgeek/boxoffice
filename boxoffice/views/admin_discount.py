@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
+import datetime
 from flask import jsonify, make_response, request
 from .. import app, lastuser
 from coaster.views import load_models, render_with
 from ..models import db
-from boxoffice.models import Organization, DiscountPolicy, DiscountCoupon, ItemCollection, Item, Price, CURRENCY_SYMBOL, LineItem
+from boxoffice.models import Organization, DiscountPolicy, DISCOUNT_TYPE, DiscountCoupon, ItemCollection, Item, Price, CURRENCY_SYMBOL, LineItem
 from utils import xhr_only, date_time_format
 
 
@@ -83,9 +84,8 @@ def jsonify_discount_coupons(data_dict):
     )
 @render_with({'text/html': 'index.html', 'application/json': jsonify_discount_policies}, json=True)
 def admin_discount_policies(organization):
-    discount_policies = DiscountPolicy.query.filter(DiscountPolicy.organization == organization).all()
-    item_collection = ItemCollection.query.filter(ItemCollection.organization == organization).all()
-    return dict(title=organization.title, org=organization, discount_policies=discount_policies, item_collection=item_collection)
+    discount_policies = DiscountPolicy.query.filter(DiscountPolicy.organization == organization).order_by('created_at desc').all()
+    return dict(title=organization.title, org=organization, discount_policies=discount_policies)
 
 
 @app.route('/admin/o/<org>/discount_policy/new', methods=['OPTIONS', 'POST'])
@@ -96,6 +96,38 @@ def admin_discount_policies(organization):
     )
 @xhr_only
 def admin_add_discount_policy(organization):
+    title = request.json.get('title')
+    discount_type = int(request.json.get('discount_type'))
+    items = request.json.get('items')
+    if request.json.get('percentage'):
+        percentage = int(request.json.get('percentage'))
+        discount_policy = DiscountPolicy(title=title, discount_type=discount_type, percentage=percentage, organization=organization)
+        for item_id in items:
+            item = Item.query.get(item_id)
+            discount_policy.items.append(item)
+        db.session.add(discount_policy)
+        db.session.commit()
+    else:
+        if request.json.get('is_price_based'):
+            discount_policy = DiscountPolicy(title=title, discount_type=discount_type, is_price_based=True, organization=organization)
+            item = Item.query.get(items[0])
+            discount_policy.items.append(item)
+            db.session.add(discount_policy)
+            db.session.commit()
+            price_title = request.json.get('price_title')
+            start_datetime_string = request.json.get('start_at')
+            if start_datetime_string:
+                # Fix: Need to change it to utc
+                start_at = datetime.datetime.strptime(start_datetime_string, '%d %m %Y %H:%M:%S')
+            end_datetime_string = request.json.get('end_at')
+            if end_datetime_string:
+                # Fix: Need to change it to utc
+                end_at = datetime.datetime.strptime(end_datetime_string, '%d %m %Y %H:%M:%S')
+            amount = int(request.json.get('amount'))
+            item = Item.query.get(items[0])
+            discount_price = Price(item=item, discount_policy=discount_policy, title=price_title, start_at=start_at, end_at=end_at, amount=amount)
+            db.session.add(discount_price)
+            db.session.commit()
     return make_response(jsonify(status='ok', result={'message': 'New discount policy created'}), 201)
 
 
@@ -114,9 +146,9 @@ def admin_edit_discount_policy(discount_policy):
         discount_policy.title = request.json.get('title')
     if not discount_policy.is_price_based:
         if request.json.get('percentage'):
-            discount_policy.percentage = request.json.get('percentage')
+            discount_policy.percentage = int(request.json.get('percentage'))
     if discount_policy.is_automatic:
-        item_quantity_min = request.json.get('item_quantity_min')
+        item_quantity_min = int(request.json.get('item_quantity_min'))
         if item_quantity_min:
             if item_quantity_min >= 1:
                 discount_policy.item_quantity_min = item_quantity_min
@@ -127,7 +159,6 @@ def admin_edit_discount_policy(discount_policy):
         discount_policy.items = []
         for item_id in items:
             item = Item.query.get(item_id)
-            print item.title
             discount_policy.items.append(item)
     db.session.add(discount_policy)
     db.session.commit()

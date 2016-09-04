@@ -33,6 +33,20 @@ export const DiscountPolicyView = {
         },
         policyChange: function(event) {
           main_ractive.set('new_discount_policy.discount_type', event.node.value);
+        },
+        refresh: function(complete) {
+          NProgress.start();
+          DiscountPolicyModel.fetch({
+            url: DiscountPolicyModel.urlFor('index', {org_name: config.org_name})['path']
+          }).done((remoteData) => {
+            main_ractive.set('discount_policies', remoteData.discount_policies);
+            NProgress.done();
+            complete();
+          });
+        },
+        closeNewPolicyForm: function() {
+          main_ractive.set('new_discount_policy.creatingPolicy', false);
+          main_ractive.set('show_add_policy_form', false);
         }
       });
 
@@ -61,14 +75,6 @@ export const DiscountPolicyView = {
                 },
                 cache: true
             },
-            initSelection: function(element, callback) {
-              var id = $(element).val();
-              if (id !== "") {
-                $.ajax(OrgModel.urlFor('view_items', {org_name: main_ractive.get('org')})['path'] + "?search=" + id, {
-                    dataType: "json"
-                }).done(function(data) { callback(data); });
-              }
-            },
             formatResult: function(item) {
               var markup = '<p>' + item.title + '</p>';
               return markup;
@@ -84,9 +90,10 @@ export const DiscountPolicyView = {
             showDropdowns: true,
             timePicker: true,
             timePickerSeconds: true,
+            timePicker24Hour: true,
             opens: 'left',
             locale: {
-              format: 'DD/MM/YYYY h:mm:ss A'
+              format: 'DD MM YYYY h:mm:ss'
             }
           });
 
@@ -94,9 +101,11 @@ export const DiscountPolicyView = {
             singleDatePicker: true,
             showDropdowns: true,
             timePicker: true,
+            timePickerSeconds: true,
+            timePicker24Hour: true,
             opens: 'left',
             locale: {
-              format: 'DD/MM/YYYY h:mm:ss A'
+              format: 'DD MM YYYY h:mm:ss'
             }
           });
         }
@@ -119,16 +128,8 @@ export const DiscountPolicyView = {
               },
               cache: true
             },
-            initSelection: function(element, callback) {
-              var id = $(element).val();
-              if (id !== "") {
-                $.ajax(OrgModel.urlFor('view_items', {org_name: main_ractive.get('org')})['path'] + "?search=" + id, {
-                    dataType: "json"
-                }).done(function(data) { callback(data); });
-              }
-            },
             formatResult: function(item) {
-              var markup = '<p>' + item.title + '</p>';
+              let markup = '<p>' + item.title + '</p>';
               return markup;
             },
             formatSelection: function(item) {
@@ -155,23 +156,39 @@ export const DiscountPolicyView = {
         main_ractive.set('new_discount_policy.is_price_based', false);
       });
 
+      main_ractive.on('itemsChange', function(event) {
+        main_ractive.set('show_add_policy_form', false);
+        main_ractive.set('new_discount_policy.is_price_based', false);
+      });
+
       main_ractive.on('addNewPolicy', function(event) {
         event.original.preventDefault();
-        main_ractive.set(event.keypath + '.addingPolicy', true);
+        main_ractive.set('new_discount_policy.generate_policy_error', '');
+        main_ractive.set('new_discount_policy.creatingPolicy', true);
+        let new_policy_form = '#new-policy-form';
 
         DiscountPolicyModel.post({
-          url: DiscountPolicyModel.urlFor('new', {org_name: main_ractive.get('org')})['path']
+          url: DiscountPolicyModel.urlFor('new', {org_name: main_ractive.get('org')})['path'],
+          data: DiscountPolicyModel.convertFormToJSON(new_policy_form, ['items']),
+          contentType: 'application/json'
         }).done((remoteData) => {
-          main_ractive.set(event.keypath + '.show_add_policy_form', false);
+          main_ractive.refresh(main_ractive.closeNewPolicyForm);
         }).fail(function(response) {
-          main_ractive.set(event.keypath + '.addingPolicy', false);
-          main_ractive.set(event.keypath + '.add_policy_error', error_text);
+          main_ractive.set('new_discount_policy.creatingPolicy', false);
+          if (response.readyState === 4) {
+            error_msg = JSON.parse(response.responseText).message;
+          }
+          if (response.readyState === 0) {
+            error_msg = "Unable to connect. Please try again."
+          }
+          main_ractive.set('new_discount_policy.generate_policy_error', error_msg);
         });
 
       });
 
       main_ractive.on('editPolicyForm', function(event) {
         main_ractive.set(event.keypath + '.loadingEditForm', true);
+        let discount_policy_id = event.context.id;
 
         OrgModel.fetch({
           url: OrgModel.urlFor('view_items', {org_name: main_ractive.get('org')})['path']
@@ -186,6 +203,32 @@ export const DiscountPolicyView = {
         }).fail(function() {
           main_ractive.set(event.keypath + '.loadingEditForm', false);
         });
+
+        if (main_ractive.get(event.keypath + '.is_price_based')) {
+          $('#start_date_' + discount_policy_id).daterangepicker({
+            singleDatePicker: true,
+            showDropdowns: true,
+            timePicker: true,
+            timePickerSeconds: true,
+            timePicker24Hour: true,
+            opens: 'left',
+            locale: {
+              format: 'DD MM YYYY h:mm:ss'
+            }
+          });
+
+          $('#end_date_' + discount_policy_id).daterangepicker({
+            singleDatePicker: true,
+            showDropdowns: true,
+            timePicker: true,
+            timePickerSeconds: true,
+            timePicker24Hour: true,
+            opens: 'left',
+            locale: {
+              format: 'DD MM YYYY h:mm:ss'
+            }
+          });
+        }
 
       });
 
@@ -246,7 +289,7 @@ export const DiscountPolicyView = {
           contentType: 'application/json'
         }).done((remoteData) => {
           main_ractive.set(event.keypath + '.generatingCoupon', false);
-          if(main_ractive.get(event.keypath + '.coupons')) {
+          if (main_ractive.get(event.keypath + '.coupons')) {
             Array.prototype.push.apply(main_ractive.get(event.keypath + '.coupons'), remoteData.result.coupons);
           }
           else {

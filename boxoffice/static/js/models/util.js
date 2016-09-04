@@ -44,11 +44,12 @@ export const convertFormToJSON = function(form, multiple_option_fields){
   for (var form_index=0; form_index < form_elements.length; form_index++) {
     if (form_elements[form_index].value) {
       if(multiple_option_fields.indexOf(form_elements[form_index].name) !== -1) {
+        let values = form_elements[form_index].value.split(',');
         if(form_elements[form_index].name in details) {
-          details[form_elements[form_index].name].push(form_elements[form_index].value)
+          details[form_elements[form_index].name].concat(values)
         }
         else {
-          details[form_elements[form_index].name] = [].concat(form_elements[form_index].value);
+          details[form_elements[form_index].name] = [].concat(values);
         }
       }
       else {
