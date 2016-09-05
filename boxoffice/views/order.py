@@ -26,7 +26,7 @@ def jsonify_line_items(line_items):
     for line_item in line_items:
         item = Item.query.get(line_item.item_id)
         if not items_json.get(unicode(line_item.item_id)):
-            items_json[unicode(line_item.item_id)] = {'is_available': item.is_available(), 'quantity': 0, 'final_amount': Decimal(0), 'discounted_amount': Decimal(0), 'discount_policy_ids': []}
+            items_json[unicode(line_item.item_id)] = {'is_available': item.is_available, 'quantity': 0, 'final_amount': Decimal(0), 'discounted_amount': Decimal(0), 'discount_policy_ids': []}
         if line_item.base_amount is not None:
             items_json[unicode(line_item.item_id)]['base_amount'] = line_item.base_amount
             items_json[unicode(line_item.item_id)]['final_amount'] += line_item.base_amount - line_item.discounted_amount
@@ -162,7 +162,7 @@ def order(item_collection):
 
     for idx, line_item_tup in enumerate(line_item_tups):
         item = Item.query.get(line_item_tup.item_id)
-        if item.is_available():
+        if item.is_available:
             if line_item_tup.discount_policy_id:
                 policy = DiscountPolicy.query.get(line_item_tup.discount_policy_id)
             else:

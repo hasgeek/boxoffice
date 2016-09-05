@@ -90,6 +90,15 @@ def init_data():
         db.session.add(coupon1)
         db.session.commit()
 
+        discount_coupon_expired_ticket = DiscountPolicy(title='15% discount for expired ticket', item_quantity_min=1, percentage=15, organization=rootconf, discount_type=DISCOUNT_TYPE.COUPON)
+        discount_coupon_expired_ticket.items.append(expired_ticket)
+        db.session.add(discount_coupon_expired_ticket)
+        db.session.commit()
+
+        discount_coupon_expired_ticket_coupon = DiscountCoupon(code='couponex', discount_policy=discount_coupon_expired_ticket)
+        db.session.add(discount_coupon_expired_ticket_coupon)
+        db.session.commit()
+
         discount_coupon2 = DiscountPolicy(title='100% discount', item_quantity_min=1, percentage=100, organization=rootconf, discount_type=DISCOUNT_TYPE.COUPON)
         discount_coupon2.items.append(conf_ticket)
         db.session.add(discount_coupon1)

@@ -96,20 +96,22 @@ class LineItem(BaseMixin, db.Model):
         """
         item_line_items = {}
         line_items = []
+        coupon_list = list(set(coupons)) if coupons else []
+        discounter = LineItemDiscounter()
+
         for line_item_dict in line_item_dicts:
             item = Item.query.get(line_item_dict['item_id'])
             if not item_line_items.get(unicode(item.id)):
-                item_line_items[unicode(item.id)] = []
-            if item.is_available():
-                item_line_items[unicode(item.id)].append(make_ntuple(item_id=item.id,
-                    base_amount=item.current_price().amount))
-            else:
-                item_line_items[unicode(item.id)].append(make_ntuple(item_id=item.id, base_amount=None))
-        coupon_list = list(set(coupons)) if coupons else []
-        discounter = LineItemDiscounter()
+                item_line_items[unicode(item.id)] = {'line_items': [], 'is_available': item.is_available}
+            item_line_items[unicode(item.id)]['line_items'].append(make_ntuple(item_id=item.id,
+                base_amount=item.current_price().amount if item.is_available else None))
+
         for item_id in item_line_items.keys():
-            item_line_items[item_id] = discounter.get_discounted_line_items(item_line_items[item_id], coupon_list)
-            line_items.extend(item_line_items[item_id])
+            if item_line_items[item_id]['is_available']:
+                line_items.extend(discounter.get_discounted_line_items(item_line_items[item_id]['line_items'], coupon_list))
+            else:
+                line_items.extend(item_line_items[item_id]['line_items'])
+
         return line_items
 
     def confirm(self):
@@ -292,6 +294,10 @@ class LineItemDiscounter():
         return DiscountPolicy.get_from_item(item, len(line_items), coupons)
 
     def calculate_discounted_amount(self, discount_policy, line_item):
+        if line_item.base_amount is None:
+            # item has expired, no discount
+            return Decimal(0)
+
         if discount_policy.is_price_based:
             item = Item.query.get(line_item.item_id)
             discounted_price = item.discounted_price(discount_policy).amount

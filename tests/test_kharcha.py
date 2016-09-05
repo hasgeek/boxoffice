@@ -47,6 +47,19 @@ class TestKharchaAPI(unittest.TestCase):
         # Test that the price is None
         self.assertEquals(resp_json.get('line_items')[unicode(expired_ticket.id)].get('base_amount'), None)
 
+    def test_expired_discounted_item_kharcha(self):
+        expired_ticket = Item.query.filter_by(name='expired-ticket').first()
+        quantity = 2
+        coupon = DiscountCoupon.query.filter_by(code='couponex').first()
+        # import IPython; IPython.embed()
+        kharcha_req = {'line_items': [{'item_id': unicode(expired_ticket.id), 'quantity': quantity}], 'discount_coupons': [coupon.code]}
+        resp = self.client.post(url_for('kharcha'), data=json.dumps(kharcha_req), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
+
+        self.assertEquals(resp.status_code, 200)
+        resp_json = json.loads(resp.get_data())
+        # Test that the price is None
+        self.assertEquals(resp_json.get('line_items')[unicode(expired_ticket.id)].get('base_amount'), None)
+
     def test_discounted_bulk_kharcha(self):
         first_item = Item.query.filter_by(name='conference-ticket').first()
         discounted_quantity = 10
