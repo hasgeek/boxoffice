@@ -99,19 +99,17 @@ class LineItem(BaseMixin, db.Model):
         coupon_list = list(set(coupons)) if coupons else []
         discounter = LineItemDiscounter()
 
+        # make named tuples for line items,
+        # assign the base_amount for each of them, None if an item is unavailable
         for line_item_dict in line_item_dicts:
             item = Item.query.get(line_item_dict['item_id'])
             if not item_line_items.get(unicode(item.id)):
-                item_line_items[unicode(item.id)] = {'line_items': [], 'is_available': item.is_available}
-            item_line_items[unicode(item.id)]['line_items'].append(make_ntuple(item_id=item.id,
+                item_line_items[unicode(item.id)] = []
+            item_line_items[unicode(item.id)].append(make_ntuple(item_id=item.id,
                 base_amount=item.current_price().amount if item.is_available else None))
 
         for item_id in item_line_items.keys():
-            if item_line_items[item_id]['is_available']:
-                line_items.extend(discounter.get_discounted_line_items(item_line_items[item_id]['line_items'], coupon_list))
-            else:
-                # item isn't available, no need to calculate discounts
-                line_items.extend(item_line_items[item_id]['line_items'])
+            line_items.extend(discounter.get_discounted_line_items(item_line_items[item_id], coupon_list))
 
         return line_items
 
@@ -289,9 +287,13 @@ class LineItemDiscounter():
         selected and any coupons.
         """
         if not line_items:
-            return None
+            return []
 
         item = Item.query.get(line_items[0].item_id)
+        if not item.is_available:
+            # item unavailable, no discounts
+            return []
+
         return DiscountPolicy.get_from_item(item, len(line_items), coupons)
 
     def calculate_discounted_amount(self, discount_policy, line_item):
