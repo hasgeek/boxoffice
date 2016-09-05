@@ -110,6 +110,7 @@ class LineItem(BaseMixin, db.Model):
             if item_line_items[item_id]['is_available']:
                 line_items.extend(discounter.get_discounted_line_items(item_line_items[item_id]['line_items'], coupon_list))
             else:
+                # item isn't available, no need to calculate discounts
                 line_items.extend(item_line_items[item_id]['line_items'])
 
         return line_items
