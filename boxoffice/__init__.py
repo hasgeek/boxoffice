@@ -27,8 +27,8 @@ assets['boxoffice.js'][version] = 'js/scripts.js'
 
 
 from . import extapi, views  # noqa
-from boxoffice.models import db, User, Item, Price, DiscountPolicy, DiscountCoupon, ItemCollection, Organization  # noqa
-from siteadmin import ItemCollectionModelView, ItemModelView, PriceModelView, DiscountPolicyModelView, DiscountCouponModelView, OrganizationModelView  # noqa
+from boxoffice.models import db, User, Item, Price, DiscountPolicy, DiscountCoupon, ItemCollection, Organization, Category  # noqa
+from siteadmin import ItemCollectionModelView, ItemModelView, PriceModelView, DiscountPolicyModelView, DiscountCouponModelView, OrganizationModelView, CategoryModelView  # noqa
 
 
 # Configure the app
@@ -53,6 +53,7 @@ def init_for(env):
         admin = Admin(app, name='Boxoffice Admin', template_mode='bootstrap3', url='/siteadmin')
         admin.add_view(OrganizationModelView(Organization, db.session))
         admin.add_view(ItemCollectionModelView(ItemCollection, db.session))
+        admin.add_view(CategoryModelView(Category, db.session))
         admin.add_view(ItemModelView(Item, db.session))
         admin.add_view(PriceModelView(Price, db.session))
         admin.add_view(DiscountPolicyModelView(DiscountPolicy, db.session))
