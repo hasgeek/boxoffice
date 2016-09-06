@@ -62,6 +62,7 @@ class Order(BaseMixin, db.Model):
     buyer_phone = db.Column(db.Unicode(16), nullable=False)
 
     invoice_no = db.Column(db.Integer, nullable=True)
+    utm_campaign = db.Column(db.Unicode(80), nullable=True)
 
     def permissions(self, user, inherited=None):
         perms = super(Order, self).permissions(user, inherited)

@@ -11,7 +11,7 @@ from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPol
 from ..models import Order, OnlinePayment, PaymentTransaction, User, CURRENCY, ORDER_STATUS
 from ..models.payment import TRANSACTION_TYPE
 from ..extapi import razorpay, RAZORPAY_PAYMENT_STATUS
-from ..forms import LineItemForm, BuyerForm
+from ..forms import LineItemForm, BuyerForm, OrderForm
 from custom_exceptions import PaymentGatewayError
 from boxoffice.mailclient import send_receipt_mail, send_line_item_cancellation_mail
 from utils import xhr_only, cors, date_format
@@ -149,12 +149,15 @@ def order(item_collection):
                     message=invalid_quantity_error_msg.format(item=item.title)), 400)
 
     user = User.query.filter_by(email=buyer_form.email.data).first()
+    order_form = OrderForm.from_json(request.json.get('order'))
+    utm_campaign = order_form.utm_campaign.data if order_form.utm_campaign.data else None
     order = Order(user=user,
         organization=item_collection.organization,
         item_collection=item_collection,
         buyer_email=buyer_form.email.data,
         buyer_fullname=buyer_form.fullname.data,
-        buyer_phone=buyer_form.phone.data)
+        buyer_phone=buyer_form.phone.data,
+        utm_campaign=utm_campaign)
 
     line_item_tups = LineItem.calculate([{'item_id': li_form.data.get('item_id')}
         for li_form in line_item_forms

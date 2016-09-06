@@ -68,6 +68,19 @@ $(function() {
     });
   };
 
+  boxoffice.util.getUTMCampaignCode = function(){
+    // Returns the value for the utm_campaign parameter
+    var paramSplit;
+    var utm_campaign = '';
+    var query_params = boxoffice.util.getQueryParams().forEach(function(param){
+      paramSplit = param.split('=');
+      if (paramSplit[0] === 'utm_campaign') {
+        utm_campaign = paramSplit[1];
+      }
+    });
+    return utm_campaign;
+  }
+
   boxoffice.util.formatDateTime = function(valid_upto) {
     // Returns date in the format 00:00:00 AM, Sun Apr 10 2016
     var date = new Date(valid_upto);
@@ -500,6 +513,9 @@ $(function() {
                   quantity: line_item.quantity
                 };
               }),
+              order: {
+                utm_campaign: boxoffice.util.getUTMCampaignCode()
+              },
               discount_coupons: boxoffice.util.getDiscountCodes()
             }),
             timeout: 5000,
