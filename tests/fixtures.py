@@ -39,6 +39,10 @@ def init_data():
         rc2016.items.append(conf_ticket)
         db.session.commit()
 
+        expired_ticket = Item(title='Expired ticket', description='<p><i class="fa fa-calendar"></i>14 - 15 April 2016</p><p><i class="fa fa-map-marker ticket-venue"></i>MLR Convention Center, JP Nagar</p><p>This ticket gets you access to rootconf conference on 14th and 15th April 2016.</p>', item_collection=rc2016, category=Category.query.filter_by(name='conference').first(), quantity_total=1000)
+        rc2016.items.append(expired_ticket)
+        db.session.commit()
+
         price = Price(item=conf_ticket, title='Super Early Geek', start_at=datetime.utcnow(), end_at=one_month_from_now, amount=3500)
         db.session.add(price)
         db.session.commit()
@@ -84,6 +88,15 @@ def init_data():
 
         coupon1 = DiscountCoupon(code='coupon1', discount_policy=discount_coupon1)
         db.session.add(coupon1)
+        db.session.commit()
+
+        discount_coupon_expired_ticket = DiscountPolicy(title='15% discount for expired ticket', item_quantity_min=1, percentage=15, organization=rootconf, discount_type=DISCOUNT_TYPE.COUPON)
+        discount_coupon_expired_ticket.items.append(expired_ticket)
+        db.session.add(discount_coupon_expired_ticket)
+        db.session.commit()
+
+        discount_coupon_expired_ticket_coupon = DiscountCoupon(code='couponex', discount_policy=discount_coupon_expired_ticket)
+        db.session.add(discount_coupon_expired_ticket_coupon)
         db.session.commit()
 
         discount_coupon2 = DiscountPolicy(title='100% discount', item_quantity_min=1, percentage=100, organization=rootconf, discount_type=DISCOUNT_TYPE.COUPON)

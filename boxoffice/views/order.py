@@ -26,11 +26,14 @@ def jsonify_line_items(line_items):
     for line_item in line_items:
         item = Item.query.get(line_item.item_id)
         if not items_json.get(unicode(line_item.item_id)):
-            items_json[unicode(line_item.item_id)] = {'quantity': 0, 'final_amount': Decimal(0), 'discounted_amount': Decimal(0), 'discount_policy_ids': []}
-        if not items_json[unicode(line_item.item_id)].get('final_amount'):
-            items_json[unicode(line_item.item_id)]['final_amount'] = Decimal(0)
-        items_json[unicode(line_item.item_id)]['final_amount'] += line_item.base_amount - line_item.discounted_amount
-        items_json[unicode(line_item.item_id)]['discounted_amount'] += line_item.discounted_amount
+            items_json[unicode(line_item.item_id)] = {'is_available': item.is_available, 'quantity': 0, 'final_amount': Decimal(0), 'discounted_amount': Decimal(0), 'discount_policy_ids': []}
+        if line_item.base_amount is not None:
+            items_json[unicode(line_item.item_id)]['base_amount'] = line_item.base_amount
+            items_json[unicode(line_item.item_id)]['final_amount'] += line_item.base_amount - line_item.discounted_amount
+            items_json[unicode(line_item.item_id)]['discounted_amount'] += line_item.discounted_amount
+        else:
+            items_json[unicode(line_item.item_id)]['final_amount'] = None
+            items_json[unicode(line_item.item_id)]['discounted_amount'] = None
         items_json[unicode(line_item.item_id)]['quantity'] += 1
         items_json[unicode(line_item.item_id)]['quantity_available'] = item.quantity_available
         if line_item.discount_policy_id and line_item.discount_policy_id not in items_json[unicode(line_item.item_id)]['discount_policy_ids']:
@@ -99,7 +102,7 @@ def kharcha():
         for li_form in line_item_forms
             for x in range(li_form.data.get('quantity'))], coupons=sanitize_coupons(request.json.get('discount_coupons')))
     items_json = jsonify_line_items(line_items)
-    order_final_amount = sum([values['final_amount'] for values in items_json.values()])
+    order_final_amount = sum([values['final_amount'] for values in items_json.values() if values['final_amount'] is not None])
     return jsonify(line_items=items_json, order={'final_amount': order_final_amount})
 
 
@@ -159,23 +162,27 @@ def order(item_collection):
 
     for idx, line_item_tup in enumerate(line_item_tups):
         item = Item.query.get(line_item_tup.item_id)
-        if line_item_tup.discount_policy_id:
-            policy = DiscountPolicy.query.get(line_item_tup.discount_policy_id)
-        else:
-            policy = None
-        if line_item_tup.discount_coupon_id:
-            coupon = DiscountCoupon.query.get(line_item_tup.discount_coupon_id)
-        else:
-            coupon = None
+        if item.is_available:
+            if line_item_tup.discount_policy_id:
+                policy = DiscountPolicy.query.get(line_item_tup.discount_policy_id)
+            else:
+                policy = None
+            if line_item_tup.discount_coupon_id:
+                coupon = DiscountCoupon.query.get(line_item_tup.discount_coupon_id)
+            else:
+                coupon = None
 
-        line_item = LineItem(order=order, item=item, discount_policy=policy,
-            line_item_seq=idx+1,
-            discount_coupon=coupon,
-            ordered_at=datetime.utcnow(),
-            base_amount=line_item_tup.base_amount,
-            discounted_amount=line_item_tup.discounted_amount,
-            final_amount=line_item_tup.base_amount-line_item_tup.discounted_amount)
-        db.session.add(line_item)
+            line_item = LineItem(order=order, item=item, discount_policy=policy,
+                line_item_seq=idx+1,
+                discount_coupon=coupon,
+                ordered_at=datetime.utcnow(),
+                base_amount=line_item_tup.base_amount,
+                discounted_amount=line_item_tup.discounted_amount,
+                final_amount=line_item_tup.base_amount-line_item_tup.discounted_amount)
+            db.session.add(line_item)
+        else:
+            return make_response(jsonify(error_type='order_calculation',
+                message=_(u'‘{item}’ is no longer available.').format(item=item.title)), 400)
 
     db.session.add(order)
     db.session.commit()
@@ -240,8 +247,7 @@ def payment(order):
         online_payment.confirm()
         db.session.add(online_payment)
         # Only INR is supported as of now
-        transaction = PaymentTransaction(order=order, online_payment=online_payment,
-            amount=order_amounts.final_amount, currency=CURRENCY.INR)
+        transaction = PaymentTransaction(order=order, online_payment=online_payment, amount=order_amounts.final_amount, currency=CURRENCY.INR)
         db.session.add(transaction)
         order.confirm_sale()
         db.session.add(order)
