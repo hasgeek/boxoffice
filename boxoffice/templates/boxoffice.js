@@ -71,7 +71,7 @@ $(function() {
   boxoffice.util.getUtmHeaders = function(param){
     /*
     Checks for utm_* headers and returns a hash with the headers set to values
-    if a header occurs more than once, the values are joined into a comma-separated single string
+    if a header occurs more than once, the values are joined to form a single comma-separated string
     */
     var utm_headers = ['utm_campaign', 'utm_source', 'utm_medium', 'utm_id', 'utm_content', 'utm_term', 'gclid'];
     var query_params = Boxoffice.util.getQueryParams();
