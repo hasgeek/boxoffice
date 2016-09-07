@@ -68,17 +68,26 @@ $(function() {
     });
   };
 
-  boxoffice.util.getUTMCampaignCode = function(){
-    // Returns the value for the utm_campaign parameter
-    var paramSplit;
-    var utm_campaign = '';
-    var query_params = boxoffice.util.getQueryParams().forEach(function(param){
-      paramSplit = param.split('=');
-      if (paramSplit[0] === 'utm_campaign') {
-        utm_campaign = paramSplit[1];
+  boxoffice.util.getUtmHeaders = function(param){
+    /*
+    Checks for utm_* headers and returns a hash with the headers set to values
+    if a header occurs more than once, the values are joined into a comma-separated single string
+    */
+    var utm_headers = ['utm_campaign', 'utm_source', 'utm_medium', 'utm_id', 'utm_content', 'utm_term', 'gclid'];
+    var query_params = Boxoffice.util.getQueryParams();
+    var utm_values = {};
+    var param;
+    query_params.forEach(function(query_param){
+      param = query_param.split('=')[0];
+      if (utm_headers.indexOf(param) > -1) {
+        if (param in utm_values) {
+          utm_values[param] += ',' + query_param.split('=')[1];
+        } else {
+          utm_values[param] = query_param.split('=')[1];
+        }
       }
     });
-    return utm_campaign;
+    return utm_values;
   }
 
   boxoffice.util.formatDateTime = function(valid_upto) {
@@ -513,7 +522,7 @@ $(function() {
                   quantity: line_item.quantity
                 };
               }),
-              order: {
+              order_session: {
                 utm_campaign: boxoffice.util.getUTMCampaignCode()
               },
               discount_coupons: boxoffice.util.getDiscountCodes()

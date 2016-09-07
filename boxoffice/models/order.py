@@ -8,7 +8,7 @@ from boxoffice.models import db, BaseMixin, User
 from coaster.utils import LabeledEnum, buid
 from baseframe import __
 
-__all__ = ['Order', 'ORDER_STATUS']
+__all__ = ['Order', 'ORDER_STATUS', 'OrderSession']
 
 
 class ORDER_STATUS(LabeledEnum):
@@ -62,7 +62,6 @@ class Order(BaseMixin, db.Model):
     buyer_phone = db.Column(db.Unicode(16), nullable=False)
 
     invoice_no = db.Column(db.Integer, nullable=True)
-    utm_campaign = db.Column(db.Unicode(80), nullable=True)
 
     def permissions(self, user, inherited=None):
         perms = super(Order, self).permissions(user, inherited)
@@ -115,3 +114,26 @@ class Order(BaseMixin, db.Model):
             if not line_item.current_assignee:
                 return False
         return True
+
+
+class OrderSession(BaseMixin, db.Model):
+    """
+    Records the referrer and utm headers for an order
+    """
+    __tablename__ = 'order_session'
+    __uuid_primary_key__ = True
+
+    customer_order_id = db.Column(None, db.ForeignKey('customer_order.id'), nullable=False, index=True, unique=False)
+    order = db.relationship(Order, backref=db.backref('session', cascade='all, delete-orphan', uselist=False))
+
+    referrer = db.Column(db.Unicode(2083), nullable=True)
+
+    # Google Analytics parameters
+    utm_source = db.Column(db.Unicode(250), nullable=False, default=u'')
+    utm_medium = db.Column(db.Unicode(250), nullable=False, default=u'')
+    utm_term = db.Column(db.Unicode(250), nullable=False, default=u'')
+    utm_content = db.Column(db.Unicode(250), nullable=False, default=u'')
+    utm_id = db.Column(db.Unicode(250), nullable=False, default=u'')
+    utm_campaign = db.Column(db.Unicode(250), nullable=False, default=u'')
+    # Google click id (for AdWords)
+    gclid = db.Column(db.Unicode(250), nullable=False, default=u'')

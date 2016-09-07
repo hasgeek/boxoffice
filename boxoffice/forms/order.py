@@ -4,7 +4,7 @@ from baseframe import __
 import baseframe.forms as forms
 
 
-__all__ = ['LineItemForm', 'BuyerForm', 'OrderForm']
+__all__ = ['LineItemForm', 'BuyerForm', 'OrderSessionForm']
 
 
 class LineItemForm(forms.Form):
@@ -37,5 +37,11 @@ class BuyerForm(forms.Form):
     phone = forms.StringField(__("Phone number"), validators=[forms.validators.Length(max=16)])
 
 
-class OrderForm(forms.Form):
-    utm_campaign = forms.StringField(__("UTM Campaign"), validators=[forms.validators.Length(max=80)])
+class OrderSessionForm(forms.Form):
+    utm_campaign = forms.StringField(__("UTM Campaign"))
+    utm_source = forms.StringField(__("UTM Source"))
+    utm_medium = forms.StringField(__("UTM Medium"))
+    utm_term = forms.StringField(__("UTM Term"))
+    utm_content = forms.StringField(__("UTM Content"))
+    utm_id = forms.StringField(__("UTM Id"))
+    gclid = forms.StringField(__("Gclid"))

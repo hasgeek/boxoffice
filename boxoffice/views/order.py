@@ -4,14 +4,15 @@ from datetime import datetime
 from decimal import Decimal
 from flask import url_for, request, jsonify, render_template, make_response, abort
 from coaster.views import render_with, load_models
+from coaster.utils import unicode_http_header
 from baseframe import _
 from .. import app, lastuser
 from ..models import db
-from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy
+from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy, OrderSession
 from ..models import Order, OnlinePayment, PaymentTransaction, User, CURRENCY, ORDER_STATUS
 from ..models.payment import TRANSACTION_TYPE
 from ..extapi import razorpay, RAZORPAY_PAYMENT_STATUS
-from ..forms import LineItemForm, BuyerForm, OrderForm
+from ..forms import LineItemForm, BuyerForm, OrderSessionForm
 from custom_exceptions import PaymentGatewayError
 from boxoffice.mailclient import send_receipt_mail, send_line_item_cancellation_mail
 from utils import xhr_only, cors, date_format
@@ -149,15 +150,17 @@ def order(item_collection):
                     message=invalid_quantity_error_msg.format(item=item.title)), 400)
 
     user = User.query.filter_by(email=buyer_form.email.data).first()
-    order_form = OrderForm.from_json(request.json.get('order'))
-    utm_campaign = order_form.utm_campaign.data if order_form.utm_campaign.data else None
+    order_session_form = OrderSessionForm.from_json(request.json.get('order_session'))
     order = Order(user=user,
         organization=item_collection.organization,
         item_collection=item_collection,
         buyer_email=buyer_form.email.data,
         buyer_fullname=buyer_form.fullname.data,
-        buyer_phone=buyer_form.phone.data,
-        utm_campaign=utm_campaign)
+        buyer_phone=buyer_form.phone.data)
+
+    order_session = OrderSession(**order_session_form.data)
+    order_session.order = order
+    order_session.referrer = unicode_http_header(request.referrer)[:2083] if request.referrer else None
 
     line_item_tups = LineItem.calculate([{'item_id': li_form.data.get('item_id')}
         for li_form in line_item_forms
@@ -188,6 +191,7 @@ def order(item_collection):
                 message=_(u'‘{item}’ is no longer available.').format(item=item.title)), 400)
 
     db.session.add(order)
+    db.session.add(order_session)
     db.session.commit()
     return make_response(jsonify(order_id=order.id,
         order_access_token=order.access_token,
