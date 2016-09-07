@@ -159,8 +159,10 @@ def order(item_collection):
         buyer_phone=buyer_form.phone.data)
 
     order_session = OrderSession(**order_session_form.data)
-    order_session.order = order
-    order_session.referrer = unicode_http_header(request.referrer)[:2083] if request.referrer else None
+    if order_session.utm_campaign:
+        order_session.order = order
+        order_session.referrer = unicode_http_header(request.referrer)[:2083] if request.referrer else None
+        db.session.add(order_session)
 
     line_item_tups = LineItem.calculate([{'item_id': li_form.data.get('item_id')}
         for li_form in line_item_forms
@@ -191,7 +193,6 @@ def order(item_collection):
                 message=_(u'‘{item}’ is no longer available.').format(item=item.title)), 400)
 
     db.session.add(order)
-    db.session.add(order_session)
     db.session.commit()
     return make_response(jsonify(order_id=order.id,
         order_access_token=order.access_token,

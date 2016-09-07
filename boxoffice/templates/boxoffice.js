@@ -522,9 +522,7 @@ $(function() {
                   quantity: line_item.quantity
                 };
               }),
-              order_session: {
-                utm_campaign: boxoffice.util.getUTMCampaignCode()
-              },
+              order_session: boxoffice.util.getUtmHeaders(),
               discount_coupons: boxoffice.util.getDiscountCodes()
             }),
             timeout: 5000,
