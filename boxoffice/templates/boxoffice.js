@@ -70,20 +70,22 @@ $(function() {
 
   boxoffice.util.getUtmHeaders = function(param){
     /*
-    Checks for utm_* headers and returns a hash with the headers set to values
-    if a header occurs more than once, the values are joined to form a single comma-separated string
+    Checks for utm_* headers and returns a hash with the headers set to values.
+    If a header occurs more than once, the values are joined to form a single comma-separated string
     */
     var utm_headers = ['utm_campaign', 'utm_source', 'utm_medium', 'utm_id', 'utm_content', 'utm_term', 'gclid'];
-    var query_params = Boxoffice.util.getQueryParams();
+    var query_params = boxoffice.util.getQueryParams();
     var utm_values = {};
     var param;
     query_params.forEach(function(query_param){
       param = query_param.split('=')[0];
       if (utm_headers.indexOf(param) > -1) {
-        if (param in utm_values) {
-          utm_values[param] += ',' + query_param.split('=')[1];
-        } else {
+        if (!(param in utm_values)) {
+          // initialize the utm header
           utm_values[param] = query_param.split('=')[1];
+        } else {
+          // append the value to form a comma-separated string
+          utm_values[param] += ',' + query_param.split('=')[1];
         }
       }
     });
