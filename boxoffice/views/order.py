@@ -4,7 +4,6 @@ from datetime import datetime
 from decimal import Decimal
 from flask import url_for, request, jsonify, render_template, make_response, abort
 from coaster.views import render_with, load_models
-from coaster.utils import unicode_http_header
 from baseframe import _
 from .. import app, lastuser
 from ..models import db
@@ -188,7 +187,6 @@ def order(item_collection):
     db.session.add(order)
 
     order_session_form = OrderSessionForm.from_json(request.json.get('order_session'))
-    order_session_form.referrer.data = unicode_http_header(request.referrer)
     order_session_form.csrf_enabled = False
     if order_session_form.validate():
         order_session = OrderSession(order=order)

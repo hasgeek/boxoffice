@@ -89,6 +89,7 @@ $(function() {
         }
       }
     });
+    utm_values['referrer'] = document.referrer;
     return utm_values;
   }
 
