@@ -304,10 +304,11 @@ def jsonify_orders(orders):
 
     for order in orders:
         order_dict = {'invoice_no': order.invoice_no, 'line_items': []}
-        for line_item in order.get_confirmed_line_items:
+        for line_item in order.line_items:
             order_dict['line_items'].append({
                 'assignee': format_assignee(line_item),
                 'line_item_seq': line_item.line_item_seq,
+                'line_item_status': u"confirmed" if line_item.is_confirmed else u"cancelled",
                 'item': {
                     'title': line_item.item.title
                 }
