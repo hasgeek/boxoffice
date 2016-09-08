@@ -2,6 +2,7 @@
 
 from baseframe import __
 import baseframe.forms as forms
+from baseframe.forms import ValidationError
 
 
 __all__ = ['LineItemForm', 'BuyerForm', 'OrderSessionForm']
@@ -45,3 +46,7 @@ class OrderSessionForm(forms.Form):
     utm_content = forms.StringField(__("UTM Content"))
     utm_id = forms.StringField(__("UTM Id"))
     gclid = forms.StringField(__("Gclid"))
+
+    def validate_utm_campaign(form, field):
+        if not form.utm_campaign.data and (form.utm_source.data or form.utm_medium.data or form.utm_term.data or form.utm_content.data or form.utm_id.data or form.gclid.data):
+            raise ValidationError('utm_campaign is missing')
