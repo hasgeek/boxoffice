@@ -39,14 +39,11 @@ class BuyerForm(forms.Form):
 
 
 class OrderSessionForm(forms.Form):
-    utm_campaign = forms.StringField(__("UTM Campaign"))
-    utm_source = forms.StringField(__("UTM Source"))
-    utm_medium = forms.StringField(__("UTM Medium"))
-    utm_term = forms.StringField(__("UTM Term"))
-    utm_content = forms.StringField(__("UTM Content"))
-    utm_id = forms.StringField(__("UTM Id"))
-    gclid = forms.StringField(__("Gclid"))
-
-    def validate_utm_campaign(form, field):
-        if not form.utm_campaign.data and (form.utm_source.data or form.utm_medium.data or form.utm_term.data or form.utm_content.data or form.utm_id.data or form.gclid.data):
-            raise ValidationError('utm_campaign is missing')
+    utm_campaign = forms.StringField(__("UTM Campaign"), validators=[forms.validators.DataRequired(), forms.validators.Length(max=250)])
+    utm_source = forms.StringField(__("UTM Source"), validators=[forms.validators.Length(max=250)])
+    utm_medium = forms.StringField(__("UTM Medium"), validators=[forms.validators.Length(max=250)])
+    utm_term = forms.StringField(__("UTM Term"), validators=[forms.validators.Length(max=250)])
+    utm_content = forms.StringField(__("UTM Content"), validators=[forms.validators.Length(max=250)])
+    utm_id = forms.StringField(__("UTM Id"), validators=[forms.validators.Length(max=250)])
+    gclid = forms.StringField(__("Gclid"), validators=[forms.validators.Length(max=250)])
+    referrer = forms.StringField(__("Referrer"), validators=[forms.validators.Length(max=2083)])
