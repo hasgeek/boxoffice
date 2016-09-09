@@ -27,7 +27,7 @@ export const OrderTemplate = `
               <th data-hide="phone, tablet, desktop, largescreen" data-type="numeric">Date</th>
               <th data-hide="phone, tablet, desktop, largescreen">Order id</th>
               <th data-hide="phone, tablet, desktop, largescreen">Transaction status</th>
-              <th data-sort-ignore="true">View</th>
+              <th data-sort-ignore="true"  data-hide="phone">View</th>
               <th data-hide="phone, tablet, desktop, largescreen" data-sort-ignore="true">Details</th>
             </tr>
           </thead>
@@ -51,7 +51,7 @@ export const OrderTemplate = `
                   {{/if}}
                 </p>
               </td>
-              <td><p class="table-content"><a class="boxoffice-button boxoffice-button-info orders-sm-btn" href="javascript:void(0)" on-click="showOrder">Line Items</a></p></td>
+              <td><p class="table-content"><a class="boxoffice-button boxoffice-button-info" href="javascript:void(0)" on-click="showOrder">Line Items</a></p></td>
               <td>
                 <p class="table-content">
                   <a class="boxoffice-button boxoffice-button-small boxoffice-button-info orders-btn" href={{ receipt }} target="_blank" >View Receipt</a>
