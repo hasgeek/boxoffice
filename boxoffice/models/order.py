@@ -129,11 +129,11 @@ class OrderSession(BaseMixin, db.Model):
     referrer = db.Column(db.Unicode(2083), nullable=True)
 
     # Google Analytics parameters
-    utm_source = db.Column(db.Unicode(250), nullable=False, default=u'')
-    utm_medium = db.Column(db.Unicode(250), nullable=False, default=u'')
+    utm_source = db.Column(db.Unicode(250), nullable=False, default=u'', index=True)
+    utm_medium = db.Column(db.Unicode(250), nullable=False, default=u'', index=True)
     utm_term = db.Column(db.Unicode(250), nullable=False, default=u'')
     utm_content = db.Column(db.Unicode(250), nullable=False, default=u'')
-    utm_id = db.Column(db.Unicode(250), nullable=False, default=u'')
-    utm_campaign = db.Column(db.Unicode(250), nullable=False, default=u'')
+    utm_id = db.Column(db.Unicode(250), nullable=False, default=u'', index=True)
+    utm_campaign = db.Column(db.Unicode(250), nullable=False, default=u'', index=True)
     # Google click id (for AdWords)
-    gclid = db.Column(db.Unicode(250), nullable=False, default=u'')
+    gclid = db.Column(db.Unicode(250), nullable=False, default=u'', index=True)
