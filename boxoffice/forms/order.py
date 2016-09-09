@@ -2,7 +2,6 @@
 
 from baseframe import __
 import baseframe.forms as forms
-from baseframe.forms import ValidationError
 
 
 __all__ = ['LineItemForm', 'BuyerForm', 'OrderSessionForm']
