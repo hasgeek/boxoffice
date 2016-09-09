@@ -17,7 +17,7 @@ import sqlalchemy_utils
 
 def upgrade():
     op.create_table('order_session',
-    sa.Column('created_at', sa.DateTime(), nullable=False),
+        sa.Column('created_at', sa.DateTime(), nullable=False),
         sa.Column('updated_at', sa.DateTime(), nullable=False),
         sa.Column('customer_order_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
         sa.Column('referrer', sa.Unicode(length=2083), nullable=True),
