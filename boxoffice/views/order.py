@@ -186,12 +186,13 @@ def order(item_collection):
 
     db.session.add(order)
 
-    order_session_form = OrderSessionForm.from_json(request.json.get('order_session'))
-    order_session_form.csrf_enabled = False
-    if order_session_form.validate():
-        order_session = OrderSession(order=order)
-        order_session_form.populate_obj(order_session)
-        db.session.add(order_session)
+    if request.json.get('order_session'):
+        order_session_form = OrderSessionForm.from_json(request.json.get('order_session'))
+        order_session_form.csrf_enabled = False
+        if order_session_form.validate():
+            order_session = OrderSession(order=order)
+            order_session_form.populate_obj(order_session)
+            db.session.add(order_session)
 
     db.session.commit()
 
