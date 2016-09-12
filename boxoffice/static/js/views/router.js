@@ -3,6 +3,7 @@ import {IndexView} from './index.js';
 import {OrgView} from './org.js';
 import {ItemCollectionView} from './item_collection.js';
 import {OrderView} from './admin_order.js';
+import {ReportView} from './admin_report.js';
 
 export const Router = Backbone.Router.extend({
   url_root: '/admin/',
@@ -10,7 +11,8 @@ export const Router = Backbone.Router.extend({
     "": "index",
     "o/:org": "org",
     "ic/:icId": "item_collection",
-    "ic/:icId/orders": "order"
+    "ic/:icId/orders": "order",
+    "ic/:icId/reports": "report"
   },
   index: function() {
     IndexView.render();
@@ -23,5 +25,8 @@ export const Router = Backbone.Router.extend({
   },
   order: function(icId){
     OrderView.render({id: icId});
+  },
+  report: function(icId){
+    ReportView.render({id: icId});
   }
 });
