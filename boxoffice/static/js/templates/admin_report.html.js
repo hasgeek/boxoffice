@@ -12,7 +12,7 @@ export const ReportTemplate = `
             <div class="group-select">
               <p class="field-title filled">Report type</p>
               <select name="type" value="{{report_type}}">
-                <option value="orders">Orders</option>
+                <option value="attendees">Attendees</option>
               </select>
             </div>
             <div class="btn-wrapper"> 
