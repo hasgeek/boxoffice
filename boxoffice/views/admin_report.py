@@ -31,8 +31,9 @@ def admin_assignee_report(item_collection):
     line_item_join = db.outerjoin(LineItem, Assignee).join(Item).join(Order)
     line_item_stmt = db.select([LineItem.id, Item.title, Order.buyer_fullname, Order.buyer_email, Order.buyer_phone, Assignee.fullname, Assignee.email, Assignee.phone, Assignee.details]).select_from(line_item_join).where(LineItem.status == LINE_ITEM_STATUS.CONFIRMED).where(Assignee.current == True).where(Order.item_collection == item_collection).order_by('created_at')
     records = db.session.execute(line_item_stmt).fetchall()
+    headers = [['line item id', 'item title', 'buyer fullname', 'buyer email', 'buyer phone', 'attendee fullname', 'attendee email', 'attendee phone', 'attendee details']]
 
     def generate():
-        for row in records:
+        for row in headers + records:
             yield ','.join([unicode(attr) for attr in row]) + '\n'
     return Response(generate(), mimetype='text/csv')
