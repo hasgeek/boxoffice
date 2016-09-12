@@ -13,7 +13,7 @@ def trim(length):
     field = forms.StringField(__("Some field"), filters=[trim(25)])
     """
     def _inner(data):
-        return data[0:length]
+        return unicode(data[0:length])
     return _inner
 
 
