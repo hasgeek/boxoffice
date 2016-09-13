@@ -303,11 +303,14 @@ class LineItemDiscounter():
 
         if discount_policy.is_price_based:
             item = Item.query.get(line_item.item_id)
-            discounted_price = item.discounted_price(discount_policy).amount
-            if discounted_price >= line_item.base_amount:
+            discounted_price = item.discounted_price(discount_policy)
+            if discounted_price is None:
+                # no discounted price
+                return Decimal(0)
+            if discounted_price.amount >= line_item.base_amount:
                 # No discount, base_amount is cheaper
                 return Decimal(0)
-            return line_item.base_amount - discounted_price
+            return line_item.base_amount - discounted_price.amount
         return (discount_policy.percentage * line_item.base_amount/Decimal(100))
 
     def is_coupon_usable(self, coupon, applied_to_count):
