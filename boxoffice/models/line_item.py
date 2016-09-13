@@ -141,6 +141,10 @@ class LineItem(BaseMixin, db.Model):
         return self.is_confirmed and (datetime.datetime.now() < self.item.cancellable_until
             if self.item.cancellable_until else True)
 
+    def is_transferrable(self):
+        return self.is_confirmed and (datetime.datetime.now() < self.item.transferrable_until
+            if self.item.transferrable_until else True)
+
 
 def get_availability(cls, item_ids):
     """Returns a dict -> {'item_id': ('item title', 'quantity_total', 'line_item_count')}"""
