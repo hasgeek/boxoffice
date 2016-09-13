@@ -35,6 +35,46 @@ class TestOrder(unittest.TestCase):
         # 3500*2 = 7000
         self.assertEquals(data['final_amount'], 7000)
 
+    def test_basic_with_utm_headers(self):
+        item = Item.query.filter_by(name='conference-ticket').first()
+        utm_campaign = 'campaign'
+        utm_medium = 'medium'
+        utm_source = 'source'
+        utm_term = 'term'
+        utm_content = 'content'
+        utm_id = 'id'
+        gclid = 'gclid'
+        data = {
+            'line_items': [{'item_id': unicode(item.id), 'quantity': 2}],
+            'buyer': {
+                'fullname': 'Testing',
+                'phone': '9814141414',
+                'email': 'test@hasgeek.com',
+                },
+            'order_session': {
+                'utm_campaign': utm_campaign,
+                'utm_medium': utm_medium,
+                'utm_source': utm_source,
+                'utm_term': utm_term,
+                'utm_content': utm_content,
+                'utm_id': utm_id,
+                'gclid': gclid
+            }
+            }
+        ic = ItemCollection.query.first()
+        resp = self.client.post('/ic/{ic}/order'.format(ic=ic.id), data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
+        data = json.loads(resp.data)
+        self.assertEquals(resp.status_code, 201)
+        order = Order.query.get(data.get('order_id'))
+        order_session = order.session
+        self.assertEquals(order_session.utm_campaign, utm_campaign)
+        self.assertEquals(order_session.utm_medium, utm_medium)
+        self.assertEquals(order_session.utm_source, utm_source)
+        self.assertEquals(order_session.utm_term, utm_term)
+        self.assertEquals(order_session.utm_content, utm_content)
+        self.assertEquals(order_session.utm_id, utm_id)
+        self.assertEquals(order_session.gclid, gclid)
+
     def test_order_with_invalid_quantity(self):
         item = Item.query.filter_by(name='conference-ticket').first()
         data = {

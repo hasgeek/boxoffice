@@ -7,11 +7,11 @@ from coaster.views import render_with, load_models
 from baseframe import _
 from .. import app, lastuser
 from ..models import db
-from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy
+from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy, OrderSession
 from ..models import Order, OnlinePayment, PaymentTransaction, User, CURRENCY, ORDER_STATUS
 from ..models.payment import TRANSACTION_TYPE
 from ..extapi import razorpay, RAZORPAY_PAYMENT_STATUS
-from ..forms import LineItemForm, BuyerForm
+from ..forms import LineItemForm, BuyerForm, OrderSessionForm
 from custom_exceptions import PaymentGatewayError
 from boxoffice.mailclient import send_receipt_mail, send_line_item_cancellation_mail
 from utils import xhr_only, cors, date_format
@@ -185,7 +185,17 @@ def order(item_collection):
                 message=_(u'‘{item}’ is no longer available.').format(item=item.title)), 400)
 
     db.session.add(order)
+
+    if request.json.get('order_session'):
+        order_session_form = OrderSessionForm.from_json(request.json.get('order_session'))
+        order_session_form.csrf_enabled = False
+        if order_session_form.validate():
+            order_session = OrderSession(order=order)
+            order_session_form.populate_obj(order_session)
+            db.session.add(order_session)
+
     db.session.commit()
+
     return make_response(jsonify(order_id=order.id,
         order_access_token=order.access_token,
         payment_url=url_for('payment', order=order.id),
