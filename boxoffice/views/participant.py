@@ -38,6 +38,8 @@ def assign(order):
         db.session.commit()
     else:
         if line_item.current_assignee:
+            if not line_item.is_transferrable():
+                return make_response(jsonify(status='error', error='ticket_not_transferrable', error_description="Ticket cannot be transferred."), 400)
             # Archive current assignee
             line_item.current_assignee.current = None
         new_assignee = Assignee(current=True, email=assignee_dict.get('email'), fullname=assignee_dict.get('fullname'),
