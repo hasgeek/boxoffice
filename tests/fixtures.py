@@ -125,6 +125,19 @@ def init_data():
         db.session.add(forever_coupon)
         db.session.commit()
 
+        noprice_discount = DiscountPolicy(title='noprice',
+            item_quantity_min=1,
+            is_price_based=True,
+            discount_type=DISCOUNT_TYPE.COUPON,
+            organization=rootconf)
+        noprice_discount.items.append(conf_ticket)
+        db.session.add(noprice_discount)
+        db.session.commit()
+
+        noprice_coupon = DiscountCoupon(code='noprice', discount_policy=noprice_discount)
+        db.session.add(noprice_coupon)
+        db.session.commit()
+
         forever_unlimited_coupon = DiscountCoupon(code='unlimited', discount_policy=forever_early_geek,
             usage_limit=500)
         db.session.add(forever_unlimited_coupon)
