@@ -6,6 +6,7 @@ from ..models import db
 from ..models import LineItem, Assignee
 from ..models import Order
 from coaster.views import load_models
+from order import jsonify_assignee
 from boxoffice.mailclient import send_ticket_assignment_mail
 from utils import xhr_only
 
@@ -47,4 +48,4 @@ def assign(order):
         db.session.add(new_assignee)
         db.session.commit()
         send_ticket_assignment_mail.delay(line_item.id)
-    return make_response(jsonify(status='ok', result={'message': 'Ticket assigned'}), 201)
+    return make_response(jsonify(status='ok', result={'message': 'Ticket assigned', 'assignee': jsonify_assignee(line_item.current_assignee)}), 201)

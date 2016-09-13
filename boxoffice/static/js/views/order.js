@@ -186,12 +186,20 @@ window.Boxoffice.Order = {
             order.ractive.set(line_item + '.toAssign', false);
             order.ractive.set(line_item + '.isTicketAssigned', true);
             order.ractive.scrollTop(line_item_seq);
+            order.ractive.set(line_item + '.assignee', data.result.assignee);
           },
           error: function(response) {
             var ajaxLoad = this;
             ajaxLoad.retries -= 1;
             if (response.readyState === 4) {
-              order.ractive.set(line_item + '.errorMsg', 'Server error');
+              var error_text;
+              if (response.status === 500) {
+                error_text = "Server Error";
+              }
+              else {
+                error_text = JSON.parse(response.responseText).error_description;
+              }
+              order.ractive.set(line_item + '.errorMsg', error_text);
               order.ractive.set(line_item + '.assigningTicket', false);
             } else if (response.readyState === 0) {
               if (ajaxLoad.retries < 0) {
