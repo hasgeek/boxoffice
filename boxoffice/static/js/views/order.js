@@ -57,7 +57,6 @@ window.Boxoffice.Order = {
       data: {
         order_id: data.order_id,
         access_token: data.access_token,
-        eventName: data.item_collection_name,
         line_items: data.line_items,
         buyer_name: data.buyer_name,
         buyer_email: data.buyer_email,
@@ -65,8 +64,8 @@ window.Boxoffice.Order = {
       },
       scrollTop: function(line_item_seq){
         //Scroll to the corresponding line_item.
-        var domElem =  order.ractive.nodes[ 'item-' + line_item_seq ];
-        $('html,body').animate({ scrollTop: $(domElem).offset().top }, '300');
+        var dom_elem =  order.ractive.nodes[ 'item-' + line_item_seq ];
+        $('html,body').animate({ scrollTop: $(dom_elem).offset().top }, '300');
       },
       viewTicket: function(event, line_item, line_item_seq) {
         event.original.preventDefault();
@@ -102,9 +101,9 @@ window.Boxoffice.Order = {
         }
         order.ractive.set(line_item + '.toAssign', true);
       },
-      addAttendeeDetails: function(event, line_item, line_item_seq, line_item_id) {
+      addAssigneeDetails: function(event, line_item, line_item_seq, line_item_id) {
 
-        var validationConfig = [{
+        var validation_config = [{
             name: 'fullname',
             rules: 'required'
           },
@@ -118,25 +117,26 @@ window.Boxoffice.Order = {
           }
         ];
 
-        var attendeeForm = 'attendee-form-' + line_item_seq;
+        var assignee_form = 'assignee-form-' + line_item_seq;
 
-        var formValidator = new FormValidator(attendeeForm, validationConfig, function(errors, event) {
+        var form_validator = new FormValidator(assignee_form, validation_config, function(errors, event) {
           event.preventDefault();
           order.ractive.set(line_item +  '.assignee.errormsg', '');
+          order.ractive.set(line_item + '.errorMsg', '');
           if (errors.length > 0) {
             order.ractive.set(line_item +  '.assignee.errormsg.'+ errors[0].name, errors[0].message);
             order.ractive.scrollTop(line_item_seq);
           }
           else {
             order.ractive.set(line_item + '.assigningTicket', true);
-            order.ractive.sendAttendeeDetails(line_item, line_item_seq, line_item_id);
+            order.ractive.sendAssigneeDetails(line_item, line_item_seq, line_item_id);
           }
         });
 
-        formValidator.setMessage('required', 'Please fill out the %s field');
-        formValidator.setMessage('valid_email', 'Please enter a valid email');
+        form_validator.setMessage('required', 'Please fill out the %s field');
+        form_validator.setMessage('valid_email', 'Please enter a valid email');
  
-        formValidator.registerCallback('validate_phone', function(phone) {
+        form_validator.registerCallback('validate_phone', function(phone) {
           //Remove all punctations (except +) and letters
           phone = phone.replace(/[^0-9+]/g,'');
           order.ractive.set(line_item + '.assignee.phone', phone);
@@ -144,29 +144,30 @@ window.Boxoffice.Order = {
           var validPhone = /^\+[0-9]+$/;
 
           if (phone.length > 16) {
-            formValidator.setMessage('validate_phone', 'Please enter a valid mobile number');
+            form_validator.setMessage('validate_phone', 'Please enter a valid mobile number');
             return false;
           }
           else if (phone.match(validPhone)) {
             //Indian number starting with '+91'
             if (phone.indexOf('+91') === 0 && phone.length != 13) {
-              formValidator.setMessage('validate_phone', 'Please enter a valid Indian mobile number');
+              form_validator.setMessage('validate_phone', 'Please enter a valid Indian mobile number');
               return false;
             }
           }
           else {
-            formValidator.setMessage('validate_phone', "Please prefix your phone number with '+' and country code.");
+            form_validator.setMessage('validate_phone', "Please prefix your phone number with '+' and country code.");
             return false;
           }
         });
       },
-      sendAttendeeDetails: function(line_item, line_item_seq, line_item_id) {
-        var attendeeForm = 'attendee-details-' + line_item_seq;
-        var formElements = $('#'+ attendeeForm).serializeArray();
-        var attendeeDetails ={};
-        for (var formIndex=0; formIndex < formElements.length; formIndex++) {
-          if (formElements[formIndex].value) {
-            attendeeDetails[formElements[formIndex].name] = formElements[formIndex].value;
+      sendAssigneeDetails: function(line_item, line_item_seq, line_item_id) {
+        var assignee_form = 'assignee-details-' + line_item_seq;
+        var form_elements = $('#'+ assignee_form).serializeArray();
+        var assignee_details ={};
+
+        for (var form_index=0; form_index < form_elements.length; form_index++) {
+          if (form_elements[form_index].value) {
+            assignee_details[form_elements[form_index].name] = form_elements[form_index].value;
           }
         }
 
@@ -175,7 +176,7 @@ window.Boxoffice.Order = {
           type: Boxoffice.Order.config.assign.method,
           contentType: 'application/json',
           data: JSON.stringify({
-            attendee: attendeeDetails,
+            assignee: assignee_details,
             line_item_id: line_item_id
           }),
           timeout: 30000,

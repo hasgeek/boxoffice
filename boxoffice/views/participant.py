@@ -20,7 +20,7 @@ def assign(order):
     """
     Assign a line_item to a participant
     """
-    assignee_dict = request.json.get('attendee')
+    assignee_dict = request.json.get('assignee')
     if not request.json or not assignee_dict or not assignee_dict.get('email') or not assignee_dict.get('fullname'):
         return make_response(jsonify(status='error', error='missing_attendee_details', error_description="Attendee details are missing"), 400)
     line_item = LineItem.query.get(request.json.get('line_item_id'))
@@ -39,13 +39,16 @@ def assign(order):
         db.session.commit()
     else:
         if line_item.current_assignee:
+            past_assignee = line_item.current_assignee.email
             if not line_item.is_transferrable():
                 return make_response(jsonify(status='error', error='ticket_not_transferrable', error_description="Ticket cannot be transferred."), 400)
             # Archive current assignee
             line_item.current_assignee.current = None
+        else:
+            past_assignee = None
         new_assignee = Assignee(current=True, email=assignee_dict.get('email'), fullname=assignee_dict.get('fullname'),
         phone=assignee_dict.get('phone'), details=assignee_details, line_item=line_item)
         db.session.add(new_assignee)
         db.session.commit()
-        send_ticket_assignment_mail.delay(line_item.id)
+        send_ticket_assignment_mail.delay(line_item.id, past_assignee)
     return make_response(jsonify(status='ok', result={'message': 'Ticket assigned', 'assignee': jsonify_assignee(line_item.current_assignee)}), 201)

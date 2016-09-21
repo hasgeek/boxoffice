@@ -22,7 +22,7 @@
     </div>
     
     <div class="row" id="boxoffice-order">
-      <p class="text-center" id="notify-msg"><span id="error-description">Loading. </span>If this takes too long, please mail {{order.item_collection.organization.contact_email}} with your receipt number.</p>
+      <p class="text-center" id="notify-msg"><span id="error-description">Loading. If you are behind a firewall or using any script blocking extension, please ensure your browser can load static.hasgeek.co.in</span><br>For further queries, please write to us at {{order.item_collection.organization.contact_email}} with your receipt number.</p>
       {%- raw %}
         <script id='boxoffice-ticket-template' type='text/ractive'>
           {{#line_items:line_item}}
@@ -80,8 +80,8 @@
                     </div>
                   {{else}}
                     <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
-                      <h4 class="text-center attendee-form-title">Please fill the attendee details</h4>   
-                      <form class="attendee-form" role="form" name="attendee-form-{{seq}}" id="attendee-details-{{seq}}"> 
+                      <h4 class="text-center assignee-form-title">Please fill the attendee details</h4>
+                      <form class="assignee-form" role="form" name="assignee-form-{{seq}}" id="assignee-details-{{seq}}">
                           <div class="group">   
                             <input class="group-input {{#filled || assignee.fullname}}filled{{/}}" type="text" name="fullname" value="{{assignee.fullname}}" on-blur="inputFieldEdit(event, event.keypath)" twoway="false">
                             <span class="bar"></span>
@@ -90,7 +90,7 @@
                           </div>
                             
                           <div class="group">  
-                            <input class="group-input {{#filled || assignee.email}}filled{{/}} {{#if assignee.email && !is_transferrable}}disabled{{/if}}" type="text" name="email" value="{{assignee.email}}" on-blur="inputFieldEdit(event, event.keypath)" twoway="false">
+                            <input class="group-input {{#filled || assignee.email}}filled{{/}} {{#if assignee.id && assignee.email && !is_transferrable}}disabled{{/if}}" {{#if assignee.id && assignee.email && !is_transferrable}}readonly="readonly"{{/if}} type="text" name="email" value="{{assignee.email}}" on-blur="inputFieldEdit(event, event.keypath)" twoway="false">
                             <span class="bar"></span>
                             <label class="group-label">Email</label>
                             {{#assignee.errormsg.email}}<p class="form-error-msg">{{ assignee.errormsg.email }}</p>{{/}}
@@ -128,7 +128,7 @@
                           {{/}}
                           <div class="assign-btn-wrapper">
                             <button type="button" class="boxoffice-button boxoffice-button-info" on-click="viewTicket(event, event.keypath, seq)">Back</button>
-                            <button type="submit" class="boxoffice-button boxoffice-button-action" on-click="addAttendeeDetails(event, event.keypath, seq, id)" {{#assigningTicket}}disabled{{/}}>
+                            <button type="submit" class="boxoffice-button boxoffice-button-action" on-click="addAssigneeDetails(event, event.keypath, seq, id)" {{#assigningTicket}}disabled{{/}}>
                                 {{#if assignee.id || isTicketAssigned}}Update{{else}}Assign ticket{{/if}}
                                 {{#assigningTicket}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'>{{/}}
                             </button>
