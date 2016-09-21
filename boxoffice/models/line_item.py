@@ -96,17 +96,21 @@ class LineItem(BaseMixin, db.Model):
         """
         item_line_items = {}
         line_items = []
+        coupon_list = list(set(coupons)) if coupons else []
+        discounter = LineItemDiscounter()
+
+        # make named tuples for line items,
+        # assign the base_amount for each of them, None if an item is unavailable
         for line_item_dict in line_item_dicts:
             item = Item.query.get(line_item_dict['item_id'])
             if not item_line_items.get(unicode(item.id)):
                 item_line_items[unicode(item.id)] = []
             item_line_items[unicode(item.id)].append(make_ntuple(item_id=item.id,
-                base_amount=item.current_price().amount))
-        coupon_list = list(set(coupons)) if coupons else []
-        discounter = LineItemDiscounter()
+                base_amount=item.current_price().amount if item.is_available else None))
+
         for item_id in item_line_items.keys():
-            item_line_items[item_id] = discounter.get_discounted_line_items(item_line_items[item_id], coupon_list)
-            line_items.extend(item_line_items[item_id])
+            line_items.extend(discounter.get_discounted_line_items(item_line_items[item_id], coupon_list))
+
         return line_items
 
     def confirm(self):
@@ -283,19 +287,30 @@ class LineItemDiscounter():
         selected and any coupons.
         """
         if not line_items:
-            return None
+            return []
 
         item = Item.query.get(line_items[0].item_id)
+        if not item.is_available:
+            # item unavailable, no discounts
+            return []
+
         return DiscountPolicy.get_from_item(item, len(line_items), coupons)
 
     def calculate_discounted_amount(self, discount_policy, line_item):
+        if line_item.base_amount is None:
+            # item has expired, no discount
+            return Decimal(0)
+
         if discount_policy.is_price_based:
             item = Item.query.get(line_item.item_id)
-            discounted_price = item.discounted_price(discount_policy).amount
-            if discounted_price >= line_item.base_amount:
+            discounted_price = item.discounted_price(discount_policy)
+            if discounted_price is None:
+                # no discounted price
+                return Decimal(0)
+            if discounted_price.amount >= line_item.base_amount:
                 # No discount, base_amount is cheaper
                 return Decimal(0)
-            return line_item.base_amount - discounted_price
+            return line_item.base_amount - discounted_price.amount
         return (discount_policy.percentage * line_item.base_amount/Decimal(100))
 
     def is_coupon_usable(self, coupon, applied_to_count):

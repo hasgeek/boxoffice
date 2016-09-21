@@ -68,6 +68,31 @@ $(function() {
     });
   };
 
+  boxoffice.util.getUtmHeaders = function(param){
+    /*
+    Checks for utm_* headers and returns a hash with the headers set to values.
+    If a header occurs more than once, the values are joined to form a single comma-separated string
+    */
+    var utm_headers = ['utm_campaign', 'utm_source', 'utm_medium', 'utm_id', 'utm_content', 'utm_term', 'gclid'];
+    var query_params = boxoffice.util.getQueryParams();
+    var utm_values = {};
+    var param;
+    query_params.forEach(function(query_param){
+      param = query_param.split('=')[0];
+      if (utm_headers.indexOf(param) > -1) {
+        if (!(param in utm_values)) {
+          // initialize the utm header
+          utm_values[param] = query_param.split('=')[1];
+        } else {
+          // append the value to form a comma-separated string
+          utm_values[param] += ',' + query_param.split('=')[1];
+        }
+      }
+    });
+    utm_values['referrer'] = document.referrer;
+    return utm_values;
+  }
+
   boxoffice.util.formatDateTime = function(valid_upto) {
     // Returns date in the format 00:00:00 AM, Sun Apr 10 2016
     var date = new Date(valid_upto);
@@ -156,7 +181,8 @@ $(function() {
             'item_description': item.description,
             'price_valid_upto': boxoffice.util.formatDate(item.price_valid_upto),
             'discount_policies': item.discount_policies,
-            'quantity_available': item.quantity_available
+            'quantity_available': item.quantity_available,
+            'is_available': item.is_available
           });
         });
       });
@@ -347,6 +373,11 @@ $(function() {
                     line_item.final_amount = data.line_items[line_item.item_id].final_amount;
                     line_item.discounted_amount = data.line_items[line_item.item_id].discounted_amount;
                     line_item.quantity_available = data.line_items[line_item.item_id].quantity_available;
+                    line_item.is_available = data.line_items[line_item.item_id].is_available;
+                    if (!line_item.is_available) {
+                      // This item is no longer available, force set the selected quantity to 0.
+                      line_item.quantity = 0;
+                    }
 
                     if (!readyToCheckout
                       && data.line_items[line_item.item_id].quantity > 0
@@ -494,6 +525,7 @@ $(function() {
                   quantity: line_item.quantity
                 };
               }),
+              order_session: boxoffice.util.getUtmHeaders(),
               discount_coupons: boxoffice.util.getDiscountCodes()
             }),
             timeout: 5000,

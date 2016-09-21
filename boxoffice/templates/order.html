@@ -52,16 +52,15 @@
                       <div class="assign-form-wrapper">
                         <form class="assignee-form" role="form" name="assignee-form">
                         {{#if assignee.id || isTicketAssigned}}
-                            <p class="assign-form-title">Update attendee details</p>
                             <div class="text-center continue-btn-wrapper">
-                              <button class="boxoffice-button boxoffice-button-action" on-click="assign(event, event.keypath, true)">Continue</button>
+                              <button class="boxoffice-button boxoffice-button-action" on-click="assign(event, event.keypath, true)">Transfer/Edit</button>
                             </div>
                         {{else}}
                             <p class="assign-form-title">Assign this ticket</p>             
                             <div>
                               <label class="radio-inline">
                                 <input type="radio" name="{{.assignment}}" value="self" checked>
-                                Self
+                                Buyer
                               </label>
                               <label class="radio-inline">
                                 <input type="radio" name="{{.assignment}}" value="other">

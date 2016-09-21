@@ -39,7 +39,7 @@ class Item(BaseScopedNameMixin, db.Model):
 
     def current_price(self):
         """
-        Returns the current price for an item
+        Returns the current price object for an item
         """
         return self.price_at(datetime.utcnow())
 
@@ -51,7 +51,7 @@ class Item(BaseScopedNameMixin, db.Model):
 
     def price_at(self, timestamp):
         """
-        Returns the price for an item at a given time
+        Returns the price object for an item at a given time
         """
         return Price.query.filter(Price.item == self, Price.start_at <= timestamp,
             Price.end_at > timestamp, Price.discount_policy == None).order_by('created_at desc').first()  # noqa
@@ -63,6 +63,11 @@ class Item(BaseScopedNameMixin, db.Model):
     @hybrid_property
     def quantity_available(self):
         return self.quantity_total - self.get_confirmed_line_items.count()
+
+    @property
+    def is_available(self):
+        """Checks if an item has a current price object and has a positive quantity_available"""
+        return bool(self.current_price() and self.quantity_available > 0)
 
 
 class Price(BaseScopedNameMixin, db.Model):
