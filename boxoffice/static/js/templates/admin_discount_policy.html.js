@@ -238,6 +238,11 @@ export const DiscountPolicyTemplate = `
                   <form role="form" id="new-coupon-{{id}}">
                     {{#if generate_signed_coupon}}
                       <input type="hidden" name="signed" value="true">
+                      <div class="group">   
+                        <input class="group-input filled" type="number" name="count" required min="1" value="1">
+                        <span class="bar"></span>
+                        <label class="group-label">Number of coupons</label>
+                      </div>
                     {{else}}
                       <div class="group">   
                         <input class="group-input filled" type="number" name="usage_limit" required min="1" value="1">
@@ -245,11 +250,6 @@ export const DiscountPolicyTemplate = `
                         <label class="group-label">Usage limit</label>
                       </div>
                     {{/if}}
-                    <div class="group">   
-                      <input class="group-input filled" type="number" name="count" required min="1" value="1">
-                      <span class="bar"></span>
-                      <label class="group-label">Number of coupons</label>
-                    </div>
                     <div class="btn-wrapper">
                       <button type="button" class="boxoffice-button boxoffice-button-info" on-click="hidegenerateCouponForm">Back</button>
                       <button type="submit" class="boxoffice-button boxoffice-button-action" on-click="generateCoupon" {{#generatingCoupon}}disabled{{/}}>

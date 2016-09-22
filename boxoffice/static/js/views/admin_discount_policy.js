@@ -322,6 +322,7 @@ export const DiscountPolicyView = {
 
       main_ractive.on('generateCouponForm', function(event) {
         main_ractive.set(event.keypath + '.hide_edit_btn', true);
+        main_ractive.set(event.keypath + '.generate_signed_coupon', false);
         main_ractive.set(event.keypath + '.show_add_coupon_form', true);
       });
 
