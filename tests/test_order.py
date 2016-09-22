@@ -35,6 +35,46 @@ class TestOrder(unittest.TestCase):
         # 3500*2 = 7000
         self.assertEquals(data['final_amount'], 7000)
 
+    def test_basic_with_utm_headers(self):
+        item = Item.query.filter_by(name='conference-ticket').first()
+        utm_campaign = 'campaign'
+        utm_medium = 'medium'
+        utm_source = 'source'
+        utm_term = 'term'
+        utm_content = 'content'
+        utm_id = 'id'
+        gclid = 'gclid'
+        data = {
+            'line_items': [{'item_id': unicode(item.id), 'quantity': 2}],
+            'buyer': {
+                'fullname': 'Testing',
+                'phone': '9814141414',
+                'email': 'test@hasgeek.com',
+                },
+            'order_session': {
+                'utm_campaign': utm_campaign,
+                'utm_medium': utm_medium,
+                'utm_source': utm_source,
+                'utm_term': utm_term,
+                'utm_content': utm_content,
+                'utm_id': utm_id,
+                'gclid': gclid
+            }
+            }
+        ic = ItemCollection.query.first()
+        resp = self.client.post('/ic/{ic}/order'.format(ic=ic.id), data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
+        data = json.loads(resp.data)
+        self.assertEquals(resp.status_code, 201)
+        order = Order.query.get(data.get('order_id'))
+        order_session = order.session
+        self.assertEquals(order_session.utm_campaign, utm_campaign)
+        self.assertEquals(order_session.utm_medium, utm_medium)
+        self.assertEquals(order_session.utm_source, utm_source)
+        self.assertEquals(order_session.utm_term, utm_term)
+        self.assertEquals(order_session.utm_content, utm_content)
+        self.assertEquals(order_session.utm_id, utm_id)
+        self.assertEquals(order_session.gclid, gclid)
+
     def test_order_with_invalid_quantity(self):
         item = Item.query.filter_by(name='conference-ticket').first()
         data = {
@@ -64,6 +104,43 @@ class TestOrder(unittest.TestCase):
         data = json.loads(resp.data)
         self.assertEquals(resp.status_code, 201)
         self.assertEquals(data['final_amount'], 2375)
+
+    def test_expired_item_order(self):
+        expired_ticket = Item.query.filter_by(name='expired-ticket').first()
+        quantity = 2
+        data = {
+            'line_items': [{'item_id': unicode(expired_ticket.id), 'quantity': quantity}],
+            'buyer': {
+                'fullname': 'Testing',
+                'phone': '9814141414',
+                'email': 'test@hasgeek.com',
+                }
+            }
+        ic = ItemCollection.query.first()
+        resp = self.client.post('/ic/{ic}/order'.format(ic=ic.id), data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
+        self.assertEquals(resp.status_code, 400)
+
+    def test_signed_discounted_coupon_order(self):
+        first_item = Item.query.filter_by(name='conference-ticket').first()
+        signed_policy = DiscountPolicy.query.filter_by(name='signed').first()
+        signed_code = signed_policy.gen_signed_code()
+        discounted_quantity = 1
+        data = {
+            'line_items': [{'item_id': unicode(first_item.id), 'quantity': discounted_quantity}],
+            'discount_coupons': [signed_code],
+            'buyer': {
+                'fullname': 'Testing',
+                'phone': '9814141414',
+                'email': 'test@hasgeek.com',
+                }
+            }
+        ic = ItemCollection.query.first()
+        resp = self.client.post('/ic/{ic}/order'.format(ic=ic.id), data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
+        resp_data = json.loads(resp.data)
+        self.assertEquals(resp.status_code, 201)
+        self.assertEquals(resp_data['final_amount'], first_item.current_price().amount - (signed_policy.percentage*first_item.current_price().amount)/decimal.Decimal(100.0))
+        line_item = LineItem.query.filter_by(customer_order_id=resp_data['order_id']).first()
+        self.assertEquals(line_item.discount_coupon.code, signed_code)
 
     def test_complex_discounted_item(self):
         discounted_item1 = Item.query.filter_by(name='t-shirt').first()

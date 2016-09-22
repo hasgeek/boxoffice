@@ -17,7 +17,7 @@ def init_data():
 
     rootconf = Organization(title='Rootconf', userid="U3_JesHfQ2OUmdihAXaAGQ",
         status=0, contact_email=u'test@gmail.com',
-        details={'service_tax_no': 'xx', 'address': u'<h2 class="company-name">XYZ</h2> <p>Bangalore - 560034</p> <p>India</p>', 'cin': u'1234', 'pan': u'abc', 'website': u'https://www.test.com'})
+        details={'service_tax_no': 'xx', 'address': u'<h2 class="company-name">XYZ</h2> <p>Bangalore - 560034</p> <p>India</p>', 'cin': u'1234', 'pan': u'abc', 'website': u'https://www.test.com', 'refund_policy': u'<p>We offer full refund.</p>', 'support_email': 'test@boxoffice.com', 'ticket_faq': '<p>To cancel your ticket, please mail <a href="mailto:test@boxoffice.com">test@boxoffice.com</a> with your receipt number.</p>'})
     db.session.add(rootconf)
     db.session.commit()
 
@@ -37,6 +37,10 @@ def init_data():
     with db.session.no_autoflush:
         conf_ticket = Item(title='Conference ticket', description='<p><i class="fa fa-calendar"></i>14 - 15 April 2016</p><p><i class="fa fa-map-marker ticket-venue"></i>MLR Convention Center, JP Nagar</p><p>This ticket gets you access to rootconf conference on 14th and 15th April 2016.</p>', item_collection=rc2016, category=Category.query.filter_by(name='conference').first(), quantity_total=1000)
         rc2016.items.append(conf_ticket)
+        db.session.commit()
+
+        expired_ticket = Item(title='Expired ticket', description='<p><i class="fa fa-calendar"></i>14 - 15 April 2016</p><p><i class="fa fa-map-marker ticket-venue"></i>MLR Convention Center, JP Nagar</p><p>This ticket gets you access to rootconf conference on 14th and 15th April 2016.</p>', item_collection=rc2016, category=Category.query.filter_by(name='conference').first(), quantity_total=1000)
+        rc2016.items.append(expired_ticket)
         db.session.commit()
 
         price = Price(item=conf_ticket, title='Super Early Geek', start_at=datetime.utcnow(), end_at=one_month_from_now, amount=3500)
@@ -86,6 +90,15 @@ def init_data():
         db.session.add(coupon1)
         db.session.commit()
 
+        discount_coupon_expired_ticket = DiscountPolicy(title='15% discount for expired ticket', item_quantity_min=1, percentage=15, organization=rootconf, discount_type=DISCOUNT_TYPE.COUPON)
+        discount_coupon_expired_ticket.items.append(expired_ticket)
+        db.session.add(discount_coupon_expired_ticket)
+        db.session.commit()
+
+        discount_coupon_expired_ticket_coupon = DiscountCoupon(code='couponex', discount_policy=discount_coupon_expired_ticket)
+        db.session.add(discount_coupon_expired_ticket_coupon)
+        db.session.commit()
+
         discount_coupon2 = DiscountPolicy(title='100% discount', item_quantity_min=1, percentage=100, organization=rootconf, discount_type=DISCOUNT_TYPE.COUPON)
         discount_coupon2.items.append(conf_ticket)
         db.session.add(discount_coupon1)
@@ -110,6 +123,19 @@ def init_data():
 
         forever_coupon = DiscountCoupon(code='forever', discount_policy=forever_early_geek)
         db.session.add(forever_coupon)
+        db.session.commit()
+
+        noprice_discount = DiscountPolicy(title='noprice',
+            item_quantity_min=1,
+            is_price_based=True,
+            discount_type=DISCOUNT_TYPE.COUPON,
+            organization=rootconf)
+        noprice_discount.items.append(conf_ticket)
+        db.session.add(noprice_discount)
+        db.session.commit()
+
+        noprice_coupon = DiscountCoupon(code='noprice', discount_policy=noprice_discount)
+        db.session.add(noprice_coupon)
         db.session.commit()
 
         forever_unlimited_coupon = DiscountCoupon(code='unlimited', discount_policy=forever_early_geek,
@@ -140,4 +166,9 @@ def init_data():
             discount_policy=zero_discount, title='Zero Discount',
             start_at=datetime.utcnow(), end_at=one_month_from_now, amount=3600)
         db.session.add(zero_discount_price)
+        db.session.commit()
+
+        bulk = DiscountPolicy.make_bulk('signed', organization=rootconf, title='Signed', percentage=10)
+        bulk.items.append(conf_ticket)
+        db.session.add(bulk)
         db.session.commit()

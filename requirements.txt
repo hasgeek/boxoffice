@@ -3,6 +3,7 @@ Flask-SQLAlchemy
 Flask-Assets
 Flask-Mail
 Flask-WTF
+Flask-RQ
 git+https://github.com/hasgeek/baseframe
 git+https://github.com/hasgeek/coaster
 git+https://github.com/hasgeek/flask-lastuser
@@ -16,3 +17,4 @@ html2text
 premailer
 python-dateutil
 tabulate
+Flask-Admin

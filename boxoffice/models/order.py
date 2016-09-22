@@ -8,7 +8,7 @@ from boxoffice.models import db, BaseMixin, User
 from coaster.utils import LabeledEnum, buid
 from baseframe import __
 
-__all__ = ['Order', 'ORDER_STATUS']
+__all__ = ['Order', 'ORDER_STATUS', 'OrderSession']
 
 
 class ORDER_STATUS(LabeledEnum):
@@ -29,9 +29,9 @@ def get_latest_invoice_no(organization):
     return last_invoice_no[0] if last_invoice_no[0] else 0
 
 
-def order_amounts_ntuple(base_amount, discounted_amount, final_amount):
-    order_amounts = namedtuple('OrderAmounts', ['base_amount', 'discounted_amount', 'final_amount'])
-    return order_amounts(base_amount, discounted_amount, final_amount)
+def order_amounts_ntuple(base_amount, discounted_amount, final_amount, confirmed_amount):
+    order_amounts = namedtuple('OrderAmounts', ['base_amount', 'discounted_amount', 'final_amount', 'confirmed_amount'])
+    return order_amounts(base_amount, discounted_amount, final_amount, confirmed_amount)
 
 
 class Order(BaseMixin, db.Model):
@@ -86,17 +86,23 @@ class Order(BaseMixin, db.Model):
 
     def get_amounts(self):
         """
-        Calculates and returns the order's base_amount, discounted_amount and
-        final_amount as a namedtuple
+        Calculates and returns the order's base_amount, discounted_amount,
+        final_amount, confirmed_amount as a namedtuple.
+
+        Note: base_amount, discounted_amount, final_amount are calculated for ALL of the order's line items,
+        whereas confirmed_amount is calculated only for the order's confirmed line items.
         """
         base_amount = Decimal(0)
         discounted_amount = Decimal(0)
         final_amount = Decimal(0)
+        confirmed_amount = Decimal(0)
         for line_item in self.line_items:
             base_amount += line_item.base_amount
             discounted_amount += line_item.discounted_amount
             final_amount += line_item.final_amount
-        return order_amounts_ntuple(base_amount, discounted_amount, final_amount)
+            if line_item.is_confirmed:
+                confirmed_amount += line_item.final_amount
+        return order_amounts_ntuple(base_amount, discounted_amount, final_amount, confirmed_amount)
 
     @property
     def is_confirmed(self):
@@ -108,3 +114,26 @@ class Order(BaseMixin, db.Model):
             if not line_item.current_assignee:
                 return False
         return True
+
+
+class OrderSession(BaseMixin, db.Model):
+    """
+    Records the referrer and utm headers for an order
+    """
+    __tablename__ = 'order_session'
+    __uuid_primary_key__ = True
+
+    customer_order_id = db.Column(None, db.ForeignKey('customer_order.id'), nullable=False, index=True, unique=False)
+    order = db.relationship(Order, backref=db.backref('session', cascade='all, delete-orphan', uselist=False))
+
+    referrer = db.Column(db.Unicode(2083), nullable=True)
+
+    # Google Analytics parameters
+    utm_source = db.Column(db.Unicode(250), nullable=False, default=u'', index=True)
+    utm_medium = db.Column(db.Unicode(250), nullable=False, default=u'', index=True)
+    utm_term = db.Column(db.Unicode(250), nullable=False, default=u'')
+    utm_content = db.Column(db.Unicode(250), nullable=False, default=u'')
+    utm_id = db.Column(db.Unicode(250), nullable=False, default=u'', index=True)
+    utm_campaign = db.Column(db.Unicode(250), nullable=False, default=u'', index=True)
+    # Google click id (for AdWords)
+    gclid = db.Column(db.Unicode(250), nullable=False, default=u'', index=True)

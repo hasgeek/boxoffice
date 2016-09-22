@@ -5,6 +5,7 @@ from decimal import Decimal
 import datetime
 from collections import namedtuple
 from sqlalchemy.sql import select, func
+from sqlalchemy.ext.orderinglist import ordering_list
 from boxoffice.models import db, JsonDict, BaseMixin, Order, Item, DiscountPolicy, DISCOUNT_TYPE, DiscountCoupon
 from coaster.utils import LabeledEnum
 from baseframe import __
@@ -58,10 +59,12 @@ class LineItem(BaseMixin, db.Model):
     __uuid_primary_key__ = True
     __table_args__ = (db.UniqueConstraint('customer_order_id', 'line_item_seq'),)
 
-    customer_order_id = db.Column(None, db.ForeignKey('customer_order.id'), nullable=False, index=True, unique=False)
-    order = db.relationship(Order, backref=db.backref('line_items', cascade='all, delete-orphan'))
     # line_item_seq is the relative number of the line item per order.
     line_item_seq = db.Column(db.Integer, nullable=False)
+    customer_order_id = db.Column(None, db.ForeignKey('customer_order.id'), nullable=False, index=True, unique=False)
+    order = db.relationship(Order, backref=db.backref('line_items', cascade='all, delete-orphan',
+        order_by=line_item_seq,
+        collection_class=ordering_list('line_item_seq', count_from=1)))
 
     item_id = db.Column(None, db.ForeignKey('item.id'), nullable=False, index=True, unique=False)
     item = db.relationship(Item, backref=db.backref('line_items', cascade='all, delete-orphan'))
@@ -93,17 +96,21 @@ class LineItem(BaseMixin, db.Model):
         """
         item_line_items = {}
         line_items = []
+        coupon_list = list(set(coupons)) if coupons else []
+        discounter = LineItemDiscounter()
+
+        # make named tuples for line items,
+        # assign the base_amount for each of them, None if an item is unavailable
         for line_item_dict in line_item_dicts:
             item = Item.query.get(line_item_dict['item_id'])
             if not item_line_items.get(unicode(item.id)):
                 item_line_items[unicode(item.id)] = []
             item_line_items[unicode(item.id)].append(make_ntuple(item_id=item.id,
-                base_amount=item.current_price().amount))
-        coupon_list = list(set(coupons)) if coupons else []
-        discounter = LineItemDiscounter()
+                base_amount=item.current_price().amount if item.is_available else None))
+
         for item_id in item_line_items.keys():
-            item_line_items[item_id] = discounter.get_discounted_line_items(item_line_items[item_id], coupon_list)
-            line_items.extend(item_line_items[item_id])
+            line_items.extend(discounter.get_discounted_line_items(item_line_items[item_id], coupon_list))
+
         return line_items
 
     def confirm(self):
@@ -118,6 +125,10 @@ class LineItem(BaseMixin, db.Model):
     @property
     def is_confirmed(self):
         return self.status == LINE_ITEM_STATUS.CONFIRMED
+
+    @property
+    def is_cancelled(self):
+        return self.status == LINE_ITEM_STATUS.CANCELLED
 
     def cancel(self):
         """
@@ -180,13 +191,17 @@ def sales_by_date(dates, user_tz, item_ids):
     Accepts a list of dates.
     ['2016-01-01', '2016-01-02'] => {'2016-01-01': }
     """
+    if not item_ids:
+        return None
+
     date_sales = {}
+
     for sales_date in dates:
-        date_sale_res = db.session.query('sum').from_statement('''SELECT SUM(final_amount) FROM line_item
+        sales_on_date = db.session.query('sum').from_statement('''SELECT SUM(final_amount) FROM line_item
             WHERE status=:status AND DATE_TRUNC('day', line_item.ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone)::date = :sales_date
             AND line_item.item_id IN :item_ids
             ''').params(timezone=user_tz, status=LINE_ITEM_STATUS.CONFIRMED, sales_date=sales_date, item_ids=tuple(item_ids)).first()
-        date_sales[sales_date] = date_sale_res[0] or Decimal(0)
+        date_sales[sales_date] = sales_on_date[0] if sales_on_date[0] else Decimal(0)
     return date_sales
 
 
@@ -197,7 +212,7 @@ def sales_delta(user_tz, item_ids):
     today = datetime.datetime.now().strftime("%Y-%m-%d")
     yesterday = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
     sales = sales_by_date([today, yesterday], user_tz, item_ids)
-    if not sales[yesterday]:
+    if not sales or not sales[yesterday]:
         return 0
     return round(Decimal('100') * (sales[today] - sales[yesterday])/sales[yesterday], 2)
 
@@ -221,7 +236,17 @@ def get_from_item(cls, item, qty, coupon_codes=[]):
         coupon_policies = item.discount_policies.filter(DiscountPolicy.discount_type == DISCOUNT_TYPE.COUPON).all()
         coupon_policy_ids = [cp.id for cp in coupon_policies]
         for coupon_code in coupon_codes:
-            coupon = DiscountCoupon.query.filter(DiscountCoupon.discount_policy_id.in_(coupon_policy_ids), DiscountCoupon.code == coupon_code).one_or_none()
+            if DiscountPolicy.is_signed_code_format(coupon_code):
+                policy = DiscountPolicy.get_from_signed_code(coupon_code)
+                if policy and policy.id in coupon_policy_ids:
+                    coupon = DiscountCoupon.query.filter_by(discount_policy=policy, code=coupon_code).one_or_none()
+                    if not coupon:
+                        coupon = DiscountCoupon(discount_policy=policy, code=coupon_code, usage_limit=1, used_count=0)
+                        db.session.add(coupon)
+                else:
+                    coupon = None
+            else:
+                coupon = DiscountCoupon.query.filter(DiscountCoupon.discount_policy_id.in_(coupon_policy_ids), DiscountCoupon.code == coupon_code).one_or_none()
             if coupon and coupon.usage_limit > coupon.used_count:
                 policies.append((coupon.discount_policy, coupon))
 
@@ -262,19 +287,30 @@ class LineItemDiscounter():
         selected and any coupons.
         """
         if not line_items:
-            return None
+            return []
 
         item = Item.query.get(line_items[0].item_id)
+        if not item.is_available:
+            # item unavailable, no discounts
+            return []
+
         return DiscountPolicy.get_from_item(item, len(line_items), coupons)
 
     def calculate_discounted_amount(self, discount_policy, line_item):
+        if line_item.base_amount is None:
+            # item has expired, no discount
+            return Decimal(0)
+
         if discount_policy.is_price_based:
             item = Item.query.get(line_item.item_id)
-            discounted_price = item.discounted_price(discount_policy).amount
-            if discounted_price >= line_item.base_amount:
+            discounted_price = item.discounted_price(discount_policy)
+            if discounted_price is None:
+                # no discounted price
+                return Decimal(0)
+            if discounted_price.amount >= line_item.base_amount:
                 # No discount, base_amount is cheaper
                 return Decimal(0)
-            return line_item.base_amount - discounted_price
+            return line_item.base_amount - discounted_price.amount
         return (discount_policy.percentage * line_item.base_amount/Decimal(100))
 
     def is_coupon_usable(self, coupon, applied_to_count):

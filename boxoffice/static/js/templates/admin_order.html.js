@@ -3,8 +3,8 @@ export const OrderTemplate = `
   <div class="content-wrapper">
     <h1 class="header">{{ title }}</h1>
     {{#if orders}}
-      <form class="table-title col-sm-6 col-xs-12">
-          <input autofocus class="form-control" id="filter" type="text" name="key" value="" placeholder="Search"/>
+      <form class="table-title col-sm-6 col-xs-12" id="search-form">
+        <input autofocus class="form-control" id="filter" type="text" name="key" value="" placeholder="Search"/>
       </form>
       <div class="table-title form-group text-right col-sm-6 col-xs-12">
         <label for="filter-status" class="status-select-label">Filter:</label>
@@ -27,7 +27,7 @@ export const OrderTemplate = `
               <th data-hide="phone, tablet, desktop, largescreen" data-type="numeric">Date</th>
               <th data-hide="phone, tablet, desktop, largescreen">Order id</th>
               <th data-hide="phone, tablet, desktop, largescreen">Transaction status</th>
-              <th data-sort-ignore="true">View</th>
+              <th data-sort-ignore="true"  data-hide="phone">View</th>
               <th data-hide="phone, tablet, desktop, largescreen" data-sort-ignore="true">Details</th>
             </tr>
           </thead>
@@ -51,7 +51,7 @@ export const OrderTemplate = `
                   {{/if}}
                 </p>
               </td>
-              <td><p class="table-content"><a class="boxoffice-button boxoffice-button-info orders-sm-btn" href="javascript:void(0)" on-click="showOrder">Line Items</a></p></td>
+              <td><p class="table-content"><a class="boxoffice-button boxoffice-button-info" href="javascript:void(0)" on-click="showOrder">Line Items</a></p></td>
               <td>
                 <p class="table-content">
                   <a class="boxoffice-button boxoffice-button-small boxoffice-button-info orders-btn" href={{ receipt }} target="_blank" >View Receipt</a>
@@ -60,10 +60,10 @@ export const OrderTemplate = `
               </td>
             </tr>
             {{#show_order}}
-              <div class="order-slider" intro-outro='fly:{x:200,y:0,duration:200}'>
+              <div class="content-slider" intro-outro='fly:{x:200,y:0,duration:200}'>
                 <button on-click="hideOrder" class="close-button"><i class="fa fa-close"></i></button>
-                <p class="order-title">Order Invoice No: {{invoice_no}}</p>
-                <div class="line-items-wrapper">
+                <p class="content-slider-title">Order Invoice No: {{invoice_no}}</p>
+                <div class="content-slider-wrapper">
                   {{#line_items:line_item}}
                     <div class="ticket col-sm-6 col-xs-12" id="item-{{ @index }}">
                       <div class="heading">
@@ -107,13 +107,6 @@ export const OrderTemplate = `
             {{/show_order}}
           {{/orders}}
           </tbody>
-          <tfoot>
-            <tr>
-              <td colspan="10">
-                <div class="pagination pagination-centered"></div>
-              </td>
-            </tr>
-          </tfoot>
         </table>
       </div>
     {{else}}

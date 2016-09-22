@@ -36,6 +36,30 @@ class TestKharchaAPI(unittest.TestCase):
         expected_discount_policy_ids = []
         self.assertEquals(expected_discount_policy_ids, policy_ids)
 
+    def test_expired_item_kharcha(self):
+        expired_ticket = Item.query.filter_by(name='expired-ticket').first()
+        quantity = 2
+        kharcha_req = {'line_items': [{'item_id': unicode(expired_ticket.id), 'quantity': quantity}]}
+        resp = self.client.post(url_for('kharcha'), data=json.dumps(kharcha_req), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
+
+        self.assertEquals(resp.status_code, 200)
+        resp_json = json.loads(resp.get_data())
+        # Test that the price is None
+        self.assertEquals(resp_json.get('line_items')[unicode(expired_ticket.id)].get('base_amount'), None)
+
+    def test_expired_discounted_item_kharcha(self):
+        expired_ticket = Item.query.filter_by(name='expired-ticket').first()
+        quantity = 2
+        coupon = DiscountCoupon.query.filter_by(code='couponex').first()
+        # import IPython; IPython.embed()
+        kharcha_req = {'line_items': [{'item_id': unicode(expired_ticket.id), 'quantity': quantity}], 'discount_coupons': [coupon.code]}
+        resp = self.client.post(url_for('kharcha'), data=json.dumps(kharcha_req), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
+
+        self.assertEquals(resp.status_code, 200)
+        resp_json = json.loads(resp.get_data())
+        # Test that the price is None
+        self.assertEquals(resp_json.get('line_items')[unicode(expired_ticket.id)].get('base_amount'), None)
+
     def test_discounted_bulk_kharcha(self):
         first_item = Item.query.filter_by(name='conference-ticket').first()
         discounted_quantity = 10
@@ -71,6 +95,28 @@ class TestKharchaAPI(unittest.TestCase):
             base_amount-discounted_amount)
 
         expected_discount_policy_ids = [unicode(coupon.discount_policy_id)]
+        policy_ids = [unicode(policy) for policy in resp_json.get('line_items')[unicode(first_item.id)].get('discount_policy_ids')]
+
+        # Test that all the discount policies are returned
+        for expected_policy_id in expected_discount_policy_ids:
+            self.assertIn(expected_policy_id, [policy for policy in policy_ids])
+
+    def test_signed_discounted_coupon_kharcha(self):
+        first_item = Item.query.filter_by(name='conference-ticket').first()
+        signed_policy = DiscountPolicy.query.filter_by(name='signed').first()
+        code = signed_policy.gen_signed_code()
+        discounted_quantity = 1
+        kharcha_req = {'line_items': [{'item_id': unicode(first_item.id), 'quantity': discounted_quantity}], 'discount_coupons': [code]}
+        resp = self.client.post(url_for('kharcha'), data=json.dumps(kharcha_req), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
+        self.assertEquals(resp.status_code, 200)
+        resp_json = json.loads(resp.get_data())
+
+        base_amount = discounted_quantity * first_item.current_price().amount
+        discounted_amount = (signed_policy.percentage * base_amount)/decimal.Decimal(100.0)
+        self.assertEquals(resp_json.get('line_items')[unicode(first_item.id)].get('final_amount'),
+            base_amount-discounted_amount)
+
+        expected_discount_policy_ids = [unicode(signed_policy.id)]
         policy_ids = [unicode(policy) for policy in resp_json.get('line_items')[unicode(first_item.id)].get('discount_policy_ids')]
 
         # Test that all the discount policies are returned
@@ -137,6 +183,19 @@ class TestKharchaAPI(unittest.TestCase):
         # Test that all the discount policies are returned
         for expected_policy_id in expected_discount_policy_ids:
             self.assertIn(expected_policy_id, [policy for policy in policy_ids])
+
+    def test_discount_policy_without_price_kharcha(self):
+        first_item = Item.query.filter_by(name='conference-ticket').first()
+        coupon = DiscountCoupon.query.filter_by(code='noprice').first()
+        discounted_quantity = 1
+        kharcha_req = {'line_items': [{'item_id': unicode(first_item.id), 'quantity': discounted_quantity}], 'discount_coupons': [coupon.code]}
+        print first_item.discount_policies.all()
+        resp = self.client.post(url_for('kharcha'), data=json.dumps(kharcha_req), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
+        print resp.status_code
+        self.assertEquals(resp.status_code, 200)
+        resp_json = json.loads(resp.get_data())
+
+        self.assertEquals(resp_json.get('line_items')[unicode(first_item.id)].get('discounted_amount'), decimal.Decimal(0))
 
     def test_zero_discounted_price_kharcha(self):
         first_item = Item.query.filter_by(name='conference-ticket').first()

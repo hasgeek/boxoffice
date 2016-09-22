@@ -63,13 +63,46 @@ $(function() {
       if (paramSplit[0] === 'code') {
         return paramSplit[1];
       }
+    }).filter(function(val){
+      return typeof val !== 'undefined' && val !== "";
     });
   };
 
-  boxoffice.util.formatDate = function(valid_upto) {
+  boxoffice.util.getUtmHeaders = function(param){
+    /*
+    Checks for utm_* headers and returns a hash with the headers set to values.
+    If a header occurs more than once, the values are joined to form a single comma-separated string
+    */
+    var utm_headers = ['utm_campaign', 'utm_source', 'utm_medium', 'utm_id', 'utm_content', 'utm_term', 'gclid'];
+    var query_params = boxoffice.util.getQueryParams();
+    var utm_values = {};
+    var param;
+    query_params.forEach(function(query_param){
+      param = query_param.split('=')[0];
+      if (utm_headers.indexOf(param) > -1) {
+        if (!(param in utm_values)) {
+          // initialize the utm header
+          utm_values[param] = query_param.split('=')[1];
+        } else {
+          // append the value to form a comma-separated string
+          utm_values[param] += ',' + query_param.split('=')[1];
+        }
+      }
+    });
+    utm_values['referrer'] = document.referrer;
+    return utm_values;
+  }
+
+  boxoffice.util.formatDateTime = function(valid_upto) {
     // Returns date in the format 00:00:00 AM, Sun Apr 10 2016
     var date = new Date(valid_upto);
     return date.toLocaleTimeString(['en-US'], {hour: '2-digit', minute: '2-digit'}) + ", " + date.toDateString();
+  };
+
+  boxoffice.util.formatDate = function(valid_upto) {
+    // Returns date in the format Apr 10 2016
+    var date = new Date(valid_upto);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
   boxoffice.initResources = function(config) {
@@ -148,7 +181,8 @@ $(function() {
             'item_description': item.description,
             'price_valid_upto': boxoffice.util.formatDate(item.price_valid_upto),
             'discount_policies': item.discount_policies,
-            'quantity_available': item.quantity_available
+            'quantity_available': item.quantity_available,
+            'is_available': item.is_available
           });
         });
       });
@@ -157,6 +191,7 @@ $(function() {
         el: '#boxoffice-widget',
         template: data.html,
         data: {
+          refund_policy : data.refund_policy,
           order: {
             order_id: '',
             access_token: '',
@@ -236,12 +271,12 @@ $(function() {
             retries: 5,
             retryInterval: 5000,
             success: function(data) {
-              var valid_discount_coupon = false;
+              var discount_applicable = false;
               var line_items = boxoffice.ractive.get('order.line_items');
               line_items.forEach(function(line_item) {
                 if (data.line_items.hasOwnProperty(line_item.item_id)) {
-                  if(data.line_items[line_item.item_id].discounted_amount && line_item.quantity_available > 0) {
-                    valid_discount_coupon = true;
+                  if (data.line_items[line_item.item_id].discounted_amount && line_item.quantity_available > 0) {
+                    discount_applicable = true;
                     line_item.unit_final_amount = data.line_items[line_item.item_id].final_amount;
                     line_item.discount_policies.forEach(function(discount_policy){
                       if (data.line_items[line_item.item_id].discount_policy_ids.indexOf(discount_policy.id) >= 0) {
@@ -252,8 +287,9 @@ $(function() {
                 }
               });
 
-              if(valid_discount_coupon) {
+              if (discount_applicable) {
                 boxoffice.ractive.set('order.line_items',line_items);
+                // Scroll to the top of the widget when a discount is pre-applied
                 boxoffice.ractive.scrollTop();
               }
             },
@@ -337,6 +373,11 @@ $(function() {
                     line_item.final_amount = data.line_items[line_item.item_id].final_amount;
                     line_item.discounted_amount = data.line_items[line_item.item_id].discounted_amount;
                     line_item.quantity_available = data.line_items[line_item.item_id].quantity_available;
+                    line_item.is_available = data.line_items[line_item.item_id].is_available;
+                    if (!line_item.is_available) {
+                      // This item is no longer available, force set the selected quantity to 0.
+                      line_item.quantity = 0;
+                    }
 
                     if (!readyToCheckout
                       && data.line_items[line_item.item_id].quantity > 0
@@ -369,7 +410,7 @@ $(function() {
               error: function(response) {
                 var ajaxLoad = this;
                 ajaxLoad.retries -= 1;
-                if(response.readyState === 4) {
+                if (response.readyState === 4) {
                   boxoffice.ractive.set({
                     'tabs.selectItems.errorMsg': JSON.parse(response.responseText).message,
                     'tabs.selectItems.isLoadingFail': true,
@@ -420,32 +461,44 @@ $(function() {
           },
           {
             name: 'phone',
-            rules: 'required|max_length[16]|callback_validate_phone'
+            rules: 'required|callback_validate_phone'
           }];
 
           var formValidator = new FormValidator('buyer-form', validationConfig, function(errors, event) {
             event.preventDefault();
+            boxoffice.ractive.set('tabs.payment.errormsg', '');
             if (errors.length > 0) {
-              boxoffice.ractive.set('tabs.payment.errorMsg', errors[0].message);
+              boxoffice.ractive.set('tabs.payment.errormsg.' + errors[0].name, errors[0].message);
+              boxoffice.ractive.scrollTop();
             } else {
-              boxoffice.ractive.set({
-                'tabs.payment.errorMsg': '',
-                'tabs.payment.loadingOrder': true
-              });
+              boxoffice.ractive.set('tabs.payment.loadingOrder', true);
               boxoffice.ractive.sendOrder();
             }
           });
 
+          formValidator.setMessage('required', 'Please fill out the %s field');
+          formValidator.setMessage('valid_email', 'Please enter a valid email');
+
           formValidator.registerCallback('validate_phone', function(phone) {
+            //Remove all punctations (except +) and letters
+            phone = phone.replace(/[^0-9+]/g,'');
+            boxoffice.ractive.set('buyer.phone', phone);
+
             var validPhone = /^\+[0-9]+$/;
-            if (phone.match(validPhone)) {
+
+            if (phone.length > 16) {
+              formValidator.setMessage('validate_phone', "Please enter a valid mobile number");
+              return false;
+            }
+            else if (phone.match(validPhone)) {
               //Indian number starting with '+91'
               if (phone.indexOf('+91') === 0 && phone.length != 13) {
-                formValidator.setMessage('validate_phone', 'This does not appear to be a valid Indian mobile number');
+                formValidator.setMessage('validate_phone', "Please enter a valid Indian mobile number");
                 return false;
               }
-            } else {
-              formValidator.setMessage('validate_phone', 'Phone number must be in international format with a leading + symbol');
+            }
+            else {
+              formValidator.setMessage('validate_phone', "Please prefix your phone number with '+' and country code.");
               return false;
             }
           });
@@ -472,6 +525,7 @@ $(function() {
                   quantity: line_item.quantity
                 };
               }),
+              order_session: boxoffice.util.getUtmHeaders(),
               discount_coupons: boxoffice.util.getDiscountCodes()
             }),
             timeout: 5000,
@@ -526,9 +580,9 @@ $(function() {
             "key": boxoffice.config.razorpayKeyId,
             //Razorpay expects amount in paisa
             "amount": boxoffice.ractive.get('order.final_amount') * 100,
-            "name": boxoffice.config.orgName,
+            "name": boxoffice.widgetConfig.org || boxoffice.config.orgName,
             "description": boxoffice.widgetConfig.paymentDesc,
-            "image": boxoffice.config.razorpayBanner,
+            "image": boxoffice.widgetConfig.razorpayBanner || boxoffice.config.razorpayBanner,
             // Order id is for razorpay's reference, useful for querying
             "notes": {
               "order_id": boxoffice.ractive.get('order.order_id')
@@ -581,16 +635,15 @@ $(function() {
               var ajaxLoad = this;
               var responseText = JSON.parse(response.responseText);
               var errorMsg;
-
               ajaxLoad.retries -= 1;
-              if(response.readyState === 4) {
+              if (response.readyState === 4) {
                 boxoffice.ractive.set({
                   'tabs.payment.errorMsg': responseText.error_description,
                   'tabs.payment.loadingPaymentConfirmation': false
                 });
               }
-              else if(response.readyState === 0) {
-                if(ajaxLoad.retries < 0) {
+              else if (response.readyState === 0) {
+                if (ajaxLoad.retries < 0) {
                   errorMsg = "Unable to connect. Please write to us at support@hasgeek.com with your order id " + boxoffice.ractive.get('order.order_id') + ".";
                   boxoffice.ractive.set({
                     'tabs.payment.errorMsg': errorMsg,
@@ -630,15 +683,15 @@ $(function() {
               var ajaxLoad = this;
               ajaxLoad.retries -= 1;
               var errorMsg;
-              if(response.readyState === 4) {
+              if (response.readyState === 4) {
                 errorMsg = JSON.parse(response.responseText).message + ". Sorry, something went wrong. We will get in touch with you shortly. This is your order id " + boxoffice.ractive.get('order.order_id') + ".";
                 boxoffice.ractive.set({
                   'tabs.payment.errorMsg': errorMsg,
                   'tabs.payment.loadingPaymentConfirmation': false
                 });
               }
-              else if(response.readyState === 0) {
-                if(ajaxLoad.retries < 0) {
+              else if (response.readyState === 0) {
+                if (ajaxLoad.retries < 0) {
                   errorMsg = "Unable to connect. Please write to us at support@hasgeek.com with your order id " + boxoffice.ractive.get('order.order_id') + ".";
                   boxoffice.ractive.set({
                     'tabs.payment.errorMsg': errorMsg,
@@ -655,17 +708,17 @@ $(function() {
         },
         oncomplete: function() {
           boxoffice.ractive.on('eventAnalytics', function(userAction, label) {
-            if(typeof boxoffice.ractive.get('sendEventHits') === "undefined") {
+            if (typeof boxoffice.ractive.get('sendEventHits') === "undefined") {
               boxoffice.ractive.set('sendEventHits', 0);
               userAction = 'First interaction';
             }
-            if(typeof ga !== "undefined") {
+            if (typeof ga !== "undefined") {
               ga('send', { hitType: 'event', eventCategory: 'ticketing', eventAction: userAction, eventLabel: label});
             }
           });
 
           var discount_coupons = boxoffice.util.getDiscountCodes();
-          if(discount_coupons.length) {
+          if (discount_coupons.length) {
             boxoffice.ractive.preApplyDiscount(discount_coupons);
           }
         }

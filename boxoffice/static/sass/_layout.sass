@@ -22,6 +22,10 @@ body
   margin-bottom: 40px
   background-color: #fff
 
+@media (min-width: 1600px)
+  .box
+    width: 33.3%
+
 .heading
   background-color: $color-heading-box
   color: rgb(255, 255, 255)
@@ -59,8 +63,22 @@ body
   background-color: #fff
   min-height: 196px
 
-.content-details
+.content-box:after
+  content: " "
+  display: table
+  clear: both 
+
+.content-details, 
+.content-details-text
   margin: 5px 0
+  word-break: break-all
+
+.content-details-text,
+.content-list
+  padding-left: 25px
+
+.content-list
+  list-style-position: inside
 
 .boxoffice-button 
   border-width: 0px 0px 3px
@@ -123,11 +141,12 @@ a.boxoffice-button:focus
 .radio-group 
   margin-bottom: 25px
 
-.control-group, .form-group 
+.control-group
   margin-bottom: 45px
 
 .group-input 
   font-size: 18px
+  line-height: 1.2
   padding: 10px 10px 10px 5px
   display: block
   width: 100%
@@ -161,6 +180,51 @@ a.boxoffice-button:focus
   font-size: 14px
   color: $color-form-filled-label
 
+.group-input-btn:active
+  outline: none
+
+.group-select select
+  -webkit-appearance: none
+  -moz-appearance: none
+  appearance: none
+  width: 100%
+  padding: 10px 10px 10px 5px
+  background: transparent
+  border: none
+  border-radius: 0
+  border-bottom: 1px solid $color-form-field-border
+  position: relative
+
+.group-select select:-moz-focusring
+  color: transparent
+  text-shadow: 0 0 0 #000
+
+.group-select select:focus
+  outline: 0
+
+.group-select
+  position: relative
+  margin-bottom: 45px
+
+.group-select:after
+  position: absolute
+  top: 50px
+  right: 2px
+  width: 0
+  height: 0
+  padding: 0
+  content: ''
+  border-left: 5px solid transparent
+  border-right: 5px solid transparent
+  border-top: 5px solid $color-form-field-border
+  pointer-events: none
+
+.inline-group .input-group
+  width: 30%
+  margin: 0 3% 0 0
+  float: left
+  position: relative
+
 .bar
   position: relative
   display: block
@@ -190,20 +254,40 @@ a.boxoffice-button:focus
 
 .field-title 
   color: $color-form-label
-  font-size: 16px
+  font-size: 14px
   margin: 0 0 5px
   font-weight: normal
 
 .field-title.filled 
   color: $color-form-filled-label
 
-.form-group textarea
+.group textarea
   border: 1px solid $color-form-field-border
+
+.form-error-msg
+  color: white
+  font-size: 12px
+  border-radius: 3px
+  border: 1px solid #b94a48
+  background: #b94a48
+  margin: 10px 0 0
+  padding: 5px
+  position: relative
+  display: inline-block
+
+.form-error-msg::before
+  display: block
+  content: ""
+  position: absolute
+  border: 6px solid transparent
+  border-bottom: 6px solid #b94a48
+  top: -13px
+  left: 20px
 
 .btn-wrapper 
   float: right
   text-align: center
-  margin-bottom: 10px
+  margin: 20px 0 10px
   clear: both
 
 .error-msg 
@@ -215,6 +299,11 @@ a.boxoffice-button:focus
 
 .error-msg.left-aligned
   text-align: left
+
+.form-help-text
+  font-size: 16px
+  color: #555
+  margin: 10px 0 35px
 
 .info-msg 
   font-size: 14px
@@ -334,6 +423,9 @@ a.boxoffice-button:focus
   box-shadow: 0 0 2px rgba(0,0,0,0.8)
   min-height: 100vh
 
+.content-slider.align-down
+  top: 0
+
 @media (min-width: 768px)
   .content-slider
     top: -50px
@@ -379,5 +471,8 @@ a.boxoffice-button:focus
   border-color: #aaa
 
 @media (min-width: 768px)
-  .add-new-btn
+  .btn-right
     float: right
+
+.table-responsive
+  overflow-x: inherit

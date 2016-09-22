@@ -9,6 +9,10 @@ export const OrgModel = {
         'path': IndexModel.urlFor('index')['path'] + 'o/' + config.org_name,
         'relative_path': 'o/' + config.org_name,
         'method': 'GET'
+      },
+      'view_items': {
+        'path': IndexModel.urlFor('index')['path'] + 'o/' + config.org_name + '/items',
+        'method': 'GET'
       }
     }
     return urls[action];

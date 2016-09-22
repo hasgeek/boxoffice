@@ -17,7 +17,7 @@ export const IndexTemplate = `
               {{#details:k,v}}
                 {{#if k !== 'logo'}}
                   <p class="section-title">{{k}}</p>
-                  <div class="section-content">{{details[k]}}</div>
+                  <div class="section-content">{{{details[k]}}}</div>
                 {{/if}}
               {{/details}}
               <p class="section-title">Contact email</p>
