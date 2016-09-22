@@ -168,13 +168,14 @@ export const DiscountPolicyView = {
         }).done((remoteData) => {
           main_ractive.refresh(main_ractive.closeNewPolicyForm);
         }).fail(function(response) {
-          main_ractive.set('new_discount_policy.creatingPolicy', false);
+          let error_msg;
           if (response.readyState === 4) {
             error_msg = JSON.parse(response.responseText).message;
           }
           if (response.readyState === 0) {
             error_msg = "Unable to connect. Please try again."
           }
+          main_ractive.set('new_discount_policy.creatingPolicy', false);
           main_ractive.set('new_discount_policy.generate_policy_error', error_msg);
         });
 
@@ -305,6 +306,7 @@ export const DiscountPolicyView = {
           main_ractive.set(event.keypath + '.show_policy_form', false);
           main_ractive.set(event.keypath + '.hide_edit_btn', false);
         }).fail(function(response) {
+          let error_msg;
           if (response.readyState === 4) {
             error_msg = JSON.parse(response.responseText).message;
           }
@@ -357,8 +359,9 @@ export const DiscountPolicyView = {
           main_ractive.set(event.keypath + '.show_add_coupon_form', false);
           $('#coupons-' + discount_policy_id).modal('show');
         }).fail(function(response) {
+          let error_msg;
           if (response.readyState === 4) {
-            error_msg = JSON.parse(response.responseText).message;
+            error_msg = JSON.parse(response.responseText).error_description;
           }
           if (response.readyState === 0) {
             error_msg = "Unable to connect. Please try again."

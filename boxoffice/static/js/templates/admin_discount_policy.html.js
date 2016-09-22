@@ -39,7 +39,8 @@ export const DiscountPolicyTemplate = `
               {{/}}
             </div>
 
-            {{#if new_discount_policy.discount_type == 1}}
+            {{#if new_discount_policy.discount_type == 0}}
+              <p class="form-help-text">For Automatic discounts, minimum item quantity is the number of tickets user needs to buy to avail this discount.<br>Eg:- 5% discount on buying 5 or more tickets.</p>
               <div class="group">   
                 <input class="group-input {{#new_discount_policy.item_quantity_min}}filled{{/}}" type="number" name="item_quantity_min" required min="1" value="{{new_discount_policy.item_quantity_min}}">
                 <span class="bar"></span>
@@ -84,20 +85,6 @@ export const DiscountPolicyTemplate = `
               </div>
             {{/if}}
 
-            <div class="group">
-              <input class="group-input {{#new_discount_policy.discount_code_base}}filled{{/}}" type="text" name="discount_code_base" value="{{new_discount_policy.discount_code_base}}">
-              <span class="bar"></span>
-              <label class="group-label">Discount Code Base</label>
-            </div>
-
-            <div class="group">
-              <input class="group-input {{#new_discount_policy.secret}}filled{{/}}" type="text" name="secret" value="{{new_discount_policy.secret}}">
-              <span class="bar"></span>
-              <label class="group-label">Secret</label>
-            </div>
-
-            <p class="form-help-text">To create signed discount codes, Discount Code Base and Secret have to be filled.</p>
-
             <input type="hidden" name="organization" required value="{{org}}">
             <div class="btn-wrapper">
               <button type="button" class="boxoffice-button boxoffice-button-info" on-click="hideNewPolicyForm">Back</button>
@@ -140,13 +127,6 @@ export const DiscountPolicyTemplate = `
                     <p class="content-details-text">{{discount}}%</p>
                   {{/if}}
 
-                  {{#if discount_code_base}}
-                    <p class="content-details"><b>Discount Code Base:</b></p>
-                    <p class="content-details-text">{{discount_code_base}}</p>
-                    <p class="content-details"><b>Secret:</b></p>
-                    <p class="content-details-text">{{secret}}</p>
-                  {{/if}}
-
                   {{#if dp_items}}
                     <p class="content-details"><b>Items:</b></p>                   
                     <ol class="content-list">
@@ -161,9 +141,8 @@ export const DiscountPolicyTemplate = `
                     <ul class="content-list">
                     {{#coupons:coupon}}
                        <li class="content-details">
-                        <b>{{coupons[coupon].code}}</b>
                         {{#coupons[coupon].usage_limit}}
-                          <span>, usage limit: {{coupons[coupon].usage_limit}}</span>
+                          <b>{{coupons[coupon].code}}</b>, usage limit: {{coupons[coupon].usage_limit}}
                         {{/}}
                       </li>
                     {{/}}
@@ -177,6 +156,7 @@ export const DiscountPolicyTemplate = `
                           <h4 class="modal-title">{{ title }}</h4>
                         </div>
                         <div class="modal-body">
+                          <button class="boxoffice-button boxoffice-button-action btn-right" on-click="copyCoupons">Copy</button>
                           <p>Discount coupons:</p>
                           {{#coupons:coupon}}
                             <p class="content-details">{{coupons[coupon].code}}</p>
@@ -187,9 +167,7 @@ export const DiscountPolicyTemplate = `
                   </div>
                   {{#if discount_type == "Coupon based"}}
                     <button class="boxoffice-button boxoffice-button-action btn-right" on-click="generateCouponForm">Generate coupon</button>
-                    {{#if discount_code_base && secret}}
-                      <button class="boxoffice-button boxoffice-button-action btn-right btn-inline" on-click="generateSignedCouponForm">Generate signed coupon</button>
-                    {{/if}}
+                    <button class="boxoffice-button boxoffice-button-action btn-right btn-inline" on-click="generateSignedCouponForm">Generate bulk coupons</button>
                   {{/if}}
                 </div>
               {{elseif show_policy_form}}

@@ -75,6 +75,7 @@ def jsonify_discount_coupons(data_dict):
         discount_coupons = DiscountCoupon.query.filter(DiscountCoupon.discount_policy == discount_policy).all()
         for coupon in discount_coupons:
             coupons_list.append(format_coupons(coupon))
+    coupons = DiscountCoupon().paginate(1, 3, False).items
     return jsonify(org_name=data_dict['org'].name, title=data_dict['org'].title, coupons=coupons_list)
 
 
@@ -181,7 +182,7 @@ def admin_create_coupon(discount_policy):
     coupons = []
     if request.json.get('usage_limit'):
         usage_limit = int(request.json.get('usage_limit'))
-        if usage_limit >= 1:
+        if usage_limit < 1:
             return make_response(jsonify(status='error', error='error_usage_limit', error_description="Discount coupon usage limit cannot be less than 1"), 400)
         else:
             for x in range(no_of_coupons):
@@ -211,8 +212,7 @@ def admin_discount_coupons(organization):
 @app.route('/admin/o/<org>/<coupon>')
 @lastuser.requires_login
 @load_models(
-    (DiscountCoupon, {'id': 'coupon'}, 'coupon'),
-    permission='org_admin'
+    (DiscountCoupon, {'id': 'coupon'}, 'coupon')
     )
 @xhr_only
 def admin_discount_coupon(coupon):
