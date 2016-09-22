@@ -22,6 +22,10 @@ body
   margin-bottom: 40px
   background-color: #fff
 
+@media (min-width: 1600px)
+  .box
+    width: 33.3%
+
 .heading
   background-color: $color-heading-box
   color: rgb(255, 255, 255)
@@ -67,6 +71,7 @@ body
 .content-details, 
 .content-details-text
   margin: 5px 0
+  word-break: break-all
 
 .content-details-text,
 .content-list
@@ -141,7 +146,7 @@ a.boxoffice-button:focus
 
 .group-input 
   font-size: 18px
-  line-height: 1
+  line-height: 1.2
   padding: 10px 10px 10px 5px
   display: block
   width: 100%
@@ -295,6 +300,11 @@ a.boxoffice-button:focus
 .error-msg.left-aligned
   text-align: left
 
+.form-help-text
+  font-size: 16px
+  color: #555
+  margin: 10px 0px
+
 .info-msg 
   font-size: 14px
   margin: 5px auto
@@ -415,7 +425,6 @@ a.boxoffice-button:focus
 
 .content-slider.align-down
   top: 0
-  bottom: 0
 
 @media (min-width: 768px)
   .content-slider

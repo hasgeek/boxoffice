@@ -5,7 +5,7 @@ from flask import jsonify, make_response, request
 from .. import app, lastuser
 from coaster.views import load_models, render_with
 from ..models import db
-from boxoffice.models import Organization, DiscountPolicy, DISCOUNT_TYPE, DiscountCoupon, ItemCollection, Item, Price, CURRENCY_SYMBOL, LineItem
+from boxoffice.models import Organization, DiscountPolicy, DiscountCoupon, Item, Price, CURRENCY_SYMBOL, LineItem
 from utils import xhr_only, date_time_format
 
 
@@ -26,6 +26,8 @@ def jsonify_discount_policy(policy):
         'item_quantity_min': policy.item_quantity_min,
         'percentage': policy.percentage,
         'is_price_based': policy.is_price_based,
+        'discount_code_base': policy.discount_code_base,
+        'secret': policy.secret,
         'discount': policy.percentage if not policy.is_price_based else '',
         'price_details': jsonify_price(Price.query.filter(Price.discount_policy == policy).first()) if policy.is_price_based else '',
         'currency': CURRENCY_SYMBOL['INR'],
@@ -99,9 +101,11 @@ def admin_add_discount_policy(organization):
     title = request.json.get('title')
     discount_type = int(request.json.get('discount_type'))
     items = request.json.get('items')
+    discount_code_base = request.json.get('discount_code_base')
+    secret = request.json.get('secret')
     if request.json.get('percentage'):
         percentage = int(request.json.get('percentage'))
-        discount_policy = DiscountPolicy(title=title, discount_type=discount_type, percentage=percentage, organization=organization)
+        discount_policy = DiscountPolicy(title=title, discount_type=discount_type, percentage=percentage, discount_code_base=discount_code_base, secret=secret, organization=organization)
         for item_id in items:
             item = Item.query.get(item_id)
             discount_policy.items.append(item)
@@ -173,16 +177,23 @@ def admin_edit_discount_policy(discount_policy):
     )
 @xhr_only
 def admin_create_coupon(discount_policy):
-    usage_limit = int(request.json.get('usage_limit'))
+    no_of_coupons = int(request.json.get('count'))
     coupons = []
-    if usage_limit >= 1:
-        for x in range(int(request.json.get('count'))):
-            coupon = DiscountCoupon(discount_policy=discount_policy, usage_limit=usage_limit)
-            db.session.add(coupon)
-            db.session.commit()
-            coupons.append({'code': coupon.code, 'usage_limit': coupon.usage_limit})
+    if request.json.get('usage_limit'):
+        usage_limit = int(request.json.get('usage_limit'))
+        if usage_limit >= 1:
+            return make_response(jsonify(status='error', error='error_usage_limit', error_description="Discount coupon usage limit cannot be less than 1"), 400)
+        else:
+            for x in range(no_of_coupons):
+                coupon = DiscountCoupon(discount_policy=discount_policy, usage_limit=usage_limit)
+                db.session.add(coupon)
+                db.session.commit()
+                coupons.append({'code': coupon.code, 'usage_limit': coupon.usage_limit})
     else:
-        return make_response(jsonify(status='error', error='error_usage_limit', error_description="Discount coupon usage limit cannot be less than 1"), 400)
+        # TODO: Check if the discount policy can generate signed code
+        for x in range(no_of_coupons):
+            coupon = discount_policy.gen_signed_code()
+            coupons.append({'code': coupon})
     return make_response(jsonify(status='ok', result={'message': 'Discount coupon created', 'coupons': coupons}), 201)
 
 

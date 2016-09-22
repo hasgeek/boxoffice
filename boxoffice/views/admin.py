@@ -3,7 +3,7 @@
 from flask import g, jsonify, request
 from .. import app, lastuser
 from coaster.views import load_models, render_with
-from boxoffice.models import Organization, ItemCollection
+from boxoffice.models import Organization, ItemCollection, Item
 
 
 def jsonify_dashboard(data):
@@ -52,4 +52,5 @@ def jsonify_items(item_collections):
     )
 def admin_items(organization):
     query = request.args.getlist('search')
+    # TODO: Filter items based on query parameter
     return jsonify(items=jsonify_items(organization.item_collections))

@@ -21,7 +21,7 @@ def xhr_only(f):
 
 @app.template_filter('date_time_format')
 def date_time_format(datetime):
-    return localize_timezone(datetime).strftime('%d %b %Y %H:%M:%S')
+    return localize_timezone(datetime).strftime('%d %m %Y %H:%M:%S')
 
 
 @app.template_filter('date_format')

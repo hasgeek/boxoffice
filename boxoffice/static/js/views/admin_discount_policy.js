@@ -21,14 +21,11 @@ export const DiscountPolicyView = {
           items: '',
           show_add_policy_form: false,
           new_discount_policy: '',
-          is_item_discounted: function(dp_items, item_id) {
-            var discount_applicable;
-            dp_items.forEach(function(dp_item) {
-              if (item_id === dp_item.id) {
-                discount_applicable = true;
-              }
+          get_discounted_items: function(dp_items) {
+            var discounted_items = dp_items.map(function(dp_item) {
+              return dp_item.id;
             });
-            return discount_applicable;
+            return discounted_items.join(',');
           }
         },
         policyChange: function(event) {
@@ -50,8 +47,6 @@ export const DiscountPolicyView = {
         }
       });
 
-      window.main_ractive = main_ractive;
-
       SideBarView.render('discount-policies', {'org_name': remoteData.org_name});
 
       NProgress.done();
@@ -66,12 +61,14 @@ export const DiscountPolicyView = {
                 dataType: 'json',
                 quietMillis: 250,
                 data: function (term) {
-                    return {
-                        search: term,
-                    };
+                  return {
+                    search: term
+                  };
                 },
                 results: function (data) {
-                    return { results: data.items };
+                  return {
+                    results: data.items
+                  };
                 },
                 cache: true
             },
@@ -93,7 +90,7 @@ export const DiscountPolicyView = {
             timePicker24Hour: true,
             opens: 'left',
             locale: {
-              format: 'DD MM YYYY h:mm:ss'
+              format: 'DD MM YYYY H:mm:ss'
             }
           });
 
@@ -105,7 +102,7 @@ export const DiscountPolicyView = {
             timePicker24Hour: true,
             opens: 'left',
             locale: {
-              format: 'DD MM YYYY h:mm:ss'
+              format: 'DD MM YYYY H:mm:ss'
             }
           });
         }
@@ -119,12 +116,14 @@ export const DiscountPolicyView = {
               dataType: 'json',
               quietMillis: 250,
               data: function (term) {
-                  return {
-                      search: term,
-                  };
+                return {
+                  search: term
+                };
               },
               results: function (data) {
-                  return { results: data.items };
+                return {
+                  results: data.items 
+                };
               },
               cache: true
             },
@@ -156,11 +155,6 @@ export const DiscountPolicyView = {
         main_ractive.set('new_discount_policy.is_price_based', false);
       });
 
-      main_ractive.on('itemsChange', function(event) {
-        main_ractive.set('show_add_policy_form', false);
-        main_ractive.set('new_discount_policy.is_price_based', false);
-      });
-
       main_ractive.on('addNewPolicy', function(event) {
         event.original.preventDefault();
         main_ractive.set('new_discount_policy.generate_policy_error', '');
@@ -187,22 +181,9 @@ export const DiscountPolicyView = {
       });
 
       main_ractive.on('editPolicyForm', function(event) {
-        main_ractive.set(event.keypath + '.loadingEditForm', true);
+        main_ractive.set(event.keypath + '.hide_edit_btn', true);
+        main_ractive.set(event.keypath + '.show_policy_form', true);
         let discount_policy_id = event.context.id;
-
-        OrgModel.fetch({
-          url: OrgModel.urlFor('view_items', {org_name: main_ractive.get('org')})['path']
-        }).done((remoteData) => {
-          main_ractive.set('items', remoteData.items);
-          main_ractive.set(event.keypath + '.loadingEditForm', false);
-          main_ractive.set(event.keypath + '.hide_edit_btn', true);
-          main_ractive.set(event.keypath + '.show_policy_form', true);
-          $('#add-items-' + event.context.id).select2({
-            placeholder: "Select items"
-          });
-        }).fail(function() {
-          main_ractive.set(event.keypath + '.loadingEditForm', false);
-        });
 
         if (main_ractive.get(event.keypath + '.is_price_based')) {
           $('#start_date_' + discount_policy_id).daterangepicker({
@@ -213,7 +194,7 @@ export const DiscountPolicyView = {
             timePicker24Hour: true,
             opens: 'left',
             locale: {
-              format: 'DD MM YYYY h:mm:ss'
+              format: 'DD MM YYYY HH:mm:ss'
             }
           });
 
@@ -225,11 +206,82 @@ export const DiscountPolicyView = {
             timePicker24Hour: true,
             opens: 'left',
             locale: {
-              format: 'DD MM YYYY h:mm:ss'
+              format: 'DD MM YYYY HH:mm:ss'
             }
           });
-        }
 
+          $('#add-item-' + discount_policy_id).select2({
+            placeholder: "Search a item",
+            minimumInputLength: 3,
+            ajax: {
+                url: OrgModel.urlFor('view_items', {org_name: main_ractive.get('org')})['path'],
+                dataType: 'json',
+                quietMillis: 250,
+                data: function (term) {
+                    return {
+                        search: term,
+                    };
+                },
+                results: function (data) {
+                    return { results: data.items };
+                },
+                cache: true
+            },
+            formatResult: function(item) {
+              var markup = '<p>' + item.title + '</p>';
+              return markup;
+            },
+            formatSelection: function(item) {
+              return item.title;
+            },
+            initSelection: function(element, callback) {
+              // TODO: Get dp_items title
+              // console.log("dp_items", main_ractive.get(event.keypath + '.dp_items'));
+              $.ajax(OrgModel.urlFor('view_items', {org_name: main_ractive.get('org')})['path'] + "?search=", {
+                  dataType: "json"
+              }).done(function(data) { callback(data.items[0]); });
+            },
+            dropdownCssClass: "bigdrop"
+          });
+        }
+        else {
+          $("#add-items-" + discount_policy_id).select2({
+            placeholder: "Search a item",
+            minimumInputLength: 3,
+            multiple: true,
+            ajax: {
+              url: OrgModel.urlFor('view_items', {org_name: main_ractive.get('org')})['path'],
+              dataType: 'json',
+              quietMillis: 250,
+              data: function (term) {
+                return {
+                  search: term
+                };
+              },
+              results: function (data) {
+                return {
+                  results: data.items
+                };
+              },
+              cache: true
+            },
+            formatResult: function(item) {
+              let markup = '<p>' + item.title + '</p>';
+              return markup;
+            },
+            formatSelection: function(item) {
+              return item.title;
+            },
+            initSelection: function(element, callback) {
+              // TODO: Get dp_items title
+              // console.log("dp_items", main_ractive.get(event.keypath + '.dp_items'));
+              $.ajax(OrgModel.urlFor('view_items', {org_name: main_ractive.get('org')})['path'] + "?search=", {
+                  dataType: "json"
+              }).done(function(data) { callback(data.items); });
+            },
+            dropdownCssClass: "bigdrop"
+          });
+        }
       });
 
       main_ractive.on('hideEditPolicy', function(event) {
@@ -268,6 +320,12 @@ export const DiscountPolicyView = {
 
       main_ractive.on('generateCouponForm', function(event) {
         main_ractive.set(event.keypath + '.hide_edit_btn', true);
+        main_ractive.set(event.keypath + '.show_add_coupon_form', true);
+      });
+
+      main_ractive.on('generateSignedCouponForm', function(event) {
+        main_ractive.set(event.keypath + '.hide_edit_btn', true);
+        main_ractive.set(event.keypath + '.generate_signed_coupon', true);
         main_ractive.set(event.keypath + '.show_add_coupon_form', true);
       });
 
