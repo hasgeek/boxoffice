@@ -37,13 +37,6 @@ def org(organization):
     return dict(org=organization, title=organization.title)
 
 
-def jsonify_items(item_collections):
-    items_list = []
-    for ic in item_collections:
-        items_list.extend([{'id': str(item.id), 'title': item.title} for item in ic.items])
-    return items_list
-
-
 @app.route('/admin/o/<org>/items')
 @lastuser.requires_login
 @load_models(
@@ -51,6 +44,6 @@ def jsonify_items(item_collections):
     permission='org_admin'
     )
 def admin_items(organization):
-    query = request.args.getlist('search')
-    # TODO: Filter items based on query parameter
-    return jsonify(items=jsonify_items(organization.item_collections))
+    query = request.args.get('search')
+    filtered_items = Item.query.filter(Item.title.ilike('{query}%'.format(query=query))).all()
+    return jsonify(items=[{'id': str(item.id), 'title': item.title} for item in filtered_items])

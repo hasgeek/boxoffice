@@ -3,7 +3,6 @@ import {OrgModel} from './org.js';
 import {ItemCollectionModel} from './item_collection.js';
 import {OrderModel} from './admin_order.js';
 import {DiscountPolicyModel} from './admin_discount_policy.js';
-import {DiscountCouponModel} from './admin_coupon.js';
 
 export const SideBarModel = {
   getItems: function(config) {
@@ -41,12 +40,6 @@ export const SideBarModel = {
           title: 'Discount Policies',
           icon: 'fa-tags',
           view: 'discount-policies'
-        },
-        {
-          url: DiscountCouponModel.urlFor('index', {org_name: this.org_name})['relative_path'],
-          title: 'Discount Coupons',
-          icon: 'fa-gift',
-          view: 'coupons'
         }
       ]
     }
