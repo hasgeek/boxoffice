@@ -10,12 +10,15 @@ from utils import xhr_only, date_time_format
 
 
 def jsonify_price(price):
-    return {
-        'price_title': price.title,
-        'amount': price.amount,
-        'start_at': date_time_format(price.start_at),
-        'end_at': date_time_format(price.end_at)
-    }
+    if price:
+        return {
+            'price_title': price.title,
+            'amount': price.amount,
+            'start_at': date_time_format(price.start_at),
+            'end_at': date_time_format(price.end_at)
+        }
+    else:
+        return None
 
 
 def jsonify_discount_policy(policy):
