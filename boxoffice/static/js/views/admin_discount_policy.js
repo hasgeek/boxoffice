@@ -22,28 +22,24 @@ export const DiscountPolicyView = {
           show_add_policy_form: false,
           new_discount_policy: '',
           get_discounted_items: function(dp_items) {
-            var discounted_items = dp_items.map(function(dp_item) {
+            let discounted_items = dp_items.map(function(dp_item) {
               return dp_item.id;
             });
             return discounted_items.join(',');
+          },
+          search: function(search) {
+            let url = DiscountPolicyModel.urlFor('index', {org_name: config.org_name})['path'];
+            if (search) {
+              url = url + "?search=" + search;
+            }
+            NProgress.start();
+            DiscountPolicyModel.fetch({
+              url: url
+            }).done((remoteData) => {
+              main_ractive.set('discount_policies', remoteData.discount_policies);
+              NProgress.done();
+            });
           }
-        },
-        policyChange: function(event) {
-          main_ractive.set('new_discount_policy.discount_type', event.node.value);
-        },
-        refresh: function(complete) {
-          NProgress.start();
-          DiscountPolicyModel.fetch({
-            url: DiscountPolicyModel.urlFor('index', {org_name: config.org_name})['path']
-          }).done((remoteData) => {
-            main_ractive.set('discount_policies', remoteData.discount_policies);
-            NProgress.done();
-            complete();
-          });
-        },
-        closeNewPolicyForm: function() {
-          main_ractive.set('new_discount_policy.creatingPolicy', false);
-          main_ractive.set('show_add_policy_form', false);
         }
       });
 
@@ -53,8 +49,9 @@ export const DiscountPolicyView = {
 
       let addFormFields =  function(is_price_based) {
         if (is_price_based) {
+          console.log("addFormFields", is_price_based);
           $("#add-item").select2({
-            placeholder: "Search a item",
+            placeholder: "Search a ticket",
             minimumInputLength: 3,
             ajax: {
                 url: OrgModel.urlFor('view_items', {org_name: main_ractive.get('org')})['path'],
@@ -108,7 +105,7 @@ export const DiscountPolicyView = {
         }
         else {
           $("#add-items").select2({
-            placeholder: "Search a item",
+            placeholder: "Search tickets",
             minimumInputLength: 3,
             multiple: true,
             ajax: {
@@ -139,20 +136,25 @@ export const DiscountPolicyView = {
         }
       }
 
-      main_ractive.observe('new_discount_policy.is_price_based', function(is_price_based) {
-        if (typeof is_price_based != 'undefined') {
-          addFormFields(main_ractive.get('new_discount_policy.is_price_based'));
-        }
-      }, { defer: true });
-
-      main_ractive.on('addNewPolicyForm', function(event) {
+      main_ractive.on('openNewPolicyForm', function(event) {
         main_ractive.set('show_add_policy_form', true);
-        main_ractive.set('new_discount_policy.is_price_based', true);
+        main_ractive.set('new_discount_policy.is_price_based', 1);
+        main_ractive.set('new_discount_policy.discount_type', 1);
+        addFormFields(main_ractive.get('new_discount_policy.is_price_based'));
       });
 
-      main_ractive.on('hideNewPolicyForm', function(event) {
+      main_ractive.on('policyChange', function(event) {
+        main_ractive.set('new_discount_policy.is_price_based', parseInt(event.node.value, 10));
+        console.log("type", main_ractive.get('new_discount_policy.is_price_based'));
+        addFormFields(main_ractive.get('new_discount_policy.is_price_based'));
+      });
+      
+      main_ractive.on('policyTypeChange', function(event) {
+        main_ractive.set('new_discount_policy.discount_type', event.node.value);
+      });
+
+      main_ractive.on('closeNewPolicyForm', function(event) {
         main_ractive.set('show_add_policy_form', false);
-        main_ractive.set('new_discount_policy.is_price_based', false);
       });
 
       main_ractive.on('addNewPolicy', function(event) {
@@ -166,6 +168,8 @@ export const DiscountPolicyView = {
           data: DiscountPolicyModel.convertFormToJSON(new_policy_form, ['items']),
           contentType: 'application/json'
         }).done((remoteData) => {
+          main_ractive.set('discount_policies', [remoteData.result.discount_policy]);
+          main_ractive.set('new_discount_policy.creatingPolicy', false);
           main_ractive.refresh(main_ractive.closeNewPolicyForm);
         }).fail(function(response) {
           let error_msg;
@@ -236,11 +240,7 @@ export const DiscountPolicyView = {
               return item.title;
             },
             initSelection: function(element, callback) {
-              // TODO: Get dp_items title
-              // console.log("dp_items", main_ractive.get(event.keypath + '.dp_items'));
-              $.ajax(OrgModel.urlFor('view_items', {org_name: main_ractive.get('org')})['path'] + "?search=", {
-                  dataType: "json"
-              }).done(function(data) { callback(data.items[0]); });
+              callback(main_ractive.get(event.keypath + '.dp_items.0'));
             },
             dropdownCssClass: "bigdrop"
           });
@@ -274,11 +274,7 @@ export const DiscountPolicyView = {
               return item.title;
             },
             initSelection: function(element, callback) {
-              // TODO: Get dp_items title
-              // console.log("dp_items", main_ractive.get(event.keypath + '.dp_items'));
-              $.ajax(OrgModel.urlFor('view_items', {org_name: main_ractive.get('org')})['path'] + "?search=", {
-                  dataType: "json"
-              }).done(function(data) { callback(data.items); });
+              callback(main_ractive.get(event.keypath + '.dp_items'));
             },
             dropdownCssClass: "bigdrop"
           });
@@ -326,17 +322,39 @@ export const DiscountPolicyView = {
         main_ractive.set(event.keypath + '.show_add_coupon_form', true);
       });
 
-      main_ractive.on('generateSignedCouponForm', function(event) {
-        main_ractive.set(event.keypath + '.hide_edit_btn', true);
-        main_ractive.set(event.keypath + '.generate_signed_coupon', true);
-        main_ractive.set(event.keypath + '.show_add_coupon_form', true);
-      });
-
       main_ractive.on('hidegenerateCouponForm', function(event) {
         main_ractive.set(event.keypath + '.hide_edit_btn', false);
         main_ractive.set(event.keypath + '.show_add_coupon_form', false);
       });
 
+      main_ractive.on('listCoupons', function(event) {
+        event.original.preventDefault();
+        main_ractive.set(event.keypath + '.loadingCoupons', true);
+        main_ractive.set(event.keypath + '.loading_coupon_error', '');
+        let discount_policy_id = event.context.id;
+
+        DiscountPolicyModel.fetch({
+          url: DiscountPolicyModel.urlFor('list_coupons', {discount_policy_id: discount_policy_id})['path'],
+          contentType: 'application/json'
+        }).done((remoteData) => {
+          main_ractive.set(event.keypath + '.coupons', remoteData.result.coupons);
+          main_ractive.set(event.keypath + '.loadingCoupons', false);
+          $('#list-coupons-' + discount_policy_id).modal('show');
+          $('#coupons-list-' + discount_policy_id).footable();
+          new Clipboard('.copy-coupons-list');
+        }).fail(function(response) {
+          let error_msg;
+          if (response.readyState === 4) {
+            error_msg = JSON.parse(response.responseText).error_description;
+          }
+          if (response.readyState === 0) {
+            error_msg = "Unable to connect. Please try again."
+          }
+          main_ractive.set(event.keypath + '.loadingCoupons', false);
+          main_ractive.set(event.keypath + '.loading_coupon_error', error_msg);
+        });
+
+      });
 
       main_ractive.on('generateCoupon', function(event) {
         event.original.preventDefault();
@@ -349,16 +367,10 @@ export const DiscountPolicyView = {
           data: DiscountPolicyModel.convertFormToJSON(coupon_form, []),
           contentType: 'application/json'
         }).done((remoteData) => {
+          main_ractive.set(event.keypath + '.coupons', remoteData.result.coupons);
           main_ractive.set(event.keypath + '.generatingCoupon', false);
-          if (main_ractive.get(event.keypath + '.coupons')) {
-            Array.prototype.push.apply(main_ractive.get(event.keypath + '.coupons'), remoteData.result.coupons);
-          }
-          else {
-            main_ractive.set(event.keypath + '.coupons', remoteData.result.coupons);
-          }
-          main_ractive.set(event.keypath + '.hide_edit_btn', false);
-          main_ractive.set(event.keypath + '.show_add_coupon_form', false);
-          $('#coupons-' + discount_policy_id).modal('show');
+          $('#new-coupons-' + discount_policy_id).modal('show');
+          new Clipboard('.copy-coupons');
         }).fail(function(response) {
           let error_msg;
           if (response.readyState === 4) {
