@@ -21,7 +21,11 @@ export const DiscountPolicyModel = {
         'method': 'POST'
       },
       'generate_coupon': {
-        'path': IndexModel.urlFor('index')['path'] + 'discount_policy/' + config.discount_policy_id + '/coupon',
+        'path': IndexModel.urlFor('index')['path'] + 'discount_policy/' + config.discount_policy_id + '/generate_coupon',
+        'method': 'POST'
+      },
+      'list_coupons': {
+        'path': IndexModel.urlFor('index')['path'] + 'discount_policy/' + config.discount_policy_id + '/coupons',
         'method': 'POST'
       },
     }

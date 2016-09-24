@@ -6,12 +6,12 @@ export const DiscountPolicyTemplate = `
       <input autofocus class="form-control" id="filter" type="text" name="key" value="" placeholder="Search"/>
     </form>
     <div class="table-title col-sm-4 col-sm-offset-4 col-xs-12">
-      <button class="boxoffice-button boxoffice-button-action btn-right" on-click="addNewPolicyForm">Create discount policy</button>
+      <button class="boxoffice-button boxoffice-button-action btn-right" on-click="openNewPolicyForm">Create discount policy</button>
     </div>
     {{#if show_add_policy_form}}
       <div class="content-slider align-down" intro-outro='fly:{x:200,y:0,duration:200}'>
-        <button on-click="hideNewPolicyForm" class="close-button"><i class="fa fa-close"></i></button>
-        <p class="content-slider-title">Add discount policy form</p>
+        <button on-click="closeNewPolicyForm" class="close-button"><i class="fa fa-close"></i></button>
+        <p class="content-slider-title">Add a new discount policy</p>
         <div class="content-slider-wrapper">
           <form role="form" id="new-policy-form"> 
             <div class="group">   
@@ -19,75 +19,84 @@ export const DiscountPolicyTemplate = `
               <span class="bar"></span>
               <label class="group-label">Title</label>
             </div>
+
             <div class="group">
-              <label class="checkbox-inline">
-                <input type="checkbox" name="is_price_based" value=1 checked="{{new_discount_policy.is_price_based}}">
-                Price based discount policy
-              </label>
-            </div>
-            <div class="group">
-              <p class="field-title filled">Discount type</p>
+              <p class="field-title filled">What type of discount?</p>
               <label class="radio-inline">
-                <input type="radio" name="discount_type" value=1 on-click="policyChange(event)" checked>
-                Coupon based
+                <input type="radio" name="is_price_based" value="1" on-click="policyChange" checked>
+                Special price
               </label>
-              {{^new_discount_policy.is_price_based}}
-                <label class="radio-inline">
-                  <input type="radio" name="discount_type" value=0 on-click="policyChange(event)">
-                  Automatic
-                </label>
-              {{/}}
+              <label class="radio-inline">
+                <input type="radio" name="is_price_based" value="0" on-click="policyChange">
+                Percentage
+              </label>
             </div>
 
-            {{#if new_discount_policy.discount_type == 0}}
-              <p class="form-help-text">For Automatic discounts, minimum item quantity is the number of tickets user needs to buy to avail this discount.<br>Eg:- 5% discount on buying 5 or more tickets.</p>
-              <div class="group">   
-                <input class="group-input {{#new_discount_policy.item_quantity_min}}filled{{/}}" type="number" name="item_quantity_min" required min="1" value="{{new_discount_policy.item_quantity_min}}">
-                <span class="bar"></span>
-                <label class="group-label">Minimum item quanity</label>
+            {{#if new_discount_policy.is_price_based == 0}}
+              <div class="group">
+                <p class="field-title filled">How is this discount going to be availed?</p>
+                <label class="radio-inline">
+                  <input type="radio" name="discount_type" value="1" on-click="policyTypeChange" checked>
+                  Coupon based
+                </label>
+                  <label class="radio-inline">
+                    <input type="radio" name="discount_type" value="0" on-click="policyTypeChange">
+                    Automatic
+                  </label>
               </div>
             {{/if}}
 
-            {{#if new_discount_policy.is_price_based}}
+            {{#if new_discount_policy.discount_type == 0}}
+              <div class="group">   
+                <input class="group-input {{#new_discount_policy.item_quantity_min}}filled{{/}}" type="number" name="item_quantity_min" required min="1" value="{{new_discount_policy.item_quantity_min}}">
+                <span class="bar"></span>
+                <label class="group-label">Minimum number of tickets</label>
+              </div>
+              <p class="form-help-text">For Automatic discounts, minimum number of tickets user needs to buy to avail this discount.<br>Eg:- 5% discount on buying 5 or more tickets.</p>
+            {{/if}}
+
+            {{#if new_discount_policy.is_price_based == 1}}
+              <p class="field-title filled">What is the discount for?</p>
               <div class="group"> 
                 <input id="add-item" name="items" type="hidden" required>
               </div>
               <div class="group">   
                 <input class="group-input {{#new_discount_policy.price_title}}filled{{/}}" type="text" name="price_title" required value="{{new_discount_policy.price_title}}">
                 <span class="bar"></span>
-                <label class="group-label">Price title</label>
+                <label class="group-label">Special price title</label>
               </div>
               <div class="group">
                 <input class="group-input {{#new_discount_policy.amount}}filled{{/}}" type="number" name="amount" required min="0" value="{{new_discount_policy.amount}}">
                 <span class="bar"></span>
-                <label class="group-label">Amount</label>
+                <label class="group-label">Special price amount</label>
               </div>
               <div class="group inline-group clearfix">
                 <div class="input-group">
-                  <p class="field-title filled">Price start date</p>
+                  <p class="field-title filled">Special price start date</p>
                   <input type="text" class="group-input date" id="start_date" name="start_at" value="{{new_discount_policy.start_at}}" />
                   <i class="fa fa-calendar calendar-icon"></i>
                 </div>
                 <div class="input-group">
-                  <p class="field-title filled">Price end date</p>
+                  <p class="field-title filled">Special price end date</p>
                   <input type="text" class="group-input date" id="end_date" name="end_at" value="{{new_discount_policy.end_at}}" />
                   <i class="fa fa-calendar calendar-icon"></i>
                 </div>
               </div>
             {{else}}
+              <p class="field-title filled">What is the discount for?</p>
               <div class="group">
                 <input id="add-items" name="items" type="hidden" required>
               </div>
               <div class="group">
                 <input class="group-input {{#new_discount_policy.percentage}}filled{{/}}" type="number" name="percentage" required min="1" value="{{new_discount_policy.percentage}}">
                 <span class="bar"></span>
-                <label class="group-label">Percentage</label>
+                <label class="group-label">Discount percentage</label>
               </div>
             {{/if}}
 
             <input type="hidden" name="organization" required value="{{org}}">
             <div class="btn-wrapper">
-              <button type="button" class="boxoffice-button boxoffice-button-info" on-click="hideNewPolicyForm">Back</button>
+              <button type="button" class="boxoffice-button boxoffice-button-info" on-click="closeNewPolicyForm">Back</button>
               <button type="submit" class="boxoffice-button boxoffice-button-action" on-click="addNewPolicy" {{#new_discount_policy.creatingPolicy}}disabled{{/}}>
                 Create policy
                 {{#new_discount_policy.creatingPolicy}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'>{{/}}
@@ -135,19 +144,57 @@ export const DiscountPolicyTemplate = `
                       {{/}}
                     </ol>
                   {{/if}}
-
-                  {{#if coupons}}
-                    <p class="content-details"><b>Recently generated coupons:</b></p>
-                    <ul class="content-list">
-                    {{#coupons:coupon}}
-                       <li class="content-details">
-                        {{#coupons[coupon].usage_limit}}
-                          <b>{{coupons[coupon].code}}</b>, usage limit: {{coupons[coupon].usage_limit}}
-                        {{/}}
-                      </li>
-                    {{/}}
-                    </ul>
+                  {{#if discount_type == "Coupon based"}}
+                    <button class="boxoffice-button boxoffice-button-action btn-right" on-click="listCoupons">
+                      List coupons{{#loadingCoupons}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'>{{/}}
+                    </button>
+                    <button class="boxoffice-button boxoffice-button-action btn-right btn-inline" on-click="generateCouponForm">Generate coupon</button>
+                    <p class="error-msg">{{loading_coupon_error}}</p>
                   {{/if}}
+
+                  <div class="modal" id="list-coupons-{{id}}" tabindex="-1" role="dialog">
+                    <div class="modal-dialog" role="document">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                          <h4 class="modal-title">Discount Coupons</h4>
+                        </div>
+                        <div class="modal-body clearfix">
+                         {{#if coupons}}
+                            <form class="table-title col-sm-4 col-xs-6">
+                              <input autofocus class="form-control" id="filter-{{id}}" type="text" name="key" value="" placeholder="Search coupon"/>
+                            </form>
+                            <div class="col-xs-12">
+                              <table class="table table-hover stats-table table-orders footable toggle-circle-filled" id="coupons-list-{{id}}" data-filter="#filter-{{id}}">
+                                <thead>
+                                  <tr>
+                                    <th data-sort-ignore="true">Coupon</th>
+                                    <th data-sort-ignore="true">Usage</th>
+                                    <th data-sort-ignore="true">Available</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                {{#coupons:coupon}}
+                                  <tr>
+                                    <td class="code"><p class="table-content">{{ code }}</p></td>
+                                    <td><p class="table-content">{{ usage_limit }}</p></td>
+                                    <td><p class="table-content">{{ available }}</p></td>
+                                  </tr>
+                                {{/coupons}}
+                                </tbody>
+                              </table>
+                            </div>
+                          {{else}}
+                            <p class="text-center">Currently no coupons.</p>
+                          {{/if}}
+                        </div>
+                        <div class="modal-footer">
+                          <button class="boxoffice-button boxoffice-button-action btn-right copy-coupons-list" data-clipboard-target="#coupons-list-{{id}}">Copy to clipboard</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   <div class="modal" id="coupons-{{id}}" tabindex="-1" role="dialog">
                     <div class="modal-dialog" role="document">
                       <div class="modal-content">
@@ -156,20 +203,21 @@ export const DiscountPolicyTemplate = `
                           <h4 class="modal-title">{{ title }}</h4>
                         </div>
                         <div class="modal-body">
-                          <button class="boxoffice-button boxoffice-button-action btn-right" on-click="copyCoupons">Copy</button>
                           <p>Discount coupons:</p>
-                          {{#coupons:coupon}}
-                            <p class="content-details">{{coupons[coupon].code}}</p>
-                          {{/}}
+                          <div id="new-coupons-{{id}}">
+                            {{#coupons:coupon}}
+                              <p class="content-details">{{coupons[coupon].code}}</p>
+                            {{/}}
+                          </div>
+                        </div>
+                        <div class="modal-footer">
+                          <button class="boxoffice-button boxoffice-button-action btn-right copy-coupons" data-clipboard-target="#new-coupons-{{id}}">Copy to clipboard</button>
                         </div>
                       </div>
                     </div>
                   </div>
-                  {{#if discount_type == "Coupon based"}}
-                    <button class="boxoffice-button boxoffice-button-action btn-right" on-click="generateCouponForm">Generate coupon</button>
-                    <button class="boxoffice-button boxoffice-button-action btn-right btn-inline" on-click="generateSignedCouponForm">Generate bulk coupons</button>
-                  {{/if}}
                 </div>
+
               {{elseif show_policy_form}}
                 <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
                   <h4 class="text-center form-title">Please fill the attendee details</h4>   
@@ -236,18 +284,22 @@ export const DiscountPolicyTemplate = `
                 <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
                   <h4 class="text-center form-title">Generate coupon</h4> 
                   <form role="form" id="new-coupon-{{id}}">
-                    {{#if generate_signed_coupon}}
-                      <input type="hidden" name="signed" value="true">
+                    <div class="group">   
+                      <input class="group-input filled" type="number" name="count" required min="1" value="{{count_coupons}}">
+                      <span class="bar"></span>
+                      <label class="group-label">How many coupons?</label>
+                    </div>
+                    {{#if count_coupons == 1}}
                       <div class="group">   
-                        <input class="group-input filled" type="number" name="count" required min="1" value="1">
+                        <input class="group-input" type="text" name="coupon_code" value="">
                         <span class="bar"></span>
-                        <label class="group-label">Number of coupons</label>
+                        <label class="group-label">What coupon code?</label>
                       </div>
-                    {{else}}
+                      <p class="form-help-text">Eg: Hasjob</p>
                       <div class="group">   
                         <input class="group-input filled" type="number" name="usage_limit" required min="1" value="1">
                         <span class="bar"></span>
-                        <label class="group-label">Usage limit</label>
+                        <label class="group-label">How many times this coupon can be used?</label>
                       </div>
                     {{/if}}
                     <div class="btn-wrapper">
