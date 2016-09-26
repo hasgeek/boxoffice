@@ -171,33 +171,89 @@ export const DiscountPolicyView = {
       });
 
       main_ractive.on('addNewPolicy', function(event) {
-        event.original.preventDefault();
-        main_ractive.set('new_discount_policy.generate_policy_error', '');
-        main_ractive.set('new_discount_policy.creatingPolicy', true);
-        let new_policy_form = '#new-policy-form';
+        var validation_config = [
+          {
+            name: 'title',
+            rules: 'required'
+          },
+          {
+            name: 'item_quantity_min',
+            rules: 'required|numeric'
+          },
+          {
+            name: 'price_title',
+            rules: 'required'
+          },
+          {
+            name: 'amount',
+            rules: 'required|numeric'
+          },
+          {
+            name: 'start_at',
+            rules: 'required'
+          },
+          {
+            name: 'end_at',
+            rules: 'required'
+          },
+          {
+            name: 'item',
+            rules: 'required'
+          },
+          {
+            name: 'percentage',
+            rules: 'required|numeric'
+          },
+          {
+            name: 'items',
+            rules: 'required'
+          }
+        ];
 
-        DiscountPolicyModel.post({
-          url: DiscountPolicyModel.urlFor('new', {org_name: main_ractive.get('org')})['path'],
-          data: DiscountPolicyModel.convertFormToJSON(new_policy_form, ['items']),
-          contentType: 'application/json'
-        }).done((remoteData) => {
-          main_ractive.set('discount_policies', [remoteData.result.discount_policy]);
-          main_ractive.set('new_discount_policy.creatingPolicy', false);
-          let url = DiscountPolicyModel.urlFor('search', {org_name: config.org_name, search: main_ractive.get('new_discount_policy.title')})['path'];
-          window.history.replaceState({reloadOnPop: true}, '', window.location.href);
-          window.history.pushState({reloadOnPop: true}, '', url);
-          main_ractive.fire('closeNewPolicyForm');
-        }).fail(function(response) {
-          let error_msg;
-          if (response.readyState === 4) {
-            error_msg = JSON.parse(response.responseText).message;
+        var policy_form_name = 'adding-new-policy-form';
+
+        var form_validator = new FormValidator(policy_form_name, validation_config, function(errors, event) {
+          event.preventDefault();
+          main_ractive.set('new_discount_policy.errormsg', '');
+          if (errors.length > 0) {
+            main_ractive.set('new_discount_policy.errormsg.'+ errors[0].name, errors[0].message);
           }
-          if (response.readyState === 0) {
-            error_msg = "Unable to connect. Please try again."
+          else {
+            main_ractive.set('new_discount_policy.generate_policy_error', '');
+            main_ractive.set('new_discount_policy.creatingPolicy', true);
+            let new_policy_form = '#new-policy-form';
+
+            DiscountPolicyModel.post({
+              url: DiscountPolicyModel.urlFor('new', {org_name: main_ractive.get('org')})['path'],
+              data: DiscountPolicyModel.convertFormToJSON(new_policy_form, ['items']),
+              contentType: 'application/json'
+            }).done((remoteData) => {
+              main_ractive.set('discount_policies', [remoteData.result.discount_policy]);
+              main_ractive.set('new_discount_policy.creatingPolicy', false);
+              let url = DiscountPolicyModel.urlFor('search', {org_name: config.org_name, search: main_ractive.get('new_discount_policy.title')})['path'];
+              window.history.replaceState({reloadOnPop: true}, '', window.location.href);
+              window.history.pushState({reloadOnPop: true}, '', url);
+              main_ractive.fire('closeNewPolicyForm');
+            }).fail(function(response) {
+              let error_msg;
+              if (response.readyState === 4) {
+                if(response.status === 500) {
+                  error_msg = "Internal Server Error"
+                }
+                else {
+                  error_msg = JSON.parse(response.responseText).message;
+                }
+              }
+              if (response.readyState === 0) {
+                error_msg = "Unable to connect. Please try again."
+              }
+              main_ractive.set('new_discount_policy.creatingPolicy', false);
+              main_ractive.set('new_discount_policy.generate_policy_error', error_msg);
+            });
           }
-          main_ractive.set('new_discount_policy.creatingPolicy', false);
-          main_ractive.set('new_discount_policy.generate_policy_error', error_msg);
         });
+
+        form_validator.setMessage('required', 'Please fill out the this field');
 
       });
 
@@ -214,6 +270,7 @@ export const DiscountPolicyView = {
       main_ractive.on('editPolicyForm', function(event) {
         main_ractive.set(event.keypath + '.hide_edit_btn', true);
         main_ractive.set(event.keypath + '.show_policy_form', true);
+        main_ractive.set(event.keypath +  '.errormsg', '');
         let discount_policy_id = event.context.id;
 
         if (main_ractive.get(event.keypath + '.is_price_based')) {
@@ -313,32 +370,88 @@ export const DiscountPolicyView = {
       });
 
       main_ractive.on('editPolicy', function(event) {
-        event.original.preventDefault();
-        main_ractive.set(event.keypath + '.editingPolicy', true);
-        let discount_policy_id = event.context.id;
-        let policy_form = '#policy-form-' + discount_policy_id;
+        var discount_policy = event.keypath;
+        var discount_policy_id = event.context.id;
 
-        DiscountPolicyModel.post({
-          url: DiscountPolicyModel.urlFor('edit', {discount_policy_id: discount_policy_id})['path'],
-          data: DiscountPolicyModel.convertFormToJSON(policy_form, ["items"]),
-          contentType: 'application/json'
-        }).done((remoteData) => {
-          main_ractive.set(event.keypath + '.editingPolicy', false);
-          main_ractive.set(event.keypath, remoteData.result.discount_policy);
-          main_ractive.set(event.keypath + '.show_policy_form', false);
-          main_ractive.set(event.keypath + '.hide_edit_btn', false);
-        }).fail(function(response) {
-          let error_msg;
-          if (response.readyState === 4) {
-            error_msg = JSON.parse(response.responseText).message;
+        var validation_config = [
+          {
+            name: 'title',
+            rules: 'required'
+          },
+          {
+            name: 'item_quantity_min',
+            rules: 'required|numeric'
+          },
+          {
+            name: 'price_title',
+            rules: 'required'
+          },
+          {
+            name: 'amount',
+            rules: 'required|numeric'
+          },
+          {
+            name: 'start_at',
+            rules: 'required'
+          },
+          {
+            name: 'end_at',
+            rules: 'required'
+          },
+          {
+            name: 'item',
+            rules: 'required'
+          },
+          {
+            name: 'percentage',
+            rules: 'required|numeric'
+          },
+          {
+            name: 'items',
+            rules: 'required'
           }
-          if (response.readyState === 0) {
-            error_msg = "Unable to connect. Please try again."
+        ];
+
+        var policy_form_name = 'edit-policy-form-' + discount_policy_id;
+
+        var form_validator = new FormValidator(policy_form_name, validation_config, function(errors, event) {
+          event.preventDefault();
+          main_ractive.set(discount_policy +  '.errormsg', '');
+          if (errors.length > 0) {
+            main_ractive.set(discount_policy +  '.errormsg.'+ errors[0].name, errors[0].message);
           }
-          main_ractive.set(event.keypath + '.editingPolicy', false);
-          main_ractive.set(event.keypath + '.edit_policy_error', error_msg);
-          main_ractive.set(event.keypath + '.hide_edit_btn', false);
+          else {
+            main_ractive.set(discount_policy + '.editingPolicy', true);
+            let policy_form = '#policy-form-' + discount_policy_id;
+
+            DiscountPolicyModel.post({
+              url: DiscountPolicyModel.urlFor('edit', {discount_policy_id: discount_policy_id})['path'],
+              data: DiscountPolicyModel.convertFormToJSON(policy_form, ["items"]),
+              contentType: 'application/json'
+            }).done((remoteData) => {
+              main_ractive.set(discount_policy + '.editingPolicy', false);
+              main_ractive.set(discount_policy, remoteData.result.discount_policy);
+              main_ractive.set(discount_policy + '.show_policy_form', false);
+              main_ractive.set(discount_policy + '.hide_edit_btn', false);
+            }).fail(function(response) {
+              let error_msg;
+              if(response.status === 500) {
+                error_msg = "Internal Server Error"
+              }
+              else {
+                error_msg = JSON.parse(response.responseText).message;
+              }
+              if (response.readyState === 0) {
+                error_msg = "Unable to connect. Please try again."
+              }
+              main_ractive.set(discount_policy + '.editingPolicy', false);
+              main_ractive.set(discount_policy + '.edit_policy_error', error_msg);
+              main_ractive.set(discount_policy + '.hide_edit_btn', false);
+            });
+          }
         });
+
+        form_validator.setMessage('required', 'Please fill out the this field');
 
       });
 
@@ -370,8 +483,11 @@ export const DiscountPolicyView = {
           new Clipboard('.copy-coupons-list');
         }).fail(function(response) {
           let error_msg;
-          if (response.readyState === 4) {
-            error_msg = JSON.parse(response.responseText).error_description;
+          if(response.status === 500) {
+            error_msg = "Internal Server Error"
+          }
+          else {
+            error_msg = JSON.parse(response.responseText).message;
           }
           if (response.readyState === 0) {
             error_msg = "Unable to connect. Please try again."
@@ -383,31 +499,60 @@ export const DiscountPolicyView = {
       });
 
       main_ractive.on('generateCoupon', function(event) {
-        event.original.preventDefault();
-        main_ractive.set(event.keypath + '.generatingCoupon', true);
-        let discount_policy_id = event.context.id;
-        let coupon_form = '#new-coupon-' + discount_policy_id;
+        var discount_policy = event.keypath;
+        var discount_policy_id = event.context.id;
 
-        DiscountPolicyModel.post({
-          url: DiscountPolicyModel.urlFor('generate_coupon', {discount_policy_id: discount_policy_id})['path'],
-          data: DiscountPolicyModel.convertFormToJSON(coupon_form, []),
-          contentType: 'application/json'
-        }).done((remoteData) => {
-          main_ractive.set(event.keypath + '.coupons', remoteData.result.coupons);
-          main_ractive.set(event.keypath + '.generatingCoupon', false);
-          $('#new-coupons-' + discount_policy_id).modal('show');
-          new Clipboard('.copy-coupons');
-        }).fail(function(response) {
-          let error_msg;
-          if (response.readyState === 4) {
-            error_msg = JSON.parse(response.responseText).error_description;
+        var validation_config = [
+          {
+            name: 'count',
+            rules: 'required|numeric'
+          },
+          {
+            name: 'usage_limit',
+            rules: 'required|numeric'
           }
-          if (response.readyState === 0) {
-            error_msg = "Unable to connect. Please try again."
+        ];
+
+        var coupon_form_name = 'generate-coupon-form-' + discount_policy_id;
+
+        var form_validator = new FormValidator(coupon_form_name, validation_config, function(errors, event) {
+          event.preventDefault();
+          main_ractive.set(discount_policy +  '.errormsg', '');
+          if (errors.length > 0) {
+            main_ractive.set(discount_policy +  '.errormsg.'+ errors[0].name, errors[0].message);
           }
-          main_ractive.set(event.keypath + '.generatingCoupon', false);
-          main_ractive.set(event.keypath + '.generate_coupon_error', error_msg);
+          else {
+            let coupon_form = '#new-coupon-' + discount_policy_id;
+            main_ractive.set(discount_policy+ '.generatingCoupon', true);
+            DiscountPolicyModel.post({
+              url: DiscountPolicyModel.urlFor('generate_coupon', {discount_policy_id: discount_policy_id})['path'],
+              data: DiscountPolicyModel.convertFormToJSON(coupon_form, []),
+              contentType: 'application/json'
+            }).done((remoteData) => {
+              main_ractive.set(discount_policy + '.coupons', remoteData.result.coupons);
+              main_ractive.set(discount_policy + '.generatingCoupon', false);
+              $('#generated-coupons-' + discount_policy_id).modal('show');
+              new Clipboard('.copy-coupons');
+            }).fail(function(response) {
+              let error_msg;
+              if (response.readyState === 4) {
+                if(response.status === 500) {
+                  error_msg = "Internal Server Error"
+                }
+                else {
+                  error_msg = JSON.parse(response.responseText).error_description;
+                }
+              }
+              if (response.readyState === 0) {
+                error_msg = "Unable to connect. Please try again."
+              }
+              main_ractive.set(discount_policy + '.generatingCoupon', false);
+              main_ractive.set(discount_policy + '.generate_coupon_error', error_msg);
+            });            
+          }
         });
+
+        form_validator.setMessage('required', 'Please fill out the this field');
 
       });
 

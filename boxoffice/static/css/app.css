@@ -205,7 +205,8 @@ a.boxoffice-button:focus {
   -webkit-transition: 0.2s ease all;
 }
 
-.group-input:disabled {
+.group-input:disabled,
+.group-input.disabled {
   position: relative;
   background-color: transparent;
   color: #CCC;
