@@ -3,7 +3,7 @@ export const DiscountPolicyTemplate = `
   <div class="content-wrapper">
     <h1 class="header">{{ title }}</h1>
     <form class="table-title col-sm-4 col-xs-12">
-      <input autofocus class="form-control" id="filter" type="text" name="key" value="" placeholder="Search"/>
+      <input autofocus class="form-control" type="text" on-keyup="searchPolicy" placeholder="Search discount policy"/>
     </form>
     <div class="table-title col-sm-4 col-sm-offset-4 col-xs-12">
       <button class="boxoffice-button boxoffice-button-action btn-right" on-click="openNewPolicyForm">Create discount policy</button>
@@ -299,7 +299,7 @@ export const DiscountPolicyTemplate = `
                       <div class="group">   
                         <input class="group-input filled" type="number" name="usage_limit" required min="1" value="1">
                         <span class="bar"></span>
-                        <label class="group-label">How many times this coupon can be used?</label>
+                        <label class="group-label">How many times can this coupon be used?</label>
                       </div>
                     {{/if}}
                     <div class="btn-wrapper">

@@ -45,5 +45,5 @@ def org(organization):
     )
 def admin_items(organization):
     query = request.args.get('search')
-    filtered_items = Item.query.filter(Item.title.ilike('{query}%'.format(query=query))).all()
+    filtered_items = Item.query.filter(Item.title.ilike('%{query}%'.format(query=query))).all()
     return jsonify(items=[{'id': str(item.id), 'title': item.title} for item in filtered_items])

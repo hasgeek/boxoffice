@@ -6,10 +6,15 @@ export const DiscountPolicyModel = {
   post: post,
   convertFormToJSON: convertFormToJSON,
   urlFor: function(action, config){
+    let base_url = IndexModel.urlFor('index')['path'] + 'o/' + config.org_name + '/discount_policies';
     let urls = {
       'index': {
-        'path': IndexModel.urlFor('index')['path'] + 'o/' + config.org_name + '/discount_policies',
+        'path': config.page ? base_url + '?page=' + config.page : base_url,
         'relative_path': 'o/' + config.org_name + '/discount_policies',
+        'method': 'GET'
+      },
+      'search': {
+        'path': config.page ? base_url + '?search=' + config.search + '?page=' + config.page : base_url + '?search=' + config.search,
         'method': 'GET'
       },
       'new': {
