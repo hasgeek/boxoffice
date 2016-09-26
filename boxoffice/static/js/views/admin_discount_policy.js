@@ -6,9 +6,16 @@ import {SideBarView} from './sidebar.js';
 
 export const DiscountPolicyView = {
   render: function(config) {
+    let url;
+    if (config.search) {
+      url = DiscountPolicyModel.urlFor('search', {org_name: config.org_name, search: config.search, page: config.page})['path'];
+    }
+    else {
+      url = DiscountPolicyModel.urlFor('index', {org_name: config.org_name, page: config.page})['path'];
+    }
 
     DiscountPolicyModel.fetch({
-      url: DiscountPolicyModel.urlFor('index', {org_name: config.org_name})['path']
+      url: url
     }).done((remoteData) => {
       // Initial render
       let main_ractive = new Ractive({
@@ -26,20 +33,28 @@ export const DiscountPolicyView = {
               return dp_item.id;
             });
             return discounted_items.join(',');
-          },
-          search: function(search) {
-            let url = DiscountPolicyModel.urlFor('index', {org_name: config.org_name})['path'];
-            if (search) {
-              url = url + "?search=" + search;
-            }
-            NProgress.start();
-            DiscountPolicyModel.fetch({
-              url: url
-            }).done((remoteData) => {
-              main_ractive.set('discount_policies', remoteData.discount_policies);
-              NProgress.done();
-            });
           }
+        },
+        refresh: function(search='', page='') {
+          let url;
+          if (search) {
+            url = DiscountPolicyModel.urlFor('search', {org_name: config.org_name, search: search, page: page})['path'];
+          }
+          else if (page) {
+            url = DiscountPolicyModel.urlFor('index', {org_name: config.org_name})['path'];
+          }
+          else {
+            url = DiscountPolicyModel.urlFor('index', {org_name: config.org_name, page: page})['path'];
+          }
+          NProgress.start();
+          DiscountPolicyModel.fetch({
+            url: url
+          }).done((remoteData) => {
+            main_ractive.set('discount_policies', remoteData.discount_policies);
+            NProgress.done();
+          });
+          window.history.replaceState({reloadOnPop: true}, '', window.location.href);
+          window.history.pushState({reloadOnPop: true}, '', url);
         }
       });
 
@@ -49,7 +64,6 @@ export const DiscountPolicyView = {
 
       let addFormFields =  function(is_price_based) {
         if (is_price_based) {
-          console.log("addFormFields", is_price_based);
           $("#add-item").select2({
             placeholder: "Search a ticket",
             minimumInputLength: 3,
@@ -145,7 +159,6 @@ export const DiscountPolicyView = {
 
       main_ractive.on('policyChange', function(event) {
         main_ractive.set('new_discount_policy.is_price_based', parseInt(event.node.value, 10));
-        console.log("type", main_ractive.get('new_discount_policy.is_price_based'));
         addFormFields(main_ractive.get('new_discount_policy.is_price_based'));
       });
       
@@ -170,7 +183,10 @@ export const DiscountPolicyView = {
         }).done((remoteData) => {
           main_ractive.set('discount_policies', [remoteData.result.discount_policy]);
           main_ractive.set('new_discount_policy.creatingPolicy', false);
-          main_ractive.refresh(main_ractive.closeNewPolicyForm);
+          let url = DiscountPolicyModel.urlFor('search', {org_name: config.org_name, search: main_ractive.get('new_discount_policy.title')})['path'];
+          window.history.replaceState({reloadOnPop: true}, '', window.location.href);
+          window.history.pushState({reloadOnPop: true}, '', url);
+          main_ractive.fire('closeNewPolicyForm');
         }).fail(function(response) {
           let error_msg;
           if (response.readyState === 4) {
@@ -183,6 +199,16 @@ export const DiscountPolicyView = {
           main_ractive.set('new_discount_policy.generate_policy_error', error_msg);
         });
 
+      });
+
+      main_ractive.on('searchPolicy', function(event) {
+        let search = event.node.value;
+        if (search.length > 2) {
+          main_ractive.refresh(search);
+        }
+        else if(search.length === 0) {
+          main_ractive.refresh();
+        }
       });
 
       main_ractive.on('editPolicyForm', function(event) {
