@@ -64,10 +64,10 @@ def send_ticket_assignment_mail(line_item_id, past_assignee):
         order = line_item.order
         subject = order.item_collection.title + ": Here's your ticket"
         if past_assignee:
-          recipient_list = [order.buyer_email, past_assignee]
+          cc_list = [order.buyer_email, past_assignee]
         else:
-          recipient_list = [order.buyer_email]
-        msg = Message(subject=subject, recipients=[line_item.current_assignee.email], cc=recipient_list)
+          cc_list = [order.buyer_email]
+        msg = Message(subject=subject, recipients=[line_item.current_assignee.email], cc=cc_list)
         html = email_transform(render_template('ticket_assignment_mail.html', order=order, org=order.organization, line_item=line_item, base_url=app.config['BASE_URL']))
         msg.html = html
         msg.body = html2text(html)
