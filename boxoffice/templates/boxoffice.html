@@ -89,7 +89,7 @@
           {{#loadingPrice && !isLoadingFail}}
             <div class="loader"><i class="fa fa-spinner fa-spin fa-2x"></i></div>
           {{/}}
-          <p class="price">Total <span class="pull-right"><i class="fa fa-inr rupee-sign"></i>{{ order.final_amount }}</span></p>
+          <p class="price">Total <span class="final-amount"><i class="fa fa-inr rupee-sign"></i>{{ order.final_amount }}</span></p>
         </div>
         {{#order.readyToCheckout}}
           <div class="proceed-button-wrapper" intro='fly:{"x":200,"y":"0"}'>
@@ -573,9 +573,11 @@
     font-size: 13px;
     padding-left: 5px;
   }
-  .separator {
+  .boxoffice-section .separator {
     height: 1px;
     margin: 0 -20px 20px;
+    border: 0;
+    border-top: 1px solid #eee;
   }
   .ticket-total {
     clear: both;
