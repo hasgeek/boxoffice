@@ -83,14 +83,14 @@
                       <h4 class="text-center assignee-form-title">Please fill the attendee details</h4>
                       <form class="assignee-form" role="form" name="assignee-form-{{seq}}" id="assignee-details-{{seq}}">
                           <div class="group">   
-                            <input class="group-input {{#filled || assignee.fullname}}filled{{/}}" type="text" name="fullname" value="{{assignee.fullname}}" on-blur="inputFieldEdit(event, event.keypath)" twoway="false">
+                            <input class="group-input {{#filled || assignee.fullname}}filled{{/}} {{#if assignee.id && assignee.fullname && !is_transferrable}}disabled{{/if}}" type="text" name="fullname" value="{{assignee.fullname}}" {{#if assignee.id && assignee.fullname && !is_transferrable}}readonly="readonly"{{/if}} on-blur="inputFieldEdit(event, event.keypath)" twoway="false">
                             <span class="bar"></span>
                             <label class="group-label">Fullname</label>
                             {{#assignee.errormsg.fullname}}<p class="form-error-msg">{{ assignee.errormsg.fullname }}</p>{{/}}
                           </div>
                             
                           <div class="group">  
-                            <input class="group-input {{#filled || assignee.email}}filled{{/}} {{#if assignee.id && assignee.email && !is_transferrable}}disabled{{/if}}" {{#if assignee.id && assignee.email && !is_transferrable}}readonly="readonly"{{/if}} type="text" name="email" value="{{assignee.email}}" on-blur="inputFieldEdit(event, event.keypath)" twoway="false">
+                            <input class="group-input {{#filled || assignee.email}}filled{{/}} {{#if assignee.id && assignee.email && !is_transferrable}}disabled{{/if}}" type="text" name="email" value="{{assignee.email}}" {{#if assignee.id && assignee.email && !is_transferrable}}readonly="readonly"{{/if}} on-blur="inputFieldEdit(event, event.keypath)" twoway="false">
                             <span class="bar"></span>
                             <label class="group-label">Email</label>
                             {{#assignee.errormsg.email}}<p class="form-error-msg">{{ assignee.errormsg.email }}</p>{{/}}

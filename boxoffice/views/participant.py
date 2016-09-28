@@ -39,16 +39,21 @@ def assign(order):
         db.session.commit()
     else:
         if line_item.current_assignee:
-            past_assignee = line_item.current_assignee.email
+            previous_assignee_email = line_item.current_assignee.email
             if not line_item.is_transferrable():
                 return make_response(jsonify(status='error', error='ticket_not_transferrable', error_description="Ticket cannot be transferred."), 400)
             # Archive current assignee
             line_item.current_assignee.current = None
         else:
-            past_assignee = None
+            previous_assignee_email = None
         new_assignee = Assignee(current=True, email=assignee_dict.get('email'), fullname=assignee_dict.get('fullname'),
         phone=assignee_dict.get('phone'), details=assignee_details, line_item=line_item)
         db.session.add(new_assignee)
         db.session.commit()
-        send_ticket_assignment_mail.delay(line_item.id, past_assignee)
+        if previous_assignee_email:
+          cc_list = [line_item.order.buyer_email, previous_assignee_email]
+        else:
+          cc_list = [line_item.order.buyer_email]
+        recipient_list = [line_item.current_assignee.email]
+        send_ticket_assignment_mail.delay(line_item.id, recipient_list, cc_list)
     return make_response(jsonify(status='ok', result={'message': 'Ticket assigned', 'assignee': jsonify_assignee(line_item.current_assignee)}), 201)
