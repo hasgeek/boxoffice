@@ -4,11 +4,11 @@ import {IndexModel} from './index.js';
 
 export const ItemCollectionModel = {
   fetch: fetch,
-  urlFor: function(action, config){
+  urlFor: function(action, {ic_id}={}){
     let urls = {
       'index': {
-        'path': IndexModel.urlFor('index')['path'] + 'ic/' + config.ic_id,
-        'relative_path': 'ic/' + config.ic_id,
+        'path': `${IndexModel.urlFor('index')['path']}ic/${ic_id}`,
+        'relative_path': `ic/${ic_id}`,
         'method': 'GET'
       }
     }

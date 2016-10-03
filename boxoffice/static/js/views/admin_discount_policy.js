@@ -5,26 +5,26 @@ import {DiscountPolicyTemplate} from '../templates/admin_discount_policy.html.js
 import {SideBarView} from './sidebar.js';
 
 export const DiscountPolicyView = {
-  render: function(config) {
+  render: function({org_name, search, page}={}) {
     let url;
-    if (config.search) {
-      url = DiscountPolicyModel.urlFor('search', {org_name: config.org_name, search: config.search, page: config.page})['path'];
+    if (search) {
+      url = DiscountPolicyModel.urlFor('search', {org_name, search, page})['path'];
     }
     else {
-      url = DiscountPolicyModel.urlFor('index', {org_name: config.org_name, page: config.page})['path'];
+      url = DiscountPolicyModel.urlFor('index', {org_name, page})['path'];
     }
 
     DiscountPolicyModel.fetch({
       url: url
-    }).done((remoteData) => {
+    }).done(({org_name, title, discount_policies}) => {
       // Initial render
       let main_ractive = new Ractive({
         el: '#main-content-area',
         template: DiscountPolicyTemplate,
         data:  {
-          org: remoteData.org_name,
-          title: remoteData.title,
-          discount_policies: remoteData.discount_policies,
+          org: org_name,
+          title: title,
+          discount_policies: discount_policies,
           items: '',
           show_add_policy_form: false,
           new_discount_policy: '',
@@ -38,13 +38,10 @@ export const DiscountPolicyView = {
         refresh: function(search='', page='') {
           let url;
           if (search) {
-            url = DiscountPolicyModel.urlFor('search', {org_name: config.org_name, search: search, page: page})['path'];
-          }
-          else if (page) {
-            url = DiscountPolicyModel.urlFor('index', {org_name: config.org_name})['path'];
+            url = DiscountPolicyModel.urlFor('search', {org_name, search, page})['path'];
           }
           else {
-            url = DiscountPolicyModel.urlFor('index', {org_name: config.org_name, page: page})['path'];
+            url = DiscountPolicyModel.urlFor('index', {org_name, page})['path'];
           }
           NProgress.start();
           DiscountPolicyModel.fetch({
@@ -58,7 +55,7 @@ export const DiscountPolicyView = {
         }
       });
 
-      SideBarView.render('discount-policies', {'org_name': remoteData.org_name});
+      SideBarView.render('discount-policies', {org_name});
 
       NProgress.done();
 
@@ -230,7 +227,7 @@ export const DiscountPolicyView = {
             }).done((remoteData) => {
               main_ractive.set('discount_policies', [remoteData.result.discount_policy]);
               main_ractive.set('new_discount_policy.creatingPolicy', false);
-              let url = DiscountPolicyModel.urlFor('search', {org_name: config.org_name, search: main_ractive.get('new_discount_policy.title')})['path'];
+              let url = DiscountPolicyModel.urlFor('search', {org_name: org_name, search: main_ractive.get('new_discount_policy.title')})['path'];
               window.history.replaceState({reloadOnPop: true}, '', window.location.href);
               window.history.pushState({reloadOnPop: true}, '', url);
               main_ractive.fire('closeNewPolicyForm');
@@ -524,6 +521,7 @@ export const DiscountPolicyView = {
           else {
             let coupon_form = '#new-coupon-' + discount_policy_id;
             main_ractive.set(discount_policy+ '.generatingCoupon', true);
+            main_ractive.set(discount_policy + '.generate_coupon_error', '');
             DiscountPolicyModel.post({
               url: DiscountPolicyModel.urlFor('generate_coupon', {discount_policy_id: discount_policy_id})['path'],
               data: DiscountPolicyModel.convertFormToJSON(coupon_form, []),

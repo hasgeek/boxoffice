@@ -96,10 +96,10 @@ let AggChartComponent = Ractive.extend({
 })
 
 export const ItemCollectionView = {
-  render: function(config) {
+  render: function({ic_id}={}) {
 
     ItemCollectionModel.fetch({
-      url: ItemCollectionModel.urlFor('index', {ic_id: config.id})['path']
+      url: ItemCollectionModel.urlFor('index', {ic_id})['path']
     }).done((remoteData) => {
       // Initial render
       let main_ractive = new Ractive({
@@ -111,7 +111,8 @@ export const ItemCollectionView = {
 
       NProgress.done();
 
-      SideBarView.render('dashboard', {'org_name': remoteData.org_name, 'ic_id': config.id});
+      let org_name = remoteData.org_name;
+      SideBarView.render('dashboard', {org_name, ic_id});
 
       window.addEventListener('popstate', (event) => {
         NProgress.configure({ showSpinner: false}).start();
