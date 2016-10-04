@@ -5,11 +5,11 @@ import {OrderModel} from './admin_order.js';
 import {DiscountPolicyModel} from './admin_discount_policy.js';
 
 export const SideBarModel = {
-  getItems: function(config) {
+  getItems: function({org_name, ic_id}={}) {
     let sidebar_items = [];
-    if (config) {
-      this.org_name = config.org_name ? config.org_name : this.org_name;
-      this.ic_id = config.ic_id ? config.ic_id : this.ic_id;
+    if (org_name) {
+      this.org_name = org_name ? org_name : this.org_name;
+      this.ic_id = ic_id ? ic_id : this.ic_id;
       sidebar_items = [
         {
           url: IndexModel.urlFor('index')['relative_path'],

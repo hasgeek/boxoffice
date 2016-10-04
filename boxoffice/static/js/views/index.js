@@ -8,12 +8,12 @@ export const IndexView = {
 
     IndexModel.fetch({
       url: IndexModel.urlFor('index')['path']
-    }).then(function(data){
+    }).then(function({orgs}){
       let ractive = new Ractive({
         el: '#main-content-area',
         template: IndexTemplate,
         data: {
-          orgs: data.orgs
+          orgs: orgs
         }
       });
 
