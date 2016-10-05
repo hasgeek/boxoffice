@@ -55,7 +55,7 @@ def send_line_item_cancellation_mail(line_item_id, subject="Ticket Cancellation"
 
 
 @job('boxoffice')
-def send_ticket_assignment_mail(line_item_id, recipient_list, cc_list):
+def send_ticket_assignment_mail(line_item_id, recipient_list, cc_list=[]):
     """
     Sends a confirmation email once details are filled and ticket has been assigned.
     """
