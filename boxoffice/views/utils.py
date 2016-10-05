@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from pytz import utc, timezone
-from flask import request, abort
+from flask import request, abort, Response
 from functools import wraps
+from cStringIO import StringIO
+import unicodecsv
 from baseframe import localize_timezone
 from boxoffice import app
 
@@ -69,3 +71,15 @@ def cors(f):
         return add_headers(resp, origin)
 
     return wrapper
+
+
+def csv_response(headers, rows):
+    """
+    Generates a CSV response (in-memory) given a list of headers and a nested list of rows
+    """
+    stream = StringIO()
+    csv_writer = unicodecsv.writer(stream)
+    csv_writer.writerow(headers)
+    for row in rows:
+        csv_writer.writerow(row)
+    return Response(unicode(stream.getvalue()), mimetype='text/csv')
