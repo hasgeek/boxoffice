@@ -75,7 +75,8 @@ def cors(f):
 
 def csv_response(headers, rows):
     """
-    Generates a CSV response (in-memory) given a list of headers and a nested list of rows
+    Returns a response, with mimetype set to text/csv,
+    given a list of headers and a two-dimensional list of rows
     """
     stream = StringIO()
     csv_writer = unicodecsv.writer(stream)
