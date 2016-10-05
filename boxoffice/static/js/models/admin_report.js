@@ -11,8 +11,8 @@ export const ReportModel = {
         'relative_path': 'ic/' + config.ic_id + '/reports',
         'method': 'GET'
       },
-      'attendees': {
-        'path': IndexModel.urlFor('index')['path'] + 'ic/' + config.ic_id + '/reports/attendee.csv',
+      'tickets': {
+        'path': IndexModel.urlFor('index')['path'] + 'ic/' + config.ic_id + '/reports/tickets.csv',
         'method': 'GET'
       }
     }
