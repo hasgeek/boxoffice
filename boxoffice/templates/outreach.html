@@ -2,7 +2,7 @@
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <button class="cart-btn {{#if order.readyToCheckout}}items-present{{/if}}" on-click="openCart(event, true)">
-  <i class="fa fa-cart-plus"></i>
+  <i class="fa fa-shopping-cart"></i>
 </button>
 <div class="payment-progress-wrapper payment-stages-bg" id="payment-stages">
   <ul class="progress-indicator">
@@ -94,14 +94,14 @@
         <div class="cart-content {{#cartSideBarOpen}}cart-open{{/}}" on-click="openCart(event, false)">
           <div class="cart-details clearfix">
             <p class="cart-title">
+              <button class="close-button" on-click="openCart(event, false)"><i class="fa  fa-angle-double-right"></i></button>
               <span>Cart</span>
-              <button class="close-button" on-click="openCart(event, false)"><i class="fa fa-chevron-circle-right"></i></button>
             </p>
             <div class="cart-body">
               {{#order.line_items}} {{# { line_item: . } }}
                 {{#if line_item.quantity > 0 }}
                   <div class="item-summary">
-                    <p class="booked-ticket-title"><i class="fa fa-ticket"></i>{{ line_item.item_title }}</p>
+                    <p class="booked-ticket-title">{{@index}}. {{ line_item.item_title }}</p>
                     <p class="booked-ticket-qty">Qty {{ line_item.quantity }} &times; {{ formatToIndianRupee(line_item.base_price) }}</p>
                     {{#line_item.discounted_amount}}
                       <p class="booked-ticket-qty">Discount {{ formatToIndianRupee(line_item.discounted_amount) }}</p>
@@ -635,25 +635,23 @@
     border-top: 1px solid #eee;
   }
   .cart-btn {
-    border: 0;
-    box-shadow: none;
     position: fixed;
     bottom: 10px;
     right: 25px;
-    font-size: 40px;
-    background-color: transparent;
+    font-size: 35px;
     color: #fff;
     background-color: #856A91;
     border-radius: 5px;
     z-index: 998;
     border-color: #2f2433;
-    border-width: 0 0 3px;
+    border-width: 0 0 5px;
     border-style: solid;
-    box-shadow: 0 0 2px rgba(0, 0, 0, 0.6);
+    box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.6);
+    padding-right: 9px;
   }
   @media (min-width: 1024px) {
     .cart-btn {
-      right: 16%;
+      right: 12%;
     }
   }
   .cart-btn.items-present {
@@ -678,8 +676,8 @@
   .cart-content {
     width: 100%;
     background-color: rgba(0, 0, 0, 0.3);
-    position: absolute;
-    z-index: 999;
+    position: fixed;
+    z-index: 1030;
     top: 0;
     bottom: 0px;
     right: -100%;
@@ -705,22 +703,24 @@
   .close-button {
     border: 0;
     box-shadow: none;
-    position: absolute;
-    right: 15px;
-    font-size: 20px;
-    top: 21px;
+    margin-right: 5px;
+    font-size: 25px;
+    padding: 0;
+    position: relative;
+    top: -2px;
   }
   .cart-title {
     font-size: 30px;
-    padding: 15px;
-    margin: -15px -15px 15px;
-    text-align: center;
+    text-align: left;
     line-height: 1;
   }
   .cart-footer {
     border-top: 2px solid #fff;
-    position: relative;
-    top: 10%;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    padding: 0 15px;
+    left: 0;
   }
   .cart-footer-btn {
     width: 100%;

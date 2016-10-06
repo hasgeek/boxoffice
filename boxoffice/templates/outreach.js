@@ -273,7 +273,6 @@ $(function() {
         },
         openCart: function(event, action) {
           event.original.preventDefault();
-          boxoffice.ractive.scrollTop();
           boxoffice.ractive.set('cartSideBarOpen', action);
         },
         closeCart: function(event, action) {
@@ -285,6 +284,7 @@ $(function() {
           event.original.preventDefault();
           boxoffice.ractive.calculateOrder();
           boxoffice.ractive.fire('eventAnalytics', 'edit order', 'Edit order');
+          boxoffice.ractive.set('cartSideBarOpen', false);
           boxoffice.ractive.set('activeTab', boxoffice.ractive.get('tabs.selectItems.id'));
           boxoffice.ractive.scrollTop();
         },
