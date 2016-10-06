@@ -373,13 +373,6 @@ $(function() {
           });
           boxoffice.ractive.calculateOrder();
         },
-        getContactDetails: function() {
-          boxoffice.ractive.set({
-            'tabs.payment.errorMsg': '',
-            'order.status': boxoffice.orderStatus.Enquiry,
-            'activeTab': boxoffice.ractive.get('tabs.payment.id')
-          });
-        },
         calculateOrder: function() {
           // Asks the server for the order's calculation and updates the order
           var lineItems = boxoffice.ractive.get('order.line_items').filter(function(line_item) {
@@ -484,6 +477,13 @@ $(function() {
             });
           }
         },
+        getContactDetails: function() {
+          boxoffice.ractive.set({
+            'tabs.payment.errorMsg': '',
+            'order.status': boxoffice.orderStatus.Enquiry,
+            'activeTab': boxoffice.ractive.get('tabs.payment.id')
+          });
+        },
         continue: function(event) {
           // Transitions the widget to the 'Payment' stage, and initializes
           // the validator.
@@ -491,6 +491,7 @@ $(function() {
           boxoffice.ractive.fire('eventAnalytics', 'checkout', 'Checkout');
           boxoffice.ractive.set({
             'tabs.payment.errorMsg': '',
+            'order.status': boxoffice.orderStatus.PurchaseOrder,
             'tabs.selectItems.complete': true,
             'activeTab': boxoffice.ractive.get('tabs.payment.id')
           });

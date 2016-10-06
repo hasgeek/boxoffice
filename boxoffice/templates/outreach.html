@@ -207,7 +207,7 @@
       </div>
     {{elseif id === 'boxoffice-confirm' && id === activeTab}}
       <div id='{{id}}' class="boxoffice-section clearfix" intro='fly:{"x":600,"y":"0"}'>
-        {{#if order.status == 'Sales Order'}}
+        {{#if order.status == 2}}
           {{#section}}
             <p class="confirmation-icon"><i class="fa fa-check-circle"></i></p>
             <p class="confirmation-header">Thank you for your order!</p>
@@ -651,7 +651,7 @@
     }
   }
   .cart-btn.items-present {
-    animation-duration: 2s;
+    animation-duration: 0.2s;
     animation-name: bounce;
   }
   .cart-btn.items-present:after {
@@ -666,7 +666,7 @@
   }
   @keyframes bounce {
     0%   {bottom: 25px;}
-    50%  {bottom: 55px;}
+    50%  {bottom: 50px;}
     100% {bottom: 25px;}
   }
   .cart-content {
