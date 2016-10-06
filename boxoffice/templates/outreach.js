@@ -168,6 +168,9 @@ $(function() {
       crossDomain: true,
       headers: {'X-Requested-With': 'XMLHttpRequest'},
       dataType: 'json',
+      data: {
+        type: 'outreach'
+      }
     }).done(function(data) {
       var lineItems = [];
 

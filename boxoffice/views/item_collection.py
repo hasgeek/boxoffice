@@ -69,11 +69,10 @@ def outreachjs():
 @xhr_only
 @cors
 def item_collection(item_collection):
-    # TODO: check type parament & serve the template file
-    if request.json and request.json.get('type') and request.json.get('type') == 'outreach':
+    if request.args.get('type') == 'outreach':
       template = 'outreach.html'
     else:
-      template = 'outreach.html'
+      template = 'boxoffice.html'
     categories_json = []
     for category in item_collection.categories:
         category_json = jsonify_category(category)
