@@ -141,6 +141,18 @@ class LineItem(BaseMixin, db.Model):
         return self.is_confirmed and (datetime.datetime.now() < self.item.cancellable_until
             if self.item.cancellable_until else True)
 
+    @classmethod
+    def fetch_all_details(cls, item_collection):
+        """
+        Returns details for all the line items in a given item collection, along with the associated
+        assignee, discount policy, item and order
+        """
+        # The outer join is to ensure all line items are fetched,
+        # regardless of whether they have associated assignees or discount policies
+        line_item_join = db.outerjoin(cls, Assignee).outerjoin(DiscountPolicy).join(Item).join(Order)
+        line_item_query = db.select([cls.id, Item.title, cls.base_amount, cls.discounted_amount, cls.final_amount, DiscountPolicy.title, Order.buyer_fullname, Order.buyer_email, Order.buyer_phone, Assignee.fullname, Assignee.email, Assignee.phone, Assignee.details]).select_from(line_item_join).where(cls.status == LINE_ITEM_STATUS.CONFIRMED).where(Assignee.current == True).where(Order.item_collection == item_collection).order_by('created_at')
+        return db.session.execute(line_item_query).fetchall()
+
 
 def get_availability(cls, item_ids):
     """Returns a dict -> {'item_id': ('item title', 'quantity_total', 'line_item_count')}"""
