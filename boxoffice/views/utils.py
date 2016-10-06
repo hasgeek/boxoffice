@@ -86,4 +86,4 @@ def csv_response(headers, rows):
     csv_writer.writerow(headers)
     for row in rows:
         csv_writer.writerow(row)
-    return Response(unicode(stream.getvalue()), mimetype='text/csv')
+    return Response(unicode(stream.getvalue()), content_type='text/csv')
