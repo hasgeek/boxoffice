@@ -3,7 +3,10 @@
 from pytz import utc, timezone
 from flask import request, abort, Response
 from functools import wraps
-from cStringIO import StringIO
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from StringIO import StringIO
 import unicodecsv
 from baseframe import localize_timezone
 from boxoffice import app
