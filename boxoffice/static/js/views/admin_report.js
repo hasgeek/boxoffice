@@ -14,7 +14,7 @@ export const ReportView = {
         el: '#main-content-area',
         template: ReportTemplate,
         data:  {
-          title: remoteData.title,
+          title: remoteData.item_collection_title,
           reports_url: function() {
             let report_type = this.get('report_type');
             return ReportModel.urlFor(report_type, {ic_id: config.id})['path'];
