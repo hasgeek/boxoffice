@@ -53,6 +53,15 @@ def boxofficejs():
     }))
 
 
+@app.route('/api/1/outreach.js')
+@cors
+def outreachjs():
+    return make_response(jsonify({
+        'script': render_template('outreach.js', base_url=request.url_root.strip('/'),
+        razorpay_key_id=app.config['RAZORPAY_KEY_ID'])
+    }))
+
+
 @app.route('/ic/<item_collection>', methods=['GET', 'OPTIONS'])
 @load_models(
     (ItemCollection, {'id': 'item_collection'}, 'item_collection')
@@ -60,9 +69,14 @@ def boxofficejs():
 @xhr_only
 @cors
 def item_collection(item_collection):
+    # TODO: check type parament & serve the template file
+    if request.json and request.json.get('type') and request.json.get('type') == 'outreach':
+      template = 'outreach.html'
+    else:
+      template = 'outreach.html'
     categories_json = []
     for category in item_collection.categories:
         category_json = jsonify_category(category)
         if category_json:
             categories_json.append(category_json)
-    return jsonify(html=render_template('boxoffice.html'), categories=categories_json, refund_policy=item_collection.organization.details.get('refund_policy', ''))
+    return jsonify(html=render_template(template), categories=categories_json, refund_policy=item_collection.organization.details.get('refund_policy', ''))
