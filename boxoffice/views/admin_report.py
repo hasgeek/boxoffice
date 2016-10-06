@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 
-from flask import Response, jsonify
+from flask import jsonify
 from .. import app, lastuser
 from coaster.views import load_models, render_with
-from boxoffice.models import db, ItemCollection, Order, Item, LineItem, Assignee, DiscountPolicy, LINE_ITEM_STATUS
+from boxoffice.models import ItemCollection, LineItem
 from boxoffice.views.utils import csv_response
 
 
 def jsonify_report(data_dict):
-    return jsonify(org_name=data_dict['item_collection'].organization.name, title=data_dict['item_collection'].title)
+    return jsonify(org_name=data_dict['item_collection'].organization.name, item_collection_title=data_dict['item_collection'].title)
 
 
 @app.route('/admin/ic/<id>/reports')
