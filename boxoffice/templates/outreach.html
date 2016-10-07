@@ -16,7 +16,13 @@
 <div class="payment-stages-wrapper">
   {{#tabs:tab}}
     {{#if id === 'boxoffice-selectItems' && id === activeTab}}
-      <div id='{{id}}' class="boxoffice-section ticket-selection-content clearfix" intro-outro='fly:{"x":0,"y":"0"}'>        
+      <div id='{{id}}' class="boxoffice-section ticket-selection-content clearfix" intro-outro='fly:{"x":0,"y":"0"}'>
+        <div class="proceed-button-wrapper">
+          <button class="boxoffice-button boxoffice-button-info" on-click="getContactDetails(event)">Contact Sales</button>
+          {{#order.readyToCheckout}}
+              <button id="stage1-proceed" class="boxoffice-button boxoffice-button-action" on-click="continue(event)">Proceed to checkout</button>
+          {{/order.readyToCheckout}} 
+        </div>           
         {{#section.categories}}
           <div id="{{name}}" class="categories">
             <div>
@@ -123,7 +129,7 @@
                 {{/}}
                 <p class="price">Total <span class="final-amount">{{ formatToIndianRupee(order.final_amount) }}</span></p>
               </div>
-              <button class="boxoffice-button boxoffice-button-info cart-footer-btn" on-click="getContactDetails(event)">Talk to us</button>
+              <button class="boxoffice-button boxoffice-button-info cart-footer-btn" on-click="getContactDetails(event)">Contact Sales</button>
               {{#order.readyToCheckout}}
                   <button id="stage1-proceed" class="boxoffice-button boxoffice-button-action cart-footer-btn" on-click="continue(event)">Proceed to checkout</button>
               {{/order.readyToCheckout}}
@@ -243,6 +249,7 @@
     color: #fff;
     font-size: 15px;
     display: inline-block;
+    margin: 5px;
   }
   .boxoffice-button-action {
     background-color: #5CB85C;
@@ -903,7 +910,6 @@
   }
   .proceed-button-wrapper {
     clear: both;
-    margin: 15px 0 10px;
     float: right;
   }
   .edit-order {
