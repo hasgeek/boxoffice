@@ -274,10 +274,14 @@ $(function() {
         openCart: function(event, action) {
           event.original.preventDefault();
           boxoffice.ractive.set('cartSideBarOpen', action);
-        },
-        closeCart: function(event, action) {
-          event.original.preventDefault();
-          boxoffice.ractive.set('cartSideBarOpen', action);
+          if(action) {
+            var body = document.getElementsByTagName("body")[0];
+            body.style.overflow = "hidden";
+          }
+          else {
+            var body = document.getElementsByTagName("body")[0];
+            body.style.overflow = "";
+          }
         },
         selectItems: function(event) {
           // Makes the 'Select Items' tab active
@@ -477,17 +481,23 @@ $(function() {
             });
           }
         },
-        getContactDetails: function() {
+        getContactDetails: function(event) {
+          // Transitions the widget to the 'Payment' stage, and initializes
+          // the validator.
+          event.original.preventDefault();
+          boxoffice.ractive.openCart(event, false);
           boxoffice.ractive.set({
             'tabs.payment.errorMsg': '',
             'order.status': boxoffice.orderStatus.Enquiry,
             'activeTab': boxoffice.ractive.get('tabs.payment.id')
           });
+          boxoffice.ractive.scrollTop();
         },
         continue: function(event) {
           // Transitions the widget to the 'Payment' stage, and initializes
           // the validator.
           event.original.preventDefault();
+          boxoffice.ractive.openCart(event, false);
           boxoffice.ractive.fire('eventAnalytics', 'checkout', 'Checkout');
           boxoffice.ractive.set({
             'tabs.payment.errorMsg': '',

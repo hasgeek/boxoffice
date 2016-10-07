@@ -1,9 +1,6 @@
 {%raw%}
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
-<button class="cart-btn {{#if order.readyToCheckout}}items-present{{/if}}" on-click="openCart(event, true)">
-  <i class="fa fa-shopping-cart"></i>
-</button>
 <div class="payment-progress-wrapper payment-stages-bg" id="payment-stages">
   <ul class="progress-indicator">
     {{#tabs:tab}}
@@ -17,8 +14,11 @@
   {{#tabs:tab}}
     {{#if id === 'boxoffice-selectItems' && id === activeTab}}
       <div id='{{id}}' class="boxoffice-section ticket-selection-content clearfix" intro-outro='fly:{"x":0,"y":"0"}'>
+        <button class="cart-btn {{#if order.readyToCheckout}}items-present{{/if}}" on-click="openCart(event, true)">
+          <i class="fa fa-shopping-cart"></i>
+        </button>
         <div class="proceed-button-wrapper">
-          <button class="boxoffice-button boxoffice-button-info" on-click="getContactDetails(event)">Contact Sales</button>
+          <button class="boxoffice-button boxoffice-button-info" on-click="getContactDetails(event)">Contact sales</button>
           {{#order.readyToCheckout}}
               <button id="stage1-proceed" class="boxoffice-button boxoffice-button-action" on-click="continue(event)">Proceed to checkout</button>
           {{/order.readyToCheckout}} 
@@ -98,16 +98,16 @@
           </div>
         {{/section.categories}}
         <div class="cart-content {{#cartSideBarOpen}}cart-open{{/}}" on-click="openCart(event, false)">
-          <div class="cart-details clearfix">
+          <div class="cart-body clearfix">
             <p class="cart-title">
               <button class="close-button" on-click="openCart(event, false)"><i class="fa  fa-angle-double-right"></i></button>
               <span>Cart</span>
             </p>
-            <div class="cart-body">
+            <ol class="cart-list">
               {{#order.line_items}} {{# { line_item: . } }}
                 {{#if line_item.quantity > 0 }}
-                  <div class="item-summary">
-                    <p class="booked-ticket-title">{{@index}}. {{ line_item.item_title }}</p>
+                  <li class="item-summary">
+                    <span class="booked-ticket-title">{{ line_item.item_title }}</span>
                     <p class="booked-ticket-qty">Qty {{ line_item.quantity }} &times; {{ formatToIndianRupee(line_item.base_price) }}</p>
                     {{#line_item.discounted_amount}}
                       <p class="booked-ticket-qty">Discount {{ formatToIndianRupee(line_item.discounted_amount) }}</p>
@@ -118,22 +118,22 @@
                       {{/if}}
                     {{/line_item.discount_policies}}
                     <p class="booked-ticket-qty">Subtotal {{ formatToIndianRupee(line_item.final_amount) }}</p>
-                  </div>
+                  </li>
                 {{/if}}
               {{/}}{{/order.line_items}}
+            </ol>
+          </div>
+          <div class="cart-footer">
+            <div class="ticket-total {{#loadingPrice}}grey-out{{/}}">
+              {{#loadingPrice && !isLoadingFail}}
+                <div class="loader"><i class="fa fa-spinner fa-spin fa-2x"></i></div>
+              {{/}}
+              <p class="price">Total <span class="final-amount">{{ formatToIndianRupee(order.final_amount) }}</span></p>
             </div>
-            <div class="cart-footer">
-              <div class="ticket-total {{#loadingPrice}}grey-out{{/}}">
-                {{#loadingPrice && !isLoadingFail}}
-                  <div class="loader"><i class="fa fa-spinner fa-spin fa-2x"></i></div>
-                {{/}}
-                <p class="price">Total <span class="final-amount">{{ formatToIndianRupee(order.final_amount) }}</span></p>
-              </div>
-              <button class="boxoffice-button boxoffice-button-info cart-footer-btn" on-click="getContactDetails(event)">Contact Sales</button>
-              {{#order.readyToCheckout}}
-                  <button id="stage1-proceed" class="boxoffice-button boxoffice-button-action cart-footer-btn" on-click="continue(event)">Proceed to checkout</button>
-              {{/order.readyToCheckout}}
-            </div>
+            <button class="boxoffice-button boxoffice-button-info cart-footer-btn" on-click="getContactDetails(event)">Contact sales</button>
+            {{#order.readyToCheckout}}
+                <button id="stage1-proceed" class="boxoffice-button boxoffice-button-action cart-footer-btn" on-click="continue(event)">Proceed to checkout</button>
+            {{/order.readyToCheckout}}
           </div>
         </div>
         {{#errorMsg }}
@@ -686,7 +686,7 @@
     position: fixed;
     z-index: 1030;
     top: 0;
-    bottom: 0px;
+    bottom: 0;
     right: -100%;
     transition: 0.2s ease all;
     -moz-transition: 0.2s ease all;
@@ -695,7 +695,7 @@
   .cart-open {
     right: 0;
   }
-  .cart-details {
+  .cart-body {
     position: absolute;
     top: 0px;
     right: 0px;
@@ -703,9 +703,15 @@
     padding: 15px;
     box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.6);
     bottom: 0px;
-    background-color: rgb(238, 238, 238);
+    background-color: #eee;
     border: 2px solid #ccc;
-    border-width: 0px 2px 2px 0px;
+    border-width: 0 0 2px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    max-height: 75%;
+  }
+  .cart-body .cart-list {
+    padding: 0;
   }
   .close-button {
     border: 0;
@@ -722,12 +728,13 @@
     line-height: 1;
   }
   .cart-footer {
-    border-top: 2px solid #fff;
+    padding: 0 15px;
+    width: 250px;
     position: absolute;
     bottom: 0;
-    width: 100%;
-    padding: 0 15px;
-    left: 0;
+    right: 0;
+    background-color: #eee;
+    height: 25%;
   }
   .cart-footer-btn {
     width: 100%;
