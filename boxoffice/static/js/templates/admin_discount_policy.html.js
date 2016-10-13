@@ -13,8 +13,8 @@ export const DiscountPolicyTemplate = `
         <button on-click="closeNewPolicyForm" class="close-button"><i class="fa fa-close"></i></button>
         <p class="content-slider-title">Add a new discount policy</p>
         <div class="content-slider-wrapper">
-          <form role="form" id="new-policy-form" name="adding-new-policy-form"> 
-            <div class="group">   
+          <form role="form" id="new-policy-form" name="adding-new-policy-form">
+            <div class="group">
               <input class="group-input {{#new_discount_policy.title}}filled{{/}}" type="text" name="title" value="{{new_discount_policy.title}}">
               <span class="bar"></span>
               <label class="group-label">Title</label>
@@ -48,7 +48,7 @@ export const DiscountPolicyTemplate = `
             {{/if}}
 
             {{#if new_discount_policy.discount_type == 0}}
-              <div class="group">   
+              <div class="group">
                 <input class="group-input {{#new_discount_policy.item_quantity_min}}filled{{/}}" name="item_quantity_min" value="{{new_discount_policy.item_quantity_min}}">
                 <span class="bar"></span>
                 <label class="group-label">Minimum number of tickets</label>
@@ -59,11 +59,11 @@ export const DiscountPolicyTemplate = `
 
             {{#if new_discount_policy.is_price_based == 1}}
               <p class="field-title filled">What is the discount for?</p>
-              <div class="group"> 
+              <div class="group">
                 <input id="add-item" name="items" type="hidden">
                 {{#new_discount_policy.errormsg.items}}<p class="form-error-msg">{{ new_discount_policy.errormsg.items }}</p>{{/}}
               </div>
-              <div class="group">   
+              <div class="group">
                 <input class="group-input {{#new_discount_policy.price_title}}filled{{/}}" type="text" name="price_title" value="{{new_discount_policy.price_title}}">
                 <span class="bar"></span>
                 <label class="group-label">Special price title</label>
@@ -147,7 +147,7 @@ export const DiscountPolicyTemplate = `
                   {{/if}}
 
                   {{#if dp_items}}
-                    <p class="content-details"><b>Items:</b></p>                   
+                    <p class="content-details"><b>Items:</b></p>
                     <ol class="content-list">
                       {{#dp_items:item}}
                         <li class="content-details">{{dp_items[item].title}}</li>
@@ -164,16 +164,16 @@ export const DiscountPolicyTemplate = `
                 </div>
               {{elseif show_policy_form}}
                 <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
-                  <h4 class="text-center form-title">Edit</h4>   
-                  <form role="form" id="policy-form-{{id}}" name="edit-policy-form-{{id}}"> 
-                    <div class="group">   
+                  <h4 class="text-center form-title">Edit</h4>
+                  <form role="form" id="policy-form-{{id}}" name="edit-policy-form-{{id}}">
+                    <div class="group">
                       <input class="group-input {{#title}}filled{{/}}" type="text" name="title" value="{{title}}" twoway="false">
                       <span class="bar"></span>
                       <label class="group-label">Title</label>
                       {{#errormsg.title}}<p class="form-error-msg">{{ errormsg.title }}</p>{{/}}
                     </div>
                     {{#if discount_type == "Automatic"}}
-                      <div class="group">   
+                      <div class="group">
                         <input class="group-input {{#item_quantity_min}}filled{{/}}" name="item_quantity_min" value="{{item_quantity_min}}" twoway="false">
                         <span class="bar"></span>
                         <label class="group-label">Minimum item quanity</label>
@@ -182,49 +182,49 @@ export const DiscountPolicyTemplate = `
                     {{/if}}
                     {{#if is_price_based}}
                       {{#price_details}}
-                        <div class="group">   
+                        <div class="group">
                           <input class="group-input {{#price_title}}filled{{/}}" type="text" name="price_title" value="{{price_title}}" twoway="false">
                           <span class="bar"></span>
                           <label class="group-label">Price title</label>
                           {{#errormsg.price_title}}<p class="form-error-msg">{{ errormsg.price_title }}</p>{{/}}
                         </div>
-                        <div class="group">   
+                        <div class="group">
                           <input class="group-input {{#amount}}filled{{/}}" name="amount" value="{{amount}}" twoway="false">
                           <span class="bar"></span>
                           <label class="group-label">Amount</label>
                           {{#errormsg.amount}}<p class="form-error-msg">{{ errormsg.amount }}</p>{{/}}
                         </div>
-                        <div class="group">   
+                        <div class="group">
                           <p class="field-title filled">Price start date</p>
                           <input type="text" class="group-input date" id="start_date_{{id}}" name="start_at" value="{{start_at}}" twoway="false"/>
                           <i class="fa fa-calendar calendar-icon"></i>
                           {{#errormsg.start_at}}<p class="form-error-msg">{{ errormsg.start_at }}</p>{{/}}
                         </div>
-                        <div class="group">   
+                        <div class="group">
                           <p class="field-title filled">Price end date</p>
                           <input type="text" class="group-input date" id="end_date_{{id}}" name="end_at" value="{{end_at}}" twoway="false"/>
                           <i class="fa fa-calendar calendar-icon"></i>
                           {{#errormsg.end_at}}<p class="form-error-msg">{{ errormsg.end_at }}</p>{{/}}
                         </div>
-                        <div class="group"> 
+                        <div class="group">
                           <input id="add-item-{{id}}" name="item" type="hidden" value="{{get_discounted_items(dp_items)}}">
                           {{#errormsg.item}}<p class="form-error-msg">{{ errormsg.item }}</p>{{/}}
                         </div>
                       {{/}}
                     {{else}}
-                      <div class="group">   
+                      <div class="group">
                         <input class="group-input {{#percentage}}filled{{/}}" name="percentage" value="{{percentage}}" twoway="false">
                         <span class="bar"></span>
                         <label class="group-label">Percentage</label>
                         {{#errormsg.percentage}}<p class="form-error-msg">{{ errormsg.percentage }}</p>{{/}}
                       </div>
-                      <div class="group"> 
+                      <div class="group">
                         <input id="add-items-{{id}}" name="items" type="hidden" value="{{get_discounted_items(dp_items)}}">
                         {{#errormsg.items}}<p class="form-error-msg">{{ errormsg.items }}</p>{{/}}
                       </div>
                     {{/if}}
                     <div class="btn-wrapper">
-                      <button type="button" class="boxoffice-button boxoffice-button-info" on-click="hideEditPolicy">Back</button>                    
+                      <button type="button" class="boxoffice-button boxoffice-button-info" on-click="hideEditPolicy">Back</button>
                       <button type="submit" class="boxoffice-button boxoffice-button-action" on-click="editPolicy" {{#editingPolicy}}disabled{{/}}>
                           Update policy
                           {{#editingPolicy}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'>{{/}}
@@ -237,21 +237,21 @@ export const DiscountPolicyTemplate = `
                 <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
                   <h4 class="text-center form-title">Generate coupon</h4>
                   <form role="form" id="new-coupon-{{id}}" name="generate-coupon-form-{{id}}">
-                    <div class="group">   
+                    <div class="group">
                       <input class="group-input {{#count}}filled{{/}}" name="count" value="{{.count}}">
                       <span class="bar"></span>
                       <label class="group-label">How many coupons?</label>
                       {{#errormsg.count}}<p class="form-error-msg">{{ errormsg.count }}</p>{{/}}
                     </div>
                     {{#if count == 1}}
-                      <div class="group">   
+                      <div class="group">
                         <input class="group-input {{#coupon_code}}filled{{/}}" type="text" name="coupon_code" value="{{.coupon_code}}">
                         <span class="bar"></span>
                         <label class="group-label">What coupon code?</label>
                       </div>
                       <p class="form-help-text">Eg: Hasjob</p>
                     {{/if}}
-                      <div class="group">   
+                      <div class="group">
                         <input class="group-input filled {{#if count > 1}}disabled{{/if}}" name="usage_limit" value="{{#if count >1 }} 1 {{else}} 1 {{/if}}" {{#if count > 1}}readonly{{/if}}>
                         <span class="bar"></span>
                         <label class="group-label">How many times can this coupon be used?</label>
@@ -338,6 +338,27 @@ export const DiscountPolicyTemplate = `
 
           </div>
         {{/}}
+        {{#if paginated}}
+        <div class="text-center">
+          <nav aria-label="Page navigation">
+            <ul class="pagination">
+              <li>
+                <a href="#" aria-label="Previous">
+                  <span aria-hidden="true">&laquo;</span>
+                </a>
+              </li>
+              {{#pages:index}}
+              <li><a href="#" on-click="paginate:{{pages[index]}}">{{pages[index]}}</a></li>
+              {{/}}
+              <li>
+                <a href="#" aria-label="Next">
+                  <span aria-hidden="true">&raquo;</span>
+                </a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+        {{/if}}
       </div>
     {{else}}
       <p class="text-center">Currently no discount policies.</p>

@@ -16,7 +16,7 @@ export const DiscountPolicyView = {
 
     DiscountPolicyModel.fetch({
       url: url
-    }).done(({org_name, title, discount_policies}) => {
+    }).done(({org_name, title, discount_policies, total_pages, paginated}) => {
       // Initial render
       let main_ractive = new Ractive({
         el: '#main-content-area',
@@ -25,6 +25,9 @@ export const DiscountPolicyView = {
           org: org_name,
           title: title,
           discount_policies: discount_policies,
+          paginated: paginated,
+          total_pages: total_pages,
+          pages: Array.from(Array(total_pages).keys()).map(x => ++x),
           items: '',
           show_add_policy_form: false,
           new_discount_policy: '',
@@ -130,7 +133,7 @@ export const DiscountPolicyView = {
               },
               results: function (data) {
                 return {
-                  results: data.items 
+                  results: data.items
                 };
               },
               cache: true
@@ -158,7 +161,7 @@ export const DiscountPolicyView = {
         main_ractive.set('new_discount_policy.is_price_based', parseInt(event.node.value, 10));
         addFormFields(main_ractive.get('new_discount_policy.is_price_based'));
       });
-      
+
       main_ractive.on('policyTypeChange', function(event) {
         main_ractive.set('new_discount_policy.discount_type', event.node.value);
       });
@@ -263,6 +266,11 @@ export const DiscountPolicyView = {
           main_ractive.refresh();
         }
       });
+
+      main_ractive.on('paginate', function(event, page) {
+        event.original.preventDefault();
+        main_ractive.refresh('', page);
+      })
 
       main_ractive.on('editPolicyForm', function(event) {
         main_ractive.set(event.keypath + '.hide_edit_btn', true);
@@ -546,7 +554,7 @@ export const DiscountPolicyView = {
               }
               main_ractive.set(discount_policy + '.generatingCoupon', false);
               main_ractive.set(discount_policy + '.generate_coupon_error', error_msg);
-            });            
+            });
           }
         });
 

@@ -1,12 +1,17 @@
 # -*- coding: utf-8 -*-
-
+from __future__ import division
 import datetime
+import math
 from flask import jsonify, make_response, request
 from .. import app, lastuser
 from coaster.views import load_models, render_with
 from ..models import db
 from boxoffice.models import Organization, DiscountPolicy, DiscountCoupon, DISCOUNT_TYPE, Item, Price, CURRENCY_SYMBOL
 from utils import xhr_only, date_time_format
+
+
+# Move this to settings maybe
+PAGE_SIZE = 6
 
 
 def jsonify_price(price):
@@ -42,7 +47,12 @@ def jsonify_discount_policies(data_dict):
     discount_policies_list = []
     for policy in data_dict['discount_policies']:
         discount_policies_list.append(jsonify_discount_policy(policy))
-    return jsonify(org_name=data_dict['org'].name, title=data_dict['org'].title, discount_policies=discount_policies_list)
+    return jsonify(
+        org_name=data_dict['org'].name, title=data_dict['org'].title,
+        discount_policies=discount_policies_list,
+        total_pages=data_dict['total_pages'],
+        paginated=data_dict['total_pages'] > 1,
+    )
 
 
 @app.route('/admin/o/<org>/discount_policies')
@@ -55,10 +65,26 @@ def jsonify_discount_policies(data_dict):
 def admin_discount_policies(organization):
     query = request.args.get('search')
     if query:
-        discount_policies = DiscountPolicy.query.filter(DiscountPolicy.title.ilike('%{query}%'.format(query=query))).all()
+        discount_policies = DiscountPolicy.query.filter(DiscountPolicy.title.ilike('%{query}%'.format(query=query)))
     else:
-        discount_policies = DiscountPolicy.query.filter(DiscountPolicy.organization == organization).order_by('created_at desc').all()
-    return dict(org=organization, title=organization.title, discount_policies=discount_policies)
+        discount_policies = DiscountPolicy.query.filter(DiscountPolicy.organization == organization).order_by('created_at desc')
+
+    total_policies = discount_policies.count()
+
+    if request.is_xhr:
+        page = request.args.get('page', 1)
+        try:
+            page = int(page)
+            offset = (page - 1) * PAGE_SIZE
+            discount_policies = discount_policies.limit(PAGE_SIZE).offset(offset)
+        except ValueError:
+            pass
+
+    return dict(
+        org=organization, title=organization.title,
+        discount_policies=discount_policies,
+        total_pages=int(math.ceil(total_policies/PAGE_SIZE))
+    )
 
 
 @app.route('/admin/o/<org>/discount_policy/new', methods=['OPTIONS', 'POST'])
