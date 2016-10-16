@@ -52,6 +52,7 @@ def jsonify_discount_policies(data_dict):
         discount_policies=discount_policies_list,
         total_pages=data_dict['total_pages'],
         paginated=data_dict['total_pages'] > 1,
+        current_page=data_dict['current_page']
     )
 
 
@@ -64,15 +65,16 @@ def jsonify_discount_policies(data_dict):
 @render_with({'text/html': 'index.html', 'application/json': jsonify_discount_policies}, json=True)
 def admin_discount_policies(organization):
     query = request.args.get('search')
-    if query:
-        discount_policies = DiscountPolicy.query.filter(DiscountPolicy.title.ilike('%{query}%'.format(query=query)))
-    else:
-        discount_policies = DiscountPolicy.query.filter(DiscountPolicy.organization == organization).order_by('created_at desc')
-
-    total_policies = discount_policies.count()
+    page = request.args.get('page', 1)
 
     if request.is_xhr:
-        page = request.args.get('page', 1)
+        if query:
+            discount_policies = DiscountPolicy.query.filter(DiscountPolicy.title.ilike('%{query}%'.format(query=query)))
+        else:
+            discount_policies = DiscountPolicy.query.filter(DiscountPolicy.organization == organization).order_by('created_at desc')
+
+        total_policies = discount_policies.count()
+
         try:
             page = int(page)
             offset = (page - 1) * PAGE_SIZE
@@ -80,11 +82,18 @@ def admin_discount_policies(organization):
         except ValueError:
             pass
 
-    return dict(
-        org=organization, title=organization.title,
-        discount_policies=discount_policies,
-        total_pages=int(math.ceil(total_policies/PAGE_SIZE))
-    )
+        print page
+
+        return dict(
+            org=organization, title=organization.title,
+            discount_policies=discount_policies,
+            total_pages=int(math.ceil(total_policies/PAGE_SIZE)),
+            current_page=page
+        )
+    else:
+        return dict(
+            org=organization, title=organization.title
+        )
 
 
 @app.route('/admin/o/<org>/discount_policy/new', methods=['OPTIONS', 'POST'])

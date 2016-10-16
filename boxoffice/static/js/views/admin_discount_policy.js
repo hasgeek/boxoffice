@@ -16,7 +16,7 @@ export const DiscountPolicyView = {
 
     DiscountPolicyModel.fetch({
       url: url
-    }).done(({org_name, title, discount_policies, total_pages, paginated}) => {
+    }).done(({org_name, title, discount_policies, total_pages, paginated, current_page}) => {
       // Initial render
       let main_ractive = new Ractive({
         el: '#main-content-area',
@@ -27,6 +27,7 @@ export const DiscountPolicyView = {
           discount_policies: discount_policies,
           paginated: paginated,
           total_pages: total_pages,
+          current_page: current_page,
           pages: Array.from(Array(total_pages).keys()).map(x => ++x),
           items: '',
           show_add_policy_form: false,
