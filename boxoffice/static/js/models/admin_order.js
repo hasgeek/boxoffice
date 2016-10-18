@@ -4,15 +4,15 @@ import {IndexModel} from './index.js';
 export const OrderModel = {
   fetch: fetch,
   post: post,
-  urlFor: function(action, config){
+  urlFor: function(action, {ic_id, order_id}={}){
     let urls = {
       'index': {
-        'path': IndexModel.urlFor('index')['path'] + 'ic/' + config.ic_id + '/orders',
-        'relative_path': 'ic/' + config.ic_id + '/orders',
+        'path': `${IndexModel.urlFor('index')['path']}ic/${ic_id}/orders`,
+        'relative_path': `ic/${ic_id}/orders`,
         'method': 'GET'
       },
       'view': {
-        'path': IndexModel.urlFor('index')['path'] + 'order/' + config.order_id,
+        'path': `${IndexModel.urlFor('index')['path']}order/${order_id}`,
         'method': 'GET'
       }
     }

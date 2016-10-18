@@ -4,17 +4,17 @@ import {orgTemplate} from '../templates/org.html.js';
 import {SideBarView} from './sidebar.js'
 
 export const OrgView = {
-  render: function(org) {
+  render: function({org_name}={}) {
 
     OrgModel.fetch({
-      url: OrgModel.urlFor('index', {org_name: org.name})['path']
-    }).then(function(data){
+      url: OrgModel.urlFor('index', {org_name})['path']
+    }).then(function({id, name, title, item_collections}){
       let ractive = new Ractive({
         el: '#main-content-area',
         template: orgTemplate,
         data: {
-          title: data.title,
-          item_collections: data.item_collections
+          title: title,
+          item_collections: item_collections
         }
       });
 

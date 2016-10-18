@@ -4,22 +4,22 @@ import {OrderTemplate} from '../templates/admin_order.html.js';
 import {SideBarView} from './sidebar.js';
 
 export const OrderView = {
-  render: function(config) {
+  render: function({ic_id}={}) {
 
     OrderModel.fetch({
-      url: OrderModel.urlFor('index', {ic_id: config.id})['path']
-    }).done((remoteData) => {
+      url: OrderModel.urlFor('index', {ic_id})['path']
+    }).done(({org_name, title, orders}) => {
       // Initial render
       let main_ractive = new Ractive({
         el: '#main-content-area',
         template: OrderTemplate,
         data:  {
-          title: remoteData.title,
-          orders: remoteData.orders
+          title: title,
+          orders: orders
         }
       });
 
-      SideBarView.render('orders', {'org_name': remoteData.org_name, 'ic_id': config.id});
+      SideBarView.render('orders', {org_name, ic_id});
 
       NProgress.done();
 
@@ -55,7 +55,7 @@ export const OrderView = {
         //Show individual order
         let order_id = event.context.id;
         OrderModel.fetch({
-          url: OrderModel.urlFor('view', {order_id: order_id})['path']
+          url: OrderModel.urlFor('view', {order_id})['path']
         }).done((remoteData) => {
           main_ractive.set(event.keypath + '.line_items', remoteData.line_items);
           main_ractive.set(event.keypath + '.show_order', true);

@@ -5,29 +5,34 @@ export const DiscountPolicyModel = {
   fetch: fetch,
   post: post,
   convertFormToJSON: convertFormToJSON,
-  urlFor: function(action, config){
+  urlFor: function(action, {org_name, search, page, discount_policy_id}={}){
+    let base_url = `${IndexModel.urlFor('index')['path']}o/${org_name}/discount_policies`;
     let urls = {
       'index': {
-        'path': IndexModel.urlFor('index')['path'] + 'o/' + config.org_name + '/discount_policies',
-        'relative_path': 'o/' + config.org_name + '/discount_policies',
+        'path': page ? `${base_url}?page=${page}` : base_url,
+        'relative_path': `o/${org_name}/discount_policies`,
+        'method': 'GET'
+      },
+      'search': {
+        'path': page ? `${base_url}?search=${search}&page=${page}` : `${base_url}?search=${search}`,
         'method': 'GET'
       },
       'new': {
-        'path': IndexModel.urlFor('index')['path'] + 'o/' + config.org_name + '/discount_policy/new',
+        'path': `${IndexModel.urlFor('index')['path']}o/${org_name}/discount_policy/new`,
         'method': 'POST'
       },
       'edit': {
-        'path': IndexModel.urlFor('index')['path'] + 'discount_policy/' + config.discount_policy_id + '/edit',
+        'path': `${IndexModel.urlFor('index')['path']}discount_policy/${discount_policy_id}/edit`,
         'method': 'POST'
       },
       'generate_coupon': {
-        'path': IndexModel.urlFor('index')['path'] + 'discount_policy/' + config.discount_policy_id + '/generate_coupon',
+        'path': `${IndexModel.urlFor('index')['path']}discount_policy/${discount_policy_id}/generate_coupon`,
         'method': 'POST'
       },
       'list_coupons': {
-        'path': IndexModel.urlFor('index')['path'] + 'discount_policy/' + config.discount_policy_id + '/coupons',
+        'path': `${IndexModel.urlFor('index')['path']}discount_policy/${discount_policy_id}/coupons`,
         'method': 'POST'
-      },
+      }
     }
     return urls[action];
   }

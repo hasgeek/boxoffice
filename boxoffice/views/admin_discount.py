@@ -50,8 +50,12 @@ def jsonify_discount_policies(data_dict):
     )
 @render_with({'text/html': 'index.html', 'application/json': jsonify_discount_policies}, json=True)
 def admin_discount_policies(organization):
-    discount_policies = DiscountPolicy.query.filter(DiscountPolicy.organization == organization).order_by('created_at desc').all()
-    return dict(title=organization.title, org=organization, discount_policies=discount_policies)
+    query = request.args.get('search')
+    if query:
+        discount_policies = DiscountPolicy.query.filter(DiscountPolicy.title.ilike('%{query}%'.format(query=query))).all()
+    else:
+        discount_policies = DiscountPolicy.query.filter(DiscountPolicy.organization == organization).order_by('created_at desc').all()
+    return dict(org=organization, title=organization.title, discount_policies=discount_policies)
 
 
 @app.route('/admin/o/<org>/discount_policy/new', methods=['OPTIONS', 'POST'])
