@@ -142,15 +142,25 @@ class LineItem(BaseMixin, db.Model):
             if self.item.cancellable_until else True)
 
     @classmethod
-    def fetch_all_details(cls, item_collection):
+    def fetch_with_discounts(cls, item_collection):
         """
         Returns details for all the line items in a given item collection, along with the associated
-        assignee, discount policy, item and order
+        discount policy, item and order
         """
         # The outer join is to ensure all line items are fetched,
-        # regardless of whether they have associated assignees or discount policies
-        line_item_join = db.outerjoin(cls, Assignee).outerjoin(DiscountPolicy).join(Item).join(Order)
-        line_item_query = db.select([cls.id, Item.title, cls.base_amount, cls.discounted_amount, cls.final_amount, DiscountPolicy.title, Order.buyer_fullname, Order.buyer_email, Order.buyer_phone, Assignee.fullname, Assignee.email, Assignee.phone, Assignee.details]).select_from(line_item_join).where(cls.status == LINE_ITEM_STATUS.CONFIRMED).where(Assignee.current == True).where(Order.item_collection == item_collection).order_by('created_at')
+        # regardless of whether they have associated discount policies
+        line_item_join = db.outerjoin(cls, DiscountPolicy).join(Item).join(Order)
+        line_item_query = db.select([LineItem.id, Item.title, LineItem.base_amount, LineItem.discounted_amount, LineItem.final_amount, DiscountPolicy.title, Order.buyer_fullname, Order.buyer_email, Order.buyer_phone]).select_from(line_item_join).where(LineItem.status == LINE_ITEM_STATUS.CONFIRMED).where(Order.item_collection == item_collection).order_by('created_at')
+        return db.session.execute(line_item_query).fetchall()
+
+    @classmethod
+    def fetch_with_assignees(cls, item_collection):
+        """
+        Returns details for all the line items in a given item collection, along with the associated
+        assignee, item and order
+        """
+        line_item_join = db.join(cls, Assignee).join(Item).join(Order)
+        line_item_query = db.select([cls.id, Item.title, cls.base_amount, cls.discounted_amount, cls.final_amount, Order.buyer_fullname, Order.buyer_email, Order.buyer_phone, Assignee.fullname, Assignee.email, Assignee.phone, Assignee.details]).select_from(line_item_join).where(cls.status == LINE_ITEM_STATUS.CONFIRMED).where(Assignee.current == True).where(Order.item_collection == item_collection).order_by('created_at')
         return db.session.execute(line_item_query).fetchall()
 
 

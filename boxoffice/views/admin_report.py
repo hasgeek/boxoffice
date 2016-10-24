@@ -26,7 +26,18 @@ def admin_report(item_collection):
 @load_models(
     (ItemCollection, {'id': 'id'}, 'item_collection'),
     permission='org_admin')
-def admin_line_items_report(item_collection):
-    headers = ['ticket id', 'item title', 'base amount', 'discounted amount', 'final amount', 'discount policy', 'buyer fullname', 'buyer email', 'buyer phone', 'attendee fullname', 'attendee email', 'attendee phone', 'attendee details']
-    rows = LineItem.fetch_all_details(item_collection)
+def tickets_report(item_collection):
+    headers = ['ticket id', 'item title', 'base amount', 'discounted amount', 'final amount', 'discount policy', 'buyer fullname', 'buyer email', 'buyer phone']
+    rows = LineItem.fetch_with_discounts(item_collection)
+    return csv_response(headers, rows)
+
+
+@app.route('/admin/ic/<id>/reports/attendees.csv')
+@lastuser.requires_login
+@load_models(
+    (ItemCollection, {'id': 'id'}, 'item_collection'),
+    permission='org_admin')
+def attendees_report(item_collection):
+    headers = ['ticket id', 'item title', 'base amount', 'discounted amount', 'final amount', 'buyer fullname', 'buyer email', 'buyer phone', 'attendee fullname', 'attendee email', 'attendee phone', 'attendee details']
+    rows = LineItem.fetch_with_assignees(item_collection)
     return csv_response(headers, rows)
