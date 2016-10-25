@@ -27,7 +27,7 @@ def admin_report(item_collection):
     (ItemCollection, {'id': 'id'}, 'item_collection'),
     permission='org_admin')
 def tickets_report(item_collection):
-    headers = ['ticket id', 'item title', 'base amount', 'discounted amount', 'final amount', 'discount policy', 'buyer fullname', 'buyer email', 'buyer phone']
+    headers = ['ticket id', 'item title', 'base amount', 'discounted amount', 'final amount', 'discount policy', 'discount_code', 'buyer fullname', 'buyer email', 'buyer phone', 'utm_campaign', 'utm_source', 'utm_medium', 'utm_term', 'utm_content', 'utm_id', 'gclid', 'referrer']
     rows = LineItem.fetch_with_discounts(item_collection)
     return csv_response(headers, rows)
 
