@@ -253,7 +253,7 @@ def get_from_item(cls, item, qty, coupon_codes=[]):
                 if policy and policy.id in coupon_policy_ids:
                     coupon = DiscountCoupon.query.filter_by(discount_policy=policy, code=coupon_code).one_or_none()
                     if not coupon:
-                        coupon = DiscountCoupon(discount_policy=policy, code=coupon_code, usage_limit=1, used_count=0)
+                        coupon = DiscountCoupon(discount_policy=policy, code=coupon_code, usage_limit=policy.bulk_coupon_usage_limit, used_count=0)
                         db.session.add(coupon)
                 else:
                     coupon = None

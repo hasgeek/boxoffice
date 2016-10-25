@@ -105,7 +105,7 @@ class TestKharchaAPI(unittest.TestCase):
         first_item = Item.query.filter_by(name='conference-ticket').first()
         signed_policy = DiscountPolicy.query.filter_by(name='signed').first()
         code = signed_policy.gen_signed_code()
-        discounted_quantity = 1
+        discounted_quantity = 2
         kharcha_req = {'line_items': [{'item_id': unicode(first_item.id), 'quantity': discounted_quantity}], 'discount_coupons': [code]}
         resp = self.client.post(url_for('kharcha'), data=json.dumps(kharcha_req), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
         self.assertEquals(resp.status_code, 200)
