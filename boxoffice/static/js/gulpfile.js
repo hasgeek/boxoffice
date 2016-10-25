@@ -4,6 +4,8 @@ var browserify = require('browserify');
 var watchify = require('watchify');
 var babelify = require('babelify');
 var source = require('vinyl-source-stream');
+var uglify = require('gulp-uglify');
+var streamify = require('gulp-streamify');
 var _ = require('underscore');
 
 var config = {
@@ -26,6 +28,7 @@ function bundle() {
     .bundle()
     .on('error', function(err) { console.log('Error: ' + err.message); })
     .pipe(source(config.outputFile))
+    .pipe(streamify(uglify()))
     .pipe(gulp.dest(config.outputDir));
 }
 
