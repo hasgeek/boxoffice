@@ -26,7 +26,7 @@ def admin_report(item_collection):
 @load_models(
     (ItemCollection, {'id': 'id'}, 'item_collection'),
     permission='org_admin')
-def admin_line_items_report(item_collection):
-    headers = ['ticket id', 'item title', 'base amount', 'discounted amount', 'final amount', 'discount policy', 'buyer fullname', 'buyer email', 'buyer phone', 'attendee fullname', 'attendee email', 'attendee phone', 'attendee details']
+def tickets_report(item_collection):
+    headers = ['ticket id', 'invoice no', 'ticket type', 'base amount', 'discounted amount', 'final amount', 'discount policy', 'discount code', 'buyer fullname', 'buyer email', 'buyer phone', 'attendee fullname', 'attendee email', 'attendee phone', 'attendee details', 'utm_campaign', 'utm_source', 'utm_medium', 'utm_term', 'utm_content', 'utm_id', 'gclid', 'referrer']
     rows = LineItem.fetch_all_details(item_collection)
     return csv_response(headers, rows)
