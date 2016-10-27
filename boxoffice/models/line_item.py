@@ -6,7 +6,7 @@ import datetime
 from collections import namedtuple
 from sqlalchemy.sql import select, func
 from sqlalchemy.ext.orderinglist import ordering_list
-from boxoffice.models import db, JsonDict, BaseMixin, Order, Item, DiscountPolicy, DISCOUNT_TYPE, DiscountCoupon
+from boxoffice.models import db, JsonDict, BaseMixin, Order, Item, DiscountPolicy, DISCOUNT_TYPE, DiscountCoupon, OrderSession
 from coaster.utils import LabeledEnum
 from baseframe import __
 
@@ -145,12 +145,10 @@ class LineItem(BaseMixin, db.Model):
     def fetch_all_details(cls, item_collection):
         """
         Returns details for all the line items in a given item collection, along with the associated
-        assignee, discount policy, item and order
+        assignee (if any), discount policy (if any), discount coupon (if any), item, order and order session (if any)
         """
-        # The outer join is to ensure all line items are fetched,
-        # regardless of whether they have associated assignees or discount policies
-        line_item_join = db.outerjoin(cls, Assignee).outerjoin(DiscountPolicy).join(Item).join(Order)
-        line_item_query = db.select([cls.id, Item.title, cls.base_amount, cls.discounted_amount, cls.final_amount, DiscountPolicy.title, Order.buyer_fullname, Order.buyer_email, Order.buyer_phone, Assignee.fullname, Assignee.email, Assignee.phone, Assignee.details]).select_from(line_item_join).where(cls.status == LINE_ITEM_STATUS.CONFIRMED).where(Assignee.current == True).where(Order.item_collection == item_collection).order_by('created_at')
+        line_item_join = db.outerjoin(cls, Assignee, db.and_(LineItem.id == Assignee.line_item_id, Assignee.current == True)).outerjoin(DiscountCoupon, LineItem.discount_coupon_id == DiscountCoupon.id).outerjoin(DiscountPolicy, LineItem.discount_policy_id == DiscountPolicy.id).join(Item).join(Order).outerjoin(OrderSession)
+        line_item_query = db.select([cls.id, Order.invoice_no, Item.title, cls.base_amount, cls.discounted_amount, cls.final_amount, DiscountPolicy.title, DiscountCoupon.code, Order.buyer_fullname, Order.buyer_email, Order.buyer_phone, Assignee.fullname, Assignee.email, Assignee.phone, Assignee.details, OrderSession.utm_campaign, OrderSession.utm_source, OrderSession.utm_medium, OrderSession.utm_term, OrderSession.utm_content, OrderSession.utm_id, OrderSession.gclid, OrderSession.referrer]).select_from(line_item_join).where(cls.status == LINE_ITEM_STATUS.CONFIRMED).where(Order.item_collection == item_collection).order_by('created_at')
         return db.session.execute(line_item_query).fetchall()
 
 
@@ -253,7 +251,7 @@ def get_from_item(cls, item, qty, coupon_codes=[]):
                 if policy and policy.id in coupon_policy_ids:
                     coupon = DiscountCoupon.query.filter_by(discount_policy=policy, code=coupon_code).one_or_none()
                     if not coupon:
-                        coupon = DiscountCoupon(discount_policy=policy, code=coupon_code, usage_limit=1, used_count=0)
+                        coupon = DiscountCoupon(discount_policy=policy, code=coupon_code, usage_limit=policy.bulk_coupon_usage_limit, used_count=0)
                         db.session.add(coupon)
                 else:
                     coupon = None
