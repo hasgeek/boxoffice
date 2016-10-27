@@ -32,7 +32,8 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     __uuid_primary_key__ = True
     __table_args__ = (db.UniqueConstraint('organization_id', 'name'),
         db.UniqueConstraint('discount_code_base'),
-        db.CheckConstraint('percentage > 0 and percentage <= 100', 'discount_policy_percentage_check'))
+        db.CheckConstraint('percentage > 0 and percentage <= 100', 'discount_policy_percentage_check'),
+        db.CheckConstraint('discount_type = 0 or (discount_type = 1 and bulk_coupon_usage_limit IS NOT NULL)', 'discount_policy_bulk_coupon_usage_limit_check'))
 
     organization_id = db.Column(None, db.ForeignKey('organization.id'), nullable=False)
     organization = db.relationship(Organization, backref=db.backref('discount_policies', cascade='all, delete-orphan'))
@@ -50,6 +51,9 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     secret = db.Column(db.Unicode(50), nullable=True)
 
     items = db.relationship('Item', secondary=item_discount_policy)
+    # Coupons generated in bulk are not stored in the database during generation.
+    # This field allows specifying the number of times a coupon, generated in bulk, can be used
+    bulk_coupon_usage_limit = db.Column(db.Integer, nullable=True, default=1)
 
     @cached_property
     def is_automatic(self):
