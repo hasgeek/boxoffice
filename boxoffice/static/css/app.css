@@ -47,19 +47,26 @@ body {
   border-width: 0px 0px 3px;
   border-style: solid;
   border-radius: 5px;
-  padding: 6px 12px;
+  padding: 6px;
   color: #FFF;
-  font-size: 15px;
-}
-
-.boxoffice-button-small {
-  padding: 4px 6px;
+  font-size: 13px;
 }
 
 .btn-inline {
-  margin: 0 10px;
+  margin: 0 10px 10px 0;
+  display: inline-block;
 }
 
+@media (min-width: 768px) {
+  .boxoffice-button {
+    padding: 6px 12px;
+    font-size: 15px;
+  }
+
+  .btn-inline {
+    margin: 0 10px 0 0;
+  }
+}
 .boxoffice-button-action {
   background-color: #5CB85C;
   border-color: #4CAE4C;
@@ -201,6 +208,13 @@ a.boxoffice-button:focus {
   border-right: 5px solid transparent;
   border-top: 5px solid #757575;
   pointer-events: none;
+}
+
+.group-checkbox {
+  width: auto;
+  padding: 0;
+  font-size: 20px;
+  display: inline-block;
 }
 
 .bar {
@@ -666,27 +680,12 @@ a.boxoffice-button:focus {
   padding: 5px 0 0;
   margin: 0 0 5px;
   word-break: break-all;
+}
+
+.table-orders .footable-detail-show p.table-content {
   max-width: 250px;
 }
 
-.table-orders .orders-sm-btn {
-  font-size: 10px;
-}
-
-.table-orders .orders-btn {
-  display: inline-block;
-  margin: 5px 0px;
-}
-
-@media (min-width: 468px) {
-  .table-orders .orders-sm-btn {
-    font-size: 15px;
-  }
-
-  .table-orders .orders-btn.right-button {
-    margin-left: 10px;
-  }
-}
 .table-orders.footable.breakpoint > tbody > tr > td > span.footable-toggle {
   color: #df5e0e;
   padding-top: 5px;
