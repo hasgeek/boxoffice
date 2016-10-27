@@ -115,6 +115,11 @@
                                   {{/options}}
                                 </select>
                               </div>
+                            {{elseif field_type === 'checkbox'}}
+                              <div class="group">
+                                <input class="group-checkbox filled" type="checkbox" value="{{option}}" id="{{seq}}-{{option}}" {{#if assignee.details[field] == option }}checked{{/if}} name="{{{field}}}">
+                                <label class="field-title" for="{{seq}}-{{option}}">{{label}}</label>
+                              </div>
                             {{elseif field_type === 'textbox'}}
                               <div class="group">
                                 <label class="field-title">{{label}}</label>
