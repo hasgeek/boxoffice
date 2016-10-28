@@ -682,10 +682,15 @@ a.boxoffice-button:focus {
   word-break: break-all;
 }
 
-.table-orders .footable-detail-show p.table-content {
-  max-width: 250px;
+.table-orders .footable-visible p.table-content {
+  max-width: 180px;
 }
 
+@media (min-width: 768px) {
+  .table-orders .footable-visible p.table-content {
+    width: auto;
+  }
+}
 .table-orders.footable.breakpoint > tbody > tr > td > span.footable-toggle {
   color: #df5e0e;
   padding-top: 5px;
