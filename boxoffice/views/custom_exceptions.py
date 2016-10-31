@@ -6,7 +6,6 @@ from utils import cors
 
 
 class PaymentGatewayError(Exception):
-
     def __init__(self, message, status_code, response_message):
         super(PaymentGatewayError, self).__init__()
         self.message = message

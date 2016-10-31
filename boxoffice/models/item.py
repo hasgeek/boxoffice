@@ -4,9 +4,9 @@ from datetime import datetime
 from decimal import Decimal
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.orderinglist import ordering_list
-from ..models import db, JsonDict, BaseScopedNameMixin, MarkdownColumn
-from ..models import ItemCollection, Category
-from ..models.discount_policy import item_discount_policy
+from . import db, JsonDict, BaseScopedNameMixin, MarkdownColumn
+from . import ItemCollection, Category
+from .discount_policy import item_discount_policy
 
 __all__ = ['Item', 'Price']
 
@@ -54,7 +54,7 @@ class Item(BaseScopedNameMixin, db.Model):
         Returns the price object for an item at a given time
         """
         return Price.query.filter(Price.item == self, Price.start_at <= timestamp,
-            Price.end_at > timestamp, Price.discount_policy == None).order_by('created_at desc').first()  # noqa
+            Price.end_at > timestamp, Price.discount_policy == None).order_by('created_at desc').first()  # NOQA
 
     @classmethod
     def get_by_category(cls, category):
