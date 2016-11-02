@@ -14,6 +14,7 @@ class OrganizationModelView(SiteAdminModelView):
     column_list = ('id', 'title')
     form_list = ('id', 'userid', 'title')
     form_excluded_columns = ['userid', 'item_collections', 'discount_policies', 'orders', 'created_at', 'updated_at']
+    form_overrides = dict(details=JSONField)
 
 
 class ItemCollectionModelView(SiteAdminModelView):
