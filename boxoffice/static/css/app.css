@@ -156,7 +156,8 @@ a.boxoffice-button:focus {
   -webkit-transition: 0.2s ease all;
 }
 
-.group-input:disabled {
+.group-input:disabled,
+.group-input.disabled {
   position: relative;
   background-color: transparent;
   color: #CCC;
@@ -521,7 +522,7 @@ a.boxoffice-button:focus {
   text-align: center;
 }
 
-.attendee-form-title {
+.assignee-form-title {
   font-size: 18px;
   font-weight: bold;
   padding: 15px 0;
