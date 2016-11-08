@@ -197,7 +197,8 @@ $(function() {
             access_token: '',
             line_items: lineItems,
             final_amount: 0.0,
-            readyToCheckout: false
+            readyToCheckout: false,
+            show_cart_btn: false
           },
           // Prefill name, email, phone if user is found to be logged in
           buyer: {
@@ -241,6 +242,18 @@ $(function() {
           $('html,body').animate({
             scrollTop: $("#" + boxoffice.ractive.el.id).offset().top
           }, '300');
+        },
+        animateCartBtn: function() {
+          //Animate cart btn. Incase cart btn is visible, hide for 500ms and display again.
+          if(boxoffice.ractive.get('order.show_cart_btn')) {
+            boxoffice.ractive.set('order.show_cart_btn', false);
+            window.setTimeout(function() {
+              boxoffice.ractive.set('order.show_cart_btn', true);
+            }, 500);
+          }
+          else {
+            boxoffice.ractive.set('order.show_cart_btn', true);
+          }
         },
         selectItems: function(event) {
           // Makes the 'Select Items' tab active
@@ -313,6 +326,7 @@ $(function() {
               if (increment) {
                 if (lineItem.quantity < quantityAvailable) {
                   lineItem.quantity += 1;
+                  boxoffice.ractive.animateCartBtn();
                 }
                 boxoffice.ractive.fire('eventAnalytics', 'add ticket', item_name);
               } else if (lineItem.quantity !== 0) {
