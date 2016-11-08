@@ -28,6 +28,9 @@ def assign(order):
     if line_item.is_cancelled:
         return make_response(jsonify(status='error', error='cancelled_ticket', error_description="Ticket has been cancelled"), 400)
 
+    if line_item.current_assignee and not line_item.is_transferrable():
+        return make_response(jsonify(status='error', error='ticket_not_transferrable', error_description="Ticket cannot be transferred."), 400)
+
     assignee_request_dict = request.json.get('assignee')
     assignee_form = AssigneeForm.from_json(assignee_request_dict)
     assignee_form.csrf_enabled = False
@@ -44,24 +47,17 @@ def assign(order):
         line_item.current_assignee.fullname = assignee_form.data.get('fullname')
         line_item.current_assignee.phone = assignee_form.data.get('phone')
         line_item.current_assignee.details = assignee_details
-        db.session.commit()
     else:
+        cc_list = [line_item.order.buyer_email]
         if line_item.current_assignee:
-            if not line_item.is_transferrable():
-                return make_response(jsonify(status='error', error='ticket_not_transferrable', error_description="Ticket cannot be transferred."), 400)
-            # Archive current assignee
-            previous_assignee_email = line_item.current_assignee.email
+            # Notify and archive current assignee
+            cc_list.append(line_item.current_assignee.email)
             line_item.current_assignee.current = None
-        else:
-            previous_assignee_email = None
-        new_assignee = Assignee(current=True, email=assignee_form.data.get('email'), fullname=assignee_form.data.get('fullname'),
-            phone=assignee_form.data.get('phone'), details=assignee_details, line_item=line_item)
-        db.session.add(new_assignee)
-        db.session.commit()
-        if previous_assignee_email:
-            cc_list = [line_item.order.buyer_email, previous_assignee_email]
-        else:
-            cc_list = [line_item.order.buyer_email]
-        recipient_list = [line_item.current_assignee.email]
-        send_ticket_assignment_mail.delay(line_item.id, recipient_list, cc_list)
+        db.session.add(Assignee(current=True,
+            email=assignee_form.data.get('email'),
+            fullname=assignee_form.data.get('fullname'),
+            phone=assignee_form.data.get('phone'),
+            details=assignee_details, line_item=line_item))
+        send_ticket_assignment_mail.delay(line_item.id, [line_item.current_assignee.email], cc_list)
+    db.session.commit()
     return make_response(jsonify(status='ok', result={'message': 'Ticket assigned', 'assignee': jsonify_assignee(line_item.current_assignee)}), 201)
