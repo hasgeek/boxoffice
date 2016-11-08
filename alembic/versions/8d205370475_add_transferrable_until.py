@@ -1,18 +1,17 @@
 """add_transferrable_until
 
-Revision ID: 6a6c0be09f
-Revises: 48e571c759cb
-Create Date: 2016-09-13 18:12:25.445124
+Revision ID: 8d205370475
+Revises: 4246213b032b
+Create Date: 2016-11-08 14:12:26.061615
 
 """
 
 # revision identifiers, used by Alembic.
-revision = '6a6c0be09f'
-down_revision = '48e571c759cb'
+revision = '8d205370475'
+down_revision = '4246213b032b'
 
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
 
 
 def upgrade():
