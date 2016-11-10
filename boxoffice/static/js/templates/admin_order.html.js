@@ -51,7 +51,7 @@ export const OrderTemplate = `
                   {{/if}}
                 </p>
               </td>
-              <td><p class="table-content"><a class="boxoffice-button boxoffice-button-info" href="javascript:void(0)" on-click="showOrder">Line Items</a></p></td>
+              <td><p class="table-content"><a class="boxoffice-button boxoffice-button-info" href="javascript:void(0)" on-click="showOrder">Line Items {{#if loading}}<i class="fa fa-spinner fa-spin"></i>{{/if}}</a></p></td>
               <td>
                 <p class="table-content">
                   <a class="boxoffice-button boxoffice-button-info btn-inline" href={{ receipt }} target="_blank" >View Receipt</a>
