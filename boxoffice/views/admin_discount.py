@@ -65,24 +65,21 @@ def jsonify_discount_policies(data_dict):
 @render_with({'text/html': 'index.html', 'application/json': jsonify_discount_policies}, json=True)
 def admin_discount_policies(organization):
     query = request.args.get('search')
-    page = request.args.get('page', 1)
+    try:
+        page = int(request.args.get('page', 1))
+    except ValueError:
+        page = 1
 
     if request.is_xhr:
+        discount_policies = DiscountPolicy.query.filter(DiscountPolicy.organization == organization).order_by('created_at desc')
+
         if query:
-            discount_policies = DiscountPolicy.query.filter(DiscountPolicy.title.ilike('%{query}%'.format(query=query)))
-        else:
-            discount_policies = DiscountPolicy.query.filter(DiscountPolicy.organization == organization).order_by('created_at desc')
+            discount_policies = discount_policies.filter(DiscountPolicy.title.ilike('%{query}%'.format(query=query)))
 
         total_policies = discount_policies.count()
 
-        try:
-            page = int(page)
-            offset = (page - 1) * PAGE_SIZE
-            discount_policies = discount_policies.limit(PAGE_SIZE).offset(offset)
-        except ValueError:
-            pass
-
-        print page
+        offset = (page - 1) * PAGE_SIZE
+        discount_policies = discount_policies.limit(PAGE_SIZE).offset(offset)
 
         return dict(
             org=organization, title=organization.title,
