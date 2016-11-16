@@ -17,10 +17,6 @@ export const DiscountPolicyView = {
     DiscountPolicyModel.fetch({
       url: url
     }).done(({org_name, title, discount_policies, total_pages, paginated, current_page}) => {
-      var pages = [];
-      for (var i=1; i<= total_pages; i++) {
-        pages.push(i);
-      }
       // Initial render
       let main_ractive = new Ractive({
         el: '#main-content-area',
@@ -32,7 +28,6 @@ export const DiscountPolicyView = {
           paginated: paginated,
           total_pages: total_pages,
           current_page: current_page,
-          pages: pages,
           items: '',
           show_add_policy_form: false,
           new_discount_policy: '',
@@ -48,8 +43,7 @@ export const DiscountPolicyView = {
           let url;
           if (search) {
             url = DiscountPolicyModel.urlFor('search', {org_name, search, page})['path'];
-          }
-          else {
+          } else {
             url = DiscountPolicyModel.urlFor('index', {org_name, page})['path'];
           }
           NProgress.start();
@@ -57,10 +51,21 @@ export const DiscountPolicyView = {
             url: url
           }).done((remoteData) => {
             main_ractive.set('discount_policies', remoteData.discount_policies);
+            main_ractive.set('paginated', remoteData.paginated);
+            main_ractive.set('total_pages', remoteData.total_pages);
+            main_ractive.set('current_page', remoteData.current_page);
+            main_ractive.set('pages', main_ractive.get_pages(remoteData.total_pages));
             NProgress.done();
           });
           window.history.replaceState({reloadOnPop: true}, '', window.location.href);
           window.history.pushState({reloadOnPop: true}, '', url);
+        },
+        get_pages: function (total_pages) {
+          var pages = [];
+          for (var i=1; i<= total_pages; i++) {
+            pages.push(i);
+          }
+          return pages;
         }
       });
 
