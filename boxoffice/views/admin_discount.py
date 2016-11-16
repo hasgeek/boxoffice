@@ -10,10 +10,6 @@ from boxoffice.models import Organization, DiscountPolicy, DiscountCoupon, DISCO
 from utils import xhr_only, date_time_format
 
 
-# Move this to settings maybe
-PAGE_SIZE = 6
-
-
 def jsonify_price(price):
     if price:
         return {
@@ -64,6 +60,7 @@ def jsonify_discount_policies(data_dict):
     )
 @render_with({'text/html': 'index.html', 'application/json': jsonify_discount_policies}, json=True)
 def admin_discount_policies(organization):
+    RESULTS_PER_PAGE = 6
     query = request.args.get('search')
     try:
         page = int(request.args.get('page', 1))
@@ -71,20 +68,24 @@ def admin_discount_policies(organization):
         page = 1
 
     if request.is_xhr:
-        discount_policies = DiscountPolicy.query.filter(DiscountPolicy.organization == organization).order_by('created_at desc')
+        discount_policies = DiscountPolicy.query.filter(
+            DiscountPolicy.organization == organization
+        ).order_by('created_at desc')
 
         if query:
-            discount_policies = discount_policies.filter(DiscountPolicy.title.ilike('%{query}%'.format(query=query)))
+            discount_policies = discount_policies.filter(
+                DiscountPolicy.title.ilike('%{query}%'.format(query=query))
+            )
 
         total_policies = discount_policies.count()
 
-        offset = (page - 1) * PAGE_SIZE
-        discount_policies = discount_policies.limit(PAGE_SIZE).offset(offset)
+        offset = (page - 1) * RESULTS_PER_PAGE
+        discount_policies = discount_policies.limit(RESULTS_PER_PAGE).offset(offset)
 
         return dict(
             org=organization, title=organization.title,
             discount_policies=discount_policies,
-            total_pages=int(math.ceil(total_policies/PAGE_SIZE)),
+            total_pages=int(math.ceil(total_policies/RESULTS_PER_PAGE)),
             current_page=page
         )
     else:
