@@ -494,6 +494,33 @@ a.boxoffice-button:focus {
     padding: 0 15px;
   }
 }
+.title-wrapper {
+  margin-bottom: 12px;
+  font-size: 18px;
+  font-weight: normal;
+  position: relative;
+}
+
+.title-wrapper .status-select-label {
+  width: 20%;
+}
+
+.title-wrapper .status-select {
+  display: inline-block;
+  width: 60%;
+}
+
+.clear-field {
+  cursor: pointer;
+  position: absolute;
+  right: 16px;
+  top: 1px;
+  font-size: 16px;
+  background: #ddd;
+  padding: 6px;
+  border-radius: 0 4px 4px 0;
+}
+
 .content-slider {
   position: absolute;
   top: -115px;
@@ -768,21 +795,6 @@ a.boxoffice-button:focus {
 
 .right-button {
   margin-left: 10px;
-}
-
-.table-title {
-  margin-bottom: 12px;
-  font-size: 18px;
-  font-weight: normal;
-}
-
-.table-title .status-select-label {
-  width: 20%;
-}
-
-.table-title .status-select {
-  display: inline-block;
-  width: 60%;
 }
 
 .table-orders {

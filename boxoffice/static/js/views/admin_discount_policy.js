@@ -36,6 +36,7 @@ export const DiscountPolicyView = {
           items: '',
           show_add_policy_form: false,
           new_discount_policy: '',
+          search_text: '',
           get_discounted_items: function(dp_items) {
             let discounted_items = dp_items.map(function(dp_item) {
               return dp_item.id;
@@ -153,7 +154,7 @@ export const DiscountPolicyView = {
             dropdownCssClass: "bigdrop"
           });
         }
-      }
+      };
 
       main_ractive.on('openNewPolicyForm', function(event) {
         main_ractive.set('show_add_policy_form', true);
@@ -235,22 +236,20 @@ export const DiscountPolicyView = {
             }).done((remoteData) => {
               main_ractive.set('discount_policies', [remoteData.result.discount_policy]);
               main_ractive.set('new_discount_policy.creatingPolicy', false);
-              let url = DiscountPolicyModel.urlFor('search', {org_name: org_name, search: main_ractive.get('new_discount_policy.title')})['path'];
-              window.history.replaceState({reloadOnPop: true}, '', window.location.href);
-              window.history.pushState({reloadOnPop: true}, '', url);
+              main_ractive.set('search_text', main_ractive.get('new_discount_policy.title'));
               main_ractive.fire('closeNewPolicyForm');
             }).fail(function(response) {
               let error_msg;
               if (response.readyState === 4) {
                 if(response.status === 500) {
-                  error_msg = "Internal Server Error"
+                  error_msg = "Internal Server Error";
                 }
                 else {
                   error_msg = JSON.parse(response.responseText).message;
                 }
               }
               if (response.readyState === 0) {
-                error_msg = "Unable to connect. Please try again."
+                error_msg = "Unable to connect. Please try again.";
               }
               main_ractive.set('new_discount_policy.creatingPolicy', false);
               main_ractive.set('new_discount_policy.generate_policy_error', error_msg);
@@ -262,12 +261,11 @@ export const DiscountPolicyView = {
 
       });
 
-      main_ractive.on('searchPolicy', function(event) {
-        let search = event.node.value;
-        if (search.length > 2) {
-          main_ractive.refresh(search);
+      main_ractive.observe('search_text', function(search_text) {
+        if (search_text.length > 2) {
+          main_ractive.refresh(search_text);
         }
-        else if(search.length === 0) {
+        else if(search_text.length === 0) {
           main_ractive.refresh();
         }
       });
@@ -276,6 +274,10 @@ export const DiscountPolicyView = {
         event.original.preventDefault();
         main_ractive.refresh('', page);
       })
+
+      main_ractive.on('clearSearchField', function() {
+        main_ractive.set('search_text', '');
+      });
 
       main_ractive.on('editPolicyForm', function(event) {
         main_ractive.set(event.keypath + '.hide_edit_btn', true);

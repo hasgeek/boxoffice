@@ -2,10 +2,11 @@
 export const DiscountPolicyTemplate = `
   <div class="content-wrapper">
     <h1 class="header">{{ title }}</h1>
-    <form class="table-title col-sm-4 col-xs-12">
-      <input autofocus class="form-control" type="text" on-keyup="searchPolicy" placeholder="Search discount policy"/>
-    </form>
-    <div class="table-title col-sm-4 col-sm-offset-4 col-xs-12">
+    <div class="title-wrapper col-sm-4 col-xs-12">
+      <input autofocus class="form-control" type="text" placeholder="Search discount policy" value="{{search_text}}"/>
+      <a on-click="clearSearchField" class="clear-field"><i class="fa fa-close"></i></a>
+    </div>
+    <div class="title-wrapper col-sm-4 col-sm-offset-4 col-xs-12">
       <button class="boxoffice-button boxoffice-button-action btn-right" on-click="openNewPolicyForm">Create discount policy</button>
     </div>
     {{#if show_add_policy_form}}
