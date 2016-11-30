@@ -10,7 +10,7 @@ from boxoffice.models import db, JsonDict, BaseMixin, Order, Item, DiscountPolic
 from coaster.utils import LabeledEnum
 from baseframe import __
 
-__all__ = ['LineItem', 'LINE_ITEM_STATUS', 'Assignee']
+__all__ = ['LineItem', 'LINE_ITEM_STATUS', 'Assignee', 'LineItemDiscounter']
 
 
 class LINE_ITEM_STATUS(LabeledEnum):
@@ -20,8 +20,9 @@ class LINE_ITEM_STATUS(LabeledEnum):
 
 
 def make_ntuple(item_id, base_amount, **kwargs):
-    line_item_tup = namedtuple('LineItem', ['item_id', 'base_amount', 'discount_policy_id', 'discount_coupon_id', 'discounted_amount'])
+    line_item_tup = namedtuple('LineItem', ['item_id', 'id', 'base_amount', 'discount_policy_id', 'discount_coupon_id', 'discounted_amount'])
     return line_item_tup(item_id,
+        kwargs.get('line_item_id', None),
         base_amount,
         kwargs.get('discount_policy_id', None),
         kwargs.get('discount_coupon_id', None),
@@ -107,6 +108,25 @@ class LineItem(BaseMixin, db.Model):
                 item_line_items[unicode(item.id)] = []
             item_line_items[unicode(item.id)].append(make_ntuple(item_id=item.id,
                 base_amount=item.current_price().amount if item.is_available else None))
+
+        for item_id in item_line_items.keys():
+            line_items.extend(discounter.get_discounted_line_items(item_line_items[item_id], coupon_list))
+
+        return line_items
+
+    @classmethod
+    def recalculate(cls, line_items, coupons=[]):
+        item_line_items = {}
+        line_items = []
+        coupon_list = list(set(coupons)) if coupons else []
+        discounter = LineItemDiscounter()
+
+        for line_item in line_items:
+            item = line_item.item
+            if not item_line_items.get(unicode(item.id)):
+                item_line_items[unicode(item.id)] = []
+            item_line_items[unicode(item.id)].append(make_ntuple(line_item_id=line_item.id, item_id=item.id,
+                base_amount=line_item.final_amount))
 
         for item_id in item_line_items.keys():
             line_items.extend(discounter.get_discounted_line_items(item_line_items[item_id], coupon_list))
@@ -300,7 +320,7 @@ class LineItemDiscounter():
             return []
 
         item = Item.query.get(line_items[0].item_id)
-        if not item.is_available:
+        if not item.is_available and not item.is_cancellable():
             # item unavailable, no discounts
             return []
 
@@ -344,6 +364,7 @@ class LineItemDiscounter():
                 # if the line item's assigned discount is lesser
                 # than the current discount, assign the current discount to the line item
                 discounted_line_items.append(make_ntuple(item_id=line_item.item_id,
+                    id=line_item.id if line_item.id else None,
                     base_amount=line_item.base_amount,
                     discount_policy_id=discount_policy.id,
                     discount_coupon_id=coupon.id if coupon else None,

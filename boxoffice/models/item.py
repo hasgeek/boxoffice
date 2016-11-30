@@ -69,6 +69,9 @@ class Item(BaseScopedNameMixin, db.Model):
         """Checks if an item has a current price object and has a positive quantity_available"""
         return bool(self.current_price() and self.quantity_available > 0)
 
+    def is_cancellable(self):
+        return datetime.now() < self.cancellable_until if self.cancellable_until else True
+
 
 class Price(BaseScopedNameMixin, db.Model):
     __tablename__ = 'price'
