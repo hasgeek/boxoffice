@@ -53,6 +53,8 @@ export const OrderView = {
       });
 
       main_ractive.on('showOrder', function(event){
+        //Close all other open side panels
+        main_ractive.set('orders.*.show_order', false);
         //Show individual order
         main_ractive.set(event.keypath + '.loading', true);
         NProgress.configure({ showSpinner: false}).start();
