@@ -19,7 +19,10 @@ def send_receipt_mail(order_id, subject="Thank you for your order!"):
         order = Order.query.get(order_id)
         msg = Message(subject=subject, recipients=[order.buyer_email], bcc=[order.organization.contact_email])
         line_items = LineItem.query.filter(LineItem.order == order, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).order_by("line_item_seq asc").all()
-        html = email_transform(render_template('order_confirmation_mail.html', order=order, org=order.organization, line_items=line_items, base_url=app.config['BASE_URL']))
+        html = email_transform(render_template('order_confirmation_mail.html', order=order, org=order.organization,
+            line_items=line_items,
+            order_confirmed_amount=order.get_amounts(LINE_ITEM_STATUS.CONFIRMED).confirmed_amount,
+            base_url=app.config['BASE_URL']))
         msg.html = html
         msg.body = html2text(html)
         mail.send(msg)

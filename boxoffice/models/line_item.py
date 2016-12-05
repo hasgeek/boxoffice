@@ -17,16 +17,20 @@ class LINE_ITEM_STATUS(LabeledEnum):
     CONFIRMED = (0, __("Confirmed"))
     CANCELLED = (1, __("Cancelled"))
     PURCHASE_ORDER = (2, __("Purchase Order"))
+    # A line item can be made void by the system to invalidate
+    # a line item. Eg: a discount no longer applicable on a line item as a result of a cancellation
+    VOID = (3, __("Void"))
 
 
 def make_ntuple(item_id, base_amount, **kwargs):
-    line_item_tup = namedtuple('LineItem', ['item_id', 'id', 'base_amount', 'discount_policy_id', 'discount_coupon_id', 'discounted_amount'])
+    line_item_tup = namedtuple('LineItem', ['item_id', 'id', 'base_amount', 'discount_policy_id', 'discount_coupon_id', 'discounted_amount', 'final_amount'])
     return line_item_tup(item_id,
         kwargs.get('line_item_id', None),
         base_amount,
         kwargs.get('discount_policy_id', None),
         kwargs.get('discount_coupon_id', None),
-        kwargs.get('discounted_amount', Decimal(0)))
+        kwargs.get('discounted_amount', Decimal(0)),
+        kwargs.get('final_amount', None))
 
 
 class Assignee(BaseMixin, db.Model):
@@ -90,48 +94,41 @@ class LineItem(BaseMixin, db.Model):
         return perms
 
     @classmethod
-    def calculate(cls, line_item_dicts, coupons=[]):
+    def calculate(cls, line_items, recalculate=False, coupons=[]):
         """
         Returns line item tuples with the respective base_amount, discounted_amount,
         final_amount, discount_policy and discount coupon populated
+
+        If the `recalculate` flag is set to `True`, the line_items will be considered as SQLAlchemy objects.
         """
         item_line_items = {}
-        line_items = []
+        calculated_line_items = []
         coupon_list = list(set(coupons)) if coupons else []
         discounter = LineItemDiscounter()
 
         # make named tuples for line items,
         # assign the base_amount for each of them, None if an item is unavailable
-        for line_item_dict in line_item_dicts:
-            item = Item.query.get(line_item_dict['item_id'])
+        for line_item in line_items:
+            if recalculate:
+                item = line_item.item
+                # existing line item, use the original base amount
+                base_amount = line_item.base_amount
+                line_item_id = line_item.id
+            else:
+                item = Item.query.get(line_item['item_id'])
+                # new line item, use the current price
+                base_amount = item.current_price().amount if item.is_available else None
+                line_item_id = None
+
             if not item_line_items.get(unicode(item.id)):
                 item_line_items[unicode(item.id)] = []
             item_line_items[unicode(item.id)].append(make_ntuple(item_id=item.id,
-                base_amount=item.current_price().amount if item.is_available else None))
+                base_amount=base_amount, line_item_id=line_item_id))
 
         for item_id in item_line_items.keys():
-            line_items.extend(discounter.get_discounted_line_items(item_line_items[item_id], coupon_list))
+            calculated_line_items.extend(discounter.get_discounted_line_items(item_line_items[item_id], coupon_list))
 
-        return line_items
-
-    @classmethod
-    def recalculate(cls, line_items, coupons=[]):
-        item_line_items = {}
-        line_items = []
-        coupon_list = list(set(coupons)) if coupons else []
-        discounter = LineItemDiscounter()
-
-        for line_item in line_items:
-            item = line_item.item
-            if not item_line_items.get(unicode(item.id)):
-                item_line_items[unicode(item.id)] = []
-            item_line_items[unicode(item.id)].append(make_ntuple(line_item_id=line_item.id, item_id=item.id,
-                base_amount=line_item.final_amount))
-
-        for item_id in item_line_items.keys():
-            line_items.extend(discounter.get_discounted_line_items(item_line_items[item_id], coupon_list))
-
-        return line_items
+        return calculated_line_items
 
     def confirm(self):
         self.status = LINE_ITEM_STATUS.CONFIRMED
@@ -150,12 +147,19 @@ class LineItem(BaseMixin, db.Model):
     def is_cancelled(self):
         return self.status == LINE_ITEM_STATUS.CANCELLED
 
+    @property
+    def is_free(self):
+        return self.final_amount == Decimal('0')
+
     def cancel(self):
         """
         Sets status and cancelled_at.
         """
         self.status = LINE_ITEM_STATUS.CANCELLED
         self.cancelled_at = func.utcnow()
+
+    def make_void(self):
+        self.status = LINE_ITEM_STATUS.VOID
 
     def is_cancellable(self):
         return self.is_confirmed and (datetime.datetime.now() < self.item.cancellable_until
@@ -170,6 +174,10 @@ class LineItem(BaseMixin, db.Model):
         line_item_join = db.outerjoin(cls, Assignee, db.and_(LineItem.id == Assignee.line_item_id, Assignee.current == True)).outerjoin(DiscountCoupon, LineItem.discount_coupon_id == DiscountCoupon.id).outerjoin(DiscountPolicy, LineItem.discount_policy_id == DiscountPolicy.id).join(Item).join(Order).outerjoin(OrderSession)
         line_item_query = db.select([cls.id, Order.invoice_no, Item.title, cls.base_amount, cls.discounted_amount, cls.final_amount, DiscountPolicy.title, DiscountCoupon.code, Order.buyer_fullname, Order.buyer_email, Order.buyer_phone, Assignee.fullname, Assignee.email, Assignee.phone, Assignee.details, OrderSession.utm_campaign, OrderSession.utm_source, OrderSession.utm_medium, OrderSession.utm_term, OrderSession.utm_content, OrderSession.utm_id, OrderSession.gclid, OrderSession.referrer]).select_from(line_item_join).where(cls.status == LINE_ITEM_STATUS.CONFIRMED).where(Order.item_collection == item_collection).order_by('created_at')
         return db.session.execute(line_item_query).fetchall()
+
+    @classmethod
+    def get_max_seq(cls, order):
+        return db.session.query(func.max(LineItem.line_item_seq)).filter(LineItem.order == order).first()[0]
 
 
 def get_availability(cls, item_ids):
@@ -364,11 +372,12 @@ class LineItemDiscounter():
                 # if the line item's assigned discount is lesser
                 # than the current discount, assign the current discount to the line item
                 discounted_line_items.append(make_ntuple(item_id=line_item.item_id,
-                    id=line_item.id if line_item.id else None,
                     base_amount=line_item.base_amount,
+                    line_item_id=line_item.id if line_item.id else None,
                     discount_policy_id=discount_policy.id,
                     discount_coupon_id=coupon.id if coupon else None,
-                    discounted_amount=discounted_amount))
+                    discounted_amount=discounted_amount,
+                    final_amount=line_item.base_amount - discounted_amount))
                 applied_to_count += 1
             else:
                 # Current discount is not applicable, copy over the line item as it is.

@@ -7,7 +7,7 @@ from coaster.views import render_with, load_models
 from baseframe import _
 from .. import app, lastuser
 from ..models import db
-from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy, OrderSession
+from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy, OrderSession, Assignee, LINE_ITEM_STATUS
 from ..models import Order, OnlinePayment, PaymentTransaction, User, CURRENCY, ORDER_STATUS
 from ..models.payment import TRANSACTION_TYPE
 from ..extapi import razorpay, RAZORPAY_PAYMENT_STATUS
@@ -200,7 +200,7 @@ def order(item_collection):
         order_access_token=order.access_token,
         payment_url=url_for('payment', order=order.id),
         free_order_url=url_for('free', order=order.id),
-        final_amount=order.get_amounts().final_amount), 201)
+        final_amount=order.get_amounts(LINE_ITEM_STATUS.PURCHASE_ORDER).final_amount), 201)
 
 
 @app.route('/order/<order>/free', methods=['GET', 'OPTIONS', 'POST'])
@@ -213,7 +213,7 @@ def free(order):
     """
     Completes a order which has a final_amount of 0
     """
-    order_amounts = order.get_amounts()
+    order_amounts = order.get_amounts(LINE_ITEM_STATUS.PURCHASE_ORDER)
     if order_amounts.final_amount == 0:
         order.confirm_sale()
         db.session.add(order)
@@ -249,7 +249,7 @@ def payment(order):
     if not request.json.get('pg_paymentid'):
         return make_response(jsonify(message='Missing payment id.'), 400)
 
-    order_amounts = order.get_amounts()
+    order_amounts = order.get_amounts(LINE_ITEM_STATUS.PURCHASE_ORDER)
     online_payment = OnlinePayment(pg_paymentid=request.json.get('pg_paymentid'), order=order)
 
     rp_resp = razorpay.capture_payment(online_payment.pg_paymentid, order_amounts.final_amount)
@@ -284,7 +284,7 @@ def payment(order):
     (Order, {'access_token': 'access_token'}, 'order')
     )
 def receipt(order):
-    return render_template('cash_receipt.html', order=order, org=order.organization, line_items=order.line_items)
+    return render_template('cash_receipt.html', order=order, org=order.organization, line_items=order.line_items, order_confirmed_amount=order.get_amounts(LINE_ITEM_STATUS.CONFIRMED).confirmed_amount)
 
 
 @app.route('/order/<access_token>/ticket', methods=['GET', 'POST'])
@@ -327,6 +327,95 @@ def jsonify_orders(orders):
     return api_orders
 
 
+def get_coupon_codes_from_line_items(line_items):
+    coupon_ids = [line_item.discount_coupon.id for line_item in line_items if line_item.discount_coupon]
+    if coupon_ids:
+        coupons = DiscountCoupon.query.filter(DiscountCoupon.id.in_(coupon_ids)).options(db.load_only('code')).all()
+    else:
+        coupons = []
+    return [coupon.code for coupon in coupons]
+
+
+def regenerate_line_item(order, original_line_item, updated_line_item_tup, line_item_seq):
+    """
+    Marks the original line item as `void`, and returns a new line item object
+    with the updated attributes
+    """
+    original_line_item.make_void()
+    item = Item.query.get(updated_line_item_tup.item_id)
+    if updated_line_item_tup.discount_policy_id:
+        policy = DiscountPolicy.query.get(updated_line_item_tup.discount_policy_id)
+    else:
+        policy = None
+    if updated_line_item_tup.discount_coupon_id:
+        coupon = DiscountCoupon.query.get(updated_line_item_tup.discount_coupon_id)
+    else:
+        coupon = None
+
+    return LineItem(order=order, item=item, discount_policy=policy,
+        status=LINE_ITEM_STATUS.CONFIRMED,
+        line_item_seq=line_item_seq,
+        discount_coupon=coupon,
+        ordered_at=datetime.utcnow(),
+        base_amount=updated_line_item_tup.base_amount,
+        discounted_amount=updated_line_item_tup.discounted_amount,
+        final_amount=updated_line_item_tup.base_amount-updated_line_item_tup.discounted_amount)
+
+
+def update_order_on_line_item_cancellation(order, pre_cancellation_line_items, cancelled_line_item):
+    """Cancels the given line item and updates the order"""
+    active_line_items = [pre_cancellation_line_item
+        for pre_cancellation_line_item in pre_cancellation_line_items
+        if pre_cancellation_line_item != cancelled_line_item]
+    recalculated_line_item_tups = LineItem.calculate(active_line_items, recalculate=True, coupons=get_coupon_codes_from_line_items(active_line_items))
+
+    last_line_item_seq = LineItem.get_max_seq(order)
+    for idx, line_item_tup in enumerate(recalculated_line_item_tups, start=last_line_item_seq+1):
+        pre_cancellation_line_item = [pre_cancellation_line_item for pre_cancellation_line_item in pre_cancellation_line_items if pre_cancellation_line_item.id == line_item_tup.id][0]
+        # Check if the line item's amount has changed post-cancellation
+        if line_item_tup.final_amount != pre_cancellation_line_item.final_amount:
+            # Amount has changed, void this line item and regenerate the line item
+            updated_line_item = regenerate_line_item(order, pre_cancellation_line_item, line_item_tup, idx)
+            db.session.add(updated_line_item)
+            current_assignee = pre_cancellation_line_item.current_assignee
+            if current_assignee:
+                db.session.add(Assignee(current=True, email=current_assignee.email,
+                    fullname=current_assignee.fullname,
+                    phone=current_assignee.phone, details=current_assignee.details,
+                    line_item=updated_line_item))
+    return order
+
+
+def process_line_item_cancellation(line_item):
+    if not line_item.is_free:
+        order = line_item.order
+        if line_item.discount_policy:
+            pre_cancellation_order_amount = order.get_amounts(LINE_ITEM_STATUS.CONFIRMED).confirmed_amount
+            pre_cancellation_line_items = order.get_confirmed_line_items
+            line_item.cancel()
+            updated_order = update_order_on_line_item_cancellation(order, pre_cancellation_line_items, line_item)
+            post_cancellation_order_amount = updated_order.get_amounts(LINE_ITEM_STATUS.CONFIRMED).confirmed_amount
+            refund_amount = pre_cancellation_order_amount - post_cancellation_order_amount
+        else:
+            line_item.cancel()
+            refund_amount = line_item.final_amount
+
+        payment = OnlinePayment.query.filter_by(order=line_item.order, pg_payment_status=RAZORPAY_PAYMENT_STATUS.CAPTURED).one()
+        rp_resp = razorpay.refund_payment(payment.pg_paymentid, refund_amount)
+        if rp_resp.status_code == 200:
+            db.session.add(PaymentTransaction(order=order, transaction_type=TRANSACTION_TYPE.REFUND,
+                online_payment=payment, amount=refund_amount, currency=CURRENCY.INR))
+            db.session.commit()
+        else:
+            raise PaymentGatewayError("Cancellation failed for order - {order} with the following details - {msg}".format(order=order.id,
+                msg=rp_resp.content), 424,
+            'Refund failed. Please try again or write to us at {email}.'.format(email=line_item.order.organization.contact_email))
+    else:
+        # free line item
+        line_item.cancel()
+        db.session.commit()
+
+
 @app.route('/line_item/<line_item_id>/cancel', methods=['POST'])
 @lastuser.requires_login
 @load_models(
@@ -337,60 +426,9 @@ def cancel_line_item(line_item):
     if not line_item.is_cancellable():
         return make_response(jsonify(status='error', error='non_cancellable', error_description='This ticket is not cancellable'), 403)
 
-    if line_item.final_amount > Decimal('0'):
-        order = line_item.order
-        if line_item.discount_policy:
-            # recalculate order without this line item
-            pre_cancellation_order_amount = order.get_amounts().confirmed_amount
-            pre_cancellation_line_items = order.get_confirmed_line_items
-            coupon_ids = [pre_cancellation_line_item.discount_coupon.id for pre_cancellation_line_item in pre_cancellation_line_items if pre_cancellation_line_item.discount_coupon]
-            coupons = DiscountCoupon.query.filter(DiscountCoupon.id.in_(coupon_ids)).options(db.load_only('code')).all()
-            coupon_codes = [coupon.code for coupon in coupons]
-            recalculated_line_item_tups = LineItem.recalculate([pre_cancellation_line_item for pre_cancellation_line_item in pre_cancellation_line_items if pre_cancellation_line_item != line_item], coupons=coupon_codes)
-            for idx, line_item_tup in enumerate(recalculated_line_item_tups):
-                pre_cancellation_line_item = [pre_cancellation_line_item for pre_cancellation_line_item in pre_cancellation_line_items if pre_cancellation_line_item.id == line_item_tup.line_item_id][0]
-                if line_item_tup.final_amount != pre_cancellation_line_item.final_amount:
-                    pre_cancellation_line_item.cancel()
-                    item = Item.query.get(line_item_tup.item_id)
-                    if line_item_tup.discount_policy_id:
-                        policy = DiscountPolicy.query.get(line_item_tup.discount_policy_id)
-                    else:
-                        policy = None
-                    if line_item_tup.discount_coupon_id:
-                        coupon = DiscountCoupon.query.get(line_item_tup.discount_coupon_id)
-                    else:
-                        coupon = None
-
-                    updated_line_item = LineItem(order=order, item=item, discount_policy=policy,
-                        line_item_seq=idx+1,
-                        discount_coupon=coupon,
-                        ordered_at=datetime.utcnow(),
-                        base_amount=line_item_tup.base_amount,
-                        discounted_amount=line_item_tup.discounted_amount,
-                        final_amount=line_item_tup.base_amount-line_item_tup.discounted_amount)
-                    db.session.add(updated_line_item)
-                    pre_cancellation_line_item.current_assignee.line_item = updated_line_item
-
-            refund_amount = pre_cancellation_order_amount - order.get_amounts().get_confirmed_amount
-        else:
-            refund_amount = line_item.final_amount
-
-        payment = OnlinePayment.query.filter_by(order=line_item.order, pg_payment_status=RAZORPAY_PAYMENT_STATUS.CAPTURED).one()
-        rp_resp = razorpay.refund_payment(payment.pg_paymentid, refund_amount)
-        if rp_resp.status_code == 200:
-            line_item.cancel()
-            db.session.add(PaymentTransaction(order=order, transaction_type=TRANSACTION_TYPE.REFUND,
-                online_payment=payment, amount=refund_amount, currency=CURRENCY.INR))
-            db.session.commit()
-        else:
-            raise PaymentGatewayError("Cancellation failed for order - {order} with the following details - {msg}".format(order=order.id,
-                msg=rp_resp.content), 424,
-            'Refund failed. Please try again or write to us at {email}.'.format(email=line_item.order.organization.contact_email))
-    else:
-        line_item.cancel()
-        db.session.commit()
+    process_line_item_cancellation(line_item)
     send_line_item_cancellation_mail.delay(line_item.id)
-    return make_response(jsonify(status='ok', result={'message': 'Ticket cancelled', 'cancelled_at': date_format(line_item.cancelled_at)}), 201)
+    return make_response(jsonify(status='ok', result={'message': 'Ticket cancelled', 'cancelled_at': date_format(line_item.cancelled_at)}), 200)
 
 
 @app.route('/api/1/ic/<item_collection>/orders', methods=['GET', 'OPTIONS'])

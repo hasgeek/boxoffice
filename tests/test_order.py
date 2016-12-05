@@ -1,8 +1,14 @@
 import unittest
 import json
 import decimal
+from random import randint
+from flask import make_response
+from mock import MagicMock
 from boxoffice import app, init_for
 from boxoffice.models import *
+from boxoffice.models.payment import TRANSACTION_TYPE
+from boxoffice.extapi import razorpay
+from boxoffice.views.order import process_line_item_cancellation
 from fixtures import init_data
 
 
@@ -204,7 +210,7 @@ class TestOrder(unittest.TestCase):
         tshirt_final_amount = (tshirt_price * tshirt_quantity) - (tshirt_quantity * (tshirt_policy.percentage * tshirt_price)/decimal.Decimal(100))
         conf_policy = DiscountPolicy.query.filter_by(title='10% discount on rootconf').first()
         conf_final_amount = (conf_price * (conf_quantity-2)) - ((conf_quantity-2) * (conf_policy.percentage * conf_price)/decimal.Decimal(100))
-        self.assertEquals(tshirt_final_amount+conf_final_amount, order.get_amounts().final_amount)
+        self.assertEquals(tshirt_final_amount+conf_final_amount, order.get_amounts(LINE_ITEM_STATUS.PURCHASE_ORDER).final_amount)
 
     def test_free_order(self):
         item = Item.query.filter_by(name='conference-ticket').first()
@@ -231,6 +237,54 @@ class TestOrder(unittest.TestCase):
         self.assertEquals(coupon.used_count, 1)
         self.assertEquals(order.status, ORDER_STATUS.SALES_ORDER)
         self.assertEquals(order.line_items[0].status, LINE_ITEM_STATUS.CONFIRMED)
+
+    def test_cancel_line_item_in_bulk_order(self):
+        original_quantity = 5
+        discounted_item = Item.query.filter_by(name='t-shirt').first()
+        total_amount = discounted_item.current_price().amount * original_quantity
+        data = {
+            'line_items': [{'item_id': unicode(discounted_item.id), 'quantity': original_quantity}],
+            'buyer': {
+                'fullname': 'Testing',
+                'phone': '9814141414',
+                'email': 'test@hasgeek.com',
+                }
+            }
+        ic = ItemCollection.query.first()
+        # make a purchase order
+        resp = self.client.post('/ic/{ic}/order'.format(ic=ic.id), data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
+        data = json.loads(resp.data)
+        self.assertEquals(resp.status_code, 201)
+        self.assertEquals(data['final_amount'], (total_amount - 5*total_amount/decimal.Decimal(100)))
+
+        order = Order.query.get(data['order_id'])
+        # Create fake payment and transaction objects
+        online_payment = OnlinePayment(pg_paymentid='pg_testpayment', order=order)
+        online_payment.confirm()
+        order_amounts = order.get_amounts(LINE_ITEM_STATUS.PURCHASE_ORDER)
+        transaction = PaymentTransaction(order=order, online_payment=online_payment, amount=order_amounts.final_amount, currency=CURRENCY.INR)
+        db.session.add(transaction)
+        order.confirm_sale()
+        db.session.commit()
+
+        precancellation_order_amount = order.get_amounts(LINE_ITEM_STATUS.CONFIRMED).final_amount
+        first_line_item = order.line_items[0]
+        to_be_void_line_items = order.line_items[1:]
+        # Mock Razorpay's API
+        razorpay.refund_payment = MagicMock(return_value=make_response())
+        process_line_item_cancellation(first_line_item)
+        self.assertEquals(first_line_item.status, LINE_ITEM_STATUS.CANCELLED)
+        for void_line_item in to_be_void_line_items:
+            self.assertEquals(void_line_item.status, LINE_ITEM_STATUS.VOID)
+        expected_refund_amount = precancellation_order_amount - order.get_amounts(LINE_ITEM_STATUS.CONFIRMED).final_amount
+        refund_transaction1 = PaymentTransaction.query.filter_by(order=order, transaction_type=TRANSACTION_TYPE.REFUND).first()
+        self.assertEquals(refund_transaction1.amount, expected_refund_amount)
+
+        second_line_item = order.get_confirmed_line_items[0]
+        process_line_item_cancellation(second_line_item)
+        self.assertEquals(second_line_item.status, LINE_ITEM_STATUS.CANCELLED)
+        refund_transaction2 = PaymentTransaction.query.filter_by(order=order, transaction_type=TRANSACTION_TYPE.REFUND).order_by('created_at desc').first()
+        self.assertEquals(refund_transaction2.amount, second_line_item.final_amount)
 
     def tearDown(self):
         db.session.rollback()
