@@ -70,7 +70,7 @@ class Item(BaseScopedNameMixin, db.Model):
         return bool(self.current_price() and self.quantity_available > 0)
 
     def is_cancellable(self):
-        return datetime.now() < self.cancellable_until if self.cancellable_until else True
+        return datetime.utcnow() < self.cancellable_until if self.cancellable_until else True
 
 
 class Price(BaseScopedNameMixin, db.Model):
