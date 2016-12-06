@@ -367,10 +367,12 @@ def update_order_on_line_item_cancellation(order, pre_cancellation_line_items, c
     active_line_items = [pre_cancellation_line_item
         for pre_cancellation_line_item in pre_cancellation_line_items
         if pre_cancellation_line_item != cancelled_line_item]
-    recalculated_line_item_tups = LineItem.calculate(active_line_items, recalculate=True, coupons=get_coupon_codes_from_line_items(active_line_items))
+    recalculated_line_item_tups = LineItem.calculate(active_line_items, recalculate=True,
+        coupons=get_coupon_codes_from_line_items(active_line_items))
 
     last_line_item_seq = LineItem.get_max_seq(order)
     for idx, line_item_tup in enumerate(recalculated_line_item_tups, start=last_line_item_seq+1):
+        # Fetch the line item object
         pre_cancellation_line_item = [pre_cancellation_line_item for pre_cancellation_line_item in pre_cancellation_line_items if pre_cancellation_line_item.id == line_item_tup.id][0]
         # Check if the line item's amount has changed post-cancellation
         if line_item_tup.final_amount != pre_cancellation_line_item.final_amount:

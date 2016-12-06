@@ -6,6 +6,7 @@ from flask import make_response
 from mock import MagicMock
 from boxoffice import app, init_for
 from boxoffice.models import *
+from boxoffice.views.custom_exceptions import PaymentGatewayError
 from boxoffice.models.payment import TRANSACTION_TYPE
 from boxoffice.extapi import razorpay
 from boxoffice.views.order import process_line_item_cancellation
@@ -212,7 +213,7 @@ class TestOrder(unittest.TestCase):
         conf_final_amount = (conf_price * (conf_quantity-2)) - ((conf_quantity-2) * (conf_policy.percentage * conf_price)/decimal.Decimal(100))
         self.assertEquals(tshirt_final_amount+conf_final_amount, order.get_amounts(LINE_ITEM_STATUS.PURCHASE_ORDER).final_amount)
 
-    def test_free_order(self):
+    def make_free_order(self):
         item = Item.query.filter_by(name='conference-ticket').first()
         data = {
             'line_items': [{'item_id': unicode(item.id), 'quantity': 1}],
@@ -225,6 +226,10 @@ class TestOrder(unittest.TestCase):
             }
         ic = ItemCollection.query.first()
         resp = self.client.post('/ic/{ic}/order'.format(ic=ic.id), data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
+        return resp
+
+    def test_free_order(self):
+        resp = self.make_free_order()
         data = json.loads(resp.data)
         self.assertEquals(resp.status_code, 201)
         order = Order.query.get(data.get('order_id'))
@@ -285,6 +290,22 @@ class TestOrder(unittest.TestCase):
         self.assertEquals(second_line_item.status, LINE_ITEM_STATUS.CANCELLED)
         refund_transaction2 = PaymentTransaction.query.filter_by(order=order, transaction_type=TRANSACTION_TYPE.REFUND).order_by('created_at desc').first()
         self.assertEquals(refund_transaction2.amount, second_line_item.final_amount)
+
+        # test failed cancellation
+        third_line_item = order.get_confirmed_line_items[0]
+        failed_response = make_response('', 400)
+        failed_response.content = 'failed'
+        razorpay.refund_payment = MagicMock(return_value=failed_response)
+        self.assertRaises(PaymentGatewayError, lambda: process_line_item_cancellation(third_line_item))
+
+        # test free line item cancellation
+        free_order_resp = self.make_free_order()
+        free_order_resp_data = json.loads(free_order_resp.data)
+        free_order = Order.query.get(free_order_resp_data.get('order_id'))
+        free_line_item = free_order.line_items[0]
+        process_line_item_cancellation(free_line_item)
+        self.assertEquals(free_line_item.status, LINE_ITEM_STATUS.CANCELLED)
+        self.assertEquals(free_order.transactions.count(), 0)
 
     def tearDown(self):
         db.session.rollback()
