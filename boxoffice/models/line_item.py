@@ -22,8 +22,10 @@ class LINE_ITEM_STATUS(LabeledEnum):
     VOID = (3, __("Void"))
 
 
+line_item_tup = namedtuple('LineItem', ['item_id', 'id', 'base_amount', 'discount_policy_id', 'discount_coupon_id', 'discounted_amount', 'final_amount'])
+
+
 def make_ntuple(item_id, base_amount, **kwargs):
-    line_item_tup = namedtuple('LineItem', ['item_id', 'id', 'base_amount', 'discount_policy_id', 'discount_coupon_id', 'discounted_amount', 'final_amount'])
     return line_item_tup(item_id,
         kwargs.get('line_item_id', None),
         base_amount,
