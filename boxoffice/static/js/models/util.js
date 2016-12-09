@@ -35,3 +35,9 @@ export const post = function(config){
     dataType: 'json'
   });
 }
+
+export const scrollToElement = function(element, speed=500) {
+  $('html,body').animate({
+    scrollTop: $(element).offset().top
+  }, speed);
+}

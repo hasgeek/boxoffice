@@ -1,4 +1,5 @@
 
+import {scrollToElement} from '../models/util.js';
 import {OrderModel} from '../models/admin_order.js';
 import {OrderTemplate} from '../templates/admin_order.html.js';
 import {SideBarView} from './sidebar.js';
@@ -52,13 +53,21 @@ export const OrderView = {
       });
 
       main_ractive.on('showOrder', function(event){
+        //Close all other open side panels
+        main_ractive.set('orders.*.show_order', false);
         //Show individual order
+        main_ractive.set(event.keypath + '.loading', true);
+        NProgress.configure({ showSpinner: false}).start();
         let order_id = event.context.id;
         OrderModel.fetch({
           url: OrderModel.urlFor('view', {order_id: order_id})['path']
         }).done((remoteData) => {
           main_ractive.set(event.keypath + '.line_items', remoteData.line_items);
           main_ractive.set(event.keypath + '.show_order', true);
+          NProgress.done();
+          main_ractive.set(event.keypath + '.loading', false);
+          let ractive_id = "#" + main_ractive.el.id;
+          scrollToElement(ractive_id);
         });
       });
 
