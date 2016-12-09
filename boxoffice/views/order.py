@@ -414,8 +414,10 @@ def process_line_item_cancellation(line_item):
             'Refund failed. Please try again or write to us at {email}.'.format(email=line_item.order.organization.contact_email))
     else:
         # free line item
+        refund_amount = Decimal(0)
         line_item.cancel()
         db.session.commit()
+    return refund_amount
 
 
 @app.route('/line_item/<line_item_id>/cancel', methods=['POST'])
@@ -428,8 +430,8 @@ def cancel_line_item(line_item):
     if not line_item.is_cancellable():
         return make_response(jsonify(status='error', error='non_cancellable', error_description='This ticket is not cancellable'), 403)
 
-    process_line_item_cancellation(line_item)
-    send_line_item_cancellation_mail.delay(line_item.id)
+    refund_amount = process_line_item_cancellation(line_item)
+    send_line_item_cancellation_mail.delay(line_item.id, refund_amount)
     return make_response(jsonify(status='ok', result={'message': 'Ticket cancelled', 'cancelled_at': date_format(line_item.cancelled_at)}), 200)
 
 

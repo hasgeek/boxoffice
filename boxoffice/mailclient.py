@@ -40,7 +40,7 @@ def send_participant_assignment_mail(order_id, item_collection_title, team_membe
 
 
 @job('boxoffice')
-def send_line_item_cancellation_mail(line_item_id, subject="Ticket Cancellation"):
+def send_line_item_cancellation_mail(line_item_id, refund_amount, subject="Ticket Cancellation"):
     with app.test_request_context():
         line_item = LineItem.query.get(line_item_id)
         item_title = line_item.item.title
@@ -51,7 +51,7 @@ def send_line_item_cancellation_mail(line_item_id, subject="Ticket Cancellation"
         html = email_transform(render_template('line_item_cancellation_mail.html',
             base_url=app.config['BASE_URL'],
             order=order, line_item=line_item, item_title=item_title, org=order.organization, is_paid=is_paid,
-            currency_symbol=CURRENCY_SYMBOL['INR']))
+            refund_amount=refund_amount, currency_symbol=CURRENCY_SYMBOL['INR']))
         msg.html = html
         msg.body = html2text(html)
         mail.send(msg)
