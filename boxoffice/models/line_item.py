@@ -151,6 +151,10 @@ class LineItem(BaseMixin, db.Model):
         line_item_query = db.select([cls.id, Order.invoice_no, Item.title, cls.base_amount, cls.discounted_amount, cls.final_amount, DiscountPolicy.title, DiscountCoupon.code, Order.buyer_fullname, Order.buyer_email, Order.buyer_phone, Assignee.fullname, Assignee.email, Assignee.phone, Assignee.details, OrderSession.utm_campaign, OrderSession.utm_source, OrderSession.utm_medium, OrderSession.utm_term, OrderSession.utm_content, OrderSession.utm_id, OrderSession.gclid, OrderSession.referrer]).select_from(line_item_join).where(cls.status == LINE_ITEM_STATUS.CONFIRMED).where(Order.item_collection == item_collection).order_by('created_at')
         return db.session.execute(line_item_query).fetchall()
 
+    def is_transferrable(self):
+        return self.is_confirmed and (datetime.datetime.now() < self.item.transferrable_until
+            if self.item.transferrable_until else True)
+
 
 def get_availability(cls, item_ids):
     """Returns a dict -> {'item_id': ('item title', 'quantity_total', 'line_item_count')}"""

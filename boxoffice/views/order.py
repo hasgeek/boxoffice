@@ -66,6 +66,7 @@ def jsonify_order(data):
             'assignee': jsonify_assignee(line_item.current_assignee),
             'is_confirmed': line_item.is_confirmed,
             'is_cancelled': line_item.is_cancelled,
+            'is_transferrable': line_item.is_transferrable(),
             'cancelled_at': date_format(line_item.cancelled_at) if line_item.cancelled_at else "",
         })
     return jsonify(order_id=order.id, access_token=order.access_token,
