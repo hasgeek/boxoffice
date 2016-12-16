@@ -19,7 +19,10 @@ def send_receipt_mail(order_id, subject="Thank you for your order!"):
         order = Order.query.get(order_id)
         msg = Message(subject=subject, recipients=[order.buyer_email], bcc=[order.organization.contact_email])
         line_items = LineItem.query.filter(LineItem.order == order, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).order_by("line_item_seq asc").all()
-        html = email_transform(render_template('order_confirmation_mail.html', order=order, org=order.organization, line_items=line_items, base_url=app.config['BASE_URL']))
+        html = email_transform(render_template('order_confirmation_mail.html', order=order, org=order.organization,
+            line_items=line_items,
+            order_confirmed_amount=order.get_amounts(LINE_ITEM_STATUS.CONFIRMED).confirmed_amount,
+            base_url=app.config['BASE_URL']))
         msg.html = html
         msg.body = html2text(html)
         mail.send(msg)
@@ -37,7 +40,7 @@ def send_participant_assignment_mail(order_id, item_collection_title, team_membe
 
 
 @job('boxoffice')
-def send_line_item_cancellation_mail(line_item_id, subject="Ticket Cancellation"):
+def send_line_item_cancellation_mail(line_item_id, refund_amount, subject="Ticket Cancellation"):
     with app.test_request_context():
         line_item = LineItem.query.get(line_item_id)
         item_title = line_item.item.title
@@ -48,7 +51,7 @@ def send_line_item_cancellation_mail(line_item_id, subject="Ticket Cancellation"
         html = email_transform(render_template('line_item_cancellation_mail.html',
             base_url=app.config['BASE_URL'],
             order=order, line_item=line_item, item_title=item_title, org=order.organization, is_paid=is_paid,
-            currency_symbol=CURRENCY_SYMBOL['INR']))
+            refund_amount=refund_amount, currency_symbol=CURRENCY_SYMBOL['INR']))
         msg.html = html
         msg.body = html2text(html)
         mail.send(msg)

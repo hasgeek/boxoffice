@@ -53,6 +53,9 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     items = db.relationship('Item', secondary=item_discount_policy)
     # Coupons generated in bulk are not stored in the database during generation.
     # This field allows specifying the number of times a coupon, generated in bulk, can be used
+    # This is particularly useful for generating referral discount coupons. For instance, one could generate
+    # a signed coupon and provide it to a user such that the user can share the coupon `n` times
+    # `n` here is essentially bulk_coupon_usage_limit.
     bulk_coupon_usage_limit = db.Column(db.Integer, nullable=True, default=1)
 
     @cached_property
