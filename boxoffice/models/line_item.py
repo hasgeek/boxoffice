@@ -17,16 +17,16 @@ class LINE_ITEM_STATUS(LabeledEnum):
     CONFIRMED = (0, __("Confirmed"))
     CANCELLED = (1, __("Cancelled"))
     PURCHASE_ORDER = (2, __("Purchase Order"))
-    # A line item can be made void by the system to invalidate
-    # a line item. Eg: a discount no longer applicable on a line item as a result of a cancellation
+    #: A line item can be made void by the system to invalidate
+    #: a line item. Eg: a discount no longer applicable on a line item as a result of a cancellation
     VOID = (3, __("Void"))
 
 
-line_item_tup = namedtuple('LineItem', ['item_id', 'id', 'base_amount', 'discount_policy_id', 'discount_coupon_id', 'discounted_amount', 'final_amount'])
+LineItemTup = namedtuple('LineItem', ['item_id', 'id', 'base_amount', 'discount_policy_id', 'discount_coupon_id', 'discounted_amount', 'final_amount'])
 
 
 def make_ntuple(item_id, base_amount, **kwargs):
-    return line_item_tup(item_id,
+    return LineItemTup(item_id,
         kwargs.get('line_item_id', None),
         base_amount,
         kwargs.get('discount_policy_id', None),
@@ -154,14 +154,13 @@ class LineItem(BaseMixin, db.Model):
         return self.final_amount == Decimal('0')
 
     def cancel(self):
-        """
-        Sets status and cancelled_at.
-        """
+        """Sets status and cancelled_at."""
         self.status = LINE_ITEM_STATUS.CANCELLED
         self.cancelled_at = func.utcnow()
 
     def make_void(self):
         self.status = LINE_ITEM_STATUS.VOID
+        self.cancelled_at = func.utcnow()
 
     def is_cancellable(self):
         return self.is_confirmed and (datetime.datetime.now() < self.item.cancellable_until
@@ -179,7 +178,7 @@ class LineItem(BaseMixin, db.Model):
 
     @classmethod
     def get_max_seq(cls, order):
-        return db.session.query(func.max(LineItem.line_item_seq)).filter(LineItem.order == order).first()[0]
+        return db.session.query(func.max(LineItem.line_item_seq)).filter(LineItem.order == order).scalar()
 
 
 def get_availability(cls, item_ids):
