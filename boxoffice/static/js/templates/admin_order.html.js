@@ -3,10 +3,10 @@ export const OrderTemplate = `
   <div class="content-wrapper">
     <h1 class="header">{{ title }}</h1>
     {{#if orders}}
-      <form class="table-title col-sm-6 col-xs-12" id="search-form">
+      <form class="title-wrapper col-sm-6 col-xs-12" id="search-form">
         <input autofocus class="form-control" id="filter" type="text" name="key" value="" placeholder="Search"/>
       </form>
-      <div class="table-title form-group text-right col-sm-6 col-xs-12">
+      <div class="title-wrapper form-group text-right col-sm-6 col-xs-12">
         <label for="filter-status" class="status-select-label">Filter:</label>
         <select class="form-control status-select" id="filter-status">
           <option value="">All orders</option>
