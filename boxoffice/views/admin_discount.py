@@ -4,8 +4,10 @@ import datetime
 from flask import jsonify, make_response, request
 from .. import app, lastuser
 from coaster.views import load_models, render_with
+from coaster.utils import buid
 from ..models import db
 from boxoffice.models import Organization, DiscountPolicy, DiscountCoupon, DISCOUNT_TYPE, Item, Price, CURRENCY_SYMBOL
+from ..forms import DiscountForm
 from utils import xhr_only, date_time_format
 
 
@@ -66,6 +68,9 @@ def admin_discount_policies(organization):
     )
 @xhr_only
 def admin_add_discount_policy(organization):
+    discount_policy_form = DiscountForm.from_json(request.json.get('discount_policy'))
+    if not discount_policy_form.validate():
+        return make_response(jsonify(message='Invalid details'), 400)
     title = request.json.get('title')
     if request.json.get('is_price_based'):
         is_price_based = int(request.json.get('is_price_based'))
@@ -77,6 +82,9 @@ def admin_add_discount_policy(organization):
     if is_price_based:
         discount_policy = DiscountPolicy(title=title, discount_type=DISCOUNT_TYPE.COUPON, is_price_based=True, organization=organization)
         item = Item.query.get(items[0])
+        if request.json.get('discount_code_base'):
+            discount_policy.discount_code_base = request.json.get('discount_code_base')
+            discount_policy.secret = buid()
         discount_policy.items.append(item)
         db.session.add(discount_policy)
         db.session.commit()
@@ -112,6 +120,9 @@ def admin_add_discount_policy(organization):
             for item_id in items:
                 item = Item.query.get(item_id)
                 discount_policy.items.append(item)
+            if request.json.get('discount_code_base'):
+                discount_policy.discount_code_base = request.json.get('discount_code_base')
+                discount_policy.secret = buid()
             db.session.add(discount_policy)
             db.session.commit()
         else:
@@ -135,6 +146,9 @@ def admin_edit_discount_policy(discount_policy):
     if not discount_policy.is_price_based:
         if request.json.get('percentage'):
             discount_policy.percentage = int(request.json.get('percentage'))
+        if request.json.get('discount_code_base'):
+            discount_policy.discount_code_base = request.json.get('discount_code_base')
+            discount_policy.secret = buid()
     if discount_policy.is_automatic:
         item_quantity_min = int(request.json.get('item_quantity_min'))
         if item_quantity_min:

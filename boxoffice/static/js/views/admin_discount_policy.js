@@ -60,9 +60,65 @@ export const DiscountPolicyView = {
 
       NProgress.done();
 
-      let addFormFields =  function(is_price_based) {
+      let dp_validation_config = [
+        {
+          name: 'title',
+          rules: 'required'
+        },
+        {
+          name: 'item_quantity_min',
+          rules: 'required|numeric'
+        },
+        {
+          name: 'price_title',
+          rules: 'required'
+        },
+        {
+          name: 'amount',
+          rules: 'required|numeric'
+        },
+        {
+          name: 'start_at',
+          rules: 'required'
+        },
+        {
+          name: 'end_at',
+          rules: 'required'
+        },
+        {
+          name: 'item',
+          rules: 'required'
+        },
+        {
+          name: 'percentage',
+          rules: 'required|numeric'
+        },
+        {
+          name: 'items',
+          rules: 'required'
+        }
+      ];
+
+      let addFormFields =  function(is_price_based, discount_policy) {
+
         if (is_price_based) {
-          $("#add-item").select2({
+          let add_item_selector;
+          let start_date_selector;
+          let end_date_selector;
+
+          if(discount_policy) {
+            let discount_policy_id = main_ractive.get(discount_policy + '.id');
+            add_item_selector = "#add-item-" + discount_policy_id;
+            start_date_selector = "#start-date-" + discount_policy_id;
+            end_date_selector = "#end-date-" + discount_policy_id;
+          }
+          else {
+            add_item_selector = "#add-item";
+            start_date_selector = "#start-date";
+            end_date_selector = "#end-date";
+          }
+
+          $(add_item_selector).select2({
             placeholder: "Search a ticket",
             minimumInputLength: 3,
             ajax: {
@@ -88,10 +144,15 @@ export const DiscountPolicyView = {
             formatSelection: function(item) {
               return item.title;
             },
+            initSelection: function(element, callback) {
+              if(discount_policy) {
+                callback(main_ractive.get(discount_policy + '.dp_items.0'));
+              }
+            },
             dropdownCssClass: "bigdrop"
           });
 
-          $('#start_date').daterangepicker({
+          $(start_date_selector).daterangepicker({
             singleDatePicker: true,
             showDropdowns: true,
             timePicker: true,
@@ -103,7 +164,7 @@ export const DiscountPolicyView = {
             }
           });
 
-          $('#end_date').daterangepicker({
+          $(end_date_selector).daterangepicker({
             singleDatePicker: true,
             showDropdowns: true,
             timePicker: true,
@@ -116,7 +177,17 @@ export const DiscountPolicyView = {
           });
         }
         else {
-          $("#add-items").select2({
+          let add_items_selector;
+
+          if(discount_policy) {
+            let discount_policy_id = main_ractive.get(discount_policy + '.id');
+            add_items_selector = "#add-items-" + discount_policy_id;
+          }
+          else {
+            add_items_selector = "#add-items";
+          }
+          
+          $(add_items_selector).select2({
             placeholder: "Search tickets",
             minimumInputLength: 3,
             multiple: true,
@@ -142,6 +213,11 @@ export const DiscountPolicyView = {
             },
             formatSelection: function(item) {
               return item.title;
+            },
+            initSelection: function(element, callback) {
+              if(discount_policy) {
+                callback(main_ractive.get(discount_policy + '.dp_items'));
+              }
             },
             dropdownCssClass: "bigdrop"
           });
@@ -169,48 +245,9 @@ export const DiscountPolicyView = {
       });
 
       main_ractive.on('addNewPolicy', function(event) {
-        var validation_config = [
-          {
-            name: 'title',
-            rules: 'required'
-          },
-          {
-            name: 'item_quantity_min',
-            rules: 'required|numeric'
-          },
-          {
-            name: 'price_title',
-            rules: 'required'
-          },
-          {
-            name: 'amount',
-            rules: 'required|numeric'
-          },
-          {
-            name: 'start_at',
-            rules: 'required'
-          },
-          {
-            name: 'end_at',
-            rules: 'required'
-          },
-          {
-            name: 'item',
-            rules: 'required'
-          },
-          {
-            name: 'percentage',
-            rules: 'required|numeric'
-          },
-          {
-            name: 'items',
-            rules: 'required'
-          }
-        ];
-
         var policy_form_name = 'adding-new-policy-form';
 
-        var form_validator = new FormValidator(policy_form_name, validation_config, function(errors, event) {
+        var form_validator = new FormValidator(policy_form_name, dp_validation_config, function(errors, event) {
           event.preventDefault();
           main_ractive.set('new_discount_policy.errormsg', '');
           if (errors.length > 0) {
@@ -223,7 +260,7 @@ export const DiscountPolicyView = {
 
             DiscountPolicyModel.post({
               url: DiscountPolicyModel.urlFor('new', {org_name: main_ractive.get('org')})['path'],
-              data: DiscountPolicyModel.convertFormToJSON(new_policy_form, ['items']),
+              data: JSON.stringify({'discount_policy': DiscountPolicyModel.serializeFormToObject(new_policy_form, ['items'])}),
               contentType: 'application/json'
             }).done((remoteData) => {
               main_ractive.set('discount_policies', [remoteData.result.discount_policy]);
@@ -250,6 +287,7 @@ export const DiscountPolicyView = {
         });
 
         form_validator.setMessage('required', 'Please fill out the this field');
+        form_validator.setMessage('numeric', 'Please enter a numberic value');
 
       });
 
@@ -267,100 +305,11 @@ export const DiscountPolicyView = {
       });
 
       main_ractive.on('editPolicyForm', function(event) {
-        main_ractive.set(event.keypath + '.hide_edit_btn', true);
-        main_ractive.set(event.keypath + '.show_policy_form', true);
-        main_ractive.set(event.keypath +  '.errormsg', '');
-        let discount_policy_id = event.context.id;
-
-        if (main_ractive.get(event.keypath + '.is_price_based')) {
-          $('#start_date_' + discount_policy_id).daterangepicker({
-            singleDatePicker: true,
-            showDropdowns: true,
-            timePicker: true,
-            timePickerSeconds: true,
-            timePicker24Hour: true,
-            opens: 'left',
-            locale: {
-              format: 'DD MM YYYY HH:mm:ss'
-            }
-          });
-
-          $('#end_date_' + discount_policy_id).daterangepicker({
-            singleDatePicker: true,
-            showDropdowns: true,
-            timePicker: true,
-            timePickerSeconds: true,
-            timePicker24Hour: true,
-            opens: 'left',
-            locale: {
-              format: 'DD MM YYYY HH:mm:ss'
-            }
-          });
-
-          $('#add-item-' + discount_policy_id).select2({
-            placeholder: "Search a item",
-            minimumInputLength: 3,
-            ajax: {
-                url: OrgModel.urlFor('view_items', {org_name: main_ractive.get('org')})['path'],
-                dataType: 'json',
-                quietMillis: 250,
-                data: function (term) {
-                    return {
-                        search: term,
-                    };
-                },
-                results: function (data) {
-                    return { results: data.items };
-                },
-                cache: true
-            },
-            formatResult: function(item) {
-              var markup = '<p>' + item.title + '</p>';
-              return markup;
-            },
-            formatSelection: function(item) {
-              return item.title;
-            },
-            initSelection: function(element, callback) {
-              callback(main_ractive.get(event.keypath + '.dp_items.0'));
-            },
-            dropdownCssClass: "bigdrop"
-          });
-        }
-        else {
-          $("#add-items-" + discount_policy_id).select2({
-            placeholder: "Search a item",
-            minimumInputLength: 3,
-            multiple: true,
-            ajax: {
-              url: OrgModel.urlFor('view_items', {org_name: main_ractive.get('org')})['path'],
-              dataType: 'json',
-              quietMillis: 250,
-              data: function (term) {
-                return {
-                  search: term
-                };
-              },
-              results: function (data) {
-                return {
-                  results: data.items
-                };
-              },
-              cache: true
-            },
-            formatResult: function(item) {
-              let markup = '<p>' + item.title + '</p>';
-              return markup;
-            },
-            formatSelection: function(item) {
-              return item.title;
-            },
-            initSelection: function(element, callback) {
-              callback(main_ractive.get(event.keypath + '.dp_items'));
-            },
-            dropdownCssClass: "bigdrop"
-          });
-        }
+        let discount_policy = event.keypath;
+        main_ractive.set(discount_policy + '.hide_edit_btn', true);
+        main_ractive.set(discount_policy + '.show_policy_form', true);
+        main_ractive.set(discount_policy +  '.errormsg', '');
+        addFormFields(main_ractive.get(discount_policy + '.is_price_based'), discount_policy);
       });
 
       main_ractive.on('hideEditPolicy', function(event) {
@@ -371,49 +320,9 @@ export const DiscountPolicyView = {
       main_ractive.on('editPolicy', function(event) {
         var discount_policy = event.keypath;
         var discount_policy_id = event.context.id;
-
-        var validation_config = [
-          {
-            name: 'title',
-            rules: 'required'
-          },
-          {
-            name: 'item_quantity_min',
-            rules: 'required|numeric'
-          },
-          {
-            name: 'price_title',
-            rules: 'required'
-          },
-          {
-            name: 'amount',
-            rules: 'required|numeric'
-          },
-          {
-            name: 'start_at',
-            rules: 'required'
-          },
-          {
-            name: 'end_at',
-            rules: 'required'
-          },
-          {
-            name: 'item',
-            rules: 'required'
-          },
-          {
-            name: 'percentage',
-            rules: 'required|numeric'
-          },
-          {
-            name: 'items',
-            rules: 'required'
-          }
-        ];
-
         var policy_form_name = 'edit-policy-form-' + discount_policy_id;
 
-        var form_validator = new FormValidator(policy_form_name, validation_config, function(errors, event) {
+        var form_validator = new FormValidator(policy_form_name, dp_validation_config, function(errors, event) {
           event.preventDefault();
           main_ractive.set(discount_policy +  '.errormsg', '');
           if (errors.length > 0) {
@@ -425,7 +334,7 @@ export const DiscountPolicyView = {
 
             DiscountPolicyModel.post({
               url: DiscountPolicyModel.urlFor('edit', {discount_policy_id: discount_policy_id})['path'],
-              data: DiscountPolicyModel.convertFormToJSON(policy_form, ["items"]),
+              data: JSON.stringify(DiscountPolicyModel.serializeFormToObject(policy_form, ["items"])),
               contentType: 'application/json'
             }).done((remoteData) => {
               main_ractive.set(discount_policy + '.editingPolicy', false);
@@ -451,6 +360,7 @@ export const DiscountPolicyView = {
         });
 
         form_validator.setMessage('required', 'Please fill out the this field');
+        form_validator.setMessage('numeric', 'Please enter a numberic value');
 
       });
 
@@ -526,7 +436,7 @@ export const DiscountPolicyView = {
             main_ractive.set(discount_policy + '.generate_coupon_error', '');
             DiscountPolicyModel.post({
               url: DiscountPolicyModel.urlFor('generate_coupon', {discount_policy_id: discount_policy_id})['path'],
-              data: DiscountPolicyModel.convertFormToJSON(coupon_form, []),
+              data: JSON.stringify(DiscountPolicyModel.serializeFormToObject(coupon_form, [])),
               contentType: 'application/json'
             }).done((remoteData) => {
               main_ractive.set(discount_policy + '.coupons', remoteData.result.coupons);
