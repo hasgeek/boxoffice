@@ -10,6 +10,18 @@
 .right-button
   margin-left: 10px
 
+.table-title
+  margin: 12px 0
+  font-size: 18px
+  font-weight: normal
+
+.table-title .status-select-label
+  width: 20%
+
+.table-title .status-select
+  display: inline-block
+  width: 60%
+
 .table-orders
   border-width: 0px
   border-collapse: collapse
@@ -19,21 +31,9 @@
   padding: 5px 0 0
   margin: 0 0 5px
   word-break: break-all
+
+.table-orders .footable-detail-show p.table-content
   max-width: 250px
-
-.table-orders .orders-sm-btn
-  font-size: 10px
-
-.table-orders .orders-btn
-  display: inline-block
-  margin: 5px 0px
-
-@media (min-width:468px)
-  .table-orders .orders-sm-btn
-    font-size: 15px
-
-  .table-orders .orders-btn.right-button
-    margin-left: 10px
 
 .table-orders.footable.breakpoint > tbody > tr > td > span.footable-toggle
   color: #df5e0e
@@ -41,3 +41,60 @@
 
 .table-orders.footable > thead > tr:first-child > th
   border: 1px solid #ccc
+ 
+.table-orders tfoot tr td
+  background-color: transparent
+  border-color: transparent
+
+.table-orders > tfoot .pagination
+  float: right
+  margin: 15px auto
+
+.table-orders tfoot .pagination ul li a
+  color: #888
+
+.table-orders tfoot .pagination ul li.active a
+  border-color: #888
+
+.order-slider
+  position: absolute
+  top: -115px
+  left: 3%
+  background: #fff
+  z-index: 1020
+  width: 97%
+  box-shadow: 0 0 2px rgba(0,0,0,0.8)
+  min-height: 100vh
+
+@media (min-width: 768px)
+  .order-slider
+    top: -50px
+    left: 1%
+    width: 99%
+
+.order-title
+  padding: 10px 0
+  font-size: 18px
+  text-align: center
+  border-bottom: 2px solid #ddd
+  margin: 0
+
+.line-items-wrapper
+  padding: 30px
+
+.close-button
+  position: absolute
+  top: -15px
+  left: -5px
+  background: #fff
+  border: 2px solid #999
+  font-size: 18px
+  border-radius: 50%
+  color: #000
+  background: #eee
+  width: 30px
+  height: 30px
+
+.close-button .fa
+  position: relative
+  top: -1px

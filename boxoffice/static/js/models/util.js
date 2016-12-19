@@ -38,7 +38,7 @@ export const post = function(config){
   });
 }
 
-export const convertFormToJSON = function(form, multiple_option_fields){
+export const serializeFormToObject = function(form, multiple_option_fields){
   let form_elements = $(form).serializeArray();
   let details = {};
   for (var form_index=0; form_index < form_elements.length; form_index++) {
@@ -57,5 +57,5 @@ export const convertFormToJSON = function(form, multiple_option_fields){
       }
     }
   }
-  return JSON.stringify(details);
+  return details;
 }

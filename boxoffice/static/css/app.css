@@ -807,9 +807,17 @@ a.boxoffice-button:focus {
   padding: 5px 0 0;
   margin: 0 0 5px;
   word-break: break-all;
-  max-width: 250px;
 }
 
+.table-orders .footable-visible p.table-content {
+  max-width: 180px;
+}
+
+@media (min-width: 768px) {
+  .table-orders .footable-visible p.table-content {
+    width: auto;
+  }
+}
 .table-orders .orders-sm-btn {
   font-size: 10px;
 }

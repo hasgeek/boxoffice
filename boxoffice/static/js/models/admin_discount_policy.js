@@ -1,10 +1,10 @@
-import {fetch, post, convertFormToJSON} from './util.js';
+import {fetch, post, serializeFormToObject} from './util.js';
 import {IndexModel} from './index.js';
 
 export const DiscountPolicyModel = {
   fetch: fetch,
   post: post,
-  convertFormToJSON: convertFormToJSON,
+  serializeFormToObject: serializeFormToObject,
   urlFor: function(action, {org_name, search, page, discount_policy_id}={}){
     let base_url = `${IndexModel.urlFor('index')['path']}o/${org_name}/discount_policies`;
     let urls = {
