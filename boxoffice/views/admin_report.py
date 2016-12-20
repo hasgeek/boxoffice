@@ -3,10 +3,10 @@
 from flask import jsonify
 from .. import app, lastuser
 from coaster.views import load_models, render_with
-from baseframe import localize_timezone
+from baseframe import localize_timezone, get_locale
 from boxoffice.models import ItemCollection, LineItem
 from boxoffice.views.utils import csv_response
-
+from babel.dates import format_datetime
 
 def jsonify_report(data_dict):
     return jsonify(org_name=data_dict['item_collection'].organization.name, item_collection_title=data_dict['item_collection'].title)
@@ -34,7 +34,7 @@ def tickets_report(item_collection):
     def row_handler(row):
         row_list = list(row)
         # localize datetime
-        row_list[-1] = unicode(localize_timezone(row_list[-1]).strftime('%d %B %Y, %H:%M:%S'))
+        row_list[-1] = format_datetime(localize_timezone(row_list[-1]), format='long', locale=get_locale() or 'en')
         return row_list
 
     return csv_response(headers, rows, row_handler=row_handler)
