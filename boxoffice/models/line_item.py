@@ -172,8 +172,19 @@ class LineItem(BaseMixin, db.Model):
         Returns details for all the line items in a given item collection, along with the associated
         assignee (if any), discount policy (if any), discount coupon (if any), item, order and order session (if any)
         """
-        line_item_join = db.outerjoin(cls, Assignee, db.and_(LineItem.id == Assignee.line_item_id, Assignee.current == True)).outerjoin(DiscountCoupon, LineItem.discount_coupon_id == DiscountCoupon.id).outerjoin(DiscountPolicy, LineItem.discount_policy_id == DiscountPolicy.id).join(Item).join(Order).outerjoin(OrderSession)
-        line_item_query = db.select([cls.id, Order.invoice_no, Item.title, cls.base_amount, cls.discounted_amount, cls.final_amount, DiscountPolicy.title, DiscountCoupon.code, Order.buyer_fullname, Order.buyer_email, Order.buyer_phone, Assignee.fullname, Assignee.email, Assignee.phone, Assignee.details, OrderSession.utm_campaign, OrderSession.utm_source, OrderSession.utm_medium, OrderSession.utm_term, OrderSession.utm_content, OrderSession.utm_id, OrderSession.gclid, OrderSession.referrer, Order.paid_at]).select_from(line_item_join).where(cls.status == LINE_ITEM_STATUS.CONFIRMED).where(Order.item_collection == item_collection).order_by('created_at')
+        line_item_join = db.outerjoin(cls, Assignee, db.and_(LineItem.id == Assignee.line_item_id,
+            Assignee.current == True)).outerjoin(DiscountCoupon,
+            LineItem.discount_coupon_id == DiscountCoupon.id).outerjoin(DiscountPolicy,
+            LineItem.discount_policy_id == DiscountPolicy.id).join(Item).join(Order).outerjoin(OrderSession)
+        line_item_query = db.select([cls.id, Order.invoice_no, Item.title, cls.base_amount,
+            cls.discounted_amount, cls.final_amount, DiscountPolicy.title, DiscountCoupon.code,
+            Order.buyer_fullname, Order.buyer_email, Order.buyer_phone, Assignee.fullname,
+            Assignee.email, Assignee.phone, Assignee.details, OrderSession.utm_campaign,
+            OrderSession.utm_source, OrderSession.utm_medium, OrderSession.utm_term,
+            OrderSession.utm_content, OrderSession.utm_id, OrderSession.gclid, OrderSession.referrer,
+            Order.paid_at]).select_from(line_item_join).where(cls.status ==
+            LINE_ITEM_STATUS.CONFIRMED).where(Order.item_collection ==
+            item_collection).order_by('created_at')
         return db.session.execute(line_item_query).fetchall()
 
     @classmethod
