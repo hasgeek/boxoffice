@@ -87,9 +87,8 @@ def csv_response(headers, rows, row_handler=None):
     stream = StringIO()
     csv_writer = unicodecsv.writer(stream)
     csv_writer.writerow(headers)
-    for row in rows:
-        if callable(row_handler):
-            csv_writer.writerow(row_handler(row))
-        else:
-            csv_writer.writerow(row)
+    if callable(row_handler):
+        csv_writer.writerows([row_handler(row) for row in rows])
+    else:
+        csv_writer.writerows(rows)
     return Response(unicode(stream.getvalue()), content_type='text/csv')
