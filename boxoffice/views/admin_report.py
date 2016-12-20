@@ -34,7 +34,7 @@ def tickets_report(item_collection):
     def row_handler(row):
         row_list = list(row)
         # localize datetime
-        row_list[-1] = format_datetime(localize_timezone(row_list[-1]), format='long', locale=get_locale() or 'en')
+        row_list[-1] = format_datetime(localize_timezone(row_list[-1]), format='long', locale=get_locale())
         return row_list
 
     return csv_response(headers, rows, row_handler=row_handler)
