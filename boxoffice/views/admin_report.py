@@ -33,6 +33,7 @@ def tickets_report(item_collection):
 
     def row_handler(row):
         row_list = list(row)
+        # localize datetime
         row_list[-1] = unicode(localize_timezone(row_list[-1]).strftime('%d %B %Y, %H:%M:%S'))
         return row_list
 
