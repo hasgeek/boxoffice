@@ -76,14 +76,20 @@ def cors(f):
     return wrapper
 
 
-def csv_response(headers, rows):
+def csv_response(headers, rows, row_handler=None):
     """
     Returns a response, with mimetype set to text/csv,
     given a list of headers and a two-dimensional list of rows
+
+    Accepts an optional row_handler function that can be used to transform the row. The row
+    must be a list or a tuple of values.
     """
     stream = StringIO()
     csv_writer = unicodecsv.writer(stream)
     csv_writer.writerow(headers)
     for row in rows:
-        csv_writer.writerow(row)
+        if callable(row_handler):
+            csv_writer.writerow(row_handler(row))
+        else:
+            csv_writer.writerow(row)
     return Response(unicode(stream.getvalue()), content_type='text/csv')

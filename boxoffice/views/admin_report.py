@@ -3,6 +3,7 @@
 from flask import jsonify
 from .. import app, lastuser
 from coaster.views import load_models, render_with
+from baseframe import localize_timezone
 from boxoffice.models import ItemCollection, LineItem
 from boxoffice.views.utils import csv_response
 
@@ -27,6 +28,12 @@ def admin_report(item_collection):
     (ItemCollection, {'id': 'id'}, 'item_collection'),
     permission='org_admin')
 def tickets_report(item_collection):
-    headers = ['ticket id', 'invoice no', 'ticket type', 'base amount', 'discounted amount', 'final amount', 'discount policy', 'discount code', 'buyer fullname', 'buyer email', 'buyer phone', 'attendee fullname', 'attendee email', 'attendee phone', 'attendee details', 'utm_campaign', 'utm_source', 'utm_medium', 'utm_term', 'utm_content', 'utm_id', 'gclid', 'referrer']
+    headers = ['ticket id', 'invoice no', 'ticket type', 'base amount', 'discounted amount', 'final amount', 'discount policy', 'discount code', 'buyer fullname', 'buyer email', 'buyer phone', 'attendee fullname', 'attendee email', 'attendee phone', 'attendee details', 'utm_campaign', 'utm_source', 'utm_medium', 'utm_term', 'utm_content', 'utm_id', 'gclid', 'referrer', 'date']
     rows = LineItem.fetch_all_details(item_collection)
-    return csv_response(headers, rows)
+
+    def row_handler(row):
+        row_list = list(row)
+        row_list[-1] = unicode(localize_timezone(row_list[-1]).strftime('%d %B %Y, %H:%M:%S'))
+        return row_list
+
+    return csv_response(headers, rows, row_handler=row_handler)
