@@ -246,7 +246,7 @@ $(function() {
           // Makes the 'Select Items' tab active
           event.original.preventDefault();
           boxoffice.ractive.calculateOrder();
-          boxoffice.ractive.fire('eventAnalytics', 'edit order', 'Edit order');
+          boxoffice.ractive.fire('eventAnalytics', 'edit order', 'Edit order', boxoffice.ractive.get('order.final_amount'));
           boxoffice.ractive.set('activeTab', boxoffice.ractive.get('tabs.selectItems.id'));
           boxoffice.ractive.scrollTop();
         },
@@ -314,10 +314,10 @@ $(function() {
                 if (lineItem.quantity < quantityAvailable) {
                   lineItem.quantity += 1;
                 }
-                boxoffice.ractive.fire('eventAnalytics', 'add ticket', item_name);
+                boxoffice.ractive.fire('eventAnalytics', 'add ticket', item_name, lineItem.base_price);
               } else if (lineItem.quantity !== 0) {
                 lineItem.quantity -= 1;
-                boxoffice.ractive.fire('eventAnalytics', 'remove ticket', item_name);
+                boxoffice.ractive.fire('eventAnalytics', 'remove ticket', item_name, 0);
               }
             }
             if (lineItem.quantity === 0) {
@@ -443,7 +443,7 @@ $(function() {
           // Transitions the widget to the 'Payment' stage, and initializes
           // the validator.
           event.original.preventDefault();
-          boxoffice.ractive.fire('eventAnalytics', 'checkout', 'Checkout');
+          boxoffice.ractive.fire('eventAnalytics', 'checkout', 'Checkout', boxoffice.ractive.get('order.final_amount'));
           boxoffice.ractive.set({
             'tabs.payment.errorMsg': '',
             'tabs.selectItems.complete': true,
@@ -504,7 +504,7 @@ $(function() {
           });
         },
         sendOrder: function() {
-          boxoffice.ractive.fire('eventAnalytics', 'order creation', 'sendOrder');
+          boxoffice.ractive.fire('eventAnalytics', 'order creation', 'sendOrder', boxoffice.ractive.get('order.final_amount'));
           $.post({
             url: boxoffice.config.resources.purchaseOrder.urlFor(),
             crossDomain: true,
@@ -575,7 +575,7 @@ $(function() {
         },
         capturePayment: function(paymentUrl, razorpay_payment_id){
           // Opens the Razorpay widget, on success calls confirmPayment
-          boxoffice.ractive.fire('eventAnalytics', 'initiate payment', 'capturePayment');
+          boxoffice.ractive.fire('eventAnalytics', 'initiate payment', 'capturePayment', boxoffice.ractive.get('order.final_amount'));
           var razorPayOptions = {
             "key": boxoffice.config.razorpayKeyId,
             //Razorpay expects amount in paisa
@@ -600,7 +600,7 @@ $(function() {
             },
             "modal": {
               "ondismiss": function() {
-                boxoffice.ractive.fire('eventAnalytics', 'dismiss payment form', 'razorPay close');
+                boxoffice.ractive.fire('eventAnalytics', 'dismiss payment form', 'razorPay close', boxoffice.ractive.get('order.final_amount'));
               }
             }
           };
@@ -610,7 +610,7 @@ $(function() {
         confirmPayment: function(paymentUrl, paymentID) {
           // Sends the paymentId to the server, transitions the state to 'Confirm'
           boxoffice.ractive.set('tabs.payment.loadingPaymentConfirmation', true);
-          boxoffice.ractive.fire('eventAnalytics', 'capture payment', 'confirmPayment');
+          boxoffice.ractive.fire('eventAnalytics', 'capture payment', 'confirmPayment', boxoffice.ractive.get('order.final_amount'));
           $.post({
             url: boxoffice.config.resources.payment.urlFor(boxoffice.ractive.get('order.order_id')),
             crossDomain: true,
@@ -629,7 +629,7 @@ $(function() {
                 'tabs.confirm.section.cashReceiptURL': boxoffice.config.resources.receipt.urlFor(boxoffice.ractive.get('order.access_token')),
                 'tabs.confirm.section.attendeeAssignmentURL': boxoffice.config.resources.attendeeAssignment.urlFor(boxoffice.ractive.get('order.access_token'))
               });
-              boxoffice.ractive.fire('eventAnalytics', 'booking complete', 'confirmPayment success');
+              boxoffice.ractive.fire('eventAnalytics', 'booking complete', 'confirmPayment success', boxoffice.ractive.get('order.final_amount'));
             },
             error: function(response) {
               var ajaxLoad = this;
@@ -677,7 +677,7 @@ $(function() {
                 'tabs.confirm.section.cashReceiptURL': boxoffice.config.resources.receipt.urlFor(boxoffice.ractive.get('order.access_token')),
                 'tabs.confirm.section.attendeeAssignmentURL': boxoffice.config.resources.attendeeAssignment.urlFor(boxoffice.ractive.get('order.access_token'))
               });
-              boxoffice.ractive.fire('eventAnalytics', 'booking complete', 'completeFreeOrder success');
+              boxoffice.ractive.fire('eventAnalytics', 'booking complete', 'completeFreeOrder success', 0);
             },
             error: function(response) {
               var ajaxLoad = this;
@@ -707,13 +707,13 @@ $(function() {
           });
         },
         oncomplete: function() {
-          boxoffice.ractive.on('eventAnalytics', function(userAction, label) {
+          boxoffice.ractive.on('eventAnalytics', function(userAction, label, value) {
             if (typeof boxoffice.ractive.get('sendEventHits') === "undefined") {
               boxoffice.ractive.set('sendEventHits', 0);
               userAction = 'First interaction';
             }
             if (typeof ga !== "undefined") {
-              ga('send', { hitType: 'event', eventCategory: 'ticketing', eventAction: userAction, eventLabel: label});
+              ga('send', { hitType: 'event', eventCategory: 'ticketing', eventAction: userAction, eventLabel: label, eventValue: value});
             }
           });
 
