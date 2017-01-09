@@ -40,6 +40,7 @@ class ItemModelView(SiteAdminModelView):
     column_searchable_list = ['title']
     column_list = ('id', 'title')
     form_excluded_columns = ['parent', 'line_items', 'created_at', 'updated_at']
+    form_overrides = dict(assignee_details=JSONField)
 
 
 class PriceModelView(SiteAdminModelView):

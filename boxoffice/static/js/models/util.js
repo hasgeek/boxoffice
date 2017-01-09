@@ -59,3 +59,9 @@ export const serializeFormToObject = function(form, multiple_option_fields){
   }
   return details;
 }
+
+export const scrollToElement = function(element, speed=500) {
+  $('html,body').animate({
+    scrollTop: $(element).offset().top
+  }, speed);
+}

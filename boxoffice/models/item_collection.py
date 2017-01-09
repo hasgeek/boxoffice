@@ -17,5 +17,4 @@ class ItemCollection(BaseScopedNameMixin, db.Model):
 
     organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'), nullable=False)
     organization = db.relationship(Organization, backref=db.backref('item_collections', cascade='all, delete-orphan'))
-
     parent = db.synonym('organization')

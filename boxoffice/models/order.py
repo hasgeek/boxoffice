@@ -84,22 +84,20 @@ class Order(BaseMixin, db.Model):
         self.invoiced_at = datetime.utcnow()
         self.status = ORDER_STATUS.INVOICE
 
-    def get_amounts(self):
+    def get_amounts(self, line_item_status):
         """
         Calculates and returns the order's base_amount, discounted_amount,
-        final_amount, confirmed_amount as a namedtuple.
-
-        Note: base_amount, discounted_amount, final_amount are calculated for ALL of the order's line items,
-        whereas confirmed_amount is calculated only for the order's confirmed line items.
+        final_amount, confirmed_amount as a namedtuple for all the line items with the given status.
         """
         base_amount = Decimal(0)
         discounted_amount = Decimal(0)
         final_amount = Decimal(0)
         confirmed_amount = Decimal(0)
         for line_item in self.line_items:
-            base_amount += line_item.base_amount
-            discounted_amount += line_item.discounted_amount
-            final_amount += line_item.final_amount
+            if line_item.status == line_item_status:
+                base_amount += line_item.base_amount
+                discounted_amount += line_item.discounted_amount
+                final_amount += line_item.final_amount
             if line_item.is_confirmed:
                 confirmed_amount += line_item.final_amount
         return order_amounts_ntuple(base_amount, discounted_amount, final_amount, confirmed_amount)

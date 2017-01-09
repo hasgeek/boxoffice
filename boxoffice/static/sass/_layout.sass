@@ -84,15 +84,21 @@ body
   border-width: 0px 0px 3px
   border-style: solid
   border-radius: 5px
-  padding: 6px 12px
+  padding: 6px
   color: $color-btn-text
-  font-size: 15px
-
-.boxoffice-button-small 
-  padding: 4px 6px
+  font-size: 13px
 
 .btn-inline
-  margin: 0 10px
+  margin: 0 10px 10px 0
+  display: inline-block
+
+@media (min-width: 768px)
+  .boxoffice-button
+    padding: 6px 12px
+    font-size: 15px
+
+  .btn-inline
+    margin: 0 10px 0 0
 
 .boxoffice-button-action 
   background-color: $color-action-btn-background
@@ -220,11 +226,19 @@ a.boxoffice-button:focus
   border-top: 5px solid $color-form-field-border
   pointer-events: none
 
+
 .inline-group .input-group
   width: 30%
   margin: 0 3% 0 0
   float: left
   position: relative
+
+.group-checkbox
+  width: auto
+  padding: 0
+  font-size: 20px
+  display: inline-block
+
 
 .bar
   position: relative
