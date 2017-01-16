@@ -75,9 +75,9 @@ def jsonify_order(data):
 
 
 def sanitize_coupons(coupons):
-    if type(coupons) is not list:
+    if not isinstance(coupons, list):
         return []
-    # Remove falsy values and coerce them into unicode
+    # Remove falsy values and coerce the valid values into unicode
     return [unicode(coupon_code) for coupon_code in coupons if coupon_code]
 
 

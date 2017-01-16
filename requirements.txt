@@ -2,7 +2,7 @@ Flask
 Flask-SQLAlchemy
 Flask-Assets
 Flask-Mail
-Flask-WTF
+Flask-WTF==0.12
 Flask-RQ
 git+https://github.com/hasgeek/baseframe
 git+https://github.com/hasgeek/coaster
