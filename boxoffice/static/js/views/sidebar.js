@@ -2,15 +2,15 @@ import {SideBarModel} from '../models/sidebar.js';
 import {SideBarTemplate} from '../templates/sidebar.html.js';
 
 export const SideBarView = {
-  init: function(view, ic_config) {
+  init: function(view, icConfig) {
     this.on = true;
 
-    this.ractive = new Ractive({
+    this.component = new Ractive({
       el: '#sidebar',
       template: SideBarTemplate,
       data: {
         sidebarMobileOn: false,
-        sidebarItems: SideBarModel.getItems(ic_config),
+        sidebarItems: SideBarModel.getItems(icConfig),
         activeItem: view,
         sidebarHide: false
       },
@@ -26,22 +26,22 @@ export const SideBarView = {
       }
     });
   },
-  render: function(view, ic_config) {
+  render: function(view, icConfig) {
     if (this.on) {
-      this.ractive.set({
-        'sidebarItems': SideBarModel.getItems(ic_config),
+      this.component.set({
+        'sidebarItems': SideBarModel.getItems(icConfig),
         'activeItem': view,
         'sidebarHide': false,
         'sidebarMobileOn': false
       });
     }
     else {
-      this.init(view, ic_config);
+      this.init(view, icConfig);
     }
   },
   hide: function() {
     if (this.on) {
-      this.ractive.set('sidebarHide', true);
+      this.component.set('sidebarHide', true);
     }
   }
 };

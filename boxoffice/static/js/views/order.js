@@ -11,8 +11,8 @@ window.Boxoffice.Order = {
     },
     assign: {
       method: 'POST',
-      urlFor: function(access_token) {
-        return Boxoffice.Order.config.baseURL + '/participant/' + access_token + '/assign';
+      urlFor: function(accessToken) {
+        return Boxoffice.Order.config.baseURL + '/participant/' + accessToken + '/assign';
       }
     }
   },
@@ -51,29 +51,29 @@ window.Boxoffice.Order = {
   },
   view: function(data) {
     var order = this;
-    order.ractive = new Ractive({
+    order.component = new Ractive({
       el: '#boxoffice-order',
       template: '#boxoffice-ticket-template',
       data: {
-        order_id: data.order_id,
-        access_token: data.access_token,
+        orderId: data.order_id,
+        accessToken: data.access_token,
         eventName: data.item_collection_name,
-        line_items: data.line_items,
-        buyer_name: data.buyer_name,
-        buyer_email: data.buyer_email,
-        buyer_phone: data.buyer_phone
+        lineItems: data.line_items,
+        buyerName: data.buyer_name,
+        buyerEmail: data.buyer_email,
+        buyerPhone: data.buyer_phone
       },
-      scrollTop: function(line_item_seq){
+      scrollTop: function(lineItemSeq){
         //Scroll to the corresponding line_item.
-        var domElem =  order.ractive.nodes[ 'item-' + line_item_seq ];
+        var domElem =  order.component.nodes[ 'item-' + lineItemSeq ];
         $('html,body').animate({ scrollTop: $(domElem).offset().top }, '300');
       },
-      viewTicket: function(event, line_item, line_item_seq) {
+      viewTicket: function(event, lineItem, lineItemSeq) {
         event.original.preventDefault();
-        order.ractive.set(line_item + '.toAssign', false);
-        order.ractive.scrollTop(line_item_seq);
+        order.component.set(lineItem + '.toAssign', false);
+        order.component.scrollTop(lineItemSeq);
       },
-      inputFieldEdit: function(event, line_item) {
+      inputFieldEdit: function(event, lineItem) {
         if (event.node.value) {
           event.node.classList.add('filled');
         }
@@ -81,28 +81,28 @@ window.Boxoffice.Order = {
           event.node.classList.remove('filled');
         }
       },
-      assign: function(event, line_item, edit) {
+      assign: function(event, lineItem, edit) {
         event.original.preventDefault();
 
         //On initial assignment of ticket, fill the ticket with details
         // depending on option(self/other) selected by the user
         if (!edit) {
-          var assignment = order.ractive.get(line_item +'.assignment');
+          var assignment = order.component.get(lineItem +'.assignment');
 
           if (assignment === 'self') {
-            order.ractive.set(line_item + '.assignee.fullname', order.ractive.get('buyer_name'));
-            order.ractive.set(line_item + '.assignee.email', order.ractive.get('buyer_email'));
-            order.ractive.set(line_item + '.assignee.phone', order.ractive.get('buyer_phone'));
+            order.component.set(lineItem + '.assignee.fullname', order.component.get('buyerName'));
+            order.component.set(lineItem + '.assignee.email', order.component.get('buyerEmail'));
+            order.component.set(lineItem + '.assignee.phone', order.component.get('buyerPhone'));
           }
           else {
-            order.ractive.set(line_item + '.assignee.fullname', "");
-            order.ractive.set(line_item + '.assignee.email', "");
-            order.ractive.set(line_item + '.assignee.phone', "+91");
+            order.component.set(lineItem + '.assignee.fullname', "");
+            order.component.set(lineItem + '.assignee.email', "");
+            order.component.set(lineItem + '.assignee.phone', "+91");
           }
         }
-        order.ractive.set(line_item + '.toAssign', true);
+        order.component.set(lineItem + '.toAssign', true);
       },
-      addAttendeeDetails: function(event, line_item, line_item_seq, line_item_id) {
+      addAssigneeDetails: function(event, lineItem, lineItemSeq, lineItemId) {
 
         var validationConfig = [{
             name: 'fullname',
@@ -118,18 +118,18 @@ window.Boxoffice.Order = {
           }
         ];
 
-        var attendeeForm = 'attendee-form-' + line_item_seq;
+        var assigneeForm = 'assignee-form-' + lineItemSeq;
 
-        var formValidator = new FormValidator(attendeeForm, validationConfig, function(errors, event) {
+        var formValidator = new FormValidator(assigneeForm, validationConfig, function(errors, event) {
           event.preventDefault();
-          order.ractive.set(line_item +  '.assignee.errormsg', '');
+          order.component.set(lineItem +  '.assignee.errormsg', '');
           if (errors.length > 0) {
-            order.ractive.set(line_item +  '.assignee.errormsg.'+ errors[0].name, errors[0].message);
-            order.ractive.scrollTop(line_item_seq);
+            order.component.set(lineItem +  '.assignee.errormsg.'+ errors[0].name, errors[0].message);
+            order.component.scrollTop(lineItemSeq);
           }
           else {
-            order.ractive.set(line_item + '.assigningTicket', true);
-            order.ractive.sendAttendeeDetails(line_item, line_item_seq, line_item_id);
+            order.component.set(lineItem + '.assigningTicket', true);
+            order.component.sendAssigneeDetails(lineItem, lineItemSeq, lineItemId);
           }
         });
 
@@ -139,7 +139,7 @@ window.Boxoffice.Order = {
         formValidator.registerCallback('validate_phone', function(phone) {
           //Remove all punctations (except +) and letters
           phone = phone.replace(/[^0-9+]/g,'');
-          order.ractive.set(line_item + '.assignee.phone', phone);
+          order.component.set(lineItem + '.assignee.phone', phone);
 
           var validPhone = /^\+[0-9]+$/;
 
@@ -160,43 +160,43 @@ window.Boxoffice.Order = {
           }
         });
       },
-      sendAttendeeDetails: function(line_item, line_item_seq, line_item_id) {
-        var attendeeForm = 'attendee-details-' + line_item_seq;
-        var formElements = $('#'+ attendeeForm).serializeArray();
-        var attendeeDetails ={};
+      sendAssigneeDetails: function(lineItem, lineItemSeq, lineItemId) {
+        var assigneeForm = 'assignee-details-' + lineItemSeq;
+        var formElements = $('#'+ assigneeForm).serializeArray();
+        var assigneeDetails ={};
         for (var formIndex=0; formIndex < formElements.length; formIndex++) {
           if (formElements[formIndex].value) {
-            attendeeDetails[formElements[formIndex].name] = formElements[formIndex].value;
+            assigneeDetails[formElements[formIndex].name] = formElements[formIndex].value;
           }
         }
 
         $.ajax({
-          url: Boxoffice.Order.config.assign.urlFor(order.ractive.get('access_token')),
+          url: Boxoffice.Order.config.assign.urlFor(order.component.get('accessToken')),
           type: Boxoffice.Order.config.assign.method,
           contentType: 'application/json',
           data: JSON.stringify({
-            attendee: attendeeDetails,
-            line_item_id: line_item_id
+            assignee: assigneeDetails,
+            line_item_id: lineItemId
           }),
           timeout: 30000,
           retries: 5,
           retryInterval: 30000,
           success: function(data) {
-            order.ractive.set(line_item + '.assigningTicket', false);
-            order.ractive.set(line_item + '.toAssign', false);
-            order.ractive.set(line_item + '.isTicketAssigned', true);
-            order.ractive.scrollTop(line_item_seq);
+            order.component.set(lineItem + '.assigningTicket', false);
+            order.component.set(lineItem + '.toAssign', false);
+            order.component.set(lineItem + '.isTicketAssigned', true);
+            order.component.scrollTop(lineItemSeq);
           },
           error: function(response) {
             var ajaxLoad = this;
             ajaxLoad.retries -= 1;
             if (response.readyState === 4) {
-              order.ractive.set(line_item + '.errorMsg', 'Server error');
-              order.ractive.set(line_item + '.assigningTicket', false);
+              order.component.set(lineItem + '.errorMsg', 'Server error');
+              order.component.set(lineItem + '.assigningTicket', false);
             } else if (response.readyState === 0) {
               if (ajaxLoad.retries < 0) {
-                order.ractive.set(line_item + '.errorMsg', "Unable to connect. Please try again later.");
-                order.ractive.set(line_item + '.assigningTicket', false);
+                order.component.set(lineItem + '.errorMsg', "Unable to connect. Please try again later.");
+                order.component.set(lineItem + '.assigningTicket', false);
               } else {
                 setTimeout(function() {
                   $.ajax(ajaxLoad);

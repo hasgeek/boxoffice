@@ -6,41 +6,41 @@ import {ReportModel} from './admin_report.js';
 
 export const SideBarModel = {
   getItems: function(config) {
-    let sidebar_items = [];
-    if (config.org_name && config.ic_id) {
-      sidebar_items = [
+    let sidebarItems = [];
+    if (config.orgName && config.icId) {
+      sidebarItems = [
         {
-          url: IndexModel.urlFor('index')['relative_path'],
+          url: IndexModel.urlFor('index')['relativePath'],
           title: 'Home',
           icon: 'fa-home',
           view: 'home'
         },
         {
-          url: OrgModel.urlFor('index', {org_name: config.org_name})['relative_path'],
+          url: OrgModel.urlFor('index', {orgName: config.orgName})['relativePath'],
           title: 'Organization',
           icon: 'fa-sitemap',
           view: 'org'
         },
         {
-          url: ItemCollectionModel.urlFor('index', {ic_id: config.ic_id})['relative_path'],
+          url: ItemCollectionModel.urlFor('index', {icId: config.icId})['relativePath'],
           title: 'Dashboard',
           icon: 'fa-dashboard',
           view: 'dashboard'
         },
         {
-          url: OrderModel.urlFor('index', {ic_id: config.ic_id})['relative_path'],
+          url: OrderModel.urlFor('index', {icId: config.icId})['relativePath'],
           title: 'Orders',
           icon: 'fa-shopping-cart',
           view: 'orders'
         },
         {
-          url: ReportModel.urlFor('index', {ic_id: config.ic_id})['relative_path'],
+          url: ReportModel.urlFor('index', {icId: config.icId})['relativePath'],
           title: 'Reports',
           icon: 'fa-file-excel-o',
           view: 'reports'
         }
       ]
     }
-    return sidebar_items;
+    return sidebarItems;
   }
 };

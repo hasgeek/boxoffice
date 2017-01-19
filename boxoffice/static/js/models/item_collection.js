@@ -1,14 +1,14 @@
-import {Util, fetch} from './util.js';
+import {Util, Fetch} from './util.js';
 import {IndexModel} from './index.js';
 
 
 export const ItemCollectionModel = {
-  fetch: fetch,
+  fetch: Fetch,
   urlFor: function(action, config){
     let urls = {
       'index': {
-        'path': IndexModel.urlFor('index')['path'] + 'ic/' + config.ic_id,
-        'relative_path': 'ic/' + config.ic_id,
+        'path': IndexModel.urlFor('index')['path'] + 'ic/' + config.icId,
+        'relativePath': 'ic/' + config.icId,
         'method': 'GET'
       }
     }
@@ -25,11 +25,11 @@ export const ItemCollectionModel = {
     return {
       title: data.title,
       items: this.formatItems(data.items),
-      date_item_counts: data.date_item_counts,
-      date_sales: data.date_sales,
-      net_sales: Util.formatToIndianRupee(data.net_sales),
-      sales_delta: data.sales_delta,
-      today_sales: Util.formatToIndianRupee(data.today_sales)
+      dateItemCounts: data.date_item_counts,
+      dateSales: data.date_sales,
+      netSales: Util.formatToIndianRupee(data.net_sales),
+      salesDelta: data.sales_delta,
+      todaySales: Util.formatToIndianRupee(data.today_sales)
     }
   }
 }
