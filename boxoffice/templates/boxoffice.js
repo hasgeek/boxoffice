@@ -453,7 +453,7 @@ $(function() {
 
           var validationConfig = [{
             name: 'name',
-            rules: 'required'
+            rules: 'required|max_length[80]'
           },
           {
             name: 'email',
