@@ -42,8 +42,7 @@ def org(organization):
 
 @app.route('/admin/o/<org>/revenue')
 @load_models(
-    (Organization, {'name': 'org'}, 'organization'),
-    permission='org_admin'
+    (Organization, {'name': 'org'}, 'organization')
     )
 def org_revenue(organization):
     if not request.args.get('access_token') or request.args.get('access_token') != organization.details.get("access_token"):
