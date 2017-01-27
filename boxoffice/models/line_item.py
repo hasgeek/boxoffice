@@ -255,10 +255,25 @@ def sales_by_date(dates, user_tz, item_ids):
     return date_sales
 
 
+def calculate_weekly_sales(item_collection_ids, user_tz, year):
+    """
+    Calculates sales per week for items in the given set of item_collection_ids in a given year,
+    in the user's timezone.
+    """
+    week_sales = db.session.query('sales_week', 'sum').from_statement('''SELECT DATE_TRUNC('week', ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone)
+        AS sales_week, SUM(final_amount)
+        FROM line_item INNER JOIN item on line_item.item_id = item.id
+        WHERE status=:status AND item_collection_id IN :item_collection_ids AND
+        DATE_TRUNC('year', ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone) = :year GROUP BY sales_week ORDER BY sales_week;
+        ''').params(timezone=user_tz, status=LINE_ITEM_STATUS.CONFIRMED, item_collection_ids=tuple(item_collection_ids), year='{year}-01-01'.format(year=year)).all()
+    week_sales_dict = {}
+    for week_sale in week_sales:
+        week_sales_dict[week_sale[0].strftime('%V')] = week_sale[1]
+    return week_sales_dict
+
+
 def sales_delta(user_tz, item_ids):
-    """
-    Calculates the percentage difference in sales between today and yesterday
-    """
+    """Calculates the percentage difference in sales between today and yesterday"""
     today = datetime.datetime.now().strftime("%Y-%m-%d")
     yesterday = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
     sales = sales_by_date([today, yesterday], user_tz, item_ids)
