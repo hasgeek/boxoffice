@@ -153,7 +153,7 @@
           </div>
           <div class="proceed-button-wrapper">
             <button class="boxoffice-button boxoffice-button-info edit-order" type="button" on-click="selectItems(event)">Edit order</button>
-            <button type="submit" class="boxoffice-button boxoffice-button-action" {{#loadingOrder}}disabled{{/}}>
+            <button type="submit" id="stage2-proceed" class="boxoffice-button boxoffice-button-action" {{#loadingOrder}}disabled{{/}}>
               Checkout {{#loadingOrder}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'>{{/}}
             </button>
           </div>
@@ -170,8 +170,8 @@
           <div class="confirmation-msg">
             <p class="">We’ve mailed you the cash receipt.</p>
             <div class="receipt-btn-wrapper">
-              <a href="{{ attendeeAssignmentURL }}" target="_blank" class="boxoffice-button boxoffice-button-action receipt-button" on-click="fire('eventAnalytics','fill attendee details', 'attendee details')">Your ticket</a>
-              <a href="{{ cashReceiptURL }}" target="_blank" class="boxoffice-button boxoffice-button-action receipt-button" on-click="fire('eventAnalytics','view cash receipt', 'cash receipt')">See cash receipt</a>
+              <a href="{{ attendeeAssignmentURL }}" target="_blank" class="boxoffice-button boxoffice-button-action receipt-button" on-click="fire('eventAnalytics','fill attendee details', 'attendee details')" id="view-ticket">Your ticket</a>
+              <a href="{{ cashReceiptURL }}" target="_blank" class="boxoffice-button boxoffice-button-action receipt-button" on-click="fire('eventAnalytics','view cash receipt', 'cash receipt')" id="view-receipt">See cash receipt</a>
             </div>
             <div class="social-icons">
               <p>Tell your friends!</p>

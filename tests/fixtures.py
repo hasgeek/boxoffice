@@ -21,7 +21,7 @@ def init_data():
     db.session.add(rootconf)
     db.session.commit()
 
-    rc2016 = ItemCollection(title='2016', organization=rootconf)
+    rc2016 = ItemCollection(title='2016', id='06c8b92e-6812-11e6-9897-b37c18073f39', organization=rootconf)
     db.session.add(rc2016)
     db.session.commit()
 
