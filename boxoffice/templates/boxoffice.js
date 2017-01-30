@@ -181,6 +181,7 @@ $(function() {
             'finalAmount': undefined,
             'itemDescription': item.description,
             'priceValidUpto': boxoffice.util.formatDate(item.price_valid_upto),
+            'hasHigherPrice': item.has_higher_price,
             'discountPolicies': item.discount_policies,
             'quantityAvailable': item.quantity_available,
             'isAvailable': item.is_available
@@ -474,7 +475,7 @@ $(function() {
 
           var validationConfig = [{
             name: 'name',
-            rules: 'required'
+            rules: 'required|max_length[80]'
           },
           {
             name: 'email',

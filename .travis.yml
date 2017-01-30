@@ -16,8 +16,10 @@ install:
 script:
   - nosetests -v tests
   - nohup python runtestserver.py &
-  - nohup pushd tests; python -m SimpleHTTPServer 8000; popd &
-  - sleep 10
+  - cd tests
+  - python -m SimpleHTTPServer 8000 &
+  - cd ..
+  - sleep 30
   - casperjs test tests
 addons:
   postgresql: "9.4"

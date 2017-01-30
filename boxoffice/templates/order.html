@@ -50,28 +50,16 @@
                         <p class="confirmation-msg"><i class="fa fa-check"></i> This ticket has been assigned to {{ assignee.fullname }}</p>
                       {{/if}}
                       <div class="assign-form-wrapper">
-                        <form class="assignee-form" role="form" name="assignee-form">
                         {{#if assignee.id || isTicketAssigned}}
-                            <div class="text-center continue-btn-wrapper">
-                              <button class="boxoffice-button boxoffice-button-action" on-click="assign(event, event.keypath, true)">Transfer/Edit</button>
-                            </div>
+                          <div class="text-center continue-btn-wrapper">
+                            <button class="boxoffice-button boxoffice-button-action" on-click="assign(event, event.keypath, true)">Transfer/Edit</button>
+                          </div>
                         {{else}}
-                            <p class="assign-form-title">Assign this ticket</p>             
-                            <div>
-                              <label class="radio-inline">
-                                <input type="radio" name="{{ .assignment }}" value="self" checked>
-                                Buyer
-                              </label>
-                              <label class="radio-inline">
-                                <input type="radio" name="{{.assignment}}" value="other">
-                                Other
-                              </label>
-                            </div>
-                            <div class="text-center continue-btn-wrapper">
-                              <button class="boxoffice-button boxoffice-button-action" on-click="assign(event, event.keypath, false)">Continue</button>
-                            </div>
-                          {{/if}}
-                        </form>
+                          <p class="assign-form-title">Fill attendee details</p>
+                          <div class="text-center continue-btn-wrapper">
+                            <button class="boxoffice-button boxoffice-button-action" on-click="assign(event, event.keypath, false)">Continue</button>
+                          </div>
+                        {{/if}}
                       </div>
                     </div>
                   {{else}}

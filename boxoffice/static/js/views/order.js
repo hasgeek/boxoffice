@@ -58,10 +58,7 @@ window.Boxoffice.Order = {
         orderId: data.order_id,
         accessToken: data.access_token,
         eventName: data.item_collection_name,
-        lineItems: data.line_items,
-        buyerName: data.buyer_name,
-        buyerEmail: data.buyer_email,
-        buyerPhone: data.buyer_phone
+        lineItems: data.line_items
       },
       scrollTop: function(lineItemSeq){
         //Scroll to the corresponding line_item.
@@ -83,22 +80,10 @@ window.Boxoffice.Order = {
       },
       assign: function(event, lineItem, edit) {
         event.original.preventDefault();
-
-        //On initial assignment of ticket, fill the ticket with details
-        // depending on option(self/other) selected by the user
         if (!edit) {
-          var assignment = order.component.get(lineItem +'.assignment');
-
-          if (assignment === 'self') {
-            order.component.set(lineItem + '.assignee.fullname', order.component.get('buyerName'));
-            order.component.set(lineItem + '.assignee.email', order.component.get('buyerEmail'));
-            order.component.set(lineItem + '.assignee.phone', order.component.get('buyerPhone'));
-          }
-          else {
-            order.component.set(lineItem + '.assignee.fullname', "");
-            order.component.set(lineItem + '.assignee.email', "");
-            order.component.set(lineItem + '.assignee.phone', "+91");
-          }
+          order.ractive.set(lineItem + '.assignee.fullname', "");
+          order.ractive.set(lineItem + '.assignee.email', "");
+          order.ractive.set(lineItem + '.assignee.phone', "+91");
         }
         order.component.set(lineItem + '.toAssign', true);
       },
