@@ -16,7 +16,7 @@ install:
 script:
   - nosetests -v tests
   - nohup python runtestserver.py &
-  - nohup tests/python -m SimpleHTTPServer 8000 &
+  - nohup pushd tests; python -m SimpleHTTPServer 8000; popd &
   - sleep 10
   - casperjs test tests
 addons:

@@ -56,7 +56,8 @@ casper.test.begin("Boxoffice UI test for discounted ticket booking workflow", 12
     // this.capture('boxoffice_test2_stage2.png');
     test.assertExist('.summary', 'Booking Summary exists');
     test.assertExist('.discount-applied', 'Discount policy exist in booking summary');
-    this.click('#stage2-proceed', "Checkout button exist");
+    test.assertExist('#stage2-proceed', 'Checkout button exist');
+    this.click('#stage2-proceed');
   });
 
   casper.wait(120000, function() {

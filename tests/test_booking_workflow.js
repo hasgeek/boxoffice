@@ -1,7 +1,7 @@
 var system = require('system');
 
 casper.options.waitTimeout = 120000;
-casper.options.stepTimeout = 120000;
+casper.options.stepTimeout = 60000;
 
 
 var host = "http://testing.travis.dev:8000"; //presumably 127.0.0.1
@@ -56,7 +56,7 @@ casper.test.begin("Boxoffice UI test for ticket booking workflow", 17, function 
     }
   });
 
-  casper.wait(120000, function() {
+  casper.waitForSelector('.discount-amount', function() {
     for (var itemCategory in items) {
       for (item in items[itemCategory]) {
         
@@ -100,7 +100,8 @@ casper.test.begin("Boxoffice UI test for ticket booking workflow", 17, function 
     }, false);
     // this.capture('boxoffice_test1_stage2.png');
     test.assertExist('.summary', 'Booking Summary exists');
-    this.click('#stage2-proceed', "Checkout button exist");
+    test.assertExist('#stage2-proceed', 'Checkout button exist');
+    this.click('#stage2-proceed');
   });
 
   casper.wait(120000, function() {
