@@ -31,7 +31,7 @@ var items = {
 };
 
 
-casper.test.begin("Boxoffice UI test for ticket booking workflow", 17, function suite(test) {
+casper.test.begin("Boxoffice UI test for ticket booking workflow", 18, function suite(test) {
 
   casper.start(host, function() {
     test.assertHttpStatus(200, "Ticketing page loaded");
