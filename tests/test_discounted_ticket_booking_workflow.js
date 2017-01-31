@@ -1,7 +1,7 @@
 var system = require('system');
 
 casper.options.waitTimeout = 120000;
-casper.options.stepTimeout = 120000;
+casper.options.stepTimeout = 60000;
 
 var host = "http://testing.travis.dev:8000?code=forever"; //presumably 127.0.0.1
 var items = {
@@ -84,7 +84,7 @@ casper.test.begin("Boxoffice UI test for discounted ticket booking workflow", 12
     this.capture('boxoffice_test1_stage3.png');
     test.assertExist('div.confirmation-msg', "Ticket booking confirmation message exists");
     test.assertExist('#view-ticket', "View ticket button exist");
-    test.assertExist('#view-ticket', "View cash receipt button exist");
+    test.assertExist('#view-receipt', "View cash receipt button exist");
   });
 
   casper.run(function() {

@@ -108,7 +108,7 @@ casper.test.begin("Boxoffice UI test for ticket booking workflow", 17, function 
     casper.withFrame(0, function() {
       test.assertExist('div#payment-options', "Razorpay checkout window exists");
       this.click('div.payment-option');
-      casper.wait(casper.options.waitTimeout, function() {
+      casper.wait(120000, function() {
         this.sendKeys('#card_number', "4111111111111111");
         this.sendKeys('#card_expiry', "11/99");
         this.sendKeys('#card_cvv', "123");
@@ -125,10 +125,11 @@ casper.test.begin("Boxoffice UI test for ticket booking workflow", 17, function 
   });
 
   casper.wait(120000, function() {
-    this.capture('boxoffice_test1_stage3.png');
+    //this.capture('boxoffice_test1_stage3.png');
     test.assertExist('div.confirmation-msg', "Ticket booking confirmation message exists");
     test.assertExist('#view-ticket', "View ticket button exist");
-    test.assertExist('#view-ticket', "View cash receipt button exist");
+    test.assertExist('#view-receipt', "View cash receipt button exist");
+    this.click('#view-ticket');
   });
 
   casper.run(function() {

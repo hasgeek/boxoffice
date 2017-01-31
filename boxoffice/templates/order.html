@@ -52,12 +52,12 @@
                       <div class="assign-form-wrapper">
                         {{#if assignee.id || isTicketAssigned}}
                           <div class="text-center continue-btn-wrapper">
-                            <button class="boxoffice-button boxoffice-button-action" on-click="assign(event, event.keypath, true)">Transfer/Edit</button>
+                            <button class="boxoffice-button boxoffice-button-action fill-details" on-click="assign(event, event.keypath, true)">Transfer/Edit</button>
                           </div>
                         {{else}}
                           <p class="assign-form-title">Fill attendee details</p>
                           <div class="text-center continue-btn-wrapper">
-                            <button class="boxoffice-button boxoffice-button-action" on-click="assign(event, event.keypath, false)">Continue</button>
+                            <button class="boxoffice-button boxoffice-button-action fill-details" on-click="assign(event, event.keypath, false)">Continue</button>
                           </div>
                         {{/if}}
                       </div>
@@ -117,7 +117,7 @@
                           {{/}}
                           <div class="assign-btn-wrapper">
                             <button type="button" class="boxoffice-button boxoffice-button-info" on-click="viewTicket(event, event.keypath, seq)">Back</button>
-                            <button type="submit" class="boxoffice-button boxoffice-button-action" on-click="addAssigneeDetails(event, event.keypath, seq, id)" {{#assigningTicket}}disabled{{/}}>
+                            <button type="submit" class="boxoffice-button boxoffice-button-action assign-ticket" on-click="addAssigneeDetails(event, event.keypath, seq, id)" {{#assigningTicket}}disabled{{/}}>
                                 {{#if assignee.id || isTicketAssigned}}Update{{else}}Assign ticket{{/if}}
                                 {{#assigningTicket}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'>{{/}}
                             </button>

@@ -81,9 +81,9 @@ window.Boxoffice.Order = {
       assign: function(event, lineItem, edit) {
         event.original.preventDefault();
         if (!edit) {
-          order.ractive.set(lineItem + '.assignee.fullname', "");
-          order.ractive.set(lineItem + '.assignee.email', "");
-          order.ractive.set(lineItem + '.assignee.phone', "+91");
+          order.component.set(lineItem + '.assignee.fullname', "");
+          order.component.set(lineItem + '.assignee.email', "");
+          order.component.set(lineItem + '.assignee.phone', "+91");
         }
         order.component.set(lineItem + '.toAssign', true);
       },

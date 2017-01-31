@@ -336,7 +336,7 @@ $(function() {
                 if (lineItem.quantity < quantityAvailable) {
                   lineItem.quantity += 1;
                 }
-                boxoffice.widget.fire('eventAnalytics', 'add ticket', itemName, lineItem.base_price);
+                boxoffice.widget.fire('eventAnalytics', 'add ticket', itemName, lineItem.basePrice);
               } else if (lineItem.quantity !== 0) {
                 lineItem.quantity -= 1;
                 boxoffice.widget.fire('eventAnalytics', 'remove ticket', itemName, 0);
