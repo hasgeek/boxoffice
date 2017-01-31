@@ -1,7 +1,7 @@
 var system = require('system');
 
 casper.options.waitTimeout = 120000;
-casper.options.stepTimeout = 60000;
+casper.options.stepTimeout = 120000;
 
 var host = "http://testing.travis.dev:8000?code=coupon2"; //presumably 127.0.0.1
 var items = {
@@ -16,7 +16,7 @@ var items = {
 };
 var finalAmount = '₹0';
 
-casper.test.begin("Boxoffice UI test for free ticket booking workflow", 14, function suite(test) {
+casper.test.begin("Boxoffice UI test for free ticket booking workflow", 16, function suite(test) {
 
   casper.start(host, function() {
     test.assertHttpStatus(200, "Ticketing page loaded");
@@ -46,7 +46,7 @@ casper.test.begin("Boxoffice UI test for free ticket booking workflow", 14, func
   });
 
   //Booking workflow stage 2 - Filling buyer details
-  casper.wait(120000, function() {
+  casper.waitForSelector('.buyer-form-title', function() {
     test.assertExist('.buyer-form-title', "Buyer form exists");
     this.fill('form.buyer-details', {
         'name':    'HasGeek',
@@ -65,22 +65,22 @@ casper.test.begin("Boxoffice UI test for free ticket booking workflow", 14, func
     test.assertExist('#view-ticket', "View ticket button exist");
     test.assertExist('#view-receipt', "View cash receipt button exist");
     // this.capture('boxoffice_test3_stage3.png');
-  });
-
-  casper.wait(120000, function() {
-    casper.withPopup(/order/, function() {
+    var ticket_url = casper.getElementAttribute('#view-ticket', 'href');
+    casper.thenOpen(ticket_url, function() {
       this.echo(this.getTitle());
-      test.assertExist('.fill-details', "Fill attendee details button exists");
-      this.click('.fill-details');
-      casper.wait(6000, function() {
-        this.fill('form.assignee-form', {
-            'fullname':    'HasGeek',
-            'email':    'testing@hasgeek.com',
-            'phone':   '+919900011234'
-        }, false);
-        this.click('.assign-ticket');
+      casper.waitForSelector('.ticket', function() {
+        test.assertExist('.fill-details', "Fill attendee details button exists");
+        this.click('.fill-details');
         casper.wait(6000, function() {
-          test.assertExist('.confirmation-msg', "Ticket assignment confirmation exists");
+          this.fill('form.assignee-form', {
+              'fullname':    'HasGeek',
+              'email':    'testing@hasgeek.com',
+              'phone':   '+919900011234'
+          }, false);
+          this.click('.assign-ticket');
+          casper.wait(6000, function() {
+            test.assertExist('.confirmation-msg', "Ticket assignment confirmation exists");
+          });
         });
       });
     });

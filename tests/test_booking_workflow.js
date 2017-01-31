@@ -1,7 +1,7 @@
 var system = require('system');
 
 casper.options.waitTimeout = 120000;
-casper.options.stepTimeout = 60000;
+casper.options.stepTimeout = 120000;
 
 
 var host = "http://testing.travis.dev:8000"; //presumably 127.0.0.1
@@ -104,7 +104,7 @@ casper.test.begin("Boxoffice UI test for ticket booking workflow", 17, function 
     this.click('#stage2-proceed');
   });
 
-  casper.wait(120000, function() {
+  casper.waitForSelector('.buyer-form-title', function() {
     casper.withFrame(0, function() {
       test.assertExist('div#payment-options', "Razorpay checkout window exists");
       this.click('div.payment-option');

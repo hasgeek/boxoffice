@@ -1,7 +1,7 @@
 var system = require('system');
 
 casper.options.waitTimeout = 120000;
-casper.options.stepTimeout = 60000;
+casper.options.stepTimeout = 120000;
 
 var host = "http://testing.travis.dev:8000?code=forever"; //presumably 127.0.0.1
 var items = {
@@ -46,7 +46,7 @@ casper.test.begin("Boxoffice UI test for discounted ticket booking workflow", 12
   });
 
   //Booking workflow stage 2 - Filling buyer details
-  casper.wait(120000, function() {
+  casper.waitForSelector('.buyer-form-title', function() {
     test.assertExist('.buyer-form-title', "Buyer form exists");
     this.fill('form.buyer-details', {
         'name':    'HasGeek',
