@@ -16,7 +16,7 @@ var items = {
 };
 var finalAmount = '₹3,400';
 
-casper.test.begin("Boxoffice UI test for discounted ticket booking workflow", 12, function suite(test) {
+casper.test.begin("Boxoffice UI test for discounted ticket booking workflow", 16, function suite(test) {
 
   casper.start(host, function() {
     test.assertHttpStatus(200, "Ticketing page loaded");

@@ -104,7 +104,7 @@ casper.test.begin("Boxoffice UI test for ticket booking workflow", 17, function 
     this.click('#stage2-proceed');
   });
 
-  casper.waitForSelector('.buyer-form-title', function() {
+  casper.wait(120000, function() {
     casper.withFrame(0, function() {
       test.assertExist('div#payment-options', "Razorpay checkout window exists");
       this.click('div.payment-option');
