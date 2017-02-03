@@ -6,6 +6,7 @@ import datetime
 from collections import namedtuple
 from sqlalchemy.sql import select, func
 from sqlalchemy.ext.orderinglist import ordering_list
+from isoweek import Week
 from boxoffice.models import db, JsonDict, BaseMixin, Order, Item, DiscountPolicy, DISCOUNT_TYPE, DiscountCoupon, OrderSession
 from coaster.utils import LabeledEnum
 from baseframe import __
@@ -269,6 +270,11 @@ def calculate_weekly_sales(item_collection_ids, user_tz, year):
     week_sales_dict = {}
     for week_sale in week_sales:
         week_sales_dict[week_sale[0].strftime('%V')] = week_sale[1]
+    for year_week in Week.weeks_of_year(year):
+        if not week_sales_dict.get(str(year_week[1])):
+            # No sales in this week, set to 0
+            week_sales_dict[str(year_week[1])] = 0
+
     return week_sales_dict
 
 
