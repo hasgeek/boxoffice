@@ -4,6 +4,7 @@ import itertools
 from decimal import Decimal
 import datetime
 from collections import namedtuple
+from sqlalchemy import text
 from sqlalchemy.sql import select, func
 from sqlalchemy.ext.orderinglist import ordering_list
 from isoweek import Week
@@ -261,19 +262,24 @@ def calculate_weekly_sales(item_collection_ids, user_tz, year):
     Calculates sales per week for items in the given set of item_collection_ids in a given year,
     in the user's timezone.
     """
-    week_sales = db.session.query('sales_week', 'sum').from_statement('''SELECT DATE_TRUNC('week', ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone)
+    week_sales = db.session.query('sales_week', 'sum').from_statement(text('''SELECT DATE_TRUNC('week', ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone)
         AS sales_week, SUM(final_amount)
         FROM line_item INNER JOIN item on line_item.item_id = item.id
-        WHERE status=:status AND item_collection_id IN :item_collection_ids AND
-        DATE_TRUNC('year', ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone) = :year GROUP BY sales_week ORDER BY sales_week;
-        ''').params(timezone=user_tz, status=LINE_ITEM_STATUS.CONFIRMED, item_collection_ids=tuple(item_collection_ids), year='{year}-01-01'.format(year=year)).all()
+        WHERE status=:status AND item_collection_id IN :item_collection_ids
+        AND ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone > :previous_year_end AT TIME ZONE 'UTC' AT TIME ZONE :timezone
+        AND ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone < :next_year_begin AT TIME ZONE 'UTC' AT TIME ZONE :timezone
+        GROUP BY sales_week ORDER BY sales_week;
+        ''')).params(timezone=user_tz, status=LINE_ITEM_STATUS.CONFIRMED,
+        previous_year_end='{prev_year}-12-31'.format(prev_year=year-1),
+        next_year_begin='{next_year}-01-01'.format(next_year=year+1),
+        item_collection_ids=tuple(item_collection_ids), year='{year}-01-01'.format(year=year)).all()
     week_sales_dict = {}
     for week_sale in week_sales:
-        week_sales_dict[week_sale[0].strftime('%V')] = week_sale[1]
+        week_sales_dict[int(week_sale[0].strftime('%W'))] = week_sale[1]
     for year_week in Week.weeks_of_year(year):
-        if not week_sales_dict.get(str(year_week[1])):
+        if not week_sales_dict.get(year_week[1]):
             # No sales in this week, set to 0
-            week_sales_dict[str(year_week[1])] = 0
+            week_sales_dict[year_week[1]] = 0
 
     return week_sales_dict
 
@@ -281,7 +287,7 @@ def calculate_weekly_sales(item_collection_ids, user_tz, year):
 def sales_delta(user_tz, item_ids):
     """Calculates the percentage difference in sales between today and yesterday"""
     today = datetime.datetime.now().strftime("%Y-%m-%d")
-    yesterday = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+    yesterday = (datetime.datetime.utcnow() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
     sales = sales_by_date([today, yesterday], user_tz, item_ids)
     if not sales or not sales[yesterday]:
         return 0
