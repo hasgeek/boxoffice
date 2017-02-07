@@ -13,15 +13,19 @@ from boxoffice import app
 
 
 def xhr_only(f):
-    """
-    Aborts if a request does not have the XMLHttpRequest header set
-    """
+    """Aborts if a request does not have the XMLHttpRequest header set"""
     @wraps(f)
     def wrapper(*args, **kwargs):
         if request.method != 'OPTIONS' and not request.is_xhr:
             abort(400)
         return f(*args, **kwargs)
     return wrapper
+
+
+def check_api_access(access_token):
+    """Aborts if a request does not have the correct access token"""
+    if not request.args.get('access_token') or request.args.get('access_token') != access_token:
+        abort(401)
 
 
 @app.template_filter('date_time_format')

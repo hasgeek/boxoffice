@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import datetime
-from flask import g, jsonify, request, abort
+from flask import g, jsonify, request, make_response
+from pytz import timezone, UnknownTimeZoneError
 from .. import app, lastuser
-from baseframe import localize_timezone
 from coaster.views import load_models, render_with
 from boxoffice.models import Organization, ItemCollection
 from boxoffice.models.line_item import calculate_weekly_sales
+from boxoffice.views.utils import check_api_access
 
 
 def jsonify_dashboard(data):
@@ -40,14 +40,27 @@ def org(organization):
     return dict(org=organization, title=organization.title)
 
 
-@app.route('/admin/o/<org>/revenue')
+@app.route('/api/1/o/<org>/revenue', methods=['GET', 'OPTIONS'])
 @load_models(
     (Organization, {'name': 'org'}, 'organization')
     )
 def org_revenue(organization):
-    if not request.args.get('access_token') or request.args.get('access_token') != organization.details.get("access_token"):
-        abort(401)
+    check_api_access(organization.details.get("access_token"))
+    if not request.args.get('year'):
+        return make_response(jsonify(status="error", message='Missing year.'), 400)
+
+    if request.args.get('timezone'):
+        user_timezone = request.args.get('timezone')
+        try:
+            timezone(user_timezone)
+        except UnknownTimeZoneError:
+            return make_response(jsonify(status="error",
+                message='Unknown timezone. timezone is case-sensitive.'), 400)
+    else:
+        # No timezone provided, use app timezone
+        user_timezone = app.config.get('TIMEZONE')
+
     item_collection_ids = [item_collection.id for item_collection in organization.item_collections]
-    timezone = g.user.timezone if g.user else app.config.get('TIMEZONE')
-    year = int(request.args.get('year')) if request.args.get('year') else localize_timezone(datetime.datetime.utcnow(), tz=timezone).year
-    return jsonify(weekly_sales=calculate_weekly_sales(item_collection_ids, timezone, year))
+    year = int(request.args.get('year'))
+    return jsonify(status="ok", doc="Revenue per week for {year}".format(year=year),
+        result=calculate_weekly_sales(item_collection_ids, user_timezone, year))
