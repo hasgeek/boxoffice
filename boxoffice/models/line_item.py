@@ -3,8 +3,8 @@
 import itertools
 from decimal import Decimal
 import datetime
-from collections import namedtuple
-from sqlalchemy import text
+import pytz
+from collections import namedtuple, OrderedDict
 from sqlalchemy.sql import select, func
 from sqlalchemy.ext.orderinglist import ordering_list
 from isoweek import Week
@@ -165,7 +165,7 @@ class LineItem(BaseMixin, db.Model):
         self.cancelled_at = func.utcnow()
 
     def is_cancellable(self):
-        return self.is_confirmed and (datetime.datetime.now() < self.item.cancellable_until
+        return self.is_confirmed and (datetime.datetime.utcnow() < self.item.cancellable_until
             if self.item.cancellable_until else True)
 
     @classmethod
@@ -257,35 +257,41 @@ def sales_by_date(dates, user_tz, item_ids):
     return date_sales
 
 
+def make_utc_datetime(date, time, user_tz):
+    """Combines a given date and time into a datetime, casts it in the given timezone and converts it to a UTC timestamp"""
+    return datetime.datetime.combine(date, time).replace(tzinfo=pytz.timezone(user_tz)).astimezone(pytz.utc)
+
+
 def calculate_weekly_sales(item_collection_ids, user_tz, year):
     """
     Calculates sales per week for items in the given set of item_collection_ids in a given year,
     in the user's timezone.
     """
-    week_sales = db.session.query('sales_week', 'sum').from_statement(text('''SELECT DATE_TRUNC('week', ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone)
+    ordered_week_sales = OrderedDict()
+    start_datetime = make_utc_datetime(Week.monday(Week(year, 1)), datetime.datetime.min.time(), user_tz)
+    for year_week in Week.weeks_of_year(year):
+        ordered_week_sales[year_week[1]] = 0
+    number_of_weeks = len(ordered_week_sales)
+    end_datetime = make_utc_datetime(Week.sunday(Week(year, number_of_weeks)), datetime.datetime.max.time(), user_tz)
+
+    week_sales = db.session.query('sales_week', 'sum').from_statement(db.text('''SELECT DATE_TRUNC('week', ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone)
         AS sales_week, SUM(final_amount)
         FROM line_item INNER JOIN item on line_item.item_id = item.id
         WHERE status=:status AND item_collection_id IN :item_collection_ids
         AND ordered_at >= :start_at AND ordered_at < :end_at
         GROUP BY sales_week ORDER BY sales_week;
         ''')).params(timezone=user_tz, status=LINE_ITEM_STATUS.CONFIRMED,
-        start_at='{year}-01-01'.format(year=year),
-        end_at='{year}-01-01'.format(year=year+1),
-        item_collection_ids=tuple(item_collection_ids), year='{year}-01-01'.format(year=year)).all()
-    week_sales_dict = {}
-    for week_sale in week_sales:
-        week_sales_dict[int(week_sale[0].strftime('%W'))] = week_sale[1]
-    for year_week in Week.weeks_of_year(year):
-        if not week_sales_dict.get(year_week[1]):
-            # No sales in this week, set to 0
-            week_sales_dict[year_week[1]] = 0
+        start_at=start_datetime, end_at=end_datetime, item_collection_ids=tuple(item_collection_ids)).all()
 
-    return week_sales_dict
+    for week_sale in week_sales:
+        ordered_week_sales[Week.withdate(week_sale[0])[1]] = week_sale[1]
+
+    return ordered_week_sales
 
 
 def sales_delta(user_tz, item_ids):
     """Calculates the percentage difference in sales between today and yesterday"""
-    today = datetime.datetime.now().strftime("%Y-%m-%d")
+    today = datetime.datetime.utcnow().strftime("%Y-%m-%d")
     yesterday = (datetime.datetime.utcnow() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
     sales = sales_by_date([today, yesterday], user_tz, item_ids)
     if not sales or not sales[yesterday]:
