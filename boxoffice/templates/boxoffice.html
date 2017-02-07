@@ -69,7 +69,14 @@
                           {{/}}
                         </div>
                         {{#if line_item.quantity_available > 0}}
-                          <p class="valid-upto"><i class="fa fa-fw fa-long-arrow-up"></i>Price goes up after {{line_item.price_valid_upto}}</p>
+                          <p class="valid-upto">
+                            {{#if line_item.has_higher_price}}
+                              <i class="fa fa-fw fa-long-arrow-up"></i>
+                              Price goes up on {{line_item.price_valid_upto}}
+                            {{else}}
+                              Sale closes on {{line_item.price_valid_upto}}
+                            {{/if}}
+                          </p>
                         {{/if}}
                       {{else}}
                         <div class="sold-out-wrapper" intro='fly:{"x":100,"y":"0"}'>
