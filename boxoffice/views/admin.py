@@ -40,24 +40,32 @@ def org(organization):
     return dict(org=organization, title=organization.title)
 
 
-@app.route('/api/1/o/<org>/revenue', methods=['GET', 'OPTIONS'])
+def api_error(message, status_code):
+    return make_response(jsonify(status='error', message=message), status_code)
+
+
+def api_success(result, doc, status_code):
+    return make_response(jsonify(status='ok', doc=doc, result=result), status_code)
+
+
+@app.route('/api/1/organization/<org>/revenue', methods=['GET', 'OPTIONS'])
 @load_models(
     (Organization, {'name': 'org'}, 'organization')
     )
 def org_revenue(organization):
-    check_api_access(organization.details.get("access_token"))
+    check_api_access(organization.details.get('access_token'))
     if not request.args.get('year'):
-        return make_response(jsonify(status='error', message='Missing year.'), 400)
+        api_error(message='Missing year.', status_code=400)
 
     if not request.args.get('timezone'):
-        return make_response(jsonify(status='error', message='Missing timezone.'), 400)
+        api_error(message='Missing timezone.', status_code=400)
 
     user_timezone = request.args.get('timezone')
-    if user_timezone not in pytz.all_timezones:
+    if user_timezone not in pytz.common_timezones:
         return make_response(jsonify(status='error',
             message='Unknown timezone. timezone is case-sensitive.'), 400)
 
     item_collection_ids = [item_collection.id for item_collection in organization.item_collections]
     year = int(request.args.get('year'))
-    return jsonify(status='ok', doc="Revenue per week for {year}".format(year=year),
-        result=calculate_weekly_sales(item_collection_ids, user_timezone, year))
+    weekly_sales_nested_list = calculate_weekly_sales(item_collection_ids, user_timezone, year).items()
+    return api_success(result=weekly_sales_nested_list, doc="Revenue per week for {year}".format(year=year), status_code=200)
