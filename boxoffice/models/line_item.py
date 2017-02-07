@@ -266,12 +266,11 @@ def calculate_weekly_sales(item_collection_ids, user_tz, year):
         AS sales_week, SUM(final_amount)
         FROM line_item INNER JOIN item on line_item.item_id = item.id
         WHERE status=:status AND item_collection_id IN :item_collection_ids
-        AND ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone > :previous_year_end AT TIME ZONE 'UTC' AT TIME ZONE :timezone
-        AND ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone < :next_year_begin AT TIME ZONE 'UTC' AT TIME ZONE :timezone
+        AND ordered_at >= :start_at AND ordered_at < :end_at
         GROUP BY sales_week ORDER BY sales_week;
         ''')).params(timezone=user_tz, status=LINE_ITEM_STATUS.CONFIRMED,
-        previous_year_end='{prev_year}-12-31'.format(prev_year=year-1),
-        next_year_begin='{next_year}-01-01'.format(next_year=year+1),
+        start_at='{year}-01-01'.format(year=year),
+        end_at='{year}-01-01'.format(year=year+1),
         item_collection_ids=tuple(item_collection_ids), year='{year}-01-01'.format(year=year)).all()
     week_sales_dict = {}
     for week_sale in week_sales:

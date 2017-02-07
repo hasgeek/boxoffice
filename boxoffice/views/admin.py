@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from flask import g, jsonify, request, make_response
-from pytz import timezone, UnknownTimeZoneError
+import pytz
 from .. import app, lastuser
 from coaster.views import load_models, render_with
 from boxoffice.models import Organization, ItemCollection
@@ -47,20 +47,17 @@ def org(organization):
 def org_revenue(organization):
     check_api_access(organization.details.get("access_token"))
     if not request.args.get('year'):
-        return make_response(jsonify(status="error", message='Missing year.'), 400)
+        return make_response(jsonify(status='error', message='Missing year.'), 400)
 
-    if request.args.get('timezone'):
-        user_timezone = request.args.get('timezone')
-        try:
-            timezone(user_timezone)
-        except UnknownTimeZoneError:
-            return make_response(jsonify(status="error",
-                message='Unknown timezone. timezone is case-sensitive.'), 400)
-    else:
-        # No timezone provided, use app timezone
-        user_timezone = app.config.get('TIMEZONE')
+    if not request.args.get('timezone'):
+        return make_response(jsonify(status='error', message='Missing timezone.'), 400)
+
+    user_timezone = request.args.get('timezone')
+    if user_timezone not in pytz.all_timezones:
+        return make_response(jsonify(status='error',
+            message='Unknown timezone. timezone is case-sensitive.'), 400)
 
     item_collection_ids = [item_collection.id for item_collection in organization.item_collections]
     year = int(request.args.get('year'))
-    return jsonify(status="ok", doc="Revenue per week for {year}".format(year=year),
+    return jsonify(status='ok', doc="Revenue per week for {year}".format(year=year),
         result=calculate_weekly_sales(item_collection_ids, user_timezone, year))
