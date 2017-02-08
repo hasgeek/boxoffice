@@ -2,7 +2,7 @@
 
 from flask import jsonify, make_response, request
 from .. import app, lastuser
-from coaster.views import load_models, render_with
+from coaster.views import load_models, render_with, requestargs
 from coaster.utils import buid
 from ..models import db
 from boxoffice.models import Organization, DiscountPolicy, DiscountCoupon, Item, Price, CURRENCY_SYMBOL
@@ -43,17 +43,17 @@ def jsonify_discount_policies(data_dict):
     return jsonify(org_name=data_dict['org'].name, title=data_dict['org'].title, discount_policies=discount_policies_list)
 
 
-@app.route('/admin/o/<org>/discount_policies')
+@app.route('/admin/o/<org>/discount_policy')
 @lastuser.requires_login
 @load_models(
     (Organization, {'name': 'org'}, 'organization'),
     permission='org_admin'
     )
 @render_with({'text/html': 'index.html', 'application/json': jsonify_discount_policies}, json=True)
-def admin_discount_policies(organization):
-    query = request.args.get('search')
-    if query:
-        discount_policies = DiscountPolicy.query.filter(DiscountPolicy.title.ilike('%{query}%'.format(query=query))).all()
+@requestargs('search')
+def admin_discount_policies(organization, search=None):
+    if search:
+        discount_policies = DiscountPolicy.query.filter(DiscountPolicy.title.ilike('%{query}%'.format(query=search))).all()
     else:
         discount_policies = DiscountPolicy.query.filter(DiscountPolicy.organization == organization).order_by('created_at desc').all()
     return dict(org=organization, title=organization.title, discount_policies=discount_policies)
@@ -164,3 +164,13 @@ def admin_discount_coupons(discount_policy):
     for coupon in discount_coupons:
         coupons_list.append({'code': coupon.code, 'usage_limit': coupon.usage_limit, 'available': coupon.usage_limit - coupon.used_count})
     return make_response(jsonify(status='ok', result={'message': 'Discount coupons', 'coupons': coupons_list}), 201)
+
+
+@app.route('/admin/discount_policy')
+@lastuser.requires_login
+@xhr_only
+@requestargs('discount_code_base')
+def admin_discount_policy(discount_code_base):
+    discount_policy = DiscountPolicy.query.filter_by(discount_code_base=discount_code_base).first()
+    if discount_policy:
+        return jsonify(status='ok', result={'message': 'Please specify a different discount code base'})

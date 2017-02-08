@@ -4,14 +4,14 @@ export const DiscountPolicyTemplate = `
     <h1 class="header">{{ title }}</h1>
     <div class="title-wrapper col-sm-4 col-xs-12">
       <input type="text" autofocus class="form-control" placeholder="Search discount policy" value="{{searchText}}" />
-      <a on-click="clearSearchField" class="clear-field"><i class="fa fa-close"></i></a>
+      <a on-click="clearSearchField()" class="clear-field"><i class="fa fa-close"></i></a>
     </div>
     <div class="title-wrapper col-sm-4 col-sm-offset-4 col-xs-12">
-      <button class="boxoffice-button boxoffice-button-action btn-right" on-click="openNewPolicyForm">Create discount policy</button>
+      <button class="boxoffice-button boxoffice-button-action btn-right" on-click="showNewPolicyForm(event)">Create discount policy</button>
     </div>
     {{#if showAddPolicyForm}}
       <div class="content-slider align-down" intro-outro='fly:{x:200,y:0,duration:200}'>
-        <button on-click="closeNewPolicyForm" class="close-button"><i class="fa fa-close"></i></button>
+        <button on-click="hideNewPolicyForm(event)" class="close-button"><i class="fa fa-close"></i></button>
         <p class="content-slider-title">Add a new discount policy</p>
         <div class="content-slider-wrapper">
           <form role="form" id="new-policy-form" name="adding-new-policy-form"> 
@@ -25,11 +25,11 @@ export const DiscountPolicyTemplate = `
             <div class="group">
               <p class="field-title filled">What type of discount?</p>
               <label class="radio-inline">
-                <input type="radio" name="is_price_based" value=1 on-click="policyChange" checked />
+                <input type="radio" name="is_price_based" value=1 on-click="policyChange(event)" checked />
                 Special price
               </label>
               <label class="radio-inline">
-                <input type="radio" name="is_price_based" value=0 on-click="policyChange" />
+                <input type="radio" name="is_price_based" value=0 on-click="policyChange(event)" />
                 Percentage
               </label>
             </div>
@@ -38,11 +38,11 @@ export const DiscountPolicyTemplate = `
               <div class="group">
                 <p class="field-title filled">How is this discount going to be availed?</p>
                 <label class="radio-inline">
-                  <input type="radio" name="discount_type" value=1 on-click="policyTypeChange" checked />
+                  <input type="radio" name="discount_type" value=1 on-click="policyTypeChange(event)" checked />
                   Coupon based
                 </label>
                   <label class="radio-inline">
-                    <input type="radio" name="discount_type" value=0 on-click="policyTypeChange" />
+                    <input type="radio" name="discount_type" value=0 on-click="policyTypeChange(event)" />
                     Automatic
                   </label>
               </div>
@@ -58,7 +58,7 @@ export const DiscountPolicyTemplate = `
               <p class="form-help-text">For Automatic discounts, minimum number of tickets user needs to buy to avail this discount.<br>Eg:- '5% discount on buying 5 or more tickets.'</p>
             {{else}}
               <div class="group">
-                <input type="text" name="discount_code_base" value="{{newDiscountPolicy.discount_code_base}}" class="group-input {{#newDiscountPolicy.discount_code_base}}filled{{/}}" />
+                <input type="text" name="discount_code_base" value="{{newDiscountPolicy.discount_code_base}}" class="group-input {{#newDiscountPolicy.discount_code_base}}filled{{/}}" on-blur="validateCodeBase(event, 'discount_code_base')"/>
                 <span class="bar"></span>
                 <label class="group-label">Discount code base</label>
                 {{#newDiscountPolicy.errormsg.discount_code_base}}<p class="form-error-msg">{{ newDiscountPolicy.errormsg.discount_code_base }}</p>{{/}}
@@ -123,8 +123,8 @@ export const DiscountPolicyTemplate = `
             <input type="hidden" name="csrf_token" value="{{ getCsrfToken() }}" />
 
             <div class="btn-wrapper">
-              <button type="button" class="boxoffice-button boxoffice-button-info" on-click="closeNewPolicyForm">Back</button>
-              <button type="submit" class="boxoffice-button boxoffice-button-action" on-click="addNewPolicy" {{#newDiscountPolicy.creatingPolicy}}disabled{{/}}>
+              <button type="button" class="boxoffice-button boxoffice-button-info" on-click="hideNewPolicyForm(event)">Back</button>
+              <button type="submit" class="boxoffice-button boxoffice-button-action" on-click="addNewPolicy(event)" {{#newDiscountPolicy.creatingPolicy}}disabled{{/}}>
                 Create policy
                 {{#newDiscountPolicy.creatingPolicy}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'>{{/}}
               </button>
@@ -142,7 +142,7 @@ export const DiscountPolicyTemplate = `
             <div class="heading">
               <p class="heading-title">{{ title }}</p>
               <div class="heading-edit">
-                {{#if !hideEditBtn}}<button class="edit-btn" on-click="editPolicyForm"><i class="fa fa-edit"></i>{{#loadingEditForm}}<i class="fa fa-spinner fa-spin">{{/}}</button>{{/if}}
+                {{#if !hideEditBtn}}<button class="edit-btn" on-click="showEditPolicyForm(event)"><i class="fa fa-edit"></i>{{#loadingEditForm}}<i class="fa fa-spinner fa-spin">{{/}}</button>{{/if}}
               </div>
             </div>
             <div class="content">
@@ -181,10 +181,10 @@ export const DiscountPolicyTemplate = `
                   {{/if}}
 
                   {{#if discount_type == "Coupon based"}}
-                    <button class="boxoffice-button boxoffice-button-action btn-right" on-click="listCoupons">
+                    <button class="boxoffice-button boxoffice-button-action btn-right" on-click="getCouponList(event)">
                       List coupons{{#loadingCoupons}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'>{{/}}
                     </button>
-                    <button class="boxoffice-button boxoffice-button-action btn-right btn-inline" on-click="generateCouponForm">Generate coupon</button>
+                    <button class="boxoffice-button boxoffice-button-action btn-right btn-inline" on-click="showCouponForm(event)">Generate coupon</button>
                     <p class="error-msg">{{loadingCouponErrorMsg}}</p>
                   {{/if}}
                 </div>
@@ -248,7 +248,7 @@ export const DiscountPolicyTemplate = `
                     {{else}}
                       <input type="hidden" name="discount_type" value=1 />
                       <div class="group">   
-                        <input type="text" name="discount_code_base" value="{{discount_code_base}}" twoway="false" class="group-input {{#discount_code_base}}filled{{/}}" />
+                        <input type="text" name="discount_code_base" value="{{discount_code_base}}" twoway="false" class="group-input {{#discount_code_base}}filled{{/}}" on-blur="validateCodeBase(event, 'discount_code_base', event.keypath)" />
                         <span class="bar"></span>
                         <label class="group-label">Discount code base</label>
                         {{#errormsg.discount_code_base}}<p class="form-error-msg">{{ errormsg.discount_code_base }}</p>{{/}}
@@ -271,8 +271,8 @@ export const DiscountPolicyTemplate = `
                     <input type="hidden" name="csrf_token" value="{{ getCsrfToken() }}" />
 
                     <div class="btn-wrapper">
-                      <button type="button" class="boxoffice-button boxoffice-button-info" on-click="hideEditPolicy">Back</button>                    
-                      <button type="submit" class="boxoffice-button boxoffice-button-action" on-click="editPolicy" {{#editingPolicy}}disabled{{/}}>
+                      <button type="button" class="boxoffice-button boxoffice-button-info" on-click="hideEditPolicyForm(event)">Back</button>            
+                      <button type="submit" class="boxoffice-button boxoffice-button-action" on-click="editPolicy(event)" {{#editingPolicy}}disabled{{/}}>
                           Update policy
                           {{#editingPolicy}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'>{{/}}
                       </button>
@@ -311,18 +311,20 @@ export const DiscountPolicyTemplate = `
                         <span class="bar"></span>
                         <label class="group-label">Discount code base</label>
                       </div>
+                      {{#errormsg.discount_code_base}}<p class="form-error-msg">{{ errormsg.discount_code_base }}</p>{{/}}
                       <div class="group">   
                         <input type="text" name="bulk_coupon_usage_limit" value="{{bulk_coupon_usage_limit}}" class="group-input {{#bulk_coupon_usage_limit}}filled{{/}}" readonly="readonly" />
                         <span class="bar"></span>
                         <label class="group-label">Number of times each bulk coupon can be used</label>
                       </div>
+                      {{#errormsg.bulk_coupon_usage_limit}}<p class="form-error-msg">{{ errormsg.bulk_coupon_usage_limit }}</p>{{/}}
                     {{/if}}
 
                     <input type="hidden" name="csrf_token" value="{{ getCsrfToken() }}" />
 
                     <div class="btn-wrapper">
-                      <button type="button" class="boxoffice-button boxoffice-button-info" on-click="hidegenerateCouponForm">Back</button>
-                      <button type="submit" class="boxoffice-button boxoffice-button-action" on-click="generateCoupon" {{#generatingCoupon}}disabled{{/}}>
+                      <button type="button" class="boxoffice-button boxoffice-button-info" on-click="hideCouponForm(event)">Back</button>
+                      <button type="submit" class="boxoffice-button boxoffice-button-action" on-click="generateCoupon(event)" {{#generatingCoupon}}disabled{{/}}>
                           Generate
                           {{#generatingCoupon}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'>{{/}}
                       </button>

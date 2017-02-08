@@ -13,8 +13,8 @@ export const Router = Backbone.Router.extend({
     "o/:org_name": "org",
     "ic/:ic_id": "item_collection",
     "ic/:ic_id/orders": "order",
-    "o/:org_name/discount_policies": 'discount_policy',
-    "o/:org_name/discount_policies?:params": 'discount_policy',
+    "o/:org_name/discount_policy": 'discount_policy',
+    "o/:org_name/discount_policy?:params": 'discount_policy',
     "ic/:ic_id/reports": "report"
   },
   index: function() {

@@ -5,7 +5,7 @@ from baseframe import __
 import baseframe.forms as forms
 from baseframe.forms.sqlalchemy import QuerySelectMultipleField
 from coaster.utils import getbool
-from ..models import DISCOUNT_TYPE
+from ..models import DISCOUNT_TYPE, DiscountPolicy
 
 __all__ = ['DiscountForm', 'DiscountCouponForm']
 
@@ -23,6 +23,10 @@ class DiscountForm(forms.Form):
     start_at = forms.DateTimeField(__("Price start date"), format='%d %m %Y %H:%M:%S', timezone=lambda: g.user.timezone if g.user else None, validators=[forms.validators.OptionalIfNot('is_price_based')])
     end_at = forms.DateTimeField(__("Price end date"), format='%d %m %Y %H:%M:%S', timezone=lambda: g.user.timezone if g.user else None, validators=[forms.validators.OptionalIfNot('is_price_based')])
     items = QuerySelectMultipleField(__("Items"), get_label='title', query_factory=lambda: [], validators=[forms.validators.DataRequired((u"Please select a item to which discount is to be applied"))])
+
+    def validate_discount_code_base(self, field):
+        if DiscountPolicy.query.filter_by(discount_code_base=field.data).first():
+            raise forms.ValidationError((u"Please specify a different discount code base"))
 
     def validate_end_at(self, field):
         if field.data <= self.start_at.data:
