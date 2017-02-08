@@ -43,6 +43,12 @@ class Item(BaseScopedNameMixin, db.Model):
         """
         return self.price_at(datetime.utcnow())
 
+    def has_higher_price(self, current_price):
+        """
+        Checks if item has a higher price than the given current price
+        """
+        return Price.query.filter(Price.end_at > current_price.end_at, Price.item == self, Price.discount_policy == None).notempty()
+
     def discounted_price(self, discount_policy):
         """
         Returns the discounted price for an item
