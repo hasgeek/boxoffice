@@ -2,7 +2,7 @@
 
 import datetime
 from pytz import utc, timezone
-from flask import request, abort, Response
+from flask import request, abort, Response, jsonify, make_response
 from functools import wraps
 try:
     from cStringIO import StringIO
@@ -114,3 +114,24 @@ def csv_response(headers, rows, row_handler=None):
     else:
         csv_writer.writerows(rows)
     return Response(unicode(stream.getvalue()), content_type='text/csv')
+
+
+def api_error(message, status_code):
+    """
+    Generates a HTTP response as a JSON object for a failure scenario
+
+    :param string message: Error message to be included as part of the JSON response
+    :param int status_code: HTTP status code to be used for the response
+    """
+    return make_response(jsonify(status='error', message=message), status_code)
+
+
+def api_success(result, doc, status_code):
+    """
+    Generates a HTTP response as a JSON object for a successful scenario
+
+    :param any result: Top-level data to be encoded as JSON
+    :param string doc: Documentation to be included as part of the JSON response
+    :param int status_code: HTTP status code to be used for the response
+    """
+    return make_response(jsonify(status='ok', doc=doc, result=result), status_code)

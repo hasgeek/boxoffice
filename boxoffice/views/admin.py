@@ -6,7 +6,7 @@ from .. import app, lastuser
 from coaster.views import load_models, render_with
 from boxoffice.models import Organization, ItemCollection
 from boxoffice.models.line_item import calculate_weekly_sales
-from boxoffice.views.utils import check_api_access
+from boxoffice.views.utils import check_api_access, api_error, api_success
 
 
 def jsonify_dashboard(data):
@@ -38,14 +38,6 @@ def jsonify_org(data):
 @render_with({'text/html': 'index.html', 'application/json': jsonify_org}, json=True)
 def org(organization):
     return dict(org=organization, title=organization.title)
-
-
-def api_error(message, status_code):
-    return make_response(jsonify(status='error', message=message), status_code)
-
-
-def api_success(result, doc, status_code):
-    return make_response(jsonify(status='ok', doc=doc, result=result), status_code)
 
 
 @app.route('/api/1/organization/<org>/revenue', methods=['GET', 'OPTIONS'])
