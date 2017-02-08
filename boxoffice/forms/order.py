@@ -30,11 +30,10 @@ class LineItemForm(forms.Form):
         line_item_forms = []
 
         for line_item_dict in line_items_json:
-            line_item_form = cls.from_json(line_item_dict)
             # Since some requests are cross-domain, other checks
             # have been introduced to ensure against CSRF, such as
             # a white-list of allowed origins and XHR only requests
-            line_item_form.csrf_enabled = False
+            line_item_form = cls.from_json(line_item_dict, meta={'csrf': False})
             if not line_item_form.validate():
                 return []
             line_item_forms.append(line_item_form)
@@ -43,7 +42,7 @@ class LineItemForm(forms.Form):
 
 class BuyerForm(forms.Form):
     email = forms.EmailField(__("Email"), validators=[forms.validators.DataRequired(), forms.validators.Length(max=80)])
-    fullname = forms.StringField(__("Full name"), validators=[forms.validators.DataRequired()])
+    fullname = forms.StringField(__("Full name"), validators=[forms.validators.DataRequired(), forms.validators.Length(max=80)])
     phone = forms.StringField(__("Phone number"), validators=[forms.validators.Length(max=16)])
 
 

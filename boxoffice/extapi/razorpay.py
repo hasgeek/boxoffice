@@ -19,7 +19,7 @@ class RAZORPAY_PAYMENT_STATUS(LabeledEnum):
     CREATED = (0, __("Created"))
     AUTHORIZED = (1, __("Authorized"))
     CAPTURED = (2, __("Captured"))
-    # Only fully refunded payments.
+    #: Only fully refunded payments.
     REFUNDED = (3, __("Refunded"))
     FAILED = (4, __("Failed"))
 

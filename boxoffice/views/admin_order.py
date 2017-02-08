@@ -3,7 +3,7 @@
 from flask import jsonify, make_response, url_for
 from .. import app, lastuser
 from coaster.views import load_models, render_with
-from boxoffice.models import ItemCollection, Order, CURRENCY_SYMBOL
+from boxoffice.models import ItemCollection, Order, CURRENCY_SYMBOL, LineItem, LINE_ITEM_STATUS
 from utils import date_time_format
 
 
@@ -53,7 +53,7 @@ def jsonify_admin_orders(data_dict):
                 'buyer_email': order.buyer_email,
                 'buyer_phone': order.buyer_phone,
                 'currency': CURRENCY_SYMBOL['INR'],
-                'amount': order.get_amounts().confirmed_amount,
+                'amount': order.get_amounts(LINE_ITEM_STATUS.CONFIRMED).confirmed_amount,
                 'url': '/ic/' + unicode(item_collection_id) + '/' + unicode(order.id),
                 'receipt': url_for('receipt', access_token=order.access_token),
                 'assignee': url_for('line_items', access_token=order.access_token)
@@ -79,4 +79,5 @@ def admin_orders(item_collection):
     permission='org_admin'
     )
 def admin_order(order):
-    return make_response(jsonify(line_items=format_line_items(order.line_items)))
+    line_items = LineItem.query.filter(LineItem.order == order, LineItem.status.in_([LINE_ITEM_STATUS.CONFIRMED, LINE_ITEM_STATUS.CANCELLED])).all()
+    return make_response(jsonify(line_items=format_line_items(line_items)))

@@ -4,9 +4,9 @@ from datetime import datetime
 from decimal import Decimal
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.orderinglist import ordering_list
-from ..models import db, JsonDict, BaseScopedNameMixin, MarkdownColumn
-from ..models import ItemCollection, Category
-from ..models.discount_policy import item_discount_policy
+from . import db, JsonDict, BaseScopedNameMixin, MarkdownColumn
+from . import ItemCollection, Category
+from .discount_policy import item_discount_policy
 
 __all__ = ['Item', 'Price']
 
@@ -43,6 +43,12 @@ class Item(BaseScopedNameMixin, db.Model):
         """
         return self.price_at(datetime.utcnow())
 
+    def has_higher_price(self, current_price):
+        """
+        Checks if item has a higher price than the given current price
+        """
+        return Price.query.filter(Price.end_at > current_price.end_at, Price.item == self, Price.discount_policy == None).notempty()
+
     def discounted_price(self, discount_policy):
         """
         Returns the discounted price for an item
@@ -54,7 +60,7 @@ class Item(BaseScopedNameMixin, db.Model):
         Returns the price object for an item at a given time
         """
         return Price.query.filter(Price.item == self, Price.start_at <= timestamp,
-            Price.end_at > timestamp, Price.discount_policy == None).order_by('created_at desc').first()  # noqa
+            Price.end_at > timestamp, Price.discount_policy == None).order_by('created_at desc').first()  # NOQA
 
     @classmethod
     def get_by_category(cls, category):
@@ -68,6 +74,9 @@ class Item(BaseScopedNameMixin, db.Model):
     def is_available(self):
         """Checks if an item has a current price object and has a positive quantity_available"""
         return bool(self.current_price() and self.quantity_available > 0)
+
+    def is_cancellable(self):
+        return datetime.utcnow() < self.cancellable_until if self.cancellable_until else True
 
 
 class Price(BaseScopedNameMixin, db.Model):

@@ -83,22 +83,10 @@ window.Boxoffice.Order = {
       },
       assign: function(event, line_item, edit) {
         event.original.preventDefault();
-
-        //On initial assignment of ticket, fill the ticket with details
-        // depending on option(self/other) selected by the user
         if (!edit) {
-          var assignment = order.ractive.get(line_item +'.assignment');
-
-          if (assignment === 'self') {
-            order.ractive.set(line_item + '.assignee.fullname', order.ractive.get('buyer_name'));
-            order.ractive.set(line_item + '.assignee.email', order.ractive.get('buyer_email'));
-            order.ractive.set(line_item + '.assignee.phone', order.ractive.get('buyer_phone'));
-          }
-          else {
-            order.ractive.set(line_item + '.assignee.fullname', "");
-            order.ractive.set(line_item + '.assignee.email', "");
-            order.ractive.set(line_item + '.assignee.phone', "+91");
-          }
+          order.ractive.set(line_item + '.assignee.fullname', "");
+          order.ractive.set(line_item + '.assignee.email', "");
+          order.ractive.set(line_item + '.assignee.phone', "+91");
         }
         order.ractive.set(line_item + '.toAssign', true);
       },
