@@ -33,31 +33,30 @@ export const post = function(config){
     url: config.url,
     type: 'POST',
     data: config.data,
-    contentType : config.contentType,
-    dataType: 'json'
+    contentType : config.contentType ? config.contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
+    dataType: 'json',
   });
 }
 
-export const serializeFormToObject = function(form, multiple_option_fields){
-  let form_elements = $(form).serializeArray();
-  let details = {};
-  for (var form_index=0; form_index < form_elements.length; form_index++) {
-    if (form_elements[form_index].value) {
-      if(multiple_option_fields.indexOf(form_elements[form_index].name) !== -1) {
+export const getFormParameters = function(form, multiple_option_fields) {
+  var form_elements = $(form).serializeArray();
+  for (var field=0; field < multiple_option_fields.length; field++) {
+    for (var form_index=0; form_index < form_elements.length; form_index++) {
+      if (form_elements[form_index].value && multiple_option_fields[field] == form_elements[form_index].name) {
         let values = form_elements[form_index].value.split(',');
-        if(form_elements[form_index].name in details) {
-          details[form_elements[form_index].name].concat(values)
+        for (var index=0; index < values.length; index++) {
+          if(index === 0){
+            form_elements[form_index].value = values[0];
+          }
+          else {
+            form_elements.push({'name': multiple_option_fields[field], 'value': values[index]})
+          }
         }
-        else {
-          details[form_elements[form_index].name] = [].concat(values);
-        }
-      }
-      else {
-        details[form_elements[form_index].name] = form_elements[form_index].value;
+        break;
       }
     }
   }
-  return details;
+  return $.param(form_elements);
 }
 
 export const scrollToElement = function(element, speed=500) {
