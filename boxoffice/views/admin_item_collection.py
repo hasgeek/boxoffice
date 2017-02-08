@@ -6,8 +6,10 @@ from decimal import Decimal
 from .. import app, lastuser
 from sqlalchemy import func
 from coaster.views import load_models, render_with
+from baseframe import localize_timezone
 from boxoffice.models import db, ItemCollection, LineItem, LINE_ITEM_STATUS
 from boxoffice.models.line_item import sales_delta, sales_by_date, counts_per_date_per_item
+from boxoffice.views.utils import reset_time_local
 
 
 def jsonify_item(item):
@@ -50,8 +52,11 @@ def jsonify_item_collection(item_collection_dict):
 def admin_item_collection(item_collection):
     item_ids = [str(item.id) for item in item_collection.items]
     date_item_counts = counts_per_date_per_item(item_collection, g.user.timezone)
-    date_sales = sales_by_date(date_item_counts.keys(), g.user.timezone, item_ids)
-    today_sales = date_sales.get(datetime.datetime.now().strftime("%Y-%m-%d"), Decimal(0)) if date_sales else Decimal(0)
+    date_sales = {}
+    for date_stamp in date_item_counts.keys():
+        sales_datetime = reset_time_local(datetime.datetime.strptime(date_stamp, '%Y-%m-%d'), g.user.timezone)
+        date_sales[date_stamp] = sales_by_date(sales_datetime, item_ids)
+    today_sales = date_sales.get(localize_timezone(datetime.datetime.utcnow(), g.user.timezone).strftime("%Y-%m-%d"), Decimal(0)) if date_sales else Decimal(0)
     return dict(title=item_collection.organization.title, item_collection=item_collection, date_item_counts=date_item_counts,
         date_sales=date_sales, today_sales=today_sales,
         sales_delta=sales_delta(g.user.timezone, item_ids))

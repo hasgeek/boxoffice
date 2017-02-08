@@ -3,12 +3,12 @@
 import itertools
 from decimal import Decimal
 import datetime
-import pytz
 from collections import namedtuple, OrderedDict
 from sqlalchemy.sql import select, func
 from sqlalchemy.ext.orderinglist import ordering_list
 from isoweek import Week
 from boxoffice.models import db, JsonDict, BaseMixin, Order, Item, DiscountPolicy, DISCOUNT_TYPE, DiscountCoupon, OrderSession
+from boxoffice.views.utils import reset_time_utc, reset_time_local
 from coaster.utils import LabeledEnum
 from baseframe import __
 
@@ -237,29 +237,21 @@ def counts_per_date_per_item(item_collection, user_tz):
     return date_item_counts
 
 
-def sales_by_date(dates, user_tz, item_ids):
+def sales_by_date(sales_datetime, item_ids):
     """
-    Returns the net sales of line items sold on a date.
-    Accepts a list of dates.
-    ['2016-01-01', '2016-01-02'] => {'2016-01-01': }
+    Takes a timezone aware datetime object, item_ids and returns the sales amount accrued
+    during the day for the given datetime.
     """
     if not item_ids:
         return None
 
-    date_sales = {}
-
-    for sales_date in dates:
-        sales_on_date = db.session.query('sum').from_statement('''SELECT SUM(final_amount) FROM line_item
-            WHERE status=:status AND DATE_TRUNC('day', line_item.ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone)::date = :sales_date
-            AND line_item.item_id IN :item_ids
-            ''').params(timezone=user_tz, status=LINE_ITEM_STATUS.CONFIRMED, sales_date=sales_date, item_ids=tuple(item_ids)).first()
-        date_sales[sales_date] = sales_on_date[0] if sales_on_date[0] else Decimal(0)
-    return date_sales
-
-
-def make_utc_datetime(date, time, user_tz):
-    """Combines a given date and time into a datetime, casts it in the given timezone and converts it to a UTC timestamp"""
-    return datetime.datetime.combine(date, time).replace(tzinfo=pytz.timezone(user_tz)).astimezone(pytz.utc)
+    utc_start_at = reset_time_utc(sales_datetime, datetime.datetime.min.time())
+    utc_end_at = reset_time_utc(sales_datetime, datetime.datetime.max.time())
+    sales_on_date = db.session.query('sum').from_statement('''SELECT SUM(final_amount) FROM line_item
+        WHERE status=:status AND ordered_at >= :start_at AND ordered_at <= :end_at
+        AND line_item.item_id IN :item_ids
+        ''').params(status=LINE_ITEM_STATUS.CONFIRMED, start_at=utc_start_at, end_at=utc_end_at, item_ids=tuple(item_ids)).first()
+    return sales_on_date[0] if sales_on_date[0] else Decimal(0)
 
 
 def calculate_weekly_sales(item_collection_ids, user_tz, year):
@@ -268,20 +260,22 @@ def calculate_weekly_sales(item_collection_ids, user_tz, year):
     in the user's timezone.
     """
     ordered_week_sales = OrderedDict()
-    start_datetime = make_utc_datetime(Week.monday(Week(year, 1)), datetime.datetime.min.time(), user_tz)
+    local_start_at = reset_time_local(Week.monday(Week(year, 1)), user_tz)
+    utc_start_at = reset_time_utc(local_start_at, datetime.datetime.min.time())
     for year_week in Week.weeks_of_year(year):
         ordered_week_sales[year_week[1]] = 0
     number_of_weeks = len(ordered_week_sales)
-    end_datetime = make_utc_datetime(Week.sunday(Week(year, number_of_weeks)), datetime.datetime.max.time(), user_tz)
+    local_end_at = reset_time_local(Week.sunday(Week(year, number_of_weeks)), user_tz, time_stamp=datetime.datetime.max.time())
+    utc_end_at = reset_time_utc(local_end_at, datetime.datetime.max.time())
 
     week_sales = db.session.query('sales_week', 'sum').from_statement(db.text('''SELECT DATE_TRUNC('week', ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone)
         AS sales_week, SUM(final_amount)
         FROM line_item INNER JOIN item on line_item.item_id = item.id
         WHERE status=:status AND item_collection_id IN :item_collection_ids
-        AND ordered_at >= :start_at AND ordered_at < :end_at
+        AND ordered_at >= :start_at AND ordered_at <= :end_at
         GROUP BY sales_week ORDER BY sales_week;
         ''')).params(timezone=user_tz, status=LINE_ITEM_STATUS.CONFIRMED,
-        start_at=start_datetime, end_at=end_datetime, item_collection_ids=tuple(item_collection_ids)).all()
+        start_at=utc_start_at, end_at=utc_end_at, item_collection_ids=tuple(item_collection_ids)).all()
 
     for week_sale in week_sales:
         ordered_week_sales[Week.withdate(week_sale[0])[1]] = week_sale[1]
@@ -291,12 +285,13 @@ def calculate_weekly_sales(item_collection_ids, user_tz, year):
 
 def sales_delta(user_tz, item_ids):
     """Calculates the percentage difference in sales between today and yesterday"""
-    today = datetime.datetime.utcnow().strftime("%Y-%m-%d")
-    yesterday = (datetime.datetime.utcnow() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
-    sales = sales_by_date([today, yesterday], user_tz, item_ids)
-    if not sales or not sales[yesterday]:
+    today = reset_time_local(datetime.datetime.utcnow(), user_tz)
+    yesterday = reset_time_local(datetime.datetime.utcnow() - datetime.timedelta(days=1), user_tz)
+    today_sales = sales_by_date(today, item_ids)
+    yesterday_sales = sales_by_date(yesterday, item_ids)
+    if not today_sales or not yesterday_sales:
         return 0
-    return round(Decimal('100') * (sales[today] - sales[yesterday])/sales[yesterday], 2)
+    return round(Decimal('100') * (today_sales - yesterday_sales)/yesterday_sales, 2)
 
 
 def get_confirmed_line_items(self):
