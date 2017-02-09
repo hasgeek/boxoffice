@@ -3,7 +3,7 @@ from __future__ import division
 import math
 from flask import jsonify, make_response, request
 from .. import app, lastuser
-from coaster.views import load_models, render_with
+from coaster.views import load_models, render_with, requestargs
 from coaster.utils import buid
 from ..models import db
 from boxoffice.models import Organization, DiscountPolicy, DiscountCoupon, Item, Price, CURRENCY_SYMBOL
@@ -60,26 +60,23 @@ def jsonify_discount_policies(data_dict):
     permission='org_admin'
     )
 @render_with({'text/html': 'index.html', 'application/json': jsonify_discount_policies}, json=True)
-def admin_discount_policies(organization):
-    RESULTS_PER_PAGE = 6
-    search_query = request.args.get('search')
-    try:
-        page = int(request.args.get('page', 1))
-    except ValueError:
-        page = 1
+@requestargs('search', ('page', int))
+def admin_discount_policies(organization, search=None, page=1):
+    RESULTS_PER_PAGE = 20
 
     if request.is_xhr:
         discount_policies = organization.discount_policies
 
-        if search_query:
+        if search:
             discount_policies = discount_policies.filter(
-                DiscountPolicy.title.ilike('%{query}%'.format(query=search_query))
+                DiscountPolicy.title.ilike('%{query}%'.format(query=search))
             )
 
-        total_policies = len(discount_policies)
+        total_policies = discount_policies.count()
         total_pages = int(math.ceil(total_policies/RESULTS_PER_PAGE))
         offset = (page - 1) * RESULTS_PER_PAGE
-        discount_policies = discount_policies[offset:RESULTS_PER_PAGE+offset]
+
+        discount_policies = discount_policies.limit(RESULTS_PER_PAGE).offset(offset).all()
 
         return dict(
             org=organization, title=organization.title,
