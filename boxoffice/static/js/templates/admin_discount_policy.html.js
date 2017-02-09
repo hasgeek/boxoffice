@@ -414,15 +414,15 @@ export const DiscountPolicyTemplate = `
           <nav aria-label="Page navigation">
             <ul class="pagination">
               <li>
-                <a href="#" on-click="paginate:{{#if current_page == 1}}1{{else}}{{current_page - 1}}{{/if}}" aria-label="Previous">
+                <a href="#" on-click="paginate({{#if current_page == 1}}1{{else}}{{current_page - 1}}{{/if}})" aria-label="Previous">
                   <span aria-hidden="true">&laquo;</span>
                 </a>
               </li>
               {{#pages:index}}
-              <li><a href="#" on-click="paginate:{{pages[index]}}">{{pages[index]}}</a></li>
+              <li><a href="#" on-click="paginate({{pages[index]}})">{{pages[index]}}</a></li>
               {{/}}
               <li>
-                <a href="#" on-click="paginate:{{#if current_page == total_pages}}{{total_pages}}{{else}}{{current_page + 1}}{{/if}}" aria-label="Next">
+                <a href="#" on-click="paginate({{#if current_page == total_pages}}{{total_pages}}{{else}}{{current_page + 1}}{{/if}})" aria-label="Next">
                   <span aria-hidden="true">&raquo;</span>
                 </a>
               </li>

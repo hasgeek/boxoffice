@@ -121,7 +121,7 @@ export const DiscountPolicyView = {
           }
           return pages;
         },
-        paginate: function () {
+        paginate: function (page) {
           discountPolicyComponent.refresh('', page);
         },
         clearSearchField: function() {
