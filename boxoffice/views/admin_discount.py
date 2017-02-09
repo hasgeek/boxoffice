@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from __future__ import division
+import math
 from flask import jsonify, make_response, request
 from .. import app, lastuser
 from coaster.views import load_models, render_with
@@ -60,31 +62,30 @@ def jsonify_discount_policies(data_dict):
 @render_with({'text/html': 'index.html', 'application/json': jsonify_discount_policies}, json=True)
 def admin_discount_policies(organization):
     RESULTS_PER_PAGE = 6
-    query = request.args.get('search')
+    search_query = request.args.get('search')
     try:
         page = int(request.args.get('page', 1))
     except ValueError:
         page = 1
 
     if request.is_xhr:
-        discount_policies = DiscountPolicy.query.filter(
-            DiscountPolicy.organization == organization
-        ).order_by('created_at desc')
+        discount_policies = organization.discount_policies
 
-        if query:
+        if search_query:
             discount_policies = discount_policies.filter(
-                DiscountPolicy.title.ilike('%{query}%'.format(query=query))
+                DiscountPolicy.title.ilike('%{query}%'.format(query=search_query))
             )
 
-        total_policies = discount_policies.count()
-
+        total_policies = len(discount_policies)
+        total_pages = int(math.ceil(total_policies/RESULTS_PER_PAGE))
         offset = (page - 1) * RESULTS_PER_PAGE
-        discount_policies = discount_policies.limit(RESULTS_PER_PAGE).offset(offset)
+        discount_policies = discount_policies[offset:RESULTS_PER_PAGE+offset]
 
         return dict(
             org=organization, title=organization.title,
             discount_policies=discount_policies,
-            total_pages=int(math.ceil(total_policies/RESULTS_PER_PAGE)),
+            total_pages=total_pages,
+            paginated=(total_policies > RESULTS_PER_PAGE),
             current_page=page
         )
     else:

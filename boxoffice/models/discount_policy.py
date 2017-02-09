@@ -36,7 +36,7 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
         db.CheckConstraint('discount_type = 0 or (discount_type = 1 and bulk_coupon_usage_limit IS NOT NULL)', 'discount_policy_bulk_coupon_usage_limit_check'))
 
     organization_id = db.Column(None, db.ForeignKey('organization.id'), nullable=False)
-    organization = db.relationship(Organization, backref=db.backref('discount_policies', cascade='all, delete-orphan'))
+    organization = db.relationship(Organization, backref=db.backref('discount_policies', order_by='DiscountPolicy.created_at.desc()', cascade='all, delete-orphan'))
     parent = db.synonym('organization')
 
     discount_type = db.Column(db.Integer, default=DISCOUNT_TYPE.AUTOMATIC, nullable=False)
