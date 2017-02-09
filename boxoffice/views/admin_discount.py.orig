@@ -60,6 +60,7 @@ def jsonify_discount_policies(data_dict):
     permission='org_admin'
     )
 @render_with({'text/html': 'index.html', 'application/json': jsonify_discount_policies}, json=True)
+<<<<<<< HEAD
 @requestargs('search', ('page', int))
 def admin_discount_policies(organization, search=None, page=1):
     RESULTS_PER_PAGE = 20
@@ -85,6 +86,12 @@ def admin_discount_policies(organization, search=None, page=1):
             paginated=(total_policies > RESULTS_PER_PAGE),
             current_page=page
         )
+=======
+@requestargs('search')
+def admin_discount_policies(organization, search=None):
+    if search:
+        discount_policies = DiscountPolicy.query.filter(DiscountPolicy.title.ilike('%{query}%'.format(query=search))).all()
+>>>>>>> upstream/admin-discount
     else:
         return dict(
             org=organization, title=organization.title

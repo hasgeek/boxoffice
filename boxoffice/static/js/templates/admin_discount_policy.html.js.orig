@@ -252,8 +252,13 @@ export const DiscountPolicyTemplate = `
                       </div>
                     {{else}}
                       <input type="hidden" name="discount_type" value=1 />
+<<<<<<< HEAD
                       <div class="group">
+                        <input type="text" name="discount_code_base" value="{{discount_code_base}}" twoway="false" class="group-input {{#discount_code_base}}filled{{/}}" />
+=======
+                      <div class="group">   
                         <input type="text" name="discount_code_base" value="{{discount_code_base}}" twoway="false" class="group-input {{#discount_code_base}}filled{{/}}" on-blur="validateCodeBase(event, 'discount_code_base', event.keypath)" />
+>>>>>>> upstream/admin-discount
                         <span class="bar"></span>
                         <label class="group-label">Discount code base</label>
                         {{#errormsg.discount_code_base}}<p class="form-error-msg">{{ errormsg.discount_code_base }}</p>{{/}}
@@ -276,8 +281,13 @@ export const DiscountPolicyTemplate = `
                     <input type="hidden" name="csrf_token" value="{{ getCsrfToken() }}" />
 
                     <div class="btn-wrapper">
-                      <button type="button" class="boxoffice-button boxoffice-button-info" on-click="hideEditPolicyForm(event)">Back</button>
+<<<<<<< HEAD
+                      <button type="button" class="boxoffice-button boxoffice-button-info" on-click="hideEditPolicy">Back</button>
+                      <button type="submit" class="boxoffice-button boxoffice-button-action" on-click="editPolicy" {{#editingPolicy}}disabled{{/}}>
+=======
+                      <button type="button" class="boxoffice-button boxoffice-button-info" on-click="hideEditPolicyForm(event)">Back</button>            
                       <button type="submit" class="boxoffice-button boxoffice-button-action" on-click="editPolicy(event)" {{#editingPolicy}}disabled{{/}}>
+>>>>>>> upstream/admin-discount
                           Update policy
                           {{#editingPolicy}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'>{{/}}
                       </button>
@@ -315,8 +325,12 @@ export const DiscountPolicyTemplate = `
                         <span class="bar"></span>
                         <label class="group-label">Discount code base</label>
                       </div>
-                      {{#errormsg.discount_code_base}}<p class="form-error-msg">{{ errormsg.discount_code_base }}</p>{{/}}
+<<<<<<< HEAD
                       <div class="group">
+=======
+                      {{#errormsg.discount_code_base}}<p class="form-error-msg">{{ errormsg.discount_code_base }}</p>{{/}}
+                      <div class="group">   
+>>>>>>> upstream/admin-discount
                         <input type="text" name="bulk_coupon_usage_limit" value="{{bulk_coupon_usage_limit}}" class="group-input {{#bulk_coupon_usage_limit}}filled{{/}}" readonly="readonly" />
                         <span class="bar"></span>
                         <label class="group-label">Number of times each bulk coupon can be used</label>

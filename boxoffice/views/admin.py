@@ -2,8 +2,9 @@
 
 from flask import g, jsonify, request
 from .. import app, lastuser
-from coaster.views import load_models, render_with
+from coaster.views import load_models, render_with, requestargs
 from boxoffice.models import Organization, ItemCollection, Item
+from utils import xhr_only
 
 
 def jsonify_dashboard(data):
@@ -43,7 +44,9 @@ def org(organization):
     (Organization, {'name': 'org'}, 'organization'),
     permission='org_admin'
     )
-def admin_items(organization):
-    query = request.args.get('search')
-    filtered_items = Item.query.filter(Item.title.ilike('%{query}%'.format(query=query))).all()
-    return jsonify(items=[{'id': str(item.id), 'title': item.title} for item in filtered_items])
+@xhr_only
+@requestargs('search')
+def admin_items(organization, search=None):
+    if search:
+        filtered_items = Item.query.filter(Item.title.ilike('%{query}%'.format(query=search))).all()
+        return jsonify(items=[{'id': str(item.id), 'title': item.title} for item in filtered_items])
