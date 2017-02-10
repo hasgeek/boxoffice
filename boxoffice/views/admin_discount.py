@@ -62,7 +62,7 @@ def jsonify_discount_policies(data_dict):
 @render_with({'text/html': 'index.html', 'application/json': jsonify_discount_policies}, json=True)
 @requestargs('search', ('page', int))
 def admin_discount_policies(organization, search=None, page=1):
-    RESULTS_PER_PAGE = 6
+    RESULTS_PER_PAGE = 20
 
     if request.is_xhr:
         discount_policies = organization.discount_policies
