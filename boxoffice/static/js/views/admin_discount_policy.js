@@ -477,11 +477,11 @@ export const DiscountPolicyView = {
         },
         oncomplete: function() {
 
-          discountPolicyComponent.observe('searchText', function(searchText) {
+          discountPolicyComponent.observe('searchText', function(searchText, prevSearchText) {
             if (searchText.length > 2) {
               discountPolicyComponent.refresh(searchText);
             }
-            else if(searchText.length === 0) {
+            else if(searchText.length === 0 && prevSearchText) {
               discountPolicyComponent.refresh();
             }
           });
