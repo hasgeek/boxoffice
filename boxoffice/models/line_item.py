@@ -8,7 +8,7 @@ from sqlalchemy.sql import select, func
 from sqlalchemy.ext.orderinglist import ordering_list
 from isoweek import Week
 from boxoffice.models import db, JsonDict, BaseMixin, Order, Item, DiscountPolicy, DISCOUNT_TYPE, DiscountCoupon, OrderSession
-from coaster.utils import LabeledEnum, isoweek_datetime, midnight_in_utc
+from coaster.utils import LabeledEnum, isoweek_datetime, midnight_to_utc
 from baseframe import __
 
 __all__ = ['LineItem', 'LINE_ITEM_STATUS', 'Assignee', 'LineItemDiscounter']
@@ -244,8 +244,8 @@ def sales_by_date(sales_datetime, item_ids):
     if not item_ids:
         return None
 
-    start_at = midnight_in_utc(sales_datetime)
-    end_at = midnight_in_utc(sales_datetime + datetime.timedelta(days=1))
+    start_at = midnight_to_utc(sales_datetime)
+    end_at = midnight_to_utc(sales_datetime + datetime.timedelta(days=1))
     sales_on_date = db.session.query('sum').from_statement('''SELECT SUM(final_amount) FROM line_item
         WHERE status=:status AND ordered_at >= :start_at AND ordered_at < :end_at
         AND line_item.item_id IN :item_ids
@@ -281,8 +281,8 @@ def calculate_weekly_sales(item_collection_ids, user_tz, year):
 
 def sales_delta(user_tz, item_ids):
     """Calculates the percentage difference in sales between today and yesterday"""
-    today = midnight_in_utc(datetime.datetime.utcnow())
-    yesterday = midnight_in_utc(datetime.datetime.utcnow() - datetime.timedelta(days=1))
+    today = midnight_to_utc(datetime.datetime.utcnow())
+    yesterday = midnight_to_utc(datetime.datetime.utcnow() - datetime.timedelta(days=1))
     today_sales = sales_by_date(today, item_ids)
     yesterday_sales = sales_by_date(yesterday, item_ids)
     if not today_sales or not yesterday_sales:
