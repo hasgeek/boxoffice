@@ -8,8 +8,7 @@ from sqlalchemy.sql import select, func
 from sqlalchemy.ext.orderinglist import ordering_list
 from isoweek import Week
 from boxoffice.models import db, JsonDict, BaseMixin, Order, Item, DiscountPolicy, DISCOUNT_TYPE, DiscountCoupon, OrderSession
-from boxoffice.views.utils import reset_time_utc, reset_time_local
-from coaster.utils import LabeledEnum
+from coaster.utils import LabeledEnum, isoweek_datetime, midnight_in_utc
 from baseframe import __
 
 __all__ = ['LineItem', 'LINE_ITEM_STATUS', 'Assignee', 'LineItemDiscounter']
@@ -245,12 +244,12 @@ def sales_by_date(sales_datetime, item_ids):
     if not item_ids:
         return None
 
-    utc_start_at = reset_time_utc(sales_datetime, datetime.datetime.min.time())
-    utc_end_at = reset_time_utc(sales_datetime, datetime.datetime.max.time())
+    start_at = midnight_in_utc(sales_datetime)
+    end_at = midnight_in_utc(sales_datetime + datetime.timedelta(days=1))
     sales_on_date = db.session.query('sum').from_statement('''SELECT SUM(final_amount) FROM line_item
-        WHERE status=:status AND ordered_at >= :start_at AND ordered_at <= :end_at
+        WHERE status=:status AND ordered_at >= :start_at AND ordered_at < :end_at
         AND line_item.item_id IN :item_ids
-        ''').params(status=LINE_ITEM_STATUS.CONFIRMED, start_at=utc_start_at, end_at=utc_end_at, item_ids=tuple(item_ids)).first()
+        ''').params(status=LINE_ITEM_STATUS.CONFIRMED, start_at=start_at, end_at=end_at, item_ids=tuple(item_ids)).first()
     return sales_on_date[0] if sales_on_date[0] else Decimal(0)
 
 
@@ -260,33 +259,30 @@ def calculate_weekly_sales(item_collection_ids, user_tz, year):
     in the user's timezone.
     """
     ordered_week_sales = OrderedDict()
-    local_start_at = reset_time_local(Week.monday(Week(year, 1)), user_tz)
-    utc_start_at = reset_time_utc(local_start_at, datetime.datetime.min.time())
     for year_week in Week.weeks_of_year(year):
         ordered_week_sales[year_week[1]] = 0
-    number_of_weeks = len(ordered_week_sales)
-    local_end_at = reset_time_local(Week.sunday(Week(year, number_of_weeks)), user_tz, time_stamp=datetime.datetime.max.time())
-    utc_end_at = reset_time_utc(local_end_at, datetime.datetime.max.time())
+    start_at = isoweek_datetime(year, 1)
+    end_at = isoweek_datetime(year+1, 1)
 
-    week_sales = db.session.query('sales_week', 'sum').from_statement(db.text('''SELECT DATE_TRUNC('week', ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone)
+    week_sales = db.session.query('sales_week', 'sum').from_statement(db.text('''SELECT EXTRACT(WEEK FROM ordered_at)
         AS sales_week, SUM(final_amount)
         FROM line_item INNER JOIN item on line_item.item_id = item.id
         WHERE status=:status AND item_collection_id IN :item_collection_ids
-        AND ordered_at >= :start_at AND ordered_at <= :end_at
+        AND ordered_at >= :start_at AND ordered_at < :end_at
         GROUP BY sales_week ORDER BY sales_week;
         ''')).params(timezone=user_tz, status=LINE_ITEM_STATUS.CONFIRMED,
-        start_at=utc_start_at, end_at=utc_end_at, item_collection_ids=tuple(item_collection_ids)).all()
+        start_at=start_at, end_at=end_at, item_collection_ids=tuple(item_collection_ids)).all()
 
     for week_sale in week_sales:
-        ordered_week_sales[Week.withdate(week_sale[0])[1]] = week_sale[1]
+        ordered_week_sales[int(week_sale[0])] = week_sale[1]
 
     return ordered_week_sales
 
 
 def sales_delta(user_tz, item_ids):
     """Calculates the percentage difference in sales between today and yesterday"""
-    today = reset_time_local(datetime.datetime.utcnow(), user_tz)
-    yesterday = reset_time_local(datetime.datetime.utcnow() - datetime.timedelta(days=1), user_tz)
+    today = midnight_in_utc(datetime.datetime.utcnow())
+    yesterday = midnight_in_utc(datetime.datetime.utcnow() - datetime.timedelta(days=1))
     today_sales = sales_by_date(today, item_ids)
     yesterday_sales = sales_by_date(yesterday, item_ids)
     if not today_sales or not yesterday_sales:

@@ -9,7 +9,6 @@ from coaster.views import load_models, render_with
 from baseframe import localize_timezone
 from boxoffice.models import db, ItemCollection, LineItem, LINE_ITEM_STATUS
 from boxoffice.models.line_item import sales_delta, sales_by_date, counts_per_date_per_item
-from boxoffice.views.utils import reset_time_local
 
 
 def jsonify_item(item):
@@ -54,7 +53,7 @@ def admin_item_collection(item_collection):
     date_item_counts = counts_per_date_per_item(item_collection, g.user.timezone)
     date_sales = {}
     for date_stamp in date_item_counts.keys():
-        sales_datetime = reset_time_local(datetime.datetime.strptime(date_stamp, '%Y-%m-%d'), g.user.timezone)
+        sales_datetime = datetime.datetime.strptime(date_stamp, '%Y-%m-%d')
         date_sales[date_stamp] = sales_by_date(sales_datetime, item_ids)
     today_sales = date_sales.get(localize_timezone(datetime.datetime.utcnow(), g.user.timezone).strftime("%Y-%m-%d"), Decimal(0)) if date_sales else Decimal(0)
     return dict(title=item_collection.organization.title, item_collection=item_collection, date_item_counts=date_item_counts,

@@ -43,23 +43,6 @@ def localize(datetime, tz):
     return utc.localize(datetime).astimezone(timezone(tz))
 
 
-def reset_time_utc(datetime_stamp, time_stamp):
-    """Takes a timezone aware datetime, resets the time to the given time and casts it into UTC"""
-    return datetime_stamp.replace(hour=time_stamp.hour, minute=time_stamp.hour, second=time_stamp.second).astimezone(utc)
-
-
-def reset_time_local(date_stamp, tzinfo, time_stamp=None):
-    """
-    Takes a date or a datetime object, a tzinfo string and a time object,
-    returns a timezone aware datetime with the time reset to the given timestamp or to a default time stamp of (0,0,0)
-    """
-    if not time_stamp:
-        # Default time stamp
-        time_stamp = datetime.datetime.min.time()
-    return localize_timezone(datetime.datetime(date_stamp.year, date_stamp.month, date_stamp.day),
-        tzinfo).replace(hour=time_stamp.hour, minute=time_stamp.hour, second=time_stamp.second)
-
-
 @app.template_filter('invoice_date')
 def invoice_date_filter(date, format):
     return localize(date, app.config['TIMEZONE']).strftime(format)
