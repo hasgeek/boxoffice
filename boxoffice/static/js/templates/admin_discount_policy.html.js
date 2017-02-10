@@ -414,17 +414,29 @@ export const DiscountPolicyTemplate = `
           <nav aria-label="Page navigation">
             <ul class="pagination">
               <li>
-                <a href="#" on-click="paginate({{#if current_page == 1}}1{{else}}{{current_page - 1}}{{/if}})" aria-label="Previous">
-                  <span aria-hidden="true">&laquo;</span>
-                </a>
+                {{#if current_page == 1}}
+                  <a href="#" on-click="paginate(event, 1)" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                  </a>
+                {{else}}
+                  <a href="#" on-click="paginate(event, current_page - 1)" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                  </a>
+                {{/if}}
               </li>
               {{#pages:index}}
-              <li><a href="#" on-click="paginate({{pages[index]}})">{{pages[index]}}</a></li>
+              <li><a href="#" on-click="paginate(event, pages[index])">{{pages[index]}}</a></li>
               {{/}}
               <li>
-                <a href="#" on-click="paginate({{#if current_page == total_pages}}{{total_pages}}{{else}}{{current_page + 1}}{{/if}})" aria-label="Next">
-                  <span aria-hidden="true">&raquo;</span>
-                </a>
+                {{#if current_page == total_pages}}
+                  <a href="#" on-click="paginate(event, total_pages)" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                  </a>
+                {{else}}
+                  <a href="#" on-click="paginate(event, current_page + 1)" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                  </a>
+                {{/if}}
               </li>
             </ul>
           </nav>

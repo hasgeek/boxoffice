@@ -121,7 +121,8 @@ export const DiscountPolicyView = {
           }
           return pages;
         },
-        paginate: function (page) {
+        paginate: function (event, page) {
+          event.original.preventDefault();
           discountPolicyComponent.refresh('', page);
         },
         clearSearchField: function() {
@@ -484,6 +485,8 @@ export const DiscountPolicyView = {
               discountPolicyComponent.refresh();
             }
           });
+
+          discountPolicyComponent.set('pages', discountPolicyComponent.get_pages(discountPolicyComponent.get('total_pages')));
 
         }
       });
