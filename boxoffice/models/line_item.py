@@ -236,7 +236,7 @@ def counts_per_date_per_item(item_collection, user_tz):
     return date_item_counts
 
 
-def sales_by_date(sales_datetime, item_ids):
+def sales_by_date(sales_datetime, item_ids, timezone):
     """
     Takes a timezone aware datetime object, item_ids and returns the sales amount accrued
     during the day for the given datetime.
@@ -244,8 +244,8 @@ def sales_by_date(sales_datetime, item_ids):
     if not item_ids:
         return None
 
-    start_at = midnight_to_utc(sales_datetime)
-    end_at = midnight_to_utc(sales_datetime + datetime.timedelta(days=1))
+    start_at = midnight_to_utc(sales_datetime, timezone=timezone)
+    end_at = midnight_to_utc(sales_datetime + datetime.timedelta(days=1), timezone=timezone)
     sales_on_date = db.session.query('sum').from_statement('''SELECT SUM(final_amount) FROM line_item
         WHERE status=:status AND ordered_at >= :start_at AND ordered_at < :end_at
         AND line_item.item_id IN :item_ids
@@ -281,10 +281,10 @@ def calculate_weekly_sales(item_collection_ids, user_tz, year):
 
 def sales_delta(user_tz, item_ids):
     """Calculates the percentage difference in sales between today and yesterday"""
-    today = midnight_to_utc(datetime.datetime.utcnow())
-    yesterday = midnight_to_utc(datetime.datetime.utcnow() - datetime.timedelta(days=1))
-    today_sales = sales_by_date(today, item_ids)
-    yesterday_sales = sales_by_date(yesterday, item_ids)
+    today = midnight_to_utc(datetime.datetime.utcnow(), timezone=user_tz)
+    yesterday = midnight_to_utc(datetime.datetime.utcnow() - datetime.timedelta(days=1), timezone=user_tz)
+    today_sales = sales_by_date(today, item_ids, user_tz)
+    yesterday_sales = sales_by_date(yesterday, item_ids, user_tz)
     if not today_sales or not yesterday_sales:
         return 0
     return round(Decimal('100') * (today_sales - yesterday_sales)/yesterday_sales, 2)
