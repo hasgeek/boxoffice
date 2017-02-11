@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import datetime
 from pytz import utc, timezone
 from flask import request, abort, Response, jsonify, make_response
 from functools import wraps
@@ -23,24 +22,24 @@ def xhr_only(f):
     return wrapper
 
 
-def check_api_access(access_token):
-    """Aborts if a request does not have the correct access token"""
-    if not request.args.get('access_token') or request.args.get('access_token') != access_token:
+def check_api_access(api_token):
+    """Aborts if a request does not have the correct api_token"""
+    if not request.args.get('api_token') or request.args.get('api_token') != api_token:
         abort(401)
 
 
 @app.template_filter('date_time_format')
-def date_time_format(datetime):
-    return localize_timezone(datetime).strftime('%d %b %Y %H:%M:%S')
+def date_time_format(dt):
+    return localize_timezone(dt).strftime('%d %b %Y %H:%M:%S')
 
 
 @app.template_filter('date_format')
-def date_format(datetime):
-    return localize_timezone(datetime).strftime('%d %b %Y')
+def date_format(dt):
+    return localize_timezone(dt).strftime('%d %b %Y')
 
 
-def localize(datetime, tz):
-    return utc.localize(datetime).astimezone(timezone(tz))
+def localize(dt, tz):
+    return utc.localize(dt).astimezone(timezone(tz))
 
 
 @app.template_filter('invoice_date')
