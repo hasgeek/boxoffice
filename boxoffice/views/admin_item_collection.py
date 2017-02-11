@@ -50,12 +50,12 @@ def jsonify_item_collection(item_collection_dict):
 @render_with({'text/html': 'index.html', 'application/json': jsonify_item_collection}, json=True)
 def admin_item_collection(item_collection):
     item_ids = [str(item.id) for item in item_collection.items]
-    date_item_counts = counts_per_date_per_item(item_collection, g.user.timezone)
+    date_item_counts = {}
     date_sales = {}
-    for date_stamp in date_item_counts.keys():
-        sales_datetime = datetime.datetime.strptime(date_stamp, '%Y-%m-%d')
-        date_sales[date_stamp] = sales_by_date(sales_datetime, item_ids, timezone=g.user.timezone)
-    today_sales = date_sales.get(localize_timezone(datetime.datetime.utcnow(), g.user.timezone).strftime("%Y-%m-%d"), Decimal(0)) if date_sales else Decimal(0)
+    for sales_date, sales_count in counts_per_date_per_item(item_collection, g.user.timezone).items():
+        date_sales[sales_date.isoformat()] = sales_by_date(sales_date, item_ids, timezone=g.user.timezone)
+        date_item_counts[sales_date.isoformat()] = sales_count
+    today_sales = date_sales.get(localize_timezone(datetime.datetime.utcnow(), g.user.timezone).date(), Decimal(0))
     return dict(title=item_collection.organization.title, item_collection=item_collection, date_item_counts=date_item_counts,
         date_sales=date_sales, today_sales=today_sales,
         sales_delta=sales_delta(g.user.timezone, item_ids))

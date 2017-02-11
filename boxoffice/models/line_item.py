@@ -223,23 +223,24 @@ def counts_per_date_per_item(item_collection, user_tz):
     for item in item_collection.items:
         item_id = unicode(item.id)
         item_results = db.session.query('date', 'count').from_statement(
-            '''SELECT DATE_TRUNC('day', line_item.ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone)::date as date, count(line_item.id)
-            from line_item where item_id = :item_id and status = :status group by date order by date asc'''
-        ).params(timezone=user_tz, status=LINE_ITEM_STATUS.CONFIRMED, item_id=item.id)
-        for res in item_results:
-            if not date_item_counts.get(res[0].isoformat()):
+            '''SELECT DATE_TRUNC('day', line_item.ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone)::date as date, count(line_item.id) AS count
+            FROM line_item WHERE item_id = :item_id AND status = :status
+            GROUP BY date ORDER BY date ASC'''
+        ).params(timezone=user_tz, status=LINE_ITEM_STATUS.CONFIRMED, item_id=item.id).all()
+        for date_count in item_results:
+            if not date_item_counts.get(date_count.date):
                 # if this date hasn't been been mapped in date_item_counts yet
-                date_item_counts[res[0].isoformat()] = {item_id: res[1]}
+                date_item_counts[date_count.date] = {item_id: date_count.count}
             else:
                 # if it has been mapped, assign the count
-                date_item_counts[res[0].isoformat()][item_id] = res[1]
+                date_item_counts[date_count.date][item_id] = date_count.count
     return date_item_counts
 
 
 def sales_by_date(sales_datetime, item_ids, timezone):
     """
-    Takes a timezone aware datetime object, item_ids and returns the sales amount accrued
-    during the day for the given datetime.
+    Returns the sales amount accrued during the day for a given date/datetime,
+    list of item_ids and timezone.
     """
     if not item_ids:
         return None
@@ -249,8 +250,8 @@ def sales_by_date(sales_datetime, item_ids, timezone):
     sales_on_date = db.session.query('sum').from_statement('''SELECT SUM(final_amount) FROM line_item
         WHERE status=:status AND ordered_at >= :start_at AND ordered_at < :end_at
         AND line_item.item_id IN :item_ids
-        ''').params(status=LINE_ITEM_STATUS.CONFIRMED, start_at=start_at, end_at=end_at, item_ids=tuple(item_ids)).first()
-    return sales_on_date[0] if sales_on_date[0] else Decimal(0)
+        ''').params(status=LINE_ITEM_STATUS.CONFIRMED, start_at=start_at, end_at=end_at, item_ids=tuple(item_ids)).scalar()
+    return sales_on_date if sales_on_date else Decimal(0)
 
 
 def calculate_weekly_sales(item_collection_ids, user_tz, year):
@@ -260,12 +261,12 @@ def calculate_weekly_sales(item_collection_ids, user_tz, year):
     """
     ordered_week_sales = OrderedDict()
     for year_week in Week.weeks_of_year(year):
-        ordered_week_sales[year_week[1]] = 0
+        ordered_week_sales[year_week.week] = 0
     start_at = isoweek_datetime(year, 1)
-    end_at = isoweek_datetime(year+1, 1)
+    end_at = isoweek_datetime(year + 1, 1)
 
     week_sales = db.session.query('sales_week', 'sum').from_statement(db.text('''SELECT EXTRACT(WEEK FROM ordered_at)
-        AS sales_week, SUM(final_amount)
+        AS sales_week, SUM(final_amount) AS sum
         FROM line_item INNER JOIN item on line_item.item_id = item.id
         WHERE status=:status AND item_collection_id IN :item_collection_ids
         AND ordered_at >= :start_at AND ordered_at < :end_at
@@ -274,7 +275,7 @@ def calculate_weekly_sales(item_collection_ids, user_tz, year):
         start_at=start_at, end_at=end_at, item_collection_ids=tuple(item_collection_ids)).all()
 
     for week_sale in week_sales:
-        ordered_week_sales[int(week_sale[0])] = week_sale[1]
+        ordered_week_sales[int(week_sale.sales_week)] = week_sale.sum
 
     return ordered_week_sales
 
