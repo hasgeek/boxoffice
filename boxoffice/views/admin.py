@@ -59,5 +59,5 @@ def org_revenue(organization):
 
     item_collection_ids = [item_collection.id for item_collection in organization.item_collections]
     year = int(request.args.get('year'))
-    weekly_sales_nested_list = calculate_weekly_sales(item_collection_ids, user_timezone, year).items()
-    return api_success(result=weekly_sales_nested_list, doc="Revenue per week for {year}".format(year=year), status_code=200)
+    weekly_sales = calculate_weekly_sales(item_collection_ids, user_timezone, year).items()
+    return api_success(result=weekly_sales, doc="Revenue per week for {year}".format(year=year), status_code=200)
