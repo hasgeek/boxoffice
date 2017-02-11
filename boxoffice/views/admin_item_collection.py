@@ -54,7 +54,7 @@ def admin_item_collection(item_collection):
     date_sales = {}
     for date_stamp in date_item_counts.keys():
         sales_datetime = datetime.datetime.strptime(date_stamp, '%Y-%m-%d')
-        date_sales[date_stamp] = sales_by_date(sales_datetime, item_ids)
+        date_sales[date_stamp] = sales_by_date(sales_datetime, item_ids, timezone=g.user.timezone)
     today_sales = date_sales.get(localize_timezone(datetime.datetime.utcnow(), g.user.timezone).strftime("%Y-%m-%d"), Decimal(0)) if date_sales else Decimal(0)
     return dict(title=item_collection.organization.title, item_collection=item_collection, date_item_counts=date_item_counts,
         date_sales=date_sales, today_sales=today_sales,
