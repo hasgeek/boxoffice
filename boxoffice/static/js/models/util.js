@@ -38,24 +38,8 @@ export const post = function(config){
   });
 }
 
-export const getFormParameters = function(form, multiple_option_fields) {
+export const getFormParameters = function(form) {
   var form_elements = $(form).serializeArray();
-  for (var field=0; field < multiple_option_fields.length; field++) {
-    for (var form_index=0; form_index < form_elements.length; form_index++) {
-      if (form_elements[form_index].value && multiple_option_fields[field] == form_elements[form_index].name) {
-        let values = form_elements[form_index].value.split(',');
-        for (var index=0; index < values.length; index++) {
-          if(index === 0){
-            form_elements[form_index].value = values[0];
-          }
-          else {
-            form_elements.push({'name': multiple_option_fields[field], 'value': values[index]})
-          }
-        }
-        break;
-      }
-    }
-  }
   return $.param(form_elements);
 }
 

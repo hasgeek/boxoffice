@@ -341,7 +341,8 @@ a.boxoffice-button:focus {
   margin: 10px 0 0;
   padding: 5px;
   position: relative;
-  display: inline-block;
+  display: block;
+  width: 150px;
 }
 
 .form-error-msg::before {
@@ -941,5 +942,9 @@ a.boxoffice-button:focus {
 }
 
 .daterangepicker.single.ltr .ranges {
-  float: none;
+  clear: both;
+}
+
+.items-select2 {
+  width: 75%;
 }

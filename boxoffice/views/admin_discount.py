@@ -70,7 +70,7 @@ def admin_add_discount_policy(organization):
     discount_policy_form = DiscountForm()
     discount_policy_form.items.query = Item.query.all()
     if not discount_policy_form.validate_on_submit():
-        return make_response(jsonify(status='error', error='invalid_details', error_description='Invalid details'), 400)
+        return make_response(jsonify(status='error', error='invalid_details', error_description=discount_policy_form.errors), 400)
     discount_policy = DiscountPolicy(title=discount_policy_form.title.data, organization=organization)
     discount_policy_form.populate_obj(discount_policy)
     items = request.form.getlist('items')
@@ -102,7 +102,7 @@ def admin_edit_discount_policy(discount_policy):
     discount_policy_form = DiscountForm()
     discount_policy_form.items.query = Item.query.all()
     if not discount_policy_form.validate_on_submit():
-        return make_response(jsonify(status='error', error='invalid_details', error_description='Invalid details'), 400)
+        return make_response(jsonify(status='error', error='invalid_details', error_description=discount_policy_form.errors), 400)
     if not discount_policy_form.discount_type.data:
         discount_policy_form.discount_code_base.data = None
     discount_policy_form.populate_obj(discount_policy)
@@ -133,7 +133,7 @@ def admin_create_coupon(discount_policy):
     coupon_form = DiscountCouponForm()
     coupons = []
     if not coupon_form.validate_on_submit():
-        return make_response(jsonify(status='error', error='invalid_details', error_description='Invalid details'), 400)
+        return make_response(jsonify(status='error', error='invalid_details', error_description=coupon_form.errors), 400)
     if coupon_form.count.data > 1:
         for x in range(coupon_form.count.data):
             if not discount_policy.secret:
@@ -173,4 +173,6 @@ def admin_discount_coupons(discount_policy):
 def admin_discount_policy(discount_code_base):
     discount_policy = DiscountPolicy.query.filter_by(discount_code_base=discount_code_base).first()
     if discount_policy:
-        return jsonify(status='ok', result={'message': 'Please specify a different discount code base'})
+        return make_response(jsonify(status='error', error='invalid_details', error_description='Please specify a different discount code base'), 400)
+    else:
+        return jsonify(status='ok')
