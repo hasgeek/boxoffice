@@ -282,8 +282,9 @@ def calculate_weekly_sales(item_collection_ids, user_tz, year):
 
 def sales_delta(user_tz, item_ids):
     """Calculates the percentage difference in sales between today and yesterday"""
-    today = midnight_to_utc(datetime.datetime.utcnow(), timezone=user_tz)
-    yesterday = midnight_to_utc(datetime.datetime.utcnow() - datetime.timedelta(days=1), timezone=user_tz)
+    now = datetime.datetime.utcnow()
+    today = midnight_to_utc(now, timezone=user_tz)
+    yesterday = midnight_to_utc(now - datetime.timedelta(days=1), timezone=user_tz)
     today_sales = sales_by_date(today, item_ids, user_tz)
     yesterday_sales = sales_by_date(yesterday, item_ids, user_tz)
     if not today_sales or not yesterday_sales:
