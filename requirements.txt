@@ -19,3 +19,4 @@ python-dateutil
 tabulate
 Flask-Admin
 unicodecsv
+isoweek
