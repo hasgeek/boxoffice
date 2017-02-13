@@ -102,7 +102,7 @@ body {
   border-width: 0px 0px 3px;
   border-style: solid;
   border-radius: 5px;
-  padding: 6px;
+  padding: 6px 12px;
   color: #FFF;
   font-size: 13px;
 }
@@ -272,12 +272,18 @@ a.boxoffice-button:focus {
 }
 
 .inline-group .input-group {
-  width: 30%;
-  margin: 0 3% 0 0;
+  width: 48%;
+  margin: 0 2% 2% 0;
   float: left;
   position: relative;
 }
 
+@media (min-width: 768px) {
+  .inline-group .input-group {
+    width: 30%;
+    margin: 0 3% 0 0;
+  }
+}
 .group-checkbox {
   width: auto;
   padding: 0;
@@ -874,55 +880,6 @@ a.boxoffice-button:focus {
   border-color: #888;
 }
 
-.order-slider {
-  position: absolute;
-  top: -115px;
-  left: 3%;
-  background: #fff;
-  z-index: 1020;
-  width: 97%;
-  box-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
-  min-height: 100vh;
-}
-
-@media (min-width: 768px) {
-  .order-slider {
-    top: -50px;
-    left: 1%;
-    width: 99%;
-  }
-}
-.order-title {
-  padding: 10px 0;
-  font-size: 18px;
-  text-align: center;
-  border-bottom: 2px solid #ddd;
-  margin: 0;
-}
-
-.line-items-wrapper {
-  padding: 30px;
-}
-
-.close-button {
-  position: absolute;
-  top: -15px;
-  left: -5px;
-  background: #fff;
-  border: 2px solid #999;
-  font-size: 18px;
-  border-radius: 50%;
-  color: #000;
-  background: #eee;
-  width: 30px;
-  height: 30px;
-}
-
-.close-button .fa {
-  position: relative;
-  top: -1px;
-}
-
 .policies-wrapper {
   clear: both;
   position: relative;
@@ -946,6 +903,12 @@ a.boxoffice-button:focus {
 }
 
 .items-select2 {
-  width: 75%;
-  max-width: 300px;
+  width: 90%;
+}
+
+@media (min-width: 768px) {
+  .items-select2 {
+    width: 75%;
+    max-width: 300px;
+  }
 }

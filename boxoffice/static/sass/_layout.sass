@@ -84,7 +84,7 @@ body
   border-width: 0px 0px 3px
   border-style: solid
   border-radius: 5px
-  padding: 6px
+  padding: 6px 12px
   color: $color-btn-text
   font-size: 13px
 
@@ -228,10 +228,15 @@ a.boxoffice-button:focus
 
 
 .inline-group .input-group
-  width: 30%
-  margin: 0 3% 0 0
+  width: 48%
+  margin: 0 2% 2% 0
   float: left
   position: relative
+
+@media (min-width: 768px)
+  .inline-group .input-group
+    width: 30%
+    margin: 0 3% 0 0
 
 .group-checkbox
   width: auto

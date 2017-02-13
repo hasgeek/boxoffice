@@ -129,6 +129,7 @@ export const DiscountPolicyView = {
           discountPolicyComponent.set('searchText', "");
         },
         addFormFields: function(isPriceBased, discountPolicy) {
+          console.log("addFormFields", isPriceBased, discountPolicy);
           if (isPriceBased) {
             let addItemSelector;
             let startDateSelector;
@@ -186,7 +187,7 @@ export const DiscountPolicyView = {
               timePicker24Hour: true,
               opens: 'left',
               locale: {
-                format: 'DD MM YYYY H:mm:ss'
+                format: 'D MMM YYYY H:mm:ss'
               }
             });
 
@@ -198,7 +199,7 @@ export const DiscountPolicyView = {
               timePicker24Hour: true,
               opens: 'left',
               locale: {
-                format: 'DD MM YYYY H:mm:ss'
+                format: 'D MMM YYYY H:mm:ss'
               }
             });
           }
@@ -276,8 +277,8 @@ export const DiscountPolicyView = {
                 data: DiscountPolicyModel.getFormParameters(formSelector)
               }).done((remoteData) => {
                 discountPolicyComponent.set('discountPolicies', [remoteData.result.discount_policy]);
-                discountPolicyComponent.set('newDiscountPolicy.creatingPolicy', false);
                 discountPolicyComponent.set('searchText', discountPolicyComponent.get('newDiscountPolicy.title'));
+                discountPolicyComponent.set('newDiscountPolicy.creatingPolicy', false);
                 discountPolicyComponent.hideNewPolicyForm();
                 discountPolicyComponent.set('newDiscountPolicy', '');
               }).fail(function(response) {

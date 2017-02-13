@@ -23,11 +23,9 @@ class DiscountForm(forms.Form):
     start_at = forms.DateTimeField(__("Price start date"), format='%d %m %Y %H:%M:%S', timezone=lambda: g.user.timezone if g.user else None, validators=[forms.validators.OptionalIfNot('is_price_based', (u"Please specify start date for the price"))])
     end_at = forms.DateTimeField(__("Price end date"), format='%d %m %Y %H:%M:%S', timezone=lambda: g.user.timezone if g.user else None, validators=[forms.validators.OptionalIfNot('is_price_based', (u"Please specify end date for the price"))])
     items = QuerySelectMultipleField(__("Items"), get_label='title', query_factory=lambda: [], validators=[forms.validators.DataRequired((u"Please select a item to which discount is to be applied"))])
-    id = forms.StringField(__("id"), validators=[forms.validators.Optional()])
 
     def validate_discount_code_base(self, field):
-        discount_policy = DiscountPolicy.query.filter_by(discount_code_base=field.data).first()
-        if discount_policy and discount_policy != DiscountPolicy.query.filter_by(id=self.id.data).first():
+        if DiscountPolicy.query.filter_by(discount_code_base=field.data).first():
             raise forms.ValidationError((u"Please specify a different discount code base"))
 
     def validate_end_at(self, field):

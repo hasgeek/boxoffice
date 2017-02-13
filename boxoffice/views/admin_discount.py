@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 from __future__ import division
 import math
 from flask import jsonify, make_response, request
@@ -73,7 +74,7 @@ def admin_discount_policies(organization, search=None, page=1):
             )
 
         total_policies = discount_policies.count()
-        total_pages = int(math.ceil(total_policies/RESULTS_PER_PAGE))
+        total_pages = int(math.ceil(total_policies / RESULTS_PER_PAGE))
         offset = (page - 1) * RESULTS_PER_PAGE
 
         discount_policies = discount_policies.limit(RESULTS_PER_PAGE).offset(offset).all()
