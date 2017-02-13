@@ -17,7 +17,7 @@ export const DiscountPolicyView = {
 
     DiscountPolicyModel.fetch({
       url: url
-    }).done(({org_name, title, discount_policies}) => {
+    }).done(({org_name, title, discount_policies, total_pages, paginated, current_page}) => {
       // Initial render
       let discountPolicyComponent = new Ractive({
         el: '#main-content-area',
@@ -26,6 +26,9 @@ export const DiscountPolicyView = {
           org: org_name,
           title: title,
           discountPolicies: discount_policies,
+          paginated: paginated,
+          total_pages: total_pages,
+          current_page: current_page,
           items: '',
           showAddPolicyForm: false,
           newDiscountPolicy: '',
@@ -94,8 +97,7 @@ export const DiscountPolicyView = {
           let url;
           if (search) {
             url = DiscountPolicyModel.urlFor('search', {org_name, search, page})['path'];
-          }
-          else {
+          } else {
             url = DiscountPolicyModel.urlFor('index', {org_name, page})['path'];
           }
           NProgress.start();
@@ -103,10 +105,25 @@ export const DiscountPolicyView = {
             url: url
           }).done((remoteData) => {
             discountPolicyComponent.set('discountPolicies', remoteData.discount_policies);
+            discountPolicyComponent.set('paginated', remoteData.paginated);
+            discountPolicyComponent.set('total_pages', remoteData.total_pages);
+            discountPolicyComponent.set('current_page', remoteData.current_page);
+            discountPolicyComponent.set('pages', discountPolicyComponent.get_pages(remoteData.total_pages));
             NProgress.done();
           });
           window.history.replaceState({reloadOnPop: true}, '', window.location.href);
           window.history.pushState({reloadOnPop: true}, '', url);
+        },
+        get_pages: function (total_pages) {
+          var pages = [];
+          for (var i=1; i<= total_pages; i++) {
+            pages.push(i);
+          }
+          return pages;
+        },
+        paginate: function (event, page) {
+          event.original.preventDefault();
+          discountPolicyComponent.refresh('', page);
         },
         clearSearchField: function() {
           discountPolicyComponent.set('searchText', '');
@@ -197,7 +214,7 @@ export const DiscountPolicyView = {
             else {
               addItemsSelector = "#add-items";
             }
-            
+
             $(addItemsSelector).select2({
               placeholder: "Search tickets",
               minimumInputLength: 3,
@@ -213,7 +230,7 @@ export const DiscountPolicyView = {
                 },
                 results: function (data) {
                   return {
-                    results: data.items 
+                    results: data.items
                   };
                 },
                 cache: true
@@ -301,7 +318,7 @@ export const DiscountPolicyView = {
         },
         hideNewPolicyForm: function(event) {
           discountPolicyComponent.set('showAddPolicyForm', false);
-        },     
+        },
         showEditPolicyForm: function(event) {
           let discountPolicy = event.keypath;
           discountPolicyComponent.set(discountPolicy + '.hideEditBtn', true);
@@ -341,6 +358,7 @@ export const DiscountPolicyView = {
                 else {
                   errorMsg = JSON.parse(response.responseText).error_description;
                 }
+
                 if (response.readyState === 0) {
                   errorMsg = "Unable to connect. Please try again."
                 }
@@ -415,7 +433,7 @@ export const DiscountPolicyView = {
                 }
                 discountPolicyComponent.set(discountPolicy + '.generatingCoupon', false);
                 discountPolicyComponent.set(discountPolicy + '.generateCouponErrorMsg', errorMsg);
-              });            
+              });
             }
           });
           formValidator.setMessage('required', 'Please fill out the this field');
@@ -467,6 +485,8 @@ export const DiscountPolicyView = {
               discountPolicyComponent.refresh();
             }
           });
+
+          discountPolicyComponent.set('pages', discountPolicyComponent.get_pages(discountPolicyComponent.get('total_pages')));
 
         }
       });
