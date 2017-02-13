@@ -17,7 +17,7 @@ export const DiscountPolicyView = {
 
     DiscountPolicyModel.fetch({
       url: url
-    }).done(({org_name, title, discount_policies}) => {
+    }).done(({org_name, title, discount_policies, total_pages, paginated, current_page}) => {
       // Initial render
       let discountPolicyComponent = new Ractive({
         el: '#main-content-area',
@@ -26,6 +26,9 @@ export const DiscountPolicyView = {
           org: org_name,
           title: title,
           discountPolicies: discount_policies,
+          paginated: paginated,
+          totalPages: total_pages,
+          currentPage: current_page,
           items: '',
           showAddPolicyForm: false,
           newDiscountPolicy: '',
@@ -94,8 +97,7 @@ export const DiscountPolicyView = {
           let url;
           if (search) {
             url = DiscountPolicyModel.urlFor('search', {org_name, search, page})['path'];
-          }
-          else {
+          } else {
             url = DiscountPolicyModel.urlFor('index', {org_name, page})['path'];
           }
           NProgress.start();
@@ -103,10 +105,25 @@ export const DiscountPolicyView = {
             url: url
           }).done((remoteData) => {
             discountPolicyComponent.set('discountPolicies', remoteData.discount_policies);
+            discountPolicyComponent.set('paginated', remoteData.paginated);
+            discountPolicyComponent.set('totalPages', remoteData.total_pages);
+            discountPolicyComponent.set('currentPage', remoteData.current_page);
+            discountPolicyComponent.set('pages', discountPolicyComponent.get_pages(remoteData.total_pages));
             NProgress.done();
           });
           window.history.replaceState({reloadOnPop: true}, '', window.location.href);
           window.history.pushState({reloadOnPop: true}, '', url);
+        },
+        get_pages: function (totalPages) {
+          var pages = [];
+          for (var i=1; i<= totalPages; i++) {
+            pages.push(i);
+          }
+          return pages;
+        },
+        paginate: function (event, page) {
+          event.original.preventDefault();
+          discountPolicyComponent.refresh('', page);
         },
         clearSearchField: function() {
           discountPolicyComponent.set('searchText', "");
@@ -195,7 +212,7 @@ export const DiscountPolicyView = {
             else {
               addItemsSelector = "#add-items";
             }
-            
+
             $(addItemsSelector).select2({
               minimumInputLength: 3,
               multiple: true,
@@ -306,7 +323,7 @@ export const DiscountPolicyView = {
         },
         hideNewPolicyForm: function(event) {
           discountPolicyComponent.set('showAddPolicyForm', false);
-        },     
+        },
         showEditPolicyForm: function(event) {
           let discountPolicy = event.keypath;
           discountPolicyComponent.set(discountPolicy + '.hideEditBtn', true);
@@ -349,6 +366,7 @@ export const DiscountPolicyView = {
                     errorMsg += '<p>' + errorDescription[error] + '</p>';
                   }
                 }
+
                 if (response.readyState === 0) {
                   errorMsg = "Unable to connect. Please try again."
                 }
@@ -426,7 +444,7 @@ export const DiscountPolicyView = {
                 }
                 discountPolicyComponent.set(discountPolicy + '.generatingCoupon', false);
                 discountPolicyComponent.set(discountPolicy + '.generateCouponErrorMsg', errorMsg);
-              });            
+              });
             }
           });
           formValidator.setMessage('required', 'Please fill out the this field');
@@ -475,6 +493,8 @@ export const DiscountPolicyView = {
               discountPolicyComponent.refresh();
             }
           });
+
+          discountPolicyComponent.set('pages', discountPolicyComponent.get_pages(discountPolicyComponent.get('totalPages')));
 
         }
       });

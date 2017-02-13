@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-
+from __future__ import division
+import math
 from flask import jsonify, make_response, request
 from .. import app, lastuser
 from coaster.views import load_models, render_with, requestargs
@@ -11,12 +12,15 @@ from utils import xhr_only, date_time_format
 
 
 def jsonify_price(price):
-    return {
-        'price_title': price.title,
-        'amount': price.amount,
-        'start_at': date_time_format(price.start_at),
-        'end_at': date_time_format(price.end_at)
-    }
+    if price:
+        return {
+            'price_title': price.title,
+            'amount': price.amount,
+            'start_at': date_time_format(price.start_at),
+            'end_at': date_time_format(price.end_at)
+        }
+    else:
+        return None
 
 
 def jsonify_discount_policy(policy):
@@ -40,7 +44,13 @@ def jsonify_discount_policies(data_dict):
     discount_policies_list = []
     for policy in data_dict['discount_policies']:
         discount_policies_list.append(jsonify_discount_policy(policy))
-    return jsonify(org_name=data_dict['org'].name, title=data_dict['org'].title, discount_policies=discount_policies_list)
+    return jsonify(
+        org_name=data_dict['org'].name, title=data_dict['org'].title,
+        discount_policies=discount_policies_list,
+        total_pages=data_dict['total_pages'],
+        paginated=data_dict['total_pages'] > 1,
+        current_page=data_dict['current_page']
+    )
 
 
 @app.route('/admin/o/<org>/discount_policy')
@@ -50,13 +60,35 @@ def jsonify_discount_policies(data_dict):
     permission='org_admin'
     )
 @render_with({'text/html': 'index.html', 'application/json': jsonify_discount_policies}, json=True)
-@requestargs('search')
-def admin_discount_policies(organization, search=None):
-    if search:
-        discount_policies = DiscountPolicy.query.filter(DiscountPolicy.title.ilike('%{query}%'.format(query=search))).all()
+@requestargs('search', ('page', int))
+def admin_discount_policies(organization, search=None, page=1):
+    RESULTS_PER_PAGE = 5
+
+    if request.is_xhr:
+        discount_policies = organization.discount_policies
+
+        if search:
+            discount_policies = discount_policies.filter(
+                DiscountPolicy.title.ilike('%{query}%'.format(query=search))
+            )
+
+        total_policies = discount_policies.count()
+        total_pages = int(math.ceil(total_policies/RESULTS_PER_PAGE))
+        offset = (page - 1) * RESULTS_PER_PAGE
+
+        discount_policies = discount_policies.limit(RESULTS_PER_PAGE).offset(offset).all()
+
+        return dict(
+            org=organization, title=organization.title,
+            discount_policies=discount_policies,
+            total_pages=total_pages,
+            paginated=(total_policies > RESULTS_PER_PAGE),
+            current_page=page
+        )
     else:
-        discount_policies = DiscountPolicy.query.filter(DiscountPolicy.organization == organization).order_by('created_at desc').all()
-    return dict(org=organization, title=organization.title, discount_policies=discount_policies)
+        return dict(
+            org=organization, title=organization.title
+        )
 
 
 @app.route('/admin/o/<org>/discount_policy/new', methods=['OPTIONS', 'POST'])

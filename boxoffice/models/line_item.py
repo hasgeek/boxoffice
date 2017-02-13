@@ -222,8 +222,8 @@ def counts_per_date_per_item(item_collection, user_tz):
     for item in item_collection.items:
         item_id = unicode(item.id)
         item_results = db.session.query('date', 'count').from_statement(
-            '''SELECT DATE_TRUNC('day', line_item.ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone)::date as date, count(line_item.id)
-            from line_item where item_id = :item_id and status = :status group by date order by date asc'''
+            db.text('''SELECT DATE_TRUNC('day', line_item.ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone)::date as date, count(line_item.id)
+            from line_item where item_id = :item_id and status = :status group by date order by date asc''')
         ).params(timezone=user_tz, status=LINE_ITEM_STATUS.CONFIRMED, item_id=item.id)
         for res in item_results:
             if not date_item_counts.get(res[0].isoformat()):
@@ -247,10 +247,9 @@ def sales_by_date(dates, user_tz, item_ids):
     date_sales = {}
 
     for sales_date in dates:
-        sales_on_date = db.session.query('sum').from_statement('''SELECT SUM(final_amount) FROM line_item
+        sales_on_date = db.session.query('sum').from_statement(db.text('''SELECT SUM(final_amount) FROM line_item
             WHERE status=:status AND DATE_TRUNC('day', line_item.ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone)::date = :sales_date
-            AND line_item.item_id IN :item_ids
-            ''').params(timezone=user_tz, status=LINE_ITEM_STATUS.CONFIRMED, sales_date=sales_date, item_ids=tuple(item_ids)).first()
+            AND line_item.item_id IN :item_ids''')).params(timezone=user_tz, status=LINE_ITEM_STATUS.CONFIRMED, sales_date=sales_date, item_ids=tuple(item_ids)).first()
         date_sales[sales_date] = sales_on_date[0] if sales_on_date[0] else Decimal(0)
     return date_sales
 

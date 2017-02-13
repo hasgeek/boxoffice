@@ -14,8 +14,8 @@ export const DiscountPolicyTemplate = `
         <button on-click="hideNewPolicyForm(event)" class="close-button"><i class="fa fa-close"></i></button>
         <p class="content-slider-title">Add a new discount policy</p>
         <div class="content-slider-wrapper">
-          <form role="form" id="new-policy-form" name="adding-new-policy-form"> 
-            <div class="group">   
+          <form role="form" id="new-policy-form" name="adding-new-policy-form">
+            <div class="group">
               <input type="text" name="title" value="{{newDiscountPolicy.title}}" class="group-input {{#newDiscountPolicy.title}}filled{{/}}" />
               <span class="bar"></span>
               <label class="group-label">Title</label>
@@ -174,7 +174,7 @@ export const DiscountPolicyTemplate = `
                   {{/if}}
 
                   {{#if dp_items}}
-                    <p class="content-details"><b>This discount policy applies:</b></p>                   
+                    <p class="content-details"><b>This discount policy applies:</b></p>
                     <ol class="content-list">
                       {{#dp_items:item}}
                         <li class="content-details">{{ dp_items[item].title }}</li>
@@ -217,18 +217,19 @@ export const DiscountPolicyTemplate = `
                           <label class="group-label">Amount</label>
                           {{#errormsg.amount}}<p class="form-error-msg">{{ errormsg.amount }}</p>{{/}}
                         </div>
-                        <div class="group">   
+                        <div class="group">
                           <p class="field-title filled">Price start date</p>
                           <input type="text" name="start_at" value="{{ start_at }}" twoway="false" class="group-input date" id="start-date-{{ id }}" />
                           <i class="fa fa-calendar calendar-icon"></i>
                           {{#errormsg.start_at}}<p class="form-error-msg">{{ errormsg.start_at }}</p>{{/}}
                         </div>
-                        <div class="group">   
+                        <div class="group">
                           <p class="field-title filled">Price end date</p>
                           <input type="text" name="end_at" value="{{ end_at }}" twoway="false" class="group-input date" id="end-date-{{ id }}" />
                           <i class="fa fa-calendar calendar-icon"></i>
                           {{#errormsg.end_at}}<p class="form-error-msg">{{ errormsg.end_at }}</p>{{/}}
                         </div>
+
                       {{/}}
                     {{else}}
                       <input type="hidden" name="is_price_based" value=0 />
@@ -238,6 +239,7 @@ export const DiscountPolicyTemplate = `
                         <label class="group-label">Percentage</label>
                         {{#errormsg.percentage}}<p class="form-error-msg">{{ errormsg.percentage }}</p>{{/}}
                       </div>
+
                     {{/if}}
 
                     {{#if discount_type == "Automatic"}}
@@ -262,7 +264,7 @@ export const DiscountPolicyTemplate = `
                         <span class="bar"></span>
                         <label class="group-label">Number of times each bulk coupon can be used</label>
                         {{#errormsg.bulk_coupon_usage_limit}}<p class="form-error-msg">{{ errormsg.item_quantity_min }}</p>{{/}}
-                      </div>                 
+                      </div>
                     {{/if}}
 
                     <p class="field-title filled">What is the discount for?</p>
@@ -278,7 +280,7 @@ export const DiscountPolicyTemplate = `
                     <input type="hidden" name="csrf_token" value="{{ getCsrfToken() }}" />
 
                     <div class="btn-wrapper">
-                      <button type="button" class="boxoffice-button boxoffice-button-info" on-click="hideEditPolicyForm(event)">Back</button>            
+                      <button type="button" class="boxoffice-button boxoffice-button-info" on-click="hideEditPolicyForm(event)">Back</button>
                       <button type="submit" class="boxoffice-button boxoffice-button-action" on-click="editPolicy(event)" {{#editingPolicy}}disabled{{/}}>
                           Update policy
                           {{#editingPolicy}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'>{{/}}
@@ -305,8 +307,7 @@ export const DiscountPolicyTemplate = `
                         <label class="group-label">What coupon code?</label>
                       </div>
                       <p class="form-help-text">Eg: Hasjob</p>
-
-                      <div class="group">   
+                      <div class="group">
                         <input type="number" name="usage_limit" value="1" class="group-input filled" />
                         <span class="bar"></span>
                         <label class="group-label">How many times can each coupon be used?</label>
@@ -412,6 +413,39 @@ export const DiscountPolicyTemplate = `
 
           </div>
         {{/}}
+        {{#if paginated}}
+        <div class="text-center">
+          <nav aria-label="Page navigation">
+            <ul class="pagination">
+              <li>
+                {{#if currentPage == 1}}
+                  <a href="#" on-click="paginate(event, 1)" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                  </a>
+                {{else}}
+                  <a href="#" on-click="paginate(event, currentPage - 1)" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                  </a>
+                {{/if}}
+              </li>
+              {{#pages:index}}
+              <li {{#if currentPage == pages[index]}}class="active"{{/if}} ><a href="#" on-click="paginate(event, pages[index])">{{pages[index]}}</a></li>
+              {{/}}
+              <li>
+                {{#if currentPage == totalPages}}
+                  <a href="#" on-click="paginate(event, totalPages)" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                  </a>
+                {{else}}
+                  <a href="#" on-click="paginate(event, currentPage + 1)" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                  </a>
+                {{/if}}
+              </li>
+            </ul>
+          </nav>
+        </div>
+        {{/if}}
       </div>
     {{else}}
       <p class="text-center">Currently no discount policies.</p>
