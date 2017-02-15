@@ -268,10 +268,10 @@ def calculate_weekly_sales(item_collection_ids, user_tz, year):
     week_sales = db.session.query('sales_week', 'sum').from_statement(db.text('''SELECT EXTRACT(WEEK FROM ordered_at)
         AS sales_week, SUM(final_amount) AS sum
         FROM line_item INNER JOIN item on line_item.item_id = item.id
-        WHERE status=:status AND item_collection_id IN :item_collection_ids
+        WHERE status IN :statuses AND item_collection_id IN :item_collection_ids
         AND ordered_at >= :start_at AND ordered_at < :end_at
         GROUP BY sales_week ORDER BY sales_week;
-        ''')).params(timezone=user_tz, status=LINE_ITEM_STATUS.CONFIRMED,
+        ''')).params(timezone=user_tz, statuses=tuple([LINE_ITEM_STATUS.CONFIRMED, LINE_ITEM_STATUS.CANCELLED]),
         start_at=start_at, end_at=end_at, item_collection_ids=tuple(item_collection_ids)).all()
 
     for week_sale in week_sales:
