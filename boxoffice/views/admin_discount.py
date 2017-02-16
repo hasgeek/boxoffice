@@ -9,7 +9,7 @@ from coaster.utils import buid
 from ..models import db
 from boxoffice.models import Organization, DiscountPolicy, DiscountCoupon, Item, Price, CURRENCY_SYMBOL
 from ..forms import DiscountForm, DiscountCouponForm
-from utils import xhr_only, date_time_format
+from utils import xhr_only, date_time_format, api_error, api_success
 
 
 def jsonify_price(price):
@@ -63,7 +63,7 @@ def jsonify_discount_policies(data_dict):
 @render_with({'text/html': 'index.html', 'application/json': jsonify_discount_policies}, json=True)
 @requestargs('search', ('page', int))
 def admin_discount_policies(organization, search=None, page=1):
-    RESULTS_PER_PAGE = 20
+    results_per_page = 20
 
     if request.is_xhr:
         discount_policies = organization.discount_policies
@@ -74,16 +74,16 @@ def admin_discount_policies(organization, search=None, page=1):
             )
 
         total_policies = discount_policies.count()
-        total_pages = int(math.ceil(total_policies / RESULTS_PER_PAGE))
-        offset = (page - 1) * RESULTS_PER_PAGE
+        total_pages = int(math.ceil(total_policies / results_per_page))
+        offset = (page - 1) * results_per_page
 
-        discount_policies = discount_policies.limit(RESULTS_PER_PAGE).offset(offset).all()
+        discount_policies = discount_policies.limit(results_per_page).offset(offset).all()
 
         return dict(
             org=organization, title=organization.title,
             discount_policies=discount_policies,
             total_pages=total_pages,
-            paginated=(total_policies > RESULTS_PER_PAGE),
+            paginated=(total_policies > results_per_page),
             current_page=page
         )
     else:
@@ -166,22 +166,28 @@ def admin_create_coupon(discount_policy):
     coupon_form = DiscountCouponForm()
     coupons = []
     if not coupon_form.validate_on_submit():
-        return make_response(jsonify(status='error', error='invalid_details', error_description=coupon_form.errors), 400)
+        return api_error(coupon_form.errors, 400)
     if coupon_form.count.data > 1:
+        # Create a signed discount coupon code
+        if not discount_policy.secret:
+            discount_policy.set_secret()
         for x in range(coupon_form.count.data):
-            if not discount_policy.secret:
-                discount_policy.secret = buid()
-            coupon = discount_policy.gen_signed_code()
-            coupons.append({'code': coupon})
+            coupons.append(discount_policy.gen_signed_code())
     else:
-            if coupon_form.coupon_code.data:
-                coupon = DiscountCoupon(discount_policy=discount_policy, usage_limit=coupon_form.usage_limit.data, code=coupon_form.coupon_code.data)
-            else:
-                coupon = DiscountCoupon(discount_policy=discount_policy, usage_limit=coupon_form.usage_limit.data)
-            db.session.add(coupon)
-            db.session.commit()
-            coupons.append({'code': coupon.code, 'usage_limit': coupon.usage_limit})
-    return make_response(jsonify(status='ok', result={'message': 'Discount coupon created', 'coupons': coupons}), 201)
+        # Create a new discount coupon
+        if coupon_form.coupon_code.data:
+            # Custom discount code
+            coupon = DiscountCoupon(discount_policy=discount_policy,
+                usage_limit=coupon_form.usage_limit.data,
+                code=coupon_form.coupon_code.data)
+        else:
+            # Randomly generated discount code
+            coupon = DiscountCoupon(discount_policy=discount_policy,
+                usage_limit=coupon_form.usage_limit.data)
+        db.session.add(coupon)
+        db.session.commit()
+        coupons.append(coupon.code)
+    return api_success({'coupons': coupons}, 'Discount coupon created', 201)
 
 
 @app.route('/admin/discount_policy/<discount_policy_id>/coupons')
