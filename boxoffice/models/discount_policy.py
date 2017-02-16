@@ -95,6 +95,11 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
         except BadSignature:
             return None
 
+    def set_secret(self, secret):
+        """Sets a given value or buid as the secret for the discount policy object"""
+        self.secret = secret if secret else buid()
+        return self.secret
+
     @classmethod
     def make_bulk(cls, discount_code_base, **kwargs):
         """
