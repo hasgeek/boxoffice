@@ -1,16 +1,17 @@
-import {fetch, post, convertFormToJSON} from './util.js';
+import {fetch, post, getFormParameters, scrollToElement} from './util.js';
 import {IndexModel} from './index.js';
 
 export const DiscountPolicyModel = {
   fetch: fetch,
   post: post,
-  convertFormToJSON: convertFormToJSON,
+  getFormParameters: getFormParameters,
+  scrollToElement: scrollToElement,
   urlFor: function(action, {org_name, search, page, discount_policy_id}={}){
-    let base_url = `${IndexModel.urlFor('index')['path']}o/${org_name}/discount_policies`;
+    let base_url = `${IndexModel.urlFor('index')['path']}o/${org_name}/discount_policy`;
     let urls = {
       'index': {
         'path': page ? `${base_url}?page=${page}` : base_url,
-        'relative_path': `o/${org_name}/discount_policies`,
+        'relative_path': `o/${org_name}/discount_policy`,
         'method': 'GET'
       },
       'search': {
@@ -32,6 +33,10 @@ export const DiscountPolicyModel = {
       'list_coupons': {
         'path': `${IndexModel.urlFor('index')['path']}discount_policy/${discount_policy_id}/coupons`,
         'method': 'POST'
+      },
+      'lookup': {
+        'path': `${IndexModel.urlFor('index')['path']}discount_policy`,
+        'method': 'GET'
       }
     }
     return urls[action];

@@ -1,16 +1,19 @@
 # -*- coding: utf-8 -*-
 
 from pytz import utc, timezone
-from flask import request, abort
+from flask import request, abort, Response, jsonify, make_response
 from functools import wraps
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from StringIO import StringIO
+import unicodecsv
 from baseframe import localize_timezone
 from boxoffice import app
 
 
 def xhr_only(f):
-    """
-    Aborts if a request does not have the XMLHttpRequest header set
-    """
+    """Aborts if a request does not have the XMLHttpRequest header set"""
     @wraps(f)
     def wrapper(*args, **kwargs):
         if request.method != 'OPTIONS' and not request.is_xhr:
@@ -19,18 +22,24 @@ def xhr_only(f):
     return wrapper
 
 
+def check_api_access(api_token):
+    """Aborts if a request does not have the correct api_token"""
+    if not request.args.get('api_token') or request.args.get('api_token') != api_token:
+        abort(401)
+
+
 @app.template_filter('date_time_format')
-def date_time_format(datetime):
-    return localize_timezone(datetime).strftime('%d %m %Y %H:%M:%S')
+def date_time_format(dt):
+    return localize_timezone(dt).strftime('%d %b %Y %H:%M:%S')
 
 
 @app.template_filter('date_format')
-def date_format(datetime):
-    return localize_timezone(datetime).strftime('%d %b %Y')
+def date_format(dt):
+    return localize_timezone(dt).strftime('%d %b %Y')
 
 
-def localize(datetime, tz):
-    return utc.localize(datetime).astimezone(timezone(tz))
+def localize(dt, tz):
+    return utc.localize(dt).astimezone(timezone(tz))
 
 
 @app.template_filter('invoice_date')
@@ -69,3 +78,42 @@ def cors(f):
         return add_headers(resp, origin)
 
     return wrapper
+
+
+def csv_response(headers, rows, row_handler=None):
+    """
+    Returns a response, with mimetype set to text/csv,
+    given a list of headers and a two-dimensional list of rows
+
+    Accepts an optional row_handler function that can be used to transform the row. The row
+    must be a list or a tuple of values.
+    """
+    stream = StringIO()
+    csv_writer = unicodecsv.writer(stream)
+    csv_writer.writerow(headers)
+    if callable(row_handler):
+        csv_writer.writerows(row_handler(row) for row in rows)
+    else:
+        csv_writer.writerows(rows)
+    return Response(unicode(stream.getvalue()), content_type='text/csv')
+
+
+def api_error(message, status_code):
+    """
+    Generates a HTTP response as a JSON object for a failure scenario
+
+    :param string message: Error message to be included as part of the JSON response
+    :param int status_code: HTTP status code to be used for the response
+    """
+    return make_response(jsonify(status='error', message=message), status_code)
+
+
+def api_success(result, doc, status_code):
+    """
+    Generates a HTTP response as a JSON object for a successful scenario
+
+    :param any result: Top-level data to be encoded as JSON
+    :param string doc: Documentation to be included as part of the JSON response
+    :param int status_code: HTTP status code to be used for the response
+    """
+    return make_response(jsonify(status='ok', doc=doc, result=result), status_code)

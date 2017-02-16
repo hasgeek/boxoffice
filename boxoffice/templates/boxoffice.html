@@ -69,7 +69,14 @@
                           {{/}}
                         </div>
                         {{#if line_item.quantity_available > 0}}
-                          <p class="valid-upto"><i class="fa fa-fw fa-long-arrow-up"></i>Price goes up after {{line_item.price_valid_upto}}</p>
+                          <p class="valid-upto">
+                            {{#if line_item.has_higher_price}}
+                              <i class="fa fa-fw fa-long-arrow-up"></i>
+                              Price goes up on {{line_item.price_valid_upto}}
+                            {{else}}
+                              Sale closes on {{line_item.price_valid_upto}}
+                            {{/if}}
+                          </p>
                         {{/if}}
                       {{else}}
                         <div class="sold-out-wrapper" intro='fly:{"x":100,"y":"0"}'>
@@ -89,7 +96,7 @@
           {{#loadingPrice && !isLoadingFail}}
             <div class="loader"><i class="fa fa-spinner fa-spin fa-2x"></i></div>
           {{/}}
-          <p class="price">Total <span class="pull-right"><i class="fa fa-inr rupee-sign"></i>{{ order.final_amount }}</span></p>
+          <p class="price">Total <span class="final-amount"><i class="fa fa-inr rupee-sign"></i>{{ order.final_amount }}</span></p>
         </div>
         {{#order.readyToCheckout}}
           <div class="proceed-button-wrapper" intro='fly:{"x":200,"y":"0"}'>
@@ -170,8 +177,8 @@
           <div class="confirmation-msg">
             <p class="">We’ve mailed you the cash receipt.</p>
             <div class="receipt-btn-wrapper">
-              <a href="{{ attendeeAssignmentURL }}" target="_blank" class="boxoffice-button boxoffice-button-action receipt-button" on-click="fire('eventAnalytics','fill attendee details', 'attendee details')">Your ticket</a>
               <a href="{{ cashReceiptURL }}" target="_blank" class="boxoffice-button boxoffice-button-action receipt-button" on-click="fire('eventAnalytics','view cash receipt', 'cash receipt')">See cash receipt</a>
+              <a href="{{ attendeeAssignmentURL }}" target="_blank" class="boxoffice-button boxoffice-button-action receipt-button" on-click="fire('eventAnalytics','fill attendee details', 'attendee details')">Fill attendee details</a>
             </div>
             <div class="social-icons">
               <p>Tell your friends!</p>
@@ -328,7 +335,7 @@
     border-color: #CCC transparent #CCC #CCC;
     border-width: 19px;
     z-index: 2;
-    background-color: #fff;
+    background-color: transparent;
   }
   @media (min-width: 480px) {
     .category-heading {
@@ -573,9 +580,11 @@
     font-size: 13px;
     padding-left: 5px;
   }
-  .separator {
+  .boxoffice-section .separator {
     height: 1px;
     margin: 0 -20px 20px;
+    border: 0;
+    border-top: 1px solid #eee;
   }
   .ticket-total {
     clear: both;
@@ -638,6 +647,7 @@
     border: none;
     border-bottom: 1px solid #757575;
     box-shadow: none;
+    background: transparent;
   }
   .buyer-details .group-input:focus {
     outline:none;

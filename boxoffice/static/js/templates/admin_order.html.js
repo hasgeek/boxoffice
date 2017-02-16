@@ -27,7 +27,7 @@ export const OrderTemplate = `
               <th data-hide="phone, tablet, desktop, largescreen" data-type="numeric">Date</th>
               <th data-hide="phone, tablet, desktop, largescreen">Order id</th>
               <th data-hide="phone, tablet, desktop, largescreen">Transaction status</th>
-              <th data-sort-ignore="true"  data-hide="phone">View</th>
+              <th data-sort-ignore="true">View</th>
               <th data-hide="phone, tablet, desktop, largescreen" data-sort-ignore="true">Details</th>
             </tr>
           </thead>
@@ -51,11 +51,11 @@ export const OrderTemplate = `
                   {{/if}}
                 </p>
               </td>
-              <td><p class="table-content"><a class="boxoffice-button boxoffice-button-info" href="javascript:void(0)" on-click="showOrder">Line Items</a></p></td>
+              <td><p class="table-content"><a class="boxoffice-button boxoffice-button-info" href="javascript:void(0)" on-click="showOrder">Line Items {{#if loading}}<i class="fa fa-spinner fa-spin"></i>{{/if}}</a></p></td>
               <td>
                 <p class="table-content">
-                  <a class="boxoffice-button boxoffice-button-small boxoffice-button-info orders-btn" href={{ receipt }} target="_blank" >View Receipt</a>
-                  <a class="boxoffice-button boxoffice-button-small boxoffice-button-info right-button orders-btn" href={{ assignee }} target="_blank" >View Assignee details</a>
+                  <a class="boxoffice-button boxoffice-button-info btn-inline" href={{ receipt }} target="_blank" >View Receipt</a>
+                  <a class="boxoffice-button boxoffice-button-info btn-inline" href={{ assignee }} target="_blank" >View Assignee details</a>
                 </p>
               </td>
             </tr>

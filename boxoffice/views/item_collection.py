@@ -23,6 +23,7 @@ def jsonify_item(item):
             'price': price.amount,
             'price_category': price.title,
             'price_valid_upto': price.end_at,
+            'has_higher_price': item.has_higher_price(price),
             'discount_policies': [{'id': policy.id, 'title': policy.title, 'is_automatic': policy.is_automatic}
                                   for policy in item.discount_policies]
         }

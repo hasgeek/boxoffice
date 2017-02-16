@@ -40,7 +40,7 @@
 
     <p>With reference to your order (Receipt No: {{ order.invoice_no }}), "{{ item_title }}" has been cancelled.</p>
     {%- if is_paid %}
-      <p>A refund of {{currency_symbol}} {{line_item.final_amount}} has been initiated. You should receive the refund in 2-5 days.</p>
+      <p>A refund of {{ currency_symbol }} {{ refund_amount }} has been initiated. You should receive the refund in 2-5 days.</p>
     {%- endif %}
   
     <p class="footer">Thank you,</p>

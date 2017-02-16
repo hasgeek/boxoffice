@@ -32,10 +32,11 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     __uuid_primary_key__ = True
     __table_args__ = (db.UniqueConstraint('organization_id', 'name'),
         db.UniqueConstraint('discount_code_base'),
-        db.CheckConstraint('percentage > 0 and percentage <= 100', 'discount_policy_percentage_check'))
+        db.CheckConstraint('percentage > 0 and percentage <= 100', 'discount_policy_percentage_check'),
+        db.CheckConstraint('discount_type = 0 or (discount_type = 1 and bulk_coupon_usage_limit IS NOT NULL)', 'discount_policy_bulk_coupon_usage_limit_check'))
 
     organization_id = db.Column(None, db.ForeignKey('organization.id'), nullable=False)
-    organization = db.relationship(Organization, backref=db.backref('discount_policies', cascade='all, delete-orphan'))
+    organization = db.relationship(Organization, backref=db.backref('discount_policies', order_by='DiscountPolicy.created_at.desc()', lazy='dynamic', cascade='all, delete-orphan'))
     parent = db.synonym('organization')
 
     discount_type = db.Column(db.Integer, default=DISCOUNT_TYPE.AUTOMATIC, nullable=False)
@@ -50,6 +51,12 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     secret = db.Column(db.Unicode(50), nullable=True)
 
     items = db.relationship('Item', secondary=item_discount_policy)
+    # Coupons generated in bulk are not stored in the database during generation.
+    # This field allows specifying the number of times a coupon, generated in bulk, can be used
+    # This is particularly useful for generating referral discount coupons. For instance, one could generate
+    # a signed coupon and provide it to a user such that the user can share the coupon `n` times
+    # `n` here is essentially bulk_coupon_usage_limit.
+    bulk_coupon_usage_limit = db.Column(db.Integer, nullable=True, default=1)
 
     @cached_property
     def is_automatic(self):

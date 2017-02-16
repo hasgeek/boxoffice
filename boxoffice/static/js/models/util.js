@@ -33,29 +33,18 @@ export const post = function(config){
     url: config.url,
     type: 'POST',
     data: config.data,
-    contentType : config.contentType,
-    dataType: 'json'
+    contentType : config.contentType ? config.contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
+    dataType: 'json',
   });
 }
 
-export const convertFormToJSON = function(form, multiple_option_fields){
-  let form_elements = $(form).serializeArray();
-  let details = {};
-  for (var form_index=0; form_index < form_elements.length; form_index++) {
-    if (form_elements[form_index].value) {
-      if(multiple_option_fields.indexOf(form_elements[form_index].name) !== -1) {
-        let values = form_elements[form_index].value.split(',');
-        if(form_elements[form_index].name in details) {
-          details[form_elements[form_index].name].concat(values)
-        }
-        else {
-          details[form_elements[form_index].name] = [].concat(values);
-        }
-      }
-      else {
-        details[form_elements[form_index].name] = form_elements[form_index].value;
-      }
-    }
-  }
-  return JSON.stringify(details);
+export const getFormParameters = function(form) {
+  var form_elements = $(form).serializeArray();
+  return $.param(form_elements);
+}
+
+export const scrollToElement = function(element, speed=500) {
+  $('html,body').animate({
+    scrollTop: $(element).offset().top
+  }, speed);
 }
