@@ -162,7 +162,6 @@ export const DiscountPolicyView = {
                   };
                 },
                 processResults: function (data) {
-                  console.log("processResults", data.items);
                   return {
                     results: data.items
                   };

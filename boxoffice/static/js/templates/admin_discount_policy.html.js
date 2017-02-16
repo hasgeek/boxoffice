@@ -174,7 +174,7 @@ export const DiscountPolicyTemplate = `
                   {{/if}}
 
                   {{#if dp_items}}
-                    <p class="content-details"><b>This discount policy applies:</b></p>
+                    <p class="content-details"><b>This discount policy applies to:</b></p>
                     <ol class="content-list">
                       {{#dp_items:item}}
                         <li class="content-details">{{ dp_items[item].title }}</li>
@@ -396,13 +396,18 @@ export const DiscountPolicyTemplate = `
                     <h4 class="modal-title">{{ title }}</h4>
                   </div>
                   <div class="modal-body">
-                    <p>The discount will be auto applied on adding the discount coupon to the event website url. <br>Eg: The link to avail discount coupon <i>xyz123</i> is "https://jsfoo.in/2016<b>?code=xyz123</b>"</p>
+                    <p>The discount will be auto applied on adding the discount coupon to the event website url. <br>Eg: If the website is "https://jsfoo.in/2016", the link to avail discount coupon <i>xyz123</i> is </p>
+                    <pre><code>https://jsfoo.in/2016?code=xyz123</code></pre>
                     <p>Here are the discount coupons:</p>
-                    <div id="new-coupons-{{ id }}">
+                    <table class="table table-orders" id="new-coupons-{{ id }}">
+                      <tbody>
                       {{#coupons:coupon}}
-                        <p class="content-details">{{ coupons[coupon].code }}</p>
+                        <tr>
+                          <td>{{ coupons[coupon].code }}</td>
+                        </tr>
                       {{/}}
-                    </div>
+                      </tbody>
+                    </table>
                   </div>
                   <div class="modal-footer">
                     <button class="boxoffice-button boxoffice-button-action btn-right copy-coupons" data-clipboard-target="#new-coupons-{{ id }}">Copy discount coupons to clipboard</button>
