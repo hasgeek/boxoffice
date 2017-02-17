@@ -27,6 +27,7 @@ def jsonify_price(price):
 def jsonify_discount_policy(policy):
     return {
         'id': policy.id,
+        'name': policy.name,
         'title': policy.title,
         'discount_type': "Automatic" if policy.is_automatic else "Coupon based",
         'item_quantity_min': policy.item_quantity_min,

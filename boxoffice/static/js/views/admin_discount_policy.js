@@ -1,5 +1,5 @@
 
-import {scrollToElement, DEFAULT} from '../models/util.js';
+import {scrollToElement, getFormParameters, getCsrfToken, updateBrowserHistory} from '../models/util.js';
 import {OrgModel} from '../models/org.js';
 import {DiscountPolicyModel} from '../models/admin_discount_policy.js';
 import {DiscountPolicyTemplate} from '../templates/admin_discount_policy.html.js';
@@ -14,11 +14,22 @@ export const DiscountPolicyView = {
       url = DiscountPolicyModel.urlFor('index', {org_name, page})['path'];
     }
 
+    const DEFAULT = {
+      showForm: true,
+      hideForm: false,
+      showLoader: true,
+      hideLoader: false,
+      priceBasedDiscount: 1,
+      couponBasedDiscount: 1,
+      usageCount: 1,
+      empty: ""
+    };
+
     DiscountPolicyModel.fetch({
       url: url
     }).done(({org_name, title, discount_policies, total_pages, paginated, current_page}) => {
       // Initial render
-      window.discountPolicyComponent = new Ractive({
+      let discountPolicyComponent = new Ractive({
         el: '#main-content-area',
         template: DiscountPolicyTemplate,
         data:  {
@@ -83,13 +94,11 @@ export const DiscountPolicyView = {
             }
           ],
           getDiscountedItems: function (dpItems) {
-            let discountedItems = dpItems.map(function(dpItem) {
-              return dpItem.id;
-            });
-            return discountedItems.join(',');
+            return dpItems.map(item => item.id).join(',')
           },
           getCsrfToken: function () {
-            return document.head.querySelector("[name=csrf-token]").content;
+            //Defined as a function so that it is called every time the form is opened
+            return getCsrfToken()
           }
         },
         refresh: function (search='', page='') {
@@ -103,29 +112,24 @@ export const DiscountPolicyView = {
           DiscountPolicyModel.fetch({
             url: url
           }).done((remoteData) => {
-            discountPolicyComponent.set('discountPolicies', remoteData.discount_policies);
-            discountPolicyComponent.set('paginated', remoteData.paginated);
-            discountPolicyComponent.set('totalPages', remoteData.total_pages);
-            discountPolicyComponent.set('currentPage', remoteData.current_page);
-            discountPolicyComponent.set('pages', discountPolicyComponent.get_pages(remoteData.total_pages));
+            discountPolicyComponent.set({
+              'discountPolicies': remoteData.discount_policies,
+              'paginated': remoteData.paginated,
+              'totalPages': remoteData.total_pages,
+              'currentPage': remoteData.current_page,
+              'pages': _.range(1, remoteData.total_pages + 1)
+            });
             NProgress.done();
           });
-          window.history.replaceState({reloadOnPop: true}, '', window.location.href);
-          window.history.pushState({reloadOnPop: true}, '', url);
-        },
-        get_pages: function (totalPages) {
-          var pages = [];
-          for (var i=1; i<= totalPages; i++) {
-            pages.push(i);
-          }
-          return pages;
+          updateBrowserHistory(window.location.href, url);
+          scrollToElement("#" + discountPolicyComponent.el.id);
         },
         paginate: function (event, page) {
           event.original.preventDefault();
-          discountPolicyComponent.refresh('', page);
+          discountPolicyComponent.refresh(DEFAULT.empty, page);
         },
         clearSearchField: function () {
-          discountPolicyComponent.set('searchText', "");
+          discountPolicyComponent.set('searchText', DEFAULT.empty);
         },
         addFormFields: function (isPriceBased, discountPolicy) {
           if (isPriceBased) {
@@ -138,8 +142,7 @@ export const DiscountPolicyView = {
               addItemSelector = "#add-item-" + discount_policy_id;
               startDateSelector = "#start-date-" + discount_policy_id;
               endDateSelector = "#end-date-" + discount_policy_id;
-            }
-            else {
+            } else {
               addItemSelector = "#add-item";
               startDateSelector = "#start-date";
               endDateSelector = "#end-date";
@@ -148,7 +151,7 @@ export const DiscountPolicyView = {
             $(addItemSelector).select2({
               minimumInputLength: 3,
               placeholder: {
-                id: "-1", // the value of the option
+                id: "-1",
                 title: "Search tickets"
               },
               ajax: {
@@ -164,12 +167,11 @@ export const DiscountPolicyView = {
                     results: data.items
                   };
                 },
-                cache: true
               },
+              // Do not want to escape markup since html is displayed in the results
               escapeMarkup: function (markup) { return markup; },
               templateResult: function(item) {
-                let markup = '<p>' + item.title + '</p>';
-                return markup;
+                return '<p>' + item.title + '</p>';
               },
               templateSelection: function (item) {
                 return item.title;
@@ -225,13 +227,11 @@ export const DiscountPolicyView = {
                   return {
                     results: data.items
                   };
-                },
-                cache: true
+                }
               },
               escapeMarkup: function (markup) { return markup; },
               templateResult: function (item) {
-                let markup = '<p>' + item.title + '</p>';
-                return markup;
+                return '<p>' + item.title + '</p>';
               },
               templateSelection: function (item) {
                 return item.title;
@@ -240,16 +240,18 @@ export const DiscountPolicyView = {
           }
         },
         showNewPolicyForm: function (event) {
-          discountPolicyComponent.set('showAddPolicyForm', DEFAULT.showForm);
-          discountPolicyComponent.set('newDiscountPolicy.is_price_based', DEFAULT.priceBasedDiscount);
-          discountPolicyComponent.set('newDiscountPolicy.discount_type', DEFAULT.couponBasedDiscount);
+          discountPolicyComponent.set({
+            'showAddPolicyForm': DEFAULT.showForm,
+            'newDiscountPolicy.is_price_based': DEFAULT.priceBasedDiscount,
+            'newDiscountPolicy.discount_type': DEFAULT.couponBasedDiscount
+          });
           discountPolicyComponent.addFormFields(discountPolicyComponent.get('newDiscountPolicy.is_price_based'));
         },
-        policyChange: function (event) {
+        onPolicyChange: function (event) {
           discountPolicyComponent.set('newDiscountPolicy.is_price_based', parseInt(event.node.value, 10));
           discountPolicyComponent.addFormFields(discountPolicyComponent.get('newDiscountPolicy.is_price_based'));
         },
-        policyTypeChange: function (event) {
+        onPolicyTypeChange: function (event) {
           discountPolicyComponent.set('newDiscountPolicy.discount_type', event.node.value);
         },
         addNewPolicy: function (event) {
@@ -261,21 +263,25 @@ export const DiscountPolicyView = {
             if (errors.length > 0) {
               discountPolicyComponent.set('newDiscountPolicy.errormsg.' + errors[0].name, errors[0].message);
             } else {
-              discountPolicyComponent.set('newDiscountPolicy.errorMsg', DEFAULT.empty);
-              discountPolicyComponent.set('newDiscountPolicy.creatingPolicy', DEFAULT.showLoader);
-              let formSelector = '#new-policy-form';
 
+              discountPolicyComponent.set({
+                'newDiscountPolicy.errorMsg': DEFAULT.empty,
+                'newDiscountPolicy.creatingPolicy': DEFAULT.showLoader
+              });
+              let formSelector = '#new-policy-form';
               DiscountPolicyModel.post({
                 url: DiscountPolicyModel.urlFor('new', {org_name})['path'],
-                data: DiscountPolicyModel.getFormParameters(formSelector)
+                data: getFormParameters(formSelector)
               }).done((remoteData) => {
-                discountPolicyComponent.set('discountPolicies', [remoteData.result.discount_policy]);
-                discountPolicyComponent.set('searchText', discountPolicyComponent.get('newDiscountPolicy.title'));
-                discountPolicyComponent.set('newDiscountPolicy.creatingPolicy', DEFAULT.hideLoader);
+                discountPolicyComponent.set({
+                  'discountPolicies': [remoteData.result.discount_policy],
+                  'searchText': discountPolicyComponent.get('newDiscountPolicy.title'),
+                  'newDiscountPolicy.creatingPolicy': DEFAULT.hideLoader,
+                  'newDiscountPolicy': DEFAULT.empty
+                });
                 discountPolicyComponent.hideNewPolicyForm();
-                discountPolicyComponent.set('newDiscountPolicy', DEFAULT.empty);
               }).fail(function (response) {
-                let errorMsg;
+                let errorMsg = DEFAULT.empty;
                 if (response.readyState === 4) {
                   if (response.status === 500) {
                     errorMsg = "Internal Server Error";
@@ -289,8 +295,10 @@ export const DiscountPolicyView = {
                 if (response.readyState === 0) {
                   errorMsg = "Unable to connect. Please try again.";
                 }
-                discountPolicyComponent.set('newDiscountPolicy.creatingPolicy', DEFAULT.hideLoader);
-                discountPolicyComponent.set('newDiscountPolicy.errorMsg', errorMsg);
+                discountPolicyComponent.set({
+                  'newDiscountPolicy.creatingPolicy': DEFAULT.hideLoader,
+                  'newDiscountPolicy.errorMsg': errorMsg
+                });
               });
             }
           });
@@ -337,14 +345,14 @@ export const DiscountPolicyView = {
 
               DiscountPolicyModel.post({
                 url: DiscountPolicyModel.urlFor('edit', {org_name, discount_policy_id: dpId})['path'],
-                data: DiscountPolicyModel.getFormParameters(formSelector)
+                data: getFormParameters(formSelector)
               }).done((remoteData) => {
                 discountPolicyComponent.set(discountPolicy + '.editingPolicy', DEFAULT.hideLoader);
                 discountPolicyComponent.set(discountPolicy, remoteData.result.discount_policy);
                 discountPolicyComponent.set(discountPolicy + '.showPolicyForm', DEFAULT.hideForm);
                 scrollToElement('#dp-' + dpId);
               }).fail(function (response) {
-                let errorMsg = "";
+                let errorMsg = DEFAULT.empty;
                 if (response.status === 500) {
                   errorMsg = "Internal Server Error"
                 } else {
@@ -403,14 +411,14 @@ export const DiscountPolicyView = {
 
               DiscountPolicyModel.post({
                 url: DiscountPolicyModel.urlFor('generate_coupon', {org_name, discount_policy_id: dpId})['path'],
-                data: DiscountPolicyModel.getFormParameters(formSelector)
+                data: getFormParameters(formSelector)
               }).done((remoteData) => {
                 discountPolicyComponent.set(discountPolicy + '.coupons', remoteData.result.coupons);
                 discountPolicyComponent.set(discountPolicy + '.generatingCoupon', DEFAULT.hideLoader);
                 $('#generated-coupons-' + dpId).modal('show');
                 new Clipboard('.copy-coupons');
               }).fail(function (response) {
-                let errorMsg = "";
+                let errorMsg = DEFAULT.empty;
                 if (response.readyState === 4) {
                   if (response.status === 500) {
                     errorMsg = "Internal Server Error"
@@ -452,7 +460,7 @@ export const DiscountPolicyView = {
             $('#coupons-list-' + dpId).footable();
             new Clipboard('.copy-coupons-list');
           }).fail(function (response) {
-            let errorMsg = "";
+            let errorMsg = DEFAULT.empty;
             if (response.status === 500) {
               errorMsg = "Internal Server Error"
             }
@@ -474,7 +482,7 @@ export const DiscountPolicyView = {
             }
           });
 
-          discountPolicyComponent.set('pages', discountPolicyComponent.get_pages(discountPolicyComponent.get('totalPages')));
+          discountPolicyComponent.set('pages', _.range(1, discountPolicyComponent.get('totalPages') + 1));
 
         }
       });

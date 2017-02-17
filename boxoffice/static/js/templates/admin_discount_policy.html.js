@@ -25,11 +25,11 @@ export const DiscountPolicyTemplate = `
             <div class="group">
               <p class="field-title filled">What type of discount?</p>
               <label class="radio-inline">
-                <input type="radio" name="is_price_based" value=1 on-click="policyChange(event)" checked />
+                <input type="radio" name="is_price_based" value=1 on-click="onPolicyChange(event)" checked />
                 Special price
               </label>
               <label class="radio-inline">
-                <input type="radio" name="is_price_based" value=0 on-click="policyChange(event)" />
+                <input type="radio" name="is_price_based" value=0 on-click="onPolicyChange(event)" />
                 Percentage
               </label>
             </div>
@@ -38,11 +38,11 @@ export const DiscountPolicyTemplate = `
               <div class="group">
                 <p class="field-title filled">How is this discount going to be availed?</p>
                 <label class="radio-inline">
-                  <input type="radio" name="discount_type" value=1 on-click="policyTypeChange(event)" checked />
+                  <input type="radio" name="discount_type" value=1 on-click="onPolicyTypeChange(event)" checked />
                   Coupon based
                 </label>
                   <label class="radio-inline">
-                    <input type="radio" name="discount_type" value=0 on-click="policyTypeChange(event)" />
+                    <input type="radio" name="discount_type" value=0 on-click="onPolicyTypeChange(event)" />
                     Automatic
                   </label>
               </div>
@@ -194,6 +194,7 @@ export const DiscountPolicyTemplate = `
                 <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
                   <h4 class="text-center form-title">Edit</h4>   
                   <form role="form" id="policy-form-{{ id }}" name="edit-policy-form-{{ id }}">
+                    <input type="hidden" name="dp_name" value="{{ name }}" />
                     <div class="group">   
                       <input type="text" name="title" value="{{ title }}" twoway="false" class="group-input {{#title}}filled{{/}}" />
                       <span class="bar"></span>
