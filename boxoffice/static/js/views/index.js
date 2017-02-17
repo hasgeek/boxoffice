@@ -5,7 +5,6 @@ import {SideBarView} from './sidebar.js'
 
 export const IndexView = {
   render: function() {
-
     IndexModel.fetch({
       url: IndexModel.urlFor('index')['path']
     }).then(function({orgs}){

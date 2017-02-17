@@ -1,17 +1,16 @@
 
-import {scrollToElement} from '../models/util.js';
+import {scrollToElement, DEFAULT} from '../models/util.js';
 import {OrgModel} from '../models/org.js';
 import {DiscountPolicyModel} from '../models/admin_discount_policy.js';
 import {DiscountPolicyTemplate} from '../templates/admin_discount_policy.html.js';
 import {SideBarView} from './sidebar.js';
 
 export const DiscountPolicyView = {
-  render: function({org_name, search, page}={}) {
+  render: function ({org_name, search, page}={}) {
     let url;
     if (search) {
       url = DiscountPolicyModel.urlFor('search', {org_name, search, page})['path'];
-    }
-    else {
+    } else {
       url = DiscountPolicyModel.urlFor('index', {org_name, page})['path'];
     }
 
@@ -19,7 +18,7 @@ export const DiscountPolicyView = {
       url: url
     }).done(({org_name, title, discount_policies, total_pages, paginated, current_page}) => {
       // Initial render
-      let discountPolicyComponent = new Ractive({
+      window.discountPolicyComponent = new Ractive({
         el: '#main-content-area',
         template: DiscountPolicyTemplate,
         data:  {
@@ -83,17 +82,17 @@ export const DiscountPolicyView = {
               rules: 'required'
             }
           ],
-          getDiscountedItems: function(dpItems) {
+          getDiscountedItems: function (dpItems) {
             let discountedItems = dpItems.map(function(dpItem) {
               return dpItem.id;
             });
             return discountedItems.join(',');
           },
-          getCsrfToken: function() {
+          getCsrfToken: function () {
             return document.head.querySelector("[name=csrf-token]").content;
           }
         },
-        refresh: function(search='', page='') {
+        refresh: function (search='', page='') {
           let url;
           if (search) {
             url = DiscountPolicyModel.urlFor('search', {org_name, search, page})['path'];
@@ -125,17 +124,16 @@ export const DiscountPolicyView = {
           event.original.preventDefault();
           discountPolicyComponent.refresh('', page);
         },
-        clearSearchField: function() {
+        clearSearchField: function () {
           discountPolicyComponent.set('searchText', "");
         },
-        addFormFields: function(isPriceBased, discountPolicy) {
-          console.log("addFormFields", isPriceBased, discountPolicy);
+        addFormFields: function (isPriceBased, discountPolicy) {
           if (isPriceBased) {
             let addItemSelector;
             let startDateSelector;
             let endDateSelector;
 
-            if(discountPolicy) {
+            if (discountPolicy) {
               let discount_policy_id = discountPolicyComponent.get(discountPolicy + '.id');
               addItemSelector = "#add-item-" + discount_policy_id;
               startDateSelector = "#start-date-" + discount_policy_id;
@@ -154,7 +152,7 @@ export const DiscountPolicyView = {
                 title: "Search tickets"
               },
               ajax: {
-                url: OrgModel.urlFor('view_items', {org_name: discountPolicyComponent.get('org')})['path'],
+                url: OrgModel.urlFor('view_items', {org_name})['path'],
                 dataType: 'json',
                 data: function (params) {
                   return {
@@ -173,7 +171,7 @@ export const DiscountPolicyView = {
                 let markup = '<p>' + item.title + '</p>';
                 return markup;
               },
-              templateSelection: function(item) {
+              templateSelection: function (item) {
                 return item.title;
               }
             });
@@ -201,15 +199,13 @@ export const DiscountPolicyView = {
                 format: 'D MMM YYYY H:mm:ss'
               }
             });
-          }
-          else {
+          } else {
             let addItemsSelector;
 
-            if(discountPolicy) {
+            if (discountPolicy) {
               let dpId = discountPolicyComponent.get(discountPolicy + '.id');
               addItemsSelector = "#add-items-" + dpId;
-            }
-            else {
+            } else {
               addItemsSelector = "#add-items";
             }
 
@@ -218,7 +214,7 @@ export const DiscountPolicyView = {
               multiple: true,
               placeholder: 'Search tickets',
               ajax: {
-                url: OrgModel.urlFor('view_items', {org_name: discountPolicyComponent.get('org')})['path'],
+                url: OrgModel.urlFor('view_items', {org_name})['path'],
                 dataType: 'json',
                 data: function (params) {
                   return {
@@ -226,7 +222,6 @@ export const DiscountPolicyView = {
                   };
                 },
                 processResults: function (data) {
-                  console.log("processResults", data.items);
                   return {
                     results: data.items
                   };
@@ -234,60 +229,58 @@ export const DiscountPolicyView = {
                 cache: true
               },
               escapeMarkup: function (markup) { return markup; },
-              templateResult: function(item) {
+              templateResult: function (item) {
                 let markup = '<p>' + item.title + '</p>';
                 return markup;
               },
-              templateSelection: function(item) {
+              templateSelection: function (item) {
                 return item.title;
               }
             });
           }
         },
-        showNewPolicyForm: function(event) {
-          discountPolicyComponent.set('showAddPolicyForm', true);
-          discountPolicyComponent.set('newDiscountPolicy.is_price_based', 1);
-          discountPolicyComponent.set('newDiscountPolicy.discount_type', 1);
+        showNewPolicyForm: function (event) {
+          discountPolicyComponent.set('showAddPolicyForm', DEFAULT.showForm);
+          discountPolicyComponent.set('newDiscountPolicy.is_price_based', DEFAULT.priceBasedDiscount);
+          discountPolicyComponent.set('newDiscountPolicy.discount_type', DEFAULT.couponBasedDiscount);
           discountPolicyComponent.addFormFields(discountPolicyComponent.get('newDiscountPolicy.is_price_based'));
         },
-        policyChange: function(event) {
+        policyChange: function (event) {
           discountPolicyComponent.set('newDiscountPolicy.is_price_based', parseInt(event.node.value, 10));
           discountPolicyComponent.addFormFields(discountPolicyComponent.get('newDiscountPolicy.is_price_based'));
         },
-        policyTypeChange: function(event) {
+        policyTypeChange: function (event) {
           discountPolicyComponent.set('newDiscountPolicy.discount_type', event.node.value);
         },
-        addNewPolicy: function(event) {
+        addNewPolicy: function (event) {
           let formName = 'adding-new-policy-form';
 
-          let formValidator = new FormValidator(formName, discountPolicyComponent.get('formValidationConfig'), function(errors, event) {
+          let formValidator = new FormValidator(formName, discountPolicyComponent.get('formValidationConfig'), function (errors, event) {
             event.preventDefault();
-            discountPolicyComponent.set('newDiscountPolicy.errormsg', "");
+            discountPolicyComponent.set('newDiscountPolicy.errormsg', DEFAULT.empty);
             if (errors.length > 0) {
-              discountPolicyComponent.set('newDiscountPolicy.errormsg.'+ errors[0].name, errors[0].message);
-            }
-            else {
-              discountPolicyComponent.set('newDiscountPolicy.errorMsg', "");
-              discountPolicyComponent.set('newDiscountPolicy.creatingPolicy', true);
+              discountPolicyComponent.set('newDiscountPolicy.errormsg.' + errors[0].name, errors[0].message);
+            } else {
+              discountPolicyComponent.set('newDiscountPolicy.errorMsg', DEFAULT.empty);
+              discountPolicyComponent.set('newDiscountPolicy.creatingPolicy', DEFAULT.showLoader);
               let formSelector = '#new-policy-form';
 
               DiscountPolicyModel.post({
-                url: DiscountPolicyModel.urlFor('new', {org_name: discountPolicyComponent.get('org')})['path'],
+                url: DiscountPolicyModel.urlFor('new', {org_name})['path'],
                 data: DiscountPolicyModel.getFormParameters(formSelector)
               }).done((remoteData) => {
                 discountPolicyComponent.set('discountPolicies', [remoteData.result.discount_policy]);
                 discountPolicyComponent.set('searchText', discountPolicyComponent.get('newDiscountPolicy.title'));
-                discountPolicyComponent.set('newDiscountPolicy.creatingPolicy', false);
+                discountPolicyComponent.set('newDiscountPolicy.creatingPolicy', DEFAULT.hideLoader);
                 discountPolicyComponent.hideNewPolicyForm();
-                discountPolicyComponent.set('newDiscountPolicy', '');
-              }).fail(function(response) {
+                discountPolicyComponent.set('newDiscountPolicy', DEFAULT.empty);
+              }).fail(function (response) {
                 let errorMsg;
                 if (response.readyState === 4) {
-                  if(response.status === 500) {
+                  if (response.status === 500) {
                     errorMsg = "Internal Server Error";
-                  }
-                  else {
-                    let errorDescription = JSON.parse(response.responseText).error_description;
+                  } else {
+                    let errorDescription = response.responseJSON.message;
                     for (let error in errorDescription) {
                       errorMsg += "<p>" + errorDescription[error] + "</p>";
                     }
@@ -296,7 +289,7 @@ export const DiscountPolicyView = {
                 if (response.readyState === 0) {
                   errorMsg = "Unable to connect. Please try again.";
                 }
-                discountPolicyComponent.set('newDiscountPolicy.creatingPolicy', false);
+                discountPolicyComponent.set('newDiscountPolicy.creatingPolicy', DEFAULT.hideLoader);
                 discountPolicyComponent.set('newDiscountPolicy.errorMsg', errorMsg);
               });
             }
@@ -305,63 +298,57 @@ export const DiscountPolicyView = {
           formValidator.setMessage('required', 'Please fill out the this field');
           formValidator.setMessage('numeric', 'Please enter a numberic value');
         },
-        validateCodeBase: function(event, dp="newDiscountPolicy") {
+        validateCodeBase: function (event, dp="newDiscountPolicy") {
           //If there is change in discount_code_base value, then validate it
-          if(event.node.value !== event.context.discount_code_base) {
+          if (event.node.value !== event.context.discount_code_base) {
             DiscountPolicyModel.fetch({
               url: DiscountPolicyModel.urlFor('lookup')['path'] + "?discount_code_base=" + event.node.value
             }).done((response) => {
               discountPolicyComponent.set(dp + '.errormsg.discount_code_base', "");
-            }).fail(function(response) {
-              let errorMsg;
+            }).fail(function (response) {
               if (response.readyState === 4 && response.status !== 500) {
-                errorMsg = JSON.parse(response.responseText).error_description;
-                discountPolicyComponent.set(dp + '.errormsg.discount_code_base', errorMsg);
+                discountPolicyComponent.set(dp + '.errormsg.discount_code_base', response.responseJSON.message);
               }
             });
           }
         },
-        hideNewPolicyForm: function(event) {
-          discountPolicyComponent.set('showAddPolicyForm', false);
+        hideNewPolicyForm: function (event) {
+          discountPolicyComponent.set('showAddPolicyForm', DEFAULT.hideForm);
         },
-        showEditPolicyForm: function(event) {
+        showEditPolicyForm: function (event) {
           let discountPolicy = event.keypath;
-          discountPolicyComponent.set(discountPolicy + '.hideEditBtn', true);
-          discountPolicyComponent.set(discountPolicy + '.showPolicyForm', true);
-          discountPolicyComponent.set(discountPolicy +  '.errormsg', '');
+          discountPolicyComponent.set(discountPolicy + '.showPolicyForm', DEFAULT.showForm);
+          discountPolicyComponent.set(discountPolicy +  '.errormsg', DEFAULT.empty);
           discountPolicyComponent.addFormFields(discountPolicyComponent.get(discountPolicy + '.is_price_based'), discountPolicy);
         },
-        editPolicy: function(event) {
+        editPolicy: function (event) {
           let discountPolicy = event.keypath,
             dpId = event.context.id,
             policyFormName = 'edit-policy-form-' + dpId;
 
-          let formValidator = new FormValidator(policyFormName, discountPolicyComponent.get('formValidationConfig'), function(errors, event) {
+          let formValidator = new FormValidator(policyFormName, discountPolicyComponent.get('formValidationConfig'), function (errors, event) {
             event.preventDefault();
-            discountPolicyComponent.set(discountPolicy +  '.errormsg', "");
+            discountPolicyComponent.set(discountPolicy + '.errormsg', DEFAULT.empty);
             if (errors.length > 0) {
-              discountPolicyComponent.set(discountPolicy +  '.errormsg.'+ errors[0].name, errors[0].message);
-            }
-            else {
-              discountPolicyComponent.set(discountPolicy + '.editingPolicy', true);
+              discountPolicyComponent.set(discountPolicy + '.errormsg.'+ errors[0].name, errors[0].message);
+            } else {
+              discountPolicyComponent.set(discountPolicy + '.editingPolicy', DEFAULT.showLoader);
               let formSelector = '#policy-form-' + dpId;
 
               DiscountPolicyModel.post({
-                url: DiscountPolicyModel.urlFor('edit', {discount_policy_id: dpId})['path'],
+                url: DiscountPolicyModel.urlFor('edit', {org_name, discount_policy_id: dpId})['path'],
                 data: DiscountPolicyModel.getFormParameters(formSelector)
               }).done((remoteData) => {
-                discountPolicyComponent.set(discountPolicy + '.editingPolicy', false);
+                discountPolicyComponent.set(discountPolicy + '.editingPolicy', DEFAULT.hideLoader);
                 discountPolicyComponent.set(discountPolicy, remoteData.result.discount_policy);
-                discountPolicyComponent.set(discountPolicy + '.showPolicyForm', false);
-                discountPolicyComponent.set(discountPolicy + '.hideEditBtn', false);
-                DiscountPolicyModel.scrollToElement('#dp-' + dpId);
-              }).fail(function(response) {
+                discountPolicyComponent.set(discountPolicy + '.showPolicyForm', DEFAULT.hideForm);
+                scrollToElement('#dp-' + dpId);
+              }).fail(function (response) {
                 let errorMsg = "";
                 if (response.status === 500) {
                   errorMsg = "Internal Server Error"
-                }
-                else {
-                  let errorDescription = JSON.parse(response.responseText).error_description;
+                } else {
+                  let errorDescription = response.responseJSON.message;
                   for (let error in errorDescription) {
                     errorMsg += '<p>' + errorDescription[error] + '</p>';
                   }
@@ -370,9 +357,8 @@ export const DiscountPolicyView = {
                 if (response.readyState === 0) {
                   errorMsg = "Unable to connect. Please try again."
                 }
-                discountPolicyComponent.set(discountPolicy + '.editingPolicy', false);
+                discountPolicyComponent.set(discountPolicy + '.editingPolicy', DEFAULT.hideLoader);
                 discountPolicyComponent.set(discountPolicy + '.errorMsg', errorMsg);
-                discountPolicyComponent.set(discountPolicy + '.hideEditBtn', false);
               });
             }
           });
@@ -381,18 +367,16 @@ export const DiscountPolicyView = {
           formValidator.setMessage('numeric', 'Please enter a numberic value');
 
         },
-        hideEditPolicyForm: function(event) {
+        hideEditPolicyForm: function (event) {
           let discountPolicy = event.keypath;
-          discountPolicyComponent.set(discountPolicy + '.showPolicyForm', false);
-          discountPolicyComponent.set(discountPolicy + '.hideEditBtn', false);
+          discountPolicyComponent.set(discountPolicy + '.showPolicyForm', DEFAULT.hideForm);
         },
-        showCouponForm: function(event) {
+        showCouponForm: function (event) {
           let discountPolicy = event.keypath;
-          discountPolicyComponent.set(discountPolicy + '.hideEditBtn', true);
-          discountPolicyComponent.set(discountPolicy + '.count', 1);
-          discountPolicyComponent.set(discountPolicy + '.showCouponForm', true);
+          discountPolicyComponent.set(discountPolicy + '.count', DEFAULT.usageCount);
+          discountPolicyComponent.set(discountPolicy + '.showCouponForm', DEFAULT.showForm);
         },
-        generateCoupon: function(event) {
+        generateCoupon: function (event) {
           let discountPolicy = event.keypath,
             dpId = event.context.id,
             validationConfig = [
@@ -407,33 +391,31 @@ export const DiscountPolicyView = {
             ],
             couponFormName = 'generate-coupon-form-' + dpId;
 
-          let formValidator = new FormValidator(couponFormName, validationConfig, function(errors, event) {
+          let formValidator = new FormValidator(couponFormName, validationConfig, function (errors, event) {
             event.preventDefault();
-            discountPolicyComponent.set(discountPolicy +  '.errormsg', '');
+            discountPolicyComponent.set(discountPolicy + '.errormsg', DEFAULT.empty);
             if (errors.length > 0) {
-              discountPolicyComponent.set(discountPolicy +  '.errormsg.'+ errors[0].name, errors[0].message);
-            }
-            else {
+              discountPolicyComponent.set(discountPolicy + '.errormsg.'+ errors[0].name, errors[0].message);
+            } else {
               let formSelector = '#new-coupon-' + dpId;
-              discountPolicyComponent.set(discountPolicy+ '.generatingCoupon', true);
-              discountPolicyComponent.set(discountPolicy + '.generateCouponErrorMsg', "");
+              discountPolicyComponent.set(discountPolicy+ '.generatingCoupon', DEFAULT.showLoader);
+              discountPolicyComponent.set(discountPolicy + '.generateCouponErrorMsg', DEFAULT.empty);
 
               DiscountPolicyModel.post({
-                url: DiscountPolicyModel.urlFor('generate_coupon', {discount_policy_id: dpId})['path'],
+                url: DiscountPolicyModel.urlFor('generate_coupon', {org_name, discount_policy_id: dpId})['path'],
                 data: DiscountPolicyModel.getFormParameters(formSelector)
               }).done((remoteData) => {
                 discountPolicyComponent.set(discountPolicy + '.coupons', remoteData.result.coupons);
-                discountPolicyComponent.set(discountPolicy + '.generatingCoupon', false);
+                discountPolicyComponent.set(discountPolicy + '.generatingCoupon', DEFAULT.hideLoader);
                 $('#generated-coupons-' + dpId).modal('show');
                 new Clipboard('.copy-coupons');
-              }).fail(function(response) {
-                let errorMsg;
+              }).fail(function (response) {
+                let errorMsg = "";
                 if (response.readyState === 4) {
-                  if(response.status === 500) {
+                  if (response.status === 500) {
                     errorMsg = "Internal Server Error"
-                  }
-                  else {
-                    let errorDescription = JSON.parse(response.responseText).error_description;
+                  } else {
+                    let errorDescription = response.responseJSON.message;
                     for (let error in errorDescription) {
                       errorMsg += '<p>' + errorDescription[error] + '</p>';
                     }
@@ -442,54 +424,52 @@ export const DiscountPolicyView = {
                 if (response.readyState === 0) {
                   errorMsg = "Unable to connect. Please try again."
                 }
-                discountPolicyComponent.set(discountPolicy + '.generatingCoupon', false);
+                discountPolicyComponent.set(discountPolicy + '.generatingCoupon', DEFAULT.hideLoader);
                 discountPolicyComponent.set(discountPolicy + '.generateCouponErrorMsg', errorMsg);
               });
             }
           });
           formValidator.setMessage('required', 'Please fill out the this field');
         },
-        hideCouponForm: function(event) {
+        hideCouponForm: function (event) {
           let discountPolicy = event.keypath;
-          discountPolicyComponent.set(discountPolicy + '.hideEditBtn', false);
-          discountPolicyComponent.set(discountPolicy + '.showCouponForm', false);
+          discountPolicyComponent.set(discountPolicy + '.showCouponForm', DEFAULT.hideForm);
         },
-        getCouponList: function(event) {
+        getCouponList: function (event) {
           event.original.preventDefault();
           let discountPolicy = event.keypath;
           let dpId = event.context.id;
-          discountPolicyComponent.set(discountPolicy + '.loadingCoupons', true);
-          discountPolicyComponent.set(discountPolicy+ '.loadingCouponErrorMsg', "");
+          discountPolicyComponent.set(discountPolicy + '.loadingCoupons', DEFAULT.showLoader);
+          discountPolicyComponent.set(discountPolicy+ '.loadingCouponErrorMsg', DEFAULT.empty);
 
           DiscountPolicyModel.fetch({
-            url: DiscountPolicyModel.urlFor('list_coupons', {discount_policy_id: dpId})['path'],
+            url: DiscountPolicyModel.urlFor('list_coupons', {org_name, discount_policy_id: dpId})['path'],
             contentType: 'application/json'
           }).done((remoteData) => {
             discountPolicyComponent.set(discountPolicy + '.coupons', remoteData.result.coupons);
-            discountPolicyComponent.set(discountPolicy + '.loadingCoupons', false);
+            discountPolicyComponent.set(discountPolicy + '.loadingCoupons', DEFAULT.hideLoader);
             $('#list-coupons-' + dpId).modal('show');
             $('#coupons-list-' + dpId).footable();
             new Clipboard('.copy-coupons-list');
-          }).fail(function(response) {
-            let errorMsg;
-            if(response.status === 500) {
+          }).fail(function (response) {
+            let errorMsg = "";
+            if (response.status === 500) {
               errorMsg = "Internal Server Error"
             }
             if (response.readyState === 0) {
               errorMsg = "Unable to connect. Please try again."
             }
-            discountPolicyComponent.set(discountPolicy + '.loadingCoupons', false);
+            discountPolicyComponent.set(discountPolicy + '.loadingCoupons', DEFAULT.hideLoader);
             discountPolicyComponent.set(discountPolicy + '.loadingCouponErrorMsg', errorMsg);
           });
 
         },
-        oncomplete: function() {
+        oncomplete: function () {
 
-          discountPolicyComponent.observe('searchText', function(searchText, prevSearchText) {
+          discountPolicyComponent.observe('searchText', function (searchText, prevSearchText) {
             if (searchText.length > 2) {
               discountPolicyComponent.refresh(searchText);
-            }
-            else if(searchText.length === 0 && prevSearchText) {
+            } else if (searchText.length === 0 && prevSearchText) {
               discountPolicyComponent.refresh();
             }
           });

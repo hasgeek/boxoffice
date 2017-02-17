@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from flask import jsonify, make_response, url_for
+from flask import jsonify, url_for
 from .. import app, lastuser
 from coaster.views import load_models, render_with
 from boxoffice.models import ItemCollection, Order, CURRENCY_SYMBOL, LineItem, LINE_ITEM_STATUS
-from utils import date_time_format
+from utils import date_time_format, xhr_only
 
 
 def format_assignee(assignee):
@@ -61,7 +61,7 @@ def jsonify_admin_orders(data_dict):
     return jsonify(org_name=data_dict['item_collection'].organization.name, title=data_dict['item_collection'].title, orders=order_dicts)
 
 
-@app.route('/admin/ic/<ic_id>/orders')
+@app.route('/api/1/admin/ic/<ic_id>/orders')
 @lastuser.requires_login
 @load_models(
     (ItemCollection, {'id': 'ic_id'}, 'item_collection'),
@@ -72,12 +72,13 @@ def admin_orders(item_collection):
     return dict(title=item_collection.organization.title, item_collection=item_collection, orders=item_collection.orders)
 
 
-@app.route('/admin/order/<order_id>')
+@app.route('/api/1/admin/order/<order_id>')
 @lastuser.requires_login
 @load_models(
     (Order, {'id': 'order_id'}, 'order'),
     permission='org_admin'
     )
+@xhr_only
 def admin_order(order):
     line_items = LineItem.query.filter(LineItem.order == order, LineItem.status.in_([LINE_ITEM_STATUS.CONFIRMED, LINE_ITEM_STATUS.CANCELLED])).all()
-    return make_response(jsonify(line_items=format_line_items(line_items)))
+    return jsonify(line_items=format_line_items(line_items))

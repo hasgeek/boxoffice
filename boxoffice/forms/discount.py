@@ -7,10 +7,10 @@ from baseframe.forms.sqlalchemy import QuerySelectMultipleField
 from coaster.utils import getbool
 from ..models import DISCOUNT_TYPE, DiscountPolicy
 
-__all__ = ['DiscountForm', 'DiscountCouponForm']
+__all__ = ['DiscountPolicyForm', 'DiscountCouponForm']
 
 
-class DiscountForm(forms.Form):
+class DiscountPolicyForm(forms.Form):
     title = forms.StringField(__("Discount Title"),
         validators=[forms.validators.DataRequired((u"Please specify a discount title")),
         forms.validators.Length(max=250), forms.validators.StripWhitespace()])
@@ -33,16 +33,17 @@ class DiscountForm(forms.Form):
         forms.validators.StripWhitespace()])
     amount = forms.IntegerField(__("Amount"),
         validators=[forms.validators.OptionalIfNot('is_price_based', (u"Please specify the discounted price"))])
-    start_at = forms.DateTimeField(__("Price start date"), format='%d %m %Y %H:%M:%S',
+    start_at = forms.DateTimeField(__("Price start date"), format='%d %b %Y %H:%M:%S',
         timezone=lambda: g.user.timezone,
         validators=[forms.validators.OptionalIfNot('is_price_based', (u"Please specify start date for the price"))])
-    end_at = forms.DateTimeField(__("Price end date"), format='%d %m %Y %H:%M:%S', timezone=lambda: g.user.timezone,
+    end_at = forms.DateTimeField(__("Price end date"), format='%d %b %Y %H:%M:%S', timezone=lambda: g.user.timezone,
         validators=[forms.validators.OptionalIfNot('is_price_based', (u"Please specify end date for the price"))])
     items = QuerySelectMultipleField(__("Items"), get_label='title', query_factory=lambda: [],
         validators=[forms.validators.DataRequired((u"Please select a item to which discount is to be applied"))])
 
     def validate_discount_code_base(self, field):
-        if DiscountPolicy.query.filter_by(discount_code_base=field.data).notempty():
+        discount_policy = DiscountPolicy.query.filter_by(discount_code_base=field.data).first()
+        if discount_policy and discount_policy != DiscountPolicy.query.filter_by(title=self.title.data).first():
             raise forms.ValidationError((u"Please specify a different discount code base"))
 
     def validate_end_at(self, field):

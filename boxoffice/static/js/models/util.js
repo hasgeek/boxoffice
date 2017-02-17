@@ -19,14 +19,14 @@ export const Util = {
     var res = '₹' + otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + lastThree + afterPoint;
     return res;
   }
-}
+};
 
 export const fetch = function(config){
   return $.ajax({
     url: config.url,
     dataType: 'json'
   });
-}
+};
 
 export const post = function(config){
   return $.ajax({
@@ -36,15 +36,25 @@ export const post = function(config){
     contentType : config.contentType ? config.contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
     dataType: 'json',
   });
-}
+};
 
 export const getFormParameters = function(form) {
   var form_elements = $(form).serializeArray();
   return $.param(form_elements);
-}
+};
 
 export const scrollToElement = function(element, speed=500) {
   $('html,body').animate({
     scrollTop: $(element).offset().top
   }, speed);
-}
+};
+
+export const DEFAULT = {
+  showForm: true,
+  hideForm: false,
+  showLoader: true,
+  hideLoader: false,
+  priceBasedDiscount: 1,
+  couponBasedDiscount: 1,
+  usageCount: 1
+};

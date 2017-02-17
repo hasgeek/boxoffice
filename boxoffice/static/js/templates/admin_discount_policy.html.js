@@ -144,7 +144,7 @@ export const DiscountPolicyTemplate = `
             <div class="heading">
               <p class="heading-title">{{ title }}</p>
               <div class="heading-edit">
-                {{#if !hideEditBtn}}<button class="edit-btn" on-click="showEditPolicyForm(event)"><i class="fa fa-edit"></i>{{#loadingEditForm}}<i class="fa fa-spinner fa-spin">{{/}}</button>{{/if}}
+                {{#if !showPolicyForm && !showCouponForm}}<button class="edit-btn" on-click="showEditPolicyForm(event)"><i class="fa fa-edit"></i>{{#loadingEditForm}}<i class="fa fa-spinner fa-spin">{{/}}</button>{{/if}}
               </div>
             </div>
             <div class="content">
@@ -193,8 +193,7 @@ export const DiscountPolicyTemplate = `
               {{elseif showPolicyForm}}
                 <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
                   <h4 class="text-center form-title">Edit</h4>   
-                  <form role="form" id="policy-form-{{ id }}" name="edit-policy-form-{{ id }}"> 
-                    <input type="hidden" name="id" value="{{ id }}" />
+                  <form role="form" id="policy-form-{{ id }}" name="edit-policy-form-{{ id }}">
                     <div class="group">   
                       <input type="text" name="title" value="{{ title }}" twoway="false" class="group-input {{#title}}filled{{/}}" />
                       <span class="bar"></span>
@@ -401,9 +400,9 @@ export const DiscountPolicyTemplate = `
                     <p>Here are the discount coupons:</p>
                     <table class="table table-orders" id="new-coupons-{{ id }}">
                       <tbody>
-                      {{#coupons:coupon}}
+                      {{#coupons}}
                         <tr>
-                          <td>{{ coupons[coupon].code }}</td>
+                          <td>{{ . }}</td>
                         </tr>
                       {{/}}
                       </tbody>
