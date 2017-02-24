@@ -58,7 +58,7 @@ export const DiscountPolicyTemplate = `
               <p class="form-help-text">For Automatic discounts, minimum number of tickets user needs to buy to avail this discount.<br>Eg:- '5% discount on buying 5 or more tickets.'</p>
             {{else}}
               <div class="group">
-                <input type="text" name="discount_code_base" value="{{ newDiscountPolicy.discount_code_base }}" class="group-input {{#newDiscountPolicy.discount_code_base}}filled{{/}}" on-blur="validateCodeBase(event)"/>
+                <input type="text" name="discount_code_base" value="{{ newDiscountPolicy.discount_code_base }}" class="group-input {{#newDiscountPolicy.discount_code_base}}filled{{/}}" />
                 <span class="bar"></span>
                 <label class="group-label">Discount code base</label>
                 {{#newDiscountPolicy.errormsg.discount_code_base}}<p class="form-error-msg">{{ newDiscountPolicy.errormsg.discount_code_base }}</p>{{/}}
@@ -194,7 +194,7 @@ export const DiscountPolicyTemplate = `
                 <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
                   <h4 class="text-center form-title">Edit</h4>   
                   <form role="form" id="policy-form-{{ id }}" name="edit-policy-form-{{ id }}">
-                    <input type="hidden" name="dp_name" value="{{ name }}" />
+                    <input type="hidden" name="discount_policy_id" value="{{ id }}" />
                     <div class="group">   
                       <input type="text" name="title" value="{{ title }}" twoway="false" class="group-input {{#title}}filled{{/}}" />
                       <span class="bar"></span>
@@ -253,7 +253,7 @@ export const DiscountPolicyTemplate = `
                     {{else}}
                       <input type="hidden" name="discount_type" value=1 />
                       <div class="group">   
-                        <input type="text" name="discount_code_base" value="{{ discount_code_base }}" twoway="false" class="group-input {{#discount_code_base}}filled{{/}}" on-blur="validateCodeBase(event, event.keypath)" />
+                        <input type="text" name="discount_code_base" value="{{ discount_code_base }}" twoway="false" class="group-input {{#discount_code_base}}filled{{/}}" />
                         <span class="bar"></span>
                         <label class="group-label">Discount code base</label>
                         {{#errormsg.discount_code_base}}<p class="form-error-msg">{{ errormsg.discount_code_base }}</p>{{/}}

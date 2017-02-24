@@ -164,7 +164,7 @@ export const DiscountPolicyView = {
                 },
                 processResults: function (data) {
                   return {
-                    results: data.items
+                    results: data.result.items
                   };
                 },
               },
@@ -225,7 +225,7 @@ export const DiscountPolicyView = {
                 },
                 processResults: function (data) {
                   return {
-                    results: data.items
+                    results: data.result.items
                   };
                 }
               },
@@ -291,8 +291,7 @@ export const DiscountPolicyView = {
                       errorMsg += "<p>" + errorDescription[error] + "</p>";
                     }
                   }
-                }
-                if (response.readyState === 0) {
+                } else {
                   errorMsg = "Unable to connect. Please try again.";
                 }
                 discountPolicyComponent.set({
@@ -305,20 +304,6 @@ export const DiscountPolicyView = {
 
           formValidator.setMessage('required', 'Please fill out the this field');
           formValidator.setMessage('numeric', 'Please enter a numberic value');
-        },
-        validateCodeBase: function (event, dp="newDiscountPolicy") {
-          //If there is change in discount_code_base value, then validate it
-          if (event.node.value !== event.context.discount_code_base) {
-            DiscountPolicyModel.fetch({
-              url: DiscountPolicyModel.urlFor('lookup')['path'] + "?discount_code_base=" + event.node.value
-            }).done((response) => {
-              discountPolicyComponent.set(dp + '.errormsg.discount_code_base', "");
-            }).fail(function (response) {
-              if (response.readyState === 4 && response.status !== 500) {
-                discountPolicyComponent.set(dp + '.errormsg.discount_code_base', response.responseJSON.message);
-              }
-            });
-          }
         },
         hideNewPolicyForm: function (event) {
           discountPolicyComponent.set('showAddPolicyForm', DEFAULT.hideForm);
@@ -353,16 +338,16 @@ export const DiscountPolicyView = {
                 scrollToElement('#dp-' + dpId);
               }).fail(function (response) {
                 let errorMsg = DEFAULT.empty;
-                if (response.status === 500) {
-                  errorMsg = "Internal Server Error"
-                } else {
-                  let errorDescription = response.responseJSON.message;
-                  for (let error in errorDescription) {
-                    errorMsg += '<p>' + errorDescription[error] + '</p>';
+                if (response.readyState === 4) {
+                  if (response.status === 500) {
+                    errorMsg = "Internal Server Error"
+                  } else {
+                    let errorDescription = response.responseJSON.message;
+                    for (let error in errorDescription) {
+                      errorMsg += '<p>' + errorDescription[error] + '</p>';
+                    }
                   }
-                }
-
-                if (response.readyState === 0) {
+                } else {
                   errorMsg = "Unable to connect. Please try again."
                 }
                 discountPolicyComponent.set(discountPolicy + '.editingPolicy', DEFAULT.hideLoader);
@@ -428,8 +413,7 @@ export const DiscountPolicyView = {
                       errorMsg += '<p>' + errorDescription[error] + '</p>';
                     }
                   }
-                }
-                if (response.readyState === 0) {
+                } else {
                   errorMsg = "Unable to connect. Please try again."
                 }
                 discountPolicyComponent.set(discountPolicy + '.generatingCoupon', DEFAULT.hideLoader);
@@ -461,10 +445,9 @@ export const DiscountPolicyView = {
             new Clipboard('.copy-coupons-list');
           }).fail(function (response) {
             let errorMsg = DEFAULT.empty;
-            if (response.status === 500) {
+            if (response.readyState === 4) {
               errorMsg = "Internal Server Error"
-            }
-            if (response.readyState === 0) {
+            } else {
               errorMsg = "Unable to connect. Please try again."
             }
             discountPolicyComponent.set(discountPolicy + '.loadingCoupons', DEFAULT.hideLoader);

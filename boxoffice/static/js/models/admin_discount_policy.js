@@ -32,10 +32,6 @@ export const DiscountPolicyModel = {
       'list_coupons': {
         'path': `${base_url}/${discount_policy_id}/coupons`,
         'method': 'POST'
-      },
-      'lookup': {
-        'path': `${IndexModel.urlFor('index')['path']}discount_policy`,
-        'method': 'GET'
       }
     }
     return urls[action];

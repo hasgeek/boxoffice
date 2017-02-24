@@ -196,17 +196,3 @@ def admin_create_coupon(organization, discount_policy):
 def admin_discount_coupons(discount_policy):
     coupons_list = [{'code': coupon.code, 'usage_limit': coupon.usage_limit, 'available': coupon.usage_limit - coupon.used_count} for coupon in discount_policy.discount_coupons]
     return api_success(result={'coupons': coupons_list}, doc="List of discount coupons", status_code=200)
-
-
-@app.route('/api/1/admin/discount_policy')
-@lastuser.requires_permission('org_admin')
-@xhr_only
-@requestargs('discount_code_base')
-def has_discount_code_base(discount_code_base):
-    """
-    Check if any discount policy has the given discount code base.
-    """
-    if DiscountPolicy.query.filter_by(discount_code_base=discount_code_base).notempty():
-        return api_error(message="Please specify a different discount code base.", status_code=400)
-    else:
-        return api_success(result='', doc="Discount code base not found.", status_code=200)

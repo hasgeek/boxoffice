@@ -41,12 +41,14 @@ class DiscountPolicyForm(forms.Form):
     items = QuerySelectMultipleField(__("Items"), get_label='title', query_factory=lambda: [],
         validators=[forms.validators.DataRequired((u"Please select a item to which discount is to be applied"))])
     # For validate_discount_code_base
-    dp_name = forms.StringField(__("Name"),
+    discount_policy_id = forms.StringField(__("Id"),
         validators=[forms.validators.Optional()], default=None)
 
     def validate_discount_code_base(self, field):
-        discount_policy = DiscountPolicy.query.filter_by(discount_code_base=field.data).first()
-        if discount_policy and discount_policy.name != self.dp_name.data:
+        if self.discount_policy_id.data:
+            if DiscountPolicy.query.filter(DiscountPolicy.id != self.discount_policy_id.data, DiscountPolicy.discount_code_base == field.data).notempty():
+                raise forms.ValidationError((u"Please specify a different discount code base"))
+        elif DiscountPolicy.query.filter_by(discount_code_base=field.data).notempty():
             raise forms.ValidationError((u"Please specify a different discount code base"))
 
     def validate_end_at(self, field):
