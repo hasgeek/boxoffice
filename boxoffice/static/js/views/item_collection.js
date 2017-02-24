@@ -96,10 +96,10 @@ let AggChartComponent = Ractive.extend({
 })
 
 export const ItemCollectionView = {
-  render: function({ic_id}={}) {
+  render: function(view, {ic_id}={}) {
 
     ItemCollectionModel.fetch({
-      url: ItemCollectionModel.urlFor('index', {ic_id})['path']
+      url: ItemCollectionModel.urlFor(view, 'index', {ic_id})['path']
     }).done((remoteData) => {
       // Initial render
       let main_ractive = new Ractive({

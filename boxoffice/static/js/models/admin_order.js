@@ -1,20 +1,14 @@
-import {fetch, post} from './util.js';
+import {fetch, post, urlFor} from './util.js';
 import {IndexModel} from './index.js';
 
 export const OrderModel = {
   fetch: fetch,
   post: post,
-  urlFor: function(action, {ic_id, order_id}={}){
-    let urls = {
-      'index': {
-        'path': `${IndexModel.urlFor('index')['path']}ic/${ic_id}/orders`,
-        'relative_path': `ic/${ic_id}/orders`,
-        'method': 'GET'
-      },
-      'view': {
-        'path': `${IndexModel.urlFor('index')['path']}order/${order_id}`,
-        'method': 'GET'
-      }
+  urlFor: function (view, action, {ic_id, order_id}={}) {
+    let urls = urlFor(view, {ic_id});
+    urls['view-order'] = {
+      'path': `${urls['index']['path']}/${order_id}`,
+      'method': 'GET'
     }
     return urls[action];
   }

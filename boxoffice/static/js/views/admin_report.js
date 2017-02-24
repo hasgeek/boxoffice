@@ -4,10 +4,10 @@ import {ReportTemplate} from '../templates/admin_report.html.js';
 import {SideBarView} from './sidebar.js';
 
 export const ReportView = {
-  render: function({ic_id}={}) {
+  render: function(view, {ic_id}={}) {
 
     ReportModel.fetch({
-      url: ReportModel.urlFor('index', {ic_id})['path']
+      url: ReportModel.urlFor(view, 'index', {ic_id})['path']
     }).done(({org_name, title}) => {
       // Initial render
       let main_ractive = new Ractive({
@@ -17,7 +17,7 @@ export const ReportView = {
           title: title,
           reports_url: function() {
             let report_type = this.get('report_type');
-            return ReportModel.urlFor(report_type, {ic_id})['path'];
+            return ReportModel.urlFor(view, report_type, {ic_id})['path'];
           },
           reports_filename: function() {
             let filename = this.get('title').replace(/ /g, '_');

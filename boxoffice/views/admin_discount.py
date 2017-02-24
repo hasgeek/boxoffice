@@ -112,8 +112,7 @@ def admin_add_discount_policy(organization):
     db.session.add(discount_policy)
     db.session.commit()
     if discount_policy_form.is_price_based.data:
-        item = Item.query.get(items[0])
-        discount_price = Price(discount_policy=discount_policy, title=discount_policy_form.price_title.data, start_at=discount_policy_form.start_at.data, end_at=discount_policy_form.end_at.data, amount=discount_policy_form.amount.data, item=item)
+        discount_price = Price(discount_policy=discount_policy, title=discount_policy_form.price_title.data, start_at=discount_policy_form.start_at.data, end_at=discount_policy_form.end_at.data, amount=discount_policy_form.amount.data, item=items[0])
         db.session.add(discount_price)
         db.session.commit()
     return api_success(result={'discount_policy': jsonify_discount_policy(discount_policy)}, doc="New discount policy created.", status_code=200)

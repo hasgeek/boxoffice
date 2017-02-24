@@ -57,3 +57,52 @@ export const updateBrowserHistory = function (currentUrl, newUrl) {
   window.history.replaceState({reloadOnPop: true}, '', currentUrl);
   window.history.pushState({reloadOnPop: true}, '', newUrl);
 }
+
+export const urlFor = function(view, {org_name, ic_id}={}){
+  let indexUrl = Backbone.history.root
+  let baseUrl = {
+    'home': {
+      'path': indexUrl,
+      'relative_path': '/',
+      'method': 'GET'
+    },
+    'org': {
+      'path': `${indexUrl}o/${org_name}`,
+      'relative_path': `o/${org_name}`,
+      'method': 'GET'
+    },
+    'dashboard': {
+        'path': `${indexUrl}ic/${ic_id}`,
+        'relative_path': `ic/${ic_id}`,
+        'method': 'GET'
+    },
+    'orders': {
+      'path': `${indexUrl}ic/${ic_id}/orders`,
+      'relative_path': `ic/${ic_id}/orders`,
+      'method': 'GET'
+    },
+    'discount-policies': {
+      'path': `${indexUrl}${org_name}/discount_policy`,
+      'relative_path': `${org_name}/discount_policy`,
+      'method': 'GET'
+    },
+    'reports': {
+      'path': `${indexUrl}ic/${ic_id}/reports`,
+      'relative_path': `ic/${ic_id}/reports`,
+      'method': 'GET'
+    }
+  };
+  let urls = {
+    'index': {
+      'path': baseUrl[view]['path'],
+      'relative_path':  baseUrl[view]['relative_path'],
+      'method':  baseUrl[view]['method']
+    },
+    'new': {
+      'path': `${baseUrl[view]['path']}/new`,
+      'relative_path':  `${baseUrl[view]['relative_path']}/new`,
+      'method':  baseUrl[view]['method']
+    }
+  };
+  return urls;
+}

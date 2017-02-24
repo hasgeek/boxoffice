@@ -4,9 +4,9 @@ import {IndexTemplate} from '../templates/index.html.js';
 import {SideBarView} from './sidebar.js'
 
 export const IndexView = {
-  render: function() {
+  render: function(view) {
     IndexModel.fetch({
-      url: IndexModel.urlFor('index')['path']
+      url: IndexModel.urlFor(view, 'index')['path']
     }).then(function({orgs}){
       let ractive = new Ractive({
         el: '#main-content-area',

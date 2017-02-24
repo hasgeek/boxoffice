@@ -6,12 +6,12 @@ import {DiscountPolicyTemplate} from '../templates/admin_discount_policy.html.js
 import {SideBarView} from './sidebar.js';
 
 export const DiscountPolicyView = {
-  render: function ({org_name, search, page}={}) {
+  render: function (view, {org_name, search, page}={}) {
     let url;
     if (search) {
-      url = DiscountPolicyModel.urlFor('search', {org_name, search, page})['path'];
+      url = DiscountPolicyModel.urlFor(view, 'search', {org_name, search, page})['path'];
     } else {
-      url = DiscountPolicyModel.urlFor('index', {org_name, page})['path'];
+      url = DiscountPolicyModel.urlFor(view, 'index', {org_name, page})['path'];
     }
 
     const DEFAULT = {
@@ -104,9 +104,9 @@ export const DiscountPolicyView = {
         refresh: function (search='', page='') {
           let url;
           if (search) {
-            url = DiscountPolicyModel.urlFor('search', {org_name, search, page})['path'];
+            url = DiscountPolicyModel.urlFor(view, 'search', {org_name, search, page})['path'];
           } else {
-            url = DiscountPolicyModel.urlFor('index', {org_name, page})['path'];
+            url = DiscountPolicyModel.urlFor(view, 'index', {org_name, page})['path'];
           }
           NProgress.start();
           DiscountPolicyModel.fetch({
@@ -155,7 +155,7 @@ export const DiscountPolicyView = {
                 title: "Search tickets"
               },
               ajax: {
-                url: OrgModel.urlFor('view_items', {org_name})['path'],
+                url: OrgModel.urlFor('org', 'view-items', {org_name})['path'],
                 dataType: 'json',
                 data: function (params) {
                   return {
@@ -216,7 +216,7 @@ export const DiscountPolicyView = {
               multiple: true,
               placeholder: 'Search tickets',
               ajax: {
-                url: OrgModel.urlFor('view_items', {org_name})['path'],
+                url: OrgModel.urlFor('org', 'view-items', {org_name})['path'],
                 dataType: 'json',
                 data: function (params) {
                   return {
@@ -270,7 +270,7 @@ export const DiscountPolicyView = {
               });
               let formSelector = '#new-policy-form';
               DiscountPolicyModel.post({
-                url: DiscountPolicyModel.urlFor('new', {org_name})['path'],
+                url: DiscountPolicyModel.urlFor(view, 'new', {org_name})['path'],
                 data: getFormParameters(formSelector)
               }).done((remoteData) => {
                 discountPolicyComponent.set({
@@ -329,7 +329,7 @@ export const DiscountPolicyView = {
               let formSelector = '#policy-form-' + dpId;
 
               DiscountPolicyModel.post({
-                url: DiscountPolicyModel.urlFor('edit', {org_name, discount_policy_id: dpId})['path'],
+                url: DiscountPolicyModel.urlFor(view, 'edit', {org_name, discount_policy_id: dpId})['path'],
                 data: getFormParameters(formSelector)
               }).done((remoteData) => {
                 discountPolicyComponent.set(discountPolicy + '.editingPolicy', DEFAULT.hideLoader);
@@ -395,7 +395,7 @@ export const DiscountPolicyView = {
               discountPolicyComponent.set(discountPolicy + '.generateCouponErrorMsg', DEFAULT.empty);
 
               DiscountPolicyModel.post({
-                url: DiscountPolicyModel.urlFor('generate_coupon', {org_name, discount_policy_id: dpId})['path'],
+                url: DiscountPolicyModel.urlFor(view, 'generate_coupon', {org_name, discount_policy_id: dpId})['path'],
                 data: getFormParameters(formSelector)
               }).done((remoteData) => {
                 discountPolicyComponent.set(discountPolicy + '.coupons', remoteData.result.coupons);
@@ -435,7 +435,7 @@ export const DiscountPolicyView = {
           discountPolicyComponent.set(discountPolicy+ '.loadingCouponErrorMsg', DEFAULT.empty);
 
           DiscountPolicyModel.fetch({
-            url: DiscountPolicyModel.urlFor('list_coupons', {org_name, discount_policy_id: dpId})['path'],
+            url: DiscountPolicyModel.urlFor(view, 'list_coupons', {org_name, discount_policy_id: dpId})['path'],
             contentType: 'application/json'
           }).done((remoteData) => {
             discountPolicyComponent.set(discountPolicy + '.coupons', remoteData.result.coupons);

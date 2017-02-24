@@ -72,7 +72,7 @@ def admin_orders(item_collection):
     return dict(title=item_collection.organization.title, item_collection=item_collection, orders=item_collection.orders)
 
 
-@app.route('/api/1/admin/order/<order_id>')
+@app.route('/api/1/admin/ic/<ic_id>/orders/<order_id>')
 @lastuser.requires_login
 @load_models(
     (Order, {'id': 'order_id'}, 'order'),

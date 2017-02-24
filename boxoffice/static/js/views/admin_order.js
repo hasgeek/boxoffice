@@ -5,10 +5,10 @@ import {OrderTemplate} from '../templates/admin_order.html.js';
 import {SideBarView} from './sidebar.js';
 
 export const OrderView = {
-  render: function({ic_id}={}) {
+  render: function(view, {ic_id}={}) {
 
     OrderModel.fetch({
-      url: OrderModel.urlFor('index', {ic_id})['path']
+      url: OrderModel.urlFor(view, 'index', {ic_id})['path']
     }).done(({org_name, title, orders}) => {
       // Initial render
       let main_ractive = new Ractive({
@@ -60,7 +60,7 @@ export const OrderView = {
         NProgress.configure({ showSpinner: false}).start();
         let order_id = event.context.id;
         OrderModel.fetch({
-          url: OrderModel.urlFor('view', {order_id})['path']
+          url: OrderModel.urlFor(view, 'view-order', {order_id})['path']
         }).done((remoteData) => {
           main_ractive.set(event.keypath + '.line_items', remoteData.line_items);
           main_ractive.set(event.keypath + '.show_order', true);
