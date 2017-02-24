@@ -5,7 +5,6 @@ import math
 from flask import jsonify, request
 from .. import app, lastuser
 from coaster.views import load_models, render_with, requestargs
-from coaster.utils import buid
 from ..models import db
 from boxoffice.models import Organization, ItemCollection, DiscountPolicy, DiscountCoupon, Item, Price, CURRENCY_SYMBOL
 from ..forms import DiscountPolicyForm, DiscountCouponForm
@@ -103,12 +102,11 @@ def admin_add_discount_policy(organization):
         return api_error(message=discount_policy_form.errors, status_code=400)
     discount_policy = DiscountPolicy(title=discount_policy_form.title.data, organization=organization)
     discount_policy_form.populate_obj(discount_policy)
-    items = request.form.getlist('items')
-    for item_id in items:
-        item = Item.query.get(item_id)
-        discount_policy.items.append(item)
+    item_ids = request.form.getlist('items')
+    items = Item.query.filter(Item.id.in_(item_ids))
+    discount_policy.items.extend(items)
     if discount_policy_form.discount_type.data:
-        discount_policy.secret = buid()
+        discount_policy.set_secret()
     else:
         discount_policy_form.discount_code_base.data = None
     db.session.add(discount_policy)
@@ -143,10 +141,12 @@ def admin_edit_discount_policy(organization, discount_policy):
     db.session.commit()
     if discount_policy_form.is_price_based.data:
         discount_price = Price.query.filter_by(discount_policy=discount_policy).first()
-        discount_price.start_at = discount_policy_form.start_at.data
-        discount_price.end_at = discount_policy_form.end_at.data
-        discount_price.amount = discount_policy_form.amount.data
-        db.session.commit()
+        if discount_price:
+            discount_price.title = discount_policy_form.price_title.data
+            discount_price.start_at = discount_policy_form.start_at.data
+            discount_price.end_at = discount_policy_form.end_at.data
+            discount_price.amount = discount_policy_form.amount.data
+            db.session.commit()
     return api_success(result={'discount_policy': jsonify_discount_policy(discount_policy)}, doc="Discount policy updated.", status_code=200)
 
 
@@ -194,18 +194,18 @@ def admin_create_coupon(organization, discount_policy):
     )
 @xhr_only
 def admin_discount_coupons(discount_policy):
-    discount_coupons = DiscountCoupon.query.filter(DiscountCoupon.discount_policy == discount_policy).all()
-    coupons_list = []
-    for coupon in discount_coupons:
-        coupons_list.append({'code': coupon.code, 'usage_limit': coupon.usage_limit, 'available': coupon.usage_limit - coupon.used_count})
+    coupons_list = [{'code': coupon.code, 'usage_limit': coupon.usage_limit, 'available': coupon.usage_limit - coupon.used_count} for coupon in discount_policy.discount_coupons]
     return api_success(result={'coupons': coupons_list}, doc="List of discount coupons", status_code=200)
 
 
 @app.route('/api/1/admin/discount_policy')
-@lastuser.requires_login
+@lastuser.requires_permission('org_admin')
 @xhr_only
 @requestargs('discount_code_base')
-def admin_discount_policy(discount_code_base):
+def has_discount_code_base(discount_code_base):
+    """
+    Check if any discount policy has the given discount code base.
+    """
     if DiscountPolicy.query.filter_by(discount_code_base=discount_code_base).notempty():
         return api_error(message="Please specify a different discount code base.", status_code=400)
     else:
