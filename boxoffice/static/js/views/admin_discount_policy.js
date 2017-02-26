@@ -69,10 +69,6 @@ export const DiscountPolicyView = {
               rules: 'required|numeric'
             },
             {
-              name: 'price_title',
-              rules: 'required|max_length[250]'
-            },
-            {
               name: 'amount',
               rules: 'required|numeric'
             },

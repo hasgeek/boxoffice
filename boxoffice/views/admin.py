@@ -51,7 +51,8 @@ def org(organization):
 @requestargs('search')
 def filter_items(organization, search=None):
     if search:
-        filtered_items = Item.query.join(ItemCollection).filter(ItemCollection.organization == organization).filter(Item.title.ilike('%{query}%'.format(query=search))).all()
+        filtered_items = Item.query.join(ItemCollection).filter(ItemCollection.organization == organization).\
+            filter(Item.title.ilike('%{query}%'.format(query=search))).all()
         return api_success(result={'items': [{'id': str(item.id), 'title': item.title} for item in filtered_items]}, doc="Filtered items", status_code=200)
     else:
         return api_error(message='Missing search query', status_code=400)
