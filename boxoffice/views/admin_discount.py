@@ -105,12 +105,10 @@ def admin_add_discount_policy(organization):
     discount_policy.items.extend(items)
     if discount_policy_form.discount_type.data:
         discount_policy.set_secret()
-    else:
-        discount_policy_form.discount_code_base.data = None
     discount_policy_form.populate_obj(discount_policy)
     db.session.add(discount_policy)
     db.session.commit()
-    if discount_policy_form.is_price_based.data:
+    if discount_policy.is_price_based:
         discount_price = Price(discount_policy=discount_policy, title=discount_policy_form.title.data, item=items[0])
         discount_policy_form.populate_obj(discount_price)
         db.session.add(discount_price)
@@ -129,16 +127,15 @@ def admin_add_discount_policy(organization):
 def admin_edit_discount_policy(organization, discount_policy):
     discount_policy_form = DiscountPolicyForm()
     discount_policy_form.items.query = Item.query.join(ItemCollection).filter(ItemCollection.organization == organization).options(db.load_only('id')).all()
+    print discount_policy_form.data
     if not discount_policy_form.validate_on_submit():
         return api_error(message=discount_policy_form.errors, status_code=400)
-    if not discount_policy_form.discount_type.data:
-        discount_policy_form.discount_code_base.data = None
     discount_policy_form.populate_obj(discount_policy)
     item_ids = request.form.getlist('items')
     items = Item.query.filter(Item.id.in_(item_ids)).all()
     discount_policy.items.extend(items)
     db.session.commit()
-    if discount_policy_form.is_price_based.data:
+    if discount_policy.is_price_based:
         discount_price = Price.query.filter_by(discount_policy=discount_policy).first()
         if discount_price:
             discount_policy_form.populate_obj(discount_price)

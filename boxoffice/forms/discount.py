@@ -25,7 +25,7 @@ class DiscountPolicyForm(forms.Form):
     discount_code_base = forms.StringField(__("Discount Title"),
         validators=[forms.validators.OptionalIfNot('discount_type',
             (u"Please specify a discount code base")),
-        forms.validators.Length(max=20), forms.validators.StripWhitespace()])
+        forms.validators.Length(max=20), forms.validators.StripWhitespace()], filters=[lambda code_base: code_base or None])
     bulk_coupon_usage_limit = forms.IntegerField(__("Number of times a bulk coupon can be used"), default=1)
     amount = forms.IntegerField(__("Amount"),
         validators=[forms.validators.OptionalIfNot('is_price_based', (u"Please specify the discounted price"))])
