@@ -1,4 +1,5 @@
 
+import {fetch, urlFor} from '../models/util.js';
 import {ItemCollectionModel} from '../models/item_collection.js';
 import {TableTemplate, AggChartTemplate, ItemCollectionTemplate} from '../templates/item_collection.html.js';
 import {SideBarView} from './sidebar.js'
@@ -98,8 +99,8 @@ let AggChartComponent = Ractive.extend({
 export const ItemCollectionView = {
   render: function(view, {ic_id}={}) {
 
-    ItemCollectionModel.fetch({
-      url: ItemCollectionModel.urlFor('view', {resource: 'ic', id: ic_id})
+    fetch({
+      url: urlFor('view', {resource: 'ic', id: ic_id, root: true})
     }).done((remoteData) => {
       // Initial render
       let main_ractive = new Ractive({

@@ -4,7 +4,7 @@ export const DiscountPolicyTemplate = `
     <h1 class="header">{{ title }}</h1>
     <div class="title-wrapper col-sm-4 col-xs-12">
       <input type="text" autofocus class="form-control" placeholder="Search discount policy" value="{{searchText}}" />
-      <a on-click="clearSearchField()" class="clear-field"><i class="fa fa-close"></i></a>
+      {{#searchText}}<a on-click="clearSearchField()" class="clear-field"><i class="fa fa-close"></i></a>{{/}}
     </div>
     <div class="title-wrapper col-sm-4 col-sm-offset-4 col-xs-12">
       <button class="boxoffice-button boxoffice-button-action btn-right" on-click="showNewPolicyForm(event)">Create discount policy</button>

@@ -1,12 +1,12 @@
 
-import {IndexModel} from '../models/index.js';
+import {fetch, urlFor} from '../models/util.js';
 import {IndexTemplate} from '../templates/index.html.js';
 import {SideBarView} from './sidebar.js'
 
 export const IndexView = {
   render: function(view) {
-    IndexModel.fetch({
-      url: IndexModel.urlFor('index')
+    fetch({
+      url: urlFor('index', {root: true})
     }).then(function({orgs}){
       let ractive = new Ractive({
         el: '#main-content-area',

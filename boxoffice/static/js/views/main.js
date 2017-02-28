@@ -13,7 +13,6 @@ $(function(){
   Backbone.history.start({pushState: true, root: appRouter.url_root});
   window.eventBus = _.clone(Backbone.Events);
   window.eventBus.on('navigate', function(msg){
-    console.log('routing to ' + msg);
     appRouter.navigate(msg, {trigger: true});
   })
 });

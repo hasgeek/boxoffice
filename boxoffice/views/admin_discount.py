@@ -87,7 +87,7 @@ def admin_discount_policies(organization, search=None, page=1):
         return dict(title=organization.title)
 
 
-@app.route('/admin/<org>/discount_policy/new', methods=['OPTIONS', 'POST'])
+@app.route('/admin/o/<org>/discount_policy/new', methods=['OPTIONS', 'POST'])
 @lastuser.requires_login
 @load_models(
     (Organization, {'name': 'org'}, 'organization'),
@@ -116,7 +116,7 @@ def admin_add_discount_policy(organization):
     return api_success(result={'discount_policy': jsonify_discount_policy(discount_policy)}, doc="New discount policy created.", status_code=200)
 
 
-@app.route('/admin/<org>/discount_policy/<discount_policy_id>/edit', methods=['OPTIONS', 'POST'])
+@app.route('/admin/o/<org>/discount_policy/<discount_policy_id>/edit', methods=['OPTIONS', 'POST'])
 @lastuser.requires_login
 @load_models(
     (Organization, {'name': 'org'}, 'organization'),
@@ -144,15 +144,14 @@ def admin_edit_discount_policy(organization, discount_policy):
     return api_success(result={'discount_policy': jsonify_discount_policy(discount_policy)}, doc="Discount policy updated.", status_code=200)
 
 
-@app.route('/admin/<org>/discount_policy/<discount_policy_id>/generate_coupon', methods=['OPTIONS', 'POST'])
+@app.route('/admin/discount_policy/<discount_policy_id>/coupons/new', methods=['OPTIONS', 'POST'])
 @lastuser.requires_login
 @load_models(
-    (Organization, {'name': 'org'}, 'organization'),
     (DiscountPolicy, {'id': 'discount_policy_id'}, 'discount_policy'),
     permission='org_admin'
     )
 @xhr_only
-def admin_create_coupon(organization, discount_policy):
+def admin_create_coupon(discount_policy):
     coupon_form = DiscountCouponForm()
     coupons = []
     if not coupon_form.validate_on_submit():

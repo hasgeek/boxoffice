@@ -200,7 +200,7 @@ a.boxoffice-button:focus {
 }
 
 .group-label {
-  color: #999;
+  color: #333;
   font-size: 16px;
   font-weight: normal;
   position: absolute;
@@ -324,7 +324,7 @@ a.boxoffice-button:focus {
 }
 
 .field-title {
-  color: #999;
+  color: #333;
   font-size: 16px;
   margin: 0 0 5px;
   font-weight: normal;
@@ -381,11 +381,12 @@ a.boxoffice-button:focus {
 }
 
 .form-help-text {
-  font-size: 16px;
+  font-size: 13px;
   color: #999;
   margin: 10px 0;
   position: relative;
   top: -40px;
+  left: 5px;
 }
 
 .info-msg {

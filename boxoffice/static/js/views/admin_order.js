@@ -1,14 +1,13 @@
 
-import {scrollToElement} from '../models/util.js';
-import {OrderModel} from '../models/admin_order.js';
+import {fetch, post, scrollToElement, urlFor} from '../models/util.js';
 import {OrderTemplate} from '../templates/admin_order.html.js';
 import {SideBarView} from './sidebar.js';
 
 export const OrderView = {
   render: function(view, {ic_id}={}) {
 
-    OrderModel.fetch({
-      url: OrderModel.urlFor('index', {scope_ns: 'ic', scope_id: ic_id, resource: 'orders'})
+    fetch({
+      url: urlFor('index', {scope_ns: 'ic', scope_id: ic_id, resource: 'orders', root: true})
     }).done(({org_name, title, orders}) => {
       // Initial render
       let main_ractive = new Ractive({
@@ -59,12 +58,13 @@ export const OrderView = {
         main_ractive.set(event.keypath + '.loading', true);
         NProgress.configure({ showSpinner: false}).start();
         let order_id = event.context.id;
-        OrderModel.fetch({
-          url: OrderModel.urlFor('view', {
+        fetch({
+          url: urlFor('view', {
             scope_ns: 'ic',
             scope_id: ic_id,
             resource: 'order',
-            id: order_id
+            id: order_id,
+            root: true
           })
         }).done((remoteData) => {
           main_ractive.set(event.keypath + '.line_items', remoteData.line_items);
@@ -85,8 +85,8 @@ export const OrderView = {
         if (window.confirm("Are you sure you want to cancel this ticket?")) {
           main_ractive.set(event.keypath + '.cancel_error', "");
           main_ractive.set(event.keypath + '.cancelling', true);
-
-          OrderModel.post({
+          console.log("event.context.cancel_ticket_url", event.context.cancel_ticket_url)
+          post({
             url: event.context.cancel_ticket_url
           }).done(function(response) {
             main_ractive.set(event.keypath + '.cancelled_at', response.result.cancelled_at);

@@ -1,10 +1,8 @@
-import {Util, fetch, urlFor} from './util.js';
+import {Util} from './util.js';
 import {IndexModel} from './index.js';
 
 
 export const ItemCollectionModel = {
-  fetch: fetch,
-  urlFor: urlFor,
   formatItems: function (items) {
     var formattedItems = _.extend(items);
     formattedItems.forEach(function(item){

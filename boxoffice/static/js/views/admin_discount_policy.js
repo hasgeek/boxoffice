@@ -1,7 +1,5 @@
 
-import {scrollToElement, getFormParameters, getCsrfToken, updateBrowserHistory} from '../models/util.js';
-import {OrgModel} from '../models/org.js';
-import {DiscountPolicyModel} from '../models/admin_discount_policy.js';
+import {fetch, post, scrollToElement, getFormParameters, getCsrfToken, updateBrowserHistory, urlFor} from '../models/util.js';
 import {DiscountPolicyTemplate} from '../templates/admin_discount_policy.html.js';
 import {SideBarView} from './sidebar.js';
 
@@ -9,18 +7,20 @@ export const DiscountPolicyView = {
   render: function (view, {org_name, search, page}={}) {
     let url;
     if (search) {
-      url = DiscountPolicyModel.urlFor('search', {
+      url = urlFor('search', {
         scope_ns: 'o',
         scope_id: org_name,
         resource: 'discount_policy',
+        root: true,
         search: search,
         page: page
       });
     } else {
-      url = DiscountPolicyModel.urlFor('index', {
+      url = urlFor('index', {
         scope_ns: 'o',
         scope_id: org_name,
         resource: 'discount_policy',
+        root: true,
         page: page
       });
     }
@@ -36,7 +36,7 @@ export const DiscountPolicyView = {
       empty: ""
     };
 
-    DiscountPolicyModel.fetch({
+    fetch({
       url: url
     }).done(({org_name, title, discount_policies, total_pages, paginated, current_page}) => {
       // Initial render
@@ -111,24 +111,26 @@ export const DiscountPolicyView = {
         refresh: function (search='', page='') {
           let url;
           if (search) {
-            url = DiscountPolicyModel.urlFor('search', {
+            url = urlFor('search', {
               scope_ns: 'o',
               scope_id: org_name,
               resource: 'discount_policy',
+              root: true,
               search: search,
               page: page
             });
           } else {
-            url = DiscountPolicyModel.urlFor('index', {
+            url = urlFor('index', {
               scope_ns: 'o',
               scope_id: org_name,
               resource: 'discount_policy',
+              root: true,
               page: page
             });
           }
 
           NProgress.start();
-          DiscountPolicyModel.fetch({
+          fetch({
             url: url
           }).done((remoteData) => {
             discountPolicyComponent.set({
@@ -139,8 +141,8 @@ export const DiscountPolicyView = {
               'pages': _.range(1, remoteData.total_pages + 1)
             });
             NProgress.done();
+            updateBrowserHistory(window.location.href, url);
           });
-          updateBrowserHistory(window.location.href, url);
           scrollToElement("#" + discountPolicyComponent.el.id);
         },
         paginate: function (event, page) {
@@ -174,10 +176,11 @@ export const DiscountPolicyView = {
                 title: "Search tickets"
               },
               ajax: {
-                url: OrgModel.urlFor('index', {
+                url: urlFor('index', {
                   scope_ns: 'o',
                   scope_id: org_name,
-                  resource: 'items'
+                  resource: 'items',
+                  root: true
                 }),
                 dataType: 'json',
                 data: function (params) {
@@ -239,10 +242,11 @@ export const DiscountPolicyView = {
               multiple: true,
               placeholder: 'Search tickets',
               ajax: {
-                url: OrgModel.urlFor('index', {
+                url: urlFor('index', {
                   scope_ns: 'o',
                   scope_id: org_name,
-                  resource: 'items'
+                  resource: 'items',
+                  root: true
                 }),
                 dataType: 'json',
                 data: function (params) {
@@ -296,11 +300,12 @@ export const DiscountPolicyView = {
                 'newDiscountPolicy.creatingPolicy': DEFAULT.showLoader
               });
               let formSelector = '#new-policy-form';
-              DiscountPolicyModel.post({
-                url: DiscountPolicyModel.urlFor('new', {
+              post({
+                url: urlFor('new', {
                   scope_ns: 'o',
                   scope_id: org_name,
-                  resource: 'discount_policy'
+                  resource: 'discount_policy',
+                  root: true
                 }),
                 data: getFormParameters(formSelector)
               }).done((remoteData) => {
@@ -359,12 +364,13 @@ export const DiscountPolicyView = {
               discountPolicyComponent.set(discountPolicy + '.editingPolicy', DEFAULT.showLoader);
               let formSelector = '#policy-form-' + dpId;
 
-              DiscountPolicyModel.post({
-                url: DiscountPolicyModel.urlFor('edit', {
-                  scope: 'o',
+              post({
+                url: urlFor('edit', {
+                  scope_ns: 'o',
                   scope_id: org_name,
                   resource: 'discount_policy',
-                  id: dpId
+                  id: dpId,
+                  root: true
                 }),
                 data: getFormParameters(formSelector)
               }).done((remoteData) => {
@@ -430,12 +436,12 @@ export const DiscountPolicyView = {
               discountPolicyComponent.set(discountPolicy+ '.generatingCoupon', DEFAULT.showLoader);
               discountPolicyComponent.set(discountPolicy + '.generateCouponErrorMsg', DEFAULT.empty);
 
-              DiscountPolicyModel.post({
-                url: DiscountPolicyModel.urlFor('view', {
-                  scope_ns: 'o',
-                  scope_id: org_name,
-                  resource: 'discount_policy',
-                  id: dpId
+              post({
+                url: urlFor('new', {
+                  scope_ns: 'discount_policy',
+                  scope_id: dpId,
+                  resource: 'coupons',
+                  root: true
                 }),
                 data: getFormParameters(formSelector)
               }).done((remoteData) => {
@@ -475,11 +481,12 @@ export const DiscountPolicyView = {
           discountPolicyComponent.set(discountPolicy + '.loadingCoupons', DEFAULT.showLoader);
           discountPolicyComponent.set(discountPolicy+ '.loadingCouponErrorMsg', DEFAULT.empty);
 
-          DiscountPolicyModel.fetch({
-            url: DiscountPolicyModel.urlFor('index', {
+          fetch({
+            url: urlFor('view', {
               scope_ns: 'discount_policy',
               scope_id: dpId,
-              resource: 'coupons'
+              resource: 'coupons',
+              root: true
             }),
             contentType: 'application/json'
           }).done((remoteData) => {

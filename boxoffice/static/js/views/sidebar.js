@@ -19,16 +19,9 @@ export const SideBarView = {
         this.set('sidebarMobileOn', !this.get('sidebarMobileOn'));
       },
       navigate: function(event) {
-        console.log('navigate');
-        console.log(event.context.url);
-        console.log(event.context.view);
-        console.log(this.get('activeItem'));
-        console.log(this);
         if (event.context.view !== this.get('activeItem')) {
           NProgress.configure({ showSpinner: false}).start();
-          console.log('before trigger');
           eventBus.trigger('navigate', event.context.url);
-          console.log('after trigger');
         }
       }
     });

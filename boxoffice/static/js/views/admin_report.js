@@ -1,12 +1,12 @@
 
-import {ReportModel} from '../models/admin_report.js';
+import {fetch, urlFor} from '../models/util.js';
 import {ReportTemplate} from '../templates/admin_report.html.js';
 import {SideBarView} from './sidebar.js';
 
 export const ReportView = {
   render: function(view, {ic_id}={}) {
-    ReportModel.fetch({
-      url: ReportModel.urlFor('index', {resource: 'reports', scope_ns: 'ic', scope_id: ic_id})
+    fetch({
+      url: urlFor('index', {resource: 'reports', scope_ns: 'ic', scope_id: ic_id, root: true})
     }).done(({org_name, title}) => {
       // Initial render
       let main_ractive = new Ractive({
@@ -16,7 +16,7 @@ export const ReportView = {
           title: title,
           reports_url: function() {
             let report_type = this.get('report_type');
-            return ReportModel.urlFor('index', {
+            return urlFor('index', {
               resource: report_type,
               scope_ns: 'ic',
               scope_id: ic_id,

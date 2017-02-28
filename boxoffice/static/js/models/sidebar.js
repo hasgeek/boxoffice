@@ -8,7 +8,7 @@ export const SideBarModel = {
     if (org_name) {
       sidebar_items = [
         {
-          url: urlFor('index'),
+          url: '/',
           title: 'Home',
           icon: 'fa-home',
           view: 'home'

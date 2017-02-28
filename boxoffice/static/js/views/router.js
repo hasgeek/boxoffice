@@ -7,7 +7,7 @@ import {DiscountPolicyView} from './admin_discount_policy.js';
 import {ReportView} from './admin_report.js';
 
 export const Router = Backbone.Router.extend({
-  url_root: 'admin',
+  url_root: '/admin/',
   routes: {
     "": "index",
     "o/:org_name": "org",
@@ -28,7 +28,6 @@ export const Router = Backbone.Router.extend({
     ItemCollectionView.render('dashboard', {ic_id});
   },
   order: function(ic_id) {
-    console.log('router orders');
     OrderView.render('orders', {ic_id});
   },
   discount_policy: function(org_name, {search, page}={}) {

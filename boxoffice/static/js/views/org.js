@@ -1,13 +1,13 @@
 
-import {OrgModel} from '../models/org.js';
+import {fetch, urlFor} from '../models/util.js';
 import {orgTemplate} from '../templates/org.html.js';
 import {SideBarView} from './sidebar.js'
 
 export const OrgView = {
   render: function(view, {org_name}={}) {
 
-    OrgModel.fetch({
-      url: OrgModel.urlFor('view', {resource: 'o', id: org_name})
+    fetch({
+      url: urlFor('view', {resource: 'o', id: org_name, root: true})
     }).then(function({id, name, title, item_collections}){
       let ractive = new Ractive({
         el: '#main-content-area',

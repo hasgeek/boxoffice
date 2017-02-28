@@ -21,24 +21,16 @@ export const Util = {
   }
 };
 
-export const fetch = function (config){
-  let url = config.url;
-  if (!config.absolute) {
-    url = Backbone.history.root + config.url;
-  }
+export const fetch = function (config) {
   return $.ajax({
-    url: url,
+    url: config.url,
     dataType: 'json'
   });
 };
 
-export const post = function (config){
-  let url = config.url;
-  if (config.absolute) {
-    url = Backbone.history.root + config.url;
-  }
+export const post = function (config) {
   return $.ajax({
-    url: url,
+    url: config.url,
     type: 'POST',
     data: config.data,
     contentType : config.contentType ? config.contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
@@ -87,7 +79,6 @@ export const urlFor = function(view, params={}){
   - root    : if URL should be prefixed with root namespace eg: /admin
   */
   let rootURL = Backbone.history.root;
-  var indexPath = rootURL;
   let scope = '';
   let ext = '';
   let resource = '';
@@ -102,24 +93,21 @@ export const urlFor = function(view, params={}){
   }
 
   if (params.ext) {
-    ext = `.${params.ext}/`;
-  }
-
-  if (view === 'index' || view === 'search') {
-    indexPath = `${scope}${resource}`;
+    ext = `.${params.ext}`;
   }
 
   let urlMap = {
-    'index': `${indexPath}${ext}`,
-    'view': `${scope}${resource}/${params.id}${ext}`,
-    'new': `${scope}${resource}/new`,
+    'index': params.page ? `${scope}${resource}${ext}?page=${params.page}` : `${scope}${resource}${ext}`,
+    'view': params.id ? `${scope}${resource}/${params.id}${ext}` : `${scope}${resource}`,
+    'new': params.id ? `${scope}${resource}/${params.id}/new` : `${scope}${resource}/new`,
     'edit': `${scope}${resource}/${params.id}/edit`,
-    'search': params.page ? `${indexPath}?search=${params.search}&page=${params.page}` : `${indexPath}?search=${params.search}`
+    'search': params.page ? `${scope}${resource}?search=${params.search}&page=${params.page}` : `${scope}${resource}?search=${params.search}`
   };
 
   url = urlMap[view];
   if (params.root) {
     url = rootURL + url;
   }
+
   return url;
 }
