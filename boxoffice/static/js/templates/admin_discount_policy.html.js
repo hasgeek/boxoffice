@@ -76,12 +76,6 @@ export const DiscountPolicyTemplate = `
 
             {{#if newDiscountPolicy.is_price_based == 1}}
               <div class="group">
-                <input type="text" name="price_title" value="{{ newDiscountPolicy.price_title }}" class="group-input {{#newDiscountPolicy.price_title}}filled{{/}}" />
-                <span class="bar"></span>
-                <label class="group-label">Special price title</label>
-                {{#newDiscountPolicy.errormsg.price_title}}<p class="form-error-msg">{{ newDiscountPolicy.errormsg.price_title }}</p>{{/}}
-              </div>
-              <div class="group">
                 <input type="number" name="amount" value={{ newDiscountPolicy.amount }} class="group-input {{#newDiscountPolicy.amount}}filled{{/}}" />
                 <span class="bar"></span>
                 <label class="group-label">Special price amount</label>
@@ -205,12 +199,6 @@ export const DiscountPolicyTemplate = `
                     {{#if is_price_based}}
                       <input type="hidden" name="is_price_based" value=1 />
                       {{#price_details}}
-                        <div class="group">   
-                          <input type="text" name="price_title" value="{{ price_title }}" twoway="false" class="group-input {{#price_title}}filled{{/}}" />
-                          <span class="bar"></span>
-                          <label class="group-label">Price title</label>
-                          {{#errormsg.price_title}}<p class="form-error-msg">{{ errormsg.price_title }}</p>{{/}}
-                        </div>
                         <div class="group">   
                           <input type="text" name="amount" value="{{ amount }}" twoway="false" class="group-input {{#amount}}filled{{/}}" />
                           <span class="bar"></span>

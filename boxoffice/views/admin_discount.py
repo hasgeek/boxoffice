@@ -14,7 +14,6 @@ from utils import xhr_only, date_time_format, api_error, api_success
 def jsonify_price(price):
     if price:
         return {
-            'price_title': price.title,
             'amount': price.amount,
             'start_at': date_time_format(price.start_at),
             'end_at': date_time_format(price.end_at)
@@ -85,7 +84,7 @@ def admin_discount_policies(organization, search=None, page=1):
             paginated=(total_policies > results_per_page),
             current_page=page)
     else:
-        return dict(org=organization, title=organization.title)
+        return dict(title=organization.title)
 
 
 @app.route('/admin/<org>/discount_policy/new', methods=['OPTIONS', 'POST'])
@@ -101,18 +100,17 @@ def admin_add_discount_policy(organization):
     if not discount_policy_form.validate_on_submit():
         return api_error(message=discount_policy_form.errors, status_code=400)
     discount_policy = DiscountPolicy(title=discount_policy_form.title.data, organization=organization)
-    discount_policy_form.populate_obj(discount_policy)
     item_ids = request.form.getlist('items')
     items = Item.query.filter(Item.id.in_(item_ids))
     discount_policy.items.extend(items)
     if discount_policy_form.discount_type.data:
         discount_policy.set_secret()
-    else:
-        discount_policy_form.discount_code_base.data = None
+    discount_policy_form.populate_obj(discount_policy)
     db.session.add(discount_policy)
     db.session.commit()
-    if discount_policy_form.is_price_based.data:
-        discount_price = Price(discount_policy=discount_policy, title=discount_policy_form.price_title.data, start_at=discount_policy_form.start_at.data, end_at=discount_policy_form.end_at.data, amount=discount_policy_form.amount.data, item=items[0])
+    if discount_policy.is_price_based:
+        discount_price = Price(discount_policy=discount_policy, title=discount_policy_form.title.data, item=items[0])
+        discount_policy_form.populate_obj(discount_price)
         db.session.add(discount_price)
         db.session.commit()
     return api_success(result={'discount_policy': jsonify_discount_policy(discount_policy)}, doc="New discount policy created.", status_code=200)
@@ -129,22 +127,19 @@ def admin_add_discount_policy(organization):
 def admin_edit_discount_policy(organization, discount_policy):
     discount_policy_form = DiscountPolicyForm()
     discount_policy_form.items.query = Item.query.join(ItemCollection).filter(ItemCollection.organization == organization).options(db.load_only('id')).all()
+    print discount_policy_form.data
     if not discount_policy_form.validate_on_submit():
         return api_error(message=discount_policy_form.errors, status_code=400)
-    if not discount_policy_form.discount_type.data:
-        discount_policy_form.discount_code_base.data = None
     discount_policy_form.populate_obj(discount_policy)
     item_ids = request.form.getlist('items')
     items = Item.query.filter(Item.id.in_(item_ids)).all()
     discount_policy.items.extend(items)
     db.session.commit()
-    if discount_policy_form.is_price_based.data:
+    if discount_policy.is_price_based:
         discount_price = Price.query.filter_by(discount_policy=discount_policy).first()
         if discount_price:
-            discount_price.title = discount_policy_form.price_title.data
-            discount_price.start_at = discount_policy_form.start_at.data
-            discount_price.end_at = discount_policy_form.end_at.data
-            discount_price.amount = discount_policy_form.amount.data
+            discount_policy_form.populate_obj(discount_price)
+            discount_price.item = items[0]
             db.session.commit()
     return api_success(result={'discount_policy': jsonify_discount_policy(discount_policy)}, doc="Discount policy updated.", status_code=200)
 
