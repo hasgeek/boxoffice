@@ -7,27 +7,28 @@ import {DiscountPolicyView} from './admin_discount_policy.js';
 import {ReportView} from './admin_report.js';
 
 export const Router = Backbone.Router.extend({
-  url_root: '/api/1/admin/',
+  url_root: 'admin',
   routes: {
     "": "index",
     "o/:org_name": "org",
     "ic/:ic_id": "item_collection",
     "ic/:ic_id/orders": "order",
-    ":org_name/discount_policy": 'discount_policy',
-    ":org_name/discount_policy?:params": 'discount_policy',
+    "o/:org_name/discount_policy": 'discount_policy',
+    "o/:org_name/discount_policy?:params": 'discount_policy',
     "ic/:ic_id/reports": "report"
   },
   index: function() {
     //View is 'home', used for urlFor().
-    IndexView.render('home');
+    IndexView.render('index');
   },
   org: function(org_name) {
-    OrgView.render('org', {org_name});
+    OrgView.render('view', {org_name});
   },
   item_collection: function(ic_id) {
     ItemCollectionView.render('dashboard', {ic_id});
   },
   order: function(ic_id) {
+    console.log('router orders');
     OrderView.render('orders', {ic_id});
   },
   discount_policy: function(org_name, {search, page}={}) {

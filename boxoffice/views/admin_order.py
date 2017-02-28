@@ -61,7 +61,7 @@ def jsonify_admin_orders(data_dict):
     return jsonify(org_name=data_dict['item_collection'].organization.name, title=data_dict['item_collection'].title, orders=order_dicts)
 
 
-@app.route('/api/1/admin/ic/<ic_id>/orders')
+@app.route('/admin/ic/<ic_id>/orders')
 @lastuser.requires_login
 @load_models(
     (ItemCollection, {'id': 'ic_id'}, 'item_collection'),
@@ -72,7 +72,7 @@ def admin_orders(item_collection):
     return dict(title=item_collection.organization.title, item_collection=item_collection, orders=item_collection.orders)
 
 
-@app.route('/api/1/admin/ic/<ic_id>/orders/<order_id>')
+@app.route('/admin/ic/<ic_id>/order/<order_id>')
 @lastuser.requires_login
 @load_models(
     (Order, {'id': 'order_id'}, 'order'),

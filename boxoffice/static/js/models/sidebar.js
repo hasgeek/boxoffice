@@ -8,37 +8,37 @@ export const SideBarModel = {
     if (org_name) {
       sidebar_items = [
         {
-          url: urlFor('home')['index']['relative_path'],
+          url: urlFor('index'),
           title: 'Home',
           icon: 'fa-home',
           view: 'home'
         },
         {
-          url: urlFor('org', {org_name})['index']['relative_path'],
+          url: urlFor('view', {resource: 'o', id: org_name}),
           title: 'Organization',
           icon: 'fa-sitemap',
           view: 'org'
         },
         {
-          url: this.ic_id ? urlFor('dashboard', {ic_id: this.ic_id})['index']['relative_path'] : "",
+          url: this.ic_id ? urlFor('view', {resource: 'ic', id: this.ic_id}) : "",
           title: 'Dashboard',
           icon: 'fa-dashboard',
           view: 'dashboard'
         },
         {
-          url: this.ic_id ? urlFor('orders', {ic_id: this.ic_id})['index']['relative_path'] : "",
+          url: this.ic_id ? urlFor('index', {resource: 'orders', scope_ns: 'ic', scope_id: this.ic_id}) : "",
           title: 'Orders',
           icon: 'fa-shopping-cart',
           view: 'orders'
         },
         {
-          url: urlFor('discount-policies', {org_name})['index']['relative_path'],
+          url: urlFor('index', {scope_ns: 'o', scope_id: org_name, resource: 'discount_policy'}),
           title: 'Discount Policies',
           icon: 'fa-tags',
           view: 'discount-policies'
         },
         {
-          url: this.ic_id ? urlFor('reports', {ic_id: this.ic_id})['index']['relative_path'] : "",
+          url: this.ic_id ? urlFor('index', {resource: 'reports', scope_ns: 'ic', scope_id: this.ic_id}) : "",
           title: 'Reports',
           icon: 'fa-file-excel-o',
           view: 'reports'

@@ -13,7 +13,7 @@ def jsonify_report(data_dict):
     return jsonify(org_name=data_dict['item_collection'].organization.name, title=data_dict['item_collection'].title)
 
 
-@app.route('/api/1/admin/ic/<ic_id>/reports')
+@app.route('/admin/ic/<ic_id>/reports')
 @lastuser.requires_login
 @load_models(
     (ItemCollection, {'id': 'ic_id'}, 'item_collection'),
@@ -23,12 +23,13 @@ def admin_report(item_collection):
     return dict(title=item_collection.organization.title, item_collection=item_collection)
 
 
-@app.route('/api/1/admin/ic/<ic_id>/reports/tickets.csv')
+@app.route('/admin/ic/<ic_id>/tickets.csv')
 @lastuser.requires_login
 @load_models(
     (ItemCollection, {'id': 'ic_id'}, 'item_collection'),
     permission='org_admin')
 def tickets_report(item_collection):
+    print 'csv report'
     headers = ['ticket id', 'invoice no', 'ticket type', 'base amount', 'discounted amount', 'final amount', 'discount policy', 'discount code', 'buyer fullname', 'buyer email', 'buyer phone', 'attendee fullname', 'attendee email', 'attendee phone', 'attendee details', 'utm_campaign', 'utm_source', 'utm_medium', 'utm_term', 'utm_content', 'utm_id', 'gclid', 'referrer', 'date']
     rows = LineItem.fetch_all_details(item_collection)
 

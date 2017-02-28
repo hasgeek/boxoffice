@@ -99,7 +99,7 @@ export const ItemCollectionView = {
   render: function(view, {ic_id}={}) {
 
     ItemCollectionModel.fetch({
-      url: ItemCollectionModel.urlFor(view, 'index', {ic_id})['path']
+      url: ItemCollectionModel.urlFor('view', {resource: 'ic', id: ic_id})
     }).done((remoteData) => {
       // Initial render
       let main_ractive = new Ractive({

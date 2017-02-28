@@ -22,15 +22,23 @@ export const Util = {
 };
 
 export const fetch = function (config){
+  let url = config.url;
+  if (!config.absolute) {
+    url = Backbone.history.root + config.url;
+  }
   return $.ajax({
-    url: config.url,
+    url: url,
     dataType: 'json'
   });
 };
 
 export const post = function (config){
+  let url = config.url;
+  if (config.absolute) {
+    url = Backbone.history.root + config.url;
+  }
   return $.ajax({
-    url: config.url,
+    url: url,
     type: 'POST',
     data: config.data,
     contentType : config.contentType ? config.contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
@@ -58,51 +66,60 @@ export const updateBrowserHistory = function (currentUrl, newUrl) {
   window.history.pushState({reloadOnPop: true}, '', newUrl);
 }
 
-export const urlFor = function(view, {org_name, ic_id}={}){
-  let indexUrl = Backbone.history.root
-  let baseUrl = {
-    'home': {
-      'path': indexUrl,
-      'relative_path': '/',
-      'method': 'GET'
-    },
-    'org': {
-      'path': `${indexUrl}o/${org_name}`,
-      'relative_path': `o/${org_name}`,
-      'method': 'GET'
-    },
-    'dashboard': {
-        'path': `${indexUrl}ic/${ic_id}`,
-        'relative_path': `ic/${ic_id}`,
-        'method': 'GET'
-    },
-    'orders': {
-      'path': `${indexUrl}ic/${ic_id}/orders`,
-      'relative_path': `ic/${ic_id}/orders`,
-      'method': 'GET'
-    },
-    'discount-policies': {
-      'path': `${indexUrl}${org_name}/discount_policy`,
-      'relative_path': `${org_name}/discount_policy`,
-      'method': 'GET'
-    },
-    'reports': {
-      'path': `${indexUrl}ic/${ic_id}/reports`,
-      'relative_path': `ic/${ic_id}/reports`,
-      'method': 'GET'
-    }
+export const urlFor = function(view, params={}){
+  /*
+  Returns a URL for a given resource and action.
+  
+  The URLs provided follow the following pattern for a particular resource:
+  - 'index' -> /
+  - 'view' -> /<id>
+  - 'new' -> /new
+  - 'edit' -> /edit
+  - 'search' -> /?search=search
+
+  :params is an object and can contain
+  - scope_ns: scope namespace
+  - scope_id: scope object primary key
+  - resource: resource name
+  - id      : resource id
+  - search  : search term
+  - ext     : file extension
+  - root    : if URL should be prefixed with root namespace eg: /admin
+  */
+  let rootURL = Backbone.history.root;
+  var indexPath = rootURL;
+  let scope = '';
+  let ext = '';
+  let resource = '';
+  let url;
+  
+  if (params.scope_ns && params.scope_id) {
+    scope = `${params.scope_ns}/${params.scope_id}/`;
+  }
+
+  if (params.resource) {
+    resource = `${params.resource}`;
+  }
+
+  if (params.ext) {
+    ext = `.${params.ext}/`;
+  }
+
+  if (view === 'index' || view === 'search') {
+    indexPath = `${scope}${resource}`;
+  }
+
+  let urlMap = {
+    'index': `${indexPath}${ext}`,
+    'view': `${scope}${resource}/${params.id}${ext}`,
+    'new': `${scope}${resource}/new`,
+    'edit': `${scope}${resource}/${params.id}/edit`,
+    'search': params.page ? `${indexPath}?search=${params.search}&page=${params.page}` : `${indexPath}?search=${params.search}`
   };
-  let urls = {
-    'index': {
-      'path': baseUrl[view]['path'],
-      'relative_path':  baseUrl[view]['relative_path'],
-      'method':  baseUrl[view]['method']
-    },
-    'new': {
-      'path': `${baseUrl[view]['path']}/new`,
-      'relative_path':  `${baseUrl[view]['relative_path']}/new`,
-      'method':  baseUrl[view]['method']
-    }
-  };
-  return urls;
+
+  url = urlMap[view];
+  if (params.root) {
+    url = rootURL + url;
+  }
+  return url;
 }

@@ -15,7 +15,7 @@ def jsonify_dashboard(data):
         for org in data['user'].orgs])
 
 
-@app.route('/api/1/admin/')
+@app.route('/admin/')
 @lastuser.requires_login
 @render_with({'text/html': 'index.html', 'application/json': jsonify_dashboard}, json=True)
 def index():
@@ -30,7 +30,7 @@ def jsonify_org(data):
         item_collections=[{'id': ic.id, 'name': ic.name, 'title': ic.title, 'url': '/ic/' + unicode(ic.id), 'description_text': ic.description_text, 'description_html': ic.description_html} for ic in item_collections_list])
 
 
-@app.route('/api/1/admin/o/<org>')
+@app.route('/admin/o/<org>')
 @lastuser.requires_login
 @load_models(
     (Organization, {'name': 'org'}, 'organization'),
@@ -41,7 +41,7 @@ def org(organization):
     return dict(org=organization, title=organization.title)
 
 
-@app.route('/api/1/admin/o/<org>/items')
+@app.route('/admin/o/<org>/items')
 @lastuser.requires_login
 @load_models(
     (Organization, {'name': 'org'}, 'organization'),
@@ -51,8 +51,11 @@ def org(organization):
 @requestargs('search')
 def filter_items(organization, search=None):
     if search:
-        filtered_items = Item.query.join(ItemCollection).filter(ItemCollection.organization == organization).filter(Item.title.ilike('%{query}%'.format(query=search))).all()
-        return api_success(result={'items': [{'id': str(item.id), 'title': item.title} for item in filtered_items]}, doc="Filtered items", status_code=200)
+        filtered_items = Item.query.join(ItemCollection).filter(
+            ItemCollection.organization == organization).filter(
+            Item.title.ilike('%{query}%'.format(query=search))).all()
+        return api_success(result={'items': [{'id': str(item.id), 'title': item.title}
+            for item in filtered_items]}, doc="Filtered items", status_code=200)
     else:
         return api_error(message='Missing search query', status_code=400)
 

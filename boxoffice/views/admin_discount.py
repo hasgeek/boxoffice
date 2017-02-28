@@ -54,7 +54,7 @@ def jsonify_discount_policies(data_dict):
     )
 
 
-@app.route('/api/1/admin/<org>/discount_policy')
+@app.route('/admin/o/<org>/discount_policy')
 @lastuser.requires_login
 @load_models(
     (Organization, {'name': 'org'}, 'organization'),
@@ -88,7 +88,7 @@ def admin_discount_policies(organization, search=None, page=1):
         return dict(org=organization, title=organization.title)
 
 
-@app.route('/api/1/admin/<org>/discount_policy/new', methods=['OPTIONS', 'POST'])
+@app.route('/admin/<org>/discount_policy/new', methods=['OPTIONS', 'POST'])
 @lastuser.requires_login
 @load_models(
     (Organization, {'name': 'org'}, 'organization'),
@@ -118,7 +118,7 @@ def admin_add_discount_policy(organization):
     return api_success(result={'discount_policy': jsonify_discount_policy(discount_policy)}, doc="New discount policy created.", status_code=200)
 
 
-@app.route('/api/1/admin/<org>/discount_policy/<discount_policy_id>/edit', methods=['OPTIONS', 'POST'])
+@app.route('/admin/<org>/discount_policy/<discount_policy_id>/edit', methods=['OPTIONS', 'POST'])
 @lastuser.requires_login
 @load_models(
     (Organization, {'name': 'org'}, 'organization'),
@@ -149,7 +149,7 @@ def admin_edit_discount_policy(organization, discount_policy):
     return api_success(result={'discount_policy': jsonify_discount_policy(discount_policy)}, doc="Discount policy updated.", status_code=200)
 
 
-@app.route('/api/1/admin/<org>/discount_policy/<discount_policy_id>/generate_coupon', methods=['OPTIONS', 'POST'])
+@app.route('/admin/<org>/discount_policy/<discount_policy_id>/generate_coupon', methods=['OPTIONS', 'POST'])
 @lastuser.requires_login
 @load_models(
     (Organization, {'name': 'org'}, 'organization'),
@@ -185,7 +185,7 @@ def admin_create_coupon(organization, discount_policy):
     return api_success(result={'coupons': coupons}, doc="Discount coupon created.", status_code=200)
 
 
-@app.route('/api/1/admin/<org>/discount_policy/<discount_policy_id>/coupons')
+@app.route('/admin/discount_policy/<discount_policy_id>/coupons')
 @lastuser.requires_login
 @load_models(
     (DiscountPolicy, {'id': 'discount_policy_id'}, 'discount_policy'),

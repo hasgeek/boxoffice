@@ -4,9 +4,7 @@ import {IndexModel} from './index.js';
 
 export const ItemCollectionModel = {
   fetch: fetch,
-  urlFor: function (view, action, {ic_id}={}) {
-    return urlFor(view, {ic_id})[action];
-  },
+  urlFor: urlFor,
   formatItems: function (items) {
     var formattedItems = _.extend(items);
     formattedItems.forEach(function(item){

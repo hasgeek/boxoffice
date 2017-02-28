@@ -41,7 +41,7 @@ def jsonify_item_collection(item_collection_dict):
         sales_delta=item_collection_dict['sales_delta'])
 
 
-@app.route('/api/1/admin/ic/<ic_id>')
+@app.route('/admin/ic/<ic_id>')
 @lastuser.requires_login
 @load_models(
     (ItemCollection, {'id': 'ic_id'}, 'item_collection'),

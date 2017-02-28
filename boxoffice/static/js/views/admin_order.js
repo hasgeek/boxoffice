@@ -8,7 +8,7 @@ export const OrderView = {
   render: function(view, {ic_id}={}) {
 
     OrderModel.fetch({
-      url: OrderModel.urlFor(view, 'index', {ic_id})['path']
+      url: OrderModel.urlFor('index', {scope_ns: 'ic', scope_id: ic_id, resource: 'orders'})
     }).done(({org_name, title, orders}) => {
       // Initial render
       let main_ractive = new Ractive({
@@ -60,7 +60,12 @@ export const OrderView = {
         NProgress.configure({ showSpinner: false}).start();
         let order_id = event.context.id;
         OrderModel.fetch({
-          url: OrderModel.urlFor(view, 'view-order', {order_id})['path']
+          url: OrderModel.urlFor('view', {
+            scope_ns: 'ic',
+            scope_id: ic_id,
+            resource: 'order',
+            id: order_id
+          })
         }).done((remoteData) => {
           main_ractive.set(event.keypath + '.line_items', remoteData.line_items);
           main_ractive.set(event.keypath + '.show_order', true);
