@@ -5,7 +5,7 @@ export const SideBarModel = {
     let sidebar_items = [];
     this.org_name = org_name ? org_name : this.org_name;
     this.ic_id = ic_id ? ic_id : this.ic_id;
-    if (org_name) {
+    if (org_name || ic_id) {
       sidebar_items = [
         {
           url: '/',
@@ -24,6 +24,12 @@ export const SideBarModel = {
           title: 'Dashboard',
           icon: 'fa-dashboard',
           view: 'dashboard'
+        },
+        {
+          url: this.ic_id ? urlFor('view', {resource: 'items', scope_ns: 'ic', scope_id: this.ic_id}) : "",
+          title: 'Item',
+          icon: 'fa-ticket',
+          view: 'items'
         },
         {
           url: this.ic_id ? urlFor('index', {resource: 'orders', scope_ns: 'ic', scope_id: this.ic_id}) : "",

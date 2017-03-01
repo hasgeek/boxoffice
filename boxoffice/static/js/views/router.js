@@ -2,6 +2,7 @@
 import {IndexView} from './index.js';
 import {OrgView} from './org.js';
 import {ItemCollectionView} from './item_collection.js';
+import {ItemView} from './admin_item.js';
 import {OrderView} from './admin_order.js';
 import {DiscountPolicyView} from './admin_discount_policy.js';
 import {ReportView} from './admin_report.js';
@@ -12,6 +13,7 @@ export const Router = Backbone.Router.extend({
     "": "index",
     "o/:org_name": "org",
     "ic/:ic_id": "item_collection",
+    "ic/:ic_id/items": "item",
     "ic/:ic_id/orders": "order",
     "o/:org_name/discount_policy": 'discount_policy',
     "o/:org_name/discount_policy?:params": 'discount_policy',
@@ -26,6 +28,9 @@ export const Router = Backbone.Router.extend({
   },
   item_collection: function(ic_id) {
     ItemCollectionView.render('dashboard', {ic_id});
+  },
+  item: function(ic_id) {
+    ItemView.render('items', {ic_id});
   },
   order: function(ic_id) {
     OrderView.render('orders', {ic_id});
