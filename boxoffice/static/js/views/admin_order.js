@@ -85,7 +85,6 @@ export const OrderView = {
         if (window.confirm("Are you sure you want to cancel this ticket?")) {
           main_ractive.set(event.keypath + '.cancel_error', "");
           main_ractive.set(event.keypath + '.cancelling', true);
-          console.log("event.context.cancel_ticket_url", event.context.cancel_ticket_url)
           post({
             url: event.context.cancel_ticket_url
           }).done(function(response) {
