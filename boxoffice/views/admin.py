@@ -4,6 +4,7 @@ from flask import g, jsonify, request
 import pytz
 from .. import app, lastuser
 from coaster.views import load_models, render_with
+from coaster.utils import getbool
 from boxoffice.models import Organization, ItemCollection
 from boxoffice.models.line_item import calculate_weekly_sales
 from boxoffice.models.payment import calculate_weekly_refunds
@@ -61,7 +62,7 @@ def org_revenue(organization):
     year = int(request.args.get('year'))
     user_timezone = request.args.get('timezone')
 
-    if request.args.get('refund') == 't':
+    if getbool(request.args.get('refund')):
         result = calculate_weekly_refunds(item_collection_ids, user_timezone, year).items()
         doc = "Refunds per week for {year}".format(year=year)
     else:
