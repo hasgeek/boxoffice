@@ -91,8 +91,8 @@ def calculate_weekly_refunds(item_collection_ids, user_tz, year):
     ordered_week_refunds = OrderedDict()
     for year_week in Week.weeks_of_year(year):
         ordered_week_refunds[year_week.week] = 0
-    start_at = isoweek_datetime(year, 1)
-    end_at = isoweek_datetime(year + 1, 1)
+    start_at = isoweek_datetime(year, 1, user_tz)
+    end_at = isoweek_datetime(year + 1, 1, user_tz)
 
     week_refunds = db.session.query('sales_week', 'sum').from_statement(db.text('''
         SELECT EXTRACT(WEEK FROM payment_transaction.created_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone)
@@ -101,9 +101,9 @@ def calculate_weekly_refunds(item_collection_ids, user_tz, year):
         WHERE customer_order.status IN :statuses AND customer_order.item_collection_id IN :item_collection_ids
         AND payment_transaction.transaction_type = :transaction_type
         AND payment_transaction.created_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone
-            >= :start_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone
+            >= :start_at
         AND payment_transaction.created_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone
-            < :end_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone
+            < :end_at
         GROUP BY sales_week ORDER BY sales_week;
         ''')).params(timezone=user_tz, statuses=tuple(ORDER_STATUS.TRANSACTION), transaction_type=TRANSACTION_TYPE.REFUND,
         start_at=start_at, end_at=end_at, item_collection_ids=tuple(item_collection_ids)).all()
