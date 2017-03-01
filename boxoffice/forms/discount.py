@@ -3,11 +3,11 @@
 from flask import g
 from baseframe import __
 import baseframe.forms as forms
-from baseframe.forms.sqlalchemy import QuerySelectMultipleField
+from baseframe.forms.sqlalchemy import QuerySelectMultipleField, QuerySelectField
 from coaster.utils import getbool
 from ..models import DISCOUNT_TYPE, DiscountPolicy
 
-__all__ = ['DiscountPolicyForm', 'DiscountCouponForm']
+__all__ = ['DiscountPolicyForm', 'DiscountCouponForm', 'DiscountPriceForm']
 
 
 class DiscountPolicyForm(forms.Form):
@@ -27,13 +27,6 @@ class DiscountPolicyForm(forms.Form):
             (u"Please specify a discount code base")),
         forms.validators.Length(max=20), forms.validators.StripWhitespace()], filters=[lambda code_base: code_base or None])
     bulk_coupon_usage_limit = forms.IntegerField(__("Number of times a bulk coupon can be used"), default=1)
-    amount = forms.IntegerField(__("Amount"),
-        validators=[forms.validators.OptionalIfNot('is_price_based', (u"Please specify the discounted price"))])
-    start_at = forms.DateTimeField(__("Price start date"), format='%d %b %Y %H:%M:%S',
-        timezone=lambda: g.user.timezone,
-        validators=[forms.validators.OptionalIfNot('is_price_based', (u"Please specify start date for the price"))])
-    end_at = forms.DateTimeField(__("Price end date"), format='%d %b %Y %H:%M:%S', timezone=lambda: g.user.timezone,
-        validators=[forms.validators.OptionalIfNot('is_price_based', (u"Please specify end date for the price"))])
     items = QuerySelectMultipleField(__("Items"), get_label='title', query_factory=lambda: [],
         validators=[forms.validators.DataRequired((u"Please select a item to which discount is to be applied"))])
     # For validate_discount_code_base
@@ -46,6 +39,25 @@ class DiscountPolicyForm(forms.Form):
                 raise forms.ValidationError((u"Please specify a different discount code base"))
         elif DiscountPolicy.query.filter_by(discount_code_base=field.data).notempty():
             raise forms.ValidationError((u"Please specify a different discount code base"))
+
+
+class DiscountPriceForm(forms.Form):
+    title = forms.StringField(__("Discount price title"),
+        validators=[forms.validators.DataRequired((u"Please specify a title for the discount price")),
+        forms.validators.Length(max=250), forms.validators.StripWhitespace()])
+    discount_policy = QuerySelectField(__("Discount policy"), get_label='title',
+        validators=[forms.validators.DataRequired((u"Please select a item to which the discount is to be applied"))])
+    item = QuerySelectField(__("Item"), get_label='title',
+        validators=[forms.validators.DataRequired((u"Please select a item to which the discount is to be applied"))])
+    amount = forms.IntegerField(__("Amount"),
+        validators=[forms.validators.DataRequired((u"Please specify an amount"))])
+    currency = forms.StringField(__("Currency"))
+    start_at = forms.DateTimeField(__("Price start date"), format='%d %b %Y %H:%M:%S',
+        timezone=lambda: g.user.timezone,
+        validators=[forms.validators.DataRequired((u"Please specify a start date and time"))])
+    end_at = forms.DateTimeField(__("Price end date"), format='%d %b %Y %H:%M:%S',
+        timezone=lambda: g.user.timezone,
+        validators=[forms.validators.DataRequired((u"Please specify an end date and time"))])
 
     def validate_end_at(self, field):
         if field.data <= self.start_at.data:
