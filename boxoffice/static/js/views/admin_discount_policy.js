@@ -38,7 +38,7 @@ export const DiscountPolicyView = {
 
     fetch({
       url: url
-    }).done(({org_name, title, discount_policies, total_pages, paginated, current_page}) => {
+    }).done(({org_name, title, discount_policies, currency, total_pages, paginated, current_page}) => {
       // Initial render
       let discountPolicyComponent = new Ractive({
         el: '#main-content-area',
@@ -47,6 +47,7 @@ export const DiscountPolicyView = {
           org: org_name,
           title: title,
           discountPolicies: discount_policies,
+          currency: currency,
           paginated: paginated,
           totalPages: total_pages,
           currentPage: current_page,
@@ -482,7 +483,7 @@ export const DiscountPolicyView = {
           discountPolicyComponent.set(discountPolicy+ '.loadingCouponErrorMsg', DEFAULT.empty);
 
           fetch({
-            url: urlFor('view', {
+            url: urlFor('index', {
               scope_ns: 'discount_policy',
               scope_id: dpId,
               resource: 'coupons',

@@ -96,15 +96,24 @@ export const urlFor = function(view, params={}){
     ext = `.${params.ext}`;
   }
 
-  let urlMap = {
-    'index': params.page ? `${scope}${resource}${ext}?page=${params.page}` : `${scope}${resource}${ext}`,
-    'view': params.id ? `${scope}${resource}/${params.id}${ext}` : `${scope}${resource}`,
-    'new': params.id ? `${scope}${resource}/${params.id}/new` : `${scope}${resource}/new`,
-    'edit': `${scope}${resource}/${params.id}/edit`,
-    'search': params.page ? `${scope}${resource}?search=${params.search}&page=${params.page}` : `${scope}${resource}?search=${params.search}`
-  };
+  switch (view) {
+    case 'index':
+      url = params.page ? `${scope}${resource}${ext}?page=${params.page}` : `${scope}${resource}${ext}`;
+      break;
+    case 'view':
+      url = `${scope}${resource}/${params.id}${ext}`;
+      break;
+    case 'new':
+      url = `${scope}${resource}/new`;
+      break;
+    case 'edit':
+      url = `${scope}${resource}/${params.id}/edit`;
+      break;
+    case 'search':
+      url = params.page ? `${scope}${resource}?search=${params.search}&page=${params.page}` : `${scope}${resource}?search=${params.search}`;
+      break;
+  }
 
-  url = urlMap[view];
   if (params.root) {
     url = rootURL + url;
   }
