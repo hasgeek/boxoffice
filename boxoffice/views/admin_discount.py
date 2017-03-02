@@ -157,7 +157,6 @@ def admin_edit_discount_policy(organization, discount_policy):
         discount_price = Price.query.filter_by(discount_policy=discount_policy).one_or_none()
         if discount_price:
             discount_price_form.populate_obj(discount_price)
-            db.session.commit()
             discount_policy_form.populate_obj(discount_policy)
             discount_policy.items.append(discount_price.item)
     db.session.commit()
