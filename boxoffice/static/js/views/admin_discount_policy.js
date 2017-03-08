@@ -213,7 +213,7 @@ export const DiscountPolicyView = {
               timePicker24Hour: true,
               opens: 'left',
               locale: {
-                format: 'YYYY-MM-DD HH:mm'
+                format: 'D MMM YYYY H:mm:ss'
               }
             });
 
@@ -225,7 +225,7 @@ export const DiscountPolicyView = {
               timePicker24Hour: true,
               opens: 'left',
               locale: {
-                format: 'YYYY-MM-DD HH:mm'
+                format: 'D MMM YYYY H:mm:ss'
               }
             });
           } else {
