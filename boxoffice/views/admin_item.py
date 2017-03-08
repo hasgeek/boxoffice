@@ -19,7 +19,7 @@ def items(organization, search=None):
     if search:
         filtered_items = Item.query.join(ItemCollection).filter(
             ItemCollection.organization == organization).filter(
-            Item.title.ilike('%{query}%'.format(query=search))).options(db.load_only('id')).all()
+            Item.title.ilike('%{query}%'.format(query=search))).options(db.load_only('id', 'title')).all()
         return api_success(result={'items': [{'id': str(item.id), 'title': item.title}
             for item in filtered_items]}, doc="Filtered items", status_code=200)
     else:
