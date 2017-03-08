@@ -65,27 +65,24 @@ def jsonify_discount_policies(data_dict):
 def admin_discount_policies(organization, search=None, page=1):
     results_per_page = 20
 
-    if request.is_xhr:
-        discount_policies = organization.discount_policies
+    discount_policies = organization.discount_policies
 
-        if search:
-            discount_policies = discount_policies.filter(
-                DiscountPolicy.title.ilike('%{query}%'.format(query=search)))
+    if search:
+        discount_policies = discount_policies.filter(
+            DiscountPolicy.title.ilike('%{query}%'.format(query=search)))
 
-        total_policies = discount_policies.count()
-        total_pages = int(math.ceil(total_policies / results_per_page))
-        offset = (page - 1) * results_per_page
+    total_policies = discount_policies.count()
+    total_pages = int(math.ceil(total_policies / results_per_page))
+    offset = (page - 1) * results_per_page
 
-        discount_policies = discount_policies.limit(results_per_page).offset(offset).all()
+    discount_policies = discount_policies.limit(results_per_page).offset(offset).all()
 
-        return dict(
-            org=organization, title=organization.title,
-            discount_policies=discount_policies,
-            total_pages=total_pages,
-            paginated=(total_policies > results_per_page),
-            current_page=page)
-    else:
-        return dict(title=organization.title)
+    return dict(
+        org=organization, title=organization.title,
+        discount_policies=discount_policies,
+        total_pages=total_pages,
+        paginated=(total_policies > results_per_page),
+        current_page=page)
 
 
 @app.route('/admin/o/<org>/discount_policy/new', methods=['OPTIONS', 'POST'])
