@@ -5,6 +5,7 @@ import random
 from datetime import datetime
 from werkzeug import cached_property
 from itsdangerous import Signer, BadSignature
+from sqlalchemy import event
 from baseframe import __
 from coaster.utils import LabeledEnum, uuid1mc, buid
 from boxoffice.models import db, IdMixin, BaseScopedNameMixin
@@ -106,6 +107,13 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
         Returns a discount policy for the purpose of issuing signed discount coupons in bulk.
         """
         return cls(discount_type=DISCOUNT_TYPE.COUPON, discount_code_base=discount_code_base, secret=buid(), **kwargs)
+
+
+@event.listens_for(DiscountPolicy, 'before_update')
+@event.listens_for(DiscountPolicy, 'before_insert')
+def validate_price_based_discount(mapper, connection, target):
+    if target.is_price_based and len(target.items) > 1:
+        raise ValueError("Price-based discount MUST have only one associated item.")
 
 
 def generate_coupon_code(size=6, chars=string.ascii_uppercase + string.digits):
