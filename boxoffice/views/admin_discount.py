@@ -2,12 +2,12 @@
 
 from __future__ import division
 import math
-from flask import jsonify, request
+from flask import jsonify
 from .. import app, lastuser
 from coaster.views import load_models, render_with, requestargs
 from ..models import db
-from boxoffice.models import Organization, ItemCollection, DiscountPolicy, DiscountCoupon, Item, Price, CURRENCY_SYMBOL, CURRENCY
-from ..forms import DiscountPolicyForm, DiscountCouponForm, DiscountPriceForm
+from boxoffice.models import Organization, DiscountPolicy, DiscountCoupon, Price, CURRENCY_SYMBOL, CURRENCY
+from ..forms import DiscountPolicyForm, DiscountCouponForm, DiscountPriceForm, CouponBasedDiscountPolicyForm, AutomaticDiscountPolicyForm
 from utils import xhr_only, date_time_format, api_error, api_success
 
 
@@ -85,6 +85,44 @@ def admin_discount_policies(organization, search=None, page=1):
         current_page=page)
 
 
+def make_price_based_discount(discount_policy, discount_policy_form):
+    with db.session.no_autoflush:
+        discount_price_form = DiscountPriceForm(parent=discount_policy)
+        if not discount_price_form.validate_on_submit():
+            return api_error(message=discount_price_form.errors, status_code=400)
+        if not discount_policy_form.validate_on_submit():
+            return api_error(message=discount_policy_form.errors, status_code=400)
+        discount_price = Price(discount_policy=discount_policy)
+        discount_price_form.populate_obj(discount_price)
+        discount_price.make_name()
+    db.session.add(discount_price)
+    discount_policy.make_name()
+    discount_policy.set_secret()
+    discount_policy.items.append(discount_price.item)
+    db.session.add(discount_policy)
+
+
+def make_coupon_based_discount(organization, discount_policy, discount_policy_form):
+    discount_policy_form = CouponBasedDiscountPolicyForm(parent=organization)
+    with db.session.no_autoflush:
+        if not discount_policy_form.validate_on_submit():
+            return api_error(message=discount_policy_form.errors, status_code=400)
+    discount_policy_form.populate_obj(discount_policy)
+    discount_policy.set_secret()
+    discount_policy.make_name()
+    db.session.add(discount_policy)
+
+
+def make_automatic_discount(organization, discount_policy, discount_policy_form):
+    discount_policy_form = AutomaticDiscountPolicyForm(parent=organization)
+    with db.session.no_autoflush:
+        if not discount_policy_form.validate_on_submit():
+            return api_error(message=discount_policy_form.errors, status_code=400)
+    discount_policy_form.populate_obj(discount_policy)
+    discount_policy.make_name()
+    db.session.add(discount_policy)
+
+
 @app.route('/admin/o/<org>/discount_policy/new', methods=['OPTIONS', 'POST'])
 @lastuser.requires_login
 @xhr_only
@@ -92,37 +130,21 @@ def admin_discount_policies(organization, search=None, page=1):
     (Organization, {'name': 'org'}, 'organization'),
     permission='org_admin'
     )
-def admin_add_discount_policy(organization):
-    discount_policy_form = DiscountPolicyForm(request.form)
-    all_items = Item.query.join(ItemCollection).filter(
-        ItemCollection.organization == organization).options(db.load_only('id')).all()
-    discount_policy_form.items.query = all_items
-    import IPython; IPython.embed()
-    if not discount_policy_form.validate_on_submit():
-        return api_error(message=discount_policy_form.errors, status_code=400)
-
+def admin_new_discount_policy(organization):
     discount_policy = DiscountPolicy(organization=organization)
-    if discount_policy_form.discount_type.data:
-        discount_policy.set_secret()
-    if not discount_policy_form.is_price_based.data:
-        discount_policy.items.extend(discount_policy_form.items.data)
-    else:
-        discount_price_form = DiscountPriceForm(request.form)
-        discount_price_form.item.query = all_items
-        if not discount_price_form.validate_on_submit():
-            return api_error(message=discount_price_form.errors, status_code=400)
+    discount_policy_form = DiscountPolicyForm()
     discount_policy_form.populate_obj(discount_policy)
-    discount_policy.make_name()
-    db.session.add(discount_policy)
-    db.session.commit()
 
     if discount_policy.is_price_based:
-        discount_price = Price(discount_policy=discount_policy)
-        discount_price_form.populate_obj(discount_price)
-        discount_price.make_name()
-        db.session.add(discount_price)
-        discount_policy.items.append(discount_price.item)
-        db.session.commit()
+        make_price_based_discount(discount_policy, discount_policy_form)
+    elif discount_policy.is_coupon:
+        make_coupon_based_discount(organization, discount_policy, discount_policy_form)
+    elif discount_policy.is_automatic:
+        make_automatic_discount(organization, discount_policy, discount_policy_form)
+    else:
+        return api_error(message="Incorrect discount type", status_code=400)
+
+    db.session.commit()
     return api_success(result={'discount_policy': jsonify_discount_policy(discount_policy)},
         doc="New discount policy created.", status_code=201)
 
@@ -136,29 +158,28 @@ def admin_add_discount_policy(organization):
     permission='org_admin'
     )
 def admin_edit_discount_policy(organization, discount_policy):
-    discount_policy_form = DiscountPolicyForm(request.form)
-    all_items = Item.query.join(ItemCollection).filter(
-        ItemCollection.organization == organization).options(db.load_only('id')).all()
-    discount_policy_form.items.query = all_items
-
-    if not discount_policy_form.validate_on_submit():
-        return api_error(message=discount_policy_form.errors, status_code=400)
-
-    if not discount_policy.is_price_based:
-        discount_policy.items.extend(discount_policy_form.items.data)
-        discount_policy_form.populate_obj(discount_policy)
-    else:
-        discount_price_form = DiscountPriceForm(request.form)
-        discount_price_form.item.query = all_items
-        if not discount_price_form.validate_on_submit():
+    if discount_policy.is_price_based:
+        discount_policy_form = DiscountPolicyForm(obj=discount_policy, model=DiscountPolicy)
+        discount_price = Price.query.filter_by(item=discount_policy.items[0], discount_policy=discount_policy).one()
+        discount_price_form = DiscountPriceForm(obj=discount_price, model=Price, parent=discount_policy)
+        if not discount_policy_form.validate_on_submit():
             return api_error(message=discount_price_form.errors, status_code=400)
-        discount_price = Price.query.filter_by(discount_policy=discount_policy).one_or_none()
-        if discount_price:
-            discount_price_form.populate_obj(discount_price)
+        discount_price_form.populate_obj(discount_price)
+        if discount_policy.items and discount_price.item is not discount_policy.items[0]:
+            discount_policy.items = [discount_price.item]
+    elif discount_policy.is_coupon:
+        discount_policy_form = CouponBasedDiscountPolicyForm(obj=discount_policy, model=DiscountPolicy)
+    elif discount_policy.is_automatic:
+        discount_policy_form = AutomaticDiscountPolicyForm(obj=discount_policy, model=DiscountPolicy)
+    else:
+        return api_error(message="Incorrect discount type", status_code=400)
+
+    if discount_policy_form.validate_on_submit():
         discount_policy_form.populate_obj(discount_policy)
-        discount_policy.items.append(discount_price.item)
-    db.session.commit()
-    return api_success(result={'discount_policy': jsonify_discount_policy(discount_policy)}, doc="Discount policy updated.", status_code=200)
+        db.session.commit()
+        return api_success(result={'discount_policy': jsonify_discount_policy(discount_policy)}, doc="Discount policy updated.", status_code=200)
+    else:
+        return api_error(message=discount_policy_form.errors, status_code=400)
 
 
 @app.route('/admin/discount_policy/<discount_policy_id>/coupons/new', methods=['OPTIONS', 'POST'])
@@ -168,7 +189,7 @@ def admin_edit_discount_policy(organization, discount_policy):
     (DiscountPolicy, {'id': 'discount_policy_id'}, 'discount_policy'),
     permission='org_admin'
     )
-def admin_create_coupon(discount_policy):
+def admin_new_coupon(discount_policy):
     coupon_form = DiscountCouponForm()
     coupons = []
     if not coupon_form.validate_on_submit():
