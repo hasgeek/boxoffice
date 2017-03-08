@@ -2,17 +2,9 @@
 {% from "baseframe/components.html" import hgnav with context %}
 
 {%- block layoutheaders %}
-  <script>
-      // (function(_,e,rr,s){_errs=[s];var c=_.onerror;_.onerror=function(){var a=arguments;_errs.push(a);
-      // c&&c.apply(this,a)};var b=function(){var c=e.createElement(rr),b=e.getElementsByTagName(rr)[0];
-      // c.src="//beacon.errorception.com/"+s+".js";c.async=!0;b.parentNode.insertBefore(c,b)};
-      // _.addEventListener?_.addEventListener("load",b,!1):_.attachEvent("onload",b)})
-      // (window,document,"script","56f13edc2777d31309000c21");
-  </script>
 {% endblock %}
 
 {% block headerbox %}
-  <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
   {% macro site_title() %}
     <div class="page-header">
       <h1><a href="{{ url_for('index') }}">{{ config['SITE_TITLE'] }}</a></h1>

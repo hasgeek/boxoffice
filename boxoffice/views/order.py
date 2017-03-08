@@ -108,11 +108,11 @@ def kharcha():
 
 @app.route('/ic/<item_collection>/order',
            methods=['GET', 'OPTIONS', 'POST'])
+@xhr_only
+@cors
 @load_models(
     (ItemCollection, {'id': 'item_collection'}, 'item_collection')
     )
-@xhr_only
-@cors
 def order(item_collection):
     """
     Accepts JSON containing an array of line_items with the quantity and item_id
@@ -202,11 +202,11 @@ def order(item_collection):
 
 
 @app.route('/order/<order>/free', methods=['GET', 'OPTIONS', 'POST'])
+@xhr_only
+@cors
 @load_models(
     (Order, {'id': 'order'}, 'order')
     )
-@xhr_only
-@cors
 def free(order):
     """
     Completes a order which has a final_amount of 0
@@ -230,11 +230,11 @@ def free(order):
 
 
 @app.route('/order/<order>/payment', methods=['GET', 'OPTIONS', 'POST'])
+@xhr_only
+@cors
 @load_models(
     (Order, {'id': 'order'}, 'order')
     )
-@xhr_only
-@cors
 def payment(order):
     """
     Accepts JSON containing `pg_paymentid`.

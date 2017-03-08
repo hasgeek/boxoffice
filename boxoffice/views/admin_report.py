@@ -15,12 +15,12 @@ def jsonify_report(data_dict):
 
 @app.route('/admin/ic/<ic_id>/reports')
 @lastuser.requires_login
+@render_with({'text/html': 'index.html', 'application/json': jsonify_report})
 @load_models(
     (ItemCollection, {'id': 'ic_id'}, 'item_collection'),
     permission='org_admin')
-@render_with({'text/html': 'index.html', 'application/json': jsonify_report})
 def admin_report(item_collection):
-    return dict(title=item_collection.organization.title, item_collection=item_collection)
+    return dict(title=item_collection.title, item_collection=item_collection)
 
 
 @app.route('/admin/ic/<ic_id>/tickets.csv')

@@ -19,6 +19,7 @@ def jsonify_dashboard(data):
 @lastuser.requires_login
 @render_with({'text/html': 'index.html', 'application/json': jsonify_dashboard}, json=True)
 def index():
+    print g.user
     return dict(user=g.user)
 
 
@@ -32,22 +33,22 @@ def jsonify_org(data):
 
 @app.route('/admin/o/<org>')
 @lastuser.requires_login
+@render_with({'text/html': 'index.html', 'application/json': jsonify_org}, json=True)
 @load_models(
     (Organization, {'name': 'org'}, 'organization'),
     permission='org_admin'
     )
-@render_with({'text/html': 'index.html', 'application/json': jsonify_org}, json=True)
 def org(organization):
     return dict(org=organization, title=organization.title)
 
 
 @app.route('/admin/o/<org>/items')
 @lastuser.requires_login
+@xhr_only
 @load_models(
     (Organization, {'name': 'org'}, 'organization'),
     permission='org_admin'
     )
-@xhr_only
 @requestargs('search')
 def filter_items(organization, search=None):
     if search:

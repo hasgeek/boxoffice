@@ -56,11 +56,11 @@ def jsonify_discount_policies(data_dict):
 
 @app.route('/admin/o/<org>/discount_policy')
 @lastuser.requires_login
+@render_with({'text/html': 'index.html', 'application/json': jsonify_discount_policies})
 @load_models(
     (Organization, {'name': 'org'}, 'organization'),
     permission='org_admin'
     )
-@render_with({'text/html': 'index.html', 'application/json': jsonify_discount_policies}, json=True)
 @requestargs('search', ('page', int))
 def admin_discount_policies(organization, search=None, page=1):
     results_per_page = 20
@@ -90,16 +90,17 @@ def admin_discount_policies(organization, search=None, page=1):
 
 @app.route('/admin/o/<org>/discount_policy/new', methods=['OPTIONS', 'POST'])
 @lastuser.requires_login
+@xhr_only
 @load_models(
     (Organization, {'name': 'org'}, 'organization'),
     permission='org_admin'
     )
-@xhr_only
 def admin_add_discount_policy(organization):
     discount_policy_form = DiscountPolicyForm(request.form)
     all_items = Item.query.join(ItemCollection).filter(
         ItemCollection.organization == organization).options(db.load_only('id')).all()
     discount_policy_form.items.query = all_items
+    import IPython; IPython.embed()
     if not discount_policy_form.validate_on_submit():
         return api_error(message=discount_policy_form.errors, status_code=400)
 
@@ -126,17 +127,17 @@ def admin_add_discount_policy(organization):
         discount_policy.items.append(discount_price.item)
         db.session.commit()
     return api_success(result={'discount_policy': jsonify_discount_policy(discount_policy)},
-        doc="New discount policy created.", status_code=200)
+        doc="New discount policy created.", status_code=201)
 
 
 @app.route('/admin/o/<org>/discount_policy/<discount_policy_id>/edit', methods=['OPTIONS', 'POST'])
 @lastuser.requires_login
+@xhr_only
 @load_models(
     (Organization, {'name': 'org'}, 'organization'),
     (DiscountPolicy, {'id': 'discount_policy_id'}, 'discount_policy'),
     permission='org_admin'
     )
-@xhr_only
 def admin_edit_discount_policy(organization, discount_policy):
     discount_policy_form = DiscountPolicyForm(request.form)
     all_items = Item.query.join(ItemCollection).filter(
@@ -157,19 +158,19 @@ def admin_edit_discount_policy(organization, discount_policy):
         discount_price = Price.query.filter_by(discount_policy=discount_policy).one_or_none()
         if discount_price:
             discount_price_form.populate_obj(discount_price)
-            discount_policy_form.populate_obj(discount_policy)
-            discount_policy.items.append(discount_price.item)
+        discount_policy_form.populate_obj(discount_policy)
+        discount_policy.items.append(discount_price.item)
     db.session.commit()
     return api_success(result={'discount_policy': jsonify_discount_policy(discount_policy)}, doc="Discount policy updated.", status_code=200)
 
 
 @app.route('/admin/discount_policy/<discount_policy_id>/coupons/new', methods=['OPTIONS', 'POST'])
 @lastuser.requires_login
+@xhr_only
 @load_models(
     (DiscountPolicy, {'id': 'discount_policy_id'}, 'discount_policy'),
     permission='org_admin'
     )
-@xhr_only
 def admin_create_coupon(discount_policy):
     coupon_form = DiscountCouponForm()
     coupons = []
@@ -195,16 +196,16 @@ def admin_create_coupon(discount_policy):
         db.session.add(coupon)
         db.session.commit()
         coupons.append(coupon.code)
-    return api_success(result={'coupons': coupons}, doc="Discount coupon created.", status_code=200)
+    return api_success(result={'coupons': coupons}, doc="Discount coupon created.", status_code=201)
 
 
 @app.route('/admin/discount_policy/<discount_policy_id>/coupons')
 @lastuser.requires_login
+@xhr_only
 @load_models(
     (DiscountPolicy, {'id': 'discount_policy_id'}, 'discount_policy'),
     permission='org_admin'
     )
-@xhr_only
 def admin_discount_coupons(discount_policy):
     coupons_list = [{'code': coupon.code, 'usage_limit': coupon.usage_limit, 'available': coupon.usage_limit - coupon.used_count} for coupon in discount_policy.discount_coupons]
     return api_success(result={'coupons': coupons_list}, doc="List of discount coupons", status_code=200)

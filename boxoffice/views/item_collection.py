@@ -55,11 +55,11 @@ def boxofficejs():
 
 
 @app.route('/ic/<item_collection>', methods=['GET', 'OPTIONS'])
+@xhr_only
+@cors
 @load_models(
     (ItemCollection, {'id': 'item_collection'}, 'item_collection')
     )
-@xhr_only
-@cors
 def item_collection(item_collection):
     categories_json = []
     for category in item_collection.categories:

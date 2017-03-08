@@ -63,22 +63,22 @@ def jsonify_admin_orders(data_dict):
 
 @app.route('/admin/ic/<ic_id>/orders')
 @lastuser.requires_login
+@render_with({'text/html': 'index.html', 'application/json': jsonify_admin_orders})
 @load_models(
     (ItemCollection, {'id': 'ic_id'}, 'item_collection'),
     permission='org_admin'
     )
-@render_with({'text/html': 'index.html', 'application/json': jsonify_admin_orders}, json=True)
 def admin_orders(item_collection):
-    return dict(title=item_collection.organization.title, item_collection=item_collection, orders=item_collection.orders)
+    return dict(title=item_collection.title, item_collection=item_collection, orders=item_collection.orders)
 
 
 @app.route('/admin/ic/<ic_id>/order/<order_id>')
 @lastuser.requires_login
+@xhr_only
 @load_models(
     (Order, {'id': 'order_id'}, 'order'),
     permission='org_admin'
     )
-@xhr_only
 def admin_order(order):
     line_items = LineItem.query.filter(LineItem.order == order, LineItem.status.in_([LINE_ITEM_STATUS.CONFIRMED, LINE_ITEM_STATUS.CANCELLED])).all()
     return jsonify(line_items=format_line_items(line_items))
