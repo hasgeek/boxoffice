@@ -4,7 +4,8 @@ from baseframe import _
 import baseframe.forms as forms
 from baseframe.forms.sqlalchemy import QuerySelectMultipleField, QuerySelectField
 from coaster.utils import getbool
-from ..models import DISCOUNT_TYPE, CURRENCY, Item, ItemCollection, db
+from baseframe.forms.validators import StopValidation
+from ..models import DiscountPolicy, DISCOUNT_TYPE, CURRENCY, Item, ItemCollection, db
 
 __all__ = ['DiscountPolicyForm', 'PriceBasedDiscountPolicyForm', 'DiscountPriceForm', 'DiscountCouponForm', 'AutomaticDiscountPolicyForm', 'CouponBasedDiscountPolicyForm']
 
@@ -18,6 +19,11 @@ class DiscountPolicyForm(forms.Form):
     is_price_based = forms.RadioField(_("Price based discount"),
         choices=[(True, _("Special price discount")),
         (False, _("Percentage based discount"))], coerce=getbool, default=True)
+
+
+def validate_unique_discount_code_base(form, field):
+    if DiscountPolicy.query.filter_by(discount_code_base=field.data).notempty():
+        raise StopValidation(_('Already exists'))
 
 
 class AutomaticDiscountPolicyForm(DiscountPolicyForm):
@@ -40,7 +46,8 @@ class CouponBasedDiscountPolicyForm(DiscountPolicyForm):
         validators=[forms.validators.DataRequired(_("Please specify a discount percentage"))])
     discount_code_base = forms.StringField(_("Discount Title"),
         validators=[forms.validators.DataRequired(_("Please specify a discount code base")),
-        forms.validators.Length(max=20)], filters=[forms.filters.strip(), forms.filters.none_if_empty()])
+        forms.validators.Length(max=20), validate_unique_discount_code_base],
+        filters=[forms.filters.strip(), forms.filters.none_if_empty()])
     bulk_coupon_usage_limit = forms.IntegerField(_("Number of times a bulk coupon can be used"), default=1)
 
     def __init__(self, *args, **kwargs):
@@ -52,7 +59,8 @@ class CouponBasedDiscountPolicyForm(DiscountPolicyForm):
 class PriceBasedDiscountPolicyForm(DiscountPolicyForm):
     discount_code_base = forms.StringField(_("Discount Title"),
         validators=[forms.validators.DataRequired(_("Please specify a discount code base")),
-        forms.validators.Length(max=20)], filters=[forms.filters.strip(), forms.filters.none_if_empty()])
+        forms.validators.Length(max=20), validate_unique_discount_code_base],
+        filters=[forms.filters.strip(), forms.filters.none_if_empty()])
 
 
 class DiscountPriceForm(forms.Form):
