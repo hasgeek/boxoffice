@@ -6,7 +6,7 @@ from baseframe.forms.sqlalchemy import QuerySelectMultipleField, QuerySelectFiel
 from coaster.utils import getbool
 from ..models import DISCOUNT_TYPE, CURRENCY, Item, ItemCollection, db
 
-__all__ = ['DiscountPolicyForm', 'DiscountPriceForm', 'DiscountCouponForm', 'AutomaticDiscountPolicyForm', 'CouponBasedDiscountPolicyForm']
+__all__ = ['DiscountPolicyForm', 'PriceBasedDiscountPolicyForm', 'DiscountPriceForm', 'DiscountCouponForm', 'AutomaticDiscountPolicyForm', 'CouponBasedDiscountPolicyForm']
 
 
 class DiscountPolicyForm(forms.Form):
@@ -47,6 +47,12 @@ class CouponBasedDiscountPolicyForm(DiscountPolicyForm):
         super(CouponBasedDiscountPolicyForm, self).__init__(*args, **kwargs)
         self.items.query = Item.query.join(ItemCollection).filter(
             ItemCollection.organization == self.edit_parent).options(db.load_only('id', 'title'))
+
+
+class PriceBasedDiscountPolicyForm(DiscountPolicyForm):
+    discount_code_base = forms.StringField(_("Discount Title"),
+        validators=[forms.validators.DataRequired(_("Please specify a discount code base")),
+        forms.validators.Length(max=20)], filters=[forms.filters.strip(), forms.filters.none_if_empty()])
 
 
 class DiscountPriceForm(forms.Form):

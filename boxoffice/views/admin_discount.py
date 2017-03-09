@@ -7,7 +7,7 @@ from .. import app, lastuser
 from coaster.views import load_models, render_with, requestargs
 from ..models import db
 from boxoffice.models import Organization, DiscountPolicy, DiscountCoupon, Price, CURRENCY_SYMBOL, CURRENCY
-from ..forms import DiscountPolicyForm, DiscountCouponForm, DiscountPriceForm, CouponBasedDiscountPolicyForm, AutomaticDiscountPolicyForm
+from ..forms import DiscountPolicyForm, DiscountCouponForm, DiscountPriceForm, CouponBasedDiscountPolicyForm, AutomaticDiscountPolicyForm, PriceBasedDiscountPolicyForm
 from utils import xhr_only, date_time_format, api_error, api_success
 
 
@@ -85,7 +85,8 @@ def admin_discount_policies(organization, search=None, page=1):
         current_page=page)
 
 
-def make_price_based_discount(discount_policy, discount_policy_form):
+def make_price_based_discount(discount_policy):
+    discount_policy_form = PriceBasedDiscountPolicyForm(parent=discount_policy.organization)
     with db.session.no_autoflush:
         discount_price_form = DiscountPriceForm(parent=discount_policy)
         if not discount_price_form.validate_on_submit():
@@ -94,6 +95,7 @@ def make_price_based_discount(discount_policy, discount_policy_form):
             return api_error(message=discount_policy_form.errors, status_code=400)
         discount_price = Price(discount_policy=discount_policy)
         discount_price_form.populate_obj(discount_price)
+        discount_policy_form.populate_obj(discount_policy)
         discount_price.make_name()
     db.session.add(discount_price)
     discount_policy.make_name()
@@ -102,8 +104,8 @@ def make_price_based_discount(discount_policy, discount_policy_form):
     db.session.add(discount_policy)
 
 
-def make_coupon_based_discount(organization, discount_policy, discount_policy_form):
-    discount_policy_form = CouponBasedDiscountPolicyForm(parent=organization)
+def make_coupon_based_discount(discount_policy):
+    discount_policy_form = CouponBasedDiscountPolicyForm(parent=discount_policy.organization)
     with db.session.no_autoflush:
         if not discount_policy_form.validate_on_submit():
             return api_error(message=discount_policy_form.errors, status_code=400)
@@ -113,8 +115,8 @@ def make_coupon_based_discount(organization, discount_policy, discount_policy_fo
     db.session.add(discount_policy)
 
 
-def make_automatic_discount(organization, discount_policy, discount_policy_form):
-    discount_policy_form = AutomaticDiscountPolicyForm(parent=organization)
+def make_automatic_discount(discount_policy):
+    discount_policy_form = AutomaticDiscountPolicyForm(parent=discount_policy.organization)
     with db.session.no_autoflush:
         if not discount_policy_form.validate_on_submit():
             return api_error(message=discount_policy_form.errors, status_code=400)
@@ -136,11 +138,11 @@ def admin_new_discount_policy(organization):
     discount_policy_form.populate_obj(discount_policy)
 
     if discount_policy.is_price_based:
-        make_price_based_discount(discount_policy, discount_policy_form)
+        make_price_based_discount(discount_policy)
     elif discount_policy.is_coupon:
-        make_coupon_based_discount(organization, discount_policy, discount_policy_form)
+        make_coupon_based_discount(discount_policy)
     elif discount_policy.is_automatic:
-        make_automatic_discount(organization, discount_policy, discount_policy_form)
+        make_automatic_discount(discount_policy)
     else:
         return api_error(message="Incorrect discount type", status_code=400)
 
