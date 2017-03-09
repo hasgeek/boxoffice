@@ -161,10 +161,10 @@ def admin_new_discount_policy(organization):
     )
 def admin_edit_discount_policy(organization, discount_policy):
     if discount_policy.is_price_based:
-        discount_policy_form = DiscountPolicyForm(obj=discount_policy, model=DiscountPolicy)
+        discount_policy_form = PriceBasedDiscountPolicyForm(obj=discount_policy, model=DiscountPolicy)
         discount_price = Price.query.filter_by(item=discount_policy.items[0], discount_policy=discount_policy).one()
         discount_price_form = DiscountPriceForm(obj=discount_price, model=Price, parent=discount_policy)
-        if not discount_policy_form.validate_on_submit():
+        if not discount_price_form.validate_on_submit():
             return api_error(message=discount_price_form.errors, status_code=400)
         discount_price_form.populate_obj(discount_price)
         if discount_policy.items and discount_price.item is not discount_policy.items[0]:
