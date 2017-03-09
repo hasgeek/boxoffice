@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 
+from collections import OrderedDict
 from datetime import datetime
-from coaster.utils import LabeledEnum
+from coaster.utils import LabeledEnum, isoweek_datetime
+from isoweek import Week
 from baseframe import __
-from boxoffice.models import db, BaseMixin, Order
+from boxoffice.models import db, BaseMixin, Order, ORDER_STATUS
 from ..extapi import RAZORPAY_PAYMENT_STATUS
 
-__all__ = ['OnlinePayment', 'PaymentTransaction', 'CURRENCY', 'CURRENCY_SYMBOL']
+__all__ = ['OnlinePayment', 'PaymentTransaction', 'CURRENCY', 'CURRENCY_SYMBOL', 'TRANSACTION_TYPE']
 
 
 class TRANSACTION_METHOD(LabeledEnum):
@@ -78,4 +80,35 @@ class CURRENCY(LabeledEnum):
 
 
 class CURRENCY_SYMBOL(LabeledEnum):
-    INR = (u"INR", u"₹")
+    INR = (u'INR', u'₹')
+
+
+def calculate_weekly_refunds(item_collection_ids, user_tz, year):
+    """
+    Calculates refunds per week for a given set of item_collection_ids in a given year,
+    in the user's timezone.
+    """
+    ordered_week_refunds = OrderedDict()
+    for year_week in Week.weeks_of_year(year):
+        ordered_week_refunds[year_week.week] = 0
+    start_at = isoweek_datetime(year, 1, user_tz)
+    end_at = isoweek_datetime(year + 1, 1, user_tz)
+
+    week_refunds = db.session.query('sales_week', 'sum').from_statement(db.text('''
+        SELECT EXTRACT(WEEK FROM payment_transaction.created_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone)
+        AS sales_week, SUM(payment_transaction.amount) AS sum
+        FROM customer_order INNER JOIN payment_transaction on payment_transaction.customer_order_id = customer_order.id
+        WHERE customer_order.status IN :statuses AND customer_order.item_collection_id IN :item_collection_ids
+        AND payment_transaction.transaction_type = :transaction_type
+        AND payment_transaction.created_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone
+            >= :start_at
+        AND payment_transaction.created_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone
+            < :end_at
+        GROUP BY sales_week ORDER BY sales_week;
+        ''')).params(timezone=user_tz, statuses=tuple(ORDER_STATUS.TRANSACTION), transaction_type=TRANSACTION_TYPE.REFUND,
+        start_at=start_at, end_at=end_at, item_collection_ids=tuple(item_collection_ids)).all()
+
+    for week_refund in week_refunds:
+        ordered_week_refunds[int(week_refund.sales_week)] = week_refund.sum
+
+    return ordered_week_refunds
