@@ -905,12 +905,5 @@ a.boxoffice-button:focus {
 }
 
 .items-select2 {
-  width: 90%;
-}
-
-@media (min-width: 768px) {
-  .items-select2 {
-    width: 75%;
-    max-width: 300px;
-  }
+  width: 100%;
 }

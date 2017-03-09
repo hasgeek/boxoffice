@@ -36,7 +36,7 @@ def jsonify_discount_policy(policy):
         'discount': policy.percentage if not policy.is_price_based else '',
         'price_details': jsonify_price(Price.query.filter(Price.discount_policy == policy).first()) if policy.is_price_based else '',
         'currency': CURRENCY_SYMBOL['INR'],
-        'dp_items': [{'id': str(item.id), 'title': item.title} for item in policy.items]
+        'dp_items': [{'id': str(item.id), 'title': "{ic_title}: {title}".format(ic_title=item.item_collection.title, title=item.title)} for item in policy.items]
     }
 
 
