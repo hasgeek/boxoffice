@@ -209,11 +209,10 @@ export const DiscountPolicyView = {
               singleDatePicker: true,
               showDropdowns: true,
               timePicker: true,
-              timePickerSeconds: true,
               timePicker24Hour: true,
               opens: 'left',
               locale: {
-                format: 'D MMM YYYY H:mm:ss'
+                format: 'YYYY-MM-DD H:mm'
               }
             });
 
@@ -221,11 +220,10 @@ export const DiscountPolicyView = {
               singleDatePicker: true,
               showDropdowns: true,
               timePicker: true,
-              timePickerSeconds: true,
               timePicker24Hour: true,
               opens: 'left',
               locale: {
-                format: 'D MMM YYYY H:mm:ss'
+                format: 'YYYY-MM-DD H:mm'
               }
             });
           } else {

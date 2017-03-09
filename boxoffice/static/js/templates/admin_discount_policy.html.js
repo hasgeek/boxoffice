@@ -243,10 +243,10 @@ export const DiscountPolicyTemplate = `
                       <div class="group">   
                         <input type="text" name="discount_code_base" value="{{ discount_code_base }}" twoway="false" class="group-input {{#discount_code_base}}filled{{/}}" />
                         <span class="bar"></span>
-                        <label class="group-label">Discount code base</label>
+                        <label class="group-label">Discount coupon prefix</label>
                         {{#errormsg.discount_code_base}}<p class="form-error-msg">{{ errormsg.discount_code_base }}</p>{{/}}
                       </div>
-                      <p class="form-help-text">Discount code base is for generating bulk coupons<br>Eg:- 'hasgeek-volunteer'</p>
+                      <p class="form-help-text">Discount coupon prefix is for generating bulk coupons<br>Eg:- 'hasgeek-volunteer'</p>
                       <div class="group">   
                         <input type="number" name="bulk_coupon_usage_limit" value="{{ bulk_coupon_usage_limit }}" twoway="false" class="group-input {{#bulk_coupon_usage_limit}}filled{{/}}" />
                         <span class="bar"></span>
@@ -305,7 +305,7 @@ export const DiscountPolicyTemplate = `
                       <div class="group">   
                         <input type="text" name="discount_code_base" value="{{ discount_code_base }}" class="group-input {{#discount_code_base}}filled{{/}}" readonly="readonly" />
                         <span class="bar"></span>
-                        <label class="group-label">Discount code base</label>
+                        <label class="group-label">Discount coupon prefix</label>
                       </div>
                       {{#errormsg.discount_code_base}}<p class="form-error-msg">{{ errormsg.discount_code_base }}</p>{{/}}
                       <div class="group">   
@@ -340,6 +340,7 @@ export const DiscountPolicyTemplate = `
                   </div>
                   <div class="modal-body clearfix">
                    {{#if coupons}}
+                      <button class="boxoffice-button boxoffice-button-action btn-right copy-coupons-list" data-clipboard-target="#coupons-list-{{id}}">Copy to clipboard</button>
                       <form class="title-wrapper col-sm-4 col-xs-6">
                         <input autofocus class="form-control" id="filter-{{ id }}" type="text" name="key" value="" placeholder="Search coupon" />
                       </form>
@@ -367,11 +368,6 @@ export const DiscountPolicyTemplate = `
                       <p class="text-center">Currently no coupons.</p>
                     {{/if}}
                   </div>
-                  {{#if coupons}}
-                    <div class="modal-footer">
-                      <button class="boxoffice-button boxoffice-button-action btn-right copy-coupons-list" data-clipboard-target="#coupons-list-{{id}}">Copy to clipboard</button>
-                    </div>
-                  {{/if}}
                 </div>
               </div>
             </div>
@@ -386,7 +382,8 @@ export const DiscountPolicyTemplate = `
                   <div class="modal-body">
                     <p>The discount will be auto applied on adding the discount coupon to the event website url. <br>Eg: If the website is "https://jsfoo.in/2016", the link to avail discount coupon <i>xyz123</i> is </p>
                     <pre><code>https://jsfoo.in/2016?code=xyz123</code></pre>
-                    <p>Here are the discount coupons:</p>
+                    <p class="pull-left">Here are the discount coupons:</p>
+                    <button class="boxoffice-button boxoffice-button-action btn-right copy-coupons" data-clipboard-target="#new-coupons-{{ id }}">Copy discount coupons to clipboard</button>
                     <table class="table table-orders" id="new-coupons-{{ id }}">
                       <tbody>
                       {{#coupons}}
@@ -396,9 +393,6 @@ export const DiscountPolicyTemplate = `
                       {{/}}
                       </tbody>
                     </table>
-                  </div>
-                  <div class="modal-footer">
-                    <button class="boxoffice-button boxoffice-button-action btn-right copy-coupons" data-clipboard-target="#new-coupons-{{ id }}">Copy discount coupons to clipboard</button>
                   </div>
                 </div>
               </div>

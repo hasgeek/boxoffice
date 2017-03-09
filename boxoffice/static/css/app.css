@@ -612,6 +612,7 @@ a.boxoffice-button:focus {
 @media (min-width: 768px) {
   .btn-right {
     float: right;
+    margin-bottom: 10px;
   }
 }
 .table-responsive {

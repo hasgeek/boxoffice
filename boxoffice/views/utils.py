@@ -30,7 +30,7 @@ def check_api_access(api_token):
 
 @app.template_filter('date_time_format')
 def date_time_format(dt):
-    return localize_timezone(dt).strftime('%d %b %Y %H:%M:%S')
+    return localize_timezone(dt).strftime('%Y-%m-%d %H:%M')
 
 
 @app.template_filter('date_format')
