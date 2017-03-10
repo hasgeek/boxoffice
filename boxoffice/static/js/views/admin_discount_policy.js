@@ -4,7 +4,7 @@ import {DiscountPolicyTemplate} from '../templates/admin_discount_policy.html.js
 import {SideBarView} from './sidebar.js';
 
 export const DiscountPolicyView = {
-  render: function (view, {org_name, search, page}={}) {
+  render: function (view, {org_name, search, page, size}={}) {
     let url;
     if (search) {
       url = urlFor('search', {
@@ -13,7 +13,9 @@ export const DiscountPolicyView = {
         resource: 'discount_policy',
         root: true,
         search: search,
-        page: page
+        page: page,
+        size: size
+
       });
     } else {
       url = urlFor('index', {
@@ -21,7 +23,8 @@ export const DiscountPolicyView = {
         scope_id: org_name,
         resource: 'discount_policy',
         root: true,
-        page: page
+        page: page,
+        size: size
       });
     }
 
@@ -51,6 +54,7 @@ export const DiscountPolicyView = {
           paginated: paginated,
           totalPages: total_pages,
           currentPage: current_page,
+          size: 20,
           items: '',
           showAddPolicyForm: false,
           newDiscountPolicy: '',
@@ -109,7 +113,7 @@ export const DiscountPolicyView = {
             return getCsrfToken()
           }
         },
-        refresh: function (search='', page='') {
+        refresh: function (search='', page='', size='') {
           let url;
           if (search) {
             url = urlFor('search', {
@@ -118,7 +122,8 @@ export const DiscountPolicyView = {
               resource: 'discount_policy',
               root: true,
               search: search,
-              page: page
+              page: page,
+              size: size||discountPolicyComponent.get('size')
             });
           } else {
             url = urlFor('index', {
@@ -126,7 +131,8 @@ export const DiscountPolicyView = {
               scope_id: org_name,
               resource: 'discount_policy',
               root: true,
-              page: page
+              page: page,
+              size: size||discountPolicyComponent.get('size')
             });
           }
 
@@ -365,8 +371,6 @@ export const DiscountPolicyView = {
 
               post({
                 url: urlFor('edit', {
-                  scope_ns: 'o',
-                  scope_id: org_name,
                   resource: 'discount_policy',
                   id: dpId,
                   root: true

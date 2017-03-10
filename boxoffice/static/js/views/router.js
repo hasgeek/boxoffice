@@ -30,8 +30,8 @@ export const Router = Backbone.Router.extend({
   order: function(ic_id) {
     OrderView.render('orders', {ic_id});
   },
-  discount_policy: function(org_name, {search, page}={}) {
-    DiscountPolicyView.render('discount-policies', {org_name, search, page});
+  discount_policy: function(org_name, {search, page, size}={}) {
+    DiscountPolicyView.render('discount-policies', {org_name, search, page, size});
   },
   report: function(ic_id){
     ReportView.render('reports', {ic_id});

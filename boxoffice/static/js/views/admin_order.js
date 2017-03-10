@@ -60,8 +60,6 @@ export const OrderView = {
         let order_id = event.context.id;
         fetch({
           url: urlFor('view', {
-            scope_ns: 'ic',
-            scope_id: ic_id,
             resource: 'order',
             id: order_id,
             root: true

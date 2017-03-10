@@ -61,9 +61,10 @@ def jsonify_discount_policies(data_dict):
     (Organization, {'name': 'org'}, 'organization'),
     permission='org_admin'
     )
-@requestargs('search', ('page', int))
-def admin_discount_policies(organization, search=None, page=1):
-    results_per_page = 20
+@requestargs('search', ('page', int), ('size', int))
+def admin_discount_policies(organization, search=None, page=1, size=None):
+    print 'size', size
+    results_per_page = size or 20
 
     discount_policies = organization.discount_policies
 
@@ -151,15 +152,14 @@ def admin_new_discount_policy(organization):
         doc="New discount policy created.", status_code=201)
 
 
-@app.route('/admin/o/<org>/discount_policy/<discount_policy_id>/edit', methods=['OPTIONS', 'POST'])
+@app.route('/admin/discount_policy/<discount_policy_id>/edit', methods=['OPTIONS', 'POST'])
 @lastuser.requires_login
 @xhr_only
 @load_models(
-    (Organization, {'name': 'org'}, 'organization'),
     (DiscountPolicy, {'id': 'discount_policy_id'}, 'discount_policy'),
     permission='org_admin'
     )
-def admin_edit_discount_policy(organization, discount_policy):
+def admin_edit_discount_policy(discount_policy):
     if discount_policy.is_price_based:
         discount_policy_form = PriceBasedDiscountPolicyForm(obj=discount_policy, model=DiscountPolicy)
         discount_price = Price.query.filter_by(item=discount_policy.items[0], discount_policy=discount_policy).one()
