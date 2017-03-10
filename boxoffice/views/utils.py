@@ -98,14 +98,16 @@ def csv_response(headers, rows, row_handler=None):
     return Response(unicode(stream.getvalue()), content_type='text/csv')
 
 
-def api_error(message, status_code):
+def api_error(message, status_code, errors=[]):
     """
     Generates a HTTP response as a JSON object for a failure scenario
 
+    :param string message: Human readable error message to be included as part of the JSON response
     :param string message: Error message to be included as part of the JSON response
+    :param list errors: Error messages to be included as part of the JSON response
     :param int status_code: HTTP status code to be used for the response
     """
-    return make_response(jsonify(status='error', message=message), status_code)
+    return make_response(jsonify(status='error', errors=errors, message=message), status_code)
 
 
 def api_success(result, doc, status_code):

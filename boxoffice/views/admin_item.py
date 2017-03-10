@@ -27,4 +27,4 @@ def items(organization, search=None):
             'title': "{ic_title}: {title}".format(ic_title=item_tuple[1].title, title=item_tuple[0].title)
         } for item_tuple in filtered_items]}, doc="Filtered items", status_code=200)
     else:
-        return api_error(message='Missing search query', status_code=400)
+        return api_error(message="Missing search query", status_code=400)
