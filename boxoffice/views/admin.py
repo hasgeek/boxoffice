@@ -51,13 +51,13 @@ def org_revenue(organization):
     check_api_access(organization.details.get('access_token'))
 
     if not request.args.get('year'):
-        return api_error(message='Missing year.', status_code=400)
+        return api_error(message="Missing year.", status_code=400)
 
     if not request.args.get('timezone'):
-        return api_error(message='Missing timezone.', status_code=400)
+        return api_error(message="Missing timezone.", status_code=400)
 
     if request.args.get('timezone') not in pytz.common_timezones:
-        return api_error(message='Unknown timezone. timezone is case-sensitive.', status_code=400)
+        return api_error(message="Unknown timezone. timezone is case-sensitive.", status_code=400)
 
     item_collection_ids = [item_collection.id for item_collection in organization.item_collections]
     year = int(request.args.get('year'))
