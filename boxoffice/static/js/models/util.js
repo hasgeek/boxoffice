@@ -98,19 +98,19 @@ export const urlFor = function(view, params={}){
 
   switch (view) {
     case 'index':
-      url = params.page ? `${scope}${resource}${ext}?page=${params.page}` : `${scope}${resource}${ext}`;
+      url = params.page ? `${scope}${resource}${ext}?page=${params.page}&size=${params.size}` : params.size ? `${scope}${resource}${ext}?size=${params.size}` : `${scope}${resource}${ext}`;
       break;
     case 'view':
-      url = `${scope}${resource}/${params.id}${ext}`;
+      url = scope ? `${scope}${resource}/${params.id}${ext}` : `${resource}/${params.id}${ext}`;
       break;
     case 'new':
       url = `${scope}${resource}/new`;
       break;
     case 'edit':
-      url = `${scope}${resource}/${params.id}/edit`;
+      url = `${resource}/${params.id}/edit`;
       break;
     case 'search':
-      url = params.page ? `${scope}${resource}?search=${params.search}&page=${params.page}` : `${scope}${resource}?search=${params.search}`;
+      url = params.page ? `${scope}${resource}?search=${params.search}&page=${params.page}&size=${params.size}` : `${scope}${resource}?search=${params.search}`;
       break;
   }
 
