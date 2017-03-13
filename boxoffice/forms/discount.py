@@ -15,7 +15,7 @@ class DiscountPolicyForm(forms.Form):
         validators=[forms.validators.DataRequired(__("Please specify a discount title")),
         forms.validators.Length(max=250)], filters=[forms.filters.strip()])
     discount_type = forms.RadioField(__("Discount Type"),
-        choices=DISCOUNT_TYPE.items(), coerce=int, default=DISCOUNT_TYPE.keys()[1])
+        choices=DISCOUNT_TYPE.items(), coerce=int, default=DISCOUNT_TYPE.COUPON)
     is_price_based = forms.RadioField(__("Price based discount"),
         choices=[(True, __("Special price discount")),
         (False, __("Percentage based discount"))], coerce=getbool, default=True)
