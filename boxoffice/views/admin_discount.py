@@ -63,7 +63,6 @@ def jsonify_discount_policies(data_dict):
     )
 @requestargs('search', ('page', int), ('size', int))
 def admin_discount_policies(organization, search=None, page=1, size=None):
-    print 'size', size
     results_per_page = size or 20
 
     discount_policies = organization.discount_policies

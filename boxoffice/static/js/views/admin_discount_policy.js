@@ -327,7 +327,7 @@ export const DiscountPolicyView = {
                   if (response.status === 500) {
                     errorMsg = "Internal Server Error";
                   } else {
-                    let errorDescription = response.responseJSON.message;
+                    let errorDescription = response.responseJSON.errors;
                     for (let error in errorDescription) {
                       errorMsg += "<p>" + errorDescription[error] + "</p>";
                     }
@@ -387,7 +387,7 @@ export const DiscountPolicyView = {
                   if (response.status === 500) {
                     errorMsg = "Internal Server Error"
                   } else {
-                    let errorDescription = response.responseJSON.message;
+                    let errorDescription = response.responseJSON.errors;
                     for (let error in errorDescription) {
                       errorMsg += '<p>' + errorDescription[error] + '</p>';
                     }
@@ -458,7 +458,7 @@ export const DiscountPolicyView = {
                   if (response.status === 500) {
                     errorMsg = "Internal Server Error"
                   } else {
-                    let errorDescription = response.responseJSON.message;
+                    let errorDescription = response.responseJSON.errors;
                     for (let error in errorDescription) {
                       errorMsg += '<p>' + errorDescription[error] + '</p>';
                     }
