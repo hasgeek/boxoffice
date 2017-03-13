@@ -2,6 +2,7 @@
 
 from .. import app, lastuser
 from coaster.views import load_models, requestargs
+from baseframe import _
 from boxoffice.models import db, Organization, ItemCollection, Item
 from boxoffice.views.utils import api_error, api_success
 from utils import xhr_only
@@ -27,4 +28,4 @@ def items(organization, search=None):
             'title': "{ic_title}: {title}".format(ic_title=item_tuple[1].title, title=item_tuple[0].title)
         } for item_tuple in filtered_items]}, doc="Filtered items", status_code=200)
     else:
-        return api_error(message="Missing search query", status_code=400)
+        return api_error(message=_(u"Missing search query"), status_code=400)
