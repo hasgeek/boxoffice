@@ -41,7 +41,7 @@ class AutomaticDiscountPolicyForm(DiscountPolicyForm):
 
 class CouponBasedDiscountPolicyForm(DiscountPolicyForm):
     items = QuerySelectMultipleField(__("Items"), get_label='title',
-        validators=[forms.validators.DataRequired(__("Please select a item to which discount is to be applied"))])
+        validators=[forms.validators.DataRequired(__("Please select at least one item for which the discount is applicable"))])
     percentage = forms.IntegerField(__("Percentage"),
         validators=[forms.validators.DataRequired(__("Please specify a discount percentage"))])
     discount_code_base = forms.StringField(__("Discount Title"),
@@ -57,7 +57,7 @@ class CouponBasedDiscountPolicyForm(DiscountPolicyForm):
 
 
 class PriceBasedDiscountPolicyForm(DiscountPolicyForm):
-    discount_code_base = forms.StringField(__("Discount Title"),
+    discount_code_base = forms.StringField(__("Discount prefix"),
         validators=[forms.validators.DataRequired(__("Please specify a discount code base")),
         forms.validators.Length(max=20), validate_unique_discount_code_base],
         filters=[forms.filters.strip(), forms.filters.none_if_empty()])
