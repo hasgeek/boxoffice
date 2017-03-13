@@ -89,5 +89,5 @@ class DiscountPriceForm(forms.Form):
 class DiscountCouponForm(forms.Form):
     count = forms.IntegerField(__("Number of coupons to be generated"), default=1)
     usage_limit = forms.IntegerField(__("Number of times each coupon can be used"), default=1)
-    coupon_code = forms.StringField(__("Code for discount coupon"),
+    coupon_code = forms.StringField(__("Discount coupon code"),
             validators=[forms.validators.Optional(), forms.validators.Length(max=100)], filters=[forms.filters.strip(), forms.filters.none_if_empty()])
