@@ -290,7 +290,7 @@ export const DiscountPolicyTemplate = `
 
                     {{#if count == 1}}
                       <div class="group">   
-                        <input type="text" name="coupon_code" value="{{ .coupon_code }}" class="group-input {{#coupon_code}}filled{{/}}" />
+                        <input type="text" name="code" value="{{ .coupon_code }}" class="group-input {{#coupon_code}}filled{{/}}" />
                         <span class="bar"></span>
                         <label class="group-label">What coupon code?</label>
                       </div>

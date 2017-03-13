@@ -114,6 +114,7 @@ def admin_new_discount_policy(organization):
                 return api_error(message=discount_policy_error_msg,
                     status_code=400,
                     errors=discount_policy_form.errors)
+            discount_policy = make_discount(discount_policy, discount_policy_form, secret=True)
             discount_price_form = DiscountPriceForm(parent=discount_policy)
             if not discount_price_form.validate_on_submit():
                 return api_error(message=_(u"There was an issue with the price. Please rectify the indicated issues."),
@@ -123,7 +124,6 @@ def admin_new_discount_policy(organization):
             discount_price_form.populate_obj(discount_price)
             discount_price.make_name()
         db.session.add(discount_price)
-        discount_policy = make_discount(discount_policy, discount_policy_form, secret=True)
         discount_policy.items.append(discount_price.item)
     elif discount_policy.is_coupon:
         discount_policy_form = CouponBasedDiscountPolicyForm(parent=discount_policy.organization)
@@ -155,7 +155,7 @@ def admin_new_discount_policy(organization):
     )
 def admin_edit_discount_policy(discount_policy):
     discount_policy_error_msg = _(u"The discount could not be updated. Please rectify the indicated issues.")
-    if discount_policy.is_price_based:
+    if discount_policy.is_price_based and discount_policy.items:
         discount_policy_form = PriceBasedDiscountPolicyForm(obj=discount_policy, model=DiscountPolicy)
         discount_price = Price.query.filter_by(item=discount_policy.items[0], discount_policy=discount_policy).one()
         discount_price_form = DiscountPriceForm(obj=discount_price, model=Price, parent=discount_policy)
@@ -191,7 +191,7 @@ def admin_edit_discount_policy(discount_policy):
     permission='org_admin'
     )
 def admin_new_coupon(discount_policy):
-    coupon_form = DiscountCouponForm()
+    coupon_form = DiscountCouponForm(parent=discount_policy)
     coupons = []
     if not coupon_form.validate_on_submit():
         return api_error(message=_(u"The coupon could not be created. Please rectify the indicated issues."),
@@ -201,21 +201,14 @@ def admin_new_coupon(discount_policy):
         if not discount_policy.secret:
             discount_policy.set_secret()
         for x in range(coupon_form.count.data):
+            # No need to store these coupon codes since they are signed
             coupons.append(discount_policy.gen_signed_code())
     else:
-        # Create a new discount coupon
-        if coupon_form.coupon_code.data:
-            # Custom discount code
-            coupon = DiscountCoupon(discount_policy=discount_policy,
-                usage_limit=coupon_form.usage_limit.data,
-                code=coupon_form.coupon_code.data)
-        else:
-            # Randomly generated discount code
-            coupon = DiscountCoupon(discount_policy=discount_policy,
-                usage_limit=coupon_form.usage_limit.data)
-        db.session.add(coupon)
-        db.session.commit()
-        coupons.append(coupon.code)
+        coupon = DiscountCoupon(discount_policy=discount_policy)
+        coupon_form.populate_obj(coupon)
+    db.session.add(coupon)
+    db.session.commit()
+    coupons.append(coupon.code)
     return api_success(result={'coupons': coupons}, doc=_(u"Discount coupon created."), status_code=201)
 
 
