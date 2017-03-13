@@ -31,7 +31,7 @@ class AutomaticDiscountPolicyForm(DiscountPolicyForm):
     percentage = forms.IntegerField(__("Percentage"),
         validators=[forms.validators.DataRequired(__("Please specify a discount percentage"))])
     items = QuerySelectMultipleField(__("Items"), get_label='title',
-        validators=[forms.validators.DataRequired(__("Please select a item to which discount is to be applied"))])
+        validators=[forms.validators.DataRequired(__("Please select an item for which the discount is applicable"))])
 
     def __init__(self, *args, **kwargs):
         super(AutomaticDiscountPolicyForm, self).__init__(*args, **kwargs)
