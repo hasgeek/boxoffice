@@ -7,6 +7,8 @@ from flask.ext.mail import Mail
 from flask.ext.lastuser import Lastuser
 from flask.ext.lastuser.sqlalchemy import UserManager
 from flask_admin import Admin
+from flask.json import JSONEncoder as BaseEncoder
+from speaklater import _LazyString
 import wtforms_json
 from baseframe import baseframe, assets, Version
 from ._version import __version__
@@ -30,11 +32,19 @@ from boxoffice.models import db, User, Item, Price, DiscountPolicy, DiscountCoup
 from siteadmin import ItemCollectionModelView, ItemModelView, PriceModelView, DiscountPolicyModelView, DiscountCouponModelView, OrganizationModelView, CategoryModelView  # noqa
 
 
+class JSONEncoder(BaseEncoder):
+    def default(self, obj):
+        if isinstance(obj, _LazyString):
+            return str(obj)
+        return BaseEncoder.default(self, obj)
+
+
 # Configure the app
 def init_for(env):
     coaster.app.init_app(app, env)
     db.init_app(app)
     db.app = app
+    app.json_encoder = JSONEncoder
 
     RQ(app)
 
