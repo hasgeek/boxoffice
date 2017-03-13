@@ -35,7 +35,7 @@ from siteadmin import ItemCollectionModelView, ItemModelView, PriceModelView, Di
 class JSONEncoder(BaseEncoder):
     def default(self, obj):
         if isinstance(obj, _LazyString):
-            return str(obj)
+            return unicode(obj)
         return BaseEncoder.default(self, obj)
 
 
