@@ -176,6 +176,10 @@ a.boxoffice-button:focus {
   margin-bottom: 45px;
 }
 
+.group-margin-top {
+  margin-top: 20px;
+}
+
 .radio-group {
   margin-bottom: 25px;
 }
@@ -200,7 +204,7 @@ a.boxoffice-button:focus {
 }
 
 .group-label {
-  color: #333;
+  color: #999;
   font-size: 16px;
   font-weight: normal;
   position: absolute;
@@ -324,7 +328,7 @@ a.boxoffice-button:focus {
 }
 
 .field-title {
-  color: #333;
+  color: #999;
   font-size: 16px;
   margin: 0 0 5px;
   font-weight: normal;
@@ -382,7 +386,7 @@ a.boxoffice-button:focus {
 
 .form-help-text {
   font-size: 13px;
-  color: #999;
+  color: #aaa;
   margin: 10px 0;
   position: relative;
   top: -40px;
@@ -617,6 +621,10 @@ a.boxoffice-button:focus {
 }
 .table-responsive {
   overflow-x: inherit;
+}
+
+.content-wrapper .modal-dialog {
+  width: 50%;
 }
 
 .organization-logo {

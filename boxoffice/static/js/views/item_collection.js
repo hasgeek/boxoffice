@@ -97,7 +97,7 @@ let AggChartComponent = Ractive.extend({
 })
 
 export const ItemCollectionView = {
-  render: function(view, {ic_id}={}) {
+  render: function({ic_id}={}) {
 
     fetch({
       url: urlFor('view', {resource: 'ic', id: ic_id, root: true})

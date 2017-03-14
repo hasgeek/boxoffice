@@ -4,7 +4,7 @@ import {DiscountPolicyTemplate} from '../templates/admin_discount_policy.html.js
 import {SideBarView} from './sidebar.js';
 
 export const DiscountPolicyView = {
-  render: function (view, {org_name, search, page, size}={}) {
+  render: function ({org_name, search, page, size}={}) {
     let url;
     if (search) {
       url = urlFor('search', {
@@ -495,6 +495,7 @@ export const DiscountPolicyView = {
           }).done((remoteData) => {
             discountPolicyComponent.set(discountPolicy + '.coupons', remoteData.result.coupons);
             discountPolicyComponent.set(discountPolicy + '.loadingCoupons', DEFAULT.hideLoader);
+            discountPolicyComponent.set(discountPolicy + '.event_url', DEFAULT.empty);
             $('#list-coupons-' + dpId).modal('show');
             $('#coupons-list-' + dpId).footable();
             new Clipboard('.copy-coupons-list');

@@ -206,9 +206,9 @@ def admin_new_coupon(discount_policy):
     else:
         coupon = DiscountCoupon(discount_policy=discount_policy)
         coupon_form.populate_obj(coupon)
-    db.session.add(coupon)
-    db.session.commit()
-    coupons.append(coupon.code)
+        db.session.add(coupon)
+        db.session.commit()
+        coupons.append(coupon.code)
     return api_success(result={'coupons': coupons}, doc=_(u"Discount coupon created."), status_code=201)
 
 

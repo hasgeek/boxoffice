@@ -4,7 +4,7 @@ import {ReportTemplate} from '../templates/admin_report.html.js';
 import {SideBarView} from './sidebar.js';
 
 export const ReportView = {
-  render: function(view, {ic_id}={}) {
+  render: function({ic_id}={}) {
     fetch({
       url: urlFor('index', {resource: 'reports', scope_ns: 'ic', scope_id: ic_id, root: true})
     }).done(({org_name, title}) => {

@@ -4,7 +4,7 @@ import {IndexTemplate} from '../templates/index.html.js';
 import {SideBarView} from './sidebar.js'
 
 export const IndexView = {
-  render: function(view) {
+  render: function() {
     fetch({
       url: urlFor('index', {root: true})
     }).then(function({orgs}){

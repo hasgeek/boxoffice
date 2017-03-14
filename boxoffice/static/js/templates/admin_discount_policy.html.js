@@ -380,15 +380,23 @@ export const DiscountPolicyTemplate = `
                     <h4 class="modal-title">{{ title }}</h4>
                   </div>
                   <div class="modal-body">
-                    <p>The discount will be auto applied on adding the discount coupon to the event website url. <br>Eg: If the website is "https://jsfoo.in/2016", the link to avail discount coupon <i>xyz123</i> is </p>
-                    <pre><code>https://jsfoo.in/2016?code=xyz123</code></pre>
+                    <div class="group group-margin-top">
+                      <input type="text" value="{{ event_url }}" class="group-input {{#event_url}}filled{{/}}"/>
+                      <span class="bar"></span>
+                      <label class="group-label">Event website url</label>
+                    </div>
+                    <p class="form-help-text">Eg:- https://jsfoo.in/2016</p>
                     <p class="pull-left">Here are the discount coupons:</p>
                     <button class="boxoffice-button boxoffice-button-action btn-right copy-coupons" data-clipboard-target="#new-coupons-{{ id }}">Copy discount coupons to clipboard</button>
                     <table class="table table-orders" id="new-coupons-{{ id }}">
                       <tbody>
                       {{#coupons}}
                         <tr>
-                          <td>{{ . }}</td>
+                          {{#if event_url }}
+                            <td>{{ event_url }}?code={{ . }}</td>
+                          {{else}}
+                            <td>{{ . }}</td>
+                          {{/if}}
                         </tr>
                       {{/}}
                       </tbody>

@@ -18,23 +18,22 @@ export const Router = Backbone.Router.extend({
     "ic/:ic_id/reports": "report"
   },
   index: function() {
-    //View is 'home', used for urlFor().
-    IndexView.render('index');
+    IndexView.render();
   },
   org: function(org_name) {
-    OrgView.render('view', {org_name});
+    OrgView.render({org_name});
   },
   item_collection: function(ic_id) {
-    ItemCollectionView.render('dashboard', {ic_id});
+    ItemCollectionView.render({ic_id});
   },
   order: function(ic_id) {
-    OrderView.render('orders', {ic_id});
+    OrderView.render({ic_id});
   },
   discount_policy: function(org_name, {search, page, size}={}) {
-    DiscountPolicyView.render('discount-policies', {org_name, search, page, size});
+    DiscountPolicyView.render({org_name, search, page, size});
   },
   report: function(ic_id){
-    ReportView.render('reports', {ic_id});
+    ReportView.render({ic_id});
   },
   _extractParameters: function(route, fragment) {
     var result = route.exec(fragment).slice(1);

@@ -4,7 +4,7 @@ import {OrderTemplate} from '../templates/admin_order.html.js';
 import {SideBarView} from './sidebar.js';
 
 export const OrderView = {
-  render: function(view, {ic_id}={}) {
+  render: function({ic_id}={}) {
 
     fetch({
       url: urlFor('index', {scope_ns: 'ic', scope_id: ic_id, resource: 'orders', root: true})
