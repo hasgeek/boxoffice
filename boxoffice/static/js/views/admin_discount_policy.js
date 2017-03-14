@@ -59,6 +59,7 @@ export const DiscountPolicyView = {
           showAddPolicyForm: false,
           newDiscountPolicy: '',
           searchText: search,
+          eventUrl: '',
           formValidationConfig: [
             {
               name: 'title',
@@ -450,6 +451,7 @@ export const DiscountPolicyView = {
               }).done((remoteData) => {
                 discountPolicyComponent.set(discountPolicy + '.coupons', remoteData.result.coupons);
                 discountPolicyComponent.set(discountPolicy + '.generatingCoupon', DEFAULT.hideLoader);
+                discountPolicyComponent.set('eventUrl', DEFAULT.empty);
                 $('#generated-coupons-' + dpId).modal('show');
                 new Clipboard('.copy-coupons');
               }).fail(function (response) {
@@ -495,7 +497,6 @@ export const DiscountPolicyView = {
           }).done((remoteData) => {
             discountPolicyComponent.set(discountPolicy + '.coupons', remoteData.result.coupons);
             discountPolicyComponent.set(discountPolicy + '.loadingCoupons', DEFAULT.hideLoader);
-            discountPolicyComponent.set(discountPolicy + '.event_url', DEFAULT.empty);
             $('#list-coupons-' + dpId).modal('show');
             $('#coupons-list-' + dpId).footable();
             new Clipboard('.copy-coupons-list');

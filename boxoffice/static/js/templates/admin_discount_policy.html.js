@@ -49,8 +49,8 @@ export const DiscountPolicyTemplate = `
             {{/if}}
 
             {{#if newDiscountPolicy.discount_type == 0}}
-              <div class="group">   
-                <input type="number" name="item_quantity_min" value={{ newDiscountPolicy.item_quantity_min }} class="group-input {{#newDiscountPolicy.item_quantity_min}}filled{{/}}" />
+              <div class="group">
+                <input type="number" name="item_quantity_min" value={{ newDiscountPolicy.item_quantity_min }} min="1" class="group-input {{#if newDiscountPolicy.item_quantity_min != undefined}}filled{{/if}}" />
                 <span class="bar"></span>
                 <label class="group-label">Minimum number of tickets</label>
                 {{#newDiscountPolicy.errormsg.item_quantity_min}}<p class="form-error-msg">{{ newDiscountPolicy.errormsg.item_quantity_min }}</p>{{/}}
@@ -66,7 +66,7 @@ export const DiscountPolicyTemplate = `
               <p class="form-help-text">Discount code base is for generating coupons in bulk<br>Eg:- 'hasgeek-volunteer'</p>
 
               <div class="group">
-                <input type="number" name="bulk_coupon_usage_limit" value="{{ newDiscountPolicy.bulk_coupon_usage_limit }}" class="group-input {{#newDiscountPolicy.discount_code_base}}filled{{/}}"/>
+                <input type="number" name="bulk_coupon_usage_limit" value="{{ newDiscountPolicy.bulk_coupon_usage_limit }}" min="1" class="group-input {{#if newDiscountPolicy.bulk_coupon_usage_limit != undefined}}filled{{/if}}"/>
                 <span class="bar"></span>
                 <label class="group-label">Usage limit of each bulk coupon</label>
                 {{#newDiscountPolicy.errormsg.bulk_coupon_usage_limit}}<p class="form-error-msg">{{ newDiscountPolicy.errormsg.bulk_coupon_usage_limit }}</p>{{/}}
@@ -76,7 +76,7 @@ export const DiscountPolicyTemplate = `
 
             {{#if newDiscountPolicy.is_price_based == 1}}
               <div class="group">
-                <input type="number" name="amount" value={{ newDiscountPolicy.amount }} class="group-input {{#newDiscountPolicy.amount}}filled{{/}}" />
+                <input type="number" name="amount" value={{ newDiscountPolicy.amount }} min="1" class="group-input {{#if newDiscountPolicy.amount != undefined}}filled{{/if}}" />
                 <span class="bar"></span>
                 <label class="group-label">Special price amount</label>
                 {{#newDiscountPolicy.errormsg.amount}}<p class="form-error-msg">{{ newDiscountPolicy.errormsg.amount }}</p>{{/}}
@@ -103,7 +103,7 @@ export const DiscountPolicyTemplate = `
               </div>
             {{else}}
               <div class="group">
-                <input type="number" name="percentage" value={{ newDiscountPolicy.percentage }} class="group-input {{#newDiscountPolicy.percentage}}filled{{/}}" />
+                <input type="number" name="percentage" value={{ newDiscountPolicy.percentage }} min="1" class="group-input {{#if newDiscountPolicy.percentage != undefined}}filled{{/if}}" />
                 <span class="bar"></span>
                 <label class="group-label">Discount percentage</label>
                 {{#newDiscountPolicy.errormsg.percentage}}<p class="form-error-msg">{{ newDiscountPolicy.errormsg.percentage }}</p>{{/}}
@@ -200,7 +200,7 @@ export const DiscountPolicyTemplate = `
                       <input type="hidden" name="is_price_based" value=1 />
                       {{#price_details}}
                         <div class="group">   
-                          <input type="text" name="amount" value="{{ amount }}" twoway="false" class="group-input {{#amount}}filled{{/}}" />
+                          <input type="number" name="amount" value="{{ amount }}" min="1" twoway="false" class="group-input {{#if amount != ""}}filled{{/if}}" />
                           <span class="bar"></span>
                           <label class="group-label">Amount</label>
                           {{#errormsg.amount}}<p class="form-error-msg">{{ errormsg.amount }}</p>{{/}}
@@ -222,7 +222,7 @@ export const DiscountPolicyTemplate = `
                     {{else}}
                       <input type="hidden" name="is_price_based" value=0 />
                       <div class="group">   
-                        <input type="number" name="percentage" value="{{ percentage }}" twoway="false" class="group-input {{#percentage}}filled{{/}}" />
+                        <input type="number" name="percentage" value="{{ percentage }}" min="1" twoway="false" class="group-input {{#if percentage != ""}}filled{{/if}}" />
                         <span class="bar"></span>
                         <label class="group-label">Percentage</label>
                         {{#errormsg.percentage}}<p class="form-error-msg">{{ errormsg.percentage }}</p>{{/}}
@@ -233,7 +233,7 @@ export const DiscountPolicyTemplate = `
                     {{#if discount_type == "Automatic"}}
                       <input type="hidden" name="discount_type" value=0 />
                       <div class="group">   
-                        <input type="number" name="item_quantity_min" value="{{ item_quantity_min }}" twoway="false" class="group-input {{#item_quantity_min}}filled{{/}}" />
+                        <input type="number" name="item_quantity_min" value="{{ item_quantity_min }}" min="1" twoway="false" class="group-input {{#if item_quantity_min != ""}}filled{{/if}}" />
                         <span class="bar"></span>
                         <label class="group-label">Minimum item quanity</label>
                         {{#errormsg.item_quantity_min}}<p class="form-error-msg">{{ errormsg.item_quantity_min }}</p>{{/}}
@@ -248,7 +248,7 @@ export const DiscountPolicyTemplate = `
                       </div>
                       <p class="form-help-text">Discount coupon prefix is for generating bulk coupons<br>Eg:- 'hasgeek-volunteer'</p>
                       <div class="group">   
-                        <input type="number" name="bulk_coupon_usage_limit" value="{{ bulk_coupon_usage_limit }}" twoway="false" class="group-input {{#bulk_coupon_usage_limit}}filled{{/}}" />
+                        <input type="number" name="bulk_coupon_usage_limit" value="{{ bulk_coupon_usage_limit }}" min="1" twoway="false" class="group-input {{#if bulk_coupon_usage_limit != ""}}filled{{/if}}" />
                         <span class="bar"></span>
                         <label class="group-label">Number of times each bulk coupon can be used</label>
                         {{#errormsg.bulk_coupon_usage_limit}}<p class="form-error-msg">{{ errormsg.item_quantity_min }}</p>{{/}}
@@ -282,7 +282,7 @@ export const DiscountPolicyTemplate = `
                   <h4 class="text-center form-title">Generate coupon</h4>
                   <form role="form" id="new-coupon-{{ id }}" name="generate-coupon-form-{{ id }}">
                     <div class="group">   
-                      <input type="number" name="count" value="{{ .count }}" class="group-input {{#count}}filled{{/}}" />
+                      <input type="number" name="count" value="{{ .count }}" min="1" class="group-input {{#if count != undefined}}filled{{/if}}" />
                       <span class="bar"></span>
                       <label class="group-label">How many coupons?</label>
                       {{#errormsg.count}}<p class="form-error-msg">{{ errormsg.count }}</p>{{/}}
@@ -296,7 +296,7 @@ export const DiscountPolicyTemplate = `
                       </div>
                       <p class="form-help-text">Eg: Hasjob</p>
                       <div class="group">
-                        <input type="number" name="usage_limit" value="1" class="group-input filled" />
+                        <input type="number" name="usage_limit" value="1" min="1" class="group-input filled" />
                         <span class="bar"></span>
                         <label class="group-label">How many times can each coupon be used?</label>
                         {{#errormsg.usage_limit}}<p class="form-error-msg">{{ errormsg.usage_limit }}</p>{{/}}
@@ -381,7 +381,7 @@ export const DiscountPolicyTemplate = `
                   </div>
                   <div class="modal-body">
                     <div class="group group-margin-top">
-                      <input type="text" value="{{ event_url }}" class="group-input {{#event_url}}filled{{/}}"/>
+                      <input type="text" value="{{ eventUrl }}" class="group-input {{#eventUrl}}filled{{/}}"/>
                       <span class="bar"></span>
                       <label class="group-label">Event website url</label>
                     </div>
@@ -392,8 +392,8 @@ export const DiscountPolicyTemplate = `
                       <tbody>
                       {{#coupons}}
                         <tr>
-                          {{#if event_url }}
-                            <td>{{ event_url }}?code={{ . }}</td>
+                          {{#if eventUrl }}
+                            <td>{{ eventUrl }}?code={{ . }}</td>
                           {{else}}
                             <td>{{ . }}</td>
                           {{/if}}
