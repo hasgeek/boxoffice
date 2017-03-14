@@ -27,13 +27,6 @@
                     <div class="ticket-details">
                       <p class="ticket-title">{{ line_item.item_title }}</p>
                       <div class="ticket-description">{{{ line_item.item_description }}}</div>
-                      {{#line_item.discount_policies}}
-                        {{#if is_automatic || activated || pre_applied }}
-                          <p class="discount {{#activated}}applied{{/}}">
-                             {{ title }} <i class="fa fa-check {{#if !activated && !isLoadingFail}}hidden{{/if}}"></i>
-                          </p>
-                        {{/if}}
-                      {{/line_item.discount_policies}}
                     </div>
                     <div class="ticket-price-qty">
                       {{#if line_item.is_available}}
@@ -78,6 +71,13 @@
                             {{/if}}
                           </p>
                         {{/if}}
+                        {{#line_item.discount_policies}}
+                          {{#if is_automatic || activated || pre_applied }}
+                            <p class="discount {{#activated}}applied{{/}}">
+                               {{ title }} <i class="fa fa-check {{#if !activated && !isLoadingFail}}hidden{{/if}}"></i>
+                            </p>
+                          {{/if}}
+                        {{/line_item.discount_policies}}
                       {{else}}
                         <div class="sold-out-wrapper" intro='fly:{"x":100,"y":"0"}'>
                           <p class="sold-out">Sold out</p>
@@ -376,6 +376,7 @@
     margin: 5px 0;
     font-style: italic;
     color: #e42c42;
+    text-align: right;
   }
   .discount.applied {
     color: #008000;
