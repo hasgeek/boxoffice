@@ -10,7 +10,9 @@ from babel.dates import format_datetime
 
 
 def jsonify_report(data_dict):
-    return jsonify(org_name=data_dict['item_collection'].organization.name, title=data_dict['item_collection'].title)
+    return jsonify(org_name=data_dict['item_collection'].organization.name,
+        name=data_dict['item_collection'].name,
+        title=data_dict['item_collection'].title)
 
 
 @app.route('/admin/ic/<ic_id>/reports')
@@ -20,7 +22,7 @@ def jsonify_report(data_dict):
     (ItemCollection, {'id': 'ic_id'}, 'item_collection'),
     permission='org_admin')
 def admin_report(item_collection):
-    return dict(title=item_collection.title, item_collection=item_collection)
+    return dict(item_collection=item_collection)
 
 
 @app.route('/admin/ic/<ic_id>/tickets.csv')

@@ -35,7 +35,7 @@ def jsonify_discount_policy(policy):
         'discount_code_base': policy.discount_code_base,
         'bulk_coupon_usage_limit': policy.bulk_coupon_usage_limit,
         'price_details': jsonify_price(Price.query.filter(Price.discount_policy == policy).first()) if policy.is_price_based else '',
-        'currency': CURRENCY_SYMBOL['INR'],
+        'currency_symbol': CURRENCY_SYMBOL['INR'],
         'dp_items': [{'id': str(item.id), 'title': "{ic_title}: {title}".format(ic_title=item.item_collection.title, title=item.title)} for item in policy.items]
     }
 

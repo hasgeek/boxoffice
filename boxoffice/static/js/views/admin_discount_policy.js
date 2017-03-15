@@ -41,7 +41,7 @@ export const DiscountPolicyView = {
 
     fetch({
       url: url
-    }).done(({org_name, title, discount_policies, currency, total_pages, paginated, current_page}) => {
+    }).done(({org_name, title, discount_policies, currency_symbol, total_pages, paginated, current_page}) => {
       // Initial render
       let discountPolicyComponent = new Ractive({
         el: '#main-content-area',
@@ -50,7 +50,7 @@ export const DiscountPolicyView = {
           org: org_name,
           title: title,
           discountPolicies: discount_policies,
-          currency: currency,
+          currency_symbol: currency_symbol,
           paginated: paginated,
           totalPages: total_pages,
           currentPage: current_page,
