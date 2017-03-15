@@ -9,24 +9,26 @@ export const ReportView = {
       url: urlFor('index', {resource: 'reports', scope_ns: 'ic', scope_id: ic_id, root: true})
     }).done(({org_name, title, name}) => {
       // Initial render
-      let main_ractive = new Ractive({
+      let reportsComponent = new Ractive({
         el: '#main-content-area',
         template: ReportTemplate,
         data:  {
           title: title,
           name: name,
-          reports_url: function() {
-            let report_type = this.get('report_type');
+          // default selected value of report-type
+          reportType: "tickets",
+          reportsUrl: function() {
+            let reportType = this.get('reportType');
             return urlFor('index', {
-              resource: report_type,
+              resource: reportType,
               scope_ns: 'ic',
               scope_id: ic_id,
               ext: 'csv',
               root: true
             });
           },
-          reports_filename: function() {
-            return this.get('name') + '_' + this.get('report_type') + '.csv';
+          reportsFilename: function() {
+            return this.get('name') + '_' + this.get('reportType') + '.csv';
           }
         }
       });
