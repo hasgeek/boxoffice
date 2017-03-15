@@ -34,7 +34,6 @@ def jsonify_discount_policy(policy):
         'is_price_based': policy.is_price_based,
         'discount_code_base': policy.discount_code_base,
         'bulk_coupon_usage_limit': policy.bulk_coupon_usage_limit,
-        'discount': policy.percentage if not policy.is_price_based else '',
         'price_details': jsonify_price(Price.query.filter(Price.discount_policy == policy).first()) if policy.is_price_based else '',
         'currency': CURRENCY_SYMBOL['INR'],
         'dp_items': [{'id': str(item.id), 'title': "{ic_title}: {title}".format(ic_title=item.item_collection.title, title=item.title)} for item in policy.items]
@@ -105,7 +104,7 @@ def admin_new_discount_policy(organization):
     discount_policy = DiscountPolicy(organization=organization)
     discount_policy_form = DiscountPolicyForm()
     discount_policy_form.populate_obj(discount_policy)
-    discount_policy_error_msg = _(u"The discount could not be created. Please rectify the indicated issues.")
+    discount_policy_error_msg = _(u"The discount could not be created. Please rectify the indicated issues")
 
     if discount_policy.is_price_based:
         discount_policy_form = PriceBasedDiscountPolicyForm(parent=discount_policy.organization)

@@ -151,8 +151,8 @@ export const DiscountPolicyTemplate = `
                     <p class="content-details"><b>Discounted price:</b></p>
                     <p class="content-details-text">{{ currency }}{{ price_details.amount }}</p>
                   {{else}}
-                    <p class="content-details"><b>Discount in percentage:</b></p>
-                    <p class="content-details-text">{{ discount }}%</p>
+                    <p class="content-details"><b>Discount rate:</b></p>
+                    <p class="content-details-text">{{ percentage }}%</p>
                   {{/if}}
 
                   {{#if discount_type == "Automatic"}}
