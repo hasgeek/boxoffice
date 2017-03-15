@@ -149,7 +149,7 @@ export const DiscountPolicyTemplate = `
 
                   {{#if is_price_based}}
                     <p class="content-details"><b>Discounted price:</b></p>
-                    <p class="content-details-text">{{ currency }}{{ price_details.amount }}</p>
+                    <p class="content-details-text">{{ currency_symbol }}{{ price_details.amount }}</p>
                   {{else}}
                     <p class="content-details"><b>Discount rate:</b></p>
                     <p class="content-details-text">{{ percentage }}%</p>
