@@ -8,7 +8,7 @@ from flask.ext.lastuser import Lastuser
 from flask.ext.lastuser.sqlalchemy import UserManager
 from flask_admin import Admin
 from flask.json import JSONEncoder as BaseEncoder
-from speaklater import _LazyString
+from speaklater import is_lazy_string
 import wtforms_json
 from baseframe import baseframe, assets, Version
 from ._version import __version__
@@ -34,7 +34,7 @@ from siteadmin import ItemCollectionModelView, ItemModelView, PriceModelView, Di
 
 class JSONEncoder(BaseEncoder):
     def default(self, obj):
-        if isinstance(obj, _LazyString):
+        if is_lazy_string(obj):
             return unicode(obj)
         return BaseEncoder.default(self, obj)
 
