@@ -7,13 +7,14 @@ export const ReportView = {
   render: function({ic_id}={}) {
     fetch({
       url: urlFor('index', {resource: 'reports', scope_ns: 'ic', scope_id: ic_id, root: true})
-    }).done(({org_name, title}) => {
+    }).done(({org_name, title, name}) => {
       // Initial render
       let main_ractive = new Ractive({
         el: '#main-content-area',
         template: ReportTemplate,
         data:  {
           title: title,
+          name: name,
           reports_url: function() {
             let report_type = this.get('report_type');
             return urlFor('index', {
@@ -25,8 +26,7 @@ export const ReportView = {
             });
           },
           reports_filename: function() {
-            let filename = this.get('title').replace(/ /g, '_');
-            return filename + '_' + this.get('report_type') + '.csv';
+            return this.get('name') + '_' + this.get('report_type') + '.csv';
           }
         }
       });
