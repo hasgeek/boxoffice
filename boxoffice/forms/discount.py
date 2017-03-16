@@ -34,8 +34,7 @@ class AutomaticDiscountPolicyForm(DiscountPolicyForm):
     items = QuerySelectMultipleField(__("Items"), get_label='title',
         validators=[forms.validators.DataRequired(__("Please select an item for which the discount is applicable"))])
 
-    def __init__(self, *args, **kwargs):
-        super(AutomaticDiscountPolicyForm, self).__init__(*args, **kwargs)
+    def set_queries(self):
         self.items.query = Item.query.join(ItemCollection).filter(
             ItemCollection.organization == self.edit_parent).options(db.load_only('id', 'title'))
 
@@ -52,8 +51,7 @@ class CouponBasedDiscountPolicyForm(DiscountPolicyForm):
         filters=[forms.filters.strip(), forms.filters.none_if_empty()])
     bulk_coupon_usage_limit = forms.IntegerField(__("Bulk coupon usage limit"), default=1)
 
-    def __init__(self, *args, **kwargs):
-        super(CouponBasedDiscountPolicyForm, self).__init__(*args, **kwargs)
+    def set_queries(self):
         self.items.query = Item.query.join(ItemCollection).filter(
             ItemCollection.organization == self.edit_parent).options(db.load_only('id', 'title'))
 
@@ -82,8 +80,7 @@ class DiscountPriceForm(forms.Form):
     item = QuerySelectField(_("Item"), get_label='title',
         validators=[forms.validators.DataRequired(__("Please select a item to which the discount is to be applied"))])
 
-    def __init__(self, *args, **kwargs):
-        super(DiscountPriceForm, self).__init__(*args, **kwargs)
+    def set_queries(self):
         self.item.query = Item.query.join(ItemCollection).filter(
             ItemCollection.organization == self.edit_parent.organization).options(db.load_only('id', 'title'))
 
