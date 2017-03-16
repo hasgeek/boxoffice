@@ -155,7 +155,7 @@ export const DiscountPolicyView = {
         },
         paginate: function (event, page) {
           event.original.preventDefault();
-          discountPolicyComponent.refresh(DEFAULT.empty, page);
+          discountPolicyComponent.refresh(this.get('searchText'), page);
         },
         clearSearchField: function () {
           discountPolicyComponent.set('searchText', DEFAULT.empty);
@@ -513,17 +513,20 @@ export const DiscountPolicyView = {
 
         },
         oncomplete: function () {
-
+          var searchTimeout;
+          var lastRegisteredSearch = '';
           discountPolicyComponent.observe('searchText', function (searchText, prevSearchText) {
-            if (searchText.length > 2) {
-              discountPolicyComponent.refresh(searchText);
-            } else if (searchText.length === 0 && prevSearchText) {
+            if (searchText.length > 2 && searchText !== lastRegisteredSearch) {
+              window.clearTimeout(searchTimeout);
+              lastRegisteredSearch = searchText;
+              searchTimeout = window.setTimeout(function(){
+                discountPolicyComponent.refresh(searchText);
+              }, 1000);
+            } else if (searchText.length === 0) {
               discountPolicyComponent.refresh();
             }
           });
-
           discountPolicyComponent.set('pages', _.range(1, discountPolicyComponent.get('totalPages') + 1));
-
         }
       });
 
