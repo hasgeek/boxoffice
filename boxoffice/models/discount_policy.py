@@ -28,6 +28,8 @@ item_discount_policy = db.Table('item_discount_policy', db.Model.metadata,
 class DiscountPolicy(BaseScopedNameMixin, db.Model):
     """
     Consists of the discount rules applicable on items
+
+    `title` has a GIN index to enable trigram matching.
     """
     __tablename__ = 'discount_policy'
     __uuid_primary_key__ = True
