@@ -24,7 +24,7 @@ class DiscountPolicyForm(forms.Form):
 
 def validate_unique_discount_code_base(form, field):
     if DiscountPolicy.query.filter(DiscountPolicy.id != form.edit_id, DiscountPolicy.discount_code_base == field.data).notempty():
-        raise StopValidation(__('This discount coupon prefix already exists. Please pick a different prefix'))
+        raise StopValidation(__("This discount coupon prefix already exists. Please pick a different prefix"))
 
 
 class AutomaticDiscountPolicyForm(DiscountPolicyForm):
