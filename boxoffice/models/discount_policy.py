@@ -115,7 +115,7 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
 @event.listens_for(DiscountPolicy, 'before_insert')
 def validate_price_based_discount(mapper, connection, target):
     if target.is_price_based and len(target.items) > 1:
-        raise ValueError("Price-based discount MUST have only one associated item.")
+        raise ValueError("Price-based discounts MUST have only one associated item")
 
 
 def generate_coupon_code(size=6, chars=string.ascii_uppercase + string.digits):
