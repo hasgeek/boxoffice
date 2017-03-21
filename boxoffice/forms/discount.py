@@ -32,7 +32,7 @@ class AutomaticDiscountPolicyForm(DiscountPolicyForm):
     percentage = forms.IntegerField(__("Percentage"),
         validators=[forms.validators.DataRequired(__("Please specify a discount percentage"))])
     items = QuerySelectMultipleField(__("Items"), get_label='title',
-        validators=[forms.validators.DataRequired(__("Please select an item for which the discount is applicable"))])
+        validators=[forms.validators.DataRequired(__("Please select at least one item for which the discount is applicable"))])
 
     def set_queries(self):
         self.items.query = Item.query.join(ItemCollection).filter(
@@ -76,9 +76,9 @@ class DiscountPriceForm(forms.Form):
         validators=[forms.validators.DataRequired(__("Please specify a start date and time"))])
     end_at = forms.DateTimeField(__("Price end date"),
         validators=[forms.validators.DataRequired(__("Please specify an end date and time")),
-        forms.validators.GreaterThan('start_at', __("Please specify the end date for the price that is greater than start date"))])
+        forms.validators.GreaterThan('start_at', __("Please specify an end date for the price that is greater than the start date"))])
     item = QuerySelectField(_("Item"), get_label='title',
-        validators=[forms.validators.DataRequired(__("Please select a item to which the discount is to be applied"))])
+        validators=[forms.validators.DataRequired(__("Please select a item for which the discount is to be applied"))])
 
     def set_queries(self):
         self.item.query = Item.query.join(ItemCollection).filter(
@@ -87,7 +87,7 @@ class DiscountPriceForm(forms.Form):
 
 def validate_unique_discount_coupon_code(form, field):
     if DiscountCoupon.query.filter(DiscountCoupon.discount_policy == form.edit_parent, DiscountCoupon.code == field.data).notempty():
-        raise StopValidation(__("This discount coupon code already exists. Please pick a coupon code"))
+        raise StopValidation(__("This discount coupon code already exists. Please enter a different coupon code"))
 
 
 class DiscountCouponForm(forms.Form):
