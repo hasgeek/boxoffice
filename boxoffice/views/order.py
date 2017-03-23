@@ -445,10 +445,10 @@ def process_partial_refund_for_order(order, form_dict):
         total_paid_amount = sum([order_transaction.amount
             for order_transaction in order_payment_transactions])
 
-        total_refund_amount = sum([order_transaction.amount
+        total_refunded_amount = sum([order_transaction.amount
             for order_transaction in order.get_refund_transactions()])
 
-        if (total_refund_amount + requested_refund_amount) >= total_paid_amount:
+        if (total_refunded_amount + requested_refund_amount) >= total_paid_amount:
             return make_response(jsonify(status='error', error='excess_partial_refund',
                 error_description='Invalid refund amount, must be lesser than net amount paid for the order'), 403)
 
