@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset='UTF-8'>  
+  <title>Ticket Cancellation</title>  
+  <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400italic,600italic,400,600" />
+  <style type="text/css">
+    * { 
+      margin: 0; 
+      padding: 0; 
+    }
+
+    body {
+      font-family: "Source Sans Pro",Arial,sans-serif;
+      font-size: 16px;
+      line-height: 1.2;
+      color: #333;
+      background-color: #fff
+    }
+
+    a {
+      text-decoration: none;
+    }
+
+    p { 
+      margin: 5px 0 10px;
+    }
+
+    .terms {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+
+<body>
+  <div>
+
+    <p>Hello {{ order.buyer_fullname }},</p>
+
+    <p>
+      A refund of {{ currency_symbol }} {{ refund_amount }} has been initiated against your order (Receipt No: {{ order.invoice_no }}). You should receive the refund in 2-5 days.</p>
+    <p class="footer">Thank you,</p>
+    <p>{{ org.title }}</p>
+  
+  </div>
+</body>
+
+</html>
