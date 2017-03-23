@@ -346,7 +346,9 @@ class TestOrder(unittest.TestCase):
 
         invalid_refund_amount = 100000000
         invalid_refund_dict = {'amount': invalid_refund_amount}
-        process_partial_refund_for_order(order, invalid_refund_dict)
+        resp = process_partial_refund_for_order(order, invalid_refund_dict)
+        data = json.loads(resp.data)
+        self.assertEquals(resp.status_code, 403)
         refund_transactions = order.transactions.filter_by(transaction_type=TRANSACTION_TYPE.REFUND).all()
         self.assertEquals(refund_transactions[0].amount, decimal.Decimal(valid_refund_amount))
 
