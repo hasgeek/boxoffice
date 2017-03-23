@@ -1,7 +1,6 @@
 import unittest
 import json
 import decimal
-from random import randint
 from flask import make_response
 from mock import MagicMock
 from boxoffice import app, init_for
@@ -351,6 +350,15 @@ class TestOrder(unittest.TestCase):
         self.assertEquals(resp.status_code, 403)
         refund_transactions = order.transactions.filter_by(transaction_type=TRANSACTION_TYPE.REFUND).all()
         self.assertEquals(refund_transactions[0].amount, decimal.Decimal(valid_refund_amount))
+
+        resp = self.make_free_order()
+        data = json.loads(resp.data)
+        self.assertEquals(resp.status_code, 201)
+        order = Order.query.get(data.get('order_id'))
+        invalid_refund_amount = 100000000
+        invalid_refund_dict = {'amount': invalid_refund_amount}
+        refund_resp = process_partial_refund_for_order(order, invalid_refund_dict)
+        self.assertEquals(refund_resp.status_code, 403)
 
     def tearDown(self):
         db.session.rollback()
