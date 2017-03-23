@@ -454,13 +454,12 @@ def process_partial_refund_for_order(order, order_refund_dict):
             db.session.add(PaymentTransaction(order=order, transaction_type=TRANSACTION_TYPE.REFUND,
                 online_payment=payment, amount=requested_refund_amount, currency=CURRENCY.INR))
             db.session.commit()
+            send_order_refund_mail.delay(order.id, requested_refund_amount)
+            return make_response(jsonify(status='ok', result={'message': 'Refund processed for order'}), 200)
         else:
             raise PaymentGatewayError("Refund failed for order - {order} with the following details - {msg}".format(order=order.id,
                 msg=rp_resp.content), 424,
             'Refund failed. Please try again or contact support at {email}.'.format(email=order.organization.contact_email))
-
-        send_order_refund_mail.delay(order.id, form.amount.data)
-        return make_response(jsonify(status='ok', result={'message': 'Refund processed for order'}), 200)
     else:
         return make_response(jsonify(status='error', error='invalid_input',
             error_description='Please enter a valid amount and currency'), 403)
