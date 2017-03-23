@@ -433,13 +433,18 @@ def cancel_line_item(line_item):
     return make_response(jsonify(status='ok', result={'message': 'Ticket cancelled', 'cancelled_at': date_format(line_item.cancelled_at)}), 200)
 
 
-def process_partial_refund_for_order(order, order_refund_dict):
-    form = OrderRefundForm.from_json(order_refund_dict, meta={'csrf': False})
+def process_partial_refund_for_order(order, form_dict):
+    form = OrderRefundForm.from_json(form_dict, meta={'csrf': False})
     if form.validate():
         requested_refund_amount = form.amount.data
-        confirmed_total = order.get_amounts(LINE_ITEM_STATUS.CONFIRMED).final_amount
-        cancelled_total = order.get_amounts(LINE_ITEM_STATUS.CANCELLED).final_amount
-        total_paid_amount = confirmed_total + cancelled_total
+        order_payment_transactions = order.get_payment_transactions().all()
+        if not order_payment_transactions:
+            return make_response(jsonify(status='error', error='free_order',
+                error_description='Refunds can only be issued for paid orders'), 403)
+
+        total_paid_amount = sum([order_transaction.amount
+            for order_transaction in order_payment_transactions])
+
         total_refund_amount = sum([order_transaction.amount
             for order_transaction in order.get_refund_transactions()])
 

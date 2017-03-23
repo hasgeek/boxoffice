@@ -80,6 +80,13 @@ def get_refund_transactions(self):
 
 Order.get_refund_transactions = get_refund_transactions
 
+
+def get_payment_transactions(self):
+    return self.transactions.filter_by(transaction_type=TRANSACTION_TYPE.PAYMENT)
+
+Order.get_payment_transactions = get_payment_transactions
+
+
 class CURRENCY(LabeledEnum):
     INR = (u"INR", __("INR"))
 
