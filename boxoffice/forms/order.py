@@ -2,8 +2,9 @@
 
 from baseframe import __
 import baseframe.forms as forms
+from ..models import CURRENCY
 
-__all__ = ['LineItemForm', 'BuyerForm', 'OrderSessionForm']
+__all__ = ['LineItemForm', 'BuyerForm', 'OrderSessionForm', 'OrderRefundForm']
 
 
 def trim(length):
@@ -55,3 +56,8 @@ class OrderSessionForm(forms.Form):
     utm_id = forms.StringField(__("UTM Id"), filters=[trim(250)])
     gclid = forms.StringField(__("Gclid"), filters=[trim(250)])
     referrer = forms.StringField(__("Referrer"), filters=[trim(2083)])
+
+
+class OrderRefundForm(forms.Form):
+    amount = forms.IntegerField(__("Amount"),
+        validators=[forms.validators.DataRequired(__("Please specify an amount"))])

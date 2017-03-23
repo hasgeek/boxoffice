@@ -75,6 +75,11 @@ class PaymentTransaction(BaseMixin, db.Model):
     transaction_ref = db.Column(db.Unicode(80), nullable=True)
 
 
+def get_refund_transactions(self):
+    return self.transactions.filter_by(transaction_type=TRANSACTION_TYPE.REFUND)
+
+Order.get_refund_transactions = get_refund_transactions
+
 class CURRENCY(LabeledEnum):
     INR = (u"INR", __("INR"))
 

@@ -11,9 +11,9 @@ from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPol
 from ..models import Order, OnlinePayment, PaymentTransaction, User, CURRENCY, ORDER_STATUS
 from ..models.payment import TRANSACTION_TYPE
 from ..extapi import razorpay, RAZORPAY_PAYMENT_STATUS
-from ..forms import LineItemForm, BuyerForm, OrderSessionForm
+from ..forms import LineItemForm, BuyerForm, OrderSessionForm, OrderRefundForm
 from custom_exceptions import PaymentGatewayError
-from boxoffice.mailclient import send_receipt_mail, send_line_item_cancellation_mail
+from boxoffice.mailclient import send_receipt_mail, send_line_item_cancellation_mail, send_order_refund_mail
 from utils import xhr_only, cors, date_format
 
 
@@ -431,6 +431,49 @@ def cancel_line_item(line_item):
     refund_amount = process_line_item_cancellation(line_item)
     send_line_item_cancellation_mail.delay(line_item.id, refund_amount)
     return make_response(jsonify(status='ok', result={'message': 'Ticket cancelled', 'cancelled_at': date_format(line_item.cancelled_at)}), 200)
+
+
+def process_partial_refund_for_order(order, order_refund_dict):
+    form = OrderRefundForm.from_json(order_refund_dict, meta={'csrf': False})
+    if form.validate():
+        requested_refund_amount = form.amount.data
+        confirmed_total = order.get_amounts(LINE_ITEM_STATUS.CONFIRMED).final_amount
+        cancelled_total = order.get_amounts(LINE_ITEM_STATUS.CANCELLED).final_amount
+        total_paid_amount = confirmed_total + cancelled_total
+        total_refund_amount = sum([order_transaction.amount
+            for order_transaction in order.get_refund_transactions()])
+
+        if (total_refund_amount + requested_refund_amount) >= total_paid_amount:
+            return make_response(jsonify(status='error', error='excess_partial_refund',
+                error_description='Invalid refund amount, must be lesser than net amount paid for the order'), 403)
+
+        payment = OnlinePayment.query.filter_by(order=order,
+            pg_payment_status=RAZORPAY_PAYMENT_STATUS.CAPTURED).one()
+        rp_resp = razorpay.refund_payment(payment.pg_paymentid, requested_refund_amount)
+        if rp_resp.status_code == 200:
+            db.session.add(PaymentTransaction(order=order, transaction_type=TRANSACTION_TYPE.REFUND,
+                online_payment=payment, amount=requested_refund_amount, currency=CURRENCY.INR))
+            db.session.commit()
+        else:
+            raise PaymentGatewayError("Refund failed for order - {order} with the following details - {msg}".format(order=order.id,
+                msg=rp_resp.content), 424,
+            'Refund failed. Please try again or contact support at {email}.'.format(email=order.organization.contact_email))
+
+        send_order_refund_mail.delay(order.id, form.amount.data)
+        return make_response(jsonify(status='ok', result={'message': 'Refund processed for order'}), 200)
+    else:
+        return make_response(jsonify(status='error', error='invalid_input',
+            error_description='Please enter a valid amount and currency'), 403)
+
+
+@app.route('/order/<order_id>/partial_refund', methods=['POST'])
+@lastuser.requires_login
+@load_models(
+    (Order, {'id': 'order_id'}, 'order'),
+    permission='org_admin'
+    )
+def partial_refund_order(order):
+    return process_partial_refund_for_order(order, request.json.get('order_refund'))
 
 
 @app.route('/api/1/ic/<item_collection>/orders', methods=['GET', 'OPTIONS'])

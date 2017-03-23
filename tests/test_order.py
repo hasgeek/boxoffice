@@ -9,7 +9,7 @@ from boxoffice.models import *
 from boxoffice.views.custom_exceptions import PaymentGatewayError
 from boxoffice.models.payment import TRANSACTION_TYPE
 from boxoffice.extapi import razorpay
-from boxoffice.views.order import process_line_item_cancellation
+from boxoffice.views.order import process_line_item_cancellation, process_partial_refund_for_order
 from fixtures import init_data
 
 
@@ -306,6 +306,49 @@ class TestOrder(unittest.TestCase):
         process_line_item_cancellation(free_line_item)
         self.assertEquals(free_line_item.status, LINE_ITEM_STATUS.CANCELLED)
         self.assertEquals(free_order.transactions.count(), 0)
+
+    def test_partial_refund_in_order(self):
+        original_quantity = 5
+        discounted_item = Item.query.filter_by(name='t-shirt').first()
+        total_amount = discounted_item.current_price().amount * original_quantity
+        data = {
+            'line_items': [{'item_id': unicode(discounted_item.id), 'quantity': original_quantity}],
+            'buyer': {
+                'fullname': 'Testing',
+                'phone': '9814141414',
+                'email': 'test@hasgeek.com',
+                }
+            }
+        ic = ItemCollection.query.first()
+        # make a purchase order
+        resp = self.client.post('/ic/{ic}/order'.format(ic=ic.id), data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
+        data = json.loads(resp.data)
+        self.assertEquals(resp.status_code, 201)
+        self.assertEquals(data['final_amount'], (total_amount - 5*total_amount/decimal.Decimal(100)))
+
+        order = Order.query.get(data['order_id'])
+        # Create fake payment and transaction objects
+        online_payment = OnlinePayment(pg_paymentid='pg_testpayment', order=order)
+        online_payment.confirm()
+        order_amounts = order.get_amounts(LINE_ITEM_STATUS.PURCHASE_ORDER)
+        transaction = PaymentTransaction(order=order, online_payment=online_payment, amount=order_amounts.final_amount, currency=CURRENCY.INR)
+        db.session.add(transaction)
+        order.confirm_sale()
+        db.session.commit()
+
+        # Mock Razorpay's API
+        razorpay.refund_payment = MagicMock(return_value=make_response())
+        valid_refund_amount = 500
+        valid_refund_dict = {'amount': valid_refund_amount}
+        process_partial_refund_for_order(order, valid_refund_dict)
+        refund_transactions = order.transactions.filter_by(transaction_type=TRANSACTION_TYPE.REFUND).all()
+        self.assertEquals(refund_transactions[0].amount, decimal.Decimal(valid_refund_amount))
+
+        invalid_refund_amount = 100000000
+        invalid_refund_dict = {'amount': invalid_refund_amount}
+        process_partial_refund_for_order(order, invalid_refund_dict)
+        refund_transactions = order.transactions.filter_by(transaction_type=TRANSACTION_TYPE.REFUND).all()
+        self.assertEquals(refund_transactions[0].amount, decimal.Decimal(valid_refund_amount))
 
     def tearDown(self):
         db.session.rollback()
