@@ -15,7 +15,6 @@ export const DiscountPolicyView = {
         search: search,
         page: page,
         size: size
-
       });
     } else {
       url = urlFor('index', {

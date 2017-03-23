@@ -58,9 +58,12 @@ export const updateBrowserHistory = function (currentUrl, newUrl) {
   window.history.pushState({reloadOnPop: true}, '', newUrl);
 }
 
-export const urlFor = function(view, params={}){
+export const urlFor = function(action, params={}){
   /*
   Returns a URL for a given resource and action.
+
+  `action` is a required parameter and MUST be one of 'index', 'view',
+  'new', 'edit' or 'search'.
   
   The URLs provided follow the following pattern for a particular resource:
   - 'index' -> /
@@ -76,7 +79,9 @@ export const urlFor = function(view, params={}){
   - id      : resource id
   - search  : search term
   - ext     : file extension
-  - root    : if URL should be prefixed with root namespace eg: /admin
+  - page    : page number of the payload, if paginated
+  - size    : size of the payload, if paginated
+  - root    : Boolean, in case the URL needs to be prefixed with root namespace eg: /admin
   */
   let rootURL = Backbone.history.root;
   let scope = '';
@@ -96,7 +101,7 @@ export const urlFor = function(view, params={}){
     ext = `.${params.ext}`;
   }
 
-  switch (view) {
+  switch (action) {
     case 'index':
       url = params.page ? `${scope}${resource}${ext}?page=${params.page}&size=${params.size}` : params.size ? `${scope}${resource}${ext}?size=${params.size}` : `${scope}${resource}${ext}`;
       break;
