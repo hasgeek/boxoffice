@@ -456,10 +456,12 @@ def process_partial_refund_for_order(order, form_dict):
             pg_payment_status=RAZORPAY_PAYMENT_STATUS.CAPTURED).one()
         rp_resp = razorpay.refund_payment(payment.pg_paymentid, requested_refund_amount)
         if rp_resp.status_code == 200:
-            db.session.add(PaymentTransaction(order=order, transaction_type=TRANSACTION_TYPE.REFUND,
-                online_payment=payment, amount=requested_refund_amount, currency=CURRENCY.INR))
+            transaction = PaymentTransaction(order=order, transaction_type=TRANSACTION_TYPE.REFUND,
+                online_payment=payment, amount=requested_refund_amount, currency=CURRENCY.INR,
+                internal_note=form.internal_note.data, note_to_user=form.note_to_user.data)
+            db.session.add(transaction)
             db.session.commit()
-            send_order_refund_mail.delay(order.id, requested_refund_amount)
+            send_order_refund_mail.delay(order.id, transaction.amount, transaction.note_to_user)
             return make_response(jsonify(status='ok', result={'message': 'Refund processed for order'}), 200)
         else:
             raise PaymentGatewayError("Refund failed for order - {order} with the following details - {msg}".format(order=order.id,

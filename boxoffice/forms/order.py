@@ -61,3 +61,7 @@ class OrderSessionForm(forms.Form):
 class OrderRefundForm(forms.Form):
     amount = forms.IntegerField(__("Amount"),
         validators=[forms.validators.DataRequired(__("Please specify an amount"))])
+    internal_note = forms.TextAreaField(__("Internal note"),
+        description=__("Add a note for future reference"))
+    note_to_user = forms.TextAreaField(__("Note to user"),
+        description=__("Leave a note for the buyer"))

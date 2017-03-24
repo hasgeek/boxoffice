@@ -59,17 +59,17 @@ def send_line_item_cancellation_mail(line_item_id, refund_amount, subject="Ticke
 
 
 @job('boxoffice')
-def send_order_refund_mail(order_id, refund_amount):
+def send_order_refund_mail(order_id, refund_amount, note_to_user):
     with app.test_request_context():
         order = Order.query.get(order_id)
-        subject = __("{item_collection_title}: Order refund for {invoice_no}".format(
+        subject = __("{item_collection_title}: Order refund for receipt no: {invoice_no}".format(
             item_collection_title=order.item_collection.title,
             invoice_no=order.invoice_no))
         msg = Message(subject=subject, recipients=[order.buyer_email], bcc=[order.organization.contact_email])
         # Only INR is supported as of now
         html = email_transform(render_template('order_refund_mail.html',
             base_url=app.config['BASE_URL'],
-            order=order, org=order.organization,
+            order=order, org=order.organization, note_to_user=note_to_user,
             refund_amount=refund_amount, currency_symbol=CURRENCY_SYMBOL['INR']))
         msg.html = html
         msg.body = html2text(html)

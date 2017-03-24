@@ -41,16 +41,12 @@ class OnlinePayment(BaseMixin, db.Model):
     failed_at = db.Column(db.DateTime, nullable=True)
 
     def confirm(self):
-        """
-        Confirms a payment, sets confirmed_at and pg_payment_status.
-        """
+        """Confirms a payment, sets confirmed_at and pg_payment_status."""
         self.confirmed_at = datetime.utcnow()
         self.pg_payment_status = RAZORPAY_PAYMENT_STATUS.CAPTURED
 
     def fail(self):
-        """
-        Fails a payment, sets failed_at.
-        """
+        """Fails a payment, sets failed_at."""
         self.pg_payment_status = RAZORPAY_PAYMENT_STATUS.FAILED
         self.failed_at = datetime.utcnow()
 
@@ -73,6 +69,8 @@ class PaymentTransaction(BaseMixin, db.Model):
     transaction_method = db.Column(db.Integer, default=TRANSACTION_METHOD.ONLINE, nullable=False)
     # Eg: reference number for a bank transfer
     transaction_ref = db.Column(db.Unicode(80), nullable=True)
+    internal_note = db.Column(db.Text, default=u'', nullable=True)
+    note_to_user = db.Column(db.Text, default=u'', nullable=True)
 
 
 def get_refund_transactions(self):
