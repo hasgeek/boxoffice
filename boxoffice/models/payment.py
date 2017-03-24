@@ -70,8 +70,8 @@ class PaymentTransaction(BaseMixin, db.Model):
     # Eg: reference number for a bank transfer
     transaction_ref = db.Column(db.Unicode(80), nullable=True)
     refunded_at = db.Column(db.DateTime, nullable=True)
-    internal_note = db.Column(db.Text, default=u'', nullable=True)
-    note_to_user = db.Column(db.Text, default=u'', nullable=True)
+    internal_note = db.Column(db.Text, nullable=True)
+    note_to_user = db.Column(db.Text, nullable=True)
 
 
 def get_refund_transactions(self):
