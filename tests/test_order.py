@@ -1,6 +1,7 @@
 import unittest
 import json
 import decimal
+import datetime
 from flask import make_response
 from mock import MagicMock
 from boxoffice import app, init_for
@@ -341,6 +342,7 @@ class TestOrder(unittest.TestCase):
         valid_refund_dict = {'amount': valid_refund_amount}
         process_partial_refund_for_order(order, valid_refund_dict)
         refund_transactions = order.transactions.filter_by(transaction_type=TRANSACTION_TYPE.REFUND).all()
+        self.assertIsInstance(refund_transactions[0].refunded_at, datetime.datetime)
         self.assertEquals(refund_transactions[0].amount, decimal.Decimal(valid_refund_amount))
 
         invalid_refund_amount = 100000000

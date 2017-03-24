@@ -2,6 +2,7 @@
 
 from datetime import datetime
 from decimal import Decimal
+from sqlalchemy.sql import func
 from flask import url_for, request, jsonify, render_template, make_response, abort
 from coaster.views import render_with, load_models
 from baseframe import _
@@ -458,6 +459,7 @@ def process_partial_refund_for_order(order, form_dict):
         if rp_resp.status_code == 200:
             transaction = PaymentTransaction(order=order, transaction_type=TRANSACTION_TYPE.REFUND,
                 online_payment=payment, amount=requested_refund_amount, currency=CURRENCY.INR,
+                refunded_at=func.utcnow(),
                 internal_note=form.internal_note.data, note_to_user=form.note_to_user.data)
             db.session.add(transaction)
             db.session.commit()
