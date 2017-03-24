@@ -41,3 +41,12 @@ export const scrollToElement = function(element, speed=500) {
     scrollTop: $(element).offset().top
   }, speed);
 }
+
+export const getFormParameters = function (form) {
+  var form_elements = $(form).serializeArray();
+  return $.param(form_elements);
+};
+
+export const getCsrfToken = function () {
+  return document.head.querySelector("[name=csrf-token]").content;
+};

@@ -1,5 +1,5 @@
 
-import {scrollToElement} from '../models/util.js';
+import {scrollToElement, getFormParameters, getCsrfToken} from '../models/util.js';
 import {OrderModel} from '../models/admin_order.js';
 import {OrderTemplate} from '../templates/admin_order.html.js';
 import {SideBarView} from './sidebar.js';
@@ -16,7 +16,11 @@ export const OrderView = {
         template: OrderTemplate,
         data:  {
           title: remoteData.title,
-          orders: remoteData.orders
+          orders: remoteData.orders,
+          getCsrfToken: function () {
+            //Defined as a function so that it is called every time the form is opened
+            return getCsrfToken()
+          }
         }
       });
 
@@ -103,6 +107,83 @@ export const OrderView = {
             main_ractive.set(event.keypath + '.cancelling', false);
           });
         }
+      });
+
+      main_ractive.on('showRefundForm', function(event){
+        //Close all other open side panels
+        main_ractive.set('orders.*.showRefundForm', false);
+        //Show individual order
+        main_ractive.set(event.keypath + '.showRefundForm', true);
+        let order_id = event.context.id;
+        let ractive_id = "#" + main_ractive.el.id;
+        scrollToElement(ractive_id);
+      });
+
+      main_ractive.on('refundOrder', function(event, method) {
+        if (window.confirm("Are you sure you want to refund this ticket?")) {
+          main_ractive.set(event.keypath + '.refundError', "");
+          let order = event.keypath,
+            orderId = event.context.id,
+            refundFormName = 'order-refund-form-' + orderId,
+            refundUrl = event.context.refund_url,
+            validationConfig = [{
+                name: 'note_to_user',
+                rules: 'required'
+              },
+              {
+                name: 'internal_note',
+                rules: 'required'
+              },
+              {
+                name: 'refund_amount',
+                rules: 'required|is_natural_no_zero'
+              }
+            ];
+
+          console.log("refundFormName", refundFormName);
+          let formValidator = new FormValidator(refundFormName, validationConfig, function (errors, event) {
+            event.preventDefault();
+            main_ractive.set(order + '.refundError', "");
+            if (errors.length > 0) {
+              main_ractive.set(order + '.errormsg.'+ errors[0].name, errors[0].message);
+            } else {
+              main_ractive.set(order + '.refunding', true);
+              let formSelector = '#refund-form-' + orderId;
+              console.log("data",  getFormParameters(formSelector))
+
+              OrderModel.post({
+                url: refundUrl,
+                data: getFormParameters(formSelector)
+              }).done(function(response) {
+                main_ractive.set(order + '.amount', response.result.amount);
+                main_ractive.set(order + '.refunding', false);
+              }).fail(function(response) {
+                let errorMsg;
+                if (response.readyState === 4) {
+                  if (response.status === 500) {
+                    errorMsg = "Server Error";
+                  }
+                  else {
+                    errorMsg = JSON.parse(response.responseText).error_description;
+                  }
+                }
+                else {
+                  errorMsg = "Unable to connect. Please try again later.";
+                }
+                main_ractive.set(order + '.refundError', errorMsg);
+                main_ractive.set(order + '.refunding', false);
+              });
+            }
+          });
+
+          formValidator.setMessage('required', 'Please fill out the this field');
+          formValidator.setMessage('is_natural_no_zero', 'Please enter a numberic value greater than 0');
+        }
+      });
+
+      main_ractive.on('hideRefundForm', function(event){
+        //Show individual order
+        main_ractive.set(event.keypath + '.showRefundForm', false);
       });
 
       window.addEventListener('popstate', (event) => {

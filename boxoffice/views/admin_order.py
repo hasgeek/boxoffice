@@ -56,7 +56,8 @@ def jsonify_admin_orders(data_dict):
                 'amount': order.get_amounts(LINE_ITEM_STATUS.CONFIRMED).confirmed_amount,
                 'url': '/ic/' + unicode(item_collection_id) + '/' + unicode(order.id),
                 'receipt': url_for('receipt', access_token=order.access_token),
-                'assignee': url_for('line_items', access_token=order.access_token)
+                'assignee': url_for('line_items', access_token=order.access_token),
+                'refund_url': url_for('partial_refund_order', order_id=order.id)
             })
     return jsonify(org_name=data_dict['item_collection'].organization.name, title=data_dict['item_collection'].title, orders=order_dicts)
 

@@ -51,7 +51,14 @@ export const OrderTemplate = `
                   {{/if}}
                 </p>
               </td>
-              <td><p class="table-content"><a class="boxoffice-button boxoffice-button-info" href="javascript:void(0)" on-click="showOrder">Line Items {{#if loading}}<i class="fa fa-spinner fa-spin"></i>{{/if}}</a></p></td>
+              <td>
+                <p class="table-content"><a class="boxoffice-button boxoffice-button-info" href="javascript:void(0)" on-click="showOrder">Details {{#if loading}}<i class="fa fa-spinner fa-spin"></i>{{/if}}</a>
+                </p>
+                {{#if amount != 0}}
+                  <p class="table-content"><a class="boxoffice-button boxoffice-button-info btn-inline-block" href="javascript:void(0)" on-click="showRefundForm">Refund {{#if showform}}<i class="fa fa-spinner fa-spin"></i>{{/if}}</a>
+                  </p>
+                {{/if}}
+              </td>
               <td>
                 <p class="table-content">
                   <a class="boxoffice-button boxoffice-button-info btn-inline" href={{ receipt }} target="_blank" >View Receipt</a>
@@ -61,7 +68,7 @@ export const OrderTemplate = `
             </tr>
             {{#show_order}}
               <div class="order-slider" intro-outro='fly:{x:200,y:0,duration:200}'>
-                <button on-click="hideOrder" class="close-button"><i class="fa fa-close"></i></button>
+                <button on-click="hideRefundForm" class="close-button"><i class="fa fa-close"></i></button>
                 <p class="order-title">Order Invoice No: {{invoice_no}}</p>
                 <div class="line-items-wrapper">
                   {{#line_items:line_item}}
@@ -105,6 +112,48 @@ export const OrderTemplate = `
                 </div>
               </div>
             {{/show_order}}
+            {{#showRefundForm}}
+              <div class="order-slider" intro-outro='fly:{x:200,y:0,duration:200}'>
+                <button on-click="hideOrder" class="close-button"><i class="fa fa-close"></i></button>
+                <p class="order-title">Order Invoice No: {{ invoice_no }}</p>
+                <div class="line-items-wrapper">
+                  <div class="ticket col-sm-6 col-xs-12">
+                    <div class="heading">
+                      <div class="ticket-type">
+                        <p>{{ currency }}{{ amount }}</p>
+                      </div>
+                    </div>
+                    <div class="content">
+                      <div class="content-box">
+                        <form role="form" id="refund-form-{{ id }}" name="order-refund-form-{{ id }}">
+                          <input type="hidden" name="csrf_token" value="{{ getCsrfToken() }}" />
+                          <div class="group">
+                            <label class="field-title">Note to user about reason for refund</label>
+                            <textarea class="form-control" name="note_to_user" value="{{ note_to_user }}"></textarea>
+                          </div>
+                          <div class="group">
+                            <label class="field-title">Internal note about reason for refund</label>
+                            <textarea class="form-control" name="internal_note" value="{{ internal_note }}"></textarea>
+                          </div>
+                          <div class="group">   
+                            <input type="number" name="refund_amount" value="{{ refund_amount }}" min="1" class="group-input {{#amount}}filled{{/}}" />
+                            <span class="bar"></span>
+                            <label class="group-label">Refund amount</label>
+                            {{#errormsg.amount}}<p class="form-error-msg">{{ errormsg.amount }}</p>{{/}}
+                          </div>
+                          <p>
+                            <button class="boxoffice-button boxoffice-button-small boxoffice-button-info" href="javascript:void(0)" on-click="refundOrder" {{#refunding}}disabled{{/}}>
+                              Refund {{#refunding}}<i class="fa fa-spinner fa-spin"></i>{{/}}
+                            </button>
+                          </p>
+                          <p class="error-msg left-aligned">{{ refundError }}</p>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {{/showRefundForm}}
           {{/orders}}
           </tbody>
           <tfoot>
