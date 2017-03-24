@@ -62,6 +62,6 @@ class OrderRefundForm(forms.Form):
     amount = forms.IntegerField(__("Amount"),
         validators=[forms.validators.DataRequired(__("Please specify an amount"))])
     internal_note = forms.TextAreaField(__("Internal note"),
-        description=__("Add a note for future reference"))
+        description=__("Add a note for future reference"), filters=[forms.filters.none_if_empty()])
     note_to_user = forms.TextAreaField(__("Note to user"),
-        description=__("Leave a note for the buyer"))
+        description=__("Send this note to the buyer"), filters=[forms.filters.none_if_empty()])
