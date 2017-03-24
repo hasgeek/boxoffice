@@ -86,6 +86,24 @@ def get_payment_transactions(self):
 Order.get_payment_transactions = get_payment_transactions
 
 
+def order_paid_amount(self):
+    return sum([order_transaction.amount for order_transaction in self.get_payment_transactions()])
+
+Order.paid_amount = property(order_paid_amount)
+
+
+def order_refunded_amount(self):
+    return sum([order_transaction.amount for order_transaction in self.get_refund_transactions()])
+
+Order.refunded_amount = property(order_refunded_amount)
+
+
+def order_net_amount(self):
+    return self.paid_amount - self.refunded_amount
+
+Order.net_amount = property(order_net_amount)
+
+
 class CURRENCY(LabeledEnum):
     INR = (u"INR", __("INR"))
 

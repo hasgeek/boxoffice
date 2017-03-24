@@ -438,18 +438,11 @@ def process_partial_refund_for_order(order, form_dict):
     form = OrderRefundForm.from_json(form_dict, meta={'csrf': False})
     if form.validate():
         requested_refund_amount = form.amount.data
-        order_payment_transactions = order.get_payment_transactions().all()
-        if not order_payment_transactions:
+        if not order.paid_amount:
             return make_response(jsonify(status='error', error='free_order',
                 error_description='Refunds can only be issued for paid orders'), 403)
 
-        total_paid_amount = sum([order_transaction.amount
-            for order_transaction in order_payment_transactions])
-
-        total_refunded_amount = sum([order_transaction.amount
-            for order_transaction in order.get_refund_transactions()])
-
-        if (total_refunded_amount + requested_refund_amount) >= total_paid_amount:
+        if (order.refunded_amount + requested_refund_amount) >= order.paid_amount:
             return make_response(jsonify(status='error', error='excess_partial_refund',
                 error_description='Invalid refund amount, must be lesser than net amount paid for the order'), 403)
 
@@ -464,7 +457,10 @@ def process_partial_refund_for_order(order, form_dict):
             db.session.add(transaction)
             db.session.commit()
             send_order_refund_mail.delay(order.id, transaction.amount, transaction.note_to_user)
-            return make_response(jsonify(status='ok', result={'message': 'Refund processed for order'}), 200)
+            return make_response(jsonify(status='ok', result={
+                'message': 'Refund processed for order',
+                'order_net_amount': order.net_amount
+                }), 200)
         else:
             raise PaymentGatewayError("Refund failed for order - {order} with the following details - {msg}".format(order=order.id,
                 msg=rp_resp.content), 424,
