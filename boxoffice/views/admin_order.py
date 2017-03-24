@@ -53,7 +53,7 @@ def jsonify_admin_orders(data_dict):
                 'buyer_email': order.buyer_email,
                 'buyer_phone': order.buyer_phone,
                 'currency': CURRENCY_SYMBOL['INR'],
-                'amount': order.get_amounts(LINE_ITEM_STATUS.CONFIRMED).confirmed_amount,
+                'amount': order.net_amount,
                 'url': '/ic/' + unicode(item_collection_id) + '/' + unicode(order.id),
                 'receipt': url_for('receipt', access_token=order.access_token),
                 'assignee': url_for('line_items', access_token=order.access_token)
