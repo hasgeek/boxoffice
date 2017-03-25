@@ -2,7 +2,6 @@
 
 from baseframe import __
 import baseframe.forms as forms
-from ..models import CURRENCY
 
 __all__ = ['LineItemForm', 'BuyerForm', 'OrderSessionForm', 'OrderRefundForm']
 
@@ -63,5 +62,5 @@ class OrderRefundForm(forms.Form):
         validators=[forms.validators.DataRequired(__("Please specify an amount"))])
     internal_note = forms.TextAreaField(__("Internal note"),
         description=__("Add a note for future reference"), filters=[forms.filters.none_if_empty()])
-    note_to_user = forms.TextAreaField(__("Note to user"),
+    note_to_user = forms.MarkdownField(__("Note to user"),
         description=__("Send this note to the buyer"), filters=[forms.filters.none_if_empty()])
