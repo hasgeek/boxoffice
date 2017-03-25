@@ -5,7 +5,7 @@ from datetime import datetime
 from coaster.utils import LabeledEnum, isoweek_datetime
 from isoweek import Week
 from baseframe import __
-from boxoffice.models import db, BaseMixin, Order, ORDER_STATUS
+from boxoffice.models import db, BaseMixin, Order, ORDER_STATUS, MarkdownColumn
 from ..extapi import RAZORPAY_PAYMENT_STATUS
 
 __all__ = ['OnlinePayment', 'PaymentTransaction', 'CURRENCY', 'CURRENCY_SYMBOL', 'TRANSACTION_TYPE']
@@ -71,29 +71,29 @@ class PaymentTransaction(BaseMixin, db.Model):
     transaction_ref = db.Column(db.Unicode(80), nullable=True)
     refunded_at = db.Column(db.DateTime, nullable=True)
     internal_note = db.Column(db.Text, nullable=True)
-    note_to_user = db.Column(db.Text, nullable=True)
+    note_to_user = MarkdownColumn('note_to_user', nullable=True)
 
 
 def get_refund_transactions(self):
     return self.transactions.filter_by(transaction_type=TRANSACTION_TYPE.REFUND)
 
-Order.get_refund_transactions = get_refund_transactions
+Order.refund_transactions = property(get_refund_transactions)
 
 
 def get_payment_transactions(self):
     return self.transactions.filter_by(transaction_type=TRANSACTION_TYPE.PAYMENT)
 
-Order.get_payment_transactions = get_payment_transactions
+Order.payment_transactions = property(get_payment_transactions)
 
 
 def order_paid_amount(self):
-    return sum([order_transaction.amount for order_transaction in self.get_payment_transactions()])
+    return sum([order_transaction.amount for order_transaction in self.payment_transactions])
 
 Order.paid_amount = property(order_paid_amount)
 
 
 def order_refunded_amount(self):
-    return sum([order_transaction.amount for order_transaction in self.get_refund_transactions()])
+    return sum([order_transaction.amount for order_transaction in self.refund_transactions])
 
 Order.refunded_amount = property(order_refunded_amount)
 
