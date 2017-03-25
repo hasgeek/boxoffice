@@ -402,21 +402,21 @@ def process_line_item_cancellation(line_item):
         else:
             line_item.cancel()
 
-        payment = OnlinePayment.query.filter_by(order=line_item.order, pg_payment_status=RAZORPAY_PAYMENT_STATUS.CAPTURED).one()
-        rp_resp = razorpay.refund_payment(payment.pg_paymentid, refund_amount)
-        if rp_resp.status_code == 200:
-            db.session.add(PaymentTransaction(order=order, transaction_type=TRANSACTION_TYPE.REFUND,
-                online_payment=payment, amount=refund_amount, currency=CURRENCY.INR))
-            db.session.commit()
-        else:
-            raise PaymentGatewayError("Cancellation failed for order - {order} with the following details - {msg}".format(order=order.id,
-                msg=rp_resp.content), 424,
-            'Refund failed. Please try again or write to us at {email}.'.format(email=line_item.order.organization.contact_email))
+        if refund_amount > Decimal(0):
+            payment = OnlinePayment.query.filter_by(order=line_item.order, pg_payment_status=RAZORPAY_PAYMENT_STATUS.CAPTURED).one()
+            rp_resp = razorpay.refund_payment(payment.pg_paymentid, refund_amount)
+            if rp_resp.status_code == 200:
+                db.session.add(PaymentTransaction(order=order, transaction_type=TRANSACTION_TYPE.REFUND,
+                    online_payment=payment, amount=refund_amount, currency=CURRENCY.INR))
+            else:
+                raise PaymentGatewayError("Cancellation failed for order - {order} with the following details - {msg}".format(order=order.id,
+                    msg=rp_resp.content), 424,
+                'Refund failed. Please try again or write to us at {email}.'.format(email=line_item.order.organization.contact_email))
     else:
         # free line item
         refund_amount = Decimal(0)
         line_item.cancel()
-        db.session.commit()
+    db.session.commit()
     return refund_amount
 
 
@@ -443,7 +443,7 @@ def process_partial_refund_for_order(order, form_dict):
             return make_response(jsonify(status='error', error='free_order',
                 error_description='Refunds can only be issued for paid orders'), 403)
 
-        if (order.refunded_amount + requested_refund_amount) >= order.paid_amount:
+        if (order.refunded_amount + requested_refund_amount) > order.paid_amount:
             return make_response(jsonify(status='error', error='excess_partial_refund',
                 error_description='Invalid refund amount, must be lesser than net amount paid for the order'), 403)
 
