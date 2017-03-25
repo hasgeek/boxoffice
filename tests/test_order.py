@@ -272,16 +272,16 @@ class TestOrder(unittest.TestCase):
         order.confirm_sale()
         db.session.commit()
 
-        precancellation_order_amount = order.get_amounts(LINE_ITEM_STATUS.CONFIRMED).final_amount
         first_line_item = order.line_items[0]
         to_be_void_line_items = order.line_items[1:]
+        precancellation_order_amount = order.net_amount
         # Mock Razorpay's API
         razorpay.refund_payment = MagicMock(return_value=make_response())
         process_line_item_cancellation(first_line_item)
         self.assertEquals(first_line_item.status, LINE_ITEM_STATUS.CANCELLED)
         for void_line_item in to_be_void_line_items:
             self.assertEquals(void_line_item.status, LINE_ITEM_STATUS.VOID)
-        expected_refund_amount = precancellation_order_amount - order.get_amounts(LINE_ITEM_STATUS.CONFIRMED).final_amount
+        expected_refund_amount = precancellation_order_amount - order.net_amount
         refund_transaction1 = PaymentTransaction.query.filter_by(order=order, transaction_type=TRANSACTION_TYPE.REFUND).first()
         self.assertEquals(refund_transaction1.amount, expected_refund_amount)
 

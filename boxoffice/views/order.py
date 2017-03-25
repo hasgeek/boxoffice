@@ -283,7 +283,11 @@ def payment(order):
     (Order, {'access_token': 'access_token'}, 'order')
     )
 def receipt(order):
-    return render_template('cash_receipt.html', order=order, org=order.organization, line_items=order.line_items, order_confirmed_amount=order.get_amounts(LINE_ITEM_STATUS.CONFIRMED).confirmed_amount)
+    return render_template('cash_receipt.html', order=order, org=order.organization,
+        line_items=order.line_items,
+        order_paid_amount=order.paid_amount,
+        order_refunded_amount=order.refunded_amount,
+        order_net_amount=order.net_amount)
 
 
 @app.route('/order/<access_token>/ticket', methods=['GET', 'POST'])
@@ -390,16 +394,17 @@ def update_order_on_line_item_cancellation(order, pre_cancellation_line_items, c
 def process_line_item_cancellation(line_item):
     if not line_item.is_free:
         order = line_item.order
+        if order.net_amount >= line_item.final_amount:
+            refund_amount = line_item.final_amount
+        else:
+            refund_amount = order.net_amount
+
         if line_item.discount_policy:
-            pre_cancellation_order_amount = order.get_amounts(LINE_ITEM_STATUS.CONFIRMED).confirmed_amount
             pre_cancellation_line_items = order.get_confirmed_line_items
             line_item.cancel()
-            updated_order = update_order_on_line_item_cancellation(order, pre_cancellation_line_items, line_item)
-            post_cancellation_order_amount = updated_order.get_amounts(LINE_ITEM_STATUS.CONFIRMED).confirmed_amount
-            refund_amount = pre_cancellation_order_amount - post_cancellation_order_amount
+            update_order_on_line_item_cancellation(order, pre_cancellation_line_items, line_item)
         else:
             line_item.cancel()
-            refund_amount = line_item.final_amount
 
         payment = OnlinePayment.query.filter_by(order=line_item.order, pg_payment_status=RAZORPAY_PAYMENT_STATUS.CAPTURED).one()
         rp_resp = razorpay.refund_payment(payment.pg_paymentid, refund_amount)
