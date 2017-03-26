@@ -5,7 +5,7 @@ from datetime import datetime
 from coaster.utils import LabeledEnum, isoweek_datetime
 from isoweek import Week
 from baseframe import __
-from boxoffice.models import db, BaseMixin, Order, ORDER_STATUS
+from boxoffice.models import db, BaseMixin, Order, ORDER_STATUS, MarkdownColumn
 from ..extapi import RAZORPAY_PAYMENT_STATUS
 
 __all__ = ['OnlinePayment', 'PaymentTransaction', 'CURRENCY', 'CURRENCY_SYMBOL', 'TRANSACTION_TYPE']
@@ -41,16 +41,12 @@ class OnlinePayment(BaseMixin, db.Model):
     failed_at = db.Column(db.DateTime, nullable=True)
 
     def confirm(self):
-        """
-        Confirms a payment, sets confirmed_at and pg_payment_status.
-        """
+        """Confirms a payment, sets confirmed_at and pg_payment_status."""
         self.confirmed_at = datetime.utcnow()
         self.pg_payment_status = RAZORPAY_PAYMENT_STATUS.CAPTURED
 
     def fail(self):
-        """
-        Fails a payment, sets failed_at.
-        """
+        """Fails a payment, sets failed_at."""
         self.pg_payment_status = RAZORPAY_PAYMENT_STATUS.FAILED
         self.failed_at = datetime.utcnow()
 
@@ -73,6 +69,40 @@ class PaymentTransaction(BaseMixin, db.Model):
     transaction_method = db.Column(db.Integer, default=TRANSACTION_METHOD.ONLINE, nullable=False)
     # Eg: reference number for a bank transfer
     transaction_ref = db.Column(db.Unicode(80), nullable=True)
+    refunded_at = db.Column(db.DateTime, nullable=True)
+    internal_note = db.Column(db.Unicode(250), nullable=True)
+    refund_description = db.Column(db.Unicode(250), nullable=True)
+    note_to_user = MarkdownColumn('note_to_user', nullable=True)
+
+
+def get_refund_transactions(self):
+    return self.transactions.filter_by(transaction_type=TRANSACTION_TYPE.REFUND)
+
+Order.refund_transactions = property(get_refund_transactions)
+
+
+def get_payment_transactions(self):
+    return self.transactions.filter_by(transaction_type=TRANSACTION_TYPE.PAYMENT)
+
+Order.payment_transactions = property(get_payment_transactions)
+
+
+def order_paid_amount(self):
+    return sum([order_transaction.amount for order_transaction in self.payment_transactions])
+
+Order.paid_amount = property(order_paid_amount)
+
+
+def order_refunded_amount(self):
+    return sum([order_transaction.amount for order_transaction in self.refund_transactions])
+
+Order.refunded_amount = property(order_refunded_amount)
+
+
+def order_net_amount(self):
+    return self.paid_amount - self.refunded_amount
+
+Order.net_amount = property(order_net_amount)
 
 
 class CURRENCY(LabeledEnum):
