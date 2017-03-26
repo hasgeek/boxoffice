@@ -468,7 +468,7 @@ def process_partial_refund_for_order(order, form_dict):
             "Refund failed. Please try again or contact support at {email}.".format(email=order.organization.contact_email))
     else:
         return make_response(jsonify(status='error', error='invalid_input',
-            error_description="Please enter a valid amount and currency"), 403)
+            error_description=form.errors), 403)
 
 
 @app.route('/order/<order_id>/partial_refund', methods=['POST'])
