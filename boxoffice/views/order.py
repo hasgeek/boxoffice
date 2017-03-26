@@ -12,7 +12,7 @@ from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPol
 from ..models import Order, OnlinePayment, PaymentTransaction, User, CURRENCY, ORDER_STATUS
 from ..models.payment import TRANSACTION_TYPE
 from ..extapi import razorpay, RAZORPAY_PAYMENT_STATUS
-from ..forms import LineItemForm, BuyerForm, OrderSessionForm, OrderRefundForm
+from ..forms import LineItemForm, BuyerForm, OrderSessionForm, RefundTransactionForm
 from custom_exceptions import PaymentGatewayError
 from boxoffice.mailclient import send_receipt_mail, send_line_item_cancellation_mail, send_order_refund_mail
 from utils import xhr_only, cors, date_format
@@ -436,7 +436,7 @@ def cancel_line_item(line_item):
 
 
 def process_partial_refund_for_order(order, form_dict):
-    form = OrderRefundForm.from_json(form_dict, meta={'csrf': False})
+    form = RefundTransactionForm.from_json(form_dict, meta={'csrf': False})
     if form.validate():
         requested_refund_amount = form.amount.data
         if not order.paid_amount:
@@ -452,9 +452,9 @@ def process_partial_refund_for_order(order, form_dict):
         rp_resp = razorpay.refund_payment(payment.pg_paymentid, requested_refund_amount)
         if rp_resp.status_code == 200:
             transaction = PaymentTransaction(order=order, transaction_type=TRANSACTION_TYPE.REFUND,
-                online_payment=payment, amount=requested_refund_amount, currency=CURRENCY.INR,
-                refunded_at=func.utcnow(), refund_description=form.refund_description.data,
-                internal_note=form.internal_note.data, note_to_user=form.note_to_user.data)
+                online_payment=payment, currency=CURRENCY.INR,
+                refunded_at=func.utcnow())
+            form.populate_obj(transaction)
             db.session.add(transaction)
             db.session.commit()
             send_order_refund_mail.delay(order.id, transaction.amount, transaction.note_to_user)
