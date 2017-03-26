@@ -70,8 +70,8 @@ class PaymentTransaction(BaseMixin, db.Model):
     # Eg: reference number for a bank transfer
     transaction_ref = db.Column(db.Unicode(80), nullable=True)
     refunded_at = db.Column(db.DateTime, nullable=True)
-    internal_note = db.Column(db.Text, nullable=True)
-    refund_description = db.Column(db.Text, nullable=True)
+    internal_note = db.Column(db.Unicode(250), nullable=True)
+    refund_description = db.Column(db.Unicode(250), nullable=True)
     note_to_user = MarkdownColumn('note_to_user', nullable=True)
 
 
