@@ -237,7 +237,7 @@
       {% for transaction in order.get_refund_transactions() -%}
         <tr>
             <td></td>
-            <td colspan="2">{{ transaction.note_to_user }}</td>
+            <td colspan="2">{{ transaction.refund_description }}</td>
             <td class="total-amount center"><div id="total">&#8377; {{ transaction.amount }}</div></td>
         </tr>
       {%- endfor %}
