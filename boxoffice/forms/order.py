@@ -63,6 +63,6 @@ class OrderRefundForm(forms.Form):
     internal_note = forms.TextAreaField(__("Internal note"),
         description=__("Add a note for future reference"), filters=[forms.filters.none_if_empty()])
     refund_description = forms.TextAreaField(__("Refund description"),
-        description=__("Why did this order receive a refund?"), filters=[forms.filters.none_if_empty()])
+        description=__("Why is this order receiving a refund?"), filters=[forms.filters.none_if_empty()])
     note_to_user = forms.MarkdownField(__("Note to user"),
         description=__("Send this note to the buyer"), filters=[forms.filters.none_if_empty()])
