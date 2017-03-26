@@ -2,9 +2,8 @@
 
 from baseframe import __
 import baseframe.forms as forms
-from ..models import CURRENCY
 
-__all__ = ['LineItemForm', 'BuyerForm', 'OrderSessionForm', 'OrderRefundForm']
+__all__ = ['LineItemForm', 'BuyerForm', 'OrderSessionForm', 'RefundTransactionForm']
 
 
 def trim(length):
@@ -58,10 +57,14 @@ class OrderSessionForm(forms.Form):
     referrer = forms.StringField(__("Referrer"), filters=[trim(2083)])
 
 
-class OrderRefundForm(forms.Form):
+class RefundTransactionForm(forms.Form):
     amount = forms.IntegerField(__("Amount"),
         validators=[forms.validators.DataRequired(__("Please specify an amount"))])
-    internal_note = forms.TextAreaField(__("Internal note"),
-        description=__("Add a note for future reference"))
-    note_to_user = forms.TextAreaField(__("Note to user"),
-        description=__("Leave a note for the buyer"))
+    internal_note = forms.StringField(__("Internal note"),
+        validators=[forms.validators.Length(max=250)],
+        description=__("Add a note for future reference"), filters=[forms.filters.none_if_empty()])
+    refund_description = forms.StringField(__("Refund description"),
+        validators=[forms.validators.Length(max=250)],
+        description=__("Why is this order receiving a refund?"), filters=[forms.filters.none_if_empty()])
+    note_to_user = forms.MarkdownField(__("Note to user"),
+        description=__("Send this note to the buyer"), filters=[forms.filters.none_if_empty()])

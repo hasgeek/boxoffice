@@ -62,7 +62,7 @@ def send_line_item_cancellation_mail(line_item_id, refund_amount, subject="Ticke
 def send_order_refund_mail(order_id, refund_amount, note_to_user):
     with app.test_request_context():
         order = Order.query.get(order_id)
-        subject = __("{item_collection_title}: Order refund for receipt no: {invoice_no}".format(
+        subject = __("{item_collection_title}: Refund for receipt no. {invoice_no}".format(
             item_collection_title=order.item_collection.title,
             invoice_no=order.invoice_no))
         msg = Message(subject=subject, recipients=[order.buyer_email], bcc=[order.organization.contact_email])
