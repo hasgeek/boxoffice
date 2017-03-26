@@ -351,13 +351,19 @@ class TestOrder(unittest.TestCase):
         # Mock Razorpay's API
         razorpay.refund_payment = MagicMock(return_value=make_response())
         valid_refund_amount = 500
-        valid_refund_dict = {'amount': valid_refund_amount, 'internal_note': 'internal reference', 'note_to_user': 'you get a refund!'}
+        valid_refund_dict = {
+            'amount': valid_refund_amount,
+            'internal_note': 'internal reference',
+            'note_to_user': 'you get a refund!',
+            'refund_description': 'test refund'
+        }
         process_partial_refund_for_order(order, valid_refund_dict)
         refund_transactions = order.transactions.filter_by(transaction_type=TRANSACTION_TYPE.REFUND).all()
         self.assertIsInstance(refund_transactions[0].refunded_at, datetime.datetime)
         self.assertEquals(refund_transactions[0].amount, decimal.Decimal(valid_refund_amount))
         self.assertEquals(refund_transactions[0].internal_note, valid_refund_dict['internal_note'])
         self.assertEquals(refund_transactions[0].note_to_user, valid_refund_dict['note_to_user'])
+        self.assertEquals(refund_transactions[0].refund_description, valid_refund_dict['refund_description'])
 
         invalid_refund_amount = 100000000
         invalid_refund_dict = {'amount': invalid_refund_amount}

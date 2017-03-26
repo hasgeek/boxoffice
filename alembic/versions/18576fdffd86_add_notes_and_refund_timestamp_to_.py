@@ -17,6 +17,7 @@ from sqlalchemy.dialects import postgresql
 
 def upgrade():
     op.add_column('payment_transaction', sa.Column('internal_note', sa.Text(), nullable=True))
+    op.add_column('payment_transaction', sa.Column('refund_description', sa.Text(), nullable=True))
     op.add_column('payment_transaction', sa.Column('note_to_user_html', sa.UnicodeText(), nullable=True))
     op.add_column('payment_transaction', sa.Column('note_to_user_text', sa.UnicodeText(), nullable=True))
     op.add_column('payment_transaction', sa.Column('refunded_at', sa.DateTime(), nullable=True))
@@ -26,4 +27,5 @@ def downgrade():
     op.drop_column('payment_transaction', 'refunded_at')
     op.drop_column('payment_transaction', 'note_to_user_text')
     op.drop_column('payment_transaction', 'note_to_user_html')
+    op.drop_column('payment_transaction', 'refund_description')
     op.drop_column('payment_transaction', 'internal_note')

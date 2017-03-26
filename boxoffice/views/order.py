@@ -453,7 +453,7 @@ def process_partial_refund_for_order(order, form_dict):
         if rp_resp.status_code == 200:
             transaction = PaymentTransaction(order=order, transaction_type=TRANSACTION_TYPE.REFUND,
                 online_payment=payment, amount=requested_refund_amount, currency=CURRENCY.INR,
-                refunded_at=func.utcnow(),
+                refunded_at=func.utcnow(), refund_description=form.refund_description.data,
                 internal_note=form.internal_note.data, note_to_user=form.note_to_user.data)
             db.session.add(transaction)
             db.session.commit()
