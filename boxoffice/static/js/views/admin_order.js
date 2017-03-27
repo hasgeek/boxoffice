@@ -120,43 +120,52 @@ export const OrderView = {
       });
 
       main_ractive.on('refundOrder', function(event, method) {
-        if (window.confirm("Are you sure you want to refund this ticket?")) {
-          main_ractive.set(event.keypath + '.refundError', "");
-          let order = event.keypath,
-            orderId = event.context.id,
-            refundFormName = 'order-refund-form-' + orderId,
-            refundUrl = event.context.refund_url,
-            validationConfig = [{
-                name: 'note_to_user',
-                rules: 'required'
-              },
-              {
-                name: 'internal_note',
-                rules: 'required'
-              },
-              {
-                name: 'refund_amount',
-                rules: 'required|is_natural_no_zero'
-              }
-            ];
+        let order = event.keypath,
+          orderId = event.context.id,
+          refundFormName = 'order-refund-form-' + orderId,
+          refundUrl = event.context.refund_url,
+          validationConfig = [{
+              name: 'amount',
+              rules: 'required|is_natural_no_zero'
+            },
+            {
+              name: 'internal_note',
+              rules: 'required'
+            },
+            {
+              name: 'refund_description',
+              rules: 'required'
+            },
+            {
+              name: 'note_to_user',
+              rules: 'required'
+            }
+          ];
 
-          console.log("refundFormName", refundFormName);
-          let formValidator = new FormValidator(refundFormName, validationConfig, function (errors, event) {
-            event.preventDefault();
-            main_ractive.set(order + '.refundError', "");
-            if (errors.length > 0) {
-              main_ractive.set(order + '.errormsg.'+ errors[0].name, errors[0].message);
-            } else {
+        let formValidator = new FormValidator(refundFormName, validationConfig, function (errors, event) {
+          event.preventDefault();
+          main_ractive.set(order + '.refund.errormsg.*', "");
+          main_ractive.set(order + '.refund.status', "");
+          if (errors.length > 0) {
+            main_ractive.set(order + '.refund.errormsg.'+ errors[0].name, errors[0].message);
+          } else {
+          	main_ractive.set(order + '.refund.errormsg.*', "");
+            let formSelector = '#refund-form-' + orderId;
+
+            if (window.confirm("Are you sure you want to refund this ticket?")) {
               main_ractive.set(order + '.refunding', true);
-              let formSelector = '#refund-form-' + orderId;
-              console.log("data",  getFormParameters(formSelector))
-
               OrderModel.post({
                 url: refundUrl,
-                data: getFormParameters(formSelector)
+                data: getFormParameters(formSelector),
+                json: false
               }).done(function(response) {
-                main_ractive.set(order + '.amount', response.result.amount);
-                main_ractive.set(order + '.refunding', false);
+              	main_ractive.set(order + '.refunding', false);
+              	//Update refund status
+                main_ractive.set(order + '.refund.status', response.result.message);
+              	//Update the order net total
+                main_ractive.set(order + '.net_amount', response.result.order_net_amount);
+                //Add to refunds array
+                main_ractive.push(order + '.refunds', {'refunded_at': response.result.refunded_at, 'refund_description': main_ractive.get(order + '.refund.refund_description'), 'refund_amount': response.result.refund_amount});
               }).fail(function(response) {
                 let errorMsg;
                 if (response.readyState === 4) {
@@ -170,20 +179,21 @@ export const OrderView = {
                 else {
                   errorMsg = "Unable to connect. Please try again later.";
                 }
-                main_ractive.set(order + '.refundError', errorMsg);
+                main_ractive.set(order + '.refund.errormsg.refundError', errorMsg);
                 main_ractive.set(order + '.refunding', false);
               });
             }
-          });
+          }
+        });
 
-          formValidator.setMessage('required', 'Please fill out the this field');
-          formValidator.setMessage('is_natural_no_zero', 'Please enter a numberic value greater than 0');
-        }
+        formValidator.setMessage('required', 'Please fill out the this field');
+        formValidator.setMessage('is_natural_no_zero', 'Please enter a numberic value greater than 0');
       });
 
       main_ractive.on('hideRefundForm', function(event){
         //Show individual order
         main_ractive.set(event.keypath + '.showRefundForm', false);
+        main_ractive.set(event.keypath + '.refund.*', "");
       });
 
       window.addEventListener('popstate', (event) => {

@@ -4,7 +4,7 @@ from flask import jsonify, make_response, url_for
 from .. import app, lastuser
 from coaster.views import load_models, render_with
 from boxoffice.models import ItemCollection, Order, CURRENCY_SYMBOL, LineItem, LINE_ITEM_STATUS
-from utils import date_time_format
+from utils import date_format, date_time_format
 
 
 def format_assignee(assignee):
@@ -53,7 +53,8 @@ def jsonify_admin_orders(data_dict):
                 'buyer_email': order.buyer_email,
                 'buyer_phone': order.buyer_phone,
                 'currency': CURRENCY_SYMBOL['INR'],
-                'amount': order.net_amount,
+                'net_amount': order.net_amount,
+                'refunds': [{'refund_description': transaction.refund_description, 'refunded_at': date_format(transaction.refunded_at), 'refund_amount': transaction.amount} for transaction in order.refund_transactions],
                 'url': '/ic/' + unicode(item_collection_id) + '/' + unicode(order.id),
                 'receipt': url_for('receipt', access_token=order.access_token),
                 'assignee': url_for('line_items', access_token=order.access_token),

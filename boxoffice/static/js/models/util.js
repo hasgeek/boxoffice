@@ -32,6 +32,8 @@ export const post = function(config){
   return $.ajax({
     url: config.url,
     type: 'POST',
+    contentType : config.json ? 'application/json' : 'application/x-www-form-urlencoded; charset=UTF-8',
+    data: config.data,
     dataType: 'json'
   });
 }
