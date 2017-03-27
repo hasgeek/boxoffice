@@ -54,7 +54,11 @@ def jsonify_admin_orders(data_dict):
                 'buyer_phone': order.buyer_phone,
                 'currency': CURRENCY_SYMBOL['INR'],
                 'net_amount': order.net_amount,
-                'refunds': [{'refund_description': transaction.refund_description, 'refunded_at': date_format(transaction.refunded_at), 'refund_amount': transaction.amount} for transaction in order.refund_transactions],
+                'refunds': [{
+                    'refund_description': transaction.refund_description,
+                    'refunded_at': date_format(transaction.refunded_at) if transaction.refunded_at else None,
+                    'refund_amount': transaction.amount
+                } for transaction in order.refund_transactions],
                 'url': '/ic/' + unicode(item_collection_id) + '/' + unicode(order.id),
                 'receipt': url_for('receipt', access_token=order.access_token),
                 'assignee': url_for('line_items', access_token=order.access_token),
