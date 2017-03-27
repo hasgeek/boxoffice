@@ -10,6 +10,7 @@ from boxoffice.views.custom_exceptions import PaymentGatewayError
 from boxoffice.models.payment import TRANSACTION_TYPE
 from boxoffice.extapi import razorpay
 from boxoffice.views.order import process_line_item_cancellation, process_partial_refund_for_order
+from boxoffice.forms import RefundTransactionForm
 from fixtures import init_data
 
 
@@ -301,9 +302,15 @@ class TestOrder(unittest.TestCase):
         # refund the remaining amount paid, and attempt to cancel a line item
         # this should cancel the line item without resulting in a new refund transaction
         refund_amount = order.net_amount
-        refund_dict = {'amount': refund_amount, 'internal_note': 'internal reference', 'note_to_user': 'you get a refund!'}
+        refund_dict = {
+            'amount': refund_amount,
+            'internal_note': 'internal reference',
+            'note_to_user': 'you get a refund!',
+            'refund_description': 'ticket cancelled'
+        }
         razorpay.refund_payment = MagicMock(return_value=make_response())
-        process_partial_refund_for_order(order, refund_dict)
+        form = RefundTransactionForm(data=refund_dict, csrf_enabled=False)
+        process_partial_refund_for_order(order, form)
         third_line_item = order.get_confirmed_line_items[0]
         pre_cancellation_transactions_count = order.refund_transactions.count()
         cancelled_refund_amount = process_line_item_cancellation(third_line_item)
@@ -357,7 +364,8 @@ class TestOrder(unittest.TestCase):
             'note_to_user': 'you get a refund!',
             'refund_description': 'test refund'
         }
-        process_partial_refund_for_order(order, valid_refund_dict)
+        form = RefundTransactionForm(data=valid_refund_dict, csrf_enabled=False)
+        process_partial_refund_for_order(order, form)
         refund_transactions = order.transactions.filter_by(transaction_type=TRANSACTION_TYPE.REFUND).all()
         self.assertIsInstance(refund_transactions[0].refunded_at, datetime.datetime)
         self.assertEquals(refund_transactions[0].amount, decimal.Decimal(valid_refund_amount))
@@ -367,7 +375,8 @@ class TestOrder(unittest.TestCase):
 
         invalid_refund_amount = 100000000
         invalid_refund_dict = {'amount': invalid_refund_amount}
-        resp = process_partial_refund_for_order(order, invalid_refund_dict)
+        form = RefundTransactionForm(data=invalid_refund_dict, csrf_enabled=False)
+        resp = process_partial_refund_for_order(order, form)
         data = json.loads(resp.data)
         self.assertEquals(resp.status_code, 403)
         refund_transactions = order.transactions.filter_by(transaction_type=TRANSACTION_TYPE.REFUND).all()
@@ -379,7 +388,8 @@ class TestOrder(unittest.TestCase):
         order = Order.query.get(data.get('order_id'))
         invalid_refund_amount = 100000000
         invalid_refund_dict = {'amount': invalid_refund_amount}
-        refund_resp = process_partial_refund_for_order(order, invalid_refund_dict)
+        form = RefundTransactionForm(data=invalid_refund_dict, csrf_enabled=False)
+        refund_resp = process_partial_refund_for_order(order, form)
         self.assertEquals(refund_resp.status_code, 403)
 
     def tearDown(self):
