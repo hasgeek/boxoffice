@@ -69,7 +69,7 @@ def send_order_refund_mail(order_id, refund_amount, note_to_user):
         # Only INR is supported as of now
         html = email_transform(render_template('order_refund_mail.html',
             base_url=app.config['BASE_URL'],
-            order=order, org=order.organization, note_to_user=note_to_user,
+            order=order, org=order.organization, note_to_user=note_to_user.html,
             refund_amount=refund_amount, currency_symbol=CURRENCY_SYMBOL['INR']))
         msg.html = html
         msg.body = html2text(html)
