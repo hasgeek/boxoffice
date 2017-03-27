@@ -39,7 +39,7 @@ export const OrderTemplate = `
               <td><p class="table-content">{{ buyer_fullname }}</p></td>
               <td><p class="table-content">{{ buyer_email }}</p></td>
               <td><p class="table-content">{{ buyer_phone }}</p></td>
-              <td><p class="table-content">{{currency}}{{ amount }}</p></td>
+              <td><p class="table-content">{{currency}}{{ net_amount }}</p></td>
               <td><p class="table-content">{{ order_date }}</p></td>
               <td><p class="table-content">{{ id }}</p></td>
               <td>
@@ -51,7 +51,14 @@ export const OrderTemplate = `
                   {{/if}}
                 </p>
               </td>
-              <td><p class="table-content"><a class="boxoffice-button boxoffice-button-info" href="javascript:void(0)" on-click="showOrder">Line Items {{#if loading}}<i class="fa fa-spinner fa-spin"></i>{{/if}}</a></p></td>
+              <td>
+                <p class="table-content"><a class="boxoffice-button boxoffice-button-info" href="javascript:void(0)" on-click="showOrder">Details {{#if loading}}<i class="fa fa-spinner fa-spin"></i>{{/if}}</a>
+                </p>
+                {{#if amount != 0}}
+                  <p class="table-content"><a class="boxoffice-button boxoffice-button-info btn-inline-block" href="javascript:void(0)" on-click="showRefundForm">Refund {{#if showform}}<i class="fa fa-spinner fa-spin"></i>{{/if}}</a>
+                  </p>
+                {{/if}}
+              </td>
               <td>
                 <p class="table-content">
                   <a class="boxoffice-button boxoffice-button-info btn-inline" href={{ receipt }} target="_blank" >View Receipt</a>
@@ -105,6 +112,92 @@ export const OrderTemplate = `
                 </div>
               </div>
             {{/show_order}}
+            {{#showRefundForm}}
+              <div class="order-slider" intro-outro='fly:{x:200,y:0,duration:200}'>
+                <button on-click="hideRefundForm" class="close-button"><i class="fa fa-close"></i></button>
+                <p class="order-title">Order Invoice No: {{ invoice_no }}</p>
+                <div class="line-items-wrapper">
+                {{#if refunds}}
+                  <div class="ticket col-sm-6 col-xs-12">
+                      <div class="heading">
+                        <div class="ticket-type">
+                          <p>Net total: {{ currency }}{{ net_amount }}</p>
+                        </div>
+                      </div>
+                      <div class="content">
+                        <div class="content-box">
+                            <p>Refunds:</p>
+                            <table class="table stats-table table-hover">
+                              <thead>
+                                <tr>
+                                  <th>Date</th>
+                                  <th>Refund reason</th>
+                                  <th>Amount</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                              {{#refunds}}
+                                <tr>
+                                  <td>{{ refunded_at }}</td>
+                                  <td>{{ refund_description }}</td>
+                                  <td>{{ currency }}{{ refund_amount }}</td>
+                                </tr>
+                              {{/}}
+                              </tbody>
+                            </table>
+                        </div>
+                      </div>
+                    </div>
+                  {{/if}}
+                  <div class="ticket col-sm-6 col-xs-12">
+                    <div class="heading">
+                      <div class="ticket-type">
+                      </div>
+                    </div>
+                    <div class="content">
+                      <div class="content-box">
+                        <p class="form-title">Refund form</p>
+                        <form role="form" id="refund-form-{{ id }}" name="order-refund-form-{{ id }}">
+                          <input type="hidden" name="csrf_token" value="{{ getCsrfToken() }}" />
+                          <div class="group">   
+                            <input type="number" name="amount" value="{{ .refund.amount }}" min="1" class="group-input {{#if .refund.amount != undefined &&  .refund.amount}}filled{{/if}}" />
+                            <span class="bar"></span>
+                            <label class="group-label">Refund amount</label>
+                            {{#.refund.errormsg.amount}}<p class="form-error-msg">{{ refund.errormsg.amount }}</p>{{/}}
+                          </div>
+                          <div class="group">
+                            <input type="text" name="internal_note" value="{{ .refund.internal_note }}" class="group-input {{#.refund.internal_note}}filled{{/if}}" />
+                            <span class="bar"></span>
+                            <label class="group-label">Internal note about reason for refund</label>
+                            {{#.refund.errormsg.internal_note}}<p class="form-error-msg">{{ refund.errormsg.internal_note }}</p>{{/}}
+                          </div>
+                          <div class="group">
+                            <input type="text" name="refund_description" value="{{ .refund.refund_description }}" class="group-input {{#.refund.refund_description}}filled{{/if}}" />
+                            <span class="bar"></span>
+                            <label class="group-label">Refund description</label>
+                            {{#.refund.errormsg.refund_description}}<p class="form-error-msg">{{ .refund.errormsg.refund_description }}</p>{{/}}
+                            <p class="form-help-text">This description is mainly used to site reason for refund in the cash receipt.</p>
+                          </div>
+                          <div class="group">
+                            <label class="field-title {{#.refund.note_to_user}}filled{{/if}}">Note to user about reason for refund</label>
+                            <textarea class="form-control" name="note_to_user" value="{{ .refund.note_to_user }}"></textarea>
+                            {{#.refund.errormsg.note_to_user}}<p class="form-error-msg">{{ .refund.errormsg.note_to_user }}</p>{{/}}
+                            <p class="form-help-text">This markdown note is send to user in the refund mail.</p>
+                          </div>
+                          <p>
+                            <button class="boxoffice-button boxoffice-button-small boxoffice-button-info" href="javascript:void(0)" on-click="refundOrder" {{#refunding}}disabled{{/}}>
+                              Refund {{#refunding}}<i class="fa fa-spinner fa-spin"></i>{{/}}
+                            </button>
+                          </p>
+                          <p>{{ .refund.status }}</p>
+                          <p class="error-msg left-aligned">{{ .refund.errormsg.refundError }}</p>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {{/showRefundForm}}
           {{/orders}}
           </tbody>
           <tfoot>

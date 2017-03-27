@@ -32,6 +32,8 @@ export const post = function(config){
   return $.ajax({
     url: config.url,
     type: 'POST',
+    contentType : config.json ? 'application/json' : 'application/x-www-form-urlencoded; charset=UTF-8',
+    data: config.data,
     dataType: 'json'
   });
 }
@@ -41,3 +43,12 @@ export const scrollToElement = function(element, speed=500) {
     scrollTop: $(element).offset().top
   }, speed);
 }
+
+export const getFormParameters = function (form) {
+  var form_elements = $(form).serializeArray();
+  return $.param(form_elements);
+};
+
+export const getCsrfToken = function () {
+  return document.head.querySelector("[name=csrf-token]").content;
+};
