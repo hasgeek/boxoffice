@@ -11,7 +11,7 @@ export const ReportView = {
       url: ReportModel.urlFor('index', {ic_id: config.id})['path']
     }).done((remoteData) => {
       // Initial render
-      let main_ractive = new Ractive({
+      let reportComponent = new Ractive({
         el: '#main-content-area',
         template: ReportTemplate,
         data:  {
@@ -28,7 +28,7 @@ export const ReportView = {
       });
 
       SideBarView.render('reports', {'org_name': remoteData.org_name, 'ic_id': config.id});
-      completePageLoad(main_ractive.get('title'));
+      completePageLoad(reportComponent.get('title'));
 
       window.addEventListener('popstate', (event) => {
         NProgress.configure({ showSpinner: false}).start();

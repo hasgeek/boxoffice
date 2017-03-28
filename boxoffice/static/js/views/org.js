@@ -10,7 +10,7 @@ export const OrgView = {
     OrgModel.fetch({
       url: OrgModel.urlFor('index', {org_name: org.name})['path']
     }).then(function(data){
-      let ractive = new Ractive({
+      let orgComponent = new Ractive({
         el: '#main-content-area',
         template: orgTemplate,
         data: {
@@ -20,9 +20,9 @@ export const OrgView = {
       });
 
       SideBarView.hide();
-      completePageLoad(ractive.get('title'));
+      completePageLoad(orgComponent.get('title'));
 
-      ractive.on('navigate', function(event, method){
+      orgComponent.on('navigate', function(event, method){
         NProgress.configure({ showSpinner: false}).start();
         eventBus.trigger('navigate', event.context.url);
       });

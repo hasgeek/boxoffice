@@ -103,7 +103,7 @@ export const ItemCollectionView = {
       url: ItemCollectionModel.urlFor('index', {ic_id: config.id})['path']
     }).done((remoteData) => {
       // Initial render
-      let main_ractive = new Ractive({
+      let icComponent = new Ractive({
         el: '#main-content-area',
         template: ItemCollectionTemplate,
         data: ItemCollectionModel.formatData(remoteData),
@@ -111,7 +111,7 @@ export const ItemCollectionView = {
       });
 
       SideBarView.render('dashboard', {'org_name': remoteData.org_name, 'ic_id': config.id});
-      completePageLoad(main_ractive.get('title'));
+      completePageLoad(icComponent.get('title'));
 
       window.addEventListener('popstate', (event) => {
         NProgress.configure({ showSpinner: false}).start();
