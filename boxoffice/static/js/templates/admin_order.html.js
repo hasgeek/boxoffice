@@ -44,7 +44,7 @@ export const OrderTemplate = `
               <td><p class="table-content">{{ id }}</p></td>
               <td>
                 <p class="table-content">
-                  {{#if amount === 0}}
+                  {{#if paid_amount === 0}}
                     <span>Free order</span>
                   {{else}}
                     <span>Paid order</span>
@@ -52,9 +52,9 @@ export const OrderTemplate = `
                 </p>
               </td>
               <td>
-                <p class="table-content"><a class="boxoffice-button boxoffice-button-info" href="javascript:void(0)" on-click="showOrder">Details {{#if loading}}<i class="fa fa-spinner fa-spin"></i>{{/if}}</a>
+                <p class="table-content"><a class="boxoffice-button boxoffice-button-info" href="javascript:void(0)" on-click="showDetails">Details {{#if loading}}<i class="fa fa-spinner fa-spin"></i>{{/if}}</a>
                 </p>
-                {{#if amount != 0}}
+                {{#if net_amount !== 0}}
                   <p class="table-content"><a class="boxoffice-button boxoffice-button-info btn-inline-block" href="javascript:void(0)" on-click="showRefundForm">Refund {{#if showform}}<i class="fa fa-spinner fa-spin"></i>{{/if}}</a>
                   </p>
                 {{/if}}
@@ -66,9 +66,9 @@ export const OrderTemplate = `
                 </p>
               </td>
             </tr>
-            {{#show_order}}
+            {{#showDetailsSlider}}
               <div class="order-slider" intro-outro='fly:{x:200,y:0,duration:200}'>
-                <button on-click="hideOrder" class="close-button"><i class="fa fa-close"></i></button>
+                <button on-click="hideDetails" class="close-button"><i class="fa fa-close"></i></button>
                 <p class="order-title">Order Invoice No: {{invoice_no}}</p>
                 <div class="line-items-wrapper">
                   {{#line_items:line_item}}
@@ -111,7 +111,7 @@ export const OrderTemplate = `
                   {{/}}
                 </div>
               </div>
-            {{/show_order}}
+            {{/showDetailsSlider}}
             {{#showRefundForm}}
               <div class="order-slider" intro-outro='fly:{x:200,y:0,duration:200}'>
                 <button on-click="hideRefundForm" class="close-button"><i class="fa fa-close"></i></button>
@@ -160,7 +160,7 @@ export const OrderTemplate = `
                         <form role="form" id="refund-form-{{ id }}" name="order-refund-form-{{ id }}">
                           <input type="hidden" name="csrf_token" value="{{ getCsrfToken() }}" />
                           <div class="group">   
-                            <input type="number" name="amount" value="{{ .refund.amount }}" min="1" class="group-input {{#if .refund.amount != undefined &&  .refund.amount}}filled{{/if}}" />
+                            <input type="number" name="amount" value="{{ .refund.amount }}" min="1" class="group-input {{#if .refund.amount !== undefined &&  .refund.amount !== ""}}filled{{/if}}" />
                             <span class="bar"></span>
                             <label class="group-label">Refund amount</label>
                             {{#.refund.errormsg.amount}}<p class="form-error-msg">{{ refund.errormsg.amount }}</p>{{/}}

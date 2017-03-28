@@ -54,6 +54,7 @@ def jsonify_admin_orders(data_dict):
                 'buyer_phone': order.buyer_phone,
                 'currency': CURRENCY_SYMBOL['INR'],
                 'net_amount': order.net_amount,
+                'paid_amount': order.paid_amount,
                 'refunds': [{
                     'refund_description': transaction.refund_description,
                     'refunded_at': date_format(transaction.refunded_at) if transaction.refunded_at else None,

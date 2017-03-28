@@ -52,3 +52,19 @@ export const getFormParameters = function (form) {
 export const getCsrfToken = function () {
   return document.head.querySelector("[name=csrf-token]").content;
 };
+
+export const getErrorMsg = function (response) {
+	var errorMsg;
+  if (response.readyState === 4) {
+		if (response.status === 500) {
+		  errorMsg = "Server Error";
+		}
+		else {
+		  errorMsg = JSON.parse(response.responseText).error_description;
+		}
+	}
+	else {
+		errorMsg = "Unable to connect. Please try again later.";
+	}
+	return errorMsg;
+};
