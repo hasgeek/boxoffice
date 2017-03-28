@@ -15,7 +15,7 @@ from ..extapi import razorpay, RAZORPAY_PAYMENT_STATUS
 from ..forms import LineItemForm, BuyerForm, OrderSessionForm, RefundTransactionForm
 from custom_exceptions import PaymentGatewayError
 from boxoffice.mailclient import send_receipt_mail, send_line_item_cancellation_mail, send_order_refund_mail
-from utils import xhr_only, cors, date_format
+from utils import xhr_only, cors, date_format, date_time_format
 
 
 def jsonify_line_items(line_items):
@@ -435,8 +435,7 @@ def cancel_line_item(line_item):
     return make_response(jsonify(status='ok', result={'message': 'Ticket cancelled', 'cancelled_at': date_format(line_item.cancelled_at)}), 200)
 
 
-def process_partial_refund_for_order(order, form_dict):
-    form = RefundTransactionForm.from_json(form_dict, meta={'csrf': False})
+def process_partial_refund_for_order(order, form):
     if form.validate():
         requested_refund_amount = form.amount.data
         if not order.paid_amount:
@@ -460,7 +459,9 @@ def process_partial_refund_for_order(order, form_dict):
             send_order_refund_mail.delay(order.id, transaction.amount, transaction.note_to_user)
             return make_response(jsonify(status='ok', result={
                 'message': "Refund processed for order",
-                'order_net_amount': order.net_amount
+                'order_net_amount': order.net_amount,
+                'refunded_at': date_format(transaction.refunded_at),
+                'refund_amount': transaction.amount
                 }), 200)
         else:
             raise PaymentGatewayError("Refund failed for order - {order} with the following details - {msg}".format(order=order.id,
@@ -478,7 +479,8 @@ def process_partial_refund_for_order(order, form_dict):
     permission='org_admin'
     )
 def partial_refund_order(order):
-    return process_partial_refund_for_order(order, request.json.get('order_refund'))
+    form = RefundTransactionForm()
+    return process_partial_refund_for_order(order, form)
 
 
 @app.route('/api/1/ic/<item_collection>/orders', methods=['GET', 'OPTIONS'])

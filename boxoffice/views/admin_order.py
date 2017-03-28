@@ -4,7 +4,7 @@ from flask import jsonify, make_response, url_for
 from .. import app, lastuser
 from coaster.views import load_models, render_with
 from boxoffice.models import ItemCollection, Order, CURRENCY_SYMBOL, LineItem, LINE_ITEM_STATUS
-from utils import date_time_format
+from utils import date_format, date_time_format
 
 
 def format_assignee(assignee):
@@ -53,10 +53,17 @@ def jsonify_admin_orders(data_dict):
                 'buyer_email': order.buyer_email,
                 'buyer_phone': order.buyer_phone,
                 'currency': CURRENCY_SYMBOL['INR'],
-                'amount': order.net_amount,
+                'net_amount': order.net_amount,
+                'paid_amount': order.paid_amount,
+                'refunds': [{
+                    'refund_description': transaction.refund_description,
+                    'refunded_at': date_format(transaction.refunded_at) if transaction.refunded_at else None,
+                    'refund_amount': transaction.amount
+                } for transaction in order.refund_transactions],
                 'url': '/ic/' + unicode(item_collection_id) + '/' + unicode(order.id),
                 'receipt': url_for('receipt', access_token=order.access_token),
-                'assignee': url_for('line_items', access_token=order.access_token)
+                'assignee': url_for('line_items', access_token=order.access_token),
+                'refund_url': url_for('partial_refund_order', order_id=order.id)
             })
     return jsonify(org_name=data_dict['item_collection'].organization.name, title=data_dict['item_collection'].title, orders=order_dicts)
 

@@ -32,6 +32,8 @@ export const post = function(config){
   return $.ajax({
     url: config.url,
     type: 'POST',
+    contentType : config.json ? 'application/json' : 'application/x-www-form-urlencoded; charset=UTF-8',
+    data: config.data,
     dataType: 'json'
   });
 }
@@ -41,3 +43,28 @@ export const scrollToElement = function(element, speed=500) {
     scrollTop: $(element).offset().top
   }, speed);
 }
+
+export const getFormParameters = function (form) {
+  var form_elements = $(form).serializeArray();
+  return $.param(form_elements);
+};
+
+export const getCsrfToken = function () {
+  return document.head.querySelector("[name=csrf-token]").content;
+};
+
+export const getErrorMsg = function (response) {
+	var errorMsg;
+  if (response.readyState === 4) {
+		if (response.status === 500) {
+		  errorMsg = "Server Error";
+		}
+		else {
+		  errorMsg = JSON.parse(response.responseText).error_description;
+		}
+	}
+	else {
+		errorMsg = "Unable to connect. Please try again later.";
+	}
+	return errorMsg;
+};
