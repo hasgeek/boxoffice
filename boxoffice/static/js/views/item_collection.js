@@ -1,4 +1,5 @@
 
+import {completePageLoad} from '../models/util.js';
 import {ItemCollectionModel} from '../models/item_collection.js';
 import {TableTemplate, AggChartTemplate, ItemCollectionTemplate} from '../templates/item_collection.html.js';
 import {SideBarView} from './sidebar.js'
@@ -109,9 +110,8 @@ export const ItemCollectionView = {
         components: {TableComponent: TableComponent, AggChartComponent: AggChartComponent}
       });
 
-      NProgress.done();
-
       SideBarView.render('dashboard', {'org_name': remoteData.org_name, 'ic_id': config.id});
+      completePageLoad(main_ractive.get('title'));
 
       window.addEventListener('popstate', (event) => {
         NProgress.configure({ showSpinner: false}).start();
