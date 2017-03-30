@@ -107,16 +107,16 @@ Order.net_amount = property(order_net_amount)
 
 def item_collection_net_sales(self):
     total_paid = db.session.query('sum').from_statement('''SELECT SUM(amount) FROM payment_transaction
-        INNER JOIN ON customer_order ON payment_transaction.customer_order_id = customer_order.id
-        WHERE payment_transaction.status=:status
+        INNER JOIN customer_order ON payment_transaction.customer_order_id = customer_order.id
+        WHERE transaction_type=:transaction_type
         AND customer_order.item_collection_id = :item_collection_id
-        ''').params(status=TRANSACTION_TYPE.PAYMENT, item_collection_id=self.id).scalar()
+        ''').params(transaction_type=TRANSACTION_TYPE.PAYMENT, item_collection_id=self.id).scalar()
 
     total_refunded = db.session.query('sum').from_statement('''SELECT SUM(amount) FROM payment_transaction
-        INNER JOIN ON customer_order ON payment_transaction.customer_order_id = customer_order.id
-        WHERE payment_transaction.status=:status
+        INNER JOIN customer_order ON payment_transaction.customer_order_id = customer_order.id
+        WHERE transaction_type=:transaction_type
         AND customer_order.item_collection_id = :item_collection_id
-        ''').params(status=TRANSACTION_TYPE.REFUND, item_collection_id=self.id).scalar()
+        ''').params(transaction_type=TRANSACTION_TYPE.REFUND, item_collection_id=self.id).scalar()
 
     return total_paid - total_refunded
 ItemCollection.net_sales = property(item_collection_net_sales)
