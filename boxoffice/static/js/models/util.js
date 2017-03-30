@@ -42,10 +42,24 @@ export const scrollToElement = function (element, speed=500) {
   }, speed);
 }
 
+export const getPageTitle = function (subTitle, pageTitle) {
+  //Takes subTitle, pageTitle and join them into string using " — ".
+  //Eg:- "Orders — JSFoo 2016"
+  let newTitle = `${subTitle} — ${pageTitle}`;
+  return newTitle;
+}
+
 export const completePageLoad = function (newTitle) {
   var title = $('title').html();
+  //Title tag in Baseframe template is defined as "pageTitle — siteTitle"
+  //Split the title tag content into pageTitle and siteTitle
+  //eg:- "Orders  — JSFoo 2017 — Boxoffice" into ["Orders", "JSFoo 2016", Boxoffice"]
   var subTitles = title.split(' — ');
-  subTitles[0] = newTitle;
-  $('title').html(subTitles.join(' — '));
+  var siteTitle = subTitles[subTitles.length-1];
+  //Join newTitle with siteTitle
+  var newPageTitle = getPageTitle(newTitle, siteTitle);
+  $('title').html(newPageTitle);
+
+  //Change progress bar status to done
   NProgress.done();
 }
