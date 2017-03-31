@@ -9,23 +9,23 @@
 {% block content %}
   <div class="order">
 
-    <h1 class="header">{{order.item_collection.title}} Ticket Assignment</h1>
-    <p class="item-collection-description">{{order.item_collection.description_text}}</p>
-    <p class="text-center">Receipt No: {{order.invoice_no}}</p>
+    <h1 class="header">{{ order.item_collection.title }} Ticket Assignment</h1>
+    <p class="item-collection-description">{{ order.item_collection.description_text }}</p>
+    <p class="text-center">Receipt No: {{ order.invoice_no }}</p>
 
     <div class="clearfix">
       {%- if org.details.get('logo') %}
         <div class="organization-logo">
-         <img src="{{org.details.get('logo')}}" />
+         <img src="{{ org.details.get('logo') }}" />
         </div>
       {%- endif %}
     </div>
     
     <div class="row" id="boxoffice-order">
-      <p class="text-center" id="notify-msg"><span id="error-description">Loading. </span>If this takes too long, please mail {{order.item_collection.organization.contact_email}} with your receipt number.</p>
+      <p class="text-center" id="notify-msg"><span id="error-description">Loading. </span>If this takes too long, please mail {{ order.item_collection.organization.contact_email }} with your receipt number.</p>
       {%- raw %}
         <script id='boxoffice-ticket-template' type='text/ractive'>
-          {{#line_items:line_item}}
+          {{#lineItems:lineItem}}
             {{#if is_confirmed}}
               <div class="ticket col-sm-6 col-xs-12" id="item-{{ seq }}">
                 <div class="heading">
@@ -47,25 +47,25 @@
                       <div class="item-description">{{{ description }}}</div>
                       <p class="price center">&#8377;{{ final_amount }}</p>
                       {{#if assignee.id || isTicketAssigned}}
-                        <p class="confirmation-msg"><i class="fa fa-check"></i> This ticket has been assigned to {{assignee.fullname}}</p>
+                        <p class="confirmation-msg"><i class="fa fa-check"></i> This ticket has been assigned to {{ assignee.fullname }}</p>
                       {{/if}}
                       <div class="assign-form-wrapper">
                         {{#if assignee.id || isTicketAssigned}}
                           <div class="text-center continue-btn-wrapper">
-                            <button class="boxoffice-button boxoffice-button-action" on-click="assign(event, event.keypath, true)">Transfer/Edit</button>
+                            <button class="boxoffice-button boxoffice-button-action fill-details" on-click="assign(event, event.keypath, true)">Transfer/Edit</button>
                           </div>
                         {{else}}
                           <p class="assign-form-title">Fill attendee details</p>
                           <div class="text-center continue-btn-wrapper">
-                            <button class="boxoffice-button boxoffice-button-action" on-click="assign(event, event.keypath, false)">Continue</button>
+                            <button class="boxoffice-button boxoffice-button-action fill-details" on-click="assign(event, event.keypath, false)">Continue</button>
                           </div>
                         {{/if}}
                       </div>
                     </div>
                   {{else}}
                     <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
-                      <h4 class="text-center attendee-form-title">Please fill the attendee details</h4>   
-                      <form class="attendee-form" role="form" name="attendee-form-{{seq}}" id="attendee-details-{{seq}}"> 
+                      <h4 class="text-center assignee-form-title">Please fill the assignee details</h4>   
+                      <form class="assignee-form" role="form" name="assignee-form-{{seq}}" id="assignee-details-{{seq}}"> 
                           <div class="group">   
                             <input class="group-input {{#filled || assignee.fullname}}filled{{/}}" type="text" name="fullname" value="{{assignee.fullname}}" on-blur="inputFieldEdit(event, event.keypath)">
                             <span class="bar"></span>
@@ -111,13 +111,13 @@
                             {{elseif field_type === 'textbox'}}
                               <div class="group">
                                 <label class="field-title">{{label}}</label>
-                                <textarea class="form-control" name="{{field}}" value="{{assignee.details[field]}}"></textarea>
+                                <textarea class="form-control" name="{{ field }}" value="{{ assignee.details[field] }}"></textarea>
                               </div>
                             {{/if}}
                           {{/}}
                           <div class="assign-btn-wrapper">
                             <button type="button" class="boxoffice-button boxoffice-button-info" on-click="viewTicket(event, event.keypath, seq)">Back</button>
-                            <button type="submit" class="boxoffice-button boxoffice-button-action" on-click="addAttendeeDetails(event, event.keypath, seq, id)" {{#assigningTicket}}disabled{{/}}>
+                            <button type="submit" class="boxoffice-button boxoffice-button-action assign-ticket" on-click="addAssigneeDetails(event, event.keypath, seq, id)" {{#assigningTicket}}disabled{{/}}>
                                 {{#if assignee.id || isTicketAssigned}}Update{{else}}Assign ticket{{/if}}
                                 {{#assigningTicket}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'>{{/}}
                             </button>
@@ -131,8 +131,8 @@
                 </div>
               </div>
             {{/if}}
-          {{/line_item}}
-          {{#line_items:line_item}}
+          {{/lineItem}}
+          {{#lineItems:lineItem}}
             {{#if is_cancelled}}
               <div class="ticket col-sm-6 col-xs-12" id="item-{{ seq }}">
                 <div class="heading">
@@ -145,7 +145,7 @@
                   <div class="item-description">{{{ description }}}</div>
                   <p class="price center">&#8377;{{ final_amount }}</p>
                   {{#if assignee.id}}
-                    <p class="confirmation-msg"><i class="fa fa-check"></i> This ticket has been assigned to {{assignee.fullname}}</p>
+                    <p class="confirmation-msg"><i class="fa fa-check"></i> This ticket has been assigned to {{ assignee.fullname }}</p>
                   {{/if}}
                   <div class="cancel-msg">
                     <p>Cancelled on {{ cancelled_at }}</p>
@@ -153,7 +153,7 @@
                 </div>
               </div>
             {{/if}}
-          {{/line_item}}
+          {{/lineItem}}
         </script>
       {%- endraw %}
     </div>

@@ -6,6 +6,7 @@ cache:
     - $HOME/.cache/pip
 before_script:
   - sudo -- sh -c "echo '127.0.0.1  boxoffice.travis.dev' >> /etc/hosts"
+  - sudo -- sh -c "echo '127.0.0.1  testing.travis.dev' >> /etc/hosts"
   - psql -c 'create database boxoffice_testing;' -U postgres
 install:
   - pip install -U pip wheel
@@ -16,7 +17,11 @@ install:
 script:
   - nosetests -v tests
   - nohup python runtestserver.py &
-  - sleep 10
+  - cd tests
+  - python -m SimpleHTTPServer 8000 &
+  - cd ..
+  - sleep 30
+  - casperjs test tests
 addons:
   postgresql: "9.4"
 services:

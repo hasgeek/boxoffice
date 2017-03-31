@@ -19,9 +19,9 @@ def assign(order):
     """
     Assign a line_item to a participant
     """
-    assignee_dict = request.json.get('attendee')
+    assignee_dict = request.json.get('assignee')
     if not request.json or not assignee_dict or not assignee_dict.get('email') or not assignee_dict.get('fullname'):
-        return make_response(jsonify(status='error', error='missing_attendee_details', error_description="Attendee details are missing"), 400)
+        return make_response(jsonify(status='error', error='missing_assignee_details', error_description="Assignee details are missing"), 400)
     line_item = LineItem.query.get(request.json.get('line_item_id'))
     if line_item.is_cancelled:
         return make_response(jsonify(status='error', error='cancelled_ticket', error_description="Ticket has been cancelled"), 400)
