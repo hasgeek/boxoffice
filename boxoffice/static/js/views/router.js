@@ -10,7 +10,7 @@ export const Router = Backbone.Router.extend({
   routes: {
     "": "index",
     "o/:org": "org",
-    "ic/:icId": "itemCollection",
+    "ic/:icId": "item_collection",
     "ic/:icId/orders": "order",
     "ic/:icId/reports": "report"
   },
@@ -20,7 +20,7 @@ export const Router = Backbone.Router.extend({
   org: function(org){
     OrgView.render({name: org});
   },
-  itemCollection: function(icId){
+  item_collection: function(icId){
     ItemCollectionView.render({id: icId});
   },
   order: function(icId){

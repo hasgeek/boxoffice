@@ -1,12 +1,12 @@
-import {Fetch} from './util.js';
+import {fetch} from './util.js';
 
 export const IndexModel = {
-  fetch: Fetch,
+  fetch: fetch,
   urlFor: function(action){
     let urls = {
       'index': {
         'path': Backbone.history.root,
-        'relativePath': '/',
+        'relative_path': '/',
         'method': 'GET'
       }
     }

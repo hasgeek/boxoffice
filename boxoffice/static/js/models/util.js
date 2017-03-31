@@ -21,14 +21,14 @@ export const Util = {
   }
 }
 
-export const Fetch = function(config){
+export const fetch = function(config){
   return $.ajax({
     url: config.url,
     dataType: 'json'
   });
 }
 
-export const Post = function(config){
+export const post = function(config){
   return $.ajax({
     url: config.url,
     type: 'POST',
@@ -36,7 +36,7 @@ export const Post = function(config){
   });
 }
 
-export const ScrollToElement = function(element, speed=500) {
+export const scrollToElement = function(element, speed=500) {
   $('html,body').animate({
     scrollTop: $(element).offset().top
   }, speed);

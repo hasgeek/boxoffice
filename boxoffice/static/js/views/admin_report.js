@@ -7,26 +7,26 @@ export const ReportView = {
   render: function(config) {
 
     ReportModel.fetch({
-      url: ReportModel.urlFor('index', {icId: config.id})['path']
+      url: ReportModel.urlFor('index', {ic_id: config.id})['path']
     }).done((remoteData) => {
       // Initial render
-      let reportComponent = new Ractive({
+      let main_ractive = new Ractive({
         el: '#main-content-area',
         template: ReportTemplate,
         data:  {
           title: remoteData.item_collection_title,
-          reportsUrl: function() {
-            let reportType = this.get('reportType');
-            return ReportModel.urlFor(reportType, {icId: config.id})['path'];
+          reports_url: function() {
+            let report_type = this.get('report_type');
+            return ReportModel.urlFor(report_type, {ic_id: config.id})['path'];
           },
-          reportsFilename: function() {
+          reports_filename: function() {
             let filename = this.get('title').replace(/ /g, '_');
-            return filename + '_' + this.get('reportType') + '.csv';
+            return filename + '_' + this.get('report_type') + '.csv';
           }
         }
       });
 
-      SideBarView.render('reports', {'orgName': remoteData.org_name, 'icId': config.id});
+      SideBarView.render('reports', {'org_name': remoteData.org_name, 'ic_id': config.id});
 
       NProgress.done();
 

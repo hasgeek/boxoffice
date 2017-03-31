@@ -11,20 +11,23 @@ export const IndexTemplate = `
           </div>
           <div class="content">
             <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
-              <div class="org-logo"><img src="{{ details['logo'] }}"/></div>
+              <div class="org-logo"><img src="{{details['logo']}}"/></div>
               <p class="section-title">Organization id</p>
-              <p class="section-content">{{ id }}</p>
+              <p class="section-content">{{id}}</p>
               {{#details:k,v}}
                 {{#if k !== 'logo'}}
-                  <p class="section-title">{{ k }}</p>
-                  <div class="section-content">{{{ details[k] }}}</div>
+                  <p class="section-title">{{k}}</p>
+                  <div class="section-content">{{{details[k]}}}</div>
                 {{/if}}
               {{/details}}
               <p class="section-title">Contact email</p>
-              <div class="section-content">{{ contact_email }}</div>
+              <div class="section-content">{{contact_email}}</div>
               <div class="btn-wrapper">
                 <a class="boxoffice-button boxoffice-button-action" href="javascript:void(0)" on-click="navigate">View item collections</a>
               </div>
+              {{#infoMsg}}
+                <p class="info-msg">{{ infoMsg }} <i class="fa fa-check"></i></p>
+              {{/}}
             </div>
         </div>
       {{/orgs}}

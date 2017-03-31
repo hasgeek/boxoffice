@@ -1,5 +1,5 @@
 
-import {Util, ScrollToElement} from '../models/util.js';
+import {scrollToElement} from '../models/util.js';
 import {OrderModel} from '../models/admin_order.js';
 import {OrderTemplate} from '../templates/admin_order.html.js';
 import {SideBarView} from './sidebar.js';
@@ -8,22 +8,19 @@ export const OrderView = {
   render: function(config) {
 
     OrderModel.fetch({
-      url: OrderModel.urlFor('index', {icId: config.id})['path']
+      url: OrderModel.urlFor('index', {ic_id: config.id})['path']
     }).done((remoteData) => {
       // Initial render
-      let orderComponent = new Ractive({
+      let main_ractive = new Ractive({
         el: '#main-content-area',
         template: OrderTemplate,
         data:  {
           title: remoteData.title,
-          orders: remoteData.orders,
-          formatCurrency: function(value) {
-            return Util.formatToIndianRupee(value);
-          }
+          orders: remoteData.orders
         }
       });
 
-      SideBarView.render('orders', {'orgName': remoteData.org_name, 'icId': config.id});
+      SideBarView.render('orders', {'org_name': remoteData.org_name, 'ic_id': config.id});
 
       NProgress.done();
 
@@ -55,56 +52,55 @@ export const OrderView = {
         }
       });
 
-      orderComponent.on('showOrder', function(event){
+      main_ractive.on('showOrder', function(event){
         //Close all other open side panels
-        orderComponent.set('orders.*.showOrder', false);
+        main_ractive.set('orders.*.show_order', false);
         //Show individual order
-        orderComponent.set(event.keypath + '.loading', true);
+        main_ractive.set(event.keypath + '.loading', true);
         NProgress.configure({ showSpinner: false}).start();
-        let orderId = event.context.id;
+        let order_id = event.context.id;
         OrderModel.fetch({
-          url: OrderModel.urlFor('view', {orderId: orderId})['path']
+          url: OrderModel.urlFor('view', {order_id: order_id})['path']
         }).done((remoteData) => {
-          orderComponent.set(event.keypath + '.lineItems', remoteData.line_items);
-          orderComponent.set(event.keypath + '.showOrder', true);
+          main_ractive.set(event.keypath + '.line_items', remoteData.line_items);
+          main_ractive.set(event.keypath + '.show_order', true);
           NProgress.done();
-          orderComponent.set(event.keypath + '.loading', false);
-          let ractiveId = "#" + orderComponent.el.id;
-          //Scroll to the top of the page to view the order slider
-          ScrollToElement(ractiveId);
+          main_ractive.set(event.keypath + '.loading', false);
+          let ractive_id = "#" + main_ractive.el.id;
+          scrollToElement(ractive_id);
         });
       });
 
-      orderComponent.on('hideOrder', function(event){
+      main_ractive.on('hideOrder', function(event){
         //Show individual order
-        orderComponent.set(event.keypath + '.showOrder', false);
+        main_ractive.set(event.keypath + '.show_order', false);
       });
 
-      orderComponent.on('cancelTicket', function(event, method) {
+      main_ractive.on('cancelTicket', function(event, method) {
         if (window.confirm("Are you sure you want to cancel this ticket?")) {
-          orderComponent.set(event.keypath + '.cancelError', "");
-          orderComponent.set(event.keypath + '.cancelling', true);
+          main_ractive.set(event.keypath + '.cancel_error', "");
+          main_ractive.set(event.keypath + '.cancelling', true);
 
           OrderModel.post({
             url: event.context.cancel_ticket_url
           }).done(function(response) {
-            orderComponent.set(event.keypath + '.cancelled_at', response.result.cancelled_at);
-            orderComponent.set(event.keypath + '.cancelling', false);
+            main_ractive.set(event.keypath + '.cancelled_at', response.result.cancelled_at);
+            main_ractive.set(event.keypath + '.cancelling', false);
           }).fail(function(response) {
-            let errorMsg;
+            let error_text;
             if (response.readyState === 4) {
               if (response.status === 500) {
-                errorMsg = "Server Error";
+                error_text = "Server Error";
               }
               else {
-                errorMsg = JSON.parse(response.responseText).error_description;
+                error_text = JSON.parse(response.responseText).error_description;
               }
             }
             else {
-              errorMsg = "Unable to connect. Please try again later.";
+              error_text = "Unable to connect. Please try again later.";
             }
-            orderComponent.set(event.keypath + '.cancelError', errorMsg);
-            orderComponent.set(event.keypath + '.cancelling', false);
+            main_ractive.set(event.keypath + '.cancel_error', error_text);
+            main_ractive.set(event.keypath + '.cancelling', false);
           });
         }
       });

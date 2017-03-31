@@ -39,7 +39,7 @@ export const OrderTemplate = `
               <td><p class="table-content">{{ buyer_fullname }}</p></td>
               <td><p class="table-content">{{ buyer_email }}</p></td>
               <td><p class="table-content">{{ buyer_phone }}</p></td>
-              <td><p class="table-content">{{ formatCurrency(amount) }}</p></td>
+              <td><p class="table-content">{{currency}}{{ amount }}</p></td>
               <td><p class="table-content">{{ order_date }}</p></td>
               <td><p class="table-content">{{ id }}</p></td>
               <td>
@@ -59,12 +59,12 @@ export const OrderTemplate = `
                 </p>
               </td>
             </tr>
-            {{#showOrder}}
+            {{#show_order}}
               <div class="order-slider" intro-outro='fly:{x:200,y:0,duration:200}'>
                 <button on-click="hideOrder" class="close-button"><i class="fa fa-close"></i></button>
-                <p class="order-title">Order Invoice No: {{ invoice_no }}</p>
+                <p class="order-title">Order Invoice No: {{invoice_no}}</p>
                 <div class="line-items-wrapper">
-                  {{#lineItems:lineItem}}
+                  {{#line_items:line_item}}
                     <div class="ticket col-sm-6 col-xs-12" id="item-{{ @index }}">
                       <div class="heading">
                         <div class="ticket-type">
@@ -74,9 +74,9 @@ export const OrderTemplate = `
                       <div class="content">
                         <div class="content-box">
                           <p><span class="italic-title">id:</span> {{ id }}</p>
-                          <p><span class="italic-title">Base amount:</span> {{ formatCurrency(base_amount) }}</p>
-                          <p><span class="italic-title">Discounted amount:</span> {{ formatCurrency(discounted_amount) }}</p>
-                          <p><span class="italic-title">Final amount:</span> {{ formatCurrency(final_amount) }}</p>
+                          <p><span class="italic-title">Base amount:</span> {{ currency }}{{ base_amount }}</p>
+                          <p><span class="italic-title">Discounted amount:</span> {{ currency }}{{ discounted_amount }}</p>
+                          <p><span class="italic-title">Final amount:</span> {{ currency }}{{ final_amount }}</p>
                           {{#discount_policy}}<p><span class="italic-title">Discount policy:</span> <span class="line-item-discount">{{ discount_policy }}</span>{{/}}
                           {{#discount_coupon}}<p><span class="italic-title">Discount coupon:</span> <span class="line-item-discount">{{ discount_coupon }}</span>{{/}}
                           {{#cancelled_at}}<p><b><span class="italic-title cancelled">Cancelled at: {{ cancelled_at }}</span></b></p>{{/}}
@@ -96,15 +96,15 @@ export const OrderTemplate = `
                                 Cancel {{#cancelling}}<i class="fa fa-spinner fa-spin"></i>{{/}}
                               </button>
                             </p>
-                            <p class="error-msg left-aligned">{{ cancelError }}</p>
+                            <p class="error-msg left-aligned">{{cancel_error}}</p>
                           {{/}}
                         </div>
                       </div>
                     </div>
-                  {{/lineItems}}
+                  {{/}}
                 </div>
               </div>
-            {{/showOrder}}
+            {{/show_order}}
           {{/orders}}
           </tbody>
           <tfoot>
