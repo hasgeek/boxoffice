@@ -25,6 +25,7 @@
                 {{#if lineItem.itemName === item.name }}
                   <div class="ticket-booking clearfix {{#lineItem.quantity}}ticket-selected{{/}}" id="{{lineItem.itemName}}">
                     <div class="ticket-details">
+<<<<<<< HEAD
                       <p class="ticket-title">{{ lineItem.itemTitle }}</p>
                       <div class="ticket-description">{{{ lineItem.itemDescription }}}</div>
                       {{#lineItem.discountPolicies}}
@@ -34,6 +35,10 @@
                           </p>
                         {{/if}}
                       {{/lineItem.discountPolicies}}
+=======
+                      <p class="ticket-title">{{ line_item.item_title }}</p>
+                      <div class="ticket-description">{{{ line_item.item_description }}}</div>
+>>>>>>> master
                     </div>
                     <div class="ticket-price-qty">
                       {{#if lineItem.isAvailable}}
@@ -78,6 +83,13 @@
                             {{/if}}
                           </p>
                         {{/if}}
+                        {{#line_item.discount_policies}}
+                          {{#if is_automatic || activated || pre_applied }}
+                            <p class="discount {{#activated}}applied{{/}}">
+                               {{ title }} <i class="fa fa-check {{#if !activated && !isLoadingFail}}hidden{{/if}}"></i>
+                            </p>
+                          {{/if}}
+                        {{/line_item.discount_policies}}
                       {{else}}
                         <div class="sold-out-wrapper" intro='fly:{"x":100,"y":"0"}'>
                           <p class="sold-out">Sold out</p>
@@ -376,6 +388,7 @@
     margin: 5px 0;
     font-style: italic;
     color: #e42c42;
+    text-align: right;
   }
   .discount.applied {
     color: #008000;

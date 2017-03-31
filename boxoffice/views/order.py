@@ -282,7 +282,7 @@ def payment(order):
     (Order, {'access_token': 'access_token'}, 'order')
     )
 def receipt(order):
-    return render_template('cash_receipt.html', order=order, org=order.organization, line_items=order.line_items, order_confirmed_amount=order.get_amounts(LINE_ITEM_STATUS.CONFIRMED).confirmed_amount)
+    return render_template('cash_receipt.html', order=order, org=order.organization, line_items=order.line_items)
 
 
 @app.route('/order/<access_token>/ticket', methods=['GET', 'POST'])
@@ -389,6 +389,7 @@ def update_order_on_line_item_cancellation(order, pre_cancellation_line_items, c
 def process_line_item_cancellation(line_item):
     if not line_item.is_free:
         order = line_item.order
+
         if line_item.discount_policy:
             pre_cancellation_order_amount = order.get_amounts(LINE_ITEM_STATUS.CONFIRMED).confirmed_amount
             pre_cancellation_line_items = order.get_confirmed_line_items
@@ -405,7 +406,6 @@ def process_line_item_cancellation(line_item):
         if rp_resp.status_code == 200:
             db.session.add(PaymentTransaction(order=order, transaction_type=TRANSACTION_TYPE.REFUND,
                 online_payment=payment, amount=refund_amount, currency=CURRENCY.INR))
-            db.session.commit()
         else:
             raise PaymentGatewayError("Cancellation failed for order - {order} with the following details - {msg}".format(order=order.id,
                 msg=rp_resp.content), 424,
@@ -414,7 +414,7 @@ def process_line_item_cancellation(line_item):
         # free line item
         refund_amount = Decimal(0)
         line_item.cancel()
-        db.session.commit()
+    db.session.commit()
     return refund_amount
 
 

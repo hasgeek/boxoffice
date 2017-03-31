@@ -3,11 +3,12 @@
 import itertools
 from decimal import Decimal
 import datetime
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 from sqlalchemy.sql import select, func
 from sqlalchemy.ext.orderinglist import ordering_list
+from isoweek import Week
 from boxoffice.models import db, JsonDict, BaseMixin, Order, Item, DiscountPolicy, DISCOUNT_TYPE, DiscountCoupon, OrderSession
-from coaster.utils import LabeledEnum
+from coaster.utils import LabeledEnum, isoweek_datetime, midnight_to_utc
 from baseframe import __
 
 __all__ = ['LineItem', 'LINE_ITEM_STATUS', 'Assignee', 'LineItemDiscounter']
@@ -163,7 +164,7 @@ class LineItem(BaseMixin, db.Model):
         self.cancelled_at = func.utcnow()
 
     def is_cancellable(self):
-        return self.is_confirmed and (datetime.datetime.now() < self.item.cancellable_until
+        return self.is_confirmed and (datetime.datetime.utcnow() < self.item.cancellable_until
             if self.item.cancellable_until else True)
 
     @classmethod
@@ -222,49 +223,75 @@ def counts_per_date_per_item(item_collection, user_tz):
     for item in item_collection.items:
         item_id = unicode(item.id)
         item_results = db.session.query('date', 'count').from_statement(
-            '''SELECT DATE_TRUNC('day', line_item.ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone)::date as date, count(line_item.id)
-            from line_item where item_id = :item_id and status = :status group by date order by date asc'''
-        ).params(timezone=user_tz, status=LINE_ITEM_STATUS.CONFIRMED, item_id=item.id)
-        for res in item_results:
-            if not date_item_counts.get(res[0].isoformat()):
+            '''SELECT DATE_TRUNC('day', line_item.ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone)::date as date, count(line_item.id) AS count
+            FROM line_item WHERE item_id = :item_id AND status = :status
+            GROUP BY date ORDER BY date ASC'''
+        ).params(timezone=user_tz, status=LINE_ITEM_STATUS.CONFIRMED, item_id=item.id).all()
+        for date_count in item_results:
+            if not date_item_counts.get(date_count.date):
                 # if this date hasn't been been mapped in date_item_counts yet
-                date_item_counts[res[0].isoformat()] = {item_id: res[1]}
+                date_item_counts[date_count.date] = {item_id: date_count.count}
             else:
                 # if it has been mapped, assign the count
-                date_item_counts[res[0].isoformat()][item_id] = res[1]
+                date_item_counts[date_count.date][item_id] = date_count.count
     return date_item_counts
 
 
-def sales_by_date(dates, user_tz, item_ids):
+def sales_by_date(sales_datetime, item_ids, timezone):
     """
-    Returns the net sales of line items sold on a date.
-    Accepts a list of dates.
-    ['2016-01-01', '2016-01-02'] => {'2016-01-01': }
+    Returns the sales amount accrued during the day for a given date/datetime,
+    list of item_ids and timezone.
     """
     if not item_ids:
         return None
 
-    date_sales = {}
+    start_at = midnight_to_utc(sales_datetime, timezone=timezone)
+    end_at = midnight_to_utc(sales_datetime + datetime.timedelta(days=1), timezone=timezone)
+    sales_on_date = db.session.query('sum').from_statement('''SELECT SUM(final_amount) FROM line_item
+        WHERE status=:status AND ordered_at >= :start_at AND ordered_at < :end_at
+        AND line_item.item_id IN :item_ids
+        ''').params(status=LINE_ITEM_STATUS.CONFIRMED, start_at=start_at, end_at=end_at, item_ids=tuple(item_ids)).scalar()
+    return sales_on_date if sales_on_date else Decimal(0)
 
-    for sales_date in dates:
-        sales_on_date = db.session.query('sum').from_statement('''SELECT SUM(final_amount) FROM line_item
-            WHERE status=:status AND DATE_TRUNC('day', line_item.ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone)::date = :sales_date
-            AND line_item.item_id IN :item_ids
-            ''').params(timezone=user_tz, status=LINE_ITEM_STATUS.CONFIRMED, sales_date=sales_date, item_ids=tuple(item_ids)).first()
-        date_sales[sales_date] = sales_on_date[0] if sales_on_date[0] else Decimal(0)
-    return date_sales
+
+def calculate_weekly_sales(item_collection_ids, user_tz, year):
+    """
+    Calculates sales per week for items in the given set of item_collection_ids in a given year,
+    in the user's timezone.
+    """
+    ordered_week_sales = OrderedDict()
+    for year_week in Week.weeks_of_year(year):
+        ordered_week_sales[year_week.week] = 0
+    start_at = isoweek_datetime(year, 1, user_tz)
+    end_at = isoweek_datetime(year + 1, 1, user_tz)
+
+    week_sales = db.session.query('sales_week', 'sum').from_statement(db.text('''
+        SELECT EXTRACT(WEEK FROM ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone)
+        AS sales_week, SUM(final_amount) AS sum
+        FROM line_item INNER JOIN item on line_item.item_id = item.id
+        WHERE status IN :statuses AND item_collection_id IN :item_collection_ids
+        AND ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone >= :start_at
+        AND ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone < :end_at
+        GROUP BY sales_week ORDER BY sales_week;
+        ''')).params(timezone=user_tz, statuses=tuple([LINE_ITEM_STATUS.CONFIRMED, LINE_ITEM_STATUS.CANCELLED]),
+        start_at=start_at, end_at=end_at, item_collection_ids=tuple(item_collection_ids)).all()
+
+    for week_sale in week_sales:
+        ordered_week_sales[int(week_sale.sales_week)] = week_sale.sum
+
+    return ordered_week_sales
 
 
 def sales_delta(user_tz, item_ids):
-    """
-    Calculates the percentage difference in sales between today and yesterday
-    """
-    today = datetime.datetime.now().strftime("%Y-%m-%d")
-    yesterday = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
-    sales = sales_by_date([today, yesterday], user_tz, item_ids)
-    if not sales or not sales[yesterday]:
+    """Calculates the percentage difference in sales between today and yesterday"""
+    now = datetime.datetime.utcnow()
+    today = midnight_to_utc(now, timezone=user_tz)
+    yesterday = midnight_to_utc(now - datetime.timedelta(days=1), timezone=user_tz)
+    today_sales = sales_by_date(today, item_ids, user_tz)
+    yesterday_sales = sales_by_date(yesterday, item_ids, user_tz)
+    if not today_sales or not yesterday_sales:
         return 0
-    return round(Decimal('100') * (sales[today] - sales[yesterday])/sales[yesterday], 2)
+    return round(Decimal('100') * (today_sales - yesterday_sales)/yesterday_sales, 2)
 
 
 def get_confirmed_line_items(self):

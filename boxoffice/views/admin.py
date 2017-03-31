@@ -1,9 +1,14 @@
 # -*- coding: utf-8 -*-
 
-from flask import g, jsonify
+from flask import g, jsonify, request
+import pytz
 from .. import app, lastuser
 from coaster.views import load_models, render_with
+from coaster.utils import getbool
 from boxoffice.models import Organization, ItemCollection
+from boxoffice.models.line_item import calculate_weekly_sales
+from boxoffice.models.payment import calculate_weekly_refunds
+from boxoffice.views.utils import check_api_access, api_error, api_success
 
 
 def jsonify_dashboard(data):
@@ -35,3 +40,33 @@ def jsonify_org(data):
 @render_with({'text/html': 'index.html', 'application/json': jsonify_org}, json=True)
 def org(organization):
     return dict(org=organization, title=organization.title)
+
+
+@app.route('/api/1/organization/<org>/weekly_revenue', methods=['GET', 'OPTIONS'])
+@load_models(
+    (Organization, {'name': 'org'}, 'organization')
+    )
+def org_revenue(organization):
+    check_api_access(organization.details.get('access_token'))
+
+    if not request.args.get('year'):
+        return api_error(message='Missing year.', status_code=400)
+
+    if not request.args.get('timezone'):
+        return api_error(message='Missing timezone.', status_code=400)
+
+    if request.args.get('timezone') not in pytz.common_timezones:
+        return api_error(message='Unknown timezone. timezone is case-sensitive.', status_code=400)
+
+    item_collection_ids = [item_collection.id for item_collection in organization.item_collections]
+    year = int(request.args.get('year'))
+    user_timezone = request.args.get('timezone')
+
+    if getbool(request.args.get('refund')):
+        result = calculate_weekly_refunds(item_collection_ids, user_timezone, year).items()
+        doc = "Refunds per week for {year}".format(year=year)
+    else:
+        # sales includes confirmed and cancelled line items
+        result = calculate_weekly_sales(item_collection_ids, user_timezone, year).items()
+        doc = "Revenue per week for {year}".format(year=year)
+    return api_success(result=result, doc=doc, status_code=200)
