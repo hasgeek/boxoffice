@@ -119,7 +119,7 @@ def item_collection_net_sales(self):
         AND customer_order.item_collection_id = :item_collection_id
         ''')).params(transaction_type=TRANSACTION_TYPE.REFUND, item_collection_id=self.id).scalar()
 
-    return total_paid - total_refunded
+    return total_paid - total_refunded if total_refunded else total_paid
 ItemCollection.net_sales = property(item_collection_net_sales)
 
 
