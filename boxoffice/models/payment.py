@@ -2,6 +2,7 @@
 
 from collections import OrderedDict
 from datetime import datetime
+from decimal import Decimal
 from coaster.utils import LabeledEnum, isoweek_datetime
 from isoweek import Week
 from baseframe import __
@@ -119,7 +120,13 @@ def item_collection_net_sales(self):
         AND customer_order.item_collection_id = :item_collection_id
         ''')).params(transaction_type=TRANSACTION_TYPE.REFUND, item_collection_id=self.id).scalar()
 
-    return total_paid - total_refunded if total_refunded else total_paid
+    if total_paid and total_refunded:
+        return total_paid - total_refunded
+    elif total_paid:
+        return total_paid
+    else:
+        return Decimal('0')
+
 ItemCollection.net_sales = property(item_collection_net_sales)
 
 
