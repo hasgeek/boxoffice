@@ -388,9 +388,8 @@ def update_order_on_line_item_cancellation(order, pre_cancellation_line_items, c
 
 
 def process_line_item_cancellation(line_item):
-    if not line_item.is_free:
-        order = line_item.order
-
+    order = line_item.order
+    if (not line_item.is_free) and order.net_amount > Decimal('0'):
         if line_item.discount_policy:
             pre_cancellation_order_amount = order.get_amounts(LINE_ITEM_STATUS.CONFIRMED).confirmed_amount
             pre_cancellation_line_items = order.get_confirmed_line_items
@@ -401,6 +400,9 @@ def process_line_item_cancellation(line_item):
         else:
             line_item.cancel()
             refund_amount = line_item.final_amount
+
+        if refund_amount > order.net_amount:
+            refund_amount = order.net_amount
 
         payment = OnlinePayment.query.filter_by(order=line_item.order, pg_payment_status=RAZORPAY_PAYMENT_STATUS.CAPTURED).one()
         rp_resp = razorpay.refund_payment(payment.pg_paymentid, refund_amount)
