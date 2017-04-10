@@ -177,7 +177,7 @@ class LineItem(BaseMixin, db.Model):
             Assignee.current == True)).outerjoin(DiscountCoupon,
             LineItem.discount_coupon_id == DiscountCoupon.id).outerjoin(DiscountPolicy,
             LineItem.discount_policy_id == DiscountPolicy.id).join(Item).join(Order).outerjoin(OrderSession)
-        line_item_query = db.select([cls.id, Order.invoice_no, Item.title, cls.base_amount,
+        line_item_query = db.select([cls.id, cls.customer_order_id, Order.invoice_no, Item.title, cls.base_amount,
             cls.discounted_amount, cls.final_amount, DiscountPolicy.title, DiscountCoupon.code,
             Order.buyer_fullname, Order.buyer_email, Order.buyer_phone, Assignee.fullname,
             Assignee.email, Assignee.phone, Assignee.details, OrderSession.utm_campaign,

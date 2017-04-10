@@ -52,6 +52,13 @@ export const OrderView = {
         }
       });
 
+      $("#orders-table").on("keydown", function(e) {
+        if (e.which == 27) {
+          orderComponent.set('orders.*.show_order', false);
+          return false;
+        }
+      });
+
       orderComponent.on('showOrder', function(event){
         //Close all other open side panels
         orderComponent.set('orders.*.show_order', false);

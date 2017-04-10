@@ -2,10 +2,11 @@
 
 from collections import OrderedDict
 from datetime import datetime
+from decimal import Decimal
 from coaster.utils import LabeledEnum, isoweek_datetime
 from isoweek import Week
 from baseframe import __
-from boxoffice.models import db, BaseMixin, Order, ORDER_STATUS, MarkdownColumn
+from boxoffice.models import db, BaseMixin, Order, ORDER_STATUS, MarkdownColumn, ItemCollection
 from ..extapi import RAZORPAY_PAYMENT_STATUS
 
 __all__ = ['OnlinePayment', 'PaymentTransaction', 'CURRENCY', 'CURRENCY_SYMBOL', 'TRANSACTION_TYPE']
@@ -103,6 +104,30 @@ def order_net_amount(self):
     return self.paid_amount - self.refunded_amount
 
 Order.net_amount = property(order_net_amount)
+
+
+def item_collection_net_sales(self):
+    """Returns the net revenue for an item collection"""
+    total_paid = db.session.query('sum').from_statement(db.text('''SELECT SUM(amount) FROM payment_transaction
+        INNER JOIN customer_order ON payment_transaction.customer_order_id = customer_order.id
+        WHERE transaction_type=:transaction_type
+        AND customer_order.item_collection_id = :item_collection_id
+        ''')).params(transaction_type=TRANSACTION_TYPE.PAYMENT, item_collection_id=self.id).scalar()
+
+    total_refunded = db.session.query('sum').from_statement(db.text('''SELECT SUM(amount) FROM payment_transaction
+        INNER JOIN customer_order ON payment_transaction.customer_order_id = customer_order.id
+        WHERE transaction_type=:transaction_type
+        AND customer_order.item_collection_id = :item_collection_id
+        ''')).params(transaction_type=TRANSACTION_TYPE.REFUND, item_collection_id=self.id).scalar()
+
+    if total_paid and total_refunded:
+        return total_paid - total_refunded
+    elif total_paid:
+        return total_paid
+    else:
+        return Decimal('0')
+
+ItemCollection.net_sales = property(item_collection_net_sales)
 
 
 class CURRENCY(LabeledEnum):

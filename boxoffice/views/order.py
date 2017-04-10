@@ -2,7 +2,6 @@
 
 from datetime import datetime
 from decimal import Decimal
-from sqlalchemy.sql import func
 from flask import url_for, request, jsonify, render_template, make_response, abort
 from coaster.views import render_with, load_models
 from baseframe import _
@@ -12,9 +11,9 @@ from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPol
 from ..models import Order, OnlinePayment, PaymentTransaction, User, CURRENCY, ORDER_STATUS
 from ..models.payment import TRANSACTION_TYPE
 from ..extapi import razorpay, RAZORPAY_PAYMENT_STATUS
-from ..forms import LineItemForm, BuyerForm, OrderSessionForm, RefundTransactionForm
+from ..forms import LineItemForm, BuyerForm, OrderSessionForm
 from custom_exceptions import PaymentGatewayError
-from boxoffice.mailclient import send_receipt_mail, send_line_item_cancellation_mail, send_order_refund_mail
+from boxoffice.mailclient import send_receipt_mail, send_line_item_cancellation_mail
 from utils import xhr_only, cors, date_format
 
 
@@ -388,30 +387,31 @@ def update_order_on_line_item_cancellation(order, pre_cancellation_line_items, c
 
 
 def process_line_item_cancellation(line_item):
-    if not line_item.is_free:
-        order = line_item.order
-        if order.net_amount >= line_item.final_amount:
-            refund_amount = line_item.final_amount
-        else:
-            refund_amount = order.net_amount
-
+    order = line_item.order
+    if (not line_item.is_free) and order.net_amount > Decimal('0'):
         if line_item.discount_policy:
+            pre_cancellation_order_amount = order.get_amounts(LINE_ITEM_STATUS.CONFIRMED).confirmed_amount
             pre_cancellation_line_items = order.get_confirmed_line_items
             line_item.cancel()
-            update_order_on_line_item_cancellation(order, pre_cancellation_line_items, line_item)
+            updated_order = update_order_on_line_item_cancellation(order, pre_cancellation_line_items, line_item)
+            post_cancellation_order_amount = updated_order.get_amounts(LINE_ITEM_STATUS.CONFIRMED).confirmed_amount
+            refund_amount = pre_cancellation_order_amount - post_cancellation_order_amount
         else:
             line_item.cancel()
+            refund_amount = line_item.final_amount
 
-        if refund_amount > Decimal(0):
-            payment = OnlinePayment.query.filter_by(order=line_item.order, pg_payment_status=RAZORPAY_PAYMENT_STATUS.CAPTURED).one()
-            rp_resp = razorpay.refund_payment(payment.pg_paymentid, refund_amount)
-            if rp_resp.status_code == 200:
-                db.session.add(PaymentTransaction(order=order, transaction_type=TRANSACTION_TYPE.REFUND,
-                    online_payment=payment, amount=refund_amount, currency=CURRENCY.INR))
-            else:
-                raise PaymentGatewayError("Cancellation failed for order - {order} with the following details - {msg}".format(order=order.id,
-                    msg=rp_resp.content), 424,
-                'Refund failed. Please try again or write to us at {email}.'.format(email=line_item.order.organization.contact_email))
+        if refund_amount > order.net_amount:
+            refund_amount = order.net_amount
+
+        payment = OnlinePayment.query.filter_by(order=line_item.order, pg_payment_status=RAZORPAY_PAYMENT_STATUS.CAPTURED).one()
+        rp_resp = razorpay.refund_payment(payment.pg_paymentid, refund_amount)
+        if rp_resp.status_code == 200:
+            db.session.add(PaymentTransaction(order=order, transaction_type=TRANSACTION_TYPE.REFUND,
+                online_payment=payment, amount=refund_amount, currency=CURRENCY.INR))
+        else:
+            raise PaymentGatewayError("Cancellation failed for order - {order} with the following details - {msg}".format(order=order.id,
+                msg=rp_resp.content), 424,
+            'Refund failed. Please try again or write to us at {email}.'.format(email=line_item.order.organization.contact_email))
     else:
         # free line item
         refund_amount = Decimal(0)
@@ -433,52 +433,6 @@ def cancel_line_item(line_item):
     refund_amount = process_line_item_cancellation(line_item)
     send_line_item_cancellation_mail.delay(line_item.id, refund_amount)
     return make_response(jsonify(status='ok', result={'message': 'Ticket cancelled', 'cancelled_at': date_format(line_item.cancelled_at)}), 200)
-
-
-def process_partial_refund_for_order(order, form_dict):
-    form = RefundTransactionForm.from_json(form_dict, meta={'csrf': False})
-    if form.validate():
-        requested_refund_amount = form.amount.data
-        if not order.paid_amount:
-            return make_response(jsonify(status='error', error='free_order',
-                error_description='Refunds can only be issued for paid orders'), 403)
-
-        if (order.refunded_amount + requested_refund_amount) > order.paid_amount:
-            return make_response(jsonify(status='error', error='excess_partial_refund',
-                error_description='Invalid refund amount, must be lesser than net amount paid for the order'), 403)
-
-        payment = OnlinePayment.query.filter_by(order=order,
-            pg_payment_status=RAZORPAY_PAYMENT_STATUS.CAPTURED).one()
-        rp_resp = razorpay.refund_payment(payment.pg_paymentid, requested_refund_amount)
-        if rp_resp.status_code == 200:
-            transaction = PaymentTransaction(order=order, transaction_type=TRANSACTION_TYPE.REFUND,
-                online_payment=payment, currency=CURRENCY.INR,
-                refunded_at=func.utcnow())
-            form.populate_obj(transaction)
-            db.session.add(transaction)
-            db.session.commit()
-            send_order_refund_mail.delay(order.id, transaction.amount, transaction.note_to_user)
-            return make_response(jsonify(status='ok', result={
-                'message': "Refund processed for order",
-                'order_net_amount': order.net_amount
-                }), 200)
-        else:
-            raise PaymentGatewayError("Refund failed for order - {order} with the following details - {msg}".format(order=order.id,
-                msg=rp_resp.content), 424,
-            "Refund failed. Please try again or contact support at {email}.".format(email=order.organization.contact_email))
-    else:
-        return make_response(jsonify(status='error', error='invalid_input',
-            error_description=form.errors), 403)
-
-
-@app.route('/order/<order_id>/partial_refund', methods=['POST'])
-@lastuser.requires_login
-@load_models(
-    (Order, {'id': 'order_id'}, 'order'),
-    permission='org_admin'
-    )
-def partial_refund_order(order):
-    return process_partial_refund_for_order(order, request.json.get('order_refund'))
 
 
 @app.route('/api/1/ic/<item_collection>/orders', methods=['GET', 'OPTIONS'])
