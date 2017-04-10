@@ -1,5 +1,5 @@
 
-import {completePageLoad} from '../models/util.js';
+import {setPageTitle} from '../models/util.js';
 import {IndexModel} from '../models/index.js';
 import {IndexTemplate} from '../templates/index.html.js';
 import {SideBarView} from './sidebar.js'
@@ -19,7 +19,8 @@ export const IndexView = {
       });
 
       SideBarView.hide();
-      completePageLoad("Admin");
+      setPageTitle(indexComponent.get('title'));
+      NProgress.done();
 
       indexComponent.on('navigate', function(event, method){
         NProgress.configure({ showSpinner: false}).start();

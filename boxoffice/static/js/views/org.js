@@ -1,5 +1,5 @@
 
-import {completePageLoad} from '../models/util.js';
+import {setPageTitle} from '../models/util.js';
 import {OrgModel} from '../models/org.js';
 import {orgTemplate} from '../templates/org.html.js';
 import {SideBarView} from './sidebar.js'
@@ -20,7 +20,8 @@ export const OrgView = {
       });
 
       SideBarView.hide();
-      completePageLoad(orgComponent.get('title'));
+      setPageTitle("Admin");
+      NProgress.done();
 
       orgComponent.on('navigate', function(event, method){
         NProgress.configure({ showSpinner: false}).start();

@@ -1,5 +1,5 @@
 
-import {completePageLoad} from '../models/util.js';
+import {setPageTitle} from '../models/util.js';
 import {ItemCollectionModel} from '../models/item_collection.js';
 import {TableTemplate, AggChartTemplate, ItemCollectionTemplate} from '../templates/item_collection.html.js';
 import {SideBarView} from './sidebar.js'
@@ -111,7 +111,8 @@ export const ItemCollectionView = {
       });
 
       SideBarView.render('dashboard', {'org_name': remoteData.org_name, 'ic_id': config.id});
-      completePageLoad(icComponent.get('title'));
+      setPageTitle(icComponent.get('title'));
+      NProgress.done();
 
       window.addEventListener('popstate', (event) => {
         NProgress.configure({ showSpinner: false}).start();

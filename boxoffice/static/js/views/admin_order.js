@@ -1,5 +1,5 @@
 
-import {scrollToElement, getPageTitle, completePageLoad} from '../models/util.js';
+import {scrollToElement, makePageTitle, setPageTitle} from '../models/util.js';
 import {OrderModel} from '../models/admin_order.js';
 import {OrderTemplate} from '../templates/admin_order.html.js';
 import {SideBarView} from './sidebar.js';
@@ -21,8 +21,8 @@ export const OrderView = {
       });
 
       SideBarView.render('orders', {'org_name': remoteData.org_name, 'ic_id': config.id});
-      let newTitle = getPageTitle("Orders", orderComponent.get('title'));
-      completePageLoad(newTitle);
+      setPageTitle(orderComponent.get('title'), "Orders");
+      NProgress.done();
 
       $('#orders-table').footable({
         breakpoints: {

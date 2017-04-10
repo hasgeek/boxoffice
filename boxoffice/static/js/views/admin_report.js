@@ -1,5 +1,5 @@
 
-import {getPageTitle, completePageLoad} from '../models/util.js';
+import {setPageTitle} from '../models/util.js';
 import {ReportModel} from '../models/admin_report.js';
 import {ReportTemplate} from '../templates/admin_report.html.js';
 import {SideBarView} from './sidebar.js';
@@ -28,8 +28,8 @@ export const ReportView = {
       });
 
       SideBarView.render('reports', {'org_name': remoteData.org_name, 'ic_id': config.id});
-      let newTitle = getPageTitle("Reports", reportComponent.get('title'));
-      completePageLoad(newTitle);
+      setPageTitle(reportComponent.get('title'), "Reports");
+      NProgress.done();
 
       window.addEventListener('popstate', (event) => {
         NProgress.configure({ showSpinner: false}).start();
