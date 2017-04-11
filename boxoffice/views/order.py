@@ -2,6 +2,7 @@
 
 from datetime import datetime
 from decimal import Decimal
+from sqlalchemy.sql import func
 from flask import url_for, request, jsonify, render_template, make_response, abort
 from coaster.views import render_with, load_models
 from baseframe import _
@@ -408,7 +409,8 @@ def process_line_item_cancellation(line_item):
         rp_resp = razorpay.refund_payment(payment.pg_paymentid, refund_amount)
         if rp_resp.status_code == 200:
             db.session.add(PaymentTransaction(order=order, transaction_type=TRANSACTION_TYPE.REFUND,
-                online_payment=payment, amount=refund_amount, currency=CURRENCY.INR))
+                online_payment=payment, amount=refund_amount, currency=CURRENCY.INR, refunded_at=func.utcnow(),
+                refund_description='Refund: {line_item_title}'.format(line_item_title=line_item.item.title)))
         else:
             raise PaymentGatewayError("Cancellation failed for order - {order} with the following details - {msg}".format(order=order.id,
                 msg=rp_resp.content), 424,
