@@ -212,7 +212,7 @@
       
       {% for line_item in line_items -%}
         <tr>
-          <td class="center" rowspan="2" valign="top">{{ loop.index }}</td>
+          <td class="center" rowspan="2" valign="top">{{ line_item.line_item_seq }}</td>
           <td colspan="3">
             <span class="item-title">{{ line_item.item.title }}</span><br>
             <span class="item-description">{{ line_item.item.description.text|safe }}</span>
