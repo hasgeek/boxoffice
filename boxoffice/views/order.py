@@ -282,7 +282,8 @@ def payment(order):
     (Order, {'access_token': 'access_token'}, 'order')
     )
 def receipt(order):
-    return render_template('cash_receipt.html', order=order, org=order.organization, line_items=order.line_items)
+    line_items = LineItem.query.filter(LineItem.order == order, LineItem.status.in_([LINE_ITEM_STATUS.CONFIRMED, LINE_ITEM_STATUS.CANCELLED])).all()
+    return render_template('cash_receipt.html', order=order, org=order.organization, line_items=line_items)
 
 
 @app.route('/order/<access_token>/ticket', methods=['GET', 'POST'])
