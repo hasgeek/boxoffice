@@ -224,23 +224,30 @@
           <td class="center">&#8377; {{ line_item.final_amount }}</td>
         </tr>
       {%- endfor %}
-      
       <tr>
           <td></td>
           <td colspan="2" class="total gray">Total paid</td>
           <td class="total-amount gray center"><div id="total">&#8377; {{ order.paid_amount }}</div></td>
       </tr>
-      <tr>
-          <td></td>
-          <td colspan="3" class="total">Refunds</td>
-      </tr>
-      {% for transaction in order.refund_transactions -%}
+      {%- if order.refunded_amount %}
         <tr>
             <td></td>
-            <td colspan="2">{{ transaction.refund_description }}</td>
-            <td class="total-amount center"><div id="total">&#8377; {{ transaction.amount }}</div></td>
+            <td colspan="3" class="total">Refunds</td>
         </tr>
-      {%- endfor %}
+        {% for transaction in order.refund_transactions -%}
+          <tr>
+              <td></td>
+              {%- if transaction.refund_description %}
+                <td colspan="2">{{ transaction.refund_description }}</td>
+              {%- elif transaction.refunded_at %}
+                <td colspan="2">Refunded on {{ transaction.refunded_at | invoice_date('%d %b %Y') }}</td>
+              {%- else %}
+                <td colspan="2">Refund</td>
+              {%- endif %}
+              <td class="total-amount center"><div id="total">&#8377; {{ transaction.amount }}</div></td>
+          </tr>
+        {%- endfor %}
+      {%- endif %}
       <tr>
           <td></td>
           <td colspan="2" class="total gray">Total refund</td>
