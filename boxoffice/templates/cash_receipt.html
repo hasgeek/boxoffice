@@ -237,7 +237,13 @@
         {% for transaction in order.refund_transactions -%}
           <tr>
               <td></td>
-              <td colspan="2">{{ transaction.refund_description }}</td>
+              {%- if transaction.refund_description %}
+                <td colspan="2">{{ transaction.refund_description }}</td>
+              {%- elif transaction.refunded_at %}
+                <td colspan="2">Refund on {{ transaction.refunded_at | invoice_date('%d %b %Y') }}</td>
+              {%- else %}
+                <td colspan="2">Refund</td>
+              {%- endif %}
               <td class="total-amount center"><div id="total">&#8377; {{ transaction.amount }}</div></td>
           </tr>
         {%- endfor %}
