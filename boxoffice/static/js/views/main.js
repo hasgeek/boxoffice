@@ -3,7 +3,6 @@ window._ = require("underscore");
 window.Backbone = require("backbone");
 window.d3 = require("d3");
 window.c3 = require("c3");
-window.boxofficeAdmin = {};
 
 import {Router} from './router';
 

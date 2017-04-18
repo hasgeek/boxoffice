@@ -1,7 +1,7 @@
 export const orgTemplate = `
   <div class="container">
     <div class="row">
-      <h1 class="header">{{ title }}</h1>
+      <h1 class="header">{{ orgTitle }}</h1>
       {{#item_collections:item_collection}}
         <div class="box col-sm-6 col-xs-12" id="item-collection-{{ @index }}">
           <div class="heading">

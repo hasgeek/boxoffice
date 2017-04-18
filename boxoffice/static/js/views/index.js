@@ -19,7 +19,7 @@ export const IndexView = {
       });
 
       SideBarView.hide();
-      setPageTitle(indexComponent.get('title'));
+      setPageTitle("Admin");
       NProgress.done();
 
       indexComponent.on('navigate', function(event, method){

@@ -14,13 +14,13 @@ export const OrgView = {
         el: '#main-content-area',
         template: orgTemplate,
         data: {
-          title: data.title,
+          orgTitle: data.title,
           item_collections: data.item_collections
         }
       });
 
       SideBarView.hide();
-      setPageTitle("Admin");
+      setPageTitle(orgComponent.get('orgTitle'));
       NProgress.done();
 
       orgComponent.on('navigate', function(event, method){

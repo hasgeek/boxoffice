@@ -111,7 +111,7 @@ export const ItemCollectionView = {
       });
 
       SideBarView.render('dashboard', {'org_name': remoteData.org_name, 'ic_id': config.id});
-      setPageTitle(icComponent.get('title'));
+      setPageTitle(icComponent.get('icTitle'));
       NProgress.done();
 
       window.addEventListener('popstate', (event) => {

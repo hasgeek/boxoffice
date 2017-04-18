@@ -15,13 +15,13 @@ export const OrderView = {
         el: '#main-content-area',
         template: OrderTemplate,
         data:  {
-          title: remoteData.title,
+          icTitle: remoteData.title,
           orders: remoteData.orders
         }
       });
 
       SideBarView.render('orders', {'org_name': remoteData.org_name, 'ic_id': config.id});
-      setPageTitle("Orders", orderComponent.get('title'));
+      setPageTitle("Orders", orderComponent.get('icTitle'));
       NProgress.done();
 
       $('#orders-table').footable({
