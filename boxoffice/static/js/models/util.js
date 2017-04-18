@@ -42,18 +42,10 @@ export const scrollToElement = function (element, speed=500) {
   }, speed);
 }
 
-export const makePageTitle = function (title, subTitle) {
-  /* Takes title, subTitle and join them into a string using " — ".
-  Eg:- "Orders — JSFoo 2016" */
-  return `${subTitle} — ${title}`;
-}
-
-export const setPageTitle = function (title, subTitle="") {
-  let newTitle = title, 
-    newPageTitle;
-  if (subTitle) {
-    newTitle = makePageTitle(title, subTitle);
-  }
-  newPageTitle = makePageTitle(window.admin.siteTitle, newTitle);
+export const setPageTitle = function (...subTitles) {
+  /* Takes an array of titles and returns a concatenated string separated by " - ".
+  Eg:- "Orders — JSFoo 2016 — Boxoffice" */
+  subTitles.push(window.boxofficeAdmin.siteTitle);
+  var newPageTitle =subTitles.join(" — ");
   $('title').html(newPageTitle);
 }

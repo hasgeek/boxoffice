@@ -15,4 +15,7 @@
 {% endblock %}
 {% block footerscripts %}
   <script src="/static/js/dist/bundle.js"></script>
+  <script type="text/javascript">
+  	window.boxofficeAdmin.siteTitle = "{{ config['SITE_TITLE'] }}";
+  </script>
 {% endblock %}

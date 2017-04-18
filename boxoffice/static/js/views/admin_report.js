@@ -28,7 +28,7 @@ export const ReportView = {
       });
 
       SideBarView.render('reports', {'org_name': remoteData.org_name, 'ic_id': config.id});
-      setPageTitle(reportComponent.get('title'), "Reports");
+      setPageTitle("Reports", reportComponent.get('title'));
       NProgress.done();
 
       window.addEventListener('popstate', (event) => {
