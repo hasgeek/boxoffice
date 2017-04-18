@@ -1,7 +1,7 @@
 
 export const OrderTemplate = `
   <div class="content-wrapper">
-    <h1 class="header">{{ title }}</h1>
+    <h1 class="header">{{ icTitle }}</h1>
     {{#if orders}}
       <form class="table-title col-sm-6 col-xs-12" id="search-form">
         <input autofocus class="form-control" id="filter" type="text" name="key" value="" placeholder="Search"/>

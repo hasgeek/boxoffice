@@ -1,7 +1,7 @@
 // A collection of utility functions
 
 export const Util = {
-  formatToIndianRupee: function(value) {
+  formatToIndianRupee: function (value) {
     // Takes a floating point value and formats it to the Indian currency format
     // with the rupee sign.
     // Taken from https://github.com/hasgeek/hasjob/blob/master/hasjob/static/js/app.js
@@ -21,14 +21,14 @@ export const Util = {
   }
 }
 
-export const fetch = function(config){
+export const fetch = function (config){
   return $.ajax({
     url: config.url,
     dataType: 'json'
   });
 }
 
-export const post = function(config){
+export const post = function (config){
   return $.ajax({
     url: config.url,
     type: 'POST',
@@ -36,8 +36,15 @@ export const post = function(config){
   });
 }
 
-export const scrollToElement = function(element, speed=500) {
+export const scrollToElement = function (element, speed=500) {
   $('html,body').animate({
     scrollTop: $(element).offset().top
   }, speed);
+}
+
+export const setPageTitle = function (...subTitles) {
+  /* Takes an array of titles and returns a concatenated string separated by " — ".
+  Eg:- "Orders — JSFoo 2016 — Boxoffice" */
+  subTitles.push(window.boxofficeAdmin.siteTitle);
+  $('title').html(subTitles.join(" — "));
 }

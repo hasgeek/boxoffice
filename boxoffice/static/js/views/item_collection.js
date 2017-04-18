@@ -1,4 +1,5 @@
 
+import {setPageTitle} from '../models/util.js';
 import {ItemCollectionModel} from '../models/item_collection.js';
 import {TableTemplate, AggChartTemplate, ItemCollectionTemplate} from '../templates/item_collection.html.js';
 import {SideBarView} from './sidebar.js'
@@ -102,16 +103,16 @@ export const ItemCollectionView = {
       url: ItemCollectionModel.urlFor('index', {ic_id: config.id})['path']
     }).done((remoteData) => {
       // Initial render
-      let main_ractive = new Ractive({
+      let icComponent = new Ractive({
         el: '#main-content-area',
         template: ItemCollectionTemplate,
         data: ItemCollectionModel.formatData(remoteData),
         components: {TableComponent: TableComponent, AggChartComponent: AggChartComponent}
       });
 
-      NProgress.done();
-
       SideBarView.render('dashboard', {'org_name': remoteData.org_name, 'ic_id': config.id});
+      setPageTitle(icComponent.get('icTitle'));
+      NProgress.done();
 
       window.addEventListener('popstate', (event) => {
         NProgress.configure({ showSpinner: false}).start();
