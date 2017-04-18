@@ -43,9 +43,8 @@ export const scrollToElement = function (element, speed=500) {
 }
 
 export const setPageTitle = function (...subTitles) {
-  /* Takes an array of titles and returns a concatenated string separated by " - ".
+  /* Takes an array of titles and returns a concatenated string separated by " — ".
   Eg:- "Orders — JSFoo 2016 — Boxoffice" */
   subTitles.push(window.boxofficeAdmin.siteTitle);
-  var newPageTitle =subTitles.join(" — ");
-  $('title').html(newPageTitle);
+  $('title').html(subTitles.join(" — "));
 }
