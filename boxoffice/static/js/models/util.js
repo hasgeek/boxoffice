@@ -24,7 +24,7 @@ export const Util = {
 export const fetch = function (config) {
   return $.ajax({
     url: config.url,
-    dataType: 'json'
+    dataType: config.dataType ? config.dataType : 'json'
   });
 };
 
@@ -34,7 +34,7 @@ export const post = function (config) {
     type: 'POST',
     data: config.data,
     contentType : config.contentType ? config.contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
-    dataType: 'json',
+    dataType: config.dataType ? config.dataType : 'json',
   });
 };
 
@@ -53,8 +53,8 @@ export const getCsrfToken = function () {
   return document.head.querySelector("[name=csrf-token]").content;
 };
 
-export const updateBrowserHistory = function (currentUrl, newUrl) {
-  window.history.replaceState({reloadOnPop: true}, '', currentUrl);
+export const updateBrowserHistory = function (newUrl) {
+  window.history.replaceState({reloadOnPop: true}, '', window.location.href);
   window.history.pushState({reloadOnPop: true}, '', newUrl);
 }
 

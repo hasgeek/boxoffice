@@ -54,7 +54,6 @@ export const DiscountPolicyView = {
           totalPages: total_pages,
           currentPage: current_page,
           size: 20,
-          items: '',
           showAddPolicyForm: false,
           newDiscountPolicy: '',
           searchText: search,
@@ -123,7 +122,7 @@ export const DiscountPolicyView = {
               root: true,
               search: search,
               page: page,
-              size: size||discountPolicyComponent.get('size')
+              size: size || discountPolicyComponent.get('size')
             });
           } else {
             url = urlFor('index', {
@@ -132,7 +131,7 @@ export const DiscountPolicyView = {
               resource: 'discount_policy',
               root: true,
               page: page,
-              size: size||discountPolicyComponent.get('size')
+              size: size || discountPolicyComponent.get('size')
             });
           }
 
@@ -148,7 +147,7 @@ export const DiscountPolicyView = {
               'pages': _.range(1, remoteData.total_pages + 1)
             });
             NProgress.done();
-            updateBrowserHistory(window.location.href, url);
+            updateBrowserHistory(url);
           });
           scrollToElement("#" + discountPolicyComponent.el.id);
         },
