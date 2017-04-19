@@ -1,5 +1,6 @@
 
-import {fetch, urlFor} from '../models/util.js';
+
+import {setPageTitle} from '../models/util.js';
 import {ReportTemplate} from '../templates/admin_report.html.js';
 import {SideBarView} from './sidebar.js';
 
@@ -9,13 +10,12 @@ export const ReportView = {
       url: urlFor('index', {resource: 'reports', scope_ns: 'ic', scope_id: ic_id, root: true})
     }).done(({org_name, title, name}) => {
       // Initial render
-      let reportsComponent = new Ractive({
+      let reportComponent = new Ractive({
         el: '#main-content-area',
         template: ReportTemplate,
         data:  {
-          title: title,
           name: name,
-          // default selected value of report-type
+          icTitle: title,
           reportType: "tickets",
           reportsUrl: function() {
             let reportType = this.get('reportType');
@@ -32,9 +32,9 @@ export const ReportView = {
           }
         }
       });
-      
-      SideBarView.render('reports', {org_name, ic_id});
 
+      SideBarView.render('reports', {'org_name': remoteData.org_name, 'ic_id': config.id});
+      setPageTitle("Reports", reportComponent.get('icTitle'));
       NProgress.done();
 
       window.addEventListener('popstate', (event) => {

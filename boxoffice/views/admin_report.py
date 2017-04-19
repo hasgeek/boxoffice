@@ -31,7 +31,7 @@ def admin_report(item_collection):
     (ItemCollection, {'id': 'ic_id'}, 'item_collection'),
     permission='org_admin')
 def tickets_report(item_collection):
-    headers = ['ticket id', 'invoice no', 'ticket type', 'base amount', 'discounted amount', 'final amount', 'discount policy', 'discount code', 'buyer fullname', 'buyer email', 'buyer phone', 'attendee fullname', 'attendee email', 'attendee phone', 'attendee details', 'utm_campaign', 'utm_source', 'utm_medium', 'utm_term', 'utm_content', 'utm_id', 'gclid', 'referrer', 'date']
+    headers = ['ticket id', 'order_id', 'invoice no', 'ticket type', 'base amount', 'discounted amount', 'final amount', 'discount policy', 'discount code', 'buyer fullname', 'buyer email', 'buyer phone', 'attendee fullname', 'attendee email', 'attendee phone', 'attendee details', 'utm_campaign', 'utm_source', 'utm_medium', 'utm_term', 'utm_content', 'utm_id', 'gclid', 'referrer', 'date']
     rows = LineItem.fetch_all_details(item_collection)
 
     def row_handler(row):

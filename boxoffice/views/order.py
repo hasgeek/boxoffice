@@ -2,6 +2,7 @@
 
 from datetime import datetime
 from decimal import Decimal
+from sqlalchemy.sql import func
 from flask import url_for, request, jsonify, render_template, make_response, abort
 from coaster.views import render_with, load_models
 from baseframe import _
@@ -282,7 +283,8 @@ def payment(order):
     (Order, {'access_token': 'access_token'}, 'order')
     )
 def receipt(order):
-    return render_template('cash_receipt.html', order=order, org=order.organization, line_items=order.line_items, order_confirmed_amount=order.get_amounts(LINE_ITEM_STATUS.CONFIRMED).confirmed_amount)
+    line_items = LineItem.query.filter(LineItem.order == order, LineItem.status.in_([LINE_ITEM_STATUS.CONFIRMED, LINE_ITEM_STATUS.CANCELLED])).all()
+    return render_template('cash_receipt.html', order=order, org=order.organization, line_items=line_items)
 
 
 @app.route('/order/<access_token>/ticket', methods=['GET', 'POST'])
@@ -387,8 +389,8 @@ def update_order_on_line_item_cancellation(order, pre_cancellation_line_items, c
 
 
 def process_line_item_cancellation(line_item):
-    if not line_item.is_free:
-        order = line_item.order
+    order = line_item.order
+    if (not line_item.is_free) and order.net_amount > Decimal('0'):
         if line_item.discount_policy:
             pre_cancellation_order_amount = order.get_amounts(LINE_ITEM_STATUS.CONFIRMED).confirmed_amount
             pre_cancellation_line_items = order.get_confirmed_line_items
@@ -400,12 +402,15 @@ def process_line_item_cancellation(line_item):
             line_item.cancel()
             refund_amount = line_item.final_amount
 
+        if refund_amount > order.net_amount:
+            refund_amount = order.net_amount
+
         payment = OnlinePayment.query.filter_by(order=line_item.order, pg_payment_status=RAZORPAY_PAYMENT_STATUS.CAPTURED).one()
         rp_resp = razorpay.refund_payment(payment.pg_paymentid, refund_amount)
         if rp_resp.status_code == 200:
             db.session.add(PaymentTransaction(order=order, transaction_type=TRANSACTION_TYPE.REFUND,
-                online_payment=payment, amount=refund_amount, currency=CURRENCY.INR))
-            db.session.commit()
+                online_payment=payment, amount=refund_amount, currency=CURRENCY.INR, refunded_at=func.utcnow(),
+                refund_description='Refund: {line_item_title}'.format(line_item_title=line_item.item.title)))
         else:
             raise PaymentGatewayError("Cancellation failed for order - {order} with the following details - {msg}".format(order=order.id,
                 msg=rp_resp.content), 424,
@@ -414,7 +419,7 @@ def process_line_item_cancellation(line_item):
         # free line item
         refund_amount = Decimal(0)
         line_item.cancel()
-        db.session.commit()
+    db.session.commit()
     return refund_amount
 
 

@@ -42,7 +42,7 @@ export const AggChartTemplate = `
 
 export const ItemCollectionTemplate = `
   <div class="content-wrapper">
-    <h1 class="header">{{ title }}</h1>
+    <h1 class="header">{{ icTitle }}</h1>
     <div class="stats clearfix">
       <div class="col-md-4 col-sm-6 col-xs-12">
         <div class="card clearfix">

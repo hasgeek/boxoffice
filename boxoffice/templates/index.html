@@ -15,5 +15,9 @@
   <div id="main-content-area"></div>
 {% endblock %}
 {% block footerscripts %}
+  <script type="text/javascript">
+    window.boxofficeAdmin = {};
+    window.boxofficeAdmin.siteTitle = "{{ config['SITE_TITLE'] }}";
+  </script>
   <script src="/static/js/dist/bundle.js"></script>
 {% endblock %}

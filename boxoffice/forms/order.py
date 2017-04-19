@@ -3,7 +3,7 @@
 from baseframe import __
 import baseframe.forms as forms
 
-__all__ = ['LineItemForm', 'BuyerForm', 'OrderSessionForm']
+__all__ = ['LineItemForm', 'BuyerForm', 'OrderSessionForm', 'RefundTransactionForm']
 
 
 def trim(length):
@@ -55,3 +55,16 @@ class OrderSessionForm(forms.Form):
     utm_id = forms.StringField(__("UTM Id"), filters=[trim(250)])
     gclid = forms.StringField(__("Gclid"), filters=[trim(250)])
     referrer = forms.StringField(__("Referrer"), filters=[trim(2083)])
+
+
+class RefundTransactionForm(forms.Form):
+    amount = forms.IntegerField(__("Amount"),
+        validators=[forms.validators.DataRequired(__("Please specify an amount"))])
+    internal_note = forms.StringField(__("Internal note"),
+        validators=[forms.validators.Length(max=250)],
+        description=__("Add a note for future reference"), filters=[forms.filters.none_if_empty()])
+    refund_description = forms.StringField(__("Refund description"),
+        validators=[forms.validators.Length(max=250)],
+        description=__("Why is this order receiving a refund?"), filters=[forms.filters.none_if_empty()])
+    note_to_user = forms.MarkdownField(__("Note to user"),
+        description=__("Send this note to the buyer"), filters=[forms.filters.none_if_empty()])

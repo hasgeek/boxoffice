@@ -12,7 +12,7 @@ export const ItemCollectionModel = {
   },
   formatData: function (data) {
     return {
-      title: data.title,
+      icTitle: data.title,
       items: this.formatItems(data.items),
       date_item_counts: data.date_item_counts,
       date_sales: data.date_sales,

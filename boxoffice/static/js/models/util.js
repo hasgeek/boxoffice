@@ -45,8 +45,7 @@ export const scrollToElement = function (element, speed=500) {
 };
 
 export const getFormParameters = function (form) {
-  var form_elements = $(form).serializeArray();
-  return $.param(form_elements);
+  return $.param($(form).serializeArray());
 };
 
 export const getCsrfToken = function () {
@@ -58,7 +57,7 @@ export const updateBrowserHistory = function (newUrl) {
   window.history.pushState({reloadOnPop: true}, '', newUrl);
 }
 
-export const urlFor = function(action, params={}){
+export const urlFor = function(action, params={}) {
   /*
   Returns a URL for a given resource and action.
 
@@ -124,4 +123,11 @@ export const urlFor = function(action, params={}){
   }
 
   return url;
+}
+
+export const setPageTitle = function (...subTitles) {
+  /* Takes an array of titles and returns a concatenated string separated by " — ".
+  Eg:- "Orders — JSFoo 2016 — Boxoffice" */
+  subTitles.push(window.boxofficeAdmin.siteTitle);
+  $('title').html(subTitles.join(" — "));
 }

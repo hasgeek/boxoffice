@@ -1,14 +1,16 @@
 
-import {fetch, urlFor} from '../models/util.js';
+import {fetch, urlFor, setPageTitle} from '../models/util.js';
+import {IndexModel} from '../models/index.js';
 import {IndexTemplate} from '../templates/index.html.js';
 import {SideBarView} from './sidebar.js'
 
 export const IndexView = {
   render: function() {
+
     fetch({
       url: urlFor('index', {root: true})
     }).then(function({orgs}){
-      let ractive = new Ractive({
+      let indexComponent = new Ractive({
         el: '#main-content-area',
         template: IndexTemplate,
         data: {
@@ -17,10 +19,10 @@ export const IndexView = {
       });
 
       SideBarView.hide();
-
+      setPageTitle("Admin");
       NProgress.done();
 
-      ractive.on('navigate', function(event, method){
+      indexComponent.on('navigate', function(event, method){
         NProgress.configure({ showSpinner: false}).start();
         eventBus.trigger('navigate', event.context.url);
       });

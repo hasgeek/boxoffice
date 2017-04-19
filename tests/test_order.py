@@ -1,7 +1,6 @@
 import unittest
 import json
 import decimal
-from random import randint
 from flask import make_response
 from mock import MagicMock
 from boxoffice import app, init_for
@@ -272,9 +271,9 @@ class TestOrder(unittest.TestCase):
         order.confirm_sale()
         db.session.commit()
 
-        precancellation_order_amount = order.get_amounts(LINE_ITEM_STATUS.CONFIRMED).final_amount
         first_line_item = order.line_items[0]
         to_be_void_line_items = order.line_items[1:]
+        precancellation_order_amount = order.net_amount
         # Mock Razorpay's API
         razorpay.refund_payment = MagicMock(return_value=make_response())
         process_line_item_cancellation(first_line_item)

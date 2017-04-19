@@ -1,5 +1,5 @@
 
-import {fetch, urlFor} from '../models/util.js';
+import {fetch, urlFor, setPageTitle} from '../models/util.js';
 import {orgTemplate} from '../templates/org.html.js';
 import {SideBarView} from './sidebar.js'
 
@@ -13,16 +13,16 @@ export const OrgView = {
         el: '#main-content-area',
         template: orgTemplate,
         data: {
-          title: title,
+          orgTitle: title,
           item_collections: item_collections
         }
       });
 
       SideBarView.hide();
-
+      setPageTitle(orgComponent.get('orgTitle'));
       NProgress.done();
 
-      ractive.on('navigate', function(event, method){
+      orgComponent.on('navigate', function(event, method){
         NProgress.configure({ showSpinner: false}).start();
         eventBus.trigger('navigate', event.context.url);
       });
