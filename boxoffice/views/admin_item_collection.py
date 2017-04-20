@@ -51,7 +51,7 @@ def admin_item_collection(item_collection):
     date_item_counts = {}
     date_sales = {}
     for sales_date, sales_count in counts_per_date_per_item(item_collection, g.user.timezone).items():
-        date_sales[sales_date.isoformat()] = sales_by_date(sales_date, item_ids, timezone=g.user.timezone)
+        date_sales[sales_date.isoformat()] = sales_by_date(sales_date, item_ids, g.user.timezone)
         date_item_counts[sales_date.isoformat()] = sales_count
     today_sales = date_sales.get(localize_timezone(datetime.datetime.utcnow(), g.user.timezone).date().isoformat(), Decimal(0))
     return dict(title=item_collection.organization.title, item_collection=item_collection, date_item_counts=date_item_counts,

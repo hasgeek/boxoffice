@@ -223,10 +223,9 @@ def counts_per_date_per_item(item_collection, user_tz):
     for item in item_collection.items:
         item_id = unicode(item.id)
         item_results = db.session.query('date', 'count').from_statement(
-            '''SELECT DATE_TRUNC('day', line_item.ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone)::date as date, count(line_item.id) AS count
+            db.text('''SELECT DATE_TRUNC('day', line_item.ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone)::date as date, count(line_item.id) AS count
             FROM line_item WHERE item_id = :item_id AND status = :status
-            GROUP BY date ORDER BY date ASC'''
-        ).params(timezone=user_tz, status=LINE_ITEM_STATUS.CONFIRMED, item_id=item.id).all()
+            GROUP BY date ORDER BY date ASC''')).params(timezone=user_tz, status=LINE_ITEM_STATUS.CONFIRMED, item_id=item.id).all()
         for date_count in item_results:
             if not date_item_counts.get(date_count.date):
                 # if this date hasn't been been mapped in date_item_counts yet
@@ -237,7 +236,7 @@ def counts_per_date_per_item(item_collection, user_tz):
     return date_item_counts
 
 
-def sales_by_date(sales_datetime, item_ids, timezone):
+def sales_by_date(sales_datetime, item_ids, user_tz):
     """
     Returns the sales amount accrued during the day for a given date/datetime,
     list of item_ids and timezone.
@@ -245,12 +244,12 @@ def sales_by_date(sales_datetime, item_ids, timezone):
     if not item_ids:
         return None
 
-    start_at = midnight_to_utc(sales_datetime, timezone=timezone)
-    end_at = midnight_to_utc(sales_datetime + datetime.timedelta(days=1), timezone=timezone)
-    sales_on_date = db.session.query('sum').from_statement('''SELECT SUM(final_amount) FROM line_item
+    start_at = midnight_to_utc(sales_datetime, timezone=user_tz)
+    end_at = midnight_to_utc(sales_datetime + datetime.timedelta(days=1), timezone=user_tz)
+    sales_on_date = db.session.query('sum').from_statement(db.text('''SELECT SUM(final_amount) FROM line_item
         WHERE status=:status AND ordered_at >= :start_at AND ordered_at < :end_at
         AND line_item.item_id IN :item_ids
-        ''').params(status=LINE_ITEM_STATUS.CONFIRMED, start_at=start_at, end_at=end_at, item_ids=tuple(item_ids)).scalar()
+        ''')).params(status=LINE_ITEM_STATUS.CONFIRMED, start_at=start_at, end_at=end_at, item_ids=tuple(item_ids)).scalar()
     return sales_on_date if sales_on_date else Decimal(0)
 
 
@@ -284,9 +283,8 @@ def calculate_weekly_sales(item_collection_ids, user_tz, year):
 
 def sales_delta(user_tz, item_ids):
     """Calculates the percentage difference in sales between today and yesterday"""
-    now = datetime.datetime.utcnow()
-    today = midnight_to_utc(now, timezone=user_tz)
-    yesterday = midnight_to_utc(now - datetime.timedelta(days=1), timezone=user_tz)
+    today = datetime.datetime.utcnow().date()
+    yesterday = today - datetime.timedelta(days=1)
     today_sales = sales_by_date(today, item_ids, user_tz)
     yesterday_sales = sales_by_date(yesterday, item_ids, user_tz)
     if not today_sales or not yesterday_sales:
