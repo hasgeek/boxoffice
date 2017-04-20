@@ -1,11 +1,11 @@
 
-
-import {setPageTitle} from '../models/util.js';
+import {fetch, urlFor, setPageTitle} from '../models/util.js';
 import {ReportTemplate} from '../templates/admin_report.html.js';
 import {SideBarView} from './sidebar.js';
 
 export const ReportView = {
   render: function({ic_id}={}) {
+
     fetch({
       url: urlFor('index', {resource: 'reports', scope_ns: 'ic', scope_id: ic_id, root: true})
     }).done(({org_name, title, name}) => {
@@ -14,7 +14,7 @@ export const ReportView = {
         el: '#main-content-area',
         template: ReportTemplate,
         data:  {
-          name: name,
+          icName: name,
           icTitle: title,
           reportType: "tickets",
           reportsUrl: function() {
@@ -28,12 +28,12 @@ export const ReportView = {
             });
           },
           reportsFilename: function() {
-            return this.get('name') + '_' + this.get('reportType') + '.csv';
+            return this.get('icName') + '_' + this.get('reportType') + '.csv';
           }
         }
       });
 
-      SideBarView.render('reports', {'org_name': remoteData.org_name, 'ic_id': config.id});
+      SideBarView.render('reports', {org_name, ic_id});
       setPageTitle("Reports", reportComponent.get('icTitle'));
       NProgress.done();
 

@@ -22,6 +22,7 @@ def jsonify_report(data_dict):
     (ItemCollection, {'id': 'ic_id'}, 'item_collection'),
     permission='org_admin')
 def admin_report(item_collection):
+    print "reports"
     return dict(item_collection=item_collection)
 
 

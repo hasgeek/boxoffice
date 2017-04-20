@@ -4,20 +4,20 @@ from __future__ import division
 import math
 from flask import jsonify
 from .. import app, lastuser
-from baseframe import _
+from baseframe import _, get_timezone
 from coaster.views import load_models, render_with, requestargs
 from ..models import db
 from boxoffice.models import Organization, DiscountPolicy, DiscountCoupon, Price, CURRENCY_SYMBOL, CURRENCY
 from ..forms import DiscountPolicyForm, DiscountCouponForm, DiscountPriceForm, CouponBasedDiscountPolicyForm, AutomaticDiscountPolicyForm, PriceBasedDiscountPolicyForm
-from utils import xhr_only, date_time_format, api_error, api_success
+from utils import xhr_only, json_date_format, api_error, api_success
 
 
 def jsonify_price(price):
     if price:
         return {
             'amount': price.amount,
-            'start_at': date_time_format(price.start_at),
-            'end_at': date_time_format(price.end_at)
+            'start_at': json_date_format(price.start_at),
+            'end_at': json_date_format(price.end_at)
         }
     else:
         return None

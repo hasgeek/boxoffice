@@ -1,5 +1,5 @@
 
-import {fetch, post, scrollToElement, urlFor, setPageTitle} from '../models/util.js';
+import {fetch, post, scrollToElement, urlFor, setPageTitle, formatDateTime} from '../models/util.js';
 import {OrderTemplate} from '../templates/admin_order.html.js';
 import {SideBarView} from './sidebar.js';
 
@@ -15,7 +15,10 @@ export const OrderView = {
         template: OrderTemplate,
         data:  {
           icTitle: title,
-          orders: orders
+          orders: orders,
+          formatDateTime: function (dateTimeString) {
+            return formatDateTime(dateTimeString);
+          }
         }
       });
 

@@ -131,3 +131,13 @@ export const setPageTitle = function (...subTitles) {
   subTitles.push(window.boxofficeAdmin.siteTitle);
   $('title').html(subTitles.join(" — "));
 }
+
+export const formatDateTime = function (dateTimeString, formatString="") {
+  // Takes an date time string and returns a string in the specified format.
+  if (formatString) {
+    return moment(dateTimeString).format(formatString);
+  }
+  else {
+    return moment(dateTimeString).toString();
+  }
+}

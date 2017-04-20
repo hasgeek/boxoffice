@@ -9,7 +9,7 @@ export const OrgView = {
     fetch({
       url: urlFor('view', {resource: 'o', id: org_name, root: true})
     }).then(function({id, name, title, item_collections}){
-      let ractive = new Ractive({
+      let orgComponent = new Ractive({
         el: '#main-content-area',
         template: orgTemplate,
         data: {

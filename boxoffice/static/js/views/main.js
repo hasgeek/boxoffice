@@ -5,6 +5,7 @@ window.d3 = require("d3");
 window.c3 = require("c3");
 window.Clipboard = require("clipboard");
 window.daterangepicker = require("bootstrap-daterangepicker");
+window.moment = require("moment");
 
 import {Router} from './router';
 

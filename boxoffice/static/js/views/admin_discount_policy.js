@@ -1,5 +1,5 @@
 
-import {fetch, post, scrollToElement, getFormParameters, getCsrfToken, updateBrowserHistory, urlFor} from '../models/util.js';
+import {fetch, post, scrollToElement, getFormParameters, getCsrfToken, updateBrowserHistory, urlFor, setPageTitle} from '../models/util.js';
 import {DiscountPolicyTemplate} from '../templates/admin_discount_policy.html.js';
 import {SideBarView} from './sidebar.js';
 
@@ -46,8 +46,8 @@ export const DiscountPolicyView = {
         el: '#main-content-area',
         template: DiscountPolicyTemplate,
         data:  {
-          org: org_name,
-          title: title,
+          orgName: org_name,
+          orgTitle: title,
           discountPolicies: discount_policies,
           currency_symbol: currency_symbol,
           paginated: paginated,
@@ -529,7 +529,7 @@ export const DiscountPolicyView = {
       });
 
       SideBarView.render('discount-policies', {org_name});
-
+      setPageTitle("Discount policies", discountPolicyComponent.get('orgTitle'));
       NProgress.done();
 
       window.addEventListener('popstate', (event) => {

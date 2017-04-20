@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from pytz import utc, timezone
 from flask import request, abort, Response, jsonify, make_response
 from functools import wraps
 try:
@@ -28,23 +27,13 @@ def check_api_access(api_token):
         abort(401)
 
 
-@app.template_filter('date_time_format')
-def date_time_format(dt):
-    return localize_timezone(dt).strftime('%Y-%m-%d %H:%M')
-
-
-@app.template_filter('date_format')
-def date_format(dt):
-    return localize_timezone(dt).strftime('%d %b %Y')
-
-
-def localize(dt, tz):
-    return utc.localize(dt).astimezone(timezone(tz))
+def json_date_format(dt):
+    return localize_timezone(dt).isoformat()
 
 
 @app.template_filter('invoice_date')
 def invoice_date_filter(date, format):
-    return localize(date, app.config['TIMEZONE']).strftime(format)
+    return localize_timezone(date).strftime(format)
 
 
 def cors(f):

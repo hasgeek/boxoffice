@@ -32,7 +32,7 @@ export const Router = Backbone.Router.extend({
   discount_policy: function(org_name, {search, page, size}={}) {
     DiscountPolicyView.render({org_name, search, page, size});
   },
-  report: function(ic_id){
+  report: function(ic_id) {
     ReportView.render({ic_id});
   },
   _extractParameters: function(route, fragment) {

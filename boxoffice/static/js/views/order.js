@@ -61,7 +61,10 @@ window.Boxoffice.Order = {
         line_items: data.line_items,
         buyer_name: data.buyer_name,
         buyer_email: data.buyer_email,
-        buyer_phone: data.buyer_phone
+        buyer_phone: data.buyer_phone,
+        formatDate: function (dateTimeString) {
+          return (new Date(dateTimeString).toDateString());
+        }
       },
       scrollTop: function(line_item_seq){
         //Scroll to the corresponding line_item.
