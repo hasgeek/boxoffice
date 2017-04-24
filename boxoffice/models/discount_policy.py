@@ -61,6 +61,10 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     # `n` here is essentially bulk_coupon_usage_limit.
     bulk_coupon_usage_limit = db.Column(db.Integer, nullable=True, default=1)
 
+    def __init__(self, *args, **kwargs):
+        self.secret = kwargs.get('secret') if kwargs.get('secret') else buid()
+        super(DiscountPolicy, self).__init__(*args, **kwargs)
+
     @cached_property
     def is_automatic(self):
         return self.discount_type == DISCOUNT_TYPE.AUTOMATIC
@@ -97,11 +101,6 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
             return policy
         except BadSignature:
             return None
-
-    def set_secret(self, secret=None):
-        """Sets a given value or buid as the secret for the discount policy object"""
-        self.secret = secret if secret else buid()
-        return self.secret
 
     @classmethod
     def make_bulk(cls, discount_code_base, **kwargs):

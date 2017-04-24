@@ -78,14 +78,6 @@ def admin_discount_policies(organization, search=None, page=1, size=None):
         current_page=page)
 
 
-def make_discount(discount_policy, discount_policy_form, secret=False):
-    discount_policy_form.populate_obj(discount_policy)
-    if secret:
-        discount_policy.set_secret()
-    discount_policy.make_name()
-    return discount_policy
-
-
 @app.route('/admin/o/<org>/discount_policy/new', methods=['POST'])
 @lastuser.requires_login
 @xhr_only
@@ -106,7 +98,8 @@ def admin_new_discount_policy(organization):
                 return api_error(message=discount_policy_error_msg,
                     status_code=400,
                     errors=discount_policy_form.errors)
-            discount_policy = make_discount(discount_policy, discount_policy_form, secret=True)
+            discount_policy_form.populate_obj(discount_policy)
+            discount_policy.make_name()
             discount_price_form = DiscountPriceForm(parent=discount_policy)
             if not discount_price_form.validate_on_submit():
                 return api_error(message=_(u"There was an issue with the price. Please rectify the indicated issues"),
@@ -122,13 +115,15 @@ def admin_new_discount_policy(organization):
         with db.session.no_autoflush:
             if not discount_policy_form.validate_on_submit():
                 return api_error(message=discount_policy_error_msg, status_code=400, errors=discount_policy_form.errors)
-        discount_policy = make_discount(discount_policy, discount_policy_form, secret=True)
+        discount_policy_form.populate_obj(discount_policy)
+        discount_policy.make_name()
     elif discount_policy.is_automatic:
         discount_policy_form = AutomaticDiscountPolicyForm(parent=discount_policy.organization)
         with db.session.no_autoflush:
             if not discount_policy_form.validate_on_submit():
                 return api_error(message=discount_policy_error_msg, status_code=400, errors=discount_policy_form.errors)
-        discount_policy = make_discount(discount_policy, discount_policy_form)
+        discount_policy_form.populate_obj(discount_policy)
+        discount_policy.make_name()
     else:
         return api_error(message=_(u"Incorrect discount type"), status_code=400)
 
@@ -190,8 +185,6 @@ def admin_new_coupon(discount_policy):
             status_code=400, errors=coupon_form.errors)
     if coupon_form.count.data > 1:
         # Create a signed discount coupon code
-        if not discount_policy.secret:
-            discount_policy.set_secret()
         for x in range(coupon_form.count.data):
             # No need to store these coupon codes since they are signed
             coupons.append(discount_policy.gen_signed_code())
