@@ -3,10 +3,10 @@ export const OrderTemplate = `
   <div class="content-wrapper">
     <h1 class="header">{{ icTitle }}</h1>
     {{#if orders}}
-      <form class="table-title col-sm-6 col-xs-12" id="search-form">
+      <form class="title-wrapper col-sm-6 col-xs-12" id="search-form">
         <input autofocus class="form-control" id="filter" type="text" name="key" value="" placeholder="Search"/>
       </form>
-      <div class="table-title form-group text-right col-sm-6 col-xs-12">
+      <div class="title-wrapper form-group text-right col-sm-6 col-xs-12">
         <label for="filter-status" class="status-select-label">Filter:</label>
         <select class="form-control status-select" id="filter-status">
           <option value="">All orders</option>
@@ -40,7 +40,7 @@ export const OrderTemplate = `
               <td><p class="table-content">{{ buyer_email }}</p></td>
               <td><p class="table-content">{{ buyer_phone }}</p></td>
               <td><p class="table-content">{{currency}}{{ amount }}</p></td>
-              <td><p class="table-content">{{ order_date }}</p></td>
+              <td><p class="table-content">{{ formatDateTime(order_date) }}</p></td>
               <td><p class="table-content">{{ id }}</p></td>
               <td>
                 <p class="table-content">
@@ -60,10 +60,10 @@ export const OrderTemplate = `
               </td>
             </tr>
             {{#show_order}}
-              <div class="order-slider" intro-outro='fly:{x:200,y:0,duration:200}'>
+              <div class="content-slider" intro-outro='fly:{x:200,y:0,duration:200}'>
                 <button on-click="hideOrder" class="close-button"><i class="fa fa-close"></i></button>
-                <p class="order-title">Order Invoice No: {{invoice_no}}</p>
-                <div class="line-items-wrapper">
+                <p class="content-slider-title">Order Invoice No: {{invoice_no}}</p>
+                <div class="content-slider-wrapper">
                   {{#line_items:line_item}}
                     <div class="ticket col-sm-6 col-xs-12" id="item-{{ @index }}">
                       <div class="heading">
@@ -79,7 +79,7 @@ export const OrderTemplate = `
                           <p><span class="italic-title">Final amount:</span> {{ currency }}{{ final_amount }}</p>
                           {{#discount_policy}}<p><span class="italic-title">Discount policy:</span> <span class="line-item-discount">{{ discount_policy }}</span>{{/}}
                           {{#discount_coupon}}<p><span class="italic-title">Discount coupon:</span> <span class="line-item-discount">{{ discount_coupon }}</span>{{/}}
-                          {{#cancelled_at}}<p><b><span class="italic-title cancelled">Cancelled at: {{ cancelled_at }}</span></b></p>{{/}}
+                          {{#cancelled_at}}<p><b><span class="italic-title cancelled">Cancelled at: {{ formatDateTime(cancelled_at) }}</span></b></p>{{/}}
                           {{#assignee_details}}
                             <p><span class="italic-title">Fullname:</span> {{ fullname }}</p>
                             <p><span class="italic-title">Email:</span> {{ email }}</p>
@@ -107,13 +107,6 @@ export const OrderTemplate = `
             {{/show_order}}
           {{/orders}}
           </tbody>
-          <tfoot>
-            <tr>
-              <td colspan="10">
-                <div class="pagination pagination-centered"></div>
-              </td>
-            </tr>
-          </tfoot>
         </table>
       </div>
     {{else}}

@@ -11,14 +11,13 @@ export const ReportTemplate = `
           <form role="form" id="report-form"> 
             <div class="group-select">
               <p class="field-title filled">Report type</p>
-              <select name="type" value="{{report_type}}">
-                <option value="tickets">Tickets</option>
+              <select name="report-type" value="{{ reportType }}">
+                <option value="tickets" selected="selected">Tickets</option>
               </select>
             </div>
             <div class="btn-wrapper"> 
-              <a href="{{reports_url()}}" download="{{reports_filename()}}" class="boxoffice-button boxoffice-button-action">Download</a>
+              <a href="{{ reportsUrl() }}" download="{{ reportsFilename() }}" class="boxoffice-button boxoffice-button-action">Download</a>
             </div>
-            <p class="error-msg">{{download_report_error}}</p>
           </form>
         </div>
       </div>

@@ -1,27 +1,16 @@
-import {Util, fetch} from './util.js';
+import {Util} from './util.js';
 import {IndexModel} from './index.js';
 
 
 export const ItemCollectionModel = {
-  fetch: fetch,
-  urlFor: function(action, config){
-    let urls = {
-      'index': {
-        'path': IndexModel.urlFor('index')['path'] + 'ic/' + config.ic_id,
-        'relative_path': 'ic/' + config.ic_id,
-        'method': 'GET'
-      }
-    }
-    return urls[action];
-  },
-  formatItems: function(items){
+  formatItems: function (items) {
     var formattedItems = _.extend(items);
     formattedItems.forEach(function(item){
       item.net_sales = Util.formatToIndianRupee(item.net_sales);
     })
     return formattedItems;
   },
-  formatData: function(data){
+  formatData: function (data) {
     return {
       icTitle: data.title,
       items: this.formatItems(data.items),

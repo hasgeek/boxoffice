@@ -15,6 +15,17 @@ body
   text-align: center
   font-size: 25px
 
+.box 
+  display: inline-block
+  vertical-align: top
+  float: none
+  margin-bottom: 40px
+  background-color: #fff
+
+@media (min-width: 1600px)
+  .box
+    width: 33.3%
+
 .heading
   background-color: $color-heading-box
   color: rgb(255, 255, 255)
@@ -22,11 +33,28 @@ body
   border-radius: 5px 5px 0 0
   min-height: 44px
   box-shadow: 0 0 2px rgba(0,0,0,0.6)
+  margin: 0
 
 .heading:after
   content: " "
   display: table
   clear: both
+
+.heading-title 
+  float: left
+  width: 70%
+  margin: 0
+
+.heading-edit 
+  float: right
+
+.heading-title,
+.heading-edit 
+  font-size: 16px
+
+.edit-btn
+  background: transparent
+  border: none
 
 .content-box
   box-shadow: 0 0 2px rgba(0,0,0,0.6)
@@ -35,11 +63,28 @@ body
   background-color: #fff
   min-height: 196px
 
+.content-box:after
+  content: " "
+  display: table
+  clear: both 
+
+.content-details, 
+.content-details-text
+  margin: 5px 0
+  word-break: break-all
+
+.content-details-text,
+.content-list
+  padding-left: 25px
+
+.content-list
+  list-style-position: inside
+
 .boxoffice-button 
   border-width: 0px 0px 3px
   border-style: solid
   border-radius: 5px
-  padding: 6px
+  padding: 6px 12px
   color: $color-btn-text
   font-size: 13px
 
@@ -99,6 +144,9 @@ a.boxoffice-button:focus
   position: relative
   margin-bottom: 45px
 
+.group-margin-top
+  margin-top: 20px
+
 .radio-group 
   margin-bottom: 25px
 
@@ -107,6 +155,7 @@ a.boxoffice-button:focus
 
 .group-input 
   font-size: 18px
+  line-height: 1.2
   padding: 10px 10px 10px 5px
   display: block
   width: 100%
@@ -129,7 +178,8 @@ a.boxoffice-button:focus
   -moz-transition: 0.2s ease all
   -webkit-transition: 0.2s ease all
 
-.group-input:disabled 
+.group-input:disabled,
+.group-input.disabled
   position: relative
   background-color: transparent
   color: $color-form-disabled-label
@@ -139,6 +189,9 @@ a.boxoffice-button:focus
   top: -20px
   font-size: 14px
   color: $color-form-filled-label
+
+.group-input-btn:active
+  outline: none
 
 .group-select select
   -webkit-appearance: none
@@ -176,11 +229,24 @@ a.boxoffice-button:focus
   border-top: 5px solid $color-form-field-border
   pointer-events: none
 
+
+.inline-group .input-group
+  width: 75%
+  margin: 0 2% 2% 0
+  float: left
+  position: relative
+
+@media (min-width: 768px)
+  .inline-group .input-group
+    width: 30%
+    margin: 0 3% 0 0
+
 .group-checkbox
   width: auto
   padding: 0
   font-size: 20px
   display: inline-block
+
 
 .bar
   position: relative
@@ -230,7 +296,8 @@ a.boxoffice-button:focus
   margin: 10px 0 0
   padding: 5px
   position: relative
-  display: inline-block
+  display: block
+  width: 150px
 
 .form-error-msg::before
   display: block
@@ -244,7 +311,7 @@ a.boxoffice-button:focus
 .btn-wrapper 
   float: right
   text-align: center
-  margin-bottom: 10px
+  margin: 20px 0 10px
   clear: both
 
 .error-msg 
@@ -256,6 +323,14 @@ a.boxoffice-button:focus
 
 .error-msg.left-aligned
   text-align: left
+
+.form-help-text
+  font-size: 13px
+  color: $color-form-helptext
+  margin: 10px 0
+  position: relative
+  top: -40px
+  left: 5px
 
 .info-msg 
   font-size: 14px
@@ -364,3 +439,94 @@ a.boxoffice-button:focus
   .content-wrapper .header
     text-align: left
     padding: 0 15px
+
+.title-wrapper
+  margin-bottom: 12px
+  font-size: 18px
+  font-weight: normal
+  position: relative
+
+.title-wrapper .status-select-label
+  width: 20%
+
+.title-wrapper .status-select
+  display: inline-block
+  width: 60%
+
+.clear-field
+  cursor: pointer
+  position: absolute
+  right: 16px
+  top: 1px
+  font-size: 16px
+  background: #ddd
+  padding: 6px
+  border-radius: 0 4px 4px 0
+
+.content-slider
+  position: absolute
+  top: -115px
+  left: 3%
+  background: #fff
+  z-index: 1020
+  width: 97%
+  min-height: 100%
+  box-shadow: 0 0 2px rgba(0,0,0,0.8)
+
+.content-slider.align-down
+  top: 0
+
+@media (min-width: 768px)
+  .content-slider
+    top: -50px
+    left: 1%
+    width: 99%
+
+.content-slider-title
+  padding: 10px 0
+  font-size: 18px
+  text-align: center
+  border-bottom: 2px solid #ddd
+  margin: 0
+
+.content-slider-wrapper
+  padding: 30px
+
+.close-button
+  position: absolute
+  top: -15px
+  left: -5px
+  background: #fff
+  border: 2px solid #999
+  font-size: 18px
+  border-radius: 50%
+  color: #000
+  background: #eee
+  width: 30px
+  height: 30px
+
+.close-button .fa
+  position: relative
+  top: -1px
+
+.search
+  border: 1px solid #ccc
+  border-radius: 5px
+  padding: 7px 14px
+  margin-bottom: 10px
+  width: 250px
+
+.search:focus
+  outline: none
+  border-color: #aaa
+
+@media (min-width: 768px)
+  .btn-right
+    float: right
+    margin-bottom: 10px
+
+.table-responsive
+  overflow-x: inherit
+
+.content-wrapper .modal-dialog
+  width: 50%

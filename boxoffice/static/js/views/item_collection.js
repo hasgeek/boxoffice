@@ -1,5 +1,5 @@
 
-import {setPageTitle} from '../models/util.js';
+import {fetch, urlFor, setPageTitle} from '../models/util.js';
 import {ItemCollectionModel} from '../models/item_collection.js';
 import {TableTemplate, AggChartTemplate, ItemCollectionTemplate} from '../templates/item_collection.html.js';
 import {SideBarView} from './sidebar.js'
@@ -97,10 +97,10 @@ let AggChartComponent = Ractive.extend({
 })
 
 export const ItemCollectionView = {
-  render: function(config) {
+  render: function({ic_id}={}) {
 
-    ItemCollectionModel.fetch({
-      url: ItemCollectionModel.urlFor('index', {ic_id: config.id})['path']
+    fetch({
+      url: urlFor('view', {resource: 'ic', id: ic_id, root: true})
     }).done((remoteData) => {
       // Initial render
       let icComponent = new Ractive({
@@ -110,7 +110,8 @@ export const ItemCollectionView = {
         components: {TableComponent: TableComponent, AggChartComponent: AggChartComponent}
       });
 
-      SideBarView.render('dashboard', {'org_name': remoteData.org_name, 'ic_id': config.id});
+      let org_name = remoteData.org_name;
+      SideBarView.render('dashboard', {org_name, ic_id});
       setPageTitle(icComponent.get('icTitle'));
       NProgress.done();
 

@@ -15,7 +15,7 @@ from ..extapi import razorpay, RAZORPAY_PAYMENT_STATUS
 from ..forms import LineItemForm, BuyerForm, OrderSessionForm
 from custom_exceptions import PaymentGatewayError
 from boxoffice.mailclient import send_receipt_mail, send_line_item_cancellation_mail
-from utils import xhr_only, cors, date_format
+from utils import xhr_only, cors, json_date_format
 
 
 def jsonify_line_items(line_items):
@@ -67,7 +67,7 @@ def jsonify_order(data):
             'assignee': jsonify_assignee(line_item.current_assignee),
             'is_confirmed': line_item.is_confirmed,
             'is_cancelled': line_item.is_cancelled,
-            'cancelled_at': date_format(line_item.cancelled_at) if line_item.cancelled_at else "",
+            'cancelled_at': json_date_format(line_item.cancelled_at) if line_item.cancelled_at else "",
         })
     return jsonify(order_id=order.id, access_token=order.access_token,
         item_collection_name=order.item_collection.description_text, buyer_name=order.buyer_fullname,
@@ -109,11 +109,11 @@ def kharcha():
 
 @app.route('/ic/<item_collection>/order',
            methods=['GET', 'OPTIONS', 'POST'])
+@xhr_only
+@cors
 @load_models(
     (ItemCollection, {'id': 'item_collection'}, 'item_collection')
     )
-@xhr_only
-@cors
 def order(item_collection):
     """
     Accepts JSON containing an array of line_items with the quantity and item_id
@@ -203,11 +203,11 @@ def order(item_collection):
 
 
 @app.route('/order/<order>/free', methods=['GET', 'OPTIONS', 'POST'])
+@xhr_only
+@cors
 @load_models(
     (Order, {'id': 'order'}, 'order')
     )
-@xhr_only
-@cors
 def free(order):
     """
     Completes a order which has a final_amount of 0
@@ -231,11 +231,11 @@ def free(order):
 
 
 @app.route('/order/<order>/payment', methods=['GET', 'OPTIONS', 'POST'])
+@xhr_only
+@cors
 @load_models(
     (Order, {'id': 'order'}, 'order')
     )
-@xhr_only
-@cors
 def payment(order):
     """
     Accepts JSON containing `pg_paymentid`.
@@ -435,7 +435,7 @@ def cancel_line_item(line_item):
 
     refund_amount = process_line_item_cancellation(line_item)
     send_line_item_cancellation_mail.delay(line_item.id, refund_amount)
-    return make_response(jsonify(status='ok', result={'message': 'Ticket cancelled', 'cancelled_at': date_format(line_item.cancelled_at)}), 200)
+    return make_response(jsonify(status='ok', result={'message': 'Ticket cancelled', 'cancelled_at': json_date_format(line_item.cancelled_at)}), 200)
 
 
 @app.route('/api/1/ic/<item_collection>/orders', methods=['GET', 'OPTIONS'])

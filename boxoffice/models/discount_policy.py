@@ -5,6 +5,7 @@ import random
 from datetime import datetime
 from werkzeug import cached_property
 from itsdangerous import Signer, BadSignature
+from sqlalchemy import event, DDL
 from baseframe import __
 from coaster.utils import LabeledEnum, uuid1mc, buid
 from boxoffice.models import db, IdMixin, BaseScopedNameMixin
@@ -27,16 +28,18 @@ item_discount_policy = db.Table('item_discount_policy', db.Model.metadata,
 class DiscountPolicy(BaseScopedNameMixin, db.Model):
     """
     Consists of the discount rules applicable on items
+
+    `title` has a GIN index to enable trigram matching.
     """
     __tablename__ = 'discount_policy'
     __uuid_primary_key__ = True
     __table_args__ = (db.UniqueConstraint('organization_id', 'name'),
-        db.UniqueConstraint('discount_code_base'),
+        db.UniqueConstraint('organization_id', 'discount_code_base'),
         db.CheckConstraint('percentage > 0 and percentage <= 100', 'discount_policy_percentage_check'),
         db.CheckConstraint('discount_type = 0 or (discount_type = 1 and bulk_coupon_usage_limit IS NOT NULL)', 'discount_policy_bulk_coupon_usage_limit_check'))
 
     organization_id = db.Column(None, db.ForeignKey('organization.id'), nullable=False)
-    organization = db.relationship(Organization, backref=db.backref('discount_policies', cascade='all, delete-orphan'))
+    organization = db.relationship(Organization, backref=db.backref('discount_policies', order_by='DiscountPolicy.created_at.desc()', lazy='dynamic', cascade='all, delete-orphan'))
     parent = db.synonym('organization')
 
     discount_type = db.Column(db.Integer, default=DISCOUNT_TYPE.AUTOMATIC, nullable=False)
@@ -57,6 +60,10 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     # a signed coupon and provide it to a user such that the user can share the coupon `n` times
     # `n` here is essentially bulk_coupon_usage_limit.
     bulk_coupon_usage_limit = db.Column(db.Integer, nullable=True, default=1)
+
+    def __init__(self, *args, **kwargs):
+        self.secret = kwargs.get('secret') if kwargs.get('secret') else buid()
+        super(DiscountPolicy, self).__init__(*args, **kwargs)
 
     @cached_property
     def is_automatic(self):
@@ -103,6 +110,13 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
         return cls(discount_type=DISCOUNT_TYPE.COUPON, discount_code_base=discount_code_base, secret=buid(), **kwargs)
 
 
+@event.listens_for(DiscountPolicy, 'before_update')
+@event.listens_for(DiscountPolicy, 'before_insert')
+def validate_price_based_discount(mapper, connection, target):
+    if target.is_price_based and len(target.items) > 1:
+        raise ValueError("Price-based discounts MUST have only one associated item")
+
+
 def generate_coupon_code(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
 
@@ -122,3 +136,13 @@ class DiscountCoupon(IdMixin, db.Model):
 
     discount_policy_id = db.Column(None, db.ForeignKey('discount_policy.id'), nullable=False)
     discount_policy = db.relationship(DiscountPolicy, backref=db.backref('discount_coupons', cascade='all, delete-orphan'))
+
+
+create_title_trgm_trigger = DDL(
+    '''
+    CREATE EXTENSION IF NOT EXISTS pg_trgm;
+    CREATE INDEX idx_discount_policy_title_trgm on discount_policy USING gin (title gin_trgm_ops);
+    ''')
+
+event.listen(DiscountPolicy.__table__, 'after_create',
+    create_title_trgm_trigger.execute_if(dialect='postgresql'))

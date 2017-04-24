@@ -11,10 +11,10 @@ from utils import xhr_only
 
 
 @app.route('/participant/<access_token>/assign', methods=['GET', 'OPTIONS', 'POST'])
+@xhr_only
 @load_models(
     (Order, {'access_token': 'access_token'}, 'order')
     )
-@xhr_only
 def assign(order):
     """
     Assign a line_item to a participant

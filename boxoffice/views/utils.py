@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from pytz import utc, timezone
 from flask import request, abort, Response, jsonify, make_response
 from functools import wraps
 try:
@@ -28,23 +27,13 @@ def check_api_access(api_token):
         abort(401)
 
 
-@app.template_filter('date_time_format')
-def date_time_format(dt):
-    return localize_timezone(dt).strftime('%d %b %Y %H:%M:%S')
-
-
-@app.template_filter('date_format')
-def date_format(dt):
-    return localize_timezone(dt).strftime('%d %b %Y')
-
-
-def localize(dt, tz):
-    return utc.localize(dt).astimezone(timezone(tz))
+def json_date_format(dt):
+    return localize_timezone(dt).isoformat()
 
 
 @app.template_filter('invoice_date')
 def invoice_date_filter(date, format):
-    return localize(date, app.config['TIMEZONE']).strftime(format)
+    return localize_timezone(date).strftime(format)
 
 
 def cors(f):
@@ -98,14 +87,16 @@ def csv_response(headers, rows, row_handler=None):
     return Response(unicode(stream.getvalue()), content_type='text/csv')
 
 
-def api_error(message, status_code):
+def api_error(message, status_code, errors=[]):
     """
     Generates a HTTP response as a JSON object for a failure scenario
 
+    :param string message: Human readable error message to be included as part of the JSON response
     :param string message: Error message to be included as part of the JSON response
+    :param list errors: Error messages to be included as part of the JSON response
     :param int status_code: HTTP status code to be used for the response
     """
-    return make_response(jsonify(status='error', message=message), status_code)
+    return make_response(jsonify(status='error', errors=errors, message=message), status_code)
 
 
 def api_success(result, doc, status_code):

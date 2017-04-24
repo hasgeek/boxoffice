@@ -1,40 +1,44 @@
-import {IndexModel} from './index.js';
-import {OrgModel} from './org.js';
-import {ItemCollectionModel} from './item_collection.js';
-import {OrderModel} from './admin_order.js';
-import {ReportModel} from './admin_report.js';
+import {urlFor} from './util.js';
 
 export const SideBarModel = {
-  getItems: function(config) {
+  getItems: function({org_name, ic_id}={}) {
     let sidebar_items = [];
-    if (config.org_name && config.ic_id) {
+    this.org_name = org_name ? org_name : this.org_name;
+    this.ic_id = ic_id ? ic_id : this.ic_id;
+    if (org_name) {
       sidebar_items = [
         {
-          url: IndexModel.urlFor('index')['relative_path'],
+          url: '/',
           title: 'Home',
           icon: 'fa-home',
           view: 'home'
         },
         {
-          url: OrgModel.urlFor('index', {org_name: config.org_name})['relative_path'],
+          url: urlFor('view', {resource: 'o', id: org_name}),
           title: 'Organization',
           icon: 'fa-sitemap',
           view: 'org'
         },
         {
-          url: ItemCollectionModel.urlFor('index', {ic_id: config.ic_id})['relative_path'],
+          url: this.ic_id ? urlFor('view', {resource: 'ic', id: this.ic_id}) : "",
           title: 'Dashboard',
           icon: 'fa-dashboard',
           view: 'dashboard'
         },
         {
-          url: OrderModel.urlFor('index', {ic_id: config.ic_id})['relative_path'],
+          url: this.ic_id ? urlFor('index', {resource: 'orders', scope_ns: 'ic', scope_id: this.ic_id}) : "",
           title: 'Orders',
           icon: 'fa-shopping-cart',
           view: 'orders'
         },
         {
-          url: ReportModel.urlFor('index', {ic_id: config.ic_id})['relative_path'],
+          url: urlFor('index', {scope_ns: 'o', scope_id: org_name, resource: 'discount_policy'}),
+          title: 'Discount Policies',
+          icon: 'fa-tags',
+          view: 'discount-policies'
+        },
+        {
+          url: this.ic_id ? urlFor('index', {resource: 'reports', scope_ns: 'ic', scope_id: this.ic_id}) : "",
           title: 'Reports',
           icon: 'fa-file-excel-o',
           view: 'reports'

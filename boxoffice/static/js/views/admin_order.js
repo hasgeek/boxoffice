@@ -1,26 +1,28 @@
 
-import {scrollToElement, setPageTitle} from '../models/util.js';
-import {OrderModel} from '../models/admin_order.js';
+import {fetch, post, scrollToElement, urlFor, setPageTitle, formatDateTime} from '../models/util.js';
 import {OrderTemplate} from '../templates/admin_order.html.js';
 import {SideBarView} from './sidebar.js';
 
 export const OrderView = {
-  render: function(config) {
+  render: function({ic_id}={}) {
 
-    OrderModel.fetch({
-      url: OrderModel.urlFor('index', {ic_id: config.id})['path']
-    }).done((remoteData) => {
+    fetch({
+      url: urlFor('index', {scope_ns: 'ic', scope_id: ic_id, resource: 'orders', root: true})
+    }).done(({org_name, title, orders}) => {
       // Initial render
       let orderComponent = new Ractive({
         el: '#main-content-area',
         template: OrderTemplate,
         data:  {
-          icTitle: remoteData.title,
-          orders: remoteData.orders
+          icTitle: title,
+          orders: orders,
+          formatDateTime: function (dateTimeString) {
+            return formatDateTime(dateTimeString);
+          }
         }
       });
 
-      SideBarView.render('orders', {'org_name': remoteData.org_name, 'ic_id': config.id});
+      SideBarView.render('orders', {org_name, ic_id});
       setPageTitle("Orders", orderComponent.get('icTitle'));
       NProgress.done();
 
@@ -66,8 +68,12 @@ export const OrderView = {
         orderComponent.set(event.keypath + '.loading', true);
         NProgress.configure({ showSpinner: false}).start();
         let order_id = event.context.id;
-        OrderModel.fetch({
-          url: OrderModel.urlFor('view', {order_id: order_id})['path']
+        fetch({
+          url: urlFor('view', {
+            resource: 'order',
+            id: order_id,
+            root: true
+          })
         }).done((remoteData) => {
           orderComponent.set(event.keypath + '.line_items', remoteData.line_items);
           orderComponent.set(event.keypath + '.show_order', true);
@@ -88,7 +94,7 @@ export const OrderView = {
           orderComponent.set(event.keypath + '.cancel_error', "");
           orderComponent.set(event.keypath + '.cancelling', true);
 
-          OrderModel.post({
+          post({
             url: event.context.cancel_ticket_url
           }).done(function(response) {
             orderComponent.set(event.keypath + '.cancelled_at', response.result.cancelled_at);

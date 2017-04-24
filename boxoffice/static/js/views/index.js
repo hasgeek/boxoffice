@@ -1,5 +1,5 @@
 
-import {setPageTitle} from '../models/util.js';
+import {fetch, urlFor, setPageTitle} from '../models/util.js';
 import {IndexModel} from '../models/index.js';
 import {IndexTemplate} from '../templates/index.html.js';
 import {SideBarView} from './sidebar.js'
@@ -7,14 +7,14 @@ import {SideBarView} from './sidebar.js'
 export const IndexView = {
   render: function() {
 
-    IndexModel.fetch({
-      url: IndexModel.urlFor('index')['path']
-    }).then(function(data){
+    fetch({
+      url: urlFor('index', {root: true})
+    }).then(function({orgs}){
       let indexComponent = new Ractive({
         el: '#main-content-area',
         template: IndexTemplate,
         data: {
-          orgs: data.orgs
+          orgs: orgs
         }
       });
 
