@@ -86,7 +86,7 @@ def make_discount(discount_policy, discount_policy_form, secret=False):
     return discount_policy
 
 
-@app.route('/admin/o/<org>/discount_policy/new', methods=['OPTIONS', 'POST'])
+@app.route('/admin/o/<org>/discount_policy/new', methods=['POST'])
 @lastuser.requires_login
 @xhr_only
 @load_models(
@@ -138,7 +138,7 @@ def admin_new_discount_policy(organization):
         doc=_(u"New discount policy created"), status_code=201)
 
 
-@app.route('/admin/discount_policy/<discount_policy_id>/edit', methods=['OPTIONS', 'POST'])
+@app.route('/admin/discount_policy/<discount_policy_id>/edit', methods=['POST'])
 @lastuser.requires_login
 @xhr_only
 @load_models(
@@ -175,7 +175,7 @@ def admin_edit_discount_policy(discount_policy):
             errors=discount_policy_form.errors)
 
 
-@app.route('/admin/discount_policy/<discount_policy_id>/coupons/new', methods=['OPTIONS', 'POST'])
+@app.route('/admin/discount_policy/<discount_policy_id>/coupons/new', methods=['POST'])
 @lastuser.requires_login
 @xhr_only
 @load_models(
