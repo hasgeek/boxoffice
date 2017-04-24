@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import division
-import math
 from flask import jsonify
 from .. import app, lastuser
-from baseframe import _, get_timezone
+from baseframe import _
 from coaster.views import load_models, render_with, requestargs
 from ..models import db
 from boxoffice.models import Organization, DiscountPolicy, DiscountCoupon, Price, CURRENCY_SYMBOL, CURRENCY
@@ -66,22 +65,16 @@ def admin_discount_policies(organization, search=None, page=1, size=None):
     results_per_page = size or 20
 
     discount_policies = organization.discount_policies
-
     if search:
         discount_policies = discount_policies.filter(
             DiscountPolicy.title.ilike('%{query}%'.format(query=search)))
-
-    total_policies = discount_policies.count()
-    total_pages = int(math.ceil(total_policies / results_per_page))
-    offset = (page - 1) * results_per_page
-
-    discount_policies = discount_policies.limit(results_per_page).offset(offset).all()
+    paginated_discount_policies = discount_policies.paginate(page=page, per_page=results_per_page)
 
     return dict(
         org=organization, title=organization.title,
-        discount_policies=discount_policies,
-        total_pages=total_pages,
-        paginated=(total_policies > results_per_page),
+        discount_policies=paginated_discount_policies.items,
+        total_pages=paginated_discount_policies.pages,
+        paginated=(paginated_discount_policies.total > results_per_page),
         current_page=page)
 
 
