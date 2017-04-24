@@ -5,7 +5,7 @@ import random
 from datetime import datetime
 from werkzeug import cached_property
 from itsdangerous import Signer, BadSignature
-from sqlalchemy import event
+from sqlalchemy import event, DDL
 from baseframe import __
 from coaster.utils import LabeledEnum, uuid1mc, buid
 from boxoffice.models import db, IdMixin, BaseScopedNameMixin
@@ -137,3 +137,13 @@ class DiscountCoupon(IdMixin, db.Model):
 
     discount_policy_id = db.Column(None, db.ForeignKey('discount_policy.id'), nullable=False)
     discount_policy = db.relationship(DiscountPolicy, backref=db.backref('discount_coupons', cascade='all, delete-orphan'))
+
+
+create_title_trgm_trigger = DDL(
+    '''
+    CREATE EXTENSION IF NOT EXISTS pg_trgm;
+    CREATE INDEX idx_discount_policy_title_trgm on discount_policy USING gin (title gin_trgm_ops);
+    ''')
+
+event.listen(DiscountPolicy.__table__, 'after_create',
+    create_title_trgm_trigger.execute_if(dialect='postgresql'))
