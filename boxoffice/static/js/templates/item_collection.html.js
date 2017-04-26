@@ -15,16 +15,27 @@ export const TableTemplate = `
           </tr>
         </thead>
         <tbody>
-          {{#items}}
+          {{#categories}}
             <tr>
-              <td>{{ @index + 1 }}</td>
-              <td>{{ title }}</td>
-              <td>{{ available }}</td>
-              <td>{{ sold }}</td>
-              <td>{{ free }}</td>
-              <td>{{ cancelled }}</td>
-              <td>{{ current_price }}</td>
-              <td>{{ net_sales }}</td>
+              <td class="active" colspan="8">Category: {{ title }}</td>
+            </tr>
+            {{#items}}
+              <tr>
+                <td>{{ @index + 1 }}</td>
+                <td>{{ title }}</td>
+                <td>{{ available }}</td>
+                <td>{{ sold }}</td>
+                <td>{{ free }}</td>
+                <td>{{ cancelled }}</td>
+                <td>{{ formatToIndianRupee(current_price) }}</td>
+                <td>{{ formatToIndianRupee(net_sales) }}</td>
+              </tr>
+            {{/}}
+            <tr>
+              <td></td>
+              <td colspan="2">Total tickets sold</td>
+              <td>{{ calculateTotalSold(items) }}</td>
+              <td colspan="4"></td>
             </tr>
           {{/}}
         </tbody>
@@ -51,7 +62,7 @@ export const ItemCollectionTemplate = `
           </div>
           <div class="card-right">
             <h3 class="card-right-content">Net sales</h3>
-            <p class="card-right-content">{{net_sales}}</p>
+            <p class="card-right-content">{{ formatToIndianRupee(net_sales) }}</p>
           </div>
         </div>
       </div>
@@ -62,7 +73,7 @@ export const ItemCollectionTemplate = `
           </div>
           <div class="card-right">
             <h3 class="card-right-content">Today's sales</h3>
-            <p class="card-right-content">{{today_sales}}</p>
+            <p class="card-right-content">{{ formatToIndianRupee(today_sales) }}</p>
           </div>
         </div>
       </div>
@@ -79,7 +90,7 @@ export const ItemCollectionTemplate = `
           </div>
           <div class="card-right">
             <h3 class="card-right-content">Sales since yesterday</h3>
-            <p class="card-right-content">{{sales_delta}}%</p>
+            <p class="card-right-content">{{ sales_delta }}%</p>
           </div>
         </div>
       </div>

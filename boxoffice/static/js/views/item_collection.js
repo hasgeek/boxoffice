@@ -1,6 +1,5 @@
 
-import {fetch, urlFor, setPageTitle} from '../models/util.js';
-import {ItemCollectionModel} from '../models/item_collection.js';
+import {Util, fetch, urlFor, setPageTitle} from '../models/util.js';
 import {TableTemplate, AggChartTemplate, ItemCollectionTemplate} from '../templates/item_collection.html.js';
 import {SideBarView} from './sidebar.js'
 
@@ -97,20 +96,38 @@ let AggChartComponent = Ractive.extend({
 })
 
 export const ItemCollectionView = {
-  render: function({ic_id}={}) {
+  render: function ({ic_id}={}) {
 
     fetch({
       url: urlFor('view', {resource: 'ic', id: ic_id, root: true})
-    }).done((remoteData) => {
+    }).done(({org_name, title, categories, date_item_counts, date_sales, today_sales, net_sales, sales_delta}) => {
       // Initial render
       let icComponent = new Ractive({
         el: '#main-content-area',
         template: ItemCollectionTemplate,
-        data: ItemCollectionModel.formatData(remoteData),
+        data: {
+          icTitle: title,
+          categories: categories,
+          date_item_counts: date_item_counts,
+          date_sales: date_sales,
+          net_sales: net_sales,
+          sales_delta: sales_delta,
+          today_sales: today_sales,
+          formatToIndianRupee: function (amount) {
+            return Util.formatToIndianRupee(amount);
+          },
+          calculateTotalSold: function (items) {
+            console.log("items", items);
+            return items.reduce(function(sum, item) {
+              return sum + item.sold;
+            }, 0);
+          }
+        },
         components: {TableComponent: TableComponent, AggChartComponent: AggChartComponent}
       });
 
-      let org_name = remoteData.org_name;
+      console.log(icComponent.get('categories'));
+
       SideBarView.render('dashboard', {org_name, ic_id});
       setPageTitle(icComponent.get('icTitle'));
       NProgress.done();
