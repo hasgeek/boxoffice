@@ -4,6 +4,7 @@ export const TableTemplate = `
       <table class="table table-bordered table-hover stats-table">
         <thead>
           <tr class="info">
+            <th>Category</th>
             <th>#</th>
             <th>Item</th>
             <th>Available</th>
@@ -15,13 +16,13 @@ export const TableTemplate = `
           </tr>
         </thead>
         <tbody>
-          {{#categories}}
-            <tr>
-              <td class="active" colspan="8">Category: {{ title }}</td>
-            </tr>
-            {{#items}}
+          {{#categories}}{{# { category: . } }}
+            {{#category.items:index}}
               <tr>
-                <td>{{ @index + 1 }}</td>
+                {{#if !index}}
+                  <td rowspan="{{category.items.length}}">Category: {{ category.title }}</td>
+                {{/if}}
+                <td>{{ index + 1 }}</td>
                 <td>{{ title }}</td>
                 <td>{{ available }}</td>
                 <td>{{ sold }}</td>
@@ -30,14 +31,8 @@ export const TableTemplate = `
                 <td>{{ formatToIndianRupee(current_price) }}</td>
                 <td>{{ formatToIndianRupee(net_sales) }}</td>
               </tr>
-            {{/}}
-            <tr>
-              <td></td>
-              <td colspan="2">Total tickets sold</td>
-              <td>{{ calculateTotalSold(items) }}</td>
-              <td colspan="4"></td>
-            </tr>
-          {{/}}
+            {{/category.items}}
+          {{/}}{{/categories}}
         </tbody>
       </table>
     </div>

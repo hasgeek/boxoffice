@@ -12,7 +12,9 @@ let AggChartComponent = Ractive.extend({
   template: AggChartTemplate,
   format_columns: function(){
     let date_item_counts = this.parent.get('date_item_counts');
-    const items = this.parent.get('items');
+    const items = this.parent.get('categories').reduce(function (items, category) {
+      return items.concat(category.items);
+    }, []);
     const date_sales = this.parent.get('date_sales');
     let dates = ['x'];
     let item_counts = {}
@@ -115,18 +117,10 @@ export const ItemCollectionView = {
           today_sales: today_sales,
           formatToIndianRupee: function (amount) {
             return Util.formatToIndianRupee(amount);
-          },
-          calculateTotalSold: function (items) {
-            console.log("items", items);
-            return items.reduce(function(sum, item) {
-              return sum + item.sold;
-            }, 0);
           }
         },
         components: {TableComponent: TableComponent, AggChartComponent: AggChartComponent}
       });
-
-      console.log(icComponent.get('categories'));
 
       SideBarView.render('dashboard', {org_name, ic_id});
       setPageTitle(icComponent.get('icTitle'));
