@@ -5,7 +5,16 @@ import {SideBarView} from './sidebar.js'
 
 let TableComponent = Ractive.extend({
   isolated: false,
-  template: TableTemplate
+  template: TableTemplate,
+  onItemsSelected: function (event) {
+    var selectedItems = icComponent.get('selectedItems');
+    if (event.node.checked) {
+      icComponent.set('selectedItems', selectedItems + parseInt(event.node.value, 10));
+    }
+    else {
+      icComponent.set('selectedItems', selectedItems - parseInt(event.node.value, 10));
+    }
+  }
 });
 
 let AggChartComponent = Ractive.extend({
@@ -115,6 +124,7 @@ export const ItemCollectionView = {
           net_sales: net_sales,
           sales_delta: sales_delta,
           today_sales: today_sales,
+          selectedItems: 0,
           formatToIndianRupee: function (amount) {
             return Util.formatToIndianRupee(amount);
           }
