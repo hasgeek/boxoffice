@@ -6,13 +6,13 @@ import {SideBarView} from './sidebar.js'
 let TableComponent = Ractive.extend({
   isolated: false,
   template: TableTemplate,
-  onItemsSelected: function (event) {
-    var totalSelected = this.parent.get('totalSelected');
+  onItemsSelected: function (event, ticketType) {
+    let totalSelected = this.parent.get('totalSelected');
     if (event.node.checked) {
-      this.parent.set('totalSelected', totalSelected + parseInt(event.node.value, 10));
+      this.parent.set('totalSelected', totalSelected + event.context[ticketType]);
     }
     else {
-      this.parent.set('totalSelected', totalSelected - parseInt(event.node.value, 10));
+      this.parent.set('totalSelected', totalSelected - event.context[ticketType]);
     }
   }
 });
