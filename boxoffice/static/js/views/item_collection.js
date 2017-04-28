@@ -7,12 +7,12 @@ let TableComponent = Ractive.extend({
   isolated: false,
   template: TableTemplate,
   onItemsSelected: function (event) {
-    var selectedItems = icComponent.get('selectedItems');
+    var totalSelected = this.parent.get('totalSelected');
     if (event.node.checked) {
-      icComponent.set('selectedItems', selectedItems + parseInt(event.node.value, 10));
+      this.parent.set('totalSelected', totalSelected + parseInt(event.node.value, 10));
     }
     else {
-      icComponent.set('selectedItems', selectedItems - parseInt(event.node.value, 10));
+      this.parent.set('totalSelected', totalSelected - parseInt(event.node.value, 10));
     }
   }
 });
@@ -21,8 +21,8 @@ let AggChartComponent = Ractive.extend({
   template: AggChartTemplate,
   format_columns: function(){
     let date_item_counts = this.parent.get('date_item_counts');
-    const items = this.parent.get('categories').reduce(function (items, category) {
-      return items.concat(category.items);
+    const allItems = this.parent.get('categories').reduce(function (allItems, category) {
+      return allItems.concat(category.items);
     }, []);
     const date_sales = this.parent.get('date_sales');
     let dates = ['x'];
@@ -31,7 +31,7 @@ let AggChartComponent = Ractive.extend({
     for (let item_date in date_item_counts) {
       dates.push(item_date);
       date_sales_column.push(date_sales[item_date]);
-      items.forEach((item) => {
+      allItems.forEach((item) => {
         if (!item_counts[item.id]) {
           item_counts[item.id] = [];
         }
@@ -46,7 +46,7 @@ let AggChartComponent = Ractive.extend({
     }
 
     let columns = [dates];
-    items.forEach((item) =>{
+    allItems.forEach((item) =>{
       columns.push([item.title].concat(item_counts[item.id]));
     })
 
@@ -124,7 +124,7 @@ export const ItemCollectionView = {
           net_sales: net_sales,
           sales_delta: sales_delta,
           today_sales: today_sales,
-          selectedItems: 0,
+          totalSelected: 0,
           formatToIndianRupee: function (amount) {
             return Util.formatToIndianRupee(amount);
           }

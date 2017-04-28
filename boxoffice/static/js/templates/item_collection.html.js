@@ -20,19 +20,25 @@ export const TableTemplate = `
             {{#category.items:index}}
               <tr>
                 {{#if !index}}
-                  <td rowspan="{{category.items.length}}">Category: {{ category.title }}</td>
+                  <td class="active" rowspan="{{category.items.length}}">Category: {{ category.title }}</td>
                 {{/if}}
                 <td>{{ index + 1 }}</td>
                 <td>{{ title }}</td>
                 <td>{{ available }}</td>
-                <td>{{ sold }}</td>
-                <td>{{ free }}</td>
+                <td>{{ sold }} <input type="checkbox" name="items" value="{{ sold }}" on-click="onItemsSelected(event)" /></td>
+                <td>{{ free }} <input type="checkbox" name="items" value="{{ free }}" on-click="onItemsSelected(event)" /></td>
                 <td>{{ cancelled }}</td>
                 <td>{{ formatToIndianRupee(current_price) }}</td>
                 <td>{{ formatToIndianRupee(net_sales) }}</td>
               </tr>
             {{/category.items}}
           {{/}}{{/categories}}
+          <tr>
+            <td></td>
+            <td class="active" colspan="3">Total tickets booked</td>
+            <td class="active text-center" colspan="2">{{ totalSelected }}</td>
+            <td colspan="4"></td>
+          </tr>
         </tbody>
       </table>
     </div>
