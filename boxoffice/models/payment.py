@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from collections import OrderedDict
-from datetime import datetime
+from sqlalchemy.sql import func
 from coaster.utils import LabeledEnum, isoweek_datetime
 from isoweek import Week
 from baseframe import __
@@ -42,13 +42,13 @@ class OnlinePayment(BaseMixin, db.Model):
 
     def confirm(self):
         """Confirms a payment, sets confirmed_at and pg_payment_status."""
-        self.confirmed_at = datetime.utcnow()
+        self.confirmed_at = func.utcnow()
         self.pg_payment_status = RAZORPAY_PAYMENT_STATUS.CAPTURED
 
     def fail(self):
         """Fails a payment, sets failed_at."""
         self.pg_payment_status = RAZORPAY_PAYMENT_STATUS.FAILED
-        self.failed_at = datetime.utcnow()
+        self.failed_at = func.utcnow()
 
 
 class PaymentTransaction(BaseMixin, db.Model):
