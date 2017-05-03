@@ -2,8 +2,8 @@
 
 from decimal import Decimal
 from flask import render_template
-from flask.ext.rq import job
-from flask.ext.mail import Message
+from flask_rq import job
+from flask_mail import Message
 from baseframe import __
 from html2text import html2text
 from premailer import transform as email_transform
