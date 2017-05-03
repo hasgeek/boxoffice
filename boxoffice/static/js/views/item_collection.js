@@ -1,19 +1,29 @@
 
-import {fetch, urlFor, setPageTitle} from '../models/util.js';
-import {ItemCollectionModel} from '../models/item_collection.js';
+import {Util, fetch, urlFor, setPageTitle} from '../models/util.js';
 import {TableTemplate, AggChartTemplate, ItemCollectionTemplate} from '../templates/item_collection.html.js';
 import {SideBarView} from './sidebar.js'
 
 let TableComponent = Ractive.extend({
   isolated: false,
-  template: TableTemplate
+  template: TableTemplate,
+  onItemsSelected: function (event, ticketType) {
+    let totalSelected = this.parent.get('totalSelected');
+    if (event.node.checked) {
+      this.parent.set('totalSelected', totalSelected + event.context[ticketType]);
+    }
+    else {
+      this.parent.set('totalSelected', totalSelected - event.context[ticketType]);
+    }
+  }
 });
 
 let AggChartComponent = Ractive.extend({
   template: AggChartTemplate,
   format_columns: function(){
     let date_item_counts = this.parent.get('date_item_counts');
-    const items = this.parent.get('items');
+    const allItems = this.parent.get('categories').reduce(function (allItems, category) {
+      return allItems.concat(category.items);
+    }, []);
     const date_sales = this.parent.get('date_sales');
     let dates = ['x'];
     let item_counts = {}
@@ -21,7 +31,7 @@ let AggChartComponent = Ractive.extend({
     for (let item_date in date_item_counts) {
       dates.push(item_date);
       date_sales_column.push(date_sales[item_date]);
-      items.forEach((item) => {
+      allItems.forEach((item) => {
         if (!item_counts[item.id]) {
           item_counts[item.id] = [];
         }
@@ -36,7 +46,7 @@ let AggChartComponent = Ractive.extend({
     }
 
     let columns = [dates];
-    items.forEach((item) =>{
+    allItems.forEach((item) =>{
       columns.push([item.title].concat(item_counts[item.id]));
     })
 
@@ -97,20 +107,31 @@ let AggChartComponent = Ractive.extend({
 })
 
 export const ItemCollectionView = {
-  render: function({ic_id}={}) {
+  render: function ({ic_id}={}) {
 
     fetch({
       url: urlFor('view', {resource: 'ic', id: ic_id, root: true})
-    }).done((remoteData) => {
+    }).done(({org_name, title, categories, date_item_counts, date_sales, today_sales, net_sales, sales_delta}) => {
       // Initial render
       let icComponent = new Ractive({
         el: '#main-content-area',
         template: ItemCollectionTemplate,
-        data: ItemCollectionModel.formatData(remoteData),
+        data: {
+          icTitle: title,
+          categories: categories,
+          date_item_counts: date_item_counts,
+          date_sales: date_sales,
+          net_sales: net_sales,
+          sales_delta: sales_delta,
+          today_sales: today_sales,
+          totalSelected: 0,
+          formatToIndianRupee: function (amount) {
+            return Util.formatToIndianRupee(amount);
+          }
+        },
         components: {TableComponent: TableComponent, AggChartComponent: AggChartComponent}
       });
 
-      let org_name = remoteData.org_name;
       SideBarView.render('dashboard', {org_name, ic_id});
       setPageTitle(icComponent.get('icTitle'));
       NProgress.done();

@@ -31,7 +31,8 @@ def jsonify_item(item):
 def jsonify_item_collection(item_collection_dict):
     return jsonify(org_name=item_collection_dict['item_collection'].organization.name,
         title=item_collection_dict['item_collection'].title,
-        items=[jsonify_item(item) for item in item_collection_dict['item_collection'].items],
+        categories=[{'title': category.title, 'items': [jsonify_item(item) for item in category.items]}
+            for category in item_collection_dict['item_collection'].categories],
         date_item_counts=item_collection_dict['date_item_counts'],
         date_sales=item_collection_dict['date_sales'],
         today_sales=item_collection_dict['today_sales'],
