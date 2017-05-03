@@ -2,10 +2,10 @@
 
 from pytz import timezone
 from flask import Flask
-from flask.ext.rq import RQ
-from flask.ext.mail import Mail
-from flask.ext.lastuser import Lastuser
-from flask.ext.lastuser.sqlalchemy import UserManager
+from flask_rq import RQ
+from flask_mail import Mail
+from flask_lastuser import Lastuser
+from flask_lastuser.sqlalchemy import UserManager
 from flask_admin import Admin
 import wtforms_json
 from baseframe import baseframe, assets, Version
