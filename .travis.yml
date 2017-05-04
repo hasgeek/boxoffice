@@ -14,8 +14,8 @@ install:
   - pip install https://github.com/hasgeek/coaster/archive/master.zip
   - npm install casperjs
 script:
-  - nosetests -v tests
-  - nohup python runtestserver.py &
+  - FLASK_ENV=testing nosetests -v tests
+  - FLASK_ENV=testing nohup python runtestserver.py &
   - sleep 10
 addons:
   postgresql: "9.4"

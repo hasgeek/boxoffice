@@ -31,4 +31,4 @@ LASTUSER_SERVER = 'https://auth.hasgeek.com/'
 LASTUSER_CLIENT_ID = ''
 #: LastUser client secret
 LASTUSER_CLIENT_SECRET = ''
-
+DEBUG = True

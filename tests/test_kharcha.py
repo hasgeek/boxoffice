@@ -2,7 +2,7 @@ import decimal
 import json
 import unittest
 from flask import url_for
-from boxoffice import app, init_for
+from boxoffice import app
 from boxoffice.models import (db)
 from fixtures import init_data
 from boxoffice.models import Item, DiscountPolicy, DiscountCoupon
@@ -13,7 +13,6 @@ class TestKharchaAPI(unittest.TestCase):
     def setUp(self):
         self.ctx = app.test_request_context()
         self.ctx.push()
-        init_for('test')
         db.drop_all()
         db.create_all()
         init_data()

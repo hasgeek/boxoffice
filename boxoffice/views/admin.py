@@ -21,6 +21,8 @@ def jsonify_dashboard(data):
 @lastuser.requires_login
 @render_with({'text/html': 'index.html', 'application/json': jsonify_dashboard})
 def index():
+    print "app debug is"
+    print app.debug
     return dict(user=g.user)
 
 

@@ -31,31 +31,30 @@ from siteadmin import ItemCollectionModelView, ItemModelView, PriceModelView, Di
 
 
 # Configure the app
-def init_for(env):
-    coaster.app.init_app(app, env)
-    db.init_app(app)
-    db.app = app
+coaster.app.init_app(app)
+db.init_app(app)
+db.app = app
 
-    RQ(app)
+RQ(app)
 
-    lastuser.init_app(app)
-    lastuser.init_usermanager(UserManager(db, User))
-    app.config['tz'] = timezone(app.config['TIMEZONE'])
-    baseframe.init_app(app, requires=['boxoffice'], ext_requires=['baseframe-bs3', 'fontawesome>=4.0.0', 'ractive', 'ractive-transitions-fly', 'validate', 'nprogress', 'baseframe-footable'])
+lastuser.init_app(app)
+lastuser.init_usermanager(UserManager(db, User))
+app.config['tz'] = timezone(app.config['TIMEZONE'])
+baseframe.init_app(app, requires=['boxoffice'], ext_requires=['baseframe-bs3', 'fontawesome>=4.0.0', 'ractive', 'ractive-transitions-fly', 'validate', 'nprogress', 'baseframe-footable'])
 
-    mail.init_app(app)
-    wtforms_json.init()
+mail.init_app(app)
+wtforms_json.init()
 
-    # This is a temporary solution for an admin interface, only
-    # to be used until the native admin interface is ready.
-    try:
-        admin = Admin(app, name=u"Boxoffice Admin", template_mode='bootstrap3', url='/siteadmin')
-        admin.add_view(OrganizationModelView(Organization, db.session))
-        admin.add_view(ItemCollectionModelView(ItemCollection, db.session))
-        admin.add_view(CategoryModelView(Category, db.session))
-        admin.add_view(ItemModelView(Item, db.session))
-        admin.add_view(PriceModelView(Price, db.session))
-        admin.add_view(DiscountPolicyModelView(DiscountPolicy, db.session))
-        admin.add_view(DiscountCouponModelView(DiscountCoupon, db.session))
-    except AssertionError:
-        pass
+# This is a temporary solution for an admin interface, only
+# to be used until the native admin interface is ready.
+try:
+    admin = Admin(app, name=u"Boxoffice Admin", template_mode='bootstrap3', url='/siteadmin')
+    admin.add_view(OrganizationModelView(Organization, db.session))
+    admin.add_view(ItemCollectionModelView(ItemCollection, db.session))
+    admin.add_view(CategoryModelView(Category, db.session))
+    admin.add_view(ItemModelView(Item, db.session))
+    admin.add_view(PriceModelView(Price, db.session))
+    admin.add_view(DiscountPolicyModelView(DiscountPolicy, db.session))
+    admin.add_view(DiscountCouponModelView(DiscountCoupon, db.session))
+except AssertionError:
+    pass
