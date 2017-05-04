@@ -3,7 +3,7 @@ import json
 import decimal
 from flask import make_response
 from mock import MagicMock
-from boxoffice import app, init_for
+from boxoffice import app
 from boxoffice.models import *
 from boxoffice.views.custom_exceptions import PaymentGatewayError
 from boxoffice.models.payment import TRANSACTION_TYPE
@@ -18,7 +18,6 @@ class TestOrder(unittest.TestCase):
     def setUp(self):
         self.ctx = app.test_request_context()
         self.ctx.push()
-        init_for('test')
         db.create_all()
         init_data()
         self.client = app.test_client()

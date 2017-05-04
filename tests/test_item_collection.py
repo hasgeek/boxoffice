@@ -1,6 +1,6 @@
 import unittest
 import json
-from boxoffice import app, init_for
+from boxoffice import app
 from boxoffice.models import (db, ItemCollection)
 from fixtures import init_data
 
@@ -49,7 +49,6 @@ class TestItemCollectionAPI(unittest.TestCase):
     def setUp(self):
         self.ctx = app.test_request_context()
         self.ctx.push()
-        init_for('test')
         db.create_all()
         init_data()
         self.client = app.test_client()

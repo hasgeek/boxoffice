@@ -1,3 +1,3 @@
 #!/bin/bash
 
-rqworker -c rqdev boxoffice
+rqworker -c rqinit boxoffice
