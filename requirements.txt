@@ -20,3 +20,4 @@ tabulate
 Flask-Admin
 unicodecsv
 isoweek
+Flask-Migrate
