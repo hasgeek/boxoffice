@@ -28,7 +28,11 @@ export const TableTemplate = `
                 <td>{{ sold }} <input type="checkbox" name="sold" on-click="onItemsSelected(event, 'sold')" /></td>
                 <td>{{ free }} <input type="checkbox" name="free" on-click="onItemsSelected(event, 'free')" /></td>
                 <td>{{ cancelled }}</td>
-                <td>{{ formatToIndianRupee(current_price) }}</td>
+                {{#if current_price !==  "No active price"}}
+                  <td>{{ formatToIndianRupee(current_price) }}</td>
+                {{else}}
+                  <td>{{ current_price }}</td>
+                {{/if}}
                 <td>{{ formatToIndianRupee(net_sales) }}</td>
               </tr>
             {{/category.items}}
