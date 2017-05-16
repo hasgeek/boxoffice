@@ -205,12 +205,11 @@
         </tr>
         <tr>
           <td class="gray">Date</td>
-          <td>{{ order.paid_at | invoice_date('%d %b %Y') }}</td>
+          <td>{{ order.paid_at | longdate }}</td>
         </tr>
       </table>  
     </div>
-    
-    <p class="table-title">Bookings</p>
+
     <table class="items-table">
       <tr>
         <th>Ticket No.</th>
@@ -254,15 +253,15 @@
         <tr>
           <td class="center">{{ loop.index }}</td>
           <td class="center">{{ order.invoice_no }}</td>
-          <td>
+          <td class="center">
             {% if transaction.refunded_at %} 
-              {{ transaction.refunded_at | invoice_date('%d %b %Y') }} 
+              {{ transaction.refunded_at | longdate }}
             {%- endif %}
           </td>
           {%- if transaction.refund_description %}
             <td>{{ transaction.refund_description }}</td>
           {%- elif transaction.refunded_at %}
-            <td>Refunded on {{ transaction.refunded_at | invoice_date('%d %b %Y') }}</td>
+            <td>Refunded on {{ transaction.refunded_at | longdate }}</td>
           {%- else %}
             <td>Refund</td>
           {%- endif %}
