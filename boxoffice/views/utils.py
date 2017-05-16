@@ -31,9 +31,9 @@ def json_date_format(dt):
     return localize_timezone(dt).isoformat()
 
 
-@app.template_filter('invoice_date')
-def invoice_date_filter(date, format):
-    return localize_timezone(date).strftime(format)
+@app.template_filter('longdate')
+def longdate(date):
+    return localize_timezone(date).strftime('%e %B %Y')
 
 
 def cors(f):
