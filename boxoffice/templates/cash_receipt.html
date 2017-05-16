@@ -112,9 +112,17 @@
       margin-bottom: 20px;
     }
 
-    .items {
+    .table-title {
+      font-size: 25px;
+      font-weight: bold;
+      clear: both;
+      margin: 25px 0 15px;
+    }
+
+    .items-table {
       width: 100%;
       clear: both;
+      margin: 0 0 15px;
     }
 
     .item-title {
@@ -147,7 +155,7 @@
     <div class="company-details">
       {%- if org.details.get('logo') %}
         <div class="logo">
-         <img src="{{org.details.get('logo')}}"/>
+          <img src="{{org.details.get('logo')}}"/>
         </div>
       {%- endif %}
 
@@ -202,9 +210,10 @@
       </table>  
     </div>
     
-    <table class="items">    
+    <p class="table-title">Bookings</p>
+    <table class="items-table">
       <tr>
-        <th>Ticket No:</th>
+        <th>Ticket No.</th>
         <th>Base Price</th>
         <th>Discount</th>
         <th>Final Price</th>
@@ -225,40 +234,48 @@
         </tr>
       {%- endfor %}
       <tr>
-          <td></td>
-          <td colspan="2" class="total gray">Total paid</td>
-          <td class="total-amount gray center"><div id="total">&#8377; {{ order.paid_amount }}</div></td>
-      </tr>
-      {%- if order.refunded_amount %}
-        <tr>
-            <td></td>
-            <td colspan="3" class="total">Refunds</td>
-        </tr>
-        {% for transaction in order.refund_transactions -%}
-          <tr>
-              <td></td>
-              {%- if transaction.refund_description %}
-                <td colspan="2">{{ transaction.refund_description }}</td>
-              {%- elif transaction.refunded_at %}
-                <td colspan="2">Refunded on {{ transaction.refunded_at | invoice_date('%d %b %Y') }}</td>
-              {%- else %}
-                <td colspan="2">Refund</td>
-              {%- endif %}
-              <td class="total-amount center"><div id="total">&#8377; {{ transaction.amount }}</div></td>
-          </tr>
-        {%- endfor %}
-      {%- endif %}
-      <tr>
-          <td></td>
-          <td colspan="2" class="total gray">Total refund</td>
-          <td class="total gray center">&#8377; {{ order.refunded_amount }}</td>
-      </tr>
-      <tr>
-          <td></td>
-          <td colspan="2" class="total gray">Net total</td>
-          <td class="total-amount gray center"><div id="total">&#8377; {{ order.net_amount }}</div></td>
+        <td></td>
+        <td colspan="2" class="total gray">Total paid</td>
+        <td class="total-amount gray center"><div id="total">&#8377; {{ order.paid_amount }}</div></td>
       </tr>
     </table>
+
+    {%- if order.refunded_amount %}
+    <p class="table-title">Refunds</p>
+    <table class="items-table">
+      <tr>
+        <th>No.</th>
+        <th>Receipt#</th>
+        <th>Refund date</th>
+        <th>Refund reason</th>
+        <th>Amount</th>
+      </tr>
+      {% for transaction in order.refund_transactions -%}
+        <tr>
+          <td class="center">{{ loop.index }}</td>
+          <td class="center">{{ order.invoice_no }}</td>
+          <td>
+            {% if transaction.refunded_at %} 
+              {{ transaction.refunded_at | invoice_date('%d %b %Y') }} 
+            {%- endif %}
+          </td>
+          {%- if transaction.refund_description %}
+            <td>{{ transaction.refund_description }}</td>
+          {%- elif transaction.refunded_at %}
+            <td>Refunded on {{ transaction.refunded_at | invoice_date('%d %b %Y') }}</td>
+          {%- else %}
+            <td>Refund</td>
+          {%- endif %}
+          <td class="total-amount center"><div id="total">&#8377; {{ transaction.amount }}</div></td>
+        </tr>
+      {%- endfor %}
+      <tr>
+        <td></td>
+        <td colspan="3" class="total gray">Total refund</td>
+        <td class="total gray center">&#8377; {{ order.refunded_amount }}</td>
+      </tr>
+    </table>
+    {%- endif %}
     
     <div class="terms">
       <div>{{org.details.get('refund_policy', '') | safe}}</div>
