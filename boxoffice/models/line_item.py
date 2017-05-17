@@ -189,6 +189,20 @@ class LineItem(BaseMixin, db.Model):
         return db.session.execute(line_item_query).fetchall()
 
     @classmethod
+    def fetch_assignee_details(cls, item_collection):
+        """
+        Returns invoice_no, ticket title, assignee fullname, assignee email, assignee phone and assignee details
+        for all the line items in a given item collection
+        """
+        line_item_join = db.outerjoin(cls, Assignee, db.and_(LineItem.id == Assignee.line_item_id,
+            Assignee.current == True)).join(Item).join(Order)
+        line_item_query = db.select([Order.invoice_no, Item.title, Assignee.fullname,
+            Assignee.email, Assignee.phone, Assignee.details]).select_from(line_item_join).where(cls.status ==
+            LINE_ITEM_STATUS.CONFIRMED).where(Order.item_collection ==
+            item_collection).order_by('created_at')
+        return db.session.execute(line_item_query).fetchall()
+
+    @classmethod
     def get_max_seq(cls, order):
         return db.session.query(func.max(LineItem.line_item_seq)).filter(LineItem.order == order).scalar()
 

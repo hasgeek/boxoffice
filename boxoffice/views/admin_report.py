@@ -22,7 +22,6 @@ def jsonify_report(data_dict):
     (ItemCollection, {'id': 'ic_id'}, 'item_collection'),
     permission='org_admin')
 def admin_report(item_collection):
-    print "reports"
     return dict(item_collection=item_collection)
 
 
@@ -32,7 +31,7 @@ def admin_report(item_collection):
     (ItemCollection, {'id': 'ic_id'}, 'item_collection'),
     permission='org_admin')
 def tickets_report(item_collection):
-    headers = ['ticket id', 'order_id', 'invoice no', 'ticket type', 'base amount', 'discounted amount', 'final amount', 'discount policy', 'discount code', 'buyer fullname', 'buyer email', 'buyer phone', 'attendee fullname', 'attendee email', 'attendee phone', 'attendee details', 'utm_campaign', 'utm_source', 'utm_medium', 'utm_term', 'utm_content', 'utm_id', 'gclid', 'referrer', 'date']
+    headers = ['ticket id', 'order_id', 'receipt no.', 'ticket type', 'base amount', 'discounted amount', 'final amount', 'discount policy', 'discount code', 'buyer fullname', 'buyer email', 'buyer phone', 'attendee fullname', 'attendee email', 'attendee phone', 'attendee details', 'utm_campaign', 'utm_source', 'utm_medium', 'utm_term', 'utm_content', 'utm_id', 'gclid', 'referrer', 'date']
     rows = LineItem.fetch_all_details(item_collection)
 
     def row_handler(row):
@@ -42,3 +41,28 @@ def tickets_report(item_collection):
         return row_list
 
     return csv_response(headers, rows, row_handler=row_handler)
+
+
+@app.route('/admin/ic/<ic_id>/attendees.csv')
+@lastuser.requires_login
+@load_models(
+    (ItemCollection, {'id': 'ic_id'}, 'item_collection'),
+    permission='org_admin')
+def attendees_report(item_collection):
+    headers = ['receipt no.', 'ticket type', 'attendee fullname', 'attendee email', 'attendee phone']
+    for item in item_collection.items:
+        for detail in item.assignee_details.keys():
+            if detail not in headers:
+                headers.append(detail)
+    rows = LineItem.fetch_assignee_details(item_collection)
+
+    def row_handler(row):
+        # Convert row to a dict
+        # row[-1] contains attendee details which is already a dict
+        dict_row = dict(zip(headers, row[:-1]))
+        # If attendee details is not empty add to the dict_row
+        if row[-1] is not None:
+            dict_row.update(row[-1])
+        return dict_row
+
+    return csv_response(headers, rows, row_type='dict', row_handler=row_handler)
