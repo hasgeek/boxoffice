@@ -18,6 +18,15 @@ export const Util = {
         lastThree = ',' + lastThree;
     var res = '₹' + otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + lastThree + afterPoint;
     return res;
+  },
+  formatDateTime: function (dateTimeString, formatString="") {
+    // Takes an date time string and returns a string in the specified format.
+    if (formatString) {
+      return moment(dateTimeString).format(formatString);
+    }
+    else {
+      return moment(dateTimeString).toString();
+    }
   }
 };
 
@@ -130,14 +139,4 @@ export const setPageTitle = function (...subTitles) {
   Eg:- "Orders — JSFoo 2016 — Boxoffice" */
   subTitles.push(window.boxofficeAdmin.siteTitle);
   $('title').html(subTitles.join(" — "));
-}
-
-export const formatDateTime = function (dateTimeString, formatString="") {
-  // Takes an date time string and returns a string in the specified format.
-  if (formatString) {
-    return moment(dateTimeString).format(formatString);
-  }
-  else {
-    return moment(dateTimeString).toString();
-  }
 }

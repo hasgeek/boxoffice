@@ -39,7 +39,7 @@ export const OrderTemplate = `
               <td><p class="table-content">{{ buyer_fullname }}</p></td>
               <td><p class="table-content">{{ buyer_email }}</p></td>
               <td><p class="table-content">{{ buyer_phone }}</p></td>
-              <td><p class="table-content">{{currency}}{{ amount }}</p></td>
+              <td><p class="table-content">{{ formatToIndianRupee(amount) }}</p></td>
               <td><p class="table-content">{{ formatDateTime(order_date) }}</p></td>
               <td><p class="table-content">{{ id }}</p></td>
               <td>
@@ -74,9 +74,9 @@ export const OrderTemplate = `
                       <div class="content">
                         <div class="content-box">
                           <p><span class="italic-title">id:</span> {{ id }}</p>
-                          <p><span class="italic-title">Base amount:</span> {{ currency }}{{ base_amount }}</p>
-                          <p><span class="italic-title">Discounted amount:</span> {{ currency }}{{ discounted_amount }}</p>
-                          <p><span class="italic-title">Final amount:</span> {{ currency }}{{ final_amount }}</p>
+                          <p><span class="italic-title">Base amount:</span> {{ formatToIndianRupee(base_amount) }}</p>
+                          <p><span class="italic-title">Discounted amount:</span> {{ formatToIndianRupee(discounted_amount) }}</p>
+                          <p><span class="italic-title">Final amount:</span> {{ formatToIndianRupee(final_amount) }}</p>
                           {{#discount_policy}}<p><span class="italic-title">Discount policy:</span> <span class="line-item-discount">{{ discount_policy }}</span>{{/}}
                           {{#discount_coupon}}<p><span class="italic-title">Discount coupon:</span> <span class="line-item-discount">{{ discount_coupon }}</span>{{/}}
                           {{#cancelled_at}}<p><b><span class="italic-title cancelled">Cancelled at: {{ formatDateTime(cancelled_at) }}</span></b></p>{{/}}
