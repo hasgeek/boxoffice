@@ -2,7 +2,7 @@
 
 from flask import jsonify, url_for
 from .. import app, lastuser
-from coaster.views import load_models, render_with
+from coaster.views import load_models, render_with, requestargs
 from boxoffice.models import ItemCollection, Order, CURRENCY_SYMBOL, LineItem, LINE_ITEM_STATUS
 from utils import json_date_format, xhr_only
 
@@ -41,7 +41,7 @@ def format_line_items(line_items):
 
 
 def jsonify_admin_orders(data_dict):
-    item_collection_id = data_dict['item_collection'].id
+    item_collection_id = data_dict['item_collection_id']
     order_dicts = []
     for order in data_dict['orders']:
         if (order.is_confirmed):
@@ -54,11 +54,17 @@ def jsonify_admin_orders(data_dict):
                 'buyer_phone': order.buyer_phone,
                 'currency': CURRENCY_SYMBOL['INR'],
                 'amount': order.net_amount,
+                'is_fully_assigned': "Filled" if order.is_fully_assigned() else "Incomplete",
                 'url': '/ic/' + unicode(item_collection_id) + '/' + unicode(order.id),
                 'receipt': url_for('receipt', access_token=order.access_token),
                 'assignee': url_for('line_items', access_token=order.access_token)
             })
-    return jsonify(org_name=data_dict['item_collection'].organization.name, title=data_dict['item_collection'].title, orders=order_dicts)
+    return jsonify(org_name=data_dict['org_name'],
+        title=data_dict['title'],
+        orders=order_dicts,
+        total_pages=data_dict['total_pages'],
+        paginated=data_dict['total_pages'] > 1,
+        current_page=data_dict['current_page'])
 
 
 @app.route('/admin/ic/<ic_id>/orders')
@@ -68,8 +74,23 @@ def jsonify_admin_orders(data_dict):
     (ItemCollection, {'id': 'ic_id'}, 'item_collection'),
     permission='org_admin'
     )
-def admin_orders(item_collection):
-    return dict(title=item_collection.title, item_collection=item_collection, orders=item_collection.orders)
+@requestargs('search', ('page', int), ('size', int))
+def admin_orders(item_collection, search=None, page=1, size=None):
+    results_per_page = size or 20
+
+    orders = item_collection.orders
+    if search:
+        orders = orders.filter(
+            Order.buyer_fullname.ilike('%{query}%'.format(query=search)))
+
+    paginated_orders = orders.paginate(page=page, per_page=results_per_page)
+    return dict(title=item_collection.title,
+        org_name=item_collection.organization.name,
+        item_collection_id=item_collection.id,
+        orders=paginated_orders.items,
+        total_pages=paginated_orders.pages,
+        paginated=(paginated_orders.total > results_per_page),
+        current_page=page)
 
 
 @app.route('/admin/order/<order_id>')

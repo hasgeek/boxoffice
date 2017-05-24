@@ -13,6 +13,7 @@ export const Router = Backbone.Router.extend({
     "o/:org_name": "org",
     "ic/:ic_id": "item_collection",
     "ic/:ic_id/orders": "order",
+    "ic/:ic_id/orders?:params": 'order',
     "o/:org_name/discount_policy": 'discount_policy',
     "o/:org_name/discount_policy?:params": 'discount_policy',
     "ic/:ic_id/reports": "report"
@@ -26,8 +27,8 @@ export const Router = Backbone.Router.extend({
   item_collection: function(ic_id) {
     ItemCollectionView.render({ic_id});
   },
-  order: function(ic_id) {
-    OrderView.render({ic_id});
+  order: function(ic_id, {search, page, size}={}) {
+    OrderView.render({ic_id, search, page, size});
   },
   discount_policy: function(org_name, {search, page, size}={}) {
     DiscountPolicyView.render({org_name, search, page, size});
