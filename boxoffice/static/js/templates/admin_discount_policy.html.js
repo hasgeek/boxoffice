@@ -3,7 +3,7 @@ export const DiscountPolicyTemplate = `
   <div class="content-wrapper">
     <h1 class="header">{{ icTitle }}</h1>
     <div class="title-wrapper col-sm-4 col-xs-12">
-      <input type="text" autofocus class="form-control" placeholder="Search discount policy" value="{{searchText}}" />
+      <input type="text" autofocus class="form-control icon-placeholder" placeholder="&#xF002; Search discount policy" value="{{searchText}}" />
       {{#searchText}}<a on-click="clearSearchField()" class="clear-field"><i class="fa fa-close"></i></a>{{/}}
     </div>
     <div class="title-wrapper col-sm-4 col-sm-offset-4 col-xs-12">
@@ -18,7 +18,7 @@ export const DiscountPolicyTemplate = `
             <div class="group">
               <input type="text" name="title" value="{{newDiscountPolicy.title}}" class="group-input {{#newDiscountPolicy.title}}filled{{/}}" />
               <span class="bar"></span>
-              <label class="group-label">Title</label>
+              <label class="group-label">Discount policy title</label>
               {{#newDiscountPolicy.errormsg.title}}<p class="form-error-msg">{{ newDiscountPolicy.errormsg.title }}</p>{{/}}
             </div>
 
@@ -46,32 +46,6 @@ export const DiscountPolicyTemplate = `
                     Automatic
                   </label>
               </div>
-            {{/if}}
-
-            {{#if newDiscountPolicy.discount_type == 0}}
-              <div class="group">
-                <input type="number" name="item_quantity_min" value={{ newDiscountPolicy.item_quantity_min }} min="1" class="group-input {{#if newDiscountPolicy.item_quantity_min != undefined}}filled{{/if}}" />
-                <span class="bar"></span>
-                <label class="group-label">Minimum number of tickets</label>
-                {{#newDiscountPolicy.errormsg.item_quantity_min}}<p class="form-error-msg">{{ newDiscountPolicy.errormsg.item_quantity_min }}</p>{{/}}
-              </div>
-              <p class="form-help-text">For Automatic discounts, minimum number of tickets user needs to buy to avail this discount.<br>Eg:- '5% discount on buying 5 or more tickets.'</p>
-            {{else}}
-              <div class="group">
-                <input type="text" name="discount_code_base" value="{{ newDiscountPolicy.discount_code_base }}" class="group-input {{#newDiscountPolicy.discount_code_base}}filled{{/}}" />
-                <span class="bar"></span>
-                <label class="group-label">Discount code base</label>
-                {{#newDiscountPolicy.errormsg.discount_code_base}}<p class="form-error-msg">{{ newDiscountPolicy.errormsg.discount_code_base }}</p>{{/}}
-              </div>
-              <p class="form-help-text">Discount code base is for generating coupons in bulk<br>Eg:- 'hasgeek-volunteer'</p>
-
-              <div class="group">
-                <input type="number" name="bulk_coupon_usage_limit" value="{{ newDiscountPolicy.bulk_coupon_usage_limit }}" min="1" class="group-input {{#if newDiscountPolicy.bulk_coupon_usage_limit != undefined}}filled{{/if}}"/>
-                <span class="bar"></span>
-                <label class="group-label">Usage limit of each bulk coupon</label>
-                {{#newDiscountPolicy.errormsg.bulk_coupon_usage_limit}}<p class="form-error-msg">{{ newDiscountPolicy.errormsg.bulk_coupon_usage_limit }}</p>{{/}}
-              </div>
-              <p class="form-help-text">Specify the number of times each bulk coupon can be used</p>
             {{/if}}
 
             {{#if newDiscountPolicy.is_price_based == 1}}
@@ -114,6 +88,32 @@ export const DiscountPolicyTemplate = `
                 </select>
                 {{#newDiscountPolicy.errormsg.items}}<p class="form-error-msg">{{ newDiscountPolicy.errormsg.items }}</p>{{/}}
               </div>
+            {{/if}}
+
+            {{#if newDiscountPolicy.discount_type == 0}}
+              <div class="group">
+                <input type="number" name="item_quantity_min" value={{ newDiscountPolicy.item_quantity_min }} min="1" class="group-input {{#if newDiscountPolicy.item_quantity_min != undefined}}filled{{/if}} longer-labeltxt" />
+                <span class="bar"></span>
+                <label class="group-label">Minimum number of a particular item that needs to be bought for automatic discount to apply</label>
+                {{#newDiscountPolicy.errormsg.item_quantity_min}}<p class="form-error-msg">{{ newDiscountPolicy.errormsg.item_quantity_min }}</p>{{/}}
+              </div>
+              <p class="form-help-text">For Automatic discounts, minimum number of tickets user needs to buy to avail this discount.<br>e.g. Automatic discount to be applied for a booking of 5 conference tickets or more, we would have to set this field to 5</p>
+            {{else}}
+              <div class="group">
+                <input type="text" name="discount_code_base" value="{{ newDiscountPolicy.discount_code_base }}" class="group-input {{#newDiscountPolicy.discount_code_base}}filled{{/}}" />
+                <span class="bar"></span>
+                <label class="group-label">Discount code base</label>
+                {{#newDiscountPolicy.errormsg.discount_code_base}}<p class="form-error-msg">{{ newDiscountPolicy.errormsg.discount_code_base }}</p>{{/}}
+              </div>
+              <p class="form-help-text">Discount code base is for generating coupons in bulk<br>e.g. 'hasgeek-volunteer'</p>
+
+              <div class="group">
+                <input type="number" name="bulk_coupon_usage_limit" value="{{ newDiscountPolicy.bulk_coupon_usage_limit }}" min="1" class="group-input {{#if newDiscountPolicy.bulk_coupon_usage_limit != undefined}}filled{{/if}} longer-labeltxt"/>
+                <span class="bar"></span>
+                <label class="group-label">Number of times each bulk coupon can be used</label>
+                {{#newDiscountPolicy.errormsg.bulk_coupon_usage_limit}}<p class="form-error-msg">{{ newDiscountPolicy.errormsg.bulk_coupon_usage_limit }}</p>{{/}}
+              </div>
+              <p class="form-help-text">Specify the number of times each bulk coupon can be used</p>
             {{/if}}
 
             <input type="hidden" name="csrf_token" value="{{ getCsrfToken() }}" />
@@ -233,9 +233,9 @@ export const DiscountPolicyTemplate = `
                     {{#if discount_type == "Automatic"}}
                       <input type="hidden" name="discount_type" value=0 />
                       <div class="group">   
-                        <input type="number" name="item_quantity_min" value="{{ item_quantity_min }}" min="1" twoway="false" class="group-input {{#if item_quantity_min != ""}}filled{{/if}}" />
+                        <input type="number" name="item_quantity_min" value="{{ item_quantity_min }}" min="1" twoway="false" class="group-input {{#if item_quantity_min != ""}}filled{{/if}} longer-labeltxt" />
                         <span class="bar"></span>
-                        <label class="group-label">Minimum item quanity</label>
+                        <label class="group-label">Minimum number of a particular item that needs to be bought for automatic discount to apply</label>
                         {{#errormsg.item_quantity_min}}<p class="form-error-msg">{{ errormsg.item_quantity_min }}</p>{{/}}
                       </div>
                     {{else}}
@@ -248,11 +248,12 @@ export const DiscountPolicyTemplate = `
                       </div>
                       <p class="form-help-text">Discount coupon prefix is for generating bulk coupons<br>Eg:- 'hasgeek-volunteer'</p>
                       <div class="group">   
-                        <input type="number" name="bulk_coupon_usage_limit" value="{{ bulk_coupon_usage_limit }}" min="1" twoway="false" class="group-input {{#if bulk_coupon_usage_limit != ""}}filled{{/if}}" />
+                        <input type="number" name="bulk_coupon_usage_limit" value="{{ bulk_coupon_usage_limit }}" min="1" twoway="false" class="group-input {{#if bulk_coupon_usage_limit != ""}}filled{{/if}} longer-labeltxt" />
                         <span class="bar"></span>
                         <label class="group-label">Number of times each bulk coupon can be used</label>
                         {{#errormsg.bulk_coupon_usage_limit}}<p class="form-error-msg">{{ errormsg.item_quantity_min }}</p>{{/}}
                       </div>
+                      <p class="form-help-text">Specify the number of times each bulk coupon can be used</p>
                     {{/if}}
 
                     <p class="field-title filled">What is the discount for?</p>
@@ -292,28 +293,15 @@ export const DiscountPolicyTemplate = `
                       <div class="group">   
                         <input type="text" name="code" value="{{ .coupon_code }}" class="group-input {{#coupon_code}}filled{{/}}" />
                         <span class="bar"></span>
-                        <label class="group-label">What coupon code?</label>
+                        <label class="group-label">What is the coupon code?</label>
                       </div>
-                      <p class="form-help-text">Eg: Hasjob</p>
+                      <p class="form-help-text">e.g. rootconf17speaker, kilter17mediapass</p>
                       <div class="group">
-                        <input type="number" name="usage_limit" value="1" min="1" class="group-input filled" />
+                        <input type="number" name="usage_limit" value="1" min="1" class="group-input filled longer-labeltxt" />
                         <span class="bar"></span>
                         <label class="group-label">How many times can each coupon be used?</label>
                         {{#errormsg.usage_limit}}<p class="form-error-msg">{{ errormsg.usage_limit }}</p>{{/}}
                       </div>
-                    {{else}}
-                      <div class="group">   
-                        <input type="text" name="discount_code_base" value="{{ discount_code_base }}" class="group-input {{#discount_code_base}}filled{{/}}" readonly="readonly" />
-                        <span class="bar"></span>
-                        <label class="group-label">Discount coupon prefix</label>
-                      </div>
-                      {{#errormsg.discount_code_base}}<p class="form-error-msg">{{ errormsg.discount_code_base }}</p>{{/}}
-                      <div class="group">   
-                        <input type="text" name="bulk_coupon_usage_limit" value="{{ bulk_coupon_usage_limit }}" class="group-input {{#bulk_coupon_usage_limit}}filled{{/}}" readonly="readonly" />
-                        <span class="bar"></span>
-                        <label class="group-label">Number of times each bulk coupon can be used</label>
-                      </div>
-                      {{#errormsg.bulk_coupon_usage_limit}}<p class="form-error-msg">{{ errormsg.bulk_coupon_usage_limit }}</p>{{/}}
                     {{/if}}
 
                     <input type="hidden" name="csrf_token" value="{{ getCsrfToken() }}" />
@@ -340,29 +328,33 @@ export const DiscountPolicyTemplate = `
                   </div>
                   <div class="modal-body clearfix">
                    {{#if coupons}}
-                      <button class="boxoffice-button boxoffice-button-action btn-right copy-coupons-list" data-clipboard-target="#coupons-list-{{id}}">Copy to clipboard</button>
-                      <form class="title-wrapper col-sm-4 col-xs-6">
-                        <input autofocus class="form-control" id="filter-{{ id }}" type="text" name="key" value="" placeholder="Search coupon" />
+                      <form class="title-wrapper col-sm-4 col-xs-12">
+                        <input autofocus class="form-control icon-placeholder" id="filter-{{ id }}" type="text" name="key" value="" placeholder="&#xF002; Search coupon" />
                       </form>
+                      <div class="col-sm-8 col-xs-12">
+                        <button class="boxoffice-button boxoffice-button-action btn-right copy-coupons-list" data-clipboard-target="#coupons-list-{{id}}">Copy to clipboard</button>
+                      </div>
                       <div class="col-xs-12">
-                        <table class="table table-hover stats-table table-orders footable toggle-circle-filled" id="coupons-list-{{ id }}" data-filter="#filter-{{ id }}">
-                          <thead>
-                            <tr>
-                              <th data-sort-ignore="true">Coupon</th>
-                              <th data-sort-ignore="true">Usage</th>
-                              <th data-sort-ignore="true">Available</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                          {{#coupons:coupon}}
-                            <tr>
-                              <td class="code"><p class="table-content">{{ code }}</p></td>
-                              <td><p class="table-content">{{ usage_limit }}</p></td>
-                              <td><p class="table-content">{{ available }}</p></td>
-                            </tr>
-                          {{/coupons}}
-                          </tbody>
-                        </table>
+                        <div class="table-responsive">
+                          <table class="table table-hover stats-table table-orders footable toggle-circle-filled" id="coupons-list-{{ id }}" data-filter="#filter-{{ id }}">
+                            <thead>
+                              <tr>
+                                <th data-sort-ignore="true">Coupon</th>
+                                <th data-sort-ignore="true">Usage</th>
+                                <th data-sort-ignore="true">Available</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                            {{#coupons:coupon}}
+                              <tr>
+                                <td class="code"><p class="table-content">{{ code }}</p></td>
+                                <td><p class="table-content">{{ usage_limit }}</p></td>
+                                <td><p class="table-content">{{ available }}</p></td>
+                              </tr>
+                            {{/coupons}}
+                            </tbody>
+                          </table>
+                        </div>
                       </div>
                     {{else}}
                       <p class="text-center">Currently no coupons.</p>
@@ -385,22 +377,24 @@ export const DiscountPolicyTemplate = `
                       <span class="bar"></span>
                       <label class="group-label">Event website url</label>
                     </div>
-                    <p class="form-help-text">Eg:- https://jsfoo.in/2016</p>
+                    <p class="form-help-text">e.g. https://jsfoo.in/2016</p>
                     <p class="pull-left">Here are the discount coupons:</p>
                     <button class="boxoffice-button boxoffice-button-action btn-right copy-coupons" data-clipboard-target="#new-coupons-{{ id }}">Copy discount coupons to clipboard</button>
-                    <table class="table table-orders" id="new-coupons-{{ id }}">
-                      <tbody>
-                      {{#coupons}}
-                        <tr>
-                          {{#if eventUrl }}
-                            <td>{{ eventUrl }}?code={{ . }}</td>
-                          {{else}}
-                            <td>{{ . }}</td>
-                          {{/if}}
-                        </tr>
-                      {{/}}
-                      </tbody>
-                    </table>
+                    <div class="table-responsive">
+                      <table class="table table-orders" id="new-coupons-{{ id }}">
+                        <tbody>
+                        {{#coupons}}
+                          <tr>
+                            {{#if eventUrl }}
+                              <td>{{ eventUrl }}?code={{ . }}</td>
+                            {{else}}
+                              <td>{{ . }}</td>
+                            {{/if}}
+                          </tr>
+                        {{/}}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
               </div>
