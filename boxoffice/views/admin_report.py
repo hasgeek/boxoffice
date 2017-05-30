@@ -49,7 +49,7 @@ def tickets_report(item_collection):
     (ItemCollection, {'id': 'ic_id'}, 'item_collection'),
     permission='org_admin')
 def attendees_report(item_collection):
-    headers = ['receipt no.', 'ticket type', 'attendee fullname', 'attendee email', 'attendee phone']
+    headers = ['receipt no.', 'ticket type', 'ticket no.', 'attendee fullname', 'attendee email', 'attendee phone']
     for item in item_collection.items:
         for detail in item.assignee_details.keys():
             if detail not in headers:
@@ -60,9 +60,7 @@ def attendees_report(item_collection):
         # Convert row to a dict
         # row[-1] contains attendee details which is already a dict
         dict_row = dict(zip(headers, row[:-1]))
-        # If attendee details is not empty add to the dict_row
-        if row[-1] is not None:
-            dict_row.update(row[-1])
+        dict_row.update(row[-1])
         return dict_row
 
     return csv_response(headers, rows, row_type='dict', row_handler=row_handler)
