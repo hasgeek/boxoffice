@@ -49,7 +49,7 @@ def tickets_report(item_collection):
     (ItemCollection, {'id': 'ic_id'}, 'item_collection'),
     permission='org_admin')
 def attendees_report(item_collection):
-    headers = ['receipt no.', 'ticket type', 'ticket no.', 'attendee fullname', 'attendee email', 'attendee phone']
+    headers = ['receipt no.', 'ticket no.', 'ticket id', 'ticket type', 'attendee fullname', 'attendee email', 'attendee phone']
     for item in item_collection.items:
         for detail in item.assignee_details.keys():
             if detail not in headers:

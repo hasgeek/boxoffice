@@ -196,10 +196,10 @@ class LineItem(BaseMixin, db.Model):
         """
         line_item_join = db.join(cls, Assignee, db.and_(LineItem.id == Assignee.line_item_id,
             Assignee.current == True)).join(Item).join(Order)
-        line_item_query = db.select([Order.invoice_no, Item.title, LineItem.line_item_seq, Assignee.fullname,
+        line_item_query = db.select([Order.invoice_no, LineItem.line_item_seq, LineItem.id, Item.title, Assignee.fullname,
             Assignee.email, Assignee.phone, Assignee.details]).select_from(line_item_join).where(cls.status ==
             LINE_ITEM_STATUS.CONFIRMED).where(Order.item_collection ==
-            item_collection).order_by('created_at')
+            item_collection).order_by('ordered_at')
         return db.session.execute(line_item_query).fetchall()
 
     @classmethod
