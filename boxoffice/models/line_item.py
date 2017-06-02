@@ -201,7 +201,6 @@ def fetch_assignee_details(self):
     Returns invoice_no, ticket title, assignee fullname, assignee email, assignee phone and assignee details
     for all the line items in a given item collection
     """
-    print "self", self
     line_item_join = db.join(LineItem, Assignee, db.and_(LineItem.id == Assignee.line_item_id,
         Assignee.current == True)).join(Item).join(Order)
     line_item_query = db.select([Order.invoice_no, LineItem.line_item_seq, LineItem.id, Item.title, Assignee.fullname,
