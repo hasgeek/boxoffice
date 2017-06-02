@@ -23,6 +23,7 @@ class ItemCollectionModelView(SiteAdminModelView):
     column_filters = ['organization']
     column_list = ('id', 'title')
     form_excluded_columns = ['parent', 'items', 'orders', 'categories', 'created_at', 'updated_at']
+    form_overrides = dict(details=JSONField)
 
 
 class CategoryModelView(SiteAdminModelView):
@@ -40,7 +41,7 @@ class ItemModelView(SiteAdminModelView):
     column_searchable_list = ['title']
     column_list = ('id', 'title')
     form_excluded_columns = ['parent', 'line_items', 'created_at', 'updated_at']
-    form_overrides = dict(assignee_details=JSONField)
+    form_overrides = dict(assignee_details=JSONField, details=JSONField)
 
 
 class PriceModelView(SiteAdminModelView):

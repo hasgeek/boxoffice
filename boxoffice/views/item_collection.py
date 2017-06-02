@@ -15,6 +15,7 @@ def jsonify_item(item):
             'title': item.title,
             'id': item.id,
             'description': item.description.text,
+            'details': item.details,
             'quantity_available': item.quantity_available,
             'is_available': item.is_available,
             'quantity_total': item.quantity_total,
@@ -66,4 +67,4 @@ def item_collection(item_collection):
         category_json = jsonify_category(category)
         if category_json:
             categories_json.append(category_json)
-    return jsonify(html=render_template('boxoffice.html'), categories=categories_json, refund_policy=item_collection.organization.details.get('refund_policy', ''))
+    return jsonify(html=render_template('boxoffice.html'), categories=categories_json, eventTitle=item_collection.title, eventDetails=item_collection.details, refund_policy=item_collection.organization.details.get('refund_policy', ''))

@@ -172,31 +172,52 @@
     {{elseif id === 'boxoffice-confirm' && id === activeTab}}
       <div id='{{id}}' class="boxoffice-section clearfix" intro='fly:{"x":600,"y":"0"}'>
         {{#section}}
-          <p class="confirmation-icon"><i class="fa fa-check-circle"></i></p>
-          <p class="confirmation-header">Thank you for your order!</p>
-          <div class="confirmation-msg">
-            <p class="">We’ve mailed you the cash receipt.</p>
-            <div class="receipt-btn-wrapper">
-              <a href="{{ cashReceiptURL }}" target="_blank" class="boxoffice-button boxoffice-button-action receipt-button" on-click="fire('eventAnalytics','view cash receipt', 'cash receipt')">See cash receipt</a>
-              <a href="{{ attendeeAssignmentURL }}" target="_blank" class="boxoffice-button boxoffice-button-action receipt-button" on-click="fire('eventAnalytics','fill attendee details', 'attendee details')">Fill attendee details</a>
-            </div>
-            <div class="social-icons">
-              <p>Tell your friends!</p>
-              <span class="tweet-button">
-              <a href="https://twitter.com/share" class="twitter-share-button" data-text="Yay! I'm attending {{eventTitle}}" data-hashtags="HasGeek{{#if eventHashtag}}, {{eventHashtag}}{{/if}}">Tweet</a>
-              </span>
-              <div class="fb-share-button pad-half" data-layout="button"></div>
-              <div id="fb-root"></div>
-              <script>(function(d, s, id) { var js, fjs = d.getElementsByTagName(s)[0]; if (d.getElementById(id)) return; js = d.createElement(s); js.id = id; js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.5"; fjs.parentNode.insertBefore(js, fjs); }(document, 'script', 'facebook-jssdk'));</script>
-              <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
-            </div>
+          <div>
+            <p class="confirmation-msg">Thank you for your order! We’ve mailed you the cash receipt.</p>
+            <p class="confirmation-header">Register</p>
+            <p class="confirmation-msg">Almost done! We need a few more details before we can print your badge.</p>
+            <a href="{{ attendeeAssignmentURL }}" target="_blank">
+              <div class="ticket-wrapper">
+                <div class="ticket">
+                  <div class="header">
+                    {{#if eventDetails.logo}}
+                      <img src="{{ eventDetails.logo }}" class="logo"/>
+                    {{/if}}
+                    <div class="event">
+                      <p class="event-title">{{ eventTitle }}</p>
+                      <p class="event-date">
+                      {{#if getConfirmedTicket(order.line_items).item_details }}
+                        <span>{{ getConfirmedTicket(order.line_items).item_details.date }}</span>
+                        &nbsp; &#124; &nbsp;<span>{{ getConfirmedTicket(order.line_items).item_details.time }}</span>
+                      {{/if}}
+                      </p>
+                    </div>
+                  </div>
+                  <div class="ticket-body">
+                    <p class="ticket-form-label">Name</p>
+                    <p class="ticket-input"><span class="cursor">&#124;</span></p>
+                    <p class="ticket-form-label">Company</p>
+                    <p class="ticket-input"></p>
+                    {{#if getConfirmedTicket(order.line_items).item_details }}
+                      <p class="ticket-form-label">Venue</p>
+                      <p class="ticket-field-value">{{ getConfirmedTicket(order.line_items).item_details.venue }}</p>
+                    {{/if}}
+                    <p class="ticket-form-label">Ticket</p>
+                    <p class="ticket-field-value">{{ getConfirmedTicket(order.line_items).item_title }}</p>
+                  </div>
+                </div>
+              </div>
+            </a>
+            <p class="fill-btn-wrapper">
+              <a href="{{ attendeeAssignmentURL }}" target="_blank" class="boxoffice-button boxoffice-button-action" on-click="fire('eventAnalytics','fill attendee details', 'attendee details')">Fill attendee details</a>
+            </p>
           </div>
         {{/section}}
       </div>      
     {{/if}}
   {{/}}
 </div>
-{%endraw%}
+
 <style>
   #boxoffice-widget {
     max-width: 1000px;
@@ -777,65 +798,170 @@
     top: 43%;
     left: 48%;
   }
-  .confirmation-icon {
-    font-size: 50px;
-    color: green;
-    text-align: center;
-    line-height: 1;
-    margin: 20px 0 0;
-  }
   .confirmation-header {
     font-size: 24px;
-    color: green;
     text-align: center;
-    margin: 20px 0;
+    margin: 15px 0;
   }
   .confirmation-msg {
     font-size: 16px;
     text-align: center;
   }
   @media (min-width: 768px) {
-    .confirmation-icon {
-      font-size: 75px;
-    }
     .confirmation-header {
       font-size: 30px;
       margin-bottom: 20px;
     }
     .confirmation-msg {
       font-size: 18px;
-      line-height: 1.7;
+      line-height: 1;
       max-width: 800px;
       margin: auto;
     }
   }
-  .name {
+  .ticket-wrapper {
+    width: 300px;
+    margin: 25px auto 15px;
+    max-width: 350px;
+    border-radius: 5px;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.6);
+  }
+  .ticket {
+    position: relative;
+  }
+  .ticket::before {
+    content: "";
+    background-color: #f5f6f8;
+    width: 280px;
+    height: 50px;
+    border-radius: 5px;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.6);
+    position: absolute;
+    bottom: -9px;
+    left: 5px;
+    z-index: -1;
+  }
+  .ticket::after {
+    content: "";
+    background-color: #f5f6f8;
+    width: 270px;
+    height: 50px;
+    border-radius: 5px;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.6);
+    position: absolute;
+    bottom: -15px;
+    left: 10px;
+    z-index: -2;
+  }
+  @media (min-width: 360px) {
+    .ticket-wrapper {
+      width: 350px;
+    }
+    .ticket::before {
+      width: 340px;
+    }
+    .ticket::after {
+      width: 330px;
+    }
+  }
+  .header {
+    background-color: #856A91;
+    color: #fff;
+    border-radius: 5px 5px 0 0;
+    padding: 15px;
+    min-height: 70px;
+  }
+  {{#if tabs.confirm.section.eventDetails}}
+    .header {
+      background-color: {{ tabs.confirm.section.eventDetails.banner_color }};
+      color: {{ tabs.confirm.section.eventDetails.font_color }};
+    }
+  {{/if}}
+  .logo {
+    float: left;
+    width: 10%;
+    min-width: 60px;
+  }
+  .event {
+    float: left;
+    margin-left: 15px;
+  }
+  .event-title {
+    font-size: 20px;
+    line-height: 1;
+    margin: 0 0 5px;
+  }
+  .event-date {
+    font-size: 14px;
+    line-height: 1;
+    margin: 0 0 10px;
     text-align: left;
-    margin: 0;
   }
-  .receipt-button {
-    margin: 10px;
-    display: inline-block;
+  .ticket-body {
+    background-color: #f5f6f8;
+    border-radius: 0 0 5px 5px;
+    padding: 15px;
+    min-height: 50px;
   }
-  .receipt-button:hover,
-  .receipt-button:focus {
-    background-color: inherit;
-    color: inherit;
-    border-color: inherit;
-    border-bottom: 3px solid;
+  .ticket-form-label {
+    font-size: 15px;
+    color: #b8b9b9;
+    margin: 10px 0;
+    text-align: left;
   }
-  .receipt-btn-wrapper, .social-icons {
+  .ticket-input {
+    border-bottom: 1px solid #b8b9b9;
+    border-radius: 0;
+    font-size: 15px;
+    height: 20px;
+    margin: 10px 0;
+  }
+  .ticket-field-value {
+    font-size: 15px;
+    color: #333;
+    text-align: left;
+  }
+  .fill-btn-wrapper {
+    margin: 25px auto 15px;
     text-align: center;
   }
-  .fb-share-button {
-    display: inline-block;
-    line-height: 1;
-    padding: 0px 0px 0px 10px !important;
-    top: -2px;
+  .cursor {
+    -webkit-animation: 1s blink step-end infinite;
+    -moz-animation: 1s blink step-end infinite;
+    -o-animation: 1s blink step-end infinite;
+    animation: 1s blink step-end infinite;
   }
-  .tweet-button {
-    line-height: 1;
-    position: relative;
-    top: 2px;
+  @-webkit-keyframes "blink" {
+    from, to {
+      color: transparent;
+    }
+    50% {
+      color: black;
+    }
+  }
+  @-moz-keyframes blink {
+    from, to {
+      color: transparent;
+    }
+    50% {
+      color: black;
+    }
+  }
+  @-o-keyframes "blink" {
+    from, to {
+      color: transparent;
+    }
+    50% {
+      color: black;
+    }
+  }
+  @keyframes "blink" {
+    from, to {
+      color: transparent;
+    }
+    50% {
+      color: black;
+    }
   }
 </style>
+{%endraw%}
