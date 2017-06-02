@@ -31,8 +31,8 @@ def admin_report(item_collection):
     (ItemCollection, {'id': 'ic_id'}, 'item_collection'),
     permission='org_admin')
 def tickets_report(item_collection):
-    headers = ['ticket id', 'order_id', 'receipt no.', 'ticket type', 'base amount', 'discounted amount', 'final amount', 'discount policy', 'discount code', 'buyer fullname', 'buyer email', 'buyer phone', 'attendee fullname', 'attendee email', 'attendee phone', 'attendee details', 'utm_campaign', 'utm_source', 'utm_medium', 'utm_term', 'utm_content', 'utm_id', 'gclid', 'referrer', 'date']
-    rows = LineItem.fetch_all_details(item_collection)
+    headers = ['ticket id', 'order id', 'receipt no', 'ticket type', 'base amount', 'discounted amount', 'final amount', 'discount policy', 'discount code', 'buyer fullname', 'buyer email', 'buyer phone', 'attendee fullname', 'attendee email', 'attendee phone', 'attendee details', 'utm_campaign', 'utm_source', 'utm_medium', 'utm_term', 'utm_content', 'utm_id', 'gclid', 'referrer', 'date']
+    rows = item_collection.fetch_all_details
 
     def row_handler(row):
         row_list = list(row)
@@ -49,12 +49,12 @@ def tickets_report(item_collection):
     (ItemCollection, {'id': 'ic_id'}, 'item_collection'),
     permission='org_admin')
 def attendees_report(item_collection):
-    headers = ['receipt no.', 'ticket no.', 'ticket id', 'ticket type', 'attendee fullname', 'attendee email', 'attendee phone']
+    headers = ['receipt no', 'ticket no', 'ticket id', 'ticket type', 'attendee fullname', 'attendee email', 'attendee phone']
     for item in item_collection.items:
         for detail in item.assignee_details.keys():
             if detail not in headers:
                 headers.append(detail)
-    rows = LineItem.fetch_assignee_details(item_collection)
+    rows = item_collection.fetch_assignee_details
 
     def row_handler(row):
         # Convert row to a dict
