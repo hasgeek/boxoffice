@@ -1,5 +1,5 @@
 
-import {fetch, post, scrollToElement, getFormParameters, getCsrfToken, updateBrowserHistory, urlFor, setPageTitle} from '../models/util.js';
+import {Util, fetch, post, scrollToElement, getFormParameters, getCsrfToken, updateBrowserHistory, urlFor, setPageTitle} from '../models/util.js';
 import {DiscountPolicyTemplate} from '../templates/admin_discount_policy.html.js';
 import {SideBarView} from './sidebar.js';
 
@@ -110,6 +110,9 @@ export const DiscountPolicyView = {
           getCsrfToken: function () {
             //Defined as a function so that it is called every time the form is opened
             return getCsrfToken()
+          },
+          formatToIndianRupee: function (amount) {
+            return Util.formatToIndianRupee(amount);
           }
         },
         refresh: function (search='', page='', size='') {

@@ -149,6 +149,11 @@ a.boxoffice-button:focus {
   outline: none;
 }
 
+.btn-right {
+  float: right;
+  margin-bottom: 10px;
+}
+
 .action-btn {
   cursor: pointer;
   padding-left: 10px;
@@ -203,6 +208,15 @@ a.boxoffice-button:focus {
   outline: none;
 }
 
+.group-input.longer-labeltxt {
+  height: 65px;
+}
+
+@media (min-width: 768px) {
+  .group-input.longer-labeltxt {
+    height: auto;
+  }
+}
 .group-label {
   color: #999;
   font-size: 16px;
@@ -211,6 +225,8 @@ a.boxoffice-button:focus {
   pointer-events: none;
   left: 5px;
   top: 10px;
+  max-height: 45px;
+  overflow: hidden;
   transition: 0.2s ease all;
   -moz-transition: 0.2s ease all;
   -webkit-transition: 0.2s ease all;
@@ -232,6 +248,10 @@ a.boxoffice-button:focus {
 
 .group-input-btn:active {
   outline: none;
+}
+
+input.icon-placeholder {
+  font-family: FontAwesome;
 }
 
 .group-select select {
@@ -600,31 +620,8 @@ a.boxoffice-button:focus {
   top: -1px;
 }
 
-.search {
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  padding: 7px 14px;
-  margin-bottom: 10px;
-  width: 250px;
-}
-
-.search:focus {
-  outline: none;
-  border-color: #aaa;
-}
-
-@media (min-width: 768px) {
-  .btn-right {
-    float: right;
-    margin-bottom: 10px;
-  }
-}
 .table-responsive {
   overflow-x: inherit;
-}
-
-.content-wrapper .modal-dialog {
-  width: 50%;
 }
 
 .organization-logo {

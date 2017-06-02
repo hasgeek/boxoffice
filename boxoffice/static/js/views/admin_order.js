@@ -1,5 +1,5 @@
 
-import {fetch, post, scrollToElement, urlFor, setPageTitle, formatDateTime} from '../models/util.js';
+import {Util, fetch, post, scrollToElement, urlFor, setPageTitle} from '../models/util.js';
 import {OrderTemplate} from '../templates/admin_order.html.js';
 import {SideBarView} from './sidebar.js';
 
@@ -17,7 +17,10 @@ export const OrderView = {
           icTitle: title,
           orders: orders,
           formatDateTime: function (dateTimeString) {
-            return formatDateTime(dateTimeString);
+            return Util.formatDateTime(dateTimeString);
+          },
+          formatToIndianRupee: function (amount) {
+            return Util.formatToIndianRupee(amount);
           }
         }
       });
