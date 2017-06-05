@@ -5,7 +5,7 @@ from .. import app, lastuser
 from coaster.views import load_models, render_with
 from baseframe import localize_timezone, get_locale
 from boxoffice.models import Organization, ItemCollection, LineItem
-from boxoffice.views.utils import csv_response
+from boxoffice.views.utils import check_api_access, csv_response
 from babel.dates import format_datetime
 
 
@@ -31,13 +31,11 @@ def admin_report(item_collection):
     (ItemCollection, {'id': 'ic_id'}, 'item_collection'),
     permission='org_admin')
 def tickets_report(item_collection):
-    headers = ['ticket_id', 'order_id', 'receipt_no', 'ticket_type', 'base_amount', 'discounted_amount', 'final_amount', 'discount_policy', 'discount_code', 'buyer_fullname', 'buyer_email', 'buyer_phone', 'attendee_fullname', 'attendee_email', 'attendee_phone', 'attendee_details', 'utm_campaign', 'utm_source', 'utm_medium', 'utm_term', 'utm_content', 'utm_id', 'gclid', 'referrer', 'date']
-    rows = item_collection.fetch_all_details
-
+    headers, rows = item_collection.fetch_all_details
     def row_handler(row):
         row_list = list(row)
         # localize datetime
-        row_list[-1] = format_datetime(localize_timezone(row_list[-1]), format='long', locale=get_locale())
+        row_list[headers.index('date')] = format_datetime(localize_timezone(row_list[headers.index('date')]), format='long', locale=get_locale())
         return row_list
 
     return csv_response(headers, rows, row_handler=row_handler)
@@ -49,18 +47,28 @@ def tickets_report(item_collection):
     (ItemCollection, {'id': 'ic_id'}, 'item_collection'),
     permission='org_admin')
 def attendees_report(item_collection):
-    headers = ['receipt_no', 'ticket_no', 'ticket_id', 'ticket_type', 'attendee_fullname', 'attendee_email', 'attendee_phone']
+
+    attendee_details_headers = []
     for item in item_collection.items:
-        for detail in item.assignee_details.keys():
-            if detail not in headers:
-                headers.append(detail)
-    rows = item_collection.fetch_assignee_details
+        if item.assignee_details:
+            for detail in item.assignee_details.keys():
+                if detail not in attendee_details_headers:
+                    attendee_details_headers.append(detail)
+
+    headers, rows = item_collection.fetch_assignee_details
+    headers.extend(attendee_details_headers)
 
     def row_handler(row):
         # Convert row to a dict
-        # row[-1] contains attendee details which is already a dict
-        dict_row = dict(zip(headers, row[:-1]))
-        dict_row.update(row[-1])
+        if 'attendee_details' in headers:
+            # Everything BEFORE 'attendee_details' needs to converted to a dict
+            dict_row = dict(zip(headers[:headers.index('attendee_details')], row[:headers.index('attendee_details')]))
+            # Everything AFTER 'attendee_details' needs to converted to a dict
+            dict_row.update(dict(zip(headers[headers.index('attendee_details')+1:], row[headers.index('attendee_details')+1:])))
+            # 'attendee_details' is already a dict and can be copied as is
+            dict_row.update(row[headers.index('attendee_details')])
+        else:
+            dict_row = dict(zip(headers, row))
         return dict_row
 
     return csv_response(headers, rows, row_type='dict', row_handler=row_handler)
@@ -69,24 +77,30 @@ def attendees_report(item_collection):
 @app.route('/api/1/organization/<org>/ic/<ic_id>/orders.csv')
 @load_models(
     (Organization, {'name': 'org'}, 'organization'),
-    (ItemCollection, {'id': 'ic_id'}, 'item_collection'),
-    permission='org_admin')
+    (ItemCollection, {'id': 'ic_id'}, 'item_collection')
+    )
 def orders_api(organization, item_collection):
     check_api_access(organization.details.get('access_token'))
-    headers = ['ticket_id', 'order_id', 'receipt_no', 'ticket_type', 'base_amount', 'discounted_amount', 'final_amount', 'discount_policy', 'discount_code', 'buyer_fullname', 'buyer_email', 'buyer_phone', 'attendee_fullname', 'attendee_email', 'attendee_phone', 'utm_campaign', 'utm_source', 'utm_medium', 'utm_term', 'utm_content', 'utm_id', 'gclid', 'referrer', 'date']
-
+    attendee_details_headers = []
     for item in item_collection.items:
-        for detail in item.assignee_details.keys():
-            if detail not in headers:
-                headers.append(detail)
-
-    rows = item_collection.fetch_all_details
+        if item.assignee_details:
+            for detail in item.assignee_details.keys():
+                if detail not in attendee_details_headers:
+                    attendee_details_headers.append(detail)
+    headers, rows = item_collection.fetch_all_details
+    headers.extend(attendee_details_headers)
 
     def row_handler(row):
         # Convert row to a dict
-        # row[-1] contains attendee details which is already a dict
-        dict_row = dict(zip(headers, row[:-1]))
-        dict_row.update(row[-1])
+        if 'attendee_details' in headers and row[headers.index('attendee_details')]:
+            # Everything BEFORE 'attendee_details' needs to converted to a dict
+            dict_row = dict(zip(headers[:headers.index('attendee_details')], row[:headers.index('attendee_details')]))
+            # Everything AFTER 'attendee_details' needs to converted to a dict
+            dict_row.update(dict(zip(headers[headers.index('attendee_details')+1:], row[headers.index('attendee_details')+1:])))
+            # 'attendee_details' is already a dict and can be copied as is
+            dict_row.update(row[headers.index('attendee_details')])
+        else:
+            dict_row = dict(zip(headers, row))
         return dict_row
 
     return csv_response(headers, rows, row_type='dict', row_handler=row_handler)
