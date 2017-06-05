@@ -189,7 +189,7 @@ def fetch_all_details(self):
         OrderSession.utm_content, OrderSession.utm_id, OrderSession.gclid, OrderSession.referrer,
         Order.paid_at]).select_from(line_item_join).where(LineItem.status ==
         LINE_ITEM_STATUS.CONFIRMED).where(Order.item_collection ==
-        self).order_by('created_at')
+        self).order_by(LineItem.ordered_at)
     return db.session.execute(line_item_query).fetchall()
 
 
@@ -206,7 +206,7 @@ def fetch_assignee_details(self):
     line_item_query = db.select([Order.invoice_no, LineItem.line_item_seq, LineItem.id, Item.title, Assignee.fullname,
         Assignee.email, Assignee.phone, Assignee.details]).select_from(line_item_join).where(LineItem.status ==
         LINE_ITEM_STATUS.CONFIRMED).where(Order.item_collection ==
-        self).order_by('ordered_at')
+        self).order_by(LineItem.ordered_at)
     return db.session.execute(line_item_query).fetchall()
 
 
