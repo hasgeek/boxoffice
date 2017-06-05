@@ -51,9 +51,10 @@ def tickets_report(item_collection):
 def attendees_report(item_collection):
     headers = ['receipt_no', 'ticket_no', 'ticket_id', 'ticket_type', 'attendee_fullname', 'attendee_email', 'attendee_phone']
     for item in item_collection.items:
-        for detail in item.assignee_details.keys():
-            if detail not in headers:
-                headers.append(detail)
+        if item.assignee_details:
+            for detail in item.assignee_details.keys():
+                if detail not in headers:
+                    headers.append(detail)
     rows = item_collection.fetch_assignee_details
 
     def row_handler(row):
