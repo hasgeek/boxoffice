@@ -13,6 +13,7 @@ export const ReportTemplate = `
               <p class="field-title filled">Report type</p>
               <select name="report-type" value="{{ reportType }}">
                 <option value="tickets" selected="selected">Tickets</option>
+                <option value="attendees">Attendees</option>
               </select>
             </div>
             <div class="btn-wrapper"> 
