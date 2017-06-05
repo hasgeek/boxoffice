@@ -7,7 +7,7 @@ from fixtures import init_data
 
 class TestItemCollectionAPI(unittest.TestCase):
 
-    expected_keys = ['categories', 'html', 'refund_policy']
+    expected_keys = ['categories', 'html', 'eventTitle', 'eventDetails', 'refund_policy']
     expected_categories_names = ['conference', 'workshop', 'merchandise']
     expected_data = {
         "conference": {

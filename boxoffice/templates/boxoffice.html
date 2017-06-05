@@ -829,39 +829,9 @@
   .ticket {
     position: relative;
   }
-  .ticket::before {
-    content: "";
-    background-color: #f5f6f8;
-    width: 280px;
-    height: 50px;
-    border-radius: 5px;
-    box-shadow: 0 0 2px rgba(0, 0, 0, 0.6);
-    position: absolute;
-    bottom: -9px;
-    left: 5px;
-    z-index: -1;
-  }
-  .ticket::after {
-    content: "";
-    background-color: #f5f6f8;
-    width: 270px;
-    height: 50px;
-    border-radius: 5px;
-    box-shadow: 0 0 2px rgba(0, 0, 0, 0.6);
-    position: absolute;
-    bottom: -15px;
-    left: 10px;
-    z-index: -2;
-  }
   @media (min-width: 360px) {
     .ticket-wrapper {
       width: 350px;
-    }
-    .ticket::before {
-      width: 340px;
-    }
-    .ticket::after {
-      width: 330px;
     }
   }
   .header {
