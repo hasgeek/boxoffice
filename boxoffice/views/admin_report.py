@@ -76,7 +76,7 @@ def attendees_report(item_collection):
     csv_headers = list(headers)
     # Remove 'attendee_details' from header
     if 'attendee_details' in headers:
-        del csv_headers[csv_headers.index('attendee_details')]
+        csv_headers.remove('attendee_details')
 
     return csv_response(csv_headers, rows, row_type='dict', row_handler=row_handler)
 
@@ -115,6 +115,6 @@ def orders_api(organization, item_collection):
     csv_headers = list(headers)
     # Remove 'attendee_details' from header
     if 'attendee_details' in headers:
-        del csv_headers[csv_headers.index('attendee_details')]
+        csv_headers.remove('attendee_details')
 
     return csv_response(csv_headers, rows, row_type='dict', row_handler=row_handler)
