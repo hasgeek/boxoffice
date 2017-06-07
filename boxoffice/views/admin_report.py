@@ -60,18 +60,25 @@ def attendees_report(item_collection):
 
     def row_handler(row):
         # Convert row to a dict
-        if 'attendee_details' in headers:
-            # Everything BEFORE 'attendee_details' needs to converted to a dict
-            dict_row = dict(zip(headers[:headers.index('attendee_details')], row[:headers.index('attendee_details')]))
-            # Everything AFTER 'attendee_details' needs to converted to a dict
-            dict_row.update(dict(zip(headers[headers.index('attendee_details')+1:], row[headers.index('attendee_details')+1:])))
-            # 'attendee_details' is already a dict and can be copied as is
-            dict_row.update(row[headers.index('attendee_details')])
-        else:
-            dict_row = dict(zip(headers, row))
+        dict_row = {}
+        for idx, value in enumerate(row):
+            # Value is a dict already, so just copy
+            if isinstance(value, dict):
+                dict_row.update(value)
+            # Value is a string, add it to the dict with the corresponding key
+            else:
+                dict_row[headers[idx]] = value
+        # Localize datetime
+        if dict_row.get('date'):
+            dict_row['date'] = format_datetime(localize_timezone(dict_row['date']), format='long', locale=get_locale())
         return dict_row
 
-    return csv_response(headers, rows, row_type='dict', row_handler=row_handler)
+    csv_headers = list(headers)
+    # Remove 'attendee_details' from header
+    if 'attendee_details' in headers:
+        del csv_headers[csv_headers.index('attendee_details')]
+
+    return csv_response(csv_headers, rows, row_type='dict', row_handler=row_handler)
 
 
 @app.route('/api/1/organization/<org>/ic/<ic_id>/orders.csv')
@@ -92,18 +99,22 @@ def orders_api(organization, item_collection):
 
     def row_handler(row):
         # Convert row to a dict
-        if 'attendee_details' in headers and row[headers.index('attendee_details')]:
-            # Everything BEFORE 'attendee_details' needs to converted to a dict
-            dict_row = dict(zip(headers[:headers.index('attendee_details')], row[:headers.index('attendee_details')]))
-            # Everything AFTER 'attendee_details' needs to converted to a dict
-            dict_row.update(dict(zip(headers[headers.index('attendee_details')+1:], row[headers.index('attendee_details')+1:])))
-            # 'attendee_details' is already a dict and can be copied as is
-            dict_row.update(row[headers.index('attendee_details')])
-        else:
-            dict_row = dict(zip(headers, row))
+        dict_row = {}
+        for idx, value in enumerate(row):
+            # Value is a dict already, so just copy
+            if isinstance(value, dict):
+                dict_row.update(value)
+            # Value is a string, add it to the dict with the corresponding key
+            else:
+                dict_row[headers[idx]] = value
         # Localize datetime
         if dict_row.get('date'):
             dict_row['date'] = format_datetime(localize_timezone(dict_row['date']), format='long', locale=get_locale())
         return dict_row
 
-    return csv_response(headers, rows, row_type='dict', row_handler=row_handler)
+    csv_headers = list(headers)
+    # Remove 'attendee_details' from header
+    if 'attendee_details' in headers:
+        del csv_headers[csv_headers.index('attendee_details')]
+
+    return csv_response(csv_headers, rows, row_type='dict', row_handler=row_handler)
