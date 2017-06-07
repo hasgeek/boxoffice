@@ -101,6 +101,9 @@ def orders_api(organization, item_collection):
             dict_row.update(row[headers.index('attendee_details')])
         else:
             dict_row = dict(zip(headers, row))
+        # Localize datetime
+        if dict_row.get('date'):
+            dict_row['date'] = format_datetime(localize_timezone(dict_row['date']), format='long', locale=get_locale())
         return dict_row
 
     return csv_response(headers, rows, row_type='dict', row_handler=row_handler)
