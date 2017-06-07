@@ -35,7 +35,8 @@ def tickets_report(item_collection):
     def row_handler(row):
         row_list = list(row)
         # localize datetime
-        row_list[headers.index('date')] = format_datetime(localize_timezone(row_list[headers.index('date')]), format='long', locale=get_locale())
+        date_header_index = headers.index('date')
+        row_list[date_header_index] = format_datetime(localize_timezone(row_list[date_header_index]), format='long', locale=get_locale())
         return row_list
 
     return csv_response(headers, rows, row_handler=row_handler)
@@ -52,22 +53,29 @@ def attendees_report(item_collection):
     for item in item_collection.items:
         if item.assignee_details:
             for detail in item.assignee_details.keys():
-                if detail not in attendee_details_headers:
-                    attendee_details_headers.append(detail)
+                attendee_detail_prefexed = 'attendee_details_'+detail
+                if attendee_detail_prefexed not in attendee_details_headers:
+                    attendee_details_headers.append(attendee_detail_prefexed)
 
     headers, rows = item_collection.fetch_assignee_details()
     headers.extend(attendee_details_headers)
 
+    if 'attendee_details' in headers:
+        attendee_details_index = headers.index('attendee_details')
+    else:
+        attendee_details_index = -1
+
     def row_handler(row):
         # Convert row to a dict
         dict_row = {}
-        for idx, value in enumerate(row):
-            # Value is a dict already, so just copy
-            if isinstance(value, dict):
-                dict_row.update(value)
+        for idx, item in enumerate(row):
+            # 'assignee_details' is a dict already, so copy and include prefixs
+            if idx == attendee_details_index and isinstance(item, dict):
+                for key in item.keys():
+                    dict_row['attendee_details_'+key] = item[key]
             # Value is a string, add it to the dict with the corresponding key
             else:
-                dict_row[headers[idx]] = value
+                dict_row[headers[idx]] = item
         # Localize datetime
         if dict_row.get('date'):
             dict_row['date'] = format_datetime(localize_timezone(dict_row['date']), format='long', locale=get_locale())
@@ -92,21 +100,28 @@ def orders_api(organization, item_collection):
     for item in item_collection.items:
         if item.assignee_details:
             for detail in item.assignee_details.keys():
-                if detail not in attendee_details_headers:
-                    attendee_details_headers.append(detail)
+                attendee_detail_prefexed = 'attendee_details_'+detail
+                if attendee_detail_prefexed not in attendee_details_headers:
+                    attendee_details_headers.append(attendee_detail_prefexed)
     headers, rows = item_collection.fetch_all_details()
     headers.extend(attendee_details_headers)
+
+    if 'attendee_details' in headers:
+        attendee_details_index = headers.index('attendee_details')
+    else:
+        attendee_details_index = -1
 
     def row_handler(row):
         # Convert row to a dict
         dict_row = {}
-        for idx, value in enumerate(row):
-            # Value is a dict already, so just copy
-            if isinstance(value, dict):
-                dict_row.update(value)
+        for idx, item in enumerate(row):
+            # 'assignee_details' is a dict already, so copy and include prefixs
+            if idx == attendee_details_index and isinstance(item, dict):
+                for key in item.keys():
+                    dict_row['attendee_details_'+key] = item[key]
             # Value is a string, add it to the dict with the corresponding key
             else:
-                dict_row[headers[idx]] = value
+                dict_row[headers[idx]] = item
         # Localize datetime
         if dict_row.get('date'):
             dict_row['date'] = format_datetime(localize_timezone(dict_row['date']), format='long', locale=get_locale())
