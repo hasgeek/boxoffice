@@ -31,7 +31,7 @@ def admin_report(item_collection):
     (ItemCollection, {'id': 'ic_id'}, 'item_collection'),
     permission='org_admin')
 def tickets_report(item_collection):
-    headers, rows = item_collection.fetch_all_details
+    headers, rows = item_collection.fetch_all_details()
     def row_handler(row):
         row_list = list(row)
         # localize datetime
@@ -55,7 +55,7 @@ def attendees_report(item_collection):
                 if detail not in attendee_details_headers:
                     attendee_details_headers.append(detail)
 
-    headers, rows = item_collection.fetch_assignee_details
+    headers, rows = item_collection.fetch_assignee_details()
     headers.extend(attendee_details_headers)
 
     def row_handler(row):
@@ -84,7 +84,7 @@ def attendees_report(item_collection):
 @app.route('/api/1/organization/<org>/ic/<ic_id>/orders.csv')
 @load_models(
     (Organization, {'name': 'org'}, 'organization'),
-    (ItemCollection, {'id': 'ic_id'}, 'item_collection')
+    (ItemCollection, {'id': 'ic_id', 'organization': 'organization'}, 'item_collection')
     )
 def orders_api(organization, item_collection):
     check_api_access(organization.details.get('access_token'))
@@ -94,7 +94,7 @@ def orders_api(organization, item_collection):
             for detail in item.assignee_details.keys():
                 if detail not in attendee_details_headers:
                     attendee_details_headers.append(detail)
-    headers, rows = item_collection.fetch_all_details
+    headers, rows = item_collection.fetch_all_details()
     headers.extend(attendee_details_headers)
 
     def row_handler(row):

@@ -25,6 +25,8 @@ class LINE_ITEM_STATUS(LabeledEnum):
 
 LineItemTup = namedtuple('LineItem', ['item_id', 'id', 'base_amount', 'discount_policy_id', 'discount_coupon_id', 'discounted_amount', 'final_amount'])
 
+HeadersAndDataTup = namedtuple('HeadersAndData', ['headers', 'data'])
+
 
 def make_ntuple(item_id, base_amount, **kwargs):
     return LineItemTup(item_id,
@@ -191,13 +193,13 @@ def fetch_all_details(self):
         Order.paid_at]).select_from(line_item_join).where(LineItem.status ==
         LINE_ITEM_STATUS.CONFIRMED).where(Order.item_collection ==
         self).order_by(LineItem.ordered_at)
-    return (
+    return HeadersAndDataTup(
         ['ticket_id', 'order_id', 'receipt_no', 'ticket_type', 'base_amount', 'discounted_amount', 'final_amount', 'discount_policy', 'discount_code', 'buyer_fullname', 'buyer_email', 'buyer_phone', 'attendee_fullname', 'attendee_email', 'attendee_phone', 'attendee_details', 'utm_campaign', 'utm_source', 'utm_medium', 'utm_term', 'utm_content', 'utm_id', 'gclid', 'referrer', 'date'],
         db.session.execute(line_item_query).fetchall()
         )
 
 
-ItemCollection.fetch_all_details = property(fetch_all_details)
+ItemCollection.fetch_all_details = fetch_all_details
 
 
 def fetch_assignee_details(self):
@@ -211,13 +213,13 @@ def fetch_assignee_details(self):
         Assignee.email, Assignee.phone, Assignee.details]).select_from(line_item_join).where(LineItem.status ==
         LINE_ITEM_STATUS.CONFIRMED).where(Order.item_collection ==
         self).order_by(LineItem.ordered_at)
-    return (
+    return HeadersAndDataTup(
         ['receipt_no', 'ticket_no', 'ticket_id', 'ticket_type', 'attendee_fullname', 'attendee_email', 'attendee_phone', 'attendee_details'],
         db.session.execute(line_item_query).fetchall()
         )
 
 
-ItemCollection.fetch_assignee_details = property(fetch_assignee_details)
+ItemCollection.fetch_assignee_details = fetch_assignee_details
 
 
 def get_availability(cls, item_ids):
