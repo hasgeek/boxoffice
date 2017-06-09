@@ -35,7 +35,7 @@ def tickets_report(item_collection):
     headers, rows = item_collection.fetch_all_details()
     def row_handler(row):
         # localize datetime
-        row_list = [v if not isinstance(v, datetime) else format_datetime(localize_timezone(v), format='long', locale=get_locale()) for v in list(row)]
+        row_list = [v if not isinstance(v, datetime) else format_datetime(localize_timezone(v), format='long', locale=get_locale()) for v in row]
         return row_list
 
     return csv_response(headers, rows, row_handler=row_handler)
@@ -48,13 +48,15 @@ def tickets_report(item_collection):
     permission='org_admin')
 def attendees_report(item_collection):
 
+    # Generated a unique list of headers for all 'assignee_details' keys in all items in this item collection. This flattens the 'assignee_details' dict. This will need to be updated if we add additional dicts to our csv export.
     attendee_details_headers = []
     for item in item_collection.items:
         if item.assignee_details:
             for detail in item.assignee_details.keys():
-                attendee_detail_prefexed = 'attendee_details_' + detail
-                if attendee_detail_prefexed not in attendee_details_headers:
-                    attendee_details_headers.append(attendee_detail_prefexed)
+                attendee_detail_prefixed = 'attendee_details_' + detail
+                # Eliminate duplicate headers across attendee_details across items. For example, if 't-shirt' and 'hoodie' are two items with a 'size' key, you only want one column in the csv called size.
+                if attendee_detail_prefixed not in attendee_details_headers:
+                    attendee_details_headers.append(attendee_detail_prefixed)
 
     headers, rows = item_collection.fetch_assignee_details()
     headers.extend(attendee_details_headers)
@@ -95,13 +97,16 @@ def attendees_report(item_collection):
     )
 def orders_api(organization, item_collection):
     check_api_access(organization.details.get('access_token'))
+
+    # Generated a unique list of headers for all 'assignee_details' keys in all items in this item collection. This flattens the 'assignee_details' dict. This will need to be updated if we add additional dicts to our csv export.
     attendee_details_headers = []
     for item in item_collection.items:
         if item.assignee_details:
             for detail in item.assignee_details.keys():
-                attendee_detail_prefexed = 'attendee_details_' + detail
-                if attendee_detail_prefexed not in attendee_details_headers:
-                    attendee_details_headers.append(attendee_detail_prefexed)
+                attendee_detail_prefixed = 'attendee_details_' + detail
+                # Eliminate duplicate headers across attendee_details across items. For example, if 't-shirt' and 'hoodie' are two items with a 'size' key, you only want one column in the csv called size.
+                if attendee_detail_prefixed not in attendee_details_headers:
+                    attendee_details_headers.append(attendee_detail_prefixed)
     headers, rows = item_collection.fetch_all_details()
     headers.extend(attendee_details_headers)
 
