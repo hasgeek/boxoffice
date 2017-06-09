@@ -125,7 +125,7 @@ def orders_api(organization, item_collection):
                     dict_row['attendee_details_'+key] = item[key]
             # Item is a datetime object, so format and add to dict
             elif isinstance(item, datetime):
-                dict_row[headers[idx]] = format_datetime(localize_timezone(item), format='long', locale=get_locale())
+                dict_row[headers[idx]] = format_datetime(localize_timezone(item), format='long', locale=get_locale() or 'en') # FIXME: How to handle locale where the accept langauges header isn't specified? Relevant issue in baseframe https://github.com/hasgeek/baseframe/issues/154
             # Value is a string, add it to the dict with the corresponding key
             else:
                 dict_row[headers[idx]] = item
