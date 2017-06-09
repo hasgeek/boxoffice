@@ -7,6 +7,7 @@ from baseframe import localize_timezone, get_locale
 from boxoffice.models import Organization, ItemCollection, LineItem
 from boxoffice.views.utils import check_api_access, csv_response
 from babel.dates import format_datetime
+from datetime import datetime
 
 
 def jsonify_report(data_dict):
@@ -33,10 +34,8 @@ def admin_report(item_collection):
 def tickets_report(item_collection):
     headers, rows = item_collection.fetch_all_details()
     def row_handler(row):
-        row_list = list(row)
         # localize datetime
-        date_header_index = headers.index('date')
-        row_list[date_header_index] = format_datetime(localize_timezone(row_list[date_header_index]), format='long', locale=get_locale())
+        row_list = [v if not isinstance(v, datetime) else format_datetime(localize_timezone(v), format='long', locale=get_locale()) for v in list(row)]
         return row_list
 
     return csv_response(headers, rows, row_handler=row_handler)
@@ -53,7 +52,7 @@ def attendees_report(item_collection):
     for item in item_collection.items:
         if item.assignee_details:
             for detail in item.assignee_details.keys():
-                attendee_detail_prefexed = 'attendee_details_'+detail
+                attendee_detail_prefexed = 'attendee_details_' + detail
                 if attendee_detail_prefexed not in attendee_details_headers:
                     attendee_details_headers.append(attendee_detail_prefexed)
 
@@ -73,12 +72,12 @@ def attendees_report(item_collection):
             if idx == attendee_details_index and isinstance(item, dict):
                 for key in item.keys():
                     dict_row['attendee_details_'+key] = item[key]
-            # Value is a string, add it to the dict with the corresponding key
+            # Item is a datetime object, so format and add to dict
+            elif isinstance(item, datetime):
+                dict_row[headers[idx]] = format_datetime(localize_timezone(item), format='long', locale=get_locale())
+            # Item is a string, add it to the dict with the corresponding key
             else:
                 dict_row[headers[idx]] = item
-        # Localize datetime
-        if dict_row.get('date'):
-            dict_row['date'] = format_datetime(localize_timezone(dict_row['date']), format='long', locale=get_locale())
         return dict_row
 
     csv_headers = list(headers)
@@ -100,7 +99,7 @@ def orders_api(organization, item_collection):
     for item in item_collection.items:
         if item.assignee_details:
             for detail in item.assignee_details.keys():
-                attendee_detail_prefexed = 'attendee_details_'+detail
+                attendee_detail_prefexed = 'attendee_details_' + detail
                 if attendee_detail_prefexed not in attendee_details_headers:
                     attendee_details_headers.append(attendee_detail_prefexed)
     headers, rows = item_collection.fetch_all_details()
@@ -119,12 +118,12 @@ def orders_api(organization, item_collection):
             if idx == attendee_details_index and isinstance(item, dict):
                 for key in item.keys():
                     dict_row['attendee_details_'+key] = item[key]
+            # Item is a datetime object, so format and add to dict
+            elif isinstance(item, datetime):
+                dict_row[headers[idx]] = format_datetime(localize_timezone(item), format='long', locale=get_locale())
             # Value is a string, add it to the dict with the corresponding key
             else:
                 dict_row[headers[idx]] = item
-        # Localize datetime
-        if dict_row.get('date'):
-            dict_row['date'] = format_datetime(localize_timezone(dict_row['date']), format='long', locale=get_locale())
         return dict_row
 
     csv_headers = list(headers)
