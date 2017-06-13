@@ -7,7 +7,7 @@ from collections import namedtuple, OrderedDict
 from sqlalchemy.sql import select, func
 from sqlalchemy.ext.orderinglist import ordering_list
 from isoweek import Week
-from boxoffice.models import db, JsonDict, BaseMixin, Order, Item, DiscountPolicy, DISCOUNT_TYPE, DiscountCoupon, OrderSession
+from boxoffice.models import db, JsonDict, BaseMixin, ItemCollection, Order, Item, DiscountPolicy, DISCOUNT_TYPE, DiscountCoupon, OrderSession
 from coaster.utils import LabeledEnum, isoweek_datetime, midnight_to_utc
 from baseframe import __
 
@@ -23,11 +23,13 @@ class LINE_ITEM_STATUS(LabeledEnum):
     VOID = (3, __("Void"))
 
 
-LineItemTup = namedtuple('LineItem', ['item_id', 'id', 'base_amount', 'discount_policy_id', 'discount_coupon_id', 'discounted_amount', 'final_amount'])
+LineItemTuple = namedtuple('LineItemTuple', ['item_id', 'id', 'base_amount', 'discount_policy_id', 'discount_coupon_id', 'discounted_amount', 'final_amount'])
+
+HeadersAndDataTuple = namedtuple('HeadersAndDataTuple', ['headers', 'data'])
 
 
 def make_ntuple(item_id, base_amount, **kwargs):
-    return LineItemTup(item_id,
+    return LineItemTuple(item_id,
         kwargs.get('line_item_id', None),
         base_amount,
         kwargs.get('discount_policy_id', None),
@@ -168,29 +170,56 @@ class LineItem(BaseMixin, db.Model):
             if self.item.cancellable_until else True)
 
     @classmethod
-    def fetch_all_details(cls, item_collection):
-        """
-        Returns details for all the line items in a given item collection, along with the associated
-        assignee (if any), discount policy (if any), discount coupon (if any), item, order and order session (if any)
-        """
-        line_item_join = db.outerjoin(cls, Assignee, db.and_(LineItem.id == Assignee.line_item_id,
-            Assignee.current == True)).outerjoin(DiscountCoupon,
-            LineItem.discount_coupon_id == DiscountCoupon.id).outerjoin(DiscountPolicy,
-            LineItem.discount_policy_id == DiscountPolicy.id).join(Item).join(Order).outerjoin(OrderSession)
-        line_item_query = db.select([cls.id, cls.customer_order_id, Order.invoice_no, Item.title, cls.base_amount,
-            cls.discounted_amount, cls.final_amount, DiscountPolicy.title, DiscountCoupon.code,
-            Order.buyer_fullname, Order.buyer_email, Order.buyer_phone, Assignee.fullname,
-            Assignee.email, Assignee.phone, Assignee.details, OrderSession.utm_campaign,
-            OrderSession.utm_source, OrderSession.utm_medium, OrderSession.utm_term,
-            OrderSession.utm_content, OrderSession.utm_id, OrderSession.gclid, OrderSession.referrer,
-            Order.paid_at]).select_from(line_item_join).where(cls.status ==
-            LINE_ITEM_STATUS.CONFIRMED).where(Order.item_collection ==
-            item_collection).order_by('created_at')
-        return db.session.execute(line_item_query).fetchall()
-
-    @classmethod
     def get_max_seq(cls, order):
         return db.session.query(func.max(LineItem.line_item_seq)).filter(LineItem.order == order).scalar()
+
+
+def fetch_all_details(self):
+    """
+    Returns details for all the line items in a given item collection, along with the associated
+    assignee (if any), discount policy (if any), discount coupon (if any), item, order and order session (if any)
+    as a tuple of (keys, rows)
+    """
+    line_item_join = db.outerjoin(LineItem, Assignee, db.and_(LineItem.id == Assignee.line_item_id,
+        Assignee.current == True)).outerjoin(DiscountCoupon,
+        LineItem.discount_coupon_id == DiscountCoupon.id).outerjoin(DiscountPolicy,
+        LineItem.discount_policy_id == DiscountPolicy.id).join(Item).join(Order).outerjoin(OrderSession)
+    line_item_query = db.select([LineItem.id, LineItem.customer_order_id, Order.invoice_no, Item.title, LineItem.base_amount,
+        LineItem.discounted_amount, LineItem.final_amount, DiscountPolicy.title, DiscountCoupon.code,
+        Order.buyer_fullname, Order.buyer_email, Order.buyer_phone, Assignee.fullname,
+        Assignee.email, Assignee.phone, Assignee.details, OrderSession.utm_campaign,
+        OrderSession.utm_source, OrderSession.utm_medium, OrderSession.utm_term,
+        OrderSession.utm_content, OrderSession.utm_id, OrderSession.gclid, OrderSession.referrer,
+        Order.paid_at]).select_from(line_item_join).where(LineItem.status ==
+        LINE_ITEM_STATUS.CONFIRMED).where(Order.item_collection ==
+        self).order_by(LineItem.ordered_at)
+    return HeadersAndDataTuple(
+        ['ticket_id', 'order_id', 'receipt_no', 'ticket_type', 'base_amount', 'discounted_amount', 'final_amount', 'discount_policy', 'discount_code', 'buyer_fullname', 'buyer_email', 'buyer_phone', 'attendee_fullname', 'attendee_email', 'attendee_phone', 'attendee_details', 'utm_campaign', 'utm_source', 'utm_medium', 'utm_term', 'utm_content', 'utm_id', 'gclid', 'referrer', 'date'],
+        db.session.execute(line_item_query).fetchall()
+        )
+
+
+ItemCollection.fetch_all_details = fetch_all_details
+
+
+def fetch_assignee_details(self):
+    """
+    Returns invoice_no, ticket title, assignee fullname, assignee email, assignee phone and assignee details
+    for all the line items in a given item collection as a tuple of (keys, rows)
+    """
+    line_item_join = db.join(LineItem, Assignee, db.and_(LineItem.id == Assignee.line_item_id,
+        Assignee.current == True)).join(Item).join(Order)
+    line_item_query = db.select([Order.invoice_no, LineItem.line_item_seq, LineItem.id, Item.title, Assignee.fullname,
+        Assignee.email, Assignee.phone, Assignee.details]).select_from(line_item_join).where(LineItem.status ==
+        LINE_ITEM_STATUS.CONFIRMED).where(Order.item_collection ==
+        self).order_by(LineItem.ordered_at)
+    return HeadersAndDataTuple(
+        ['receipt_no', 'ticket_no', 'ticket_id', 'ticket_type', 'attendee_fullname', 'attendee_email', 'attendee_phone', 'attendee_details'],
+        db.session.execute(line_item_query).fetchall()
+        )
+
+
+ItemCollection.fetch_assignee_details = fetch_assignee_details
 
 
 def get_availability(cls, item_ids):

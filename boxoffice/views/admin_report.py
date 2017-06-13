@@ -4,9 +4,10 @@ from flask import jsonify
 from .. import app, lastuser
 from coaster.views import load_models, render_with
 from baseframe import localize_timezone, get_locale
-from boxoffice.models import ItemCollection, LineItem
-from boxoffice.views.utils import csv_response
+from boxoffice.models import Organization, ItemCollection, LineItem
+from boxoffice.views.utils import check_api_access, csv_response
 from babel.dates import format_datetime
+from datetime import datetime
 
 
 def jsonify_report(data_dict):
@@ -22,7 +23,6 @@ def jsonify_report(data_dict):
     (ItemCollection, {'id': 'ic_id'}, 'item_collection'),
     permission='org_admin')
 def admin_report(item_collection):
-    print "reports"
     return dict(item_collection=item_collection)
 
 
@@ -32,13 +32,108 @@ def admin_report(item_collection):
     (ItemCollection, {'id': 'ic_id'}, 'item_collection'),
     permission='org_admin')
 def tickets_report(item_collection):
-    headers = ['ticket id', 'order_id', 'invoice no', 'ticket type', 'base amount', 'discounted amount', 'final amount', 'discount policy', 'discount code', 'buyer fullname', 'buyer email', 'buyer phone', 'attendee fullname', 'attendee email', 'attendee phone', 'attendee details', 'utm_campaign', 'utm_source', 'utm_medium', 'utm_term', 'utm_content', 'utm_id', 'gclid', 'referrer', 'date']
-    rows = LineItem.fetch_all_details(item_collection)
-
+    headers, rows = item_collection.fetch_all_details()
     def row_handler(row):
-        row_list = list(row)
         # localize datetime
-        row_list[-1] = format_datetime(localize_timezone(row_list[-1]), format='long', locale=get_locale())
+        row_list = [v if not isinstance(v, datetime) else format_datetime(localize_timezone(v), format='long', locale=get_locale()) for v in row]
         return row_list
 
     return csv_response(headers, rows, row_handler=row_handler)
+
+
+@app.route('/admin/ic/<ic_id>/attendees.csv')
+@lastuser.requires_login
+@load_models(
+    (ItemCollection, {'id': 'ic_id'}, 'item_collection'),
+    permission='org_admin')
+def attendees_report(item_collection):
+
+    # Generated a unique list of headers for all 'assignee_details' keys in all items in this item collection. This flattens the 'assignee_details' dict. This will need to be updated if we add additional dicts to our csv export.
+    attendee_details_headers = []
+    for item in item_collection.items:
+        if item.assignee_details:
+            for detail in item.assignee_details.keys():
+                attendee_detail_prefixed = 'attendee_details_' + detail
+                # Eliminate duplicate headers across attendee_details across items. For example, if 't-shirt' and 'hoodie' are two items with a 'size' key, you only want one column in the csv called size.
+                if attendee_detail_prefixed not in attendee_details_headers:
+                    attendee_details_headers.append(attendee_detail_prefixed)
+
+    headers, rows = item_collection.fetch_assignee_details()
+    headers.extend(attendee_details_headers)
+
+    if 'attendee_details' in headers:
+        attendee_details_index = headers.index('attendee_details')
+    else:
+        attendee_details_index = -1
+
+    def row_handler(row):
+        # Convert row to a dict
+        dict_row = {}
+        for idx, item in enumerate(row):
+            # 'assignee_details' is a dict already, so copy and include prefixs
+            if idx == attendee_details_index and isinstance(item, dict):
+                for key in item.keys():
+                    dict_row['attendee_details_'+key] = item[key]
+            # Item is a datetime object, so format and add to dict
+            elif isinstance(item, datetime):
+                dict_row[headers[idx]] = format_datetime(localize_timezone(item), format='long', locale=get_locale())
+            # Item is a string, add it to the dict with the corresponding key
+            else:
+                dict_row[headers[idx]] = item
+        return dict_row
+
+    csv_headers = list(headers)
+    # Remove 'attendee_details' from header
+    if 'attendee_details' in headers:
+        csv_headers.remove('attendee_details')
+
+    return csv_response(csv_headers, rows, row_type='dict', row_handler=row_handler)
+
+
+@app.route('/api/1/organization/<org>/ic/<ic_id>/orders.csv')
+@load_models(
+    (Organization, {'name': 'org'}, 'organization'),
+    (ItemCollection, {'id': 'ic_id', 'organization': 'organization'}, 'item_collection')
+    )
+def orders_api(organization, item_collection):
+    check_api_access(organization.details.get('access_token'))
+
+    # Generated a unique list of headers for all 'assignee_details' keys in all items in this item collection. This flattens the 'assignee_details' dict. This will need to be updated if we add additional dicts to our csv export.
+    attendee_details_headers = []
+    for item in item_collection.items:
+        if item.assignee_details:
+            for detail in item.assignee_details.keys():
+                attendee_detail_prefixed = 'attendee_details_' + detail
+                # Eliminate duplicate headers across attendee_details across items. For example, if 't-shirt' and 'hoodie' are two items with a 'size' key, you only want one column in the csv called size.
+                if attendee_detail_prefixed not in attendee_details_headers:
+                    attendee_details_headers.append(attendee_detail_prefixed)
+    headers, rows = item_collection.fetch_all_details()
+    headers.extend(attendee_details_headers)
+
+    if 'attendee_details' in headers:
+        attendee_details_index = headers.index('attendee_details')
+    else:
+        attendee_details_index = -1
+
+    def row_handler(row):
+        # Convert row to a dict
+        dict_row = {}
+        for idx, item in enumerate(row):
+            # 'assignee_details' is a dict already, so copy and include prefixs
+            if idx == attendee_details_index and isinstance(item, dict):
+                for key in item.keys():
+                    dict_row['attendee_details_'+key] = item[key]
+            # Item is a datetime object, so format and add to dict
+            elif isinstance(item, datetime):
+                dict_row[headers[idx]] = format_datetime(localize_timezone(item), format='long', locale=get_locale() or 'en') # FIXME: How to handle locale where the accept langauges header isn't specified? Relevant issue in baseframe https://github.com/hasgeek/baseframe/issues/154
+            # Value is a string, add it to the dict with the corresponding key
+            else:
+                dict_row[headers[idx]] = item
+        return dict_row
+
+    csv_headers = list(headers)
+    # Remove 'attendee_details' from header
+    if 'attendee_details' in headers:
+        csv_headers.remove('attendee_details')
+
+    return csv_response(csv_headers, rows, row_type='dict', row_handler=row_handler)
