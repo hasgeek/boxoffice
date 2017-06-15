@@ -8,11 +8,11 @@ from flask_mail import Mail
 from flask_lastuser import Lastuser
 from flask_lastuser.sqlalchemy import UserManager
 from flask_admin import Admin
+from flask_graphql import GraphQLView
 import wtforms_json
 from baseframe import baseframe, assets, Version
 from ._version import __version__
 import coaster.app
-
 
 app = Flask(__name__, instance_relative_config=True)
 lastuser = Lastuser()
@@ -29,7 +29,7 @@ assets['boxoffice.js'][version] = 'js/scripts.js'
 from . import extapi, views  # NOQA
 from boxoffice.models import db, User, Item, Price, DiscountPolicy, DiscountCoupon, ItemCollection, Organization, Category  # noqa
 from siteadmin import ItemCollectionModelView, ItemModelView, PriceModelView, DiscountPolicyModelView, DiscountCouponModelView, OrganizationModelView, CategoryModelView  # noqa
-
+from boxoffice.views.graphql import schema as graphql_schema
 
 # Configure the app
 coaster.app.init_app(app)
@@ -45,6 +45,14 @@ baseframe.init_app(app, requires=['boxoffice'], ext_requires=['baseframe-bs3', '
 
 mail.init_app(app)
 wtforms_json.init()
+app.add_url_rule(
+    '/graphql',
+    view_func=GraphQLView.as_view(
+        'graphql',
+        schema=graphql_schema,
+        graphiql=app.debug
+    )
+)
 
 # This is a temporary solution for an admin interface, only
 # to be used until the native admin interface is ready.

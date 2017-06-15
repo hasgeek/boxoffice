@@ -4,7 +4,7 @@ from decimal import Decimal
 from datetime import datetime
 from collections import namedtuple
 from sqlalchemy import sql
-from boxoffice.models import db, BaseMixin, User
+from boxoffice.models import db, BaseMixin, User, ItemCollection
 from coaster.utils import LabeledEnum, buid
 from baseframe import __
 
@@ -113,6 +113,13 @@ class Order(BaseMixin, db.Model):
             if not line_item.current_assignee:
                 return False
         return True
+
+
+def get_transacted_orders(self):
+    """Returns a SQLAlchemy query object preset with an item collection's transacted orders"""
+    return Order.query.filter(Order.item_collection == self, Order.status.in_(ORDER_STATUS.TRANSACTION))
+
+ItemCollection.get_transacted_orders = get_transacted_orders
 
 
 class OrderSession(BaseMixin, db.Model):

@@ -22,6 +22,7 @@ class LINE_ITEM_STATUS(LabeledEnum):
     #: a line item. Eg: a discount no longer applicable on a line item as a result of a cancellation
     VOID = (3, __("Void"))
 
+LINE_ITEM_STATUS.TRANSACTION = [LINE_ITEM_STATUS.CONFIRMED, LINE_ITEM_STATUS.CANCELLED]
 
 LineItemTuple = namedtuple('LineItemTuple', ['item_id', 'id', 'base_amount', 'discount_policy_id', 'discount_coupon_id', 'discounted_amount', 'final_amount'])
 
@@ -324,6 +325,11 @@ def sales_delta(user_tz, item_ids):
 def get_confirmed_line_items(self):
     return LineItem.query.filter(LineItem.order == self, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).all()
 Order.get_confirmed_line_items = property(get_confirmed_line_items)
+
+
+def get_transacted_line_items(self):
+    return LineItem.query.filter(LineItem.order == self, LineItem.status.in_(LINE_ITEM_STATUS.TRANSACTION))
+Order.get_transacted_line_items = get_transacted_line_items
 
 
 def get_from_item(cls, item, qty, coupon_codes=[]):
