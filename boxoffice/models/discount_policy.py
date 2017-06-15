@@ -126,10 +126,6 @@ class DiscountCoupon(IdMixin, db.Model):
     __uuid_primary_key__ = True
     __table_args__ = (db.UniqueConstraint('discount_policy_id', 'code'),)
 
-    def __init__(self, *args, **kwargs):
-        self.id = uuid1mc()
-        super(DiscountCoupon, self).__init__(*args, **kwargs)
-
     code = db.Column(db.Unicode(100), nullable=False, default=generate_coupon_code)
     usage_limit = db.Column(db.Integer, nullable=False, default=1)
     used_count = db.Column(db.Integer, nullable=False, default=0)
