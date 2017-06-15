@@ -7,7 +7,7 @@ from werkzeug import cached_property
 from itsdangerous import Signer, BadSignature
 from sqlalchemy import event, DDL
 from baseframe import __
-from coaster.utils import LabeledEnum, uuid1mc, buid
+from coaster.utils import LabeledEnum, buid
 from boxoffice.models import db, IdMixin, BaseScopedNameMixin
 from boxoffice.models import Organization
 
