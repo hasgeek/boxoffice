@@ -67,7 +67,7 @@ class Order(BaseMixin, db.Model):
 
     __roles__ = {
         'order_owner': {
-            'write': {'id', 'buyer_email', 'buyer_fullname', 'buyer_phone'},
+            'write': {},
             'read': {'id', 'buyer_email', 'buyer_fullname', 'buyer_phone'}
         }
     }
