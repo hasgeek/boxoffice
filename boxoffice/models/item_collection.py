@@ -2,6 +2,7 @@
 
 from ..models import db, BaseScopedNameMixin, Organization, MarkdownColumn
 
+
 __all__ = ['ItemCollection']
 
 
@@ -20,16 +21,18 @@ class ItemCollection(BaseScopedNameMixin, db.Model):
     parent = db.synonym('organization')
 
     __roles__ = {
-        'description': {
-            'write': {'item_collection_owner'},
-            'read': {'item_collection_owner'}
+        'item_collection_owner': {
+            'write': {},
+            'read': {'id', 'name', 'title', 'categories'}
         }
     }
 
-    def roles(self, user=None, inherited=None, token=None):
-        roles = super(ItemCollection, self).roles(user, inherited, token)
+    def roles_for(self, user=None, token=None):
+        if not user and not token:
+            return set()
+        roles = super(ItemCollection, self).roles_for(user, token)
         if user or token:
             roles.add('user')
-        if user:
+        if self.organization.userid in user.organizations_owned_ids():
             roles.add('item_collection_owner')
         return roles

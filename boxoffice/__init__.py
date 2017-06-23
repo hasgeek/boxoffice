@@ -45,13 +45,14 @@ baseframe.init_app(app, requires=['boxoffice'], ext_requires=['baseframe-bs3', '
 
 mail.init_app(app)
 wtforms_json.init()
+
 app.add_url_rule(
     '/graphql',
-    view_func=GraphQLView.as_view(
+    view_func=lastuser.requires_login(GraphQLView.as_view(
         'graphql',
         schema=graphql_schema,
         graphiql=app.debug
-    )
+    ))
 )
 
 # This is a temporary solution for an admin interface, only

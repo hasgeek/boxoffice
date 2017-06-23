@@ -6,10 +6,11 @@ import datetime
 from collections import namedtuple, OrderedDict
 from sqlalchemy.sql import select, func
 from sqlalchemy.ext.orderinglist import ordering_list
+from coaster.utils import LabeledEnum, isoweek_datetime, midnight_to_utc
+from coaster.roles import set_roles
+from baseframe import __
 from isoweek import Week
 from boxoffice.models import db, JsonDict, BaseMixin, ItemCollection, Order, Item, DiscountPolicy, DISCOUNT_TYPE, DiscountCoupon, OrderSession
-from coaster.utils import LabeledEnum, isoweek_datetime, midnight_to_utc
-from baseframe import __
 
 __all__ = ['LineItem', 'LINE_ITEM_STATUS', 'Assignee', 'LineItemDiscounter']
 
@@ -92,6 +93,24 @@ class LineItem(BaseMixin, db.Model):
     status = db.Column(db.Integer, default=LINE_ITEM_STATUS.PURCHASE_ORDER, nullable=False)
     ordered_at = db.Column(db.DateTime, nullable=True)
     cancelled_at = db.Column(db.DateTime, nullable=True)
+
+    __roles__ = {
+        'order_owner': {
+            'write': {},
+            'read': {'id', 'base_amount', 'discounted_amount', 'final_amount',
+                'discount_policy_id', 'discounted_coupon_id', 'ordered_at'}
+        }
+    }
+
+    def roles_for(self, user=None, token=None):
+        if not user and not token:
+            return set()
+        roles = super(LineItem, self).roles_for(user, token)
+        if user or token:
+            roles.add('user')
+        if self.order.item_collection.organization.userid in user.organizations_owned_ids():
+            roles.add('order_owner')
+        return roles
 
     def permissions(self, user, inherited=None):
         perms = super(LineItem, self).permissions(user, inherited)
@@ -327,6 +346,7 @@ def get_confirmed_line_items(self):
 Order.get_confirmed_line_items = property(get_confirmed_line_items)
 
 
+@set_roles(read={'all', 'order_owner'})
 def get_transacted_line_items(self):
     return LineItem.query.filter(LineItem.order == self, LineItem.status.in_(LINE_ITEM_STATUS.TRANSACTION))
 Order.get_transacted_line_items = get_transacted_line_items
