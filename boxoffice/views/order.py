@@ -327,6 +327,19 @@ def jsonify_orders(orders):
     return api_orders
 
 
+@app.route('/order/<order>/edit', methods=['OPTIONS', 'POST'])
+@xhr_only
+@cors
+@load_models(
+    (Order, {'id': 'order'}, 'order')
+    )
+def edit_order(order):
+    """
+    Edit order to update buyer's address
+    """
+    return make_response(jsonify(message="Order updated"), 201)
+
+
 def get_coupon_codes_from_line_items(line_items):
     coupon_ids = [line_item.discount_coupon.id for line_item in line_items if line_item.discount_coupon]
     if coupon_ids:

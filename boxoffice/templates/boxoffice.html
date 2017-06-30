@@ -171,28 +171,102 @@
       </div>
     {{elseif id === 'boxoffice-confirm' && id === activeTab}}
       <div id='{{id}}' class="boxoffice-section clearfix" intro='fly:{"x":600,"y":"0"}'>
-        {{#section}}
-          <p class="confirmation-icon"><i class="fa fa-check-circle"></i></p>
-          <p class="confirmation-header">Thank you for your order!</p>
-          <div class="confirmation-msg">
-            <p class="">We’ve mailed you the cash receipt.</p>
-            <div class="receipt-btn-wrapper">
-              <a href="{{ cashReceiptURL }}" target="_blank" class="boxoffice-button boxoffice-button-action receipt-button" on-click="fire('eventAnalytics','view cash receipt', 'cash receipt')">See cash receipt</a>
-              <a href="{{ attendeeAssignmentURL }}" target="_blank" class="boxoffice-button boxoffice-button-action receipt-button" on-click="fire('eventAnalytics','fill attendee details', 'attendee details')">Fill attendee details</a>
-            </div>
-            <div class="social-icons">
-              <p>Tell your friends!</p>
-              <span class="tweet-button">
-              <a href="https://twitter.com/share" class="twitter-share-button" data-text="Yay! I'm attending {{eventTitle}}" data-hashtags="HasGeek{{#if eventHashtag}}, {{eventHashtag}}{{/if}}">Tweet</a>
-              </span>
-              <div class="fb-share-button pad-half" data-layout="button"></div>
-              <div id="fb-root"></div>
-              <script>(function(d, s, id) { var js, fjs = d.getElementsByTagName(s)[0]; if (d.getElementById(id)) return; js = d.createElement(s); js.id = id; js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.5"; fjs.parentNode.insertBefore(js, fjs); }(document, 'script', 'facebook-jssdk'));</script>
-              <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
-            </div>
+        <p class="confirmation-icon"><i class="fa fa-check-circle"></i></p>
+        <p class="confirmation-header">Thank you for your order!</p>
+        <div class="confirmation-msg">
+          <p>We’ve mailed you the cash receipt.</p>
+          <div class="receipt-btn-wrapper">
+            <a href="{{ buyer.cashReceiptURL }}" target="_blank" class="boxoffice-button boxoffice-button-action receipt-button" on-click="fire('eventAnalytics','view cash receipt', 'cash receipt')">See cash receipt</a>
           </div>
-        {{/section}}
-      </div>      
+          <form role="form" name="buyer-form" class="buyer-details top-margin">
+            <div class="group">
+              <input class="group-checkbox" type="checkbox" checked="{{buyer.wantsInovice}}" id="wantsInovice">
+              <label class="field-title" for="wantsInovice">Yes, I want to receive an invoice</label>
+            </div>
+          </form>
+        </div>
+        {{#if buyer.wantsInovice}}
+          <form role="form" name="buyer-address-form" class="buyer-details">
+            <p class="buyer-form-title">Please fill in your address</p>
+            <div class="group">
+              <input class="group-input {{#buyer.name}}filled{{/}}" type="text" name="name" value="{{buyer.name}}">
+              <span class="bar"></span>
+              <label class="group-label">Name</label>
+            </div>
+            <div class="group">
+              <input class="group-input {{#buyer.addressLine1}}filled{{/}}" type="text" name="addressLine1" value="{{buyer.addressLine1}}">
+              <span class="bar"></span>
+              <label class="group-label">Address Line 1</label>
+              {{#errormsg.addressLine1}}<p class="form-error-msg">{{ errormsg.addressLine1 }}</p>{{/}}
+            </div>
+            <div class="group">
+              <input class="group-input {{#buyer.addressLine2}}filled{{/}}" type="text" name="addressLine2" value="{{buyer.addressLine2}}">
+              <span class="bar"></span>
+              <label class="group-label">Address Line 2</label>
+              {{#errormsg.addressLine2}}<p class="form-error-msg">{{ errormsg.addressLine2 }}</p>{{/}}
+            </div>
+            <div class="group">
+              <input class="group-input {{#buyer.addressState}}filled{{/}}" type="text" name="state" value="{{buyer.addressState}}">
+              <span class="bar"></span>
+              <label class="group-label">State</label>
+              {{#errormsg.state}}<p class="form-error-msg">{{ errormsg.state }}</p>{{/}}
+            </div>
+            <div class="group">
+              <input class="group-input {{#buyer.addressCountry}}filled{{/}}" type="text" name="country" value="{{buyer.addressCountry}}">
+              <span class="bar"></span>
+              <label class="group-label">Country</label>
+              {{#errormsg.country}}<p class="form-error-msg">{{ errormsg.country }}</p>{{/}}
+            </div>
+            <div class="group">
+              <input class="group-input {{#buyer.addressPincode}}filled{{/}}" type="text" name="pincode" value="{{buyer.addressPincode}}">
+              <span class="bar"></span>
+              <label class="group-label">Pincode</label>
+              {{#errormsg.pincode}}<p class="form-error-msg">{{ errormsg.pincode }}</p>{{/}}
+            </div>
+            <div class="group">
+              <p>If the invoice is to be generated in your company's name, please fill in GSTIN</p>
+            </div>
+            <div class="group">
+              <input class="group-input {{#buyer.gstin}}filled{{/}}" type="text" name="gstin" value="{{buyer.gstin}}">
+              <span class="bar"></span>
+              <label class="group-label">GSTIN</label>
+              {{#errormsg.gstin}}<p class="form-error-msg">{{ errormsg.gstin }}</p>{{/}}
+            </div>
+            <div class="proceed-button-wrapper">
+              <button type="submit" class="boxoffice-button boxoffice-button-action" on-click="submitBuyerAddress(event, event.keypath, seq, id)" {{#submittingBuyerAddress}}disabled{{/}}>
+                Submit {{#submittingBuyerAddress}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'>{{/}}
+              </button>
+            </div>
+          </form>
+        {{else}}
+          <div class="proceed-button-wrapper">
+            <button class="boxoffice-button boxoffice-button-action" on-click="proceedToRegister(event)">Continue</button>
+          </div>
+        {{/if}}
+        {{#errorMsg}}
+          <p class="stage-error-msg">{{ errorMsg }}</p>
+        {{/}}
+      </div>
+    {{elseif id === 'boxoffice-register' && id === activeTab}}
+      <div id='{{id}}' class="boxoffice-section clearfix" intro='fly:{"x":600,"y":"0"}'>
+        <p class="confirmation-header">Almost done!</p>
+        <div class="confirmation-msg">
+          <p>We need a few more details to print your badge.</p>
+        </div>
+        <div class="receipt-btn-wrapper">
+          <a href="{{ buyer.attendeeAssignmentURL }}" target="_blank" class="boxoffice-button boxoffice-button-action receipt-button" on-click="fire('eventAnalytics','fill attendee details', 'attendee details')">Fill attendee details</a>
+        </div>
+        <div class="social-icons">
+          <p>Tell your friends!</p>
+          <span class="tweet-button">
+          <a href="https://twitter.com/share" class="twitter-share-button" data-text="Yay! I'm attending {{eventTitle}}" data-hashtags="HasGeek{{#if eventHashtag}}, {{eventHashtag}}{{/if}}">Tweet</a>
+          </span>
+          <div class="fb-share-button pad-half" data-layout="button"></div>
+          <div id="fb-root"></div>
+          <script>(function(d, s, id) { var js, fjs = d.getElementsByTagName(s)[0]; if (d.getElementById(id)) return; js = d.createElement(s); js.id = id; js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.5"; fjs.parentNode.insertBefore(js, fjs); }(document, 'script', 'facebook-jssdk'));</script>
+          <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+        </div>
+      </div>
     {{/if}}
   {{/}}
 </div>
@@ -636,6 +710,9 @@
     max-width: 650px;
     margin: auto;
   }
+  .buyer-details.top-margin {
+    margin-top: 15;
+  }
   .buyer-details .group {
     position: relative;
     margin-bottom: 45px;
@@ -698,7 +775,13 @@
   .buyer-details .group-input:focus ~ .bar:after {
     width: 50%;
   }
-  .form-error-msg {
+  .buyer-details .group-checkbox {
+    width: auto;
+    padding: 0;
+    font-size: 20px;
+    display: inline-block;
+  }
+  .buyer-details .form-error-msg {
     color: white;
     font-size: 12px;
     border-radius: 3px;
@@ -709,7 +792,7 @@
     position: relative;
     display: inline-block;
   }
-  .form-error-msg::before {
+  .buyer-details .form-error-msg::before {
     display: block;
     content: "";
     position: absolute;

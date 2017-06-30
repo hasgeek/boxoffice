@@ -146,6 +146,12 @@ $(function() {
         urlFor: function(accessToken){
           return boxoffice.config.baseURL + "/order/" + accessToken + "/ticket";
         }
+      },
+      submitBuyerAddress: {
+      	method: 'POST',
+        urlFor: function(id){
+          return boxoffice.config.baseURL + "/order/" + id + "/edit";
+        }
       }
     };
   };
@@ -204,7 +210,15 @@ $(function() {
           buyer: {
             name: widgetConfig.user_name,
             email: widgetConfig.user_email,
-            phone: widgetConfig.user_phone || '+91'
+            phone: widgetConfig.user_phone || '+91',
+            cashReceiptURL: "",
+            attendeeAssignmentURL: "",
+            wantsInovice: false,
+            addressLine1: "",
+            addressLine2: "",
+            addressState: "",
+            addressCountry: "",
+            addressPincode: ""
           },
           activeTab: 'boxoffice-selectItems',
           tabs: {
@@ -215,7 +229,7 @@ $(function() {
               section: {
                 categories: data.categories
               },
-              errorMsg: ''
+              errorMsg: ""
             },
             payment: {
               id: 'boxoffice-payment',
@@ -223,15 +237,22 @@ $(function() {
               complete: false,
               section: {
               },
-              errorMsg: ''
+              errorMsg: ""
             },
             confirm: {
               id: 'boxoffice-confirm',
               label: 'Confirm',
               complete: false,
               section: {
-                cashReceiptURL: '',
-                eventTitle: widgetConfig.paymentDesc,
+              },
+              errorMsg: ""
+            },
+            register: {
+              id: 'boxoffice-register',
+              label: 'Register',
+              complete: false,
+              section: {
+              	eventTitle: widgetConfig.paymentDesc,
                 eventHashtag: widgetConfig.event_hashtag,
               }
             }
@@ -626,9 +647,11 @@ $(function() {
               boxoffice.ractive.set({
                 'tabs.payment.loadingPaymentConfirmation': false,
                 'tabs.payment.complete': true,
-                'activeTab': boxoffice.ractive.get('tabs.confirm.id'),
-                'tabs.confirm.section.cashReceiptURL': boxoffice.config.resources.receipt.urlFor(boxoffice.ractive.get('order.access_token')),
-                'tabs.confirm.section.attendeeAssignmentURL': boxoffice.config.resources.attendeeAssignment.urlFor(boxoffice.ractive.get('order.access_token'))
+                'activeTab': boxoffice.ractive.get('tabs.confirm.id')
+              });
+              boxoffice.ractive.set({
+                'buyer.cashReceiptURL': boxoffice.config.resources.receipt.urlFor(boxoffice.ractive.get('order.access_token')),
+                'buyer.attendeeAssignmentURL': boxoffice.config.resources.attendeeAssignment.urlFor(boxoffice.ractive.get('order.access_token'))
               });
               boxoffice.ractive.fire('eventAnalytics', 'booking complete', 'confirmPayment success', boxoffice.ractive.get('order.final_amount'));
             },
@@ -707,6 +730,113 @@ $(function() {
             }
           });
         },
+        submitBuyerAddress: function(event) {
+          var validationConfig = [{
+            name: 'name',
+            rules: 'required|max_length[80]'
+          },
+          {
+            name: 'addressLine1',
+            rules: 'required|max_length[80]'
+          },
+          {
+            name: 'addressLine2',
+            rules: 'required|max_length[80]'
+          },
+          {
+            name: 'state',
+            rules: 'required|max_length[80]'
+          },
+          {
+            name: 'country',
+            rules: 'required|max_length[80]'
+          },
+          {
+            name: 'pincode',
+            rules: 'required|max_length[80]'
+          },
+          {
+            name: 'gstin',
+            rules: 'max_length[80]'
+          }];
+
+          var formValidator = new FormValidator('buyer-address-form', validationConfig, function(errors, event) {
+            event.preventDefault();
+            boxoffice.ractive.set('tabs.confirm.errormsg', '');
+            if (errors.length > 0) {
+              boxoffice.ractive.set('tabs.confirm.errormsg.' + errors[0].name, errors[0].message);
+              boxoffice.ractive.scrollTop();
+            } else {
+              boxoffice.ractive.set('tabs.confirm.submittingBuyerAddress', true);
+              boxoffice.ractive.sendBuyerAddress();
+            }
+          });
+	      },
+	      sendBuyerAddress: function() {
+	      	 $.post({
+            url: boxoffice.config.resources.submitBuyerAddress.urlFor(boxoffice.ractive.get('order.order_id')),
+            crossDomain: true,
+            dataType: 'json',
+            headers: {'X-Requested-With': 'XMLHttpRequest'},
+            contentType: 'application/json',
+            data: JSON.stringify({
+              buyer:{
+                fullname: boxoffice.ractive.get('buyer.name'),
+                address1: boxoffice.ractive.get('buyer.address1'),
+                address2: boxoffice.ractive.get('buyer.address2'),
+                state: boxoffice.ractive.get('buyer.addressState'),
+                country: boxoffice.ractive.get('buyer.addressCountry'),
+                pincode: boxoffice.ractive.get('buyer.addressPincode'),
+                gstin: boxoffice.ractive.get('buyer.gstin')
+              }
+            }),
+            timeout: 5000,
+            retries: 5,
+            retryInterval: 5000,
+            success: function(data) {
+              boxoffice.ractive.set({
+                'tabs.confirm.submittingBuyerAddress': false,
+                'tabs.confirm.complete': true,
+                'activeTab': boxoffice.ractive.get('tabs.register.id')
+              });
+              boxoffice.ractive.fire('eventAnalytics', 'submit buyer address', 'sendBuyerAddress success', 0);
+            },
+            error: function(response) {
+              var ajaxLoad = this;
+              ajaxLoad.retries -= 1;
+              var errorMsg;
+              if (response.readyState === 4) {
+                errorMsg = JSON.parse(response.responseText).message + ". Sorry, something went wrong. Please write to us at support@hasgeek.com.";
+                boxoffice.ractive.set({
+                  'tabs.confirm.errorMsg': errorMsg,
+                  'tabs.confirm.submittingBuyerAddress': false,
+                  'buyer.wantsInovice': false,
+                });
+              }
+              else if (response.readyState === 0) {
+                if (ajaxLoad.retries < 0) {
+                  errorMsg = "Unable to connect. Please write to us at support@hasgeek.com.";
+                  boxoffice.ractive.set({
+                    'tabs.confirm.errorMsg': errorMsg,
+                    'tabs.confirm.submittingBuyerAddress': false,
+                    'buyer.wantsInovice': false,
+                  });
+                } else {
+                  setTimeout(function() {
+                    $.post(ajaxLoad);
+                  }, ajaxLoad.retryInterval);
+                }
+              }
+            }
+          });
+	      },
+	      proceedToRegister: function() {
+	      	boxoffice.ractive.scrollTop();
+	      	boxoffice.ractive.set({
+            'tabs.confirm.complete': true,
+            'activeTab': boxoffice.ractive.get('tabs.register.id')
+          });
+	      },
         oncomplete: function() {
           boxoffice.ractive.on('eventAnalytics', function(userAction, label, value) {
             if (typeof boxoffice.ractive.get('sendEventHits') === "undefined") {
