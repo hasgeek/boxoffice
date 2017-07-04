@@ -46,7 +46,7 @@ def upgrade():
         sa.Column('seq', sa.Integer(), nullable=False),
         sa.Column('item_title', sa.Unicode(length=255), nullable=False),
         sa.Column('tax_type', sa.Unicode(length=255), nullable=False),
-        sa.Column('item_type', sa.Integer(), nullable=False),
+        sa.Column('gst_type', sa.Unicode(length=7), nullable=False),
         sa.Column('discount_title', sa.Unicode(length=255), nullable=False),
         sa.Column('currency', sa.Unicode(length=3), nullable=False),
         sa.Column('base_amount', sa.Numeric(), nullable=False),
@@ -60,9 +60,11 @@ def upgrade():
     )
     op.create_index(op.f('ix_invoice_line_item_invoice_id'), 'invoice_line_item', ['invoice_id'], unique=False)
     op.add_column(u'item_collection', sa.Column('tax_type', sa.Unicode(length=80), nullable=True))
+    op.add_column(u'item', sa.Column('gst_type', sa.Integer(), nullable=True))
 
 
 def downgrade():
+    op.drop_column(u'item', 'gst_type')
     op.drop_column(u'item_collection', 'tax_type')
     op.drop_index(op.f('ix_invoice_line_item_invoice_id'), table_name='invoice_line_item')
     op.drop_table('invoice_line_item')

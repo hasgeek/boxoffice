@@ -8,11 +8,6 @@ from coaster.utils import LabeledEnum
 __all__ = ['Invoice', 'InvoiceLineItem']
 
 
-class ITEM_TYPE(LabeledEnum):
-    GOOD = (0, __("Good"))
-    SERVICE = (1, __("Service"))
-
-
 class Invoice(BaseMixin, db.Model):
     __tablename__ = 'invoice'
     __uuid_primary_key__ = True
@@ -48,7 +43,7 @@ class InvoiceLineItem(BaseMixin, db.Model):
     item_title = db.Column(db.Unicode(255), nullable=False)
     # In India, this will be GST
     tax_type = db.Column(db.Unicode(255), nullable=False)
-    item_type = db.Column(db.Integer, default=ITEM_TYPE.SERVICE, nullable=False)
+    gst_type = db.Column(db.Unicode(7), nullable=False)
     discount_title = db.Column(db.Unicode(255), nullable=False)
 
     currency = db.Column(db.Unicode(3), nullable=False)
