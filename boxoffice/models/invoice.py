@@ -4,6 +4,7 @@ from decimal import Decimal
 from boxoffice.models import db, BaseMixin
 from baseframe import __
 from coaster.utils import LabeledEnum
+from sqlalchemy.ext.orderinglist import ordering_list
 
 __all__ = ['Invoice', 'InvoiceLineItem']
 
@@ -20,14 +21,16 @@ class Invoice(BaseMixin, db.Model):
     street_address = db.Column(db.Unicode(255), nullable=True)
     city = db.Column(db.Unicode(255), nullable=True)
     state = db.Column(db.Unicode(255), nullable=True)
-    country = db.Column(db.Unicode(255), nullable=True)
+    # India specific: this is the state short code. Eg: KA for Karnataka
+    state_code = db.Column(db.Unicode(4), nullable=True)
+    # ISO country code
+    country_code = db.Column(db.Unicode(2), nullable=True)
     postcode = db.Column(db.Unicode(8), nullable=True)
     # GSTIN in the case of India
-    taxid = db.Column(db.Unicode(255), nullable=True)
-    # India specific: this is the state short code. Eg: KA for Karnataka
-    place_of_supply = db.Column(db.Unicode(3), nullable=True)
+    buyer_taxid = db.Column(db.Unicode(255), nullable=True)
+    seller_taxid = db.Column(db.Unicode(255), nullable=True)
 
-    customer_order_id = db.Column(None, db.ForeignKey('customer_order.id'), nullable=False, index=True, unique=False)
+    customer_order_id = db.Column(None, db.ForeignKey('customer_order.id'), nullable=False, index=True)
     order = db.relationship('Order', backref=db.backref('invoices', cascade='all, delete-orphan'))
 
     organization_id = db.Column(None, db.ForeignKey('organization.id'), nullable=False)
@@ -41,6 +44,7 @@ class InvoiceLineItem(BaseMixin, db.Model):
 
     seq = db.Column(db.Integer, nullable=False)
     item_title = db.Column(db.Unicode(255), nullable=False)
+    quantity = db.Column(db.SmallInteger, nullable=False, default=1)
     # In India, this will be GST
     tax_type = db.Column(db.Unicode(255), nullable=False)
     gst_type = db.Column(db.Unicode(7), nullable=False)
@@ -49,7 +53,14 @@ class InvoiceLineItem(BaseMixin, db.Model):
     currency = db.Column(db.Unicode(3), nullable=False)
     base_amount = db.Column(db.Numeric, default=Decimal(0), nullable=False)
     discounted_amount = db.Column(db.Numeric, default=Decimal(0), nullable=False)
-    final_amount = db.Column(db.Numeric, default=Decimal(0), nullable=False)
+    # Total amount includes tax
+    total_amount = db.Column(db.Numeric, default=Decimal(0), nullable=False)
+
+    cgst_tax_rate = db.Column(db.Integer, nullable=True, default=0)
+    sgst_tax_rate = db.Column(db.Integer, nullable=True, default=0)
+    igst_tax_rate = db.Column(db.Integer, nullable=True, default=0)
+    gst_compensation_cess = db.Column(db.SmallInteger, nullable=True, default=0)
 
     invoice_id = db.Column(None, db.ForeignKey('invoice.id'), nullable=False, index=True, unique=False)
-    invoice = db.relationship(Invoice, backref=db.backref('line_items', cascade='all, delete-orphan'))
+    invoice = db.relationship(Invoice, backref=db.backref('line_items', cascade='all, delete-orphan'),
+        order_by=seq, collection_class=ordering_list('seq', count_from=1))
