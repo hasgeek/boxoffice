@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
 
 from decimal import Decimal
-from boxoffice.models import db, BaseMixin
-from baseframe import __
-from coaster.utils import LabeledEnum
+from boxoffice.models import db, BaseMixin, UuidMixin
+from sqlalchemy import event
 from sqlalchemy.ext.orderinglist import ordering_list
 
 __all__ = ['Invoice', 'InvoiceLineItem']
 
 
-class Invoice(BaseMixin, db.Model):
+class Invoice(UuidMixin, BaseMixin, db.Model):
     __tablename__ = 'invoice'
     __uuid_primary_key__ = True
     __table_args__ = (db.UniqueConstraint('organization_id', 'invoice_no'),)
@@ -35,6 +34,13 @@ class Invoice(BaseMixin, db.Model):
 
     organization_id = db.Column(None, db.ForeignKey('organization.id'), nullable=False)
     organization = db.relationship('Organization', backref=db.backref('invoices', cascade='all, delete-orphan', lazy='dynamic'))
+
+
+@event.listens_for(Invoice, 'before_update')
+@event.listens_for(Invoice, 'before_insert')
+def validate_invoice_organization(mapper, connection, target):
+    if target.organization != target.order.organization:
+        raise ValueError(u"Invoice MUST be associated with the same organization as its order")
 
 
 class InvoiceLineItem(BaseMixin, db.Model):
