@@ -25,37 +25,32 @@ window.Boxoffice.Invoice = {
       },
       submitInvoiceDetails: function(event) {
         var validationConfig = [{
-          name: 'taxid',
-          rules: 'max_length[255]'
-        },
-        {
           name: 'invoicee_name',
-          rules: 'required|max_length[255]'
+          rules: 'required'
         },
         {
           name: 'street_address',
-          rules: 'required|max_length[255]'
+          rules: 'required'
         },
         {
           name: 'city',
-          rules: 'required|max_length[255]'
+          rules: 'required'
         },
         {
           name: 'state',
-          rules: 'required|max_length[255]'
+          rules: 'required'
         },
         {
           name: 'country',
-          rules: 'required|max_length[255]'
+          rules: 'required'
         },
         {
           name: 'postcode',
-          rules: 'required|max_length[255]'
+          rules: 'required'
         }];
 
         var formValidator = new FormValidator('invoice-details-form', validationConfig, function(errors, event) {
           event.preventDefault();
-                    console.log("form submit");
           invoice.formComponent.set('invoiceDetails.errormsg', '');
           if (errors.length > 0) {
             invoice.formComponent.set('invoiceDetails.errormsg.' + errors[0].name, errors[0].message);
@@ -67,8 +62,6 @@ window.Boxoffice.Invoice = {
         });
       },
       postInvoiceDetails: function() {
-        console.log("url", invoice.config.submit.urlFor(invoice.formComponent.get('invoiceDetails.id')));
-        console.log("details", invoice.formComponent.get('invoiceDetails.invoicee_name'))
         $.ajax({
           url: invoice.config.submit.urlFor(invoice.formComponent.get('invoiceDetails.id')),
           type: invoice.config.submit.method,
