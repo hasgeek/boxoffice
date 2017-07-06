@@ -42,6 +42,9 @@ class Item(BaseScopedNameMixin, db.Model):
     sgst_tax_rate = db.Column(db.SmallInteger, nullable=True, default=0)
     igst_tax_rate = db.Column(db.SmallInteger, nullable=True, default=0)
     gst_compensation_cess = db.Column(db.SmallInteger, nullable=True, default=0)
+    state_code = db.Column(db.Unicode(4), nullable=True)
+    # ISO country code
+    country_code = db.Column(db.Unicode(2), nullable=True)
 
     category_id = db.Column(None, db.ForeignKey('category.id'), nullable=False)
     category = db.relationship(Category, backref=db.backref('items', cascade='all, delete-orphan'))
