@@ -43,7 +43,7 @@ def validate_invoice_organization(mapper, connection, target):
         raise ValueError(u"Invoice MUST be associated with the same organization as its order")
 
 
-class InvoiceLineItem(BaseMixin, db.Model):
+class InvoiceLineItem(UuidMixin, BaseMixin, db.Model):
     __tablename__ = 'invoice_line_item'
     __uuid_primary_key__ = True
     __table_args__ = (db.UniqueConstraint('invoice_id', 'seq'),)
