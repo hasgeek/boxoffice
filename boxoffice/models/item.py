@@ -4,11 +4,18 @@ from datetime import datetime
 from decimal import Decimal
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.orderinglist import ordering_list
+from baseframe import __
+from coaster.utils import LabeledEnum
 from . import db, JsonDict, BaseScopedNameMixin, MarkdownColumn
 from . import ItemCollection, Category
 from .discount_policy import item_discount_policy
 
 __all__ = ['Item', 'Price']
+
+
+class GST_TYPE(LabeledEnum):
+    GOOD = (0, __("Good"))
+    SERVICE = (1, __("Service"))
 
 
 class Item(BaseScopedNameMixin, db.Model):
@@ -25,6 +32,16 @@ class Item(BaseScopedNameMixin, db.Model):
             collection_class=ordering_list('seq', count_from=1)))
 
     parent = db.synonym('item_collection')
+
+    gst_type = db.Column(db.SmallInteger, default=GST_TYPE.SERVICE, nullable=True)
+    # Harmonized System of Nomenclature code
+    hsn = db.Column(db.Unicode(255), nullable=True)
+    # Services Accounting Code
+    sac = db.Column(db.Unicode(255), nullable=True)
+    cgst_tax_rate = db.Column(db.SmallInteger, nullable=True, default=0)
+    sgst_tax_rate = db.Column(db.SmallInteger, nullable=True, default=0)
+    igst_tax_rate = db.Column(db.SmallInteger, nullable=True, default=0)
+    gst_compensation_cess = db.Column(db.SmallInteger, nullable=True, default=0)
 
     category_id = db.Column(None, db.ForeignKey('category.id'), nullable=False)
     category = db.relationship(Category, backref=db.backref('items', cascade='all, delete-orphan'))
