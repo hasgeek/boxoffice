@@ -211,13 +211,18 @@ $(function() {
             name: widgetConfig.user_name,
             email: widgetConfig.user_email,
             phone: widgetConfig.user_phone || '+91',
-            attendeeAssignmentURL: "",
-            addressStreet: "",
-            addressCity: "",
-            addressState: "",
-            addressCountry: "",
-            addressPincode: "",
-            isInvoiceDetailsSet: false
+            cashReceiptURL: "",
+            attendeeAssignmentURL: ""
+          },
+          invoice: {
+          	name: "",
+            street: "",
+            city: "",
+            state: "",
+            acountry: "",
+            pincode: "",
+            gstin: "",
+            isFilled: false
           },
           activeTab: 'boxoffice-selectItems',
           tabs: {
@@ -694,7 +699,8 @@ $(function() {
               boxoffice.ractive.set({
                 'tabs.payment.loadingPaymentConfirmation': false,
                 'tabs.payment.complete': true,
-                'activeTab': boxoffice.ractive.get('tabs.invoice.id'),
+                'tabs.invoice.complete': true,
+                'activeTab': boxoffice.ractive.get('tabs.attendeeDetails.id'),
                 'buyer.cashReceiptURL': boxoffice.config.resources.receipt.urlFor(boxoffice.ractive.get('order.access_token')),
                 'buyer.attendeeAssignmentURL': boxoffice.config.resources.attendeeAssignment.urlFor(boxoffice.ractive.get('order.access_token'))
               });
@@ -729,39 +735,35 @@ $(function() {
         },
         submitInvoiceDetails: function(event) {
           var validationConfig = [{
-            name: 'gstin',
-            rules: 'max_length[255]'
-          },
-          {
             name: 'name',
-            rules: 'required|max_length[255]'
+            rules: 'required'
           },
           {
             name: 'street',
-            rules: 'required|max_length[255]'
+            rules: 'required'
           },
           {
             name: 'city',
-            rules: 'required|max_length[255]'
+            rules: 'required'
           },
           {
             name: 'state',
-            rules: 'required|max_length[255]'
+            rules: 'required'
           },
           {
             name: 'country',
-            rules: 'required|max_length[255]'
+            rules: 'required'
           },
           {
             name: 'pincode',
-            rules: 'required|max_length[255]'
+            rules: 'required'
           }];
 
-          var formValidator = new FormValidator('buyer-address-form', validationConfig, function(errors, event) {
+          var formValidator = new FormValidator('invoice-details-form', validationConfig, function(errors, event) {
             event.preventDefault();
-            boxoffice.ractive.set('tabs.invoice.errormsg', '');
+            boxoffice.ractive.set('invoice.errormsg', '');
             if (errors.length > 0) {
-              boxoffice.ractive.set('tabs.invoice.errormsg.' + errors[0].name, errors[0].message);
+              boxoffice.ractive.set('invoice.errormsg.' + errors[0].name, errors[0].message);
               boxoffice.ractive.scrollTop();
             } else {
               boxoffice.ractive.set('tabs.invoice.submittingInvoiceDetails', true);
@@ -770,7 +772,7 @@ $(function() {
           });
 	      },
 	      postInvoiceDetails: function() {
-	      	 $.post({
+	      	$.post({
             url: boxoffice.config.resources.invoiceDetails.urlFor(boxoffice.ractive.get('order.order_id')),
             crossDomain: true,
             dataType: 'json',
@@ -778,13 +780,13 @@ $(function() {
             contentType: 'application/json',
             data: JSON.stringify({
               invoice:{
-              	taxid: boxoffice.ractive.get('buyer.gstin'),
-                invoicee_name: boxoffice.ractive.get('buyer.name'),
-                street_address: boxoffice.ractive.get('buyer.addressStreet'),
-                city: boxoffice.ractive.get('buyer.addressCity'),
-                state: boxoffice.ractive.get('buyer.addressState'),
-                country: boxoffice.ractive.get('buyer.addressCountry'),
-                postcode: boxoffice.ractive.get('buyer.addressPincode')
+              	taxid: boxoffice.ractive.get('invoice.gstin'),
+                invoicee_name: boxoffice.ractive.get('invoice.name'),
+                street_address: boxoffice.ractive.get('invoice.street'),
+                city: boxoffice.ractive.get('invoice.city'),
+                state: boxoffice.ractive.get('invoice.state'),
+                country: boxoffice.ractive.get('invoice.country'),
+                postcode: boxoffice.ractive.get('invoice.pincode')
               }
             }),
             timeout: 5000,
@@ -795,7 +797,7 @@ $(function() {
                 'tabs.invoice.submittingInvoiceDetails': false,
                 'tabs.invoice.errorMsg': "",
                 'tabs.invoice.complete': true,
-                'buyer.isInvoiceDetailsSet': true,
+                'buyer.isFilled': true,
                 'activeTab': boxoffice.ractive.get('tabs.attendeeDetails.id')
               });
               boxoffice.ractive.scrollTop();

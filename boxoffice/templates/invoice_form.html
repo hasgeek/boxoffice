@@ -93,9 +93,6 @@
       Ractive.DEBUG = false;
       var invoice = {};
       invoice.id = "{{ order.id }}";
-      invoice.invoicee_name = "{{ order.buyer_fullname }}";
-      invoice.street_address = "F1, Malnad castle";
-      invoice.city = "Bangalore";
       window.Boxoffice.Invoice.init(invoice);
     });
   </script>
