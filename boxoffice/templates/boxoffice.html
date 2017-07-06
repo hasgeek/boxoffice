@@ -1,6 +1,7 @@
 {%raw%}
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
+
 <div class="payment-progress-wrapper payment-stages-bg" id="payment-stages">
   <ul class="progress-indicator">
     {{#tabs:tab}}
@@ -159,7 +160,7 @@
             <p class="price">Amount Payable <span class="final-amount"><b><i class="fa fa-inr rupee-sign"></i>{{ order.final_amount }}</b></span></p>
           </div>
           <div class="proceed-button-wrapper">
-            <button class="boxoffice-button boxoffice-button-info edit-order" type="button" on-click="selectItems(event)">Edit order</button>
+            <button class="boxoffice-button boxoffice-button-info left-btn-margin" type="button" on-click="selectItems(event)">Edit order</button>
             <button type="submit" class="boxoffice-button boxoffice-button-action" {{#loadingOrder}}disabled{{/}}>
               Checkout {{#loadingOrder}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'>{{/}}
             </button>
@@ -169,30 +170,90 @@
           {{/}}
         </form> 
       </div>
-    {{elseif id === 'boxoffice-confirm' && id === activeTab}}
+    {{elseif id === 'boxoffice-invoice' && id === activeTab}}
       <div id='{{id}}' class="boxoffice-section clearfix" intro='fly:{"x":600,"y":"0"}'>
-        {{#section}}
-          <p class="confirmation-icon"><i class="fa fa-check-circle"></i></p>
-          <p class="confirmation-header">Thank you for your order!</p>
-          <div class="confirmation-msg">
-            <p class="">We’ve mailed you the cash receipt.</p>
-            <div class="receipt-btn-wrapper">
-              <a href="{{ cashReceiptURL }}" target="_blank" class="boxoffice-button boxoffice-button-action receipt-button" on-click="fire('eventAnalytics','view cash receipt', 'cash receipt')">See cash receipt</a>
-              <a href="{{ attendeeAssignmentURL }}" target="_blank" class="boxoffice-button boxoffice-button-action receipt-button" on-click="fire('eventAnalytics','fill attendee details', 'attendee details')">Fill attendee details</a>
-            </div>
-            <div class="social-icons">
-              <p>Tell your friends!</p>
-              <span class="tweet-button">
-              <a href="https://twitter.com/share" class="twitter-share-button" data-text="Yay! I'm attending {{eventTitle}}" data-hashtags="HasGeek{{#if eventHashtag}}, {{eventHashtag}}{{/if}}">Tweet</a>
-              </span>
-              <div class="fb-share-button pad-half" data-layout="button"></div>
-              <div id="fb-root"></div>
-              <script>(function(d, s, id) { var js, fjs = d.getElementsByTagName(s)[0]; if (d.getElementById(id)) return; js = d.createElement(s); js.id = id; js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.5"; fjs.parentNode.insertBefore(js, fjs); }(document, 'script', 'facebook-jssdk'));</script>
-              <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
-            </div>
+        <p class="confirmation-icon"><i class="fa fa-check-circle"></i></p>
+        <p class="confirmation-header">Thank you for your order!</p>
+        <div class="confirmation-msg">
+          <p>We’ve mailed you the <a href="{{ buyer.cashReceiptURL }}" target="_blank">cash receipt</a>. If you need a GST invoice, please fill in the details below.</p>
+        </div>
+        <form role="form" name="buyer-address-form" class="buyer-details top-margin">
+          <div class="group">
+            <input class="group-input {{#buyer.name}}filled{{/}}" type="text" name="name" value="{{buyer.name}}">
+            <span class="bar"></span>
+            <label class="group-label">Name</label>
+            {{#errormsg.name}}<p class="form-error-msg">{{ errormsg.name }}</p>{{/}}
           </div>
-        {{/section}}
-      </div>      
+          <div class="group">
+            <input class="group-input {{#buyer.addressStreet}}filled{{/}}" type="text" name="street" value="{{buyer.addressStreet}}">
+            <label class="group-label">Street address</label>
+            {{#errormsg.street}}<p class="form-error-msg">{{ errormsg.street }}</p>{{/}}
+          </div>
+          <div class="group inline-group left-group">
+            <input class="group-input {{#buyer.addressCity}}filled{{/}}" type="text" name="city" value="{{buyer.addressCity}}">
+            <span class="bar"></span>
+            <label class="group-label">City</label>
+            {{#errormsg.city}}<p class="form-error-msg">{{ errormsg.city }}</p>{{/}}
+          </div>
+          <div class="group inline-group right-group">
+            <input class="group-input {{#buyer.addressState}}filled{{/}}" type="text" name="state" value="{{buyer.addressState}}">
+            <span class="bar"></span>
+            <label class="group-label">State</label>
+            {{#errormsg.state}}<p class="form-error-msg">{{ errormsg.state }}</p>{{/}}
+          </div>
+          <div class="group inline-group left-group">
+            <input class="group-input {{#buyer.addressCountry}}filled{{/}}" type="text" name="country" value="{{buyer.addressCountry}}">
+            <span class="bar"></span>
+            <label class="group-label">Country</label>
+            {{#errormsg.country}}<p class="form-error-msg">{{ errormsg.country }}</p>{{/}}
+          </div>
+          <div class="group inline-group right-group">
+            <input class="group-input right-group {{#buyer.addressPincode}}filled{{/}}" type="text" name="pincode" value="{{buyer.addressPincode}}">
+            <span class="bar"></span>
+            <label class="group-label">Pincode</label>
+            {{#errormsg.pincode}}<p class="form-error-msg">{{ errormsg.pincode }}</p>{{/}}
+          </div>
+          <div class="group">
+            <input class="group-input {{#buyer.gstin}}filled{{/}}" type="text" name="gstin" value="{{buyer.gstin}}">
+            <span class="bar"></span>
+            <label class="group-label">GSTIN</label>
+            {{#errormsg.gstin}}<p class="form-error-msg">{{ errormsg.gstin }}</p>{{/}}
+          </div>
+          <div class="proceed-button-wrapper">
+            <button type="submit" class="boxoffice-button boxoffice-button-action left-btn-margin" on-click="submitInvoiceDetails(event, event.keypath, seq, id)" {{#submittingInvoiceDetails}}disabled{{/}}>
+              Submit {{#submittingInvoiceDetails}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'>{{/}}
+            </button>
+          </div>
+        </form>
+        {{#errorMsg}}
+          <p class="stage-error-msg">{{ errorMsg }}</p>
+        {{/}}
+        <div class="confirmation-msg">
+          <p>If you don't want an invoice, skip to the next step to fill attendee details.</p>
+          <button class="boxoffice-button boxoffice-button-info" on-click="proceedToFillAttendeeDetails(event)">Continue</button>
+        </div>
+      </div>
+    {{elseif id === 'boxoffice-attendee-details' && id === activeTab}}
+      <div id='{{id}}' class="boxoffice-section clearfix" intro='fly:{"x":600,"y":"0"}'>
+        <p class="confirmation-header">Almost done!</p>
+        <div class="confirmation-msg">
+          {{#if buyer.isInvoiceDetailsSet}}<p>Thank you for submitting the details, we will mail you the invoice shortly. {{/if}}
+          <p>We need a few more details to print your badge.</p>
+        </div>
+        <div class="receipt-btn-wrapper">
+          <a href="{{ buyer.attendeeAssignmentURL }}" target="_blank" class="boxoffice-button boxoffice-button-action receipt-button" on-click="fire('eventAnalytics','fill attendee details', 'attendee details')">Fill attendee details</a>
+        </div>
+        <div class="social-icons">
+          <p>Tell your friends!</p>
+          <span class="tweet-button">
+          <a href="https://twitter.com/share" class="twitter-share-button" data-text="Yay! I'm attending {{eventTitle}}" data-hashtags="HasGeek{{#if eventHashtag}}, {{eventHashtag}}{{/if}}">Tweet</a>
+          </span>
+          <div class="fb-share-button pad-half" data-layout="button"></div>
+          <div id="fb-root"></div>
+          <script>(function(d, s, id) { var js, fjs = d.getElementsByTagName(s)[0]; if (d.getElementById(id)) return; js = d.createElement(s); js.id = id; js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.5"; fjs.parentNode.insertBefore(js, fjs); }(document, 'script', 'facebook-jssdk'));</script>
+          <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+        </div>
+      </div>
     {{/if}}
   {{/}}
 </div>
@@ -636,9 +697,25 @@
     max-width: 650px;
     margin: auto;
   }
+  .buyer-details.top-margin {
+    margin-top: 45px;
+  }
   .buyer-details .group {
     position: relative;
     margin-bottom: 45px;
+    clear: both;
+  }
+  @media(min-width: 1024px) {
+    .buyer-details .inline-group.left-group {
+      width: 45%;
+      float: left;
+      clear: none;
+    }
+    .buyer-details .inline-group.right-group {
+      width: 45%;
+      float: right;
+      clear: none;
+    }
   }
   .buyer-details .group-input {
     font-size: 16px;
@@ -698,7 +775,13 @@
   .buyer-details .group-input:focus ~ .bar:after {
     width: 50%;
   }
-  .form-error-msg {
+  .buyer-details .group-checkbox {
+    width: auto;
+    padding: 0;
+    font-size: 20px;
+    display: inline-block;
+  }
+  .buyer-details .form-error-msg {
     color: white;
     font-size: 12px;
     border-radius: 3px;
@@ -709,7 +792,7 @@
     position: relative;
     display: inline-block;
   }
-  .form-error-msg::before {
+  .buyer-details .form-error-msg::before {
     display: block;
     content: "";
     position: absolute;
@@ -768,7 +851,7 @@
     margin: 15px 0 10px;
     float: right;
   }
-  .edit-order {
+  .left-btn-margin {
     margin-right: 10px;
   }
   .loader.payment-confirmation .fa-spin {
@@ -793,6 +876,7 @@
   .confirmation-msg {
     font-size: 16px;
     text-align: center;
+    clear: both;
   }
   @media (min-width: 768px) {
     .confirmation-icon {
