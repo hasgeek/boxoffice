@@ -1,0 +1,95 @@
+{% extends "layout.html" %}
+{% block title %}{{ org.title }}{% endblock %}
+{% block headerbox %}
+{% endblock %}
+
+{% block headline %}
+{% endblock %}
+
+{% block content %}
+  <div class="org-header">
+    {%- if org.details.get('logo') %}
+      <div class="organization-logo">
+       <img src="{{org.details.get('logo')}}" />
+      </div>
+    {%- endif %}
+    <h1 class="item-collection-title">{{order.item_collection.title}}</h1>
+    <p class="text-center">Receipt No: {{order.invoice_no}}</p>
+  </div>
+
+  <div class="row" id="boxoffice-invoice">
+    {%- raw %}
+      <script id='boxoffice-invoice-form-template' type='text/ractive'>
+        <div class="ticket col-sm-8 col-sm-offset-2 col-md-6 col-md-offset-3">
+        <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
+          <h4 class="text-center attendee-form-title">If you need a GST invoice, please fill in the details below.</h4> 
+          {{#invoiceDetails}}
+          <form class="attendee-form" role="form" name="invoice-details-form"> 
+            <div class="group">
+              <input class="group-input {{#invoicee_name}}filled{{/}}" type="text" name="invoicee_name" value="{{invoicee_name}}">
+              <span class="bar"></span>
+              <label class="group-label">Name</label>
+              {{#errormsg.invoicee_name}}<p class="form-error-msg">{{ errormsg.invoicee_name }}</p>{{/}}
+            </div>
+            <div class="group">
+              <input class="group-input {{#street_address}}filled{{/}}" type="text" name="street" value="{{street_address}}">
+              <label class="group-label">Street</label>
+              {{#errormsg.street_address}}<p class="form-error-msg">{{ errormsg.street_address }}</p>{{/}}
+            </div>
+            <div class="group inline-group left-group">
+              <input class="group-input {{#city}}filled{{/}}" type="text" name="city" value="{{city}}">
+              <span class="bar"></span>
+              <label class="group-label">City</label>
+              {{#errormsg.city}}<p class="form-error-msg">{{ errormsg.city }}</p>{{/}}
+            </div>
+            <div class="group inline-group right-group">
+              <input class="group-input {{#state}}filled{{/}}" type="text" name="state" value="{{state}}">
+              <span class="bar"></span>
+              <label class="group-label">State</label>
+              {{#errormsg.state}}<p class="form-error-msg">{{ errormsg.state }}</p>{{/}}
+            </div>
+            <div class="group inline-group left-group">
+              <input class="group-input {{#country}}filled{{/}}" type="text" name="country" value="{{country}}">
+              <span class="bar"></span>
+              <label class="group-label">Country</label>
+              {{#errormsg.country}}<p class="form-error-msg">{{ errormsg.country }}</p>{{/}}
+            </div>
+            <div class="group inline-group right-group">
+              <input class="group-input right-group {{#postcode}}filled{{/}}" type="text" name="postcode" value="{{postcode}}">
+              <span class="bar"></span>
+              <label class="group-label">Postcode</label>
+              {{#errormsg.postcode}}<p class="form-error-msg">{{ errormsg.postcode }}</p>{{/}}
+            </div>
+            <div class="group">
+              <input class="group-input {{#taxid}}filled{{/}}" type="text" name="taxid" value="{{taxid}}">
+              <span class="bar"></span>
+              <label class="group-label">GSTIN</label>
+              {{#errormsg.taxid}}<p class="form-error-msg">{{ errormsg.taxid }}</p>{{/}}
+            </div>
+            <div class="assign-btn-wrapper">
+              <button type="submit" class="boxoffice-button boxoffice-button-action" on-click="submitBuyerAddress(event)" {{#submittingBuyerAddress}}disabled{{/}}>
+                Submit {{#submittingBuyerAddress}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'>{{/}}
+              </button>
+            </div>
+          </form>
+          {{/}}
+          {{#errorMsg}}
+            <p class="stage-error-msg">{{ errorMsg }}</p>
+          {{/}}
+          </div>
+        </div>
+      </script>
+    {%- endraw %}
+  </div>
+{% endblock %}
+{% block footerscripts %}
+  <script src='/static/js/views/invoice.js'></script>
+  <script type="text/javascript">
+    $(document).ready(function () {
+      Ractive.DEBUG = false;
+      var invoice = {};
+      invoice.invoicee_name = "{{ order.buyer_fullname }}";
+      window.Boxoffice.Invoice.init(invoice);
+    });
+  </script>
+{% endblock %}

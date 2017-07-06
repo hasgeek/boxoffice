@@ -287,6 +287,27 @@ def receipt(order):
     return render_template('cash_receipt.html', order=order, org=order.organization, line_items=line_items)
 
 
+@app.route('/order/<order>/invoice', methods=['OPTIONS', 'POST'])
+@xhr_only
+@cors
+@load_models(
+    (Order, {'id': 'order'}, 'order')
+    )
+def edit_order(order):
+    """
+    Edit order to update buyer's address
+    """
+    return make_response(jsonify(message="Order updated"), 201)
+
+
+@app.route('/order/<access_token>/invoice', methods=['GET', 'POST'])
+@load_models(
+    (Order, {'access_token': 'access_token'}, 'order')
+    )
+def invoice(order):
+    return render_template('invoice_form.html', order=order, org=order.organization)
+
+
 @app.route('/order/<access_token>/ticket', methods=['GET', 'POST'])
 @render_with({'text/html': 'order.html', 'application/json': jsonify_order}, json=True)
 @load_models(
@@ -325,19 +346,6 @@ def jsonify_orders(orders):
             })
         api_orders.append(order_dict)
     return api_orders
-
-
-@app.route('/order/<order>/edit', methods=['OPTIONS', 'POST'])
-@xhr_only
-@cors
-@load_models(
-    (Order, {'id': 'order'}, 'order')
-    )
-def edit_order(order):
-    """
-    Edit order to update buyer's address
-    """
-    return make_response(jsonify(message="Order updated"), 201)
 
 
 def get_coupon_codes_from_line_items(line_items):

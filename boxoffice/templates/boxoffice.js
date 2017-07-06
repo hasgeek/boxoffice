@@ -147,10 +147,10 @@ $(function() {
           return boxoffice.config.baseURL + "/order/" + accessToken + "/ticket";
         }
       },
-      submitBuyerAddress: {
+      invoiceDetails: {
       	method: 'POST',
         urlFor: function(id){
-          return boxoffice.config.baseURL + "/order/" + id + "/edit";
+          return boxoffice.config.baseURL + "/order/" + id + "/invoice";
         }
       }
     };
@@ -211,14 +211,13 @@ $(function() {
             name: widgetConfig.user_name,
             email: widgetConfig.user_email,
             phone: widgetConfig.user_phone || '+91',
-            cashReceiptURL: "",
             attendeeAssignmentURL: "",
-            wantsInovice: false,
-            addressLine1: "",
-            addressLine2: "",
+            addressStreet: "",
+            addressCity: "",
             addressState: "",
             addressCountry: "",
-            addressPincode: ""
+            addressPincode: "",
+            isInvoiceDetailsSet: false
           },
           activeTab: 'boxoffice-selectItems',
           tabs: {
@@ -239,17 +238,17 @@ $(function() {
               },
               errorMsg: ""
             },
-            confirm: {
-              id: 'boxoffice-confirm',
-              label: 'Confirm',
+            invoice: {
+              id: 'boxoffice-invoice',
+              label: 'invoice',
               complete: false,
               section: {
               },
               errorMsg: ""
             },
-            register: {
-              id: 'boxoffice-register',
-              label: 'Register',
+            attendeeDetails: {
+              id: 'boxoffice-attendee-details',
+              label: 'Attendee details',
               complete: false,
               section: {
               	eventTitle: widgetConfig.paymentDesc,
@@ -630,7 +629,7 @@ $(function() {
           razorpay.open();
         },
         confirmPayment: function(paymentUrl, paymentID) {
-          // Sends the paymentId to the server, transitions the state to 'Confirm'
+          // Sends the paymentId to the server, transitions the state to 'Invoice'
           boxoffice.ractive.set('tabs.payment.loadingPaymentConfirmation', true);
           boxoffice.ractive.fire('eventAnalytics', 'capture payment', 'confirmPayment', boxoffice.ractive.get('order.final_amount'));
           $.post({
@@ -647,9 +646,7 @@ $(function() {
               boxoffice.ractive.set({
                 'tabs.payment.loadingPaymentConfirmation': false,
                 'tabs.payment.complete': true,
-                'activeTab': boxoffice.ractive.get('tabs.confirm.id')
-              });
-              boxoffice.ractive.set({
+                'activeTab': boxoffice.ractive.get('tabs.invoice.id'),
                 'buyer.cashReceiptURL': boxoffice.config.resources.receipt.urlFor(boxoffice.ractive.get('order.access_token')),
                 'buyer.attendeeAssignmentURL': boxoffice.config.resources.attendeeAssignment.urlFor(boxoffice.ractive.get('order.access_token'))
               });
@@ -697,9 +694,9 @@ $(function() {
               boxoffice.ractive.set({
                 'tabs.payment.loadingPaymentConfirmation': false,
                 'tabs.payment.complete': true,
-                'activeTab': boxoffice.ractive.get('tabs.confirm.id'),
-                'tabs.confirm.section.cashReceiptURL': boxoffice.config.resources.receipt.urlFor(boxoffice.ractive.get('order.access_token')),
-                'tabs.confirm.section.attendeeAssignmentURL': boxoffice.config.resources.attendeeAssignment.urlFor(boxoffice.ractive.get('order.access_token'))
+                'activeTab': boxoffice.ractive.get('tabs.invoice.id'),
+                'buyer.cashReceiptURL': boxoffice.config.resources.receipt.urlFor(boxoffice.ractive.get('order.access_token')),
+                'buyer.attendeeAssignmentURL': boxoffice.config.resources.attendeeAssignment.urlFor(boxoffice.ractive.get('order.access_token'))
               });
               boxoffice.ractive.fire('eventAnalytics', 'booking complete', 'completeFreeOrder success', 0);
             },
@@ -730,64 +727,64 @@ $(function() {
             }
           });
         },
-        submitBuyerAddress: function(event) {
+        submitInvoiceDetails: function(event) {
           var validationConfig = [{
+            name: 'gstin',
+            rules: 'max_length[255]'
+          },
+          {
             name: 'name',
-            rules: 'required|max_length[80]'
+            rules: 'required|max_length[255]'
           },
           {
-            name: 'addressLine1',
-            rules: 'required|max_length[80]'
+            name: 'street',
+            rules: 'required|max_length[255]'
           },
           {
-            name: 'addressLine2',
-            rules: 'required|max_length[80]'
+            name: 'city',
+            rules: 'required|max_length[255]'
           },
           {
             name: 'state',
-            rules: 'required|max_length[80]'
+            rules: 'required|max_length[255]'
           },
           {
             name: 'country',
-            rules: 'required|max_length[80]'
+            rules: 'required|max_length[255]'
           },
           {
             name: 'pincode',
-            rules: 'required|max_length[80]'
-          },
-          {
-            name: 'gstin',
-            rules: 'max_length[80]'
+            rules: 'required|max_length[255]'
           }];
 
           var formValidator = new FormValidator('buyer-address-form', validationConfig, function(errors, event) {
             event.preventDefault();
-            boxoffice.ractive.set('tabs.confirm.errormsg', '');
+            boxoffice.ractive.set('tabs.invoice.errormsg', '');
             if (errors.length > 0) {
-              boxoffice.ractive.set('tabs.confirm.errormsg.' + errors[0].name, errors[0].message);
+              boxoffice.ractive.set('tabs.invoice.errormsg.' + errors[0].name, errors[0].message);
               boxoffice.ractive.scrollTop();
             } else {
-              boxoffice.ractive.set('tabs.confirm.submittingBuyerAddress', true);
-              boxoffice.ractive.sendBuyerAddress();
+              boxoffice.ractive.set('tabs.invoice.submittingInvoiceDetails', true);
+              boxoffice.ractive.postInvoiceDetails();
             }
           });
 	      },
-	      sendBuyerAddress: function() {
+	      postInvoiceDetails: function() {
 	      	 $.post({
-            url: boxoffice.config.resources.submitBuyerAddress.urlFor(boxoffice.ractive.get('order.order_id')),
+            url: boxoffice.config.resources.invoiceDetails.urlFor(boxoffice.ractive.get('order.order_id')),
             crossDomain: true,
             dataType: 'json',
             headers: {'X-Requested-With': 'XMLHttpRequest'},
             contentType: 'application/json',
             data: JSON.stringify({
-              buyer:{
-                fullname: boxoffice.ractive.get('buyer.name'),
-                address1: boxoffice.ractive.get('buyer.address1'),
-                address2: boxoffice.ractive.get('buyer.address2'),
+              invoice:{
+              	taxid: boxoffice.ractive.get('buyer.gstin'),
+                invoicee_name: boxoffice.ractive.get('buyer.name'),
+                street_address: boxoffice.ractive.get('buyer.addressStreet'),
+                city: boxoffice.ractive.get('buyer.addressCity'),
                 state: boxoffice.ractive.get('buyer.addressState'),
                 country: boxoffice.ractive.get('buyer.addressCountry'),
-                pincode: boxoffice.ractive.get('buyer.addressPincode'),
-                gstin: boxoffice.ractive.get('buyer.gstin')
+                postcode: boxoffice.ractive.get('buyer.addressPincode')
               }
             }),
             timeout: 5000,
@@ -795,10 +792,13 @@ $(function() {
             retryInterval: 5000,
             success: function(data) {
               boxoffice.ractive.set({
-                'tabs.confirm.submittingBuyerAddress': false,
-                'tabs.confirm.complete': true,
-                'activeTab': boxoffice.ractive.get('tabs.register.id')
+                'tabs.invoice.submittingInvoiceDetails': false,
+                'tabs.invoice.errorMsg': "",
+                'tabs.invoice.complete': true,
+                'buyer.isInvoiceDetailsSet': true,
+                'activeTab': boxoffice.ractive.get('tabs.attendeeDetails.id')
               });
+              boxoffice.ractive.scrollTop();
               boxoffice.ractive.fire('eventAnalytics', 'submit buyer address', 'sendBuyerAddress success', 0);
             },
             error: function(response) {
@@ -808,18 +808,16 @@ $(function() {
               if (response.readyState === 4) {
                 errorMsg = JSON.parse(response.responseText).message + ". Sorry, something went wrong. Please write to us at support@hasgeek.com.";
                 boxoffice.ractive.set({
-                  'tabs.confirm.errorMsg': errorMsg,
-                  'tabs.confirm.submittingBuyerAddress': false,
-                  'buyer.wantsInovice': false,
+                  'tabs.invoice.errorMsg': errorMsg,
+                  'tabs.invoice.submittingInvoiceDetails': false
                 });
               }
               else if (response.readyState === 0) {
                 if (ajaxLoad.retries < 0) {
                   errorMsg = "Unable to connect. Please write to us at support@hasgeek.com.";
                   boxoffice.ractive.set({
-                    'tabs.confirm.errorMsg': errorMsg,
-                    'tabs.confirm.submittingBuyerAddress': false,
-                    'buyer.wantsInovice': false,
+                    'tabs.invoice.errorMsg': errorMsg,
+                    'tabs.invoice.submittingInvoiceDetails': false
                   });
                 } else {
                   setTimeout(function() {
@@ -830,11 +828,11 @@ $(function() {
             }
           });
 	      },
-	      proceedToRegister: function() {
+	      proceedToFillAttendeeDetails: function() {
 	      	boxoffice.ractive.scrollTop();
 	      	boxoffice.ractive.set({
-            'tabs.confirm.complete': true,
-            'activeTab': boxoffice.ractive.get('tabs.register.id')
+            'tabs.invoice.complete': true,
+            'activeTab': boxoffice.ractive.get('tabs.attendeeDetails.id')
           });
 	      },
         oncomplete: function() {
