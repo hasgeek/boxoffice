@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from coaster.sqlalchemy import BaseMixin, BaseNameMixin, BaseScopedNameMixin, BaseScopedIdNameMixin, BaseScopedIdMixin, IdMixin, JsonDict, MarkdownColumn
+from coaster.sqlalchemy import BaseMixin, BaseNameMixin, BaseScopedNameMixin, BaseScopedIdNameMixin, BaseScopedIdMixin, IdMixin, JsonDict, MarkdownColumn, UuidMixin
 
 from coaster.db import db
 
@@ -12,3 +12,4 @@ from .discount_policy import *
 from .order import *
 from .line_item import *
 from .payment import *
+from .invoice import *

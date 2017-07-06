@@ -62,6 +62,7 @@ class Order(BaseMixin, db.Model):
     buyer_fullname = db.Column(db.Unicode(80), nullable=False)
     buyer_phone = db.Column(db.Unicode(16), nullable=False)
 
+    # TODO: Rename to receipt_no
     invoice_no = db.Column(db.Integer, nullable=True)
 
     def permissions(self, user, inherited=None):
