@@ -180,10 +180,23 @@
         <form role="form" name="invoice-details-form" class="boxoffice-form top-margin">
           {{#invoice}}
             <div class="group">
+              <input class="group-input {{#gstin}}filled{{/}}" type="text" name="gstin" value="{{gstin}}">
+              <span class="bar"></span>
+              <label class="group-label">GSTIN</label>
+              {{#errormsg.gstin}}<p class="form-error-msg">{{ errormsg.gstin }}</p>{{/}}
+            </div>
+            <p class="form-help-text">Your provisional or permanent GST number. Please leave this blank if your organization is not registered in India</p>
+            <div class="group">
               <input class="group-input {{#name}}filled{{/}}" type="text" name="name" value="{{name}}">
               <span class="bar"></span>
               <label class="group-label">Name</label>
               {{#errormsg.name}}<p class="form-error-msg">{{ errormsg.name }}</p>{{/}}
+            </div>
+            <div class="group">
+              <input class="group-input {{#email}}filled{{/}}" type="text" name="email" value="{{email}}">
+              <span class="bar"></span>
+              <label class="group-label">Email</label>
+              {{#errormsg.email}}<p class="form-error-msg">{{ errormsg.email }}</p>{{/}}
             </div>
             <div class="group">
               <input class="group-input {{#street}}filled{{/}}" type="text" name="street" value="{{street}}">
@@ -197,29 +210,38 @@
               {{#errormsg.city}}<p class="form-error-msg">{{ errormsg.city }}</p>{{/}}
             </div>
             <div class="group inline-group right-group">
-              <input class="group-input {{#state}}filled{{/}}" type="text" name="state" value="{{state}}">
-              <span class="bar"></span>
-              <label class="group-label">State</label>
-              {{#errormsg.state}}<p class="form-error-msg">{{ errormsg.state }}</p>{{/}}
-            </div>
-            <div class="group inline-group left-group">
-              <input class="group-input {{#country}}filled{{/}}" type="text" name="country" value="{{country}}">
-              <span class="bar"></span>
-              <label class="group-label">Country</label>
-              {{#errormsg.country}}<p class="form-error-msg">{{ errormsg.country }}</p>{{/}}
-            </div>
-            <div class="group inline-group right-group">
               <input class="group-input right-group {{#pincode}}filled{{/}}" type="text" name="pincode" value="{{pincode}}">
               <span class="bar"></span>
               <label class="group-label">Pincode</label>
               {{#errormsg.pincode}}<p class="form-error-msg">{{ errormsg.pincode }}</p>{{/}}
             </div>
-            <div class="group">
-              <input class="group-input {{#gstin}}filled{{/}}" type="text" name="gstin" value="{{gstin}}">
-              <span class="bar"></span>
-              <label class="group-label">GSTIN</label>
-              {{#errormsg.gstin}}<p class="form-error-msg">{{ errormsg.gstin }}</p>{{/}}
+            <div class="group-select inline-group left-group">
+              <select name="country" value="{{countryCode}}">
+                {{#utils.countries}} {{# { country: . } }}
+                  <option value="{{country.code}}">{{country.name}}</option>
+                {{/}}{{/utils.countries}}
+              </select>
+              {{#errormsg.country}}<p class="form-error-msg">{{ errormsg.country }}</p>{{/}}
             </div>
+            {{#if countryCode == "IN"}}
+              <div class="group-select inline-group right-group">
+                <select name="state" value="{{stateCode}}">
+                  {{#utils.states}} {{# { currentState: . } }}
+                    <option value="{{currentState.code}}">{{currentState.name}}</option>
+                  {{/}}{{/utils.states}}
+                </select>
+                {{#errormsg.state}}<p class="form-error-msg">{{ errormsg.state }}</p>{{/}}
+                <input class="hidden" type="radio" name="{{state}}" value="" checked>
+              </div>
+            {{else}}
+              <div class="group inline-group right-group">
+                <input class="group-input right-group {{#state}}filled{{/}}" type="text" name="state" value="{{state}}">
+                <span class="bar"></span>
+                <label class="group-label">State</label>
+                {{#errormsg.state}}<p class="form-error-msg">{{ errormsg.state }}</p>{{/}}
+                <input class="hidden" type="radio" name="{{stateCode}}" value="" checked>
+              </div>
+            {{/if}}
           {{/}}
           <div class="proceed-button-wrapper">
             <button type="submit" class="boxoffice-button boxoffice-button-action left-btn-margin" on-click="submitInvoiceDetails(event, event.keypath, seq, id)" {{#submittingInvoiceDetails}}disabled{{/}}>
@@ -712,7 +734,7 @@
     .boxoffice-form .inline-group.left-group {
       width: 45%;
       float: left;
-      clear: none;
+      clear: both;
     }
     .boxoffice-form .inline-group.right-group {
       width: 45%;
@@ -778,11 +800,51 @@
   .boxoffice-form .group-input:focus ~ .bar:after {
     width: 50%;
   }
-  .boxoffice-form .group-checkbox {
-    width: auto;
+  .boxoffice-form .group-select select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 100%;
+    font-size: 16px;
+    padding: 10px 10px 10px 5px;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    border-bottom: 1px solid #757575;
+    position: relative;
+    top: 2px;
+  }
+  .boxoffice-form .group-select select:-moz-focusring { 
+    color: transparent;
+    text-shadow: 0 0 0 #000;
+  }
+  .boxoffice-form .group-select select:focus{
+    outline: 0;
+  }
+  .boxoffice-form .group-select{
+    position: relative;
+    margin-bottom: 45px;
+  }
+  .boxoffice-form .group-select:after {
+    position: absolute;
+    top: 22px;
+    right: 2px;
+    width: 0;
+    height: 0;
     padding: 0;
-    font-size: 20px;
-    display: inline-block;
+    content: '';
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid #757575;
+    pointer-events: none;
+  }
+  .boxoffice-form .form-help-text {
+    font-size: 13px;
+    color: #aaa;
+    margin: 10px 0;
+    position: relative;
+    top: -40px;
+    left: 5px;
   }
   .boxoffice-form .form-error-msg {
     color: white;

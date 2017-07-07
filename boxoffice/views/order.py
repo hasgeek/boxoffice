@@ -2,20 +2,22 @@
 
 from datetime import datetime
 from decimal import Decimal
+from pycountry import pycountry
 from sqlalchemy.sql import func
 from flask import url_for, request, jsonify, render_template, make_response, abort
 from coaster.views import render_with, load_models
 from baseframe import _
 from .. import app, lastuser
 from ..models import db
-from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy, OrderSession, Assignee, LINE_ITEM_STATUS
+from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy, OrderSession, Assignee, LINE_ITEM_STATUS, Invoice
 from ..models import Order, OnlinePayment, PaymentTransaction, User, CURRENCY, ORDER_STATUS
 from ..models.payment import TRANSACTION_TYPE
 from ..extapi import razorpay, RAZORPAY_PAYMENT_STATUS
-from ..forms import LineItemForm, BuyerForm, OrderSessionForm, RefundTransactionForm
+from ..forms import LineItemForm, BuyerForm, OrderSessionForm, RefundTransactionForm, InvoiceForm
 from custom_exceptions import PaymentGatewayError
 from boxoffice.mailclient import send_receipt_mail, send_line_item_cancellation_mail, send_order_refund_mail
-from utils import xhr_only, cors, json_date_format
+from utils import xhr_only, cors, json_date_format, api_error, api_success
+from boxoffice.data import indian_states
 
 
 def jsonify_line_items(line_items):
@@ -293,11 +295,22 @@ def receipt(order):
 @load_models(
     (Order, {'id': 'order'}, 'order')
     )
-def edit_order(order):
+def edit_invoice_details(order):
     """
-    Edit order to update buyer's address
+    Update invoice for an order
     """
-    return make_response(jsonify(message="Order updated"), 201)
+    invoice_dict = request.json.get('invoice')
+    if not request.json or not invoice_dict:
+        return api_error(message=_(u"Missing invoice details"), status_code=400)
+    invoice_form = InvoiceForm.from_json(request.json.get('invoice'), meta={'csrf': False})
+    if not invoice_form.validate():
+        return api_error(message=_(u"Incorrect invoice details"),
+            status_code=400, errors=invoice_form.errors)
+    else:
+        invoice = Invoice(order=order, organization=order.organization)
+        invoice_form.populate_obj(invoice)
+        db.session.commit()
+        return api_success(result={}, doc=_(u"Invoice details added"), status_code=201)
 
 
 @app.route('/order/<access_token>/invoice', methods=['GET', 'POST'])
@@ -305,7 +318,11 @@ def edit_order(order):
     (Order, {'access_token': 'access_token'}, 'order')
     )
 def invoice(order):
-    return render_template('invoice_form.html', order=order, org=order.organization)
+    invoice = Invoice.query.filter_by(order=order).first()
+    return render_template('invoice_form.html', invoice=invoice,
+        order=order, org=order.organization,
+        states=[{'name': state['name'], 'code': state['short_code_text']} for state in indian_states],
+        countries=[{'name': country.name, 'code': country.alpha_2} for country in pycountry.countries])
 
 
 @app.route('/order/<access_token>/ticket', methods=['GET', 'POST'])

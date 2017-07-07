@@ -4,7 +4,9 @@ window.Boxoffice = {
     baseURL: "{{base_url}}",
     razorpayKeyId: "{{razorpay_key_id}}",
     orgName: 'HasGeek',
-    razorpayBanner: "https://hasgeek.com/static/img/hg-banner.png"
+    razorpayBanner: "https://hasgeek.com/static/img/hg-banner.png",
+    states: {{states | tojson }},
+    countries: {{countries | tojson }}
   }
 };
 
@@ -215,13 +217,15 @@ $(function() {
             attendeeAssignmentURL: ""
           },
           invoice: {
+          	gstin: "",
           	name: "",
+          	email: "",
             street: "",
             city: "",
             state: "",
-            acountry: "",
+            stateCode: "KA",
+            countryCode: "IN",
             pincode: "",
-            gstin: "",
             isFilled: false
           },
           activeTab: 'boxoffice-selectItems',
@@ -261,6 +265,10 @@ $(function() {
               }
             }
           },
+          utils : {
+          	states: boxoffice.config.states,
+          	countries: boxoffice.config.countries
+          }
         },
         scrollTop: function(){
           //Scroll the page up to top of boxoffice widget.
@@ -648,10 +656,13 @@ $(function() {
             retries: 5,
             retryInterval: 10000,
             success: function(data) {
+              // Set invoice to be the next active tab and pre fill invoice form with buyer's name & email
               boxoffice.ractive.set({
                 'tabs.payment.loadingPaymentConfirmation': false,
                 'tabs.payment.complete': true,
                 'activeTab': boxoffice.ractive.get('tabs.invoice.id'),
+                'invoice.name': boxoffice.ractive.get('buyer.name'),
+                'invoice.email': boxoffice.ractive.get('buyer.email'),
                 'buyer.cashReceiptURL': boxoffice.config.resources.receipt.urlFor(boxoffice.ractive.get('order.access_token')),
                 'buyer.attendeeAssignmentURL': boxoffice.config.resources.attendeeAssignment.urlFor(boxoffice.ractive.get('order.access_token'))
               });
@@ -739,6 +750,10 @@ $(function() {
             rules: 'required'
           },
           {
+            name: 'email',
+            rules: 'required'
+          },
+          {
             name: 'street',
             rules: 'required'
           },
@@ -747,7 +762,7 @@ $(function() {
             rules: 'required'
           },
           {
-            name: 'state',
+            name: 'pincode',
             rules: 'required'
           },
           {
@@ -755,7 +770,7 @@ $(function() {
             rules: 'required'
           },
           {
-            name: 'pincode',
+            name: 'state',
             rules: 'required'
           }];
 
@@ -782,10 +797,12 @@ $(function() {
               invoice:{
               	taxid: boxoffice.ractive.get('invoice.gstin'),
                 invoicee_name: boxoffice.ractive.get('invoice.name'),
+                invoicee_email: boxoffice.ractive.get('invoice.email'),
                 street_address: boxoffice.ractive.get('invoice.street'),
                 city: boxoffice.ractive.get('invoice.city'),
-                state: boxoffice.ractive.get('invoice.state'),
-                country: boxoffice.ractive.get('invoice.country'),
+                state: boxoffice.ractive.get('invoice.state') || "",
+                state_code: boxoffice.ractive.get('invoice.stateCode') || "",
+                country_code: boxoffice.ractive.get('invoice.countryCode'),
                 postcode: boxoffice.ractive.get('invoice.pincode')
               }
             }),

@@ -56,6 +56,7 @@ def cors(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
         origin = request.headers.get('Origin')
+        print origin
         if not origin or origin not in app.config['ALLOWED_ORIGINS']:
             abort(401)
 

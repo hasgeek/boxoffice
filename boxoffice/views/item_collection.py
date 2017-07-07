@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 
 from flask import make_response, render_template, jsonify, request
+from pycountry import pycountry
 from coaster.views import load_models
 from boxoffice import app
 from boxoffice.models import ItemCollection, Item
 from utils import xhr_only, cors
+from boxoffice.data import indian_states
 
 
 def jsonify_item(item):
@@ -50,7 +52,9 @@ def jsonify_category(category):
 def boxofficejs():
     return make_response(jsonify({
         'script': render_template('boxoffice.js', base_url=request.url_root.strip('/'),
-        razorpay_key_id=app.config['RAZORPAY_KEY_ID'])
+        razorpay_key_id=app.config['RAZORPAY_KEY_ID'],
+        states=[{'name': state['name'], 'code': state['short_code_text']} for state in indian_states],
+        countries=[{'name': country.name, 'code': country.alpha_2} for country in pycountry.countries])
     }))
 
 

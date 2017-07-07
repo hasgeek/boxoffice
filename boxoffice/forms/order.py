@@ -2,8 +2,9 @@
 
 from baseframe import __
 import baseframe.forms as forms
+from boxoffice.data import indian_states
 
-__all__ = ['LineItemForm', 'BuyerForm', 'OrderSessionForm', 'RefundTransactionForm']
+__all__ = ['LineItemForm', 'BuyerForm', 'OrderSessionForm', 'RefundTransactionForm', 'InvoiceForm']
 
 
 def trim(length):
@@ -68,3 +69,24 @@ class RefundTransactionForm(forms.Form):
         description=__("Why is this order receiving a refund?"), filters=[forms.filters.none_if_empty()])
     note_to_user = forms.MarkdownField(__("Note to user"),
         description=__("Send this note to the buyer"), filters=[forms.filters.none_if_empty()])
+
+
+class InvoiceForm(forms.Form):
+    buyer_taxid = forms.StringField(__("GSTIN"), validators=[forms.validators.Optional(),
+        forms.validators.Length(max=255)], filters=[forms.filters.strip(), forms.filters.none_if_empty()])
+    invoicee_name = forms.StringField(__("Full name"), validators=[forms.validators.DataRequired(),
+        forms.validators.Length(max=255)], filters=[forms.filters.strip()])
+    invoicee_email = forms.EmailField(__("Email"), validators=[forms.validators.DataRequired(),
+        forms.validators.Length(max=80)], filters=[forms.filters.strip()])
+    street_address = forms.StringField(__("Street"), validators=[forms.validators.DataRequired(),
+        forms.validators.Length(max=255)], filters=[forms.filters.strip()])
+    city = forms.StringField(__("City"), validators=[forms.validators.DataRequired(),
+        forms.validators.Length(max=255)], filters=[forms.filters.strip()])
+    country_code = forms.StringField(__("Country"), validators=[forms.validators.DataRequired(),
+        forms.validators.Length(max=2)], filters=[forms.filters.strip()])
+    state_code = forms.StringField(__("State code"), validators=[forms.validators.Optional(),
+        forms.validators.Length(max=4)], filters=[forms.filters.strip()])
+    state = forms.StringField(__("State"), validators=[forms.validators.Optional(),
+        forms.validators.Length(max=255)], filters=[forms.filters.strip(), forms.filters.none_if_empty()])
+    postcode = forms.StringField(__("Pincode"), validators=[forms.validators.DataRequired(),
+        forms.validators.Length(max=8)], filters=[forms.filters.strip()])
