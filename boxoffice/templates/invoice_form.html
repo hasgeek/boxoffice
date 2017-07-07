@@ -83,7 +83,7 @@
                   <input class="group-input right-group {{#invoiceDetails.state}}filled{{/}}" type="text" name="state" value="{{invoiceDetails.state}}">
                   <span class="bar"></span>
                   <label class="group-label">State</label>
-                  {{#errormsg.state}}<p class="form-error-msg">{{ errormsg.state }}</p>{{/}}
+                  {{#invoiceDetails.errormsg.state}}<p class="form-error-msg">{{ invoiceDetails.errormsg.state }}</p>{{/}}
                   <input class="hidden" type="radio" name="{{invoiceDetails.stateCode}}" value="" checked>
                 </div>
               {{/if}}
@@ -97,7 +97,10 @@
               <p class="error-msg">{{ errorMsg }}</p>
             {{/}}
           {{else}}
-            <p class="confirmation-msg"><i class="fa fa-check"></i>Thank you for submitting the details, we will mail you the invoice shortly.</p>
+            <p class="confirmation-msg">Thank you for submitting the details, we will mail you the invoice shortly.</p>
+            <div class="assign-btn-wrapper">
+              <button type="submit" class="boxoffice-button boxoffice-button-info" on-click='toggle("editDetails")'>Edit invoice details</button>
+            </div>
           {{/if}}
           </div>
         </div>
@@ -114,7 +117,7 @@
       var countries = {{ countries | tojson }};
       var invoice = {};
       invoice.orderId = "{{ order.id }}";
-      invoice.gstin = "{{ invoice.seller_taxid | default('', true) }}";
+      invoice.gstin = "{{ invoice.buyer_taxid | default('', true) }}";
       invoice.name = "{{ invoice.invoicee_name | default('', true)  }}";
       invoice.email = "{{ invoice.invoicee_email | default('', true)  }}";
       invoice.street = "{{ invoice.street_address | default('', true)  }}";

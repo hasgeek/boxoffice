@@ -795,7 +795,7 @@ $(function() {
             contentType: 'application/json',
             data: JSON.stringify({
               invoice:{
-              	taxid: boxoffice.ractive.get('invoice.gstin'),
+              	buyer_taxid: boxoffice.ractive.get('invoice.gstin'),
                 invoicee_name: boxoffice.ractive.get('invoice.name'),
                 invoicee_email: boxoffice.ractive.get('invoice.email'),
                 street_address: boxoffice.ractive.get('invoice.street'),

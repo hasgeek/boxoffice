@@ -79,7 +79,7 @@ window.Boxoffice.Invoice = {
           contentType: 'application/json',
           data: JSON.stringify({
             invoice:{
-              taxid: invoice.formComponent.get('invoiceDetails.gstin'),
+              buyer_taxid: invoice.formComponent.get('invoiceDetails.gstin'),
               invoicee_name: invoice.formComponent.get('invoiceDetails.name'),
               invoicee_email: invoice.formComponent.get('invoiceDetails.email'),
               street_address: invoice.formComponent.get('invoiceDetails.street'),

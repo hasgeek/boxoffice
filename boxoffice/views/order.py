@@ -307,7 +307,9 @@ def edit_invoice_details(order):
         return api_error(message=_(u"Incorrect invoice details"),
             status_code=400, errors=invoice_form.errors)
     else:
-        invoice = Invoice(order=order, organization=order.organization)
+        invoice = Invoice.query.filter_by(order=order).first()
+        if not invoice:
+            invoice = Invoice(order=order, organization=order.organization)
         invoice_form.populate_obj(invoice)
         db.session.commit()
         return api_success(result={}, doc=_(u"Invoice details added"), status_code=201)

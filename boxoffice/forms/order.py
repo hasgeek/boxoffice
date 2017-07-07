@@ -71,6 +71,12 @@ class RefundTransactionForm(forms.Form):
         description=__("Send this note to the buyer"), filters=[forms.filters.none_if_empty()])
 
 
+def validate_state_code(form, field):
+    if form.country_code.data == "IN":
+        if not any([state.get('short_code_text', None) == field.data for state in indian_states]):
+            raise forms.validators.StopValidation(__("Please enter a valid Indian state"))
+
+
 class InvoiceForm(forms.Form):
     buyer_taxid = forms.StringField(__("GSTIN"), validators=[forms.validators.Optional(),
         forms.validators.Length(max=255)], filters=[forms.filters.strip(), forms.filters.none_if_empty()])
@@ -84,8 +90,8 @@ class InvoiceForm(forms.Form):
         forms.validators.Length(max=255)], filters=[forms.filters.strip()])
     country_code = forms.StringField(__("Country"), validators=[forms.validators.DataRequired(),
         forms.validators.Length(max=2)], filters=[forms.filters.strip()])
-    state_code = forms.StringField(__("State code"), validators=[forms.validators.Optional(),
-        forms.validators.Length(max=4)], filters=[forms.filters.strip()])
+    state_code = forms.StringField(__("State code"), validators=[forms.validators.Length(max=4),
+        validate_state_code], filters=[forms.filters.strip()])
     state = forms.StringField(__("State"), validators=[forms.validators.Optional(),
         forms.validators.Length(max=255)], filters=[forms.filters.strip(), forms.filters.none_if_empty()])
     postcode = forms.StringField(__("Pincode"), validators=[forms.validators.DataRequired(),
