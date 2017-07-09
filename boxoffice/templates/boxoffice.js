@@ -4,7 +4,8 @@ window.Boxoffice = {
     baseURL: "{{base_url}}",
     razorpayKeyId: "{{razorpay_key_id}}",
     orgName: 'HasGeek',
-    razorpayBanner: "https://hasgeek.com/static/img/hg-banner.png"
+    razorpayBanner: "https://hasgeek.com/static/img/hg-banner.png",
+    categories: []
   }
 };
 
@@ -165,10 +166,22 @@ $(function() {
     }).done(function(data) {
       var lineItems = [];
 
+      // Flag: If items have been explicitly specified in the config
+      var should_filter_items = (widgetConfig.categories && widgetConfig.categories.length > 0 ? true : false);
+
+      // Keep a flattened array of items so it's easier to loop through
+      if (should_filter_items) {
+        data.items = [];
+      }
+
       /* load inventory from server, initialize lineItems with
       their quantities set to 0 */
       data.categories.forEach(function(category) {
         category.items.forEach(function(item) {
+          // Keep a flattened array of items so it's easier to loop through
+          if (should_filter_items) {
+            data.items.push(item);
+          }
           lineItems.push({
             'item_id': item.id,
             'item_name': item.name,
@@ -187,6 +200,33 @@ $(function() {
           });
         });
       });
+
+
+      var categories;
+      if (should_filter_items) {
+        categories = [];
+        widgetConfig.categories.forEach(function(category) {
+          var tempCategory = {
+            name: category.name,
+            title: category.title,
+            items: []
+          }
+          // While it's more efficient to loop over data.items and do a search in item_names, we
+          // lose ordering. Looping over item_names first ensures we find the items in the right order.
+          category.item_names.forEach(function(item_name) {
+            data.items.forEach(function(item) {
+              if(item_name == item.name) {
+                tempCategory.items.push(item);
+              }
+            });
+          });
+          categories.push(tempCategory);
+        })
+      }
+      // No customization, use server defined categories.
+      else {
+        categories = data.categories;
+      }
 
       boxoffice.ractive = new Ractive({
         el: '#boxoffice-widget',
@@ -213,7 +253,7 @@ $(function() {
               label: 'Select Tickets',
               complete: false,
               section: {
-                categories: data.categories
+                categories: categories
               },
               errorMsg: ''
             },
