@@ -151,7 +151,7 @@ $(function() {
       },
       invoiceDetails: {
       	method: 'POST',
-        urlFor: function(id){
+        urlFor: function(accessToken){
           return boxoffice.config.baseURL + "/order/" + accessToken + "/invoice";
         }
       }
@@ -662,6 +662,7 @@ $(function() {
                 'tabs.payment.loadingPaymentConfirmation': false,
                 'tabs.payment.complete': true,
                 'activeTab': boxoffice.ractive.get('tabs.invoice.id'),
+                'invoice.invoice_id': data.invoice_id,
                 'invoice.name': boxoffice.ractive.get('buyer.name'),
                 'invoice.email': boxoffice.ractive.get('buyer.email'),
                 'buyer.cashReceiptURL': boxoffice.config.resources.receipt.urlFor(boxoffice.ractive.get('order.access_token')),
@@ -762,7 +763,6 @@ $(function() {
             boxoffice.ractive.set('invoice.errormsg', '');
             if (errors.length > 0) {
               boxoffice.ractive.set('invoice.errormsg.' + errors[0].name, errors[0].message);
-              boxoffice.ractive.scrollTop();
             } else {
               boxoffice.ractive.set('tabs.invoice.submittingInvoiceDetails', true);
               boxoffice.ractive.postInvoiceDetails();
@@ -787,7 +787,8 @@ $(function() {
                 state_code: boxoffice.ractive.get('invoice.stateCode') || "",
                 country_code: boxoffice.ractive.get('invoice.countryCode'),
                 postcode: boxoffice.ractive.get('invoice.pincode')
-              }
+              },
+              invoice_id: boxoffice.ractive.get('invoice.invoice_id')
             }),
             timeout: 5000,
             retries: 5,

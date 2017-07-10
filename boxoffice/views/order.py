@@ -262,7 +262,7 @@ def payment(order):
         db.session.add(transaction)
         order.confirm_sale()
         db.session.add(order)
-        invoice = Invoice(order=order, organization=order.organization)
+        invoice = Invoice(order=order, organization=order.organization, invoice_no=int(Invoice.get_latest_invoice_no(order.organization)) + 1)
         db.session.add(invoice)
         db.session.commit()
         for line_item in order.line_items:
@@ -273,7 +273,7 @@ def payment(order):
                 db.session.add(line_item.discount_coupon)
         db.session.commit()
         send_receipt_mail.delay(order.id)
-        return make_response(jsonify(message="Payment verified"), 201)
+        return make_response(jsonify(invoice_id=invoice.id), 201)
     else:
         online_payment.fail()
         db.session.add(online_payment)
@@ -299,7 +299,7 @@ def receipt(order):
     )
 def edit_invoice_details(order):
     """
-    Update invoice for an order
+    Update invoice with buyer's address and taxid
     """
     invoice_dict = request.json.get('invoice')
     if not request.json or not invoice_dict:
@@ -315,11 +315,14 @@ def edit_invoice_details(order):
         return api_success(result={}, doc=_(u"Invoice details added"), status_code=201)
 
 
-@app.route('/order/<access_token>/invoice', methods=['GET', 'POST'])
+@app.route('/order/<access_token>/invoice', methods=['GET'])
 @load_models(
     (Order, {'access_token': 'access_token'}, 'order')
     )
-def invoice(order):
+def view_invoice(order):
+    """
+    View all invoices of an order
+    """
     invoices = order.invoices
     invoices_list = []
     for invoice in invoices:

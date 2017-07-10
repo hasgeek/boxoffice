@@ -244,7 +244,7 @@
             </div>
           {{/}}
           <div class="proceed-button-wrapper">
-            <button type="submit" class="boxoffice-button boxoffice-button-action left-btn-margin" on-click="submitInvoiceDetails(event, event.keypath, seq, id)" {{#submittingInvoiceDetails}}disabled{{/}}>
+            <button type="submit" class="boxoffice-button boxoffice-button-action left-btn-margin" on-click="submitInvoiceDetails(event)" {{#submittingInvoiceDetails}}disabled{{/}}>
               Submit {{#submittingInvoiceDetails}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'>{{/}}
             </button>
           </div>
