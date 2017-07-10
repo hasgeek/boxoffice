@@ -10,7 +10,7 @@ window.Boxoffice.Invoice = {
       }
     }
   },
-  init: function(invoiceDetails) {
+  init: function(invoiceDetails, states, countries) {
     var invoice = this;
     invoice.formComponent = new Ractive({
       el: '#boxoffice-invoice',
@@ -18,18 +18,26 @@ window.Boxoffice.Invoice = {
       data: {
         invoiceDetails: invoiceDetails,
         editDetails: true,
-        errorMsg: ""
+        errorMsg: "",
+        utils : {
+          states: states,
+          countries: countries
+        }
       },
       scrollTop: function() {
         $('html,body').animate({ scrollTop: $(invoiceComponent.el).offset().top }, '300');
       },
       submitInvoiceDetails: function(event) {
         var validationConfig = [{
-          name: 'invoicee_name',
+          name: 'name',
           rules: 'required'
         },
         {
-          name: 'street_address',
+          name: 'email',
+          rules: 'required'
+        },
+        {
+          name: 'street',
           rules: 'required'
         },
         {
@@ -37,7 +45,7 @@ window.Boxoffice.Invoice = {
           rules: 'required'
         },
         {
-          name: 'state',
+          name: 'pincode',
           rules: 'required'
         },
         {
@@ -45,7 +53,7 @@ window.Boxoffice.Invoice = {
           rules: 'required'
         },
         {
-          name: 'postcode',
+          name: 'state',
           rules: 'required'
         }];
 
@@ -63,19 +71,23 @@ window.Boxoffice.Invoice = {
       },
       postInvoiceDetails: function() {
         $.ajax({
-          url: invoice.config.submit.urlFor(invoice.formComponent.get('invoiceDetails.id')),
+          url: invoice.config.submit.urlFor(invoice.formComponent.get('invoiceDetails.orderId')),
           type: invoice.config.submit.method,
+          crossDomain: true,
+          headers: {'X-Requested-With': 'XMLHttpRequest'},
           dataType: 'json',
           contentType: 'application/json',
           data: JSON.stringify({
             invoice:{
-              taxid: invoice.formComponent.get('invoiceDetails.taxid'),
-              invoicee_name: invoice.formComponent.get('invoiceDetails.invoicee_name'),
-              street_address: invoice.formComponent.get('invoiceDetails.street_address'),
+              buyer_taxid: invoice.formComponent.get('invoiceDetails.gstin'),
+              invoicee_name: invoice.formComponent.get('invoiceDetails.name'),
+              invoicee_email: invoice.formComponent.get('invoiceDetails.email'),
+              street_address: invoice.formComponent.get('invoiceDetails.street'),
               city: invoice.formComponent.get('invoiceDetails.city'),
-              state: invoice.formComponent.get('invoiceDetails.state'),
-              country: invoice.formComponent.get('invoiceDetails.country'),
-              postcode: invoice.formComponent.get('invoiceDetails.postcode')
+              state: invoice.formComponent.get('invoiceDetails.state')  || "",
+              state_code: invoice.formComponent.get('invoiceDetails.stateCode')  || "",
+              country_code: invoice.formComponent.get('invoiceDetails.countryCode'),
+              postcode: invoice.formComponent.get('invoiceDetails.pincode')
             }
           }),
           timeout: 5000,
@@ -83,7 +95,7 @@ window.Boxoffice.Invoice = {
           retryInterval: 5000,
           success: function(data) {
             invoice.formComponent.set({
-              'invoiceDetails.submittingBuyerAddress': false,
+              'submittingBuyerAddress': false,
               'editDetails': false,
             });
           },
@@ -95,7 +107,7 @@ window.Boxoffice.Invoice = {
               errorMsg = JSON.parse(response.responseText).message + ". Sorry, something went wrong. Please write to us at support@hasgeek.com.";
               invoice.formComponent.set({
                 'errorMsg': errorMsg,
-                'invoiceDetails.submittingBuyerAddress': false
+                'submittingInvoiceDetails': false
               });
             }
             else if (response.readyState === 0) {
@@ -103,7 +115,7 @@ window.Boxoffice.Invoice = {
                 errorMsg = "Unable to connect. Please write to us at support@hasgeek.com.";
                 invoice.formComponent.set({
                   'errorMsg': errorMsg,
-                  'invoiceDetails.submittingBuyerAddress': false
+                  'submittingInvoiceDetails': false
                 });
               } else {
                 setTimeout(function() {

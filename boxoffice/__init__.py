@@ -27,14 +27,16 @@ assets['boxoffice.js'][version] = 'js/scripts.js'
 
 
 from . import extapi, views  # NOQA
-from boxoffice.models import db, User, Item, Price, DiscountPolicy, DiscountCoupon, ItemCollection, Organization, Category  # noqa
-from siteadmin import ItemCollectionModelView, ItemModelView, PriceModelView, DiscountPolicyModelView, DiscountCouponModelView, OrganizationModelView, CategoryModelView  # noqa
+from boxoffice.models import db, User, Item, Price, DiscountPolicy, DiscountCoupon, ItemCollection, Organization, Category, Invoice  # noqa
+from siteadmin import ItemCollectionModelView, ItemModelView, PriceModelView, DiscountPolicyModelView, DiscountCouponModelView, OrganizationModelView, CategoryModelView, InvoiceModelView  # noqa
 
 
 # Configure the app
 coaster.app.init_app(app)
 db.init_app(app)
 db.app = app
+app.jinja_env.auto_reload = True
+app.config['TEMPLATES_AUTO_RELOAD'] = True
 migrate = Migrate(app, db)
 RQ(app)
 
@@ -57,5 +59,6 @@ try:
     admin.add_view(PriceModelView(Price, db.session))
     admin.add_view(DiscountPolicyModelView(DiscountPolicy, db.session))
     admin.add_view(DiscountCouponModelView(DiscountCoupon, db.session))
+    admin.add_view(InvoiceModelView(Invoice, db.session))
 except AssertionError:
     pass
