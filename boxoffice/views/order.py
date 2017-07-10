@@ -262,6 +262,8 @@ def payment(order):
         db.session.add(transaction)
         order.confirm_sale()
         db.session.add(order)
+        invoice = Invoice(order=order, organization=order.organization)
+        db.session.add(invoice)
         db.session.commit()
         for line_item in order.line_items:
             line_item.confirm()
@@ -289,11 +291,11 @@ def receipt(order):
     return render_template('cash_receipt.html', order=order, org=order.organization, line_items=line_items)
 
 
-@app.route('/order/<order>/invoice', methods=['OPTIONS', 'POST'])
+@app.route('/order/<access_token>/invoice', methods=['OPTIONS', 'POST'])
 @xhr_only
 @cors
 @load_models(
-    (Order, {'id': 'order'}, 'order')
+    (Order, {'access_token': 'access_token'}, 'order')
     )
 def edit_invoice_details(order):
     """
@@ -307,9 +309,7 @@ def edit_invoice_details(order):
         return api_error(message=_(u"Incorrect invoice details"),
             status_code=400, errors=invoice_form.errors)
     else:
-        invoice = Invoice.query.filter_by(order=order).first()
-        if not invoice:
-            invoice = Invoice(order=order, organization=order.organization)
+        invoice = Invoice.query.get(request.json.get('invoice_id'))
         invoice_form.populate_obj(invoice)
         db.session.commit()
         return api_success(result={}, doc=_(u"Invoice details added"), status_code=201)
@@ -320,9 +320,23 @@ def edit_invoice_details(order):
     (Order, {'access_token': 'access_token'}, 'order')
     )
 def invoice(order):
-    invoice = Invoice.query.filter_by(order=order).first()
-    return render_template('invoice_form.html', invoice=invoice,
-        order=order, org=order.organization,
+    invoices = order.invoices
+    invoices_list = []
+    for invoice in invoices:
+        invoices_list.append({
+            'id': invoice.id,
+            'buyer_taxid': invoice.buyer_taxid,
+            'invoicee_name': invoice.invoicee_name,
+            'invoicee_email': invoice.invoicee_email,
+            'street_address': invoice.street_address,
+            'city': invoice.city,
+            'postcode': invoice.postcode,
+            'country_code': invoice.country_code,
+            'state_code': invoice.state_code,
+            'state': invoice.state
+        })
+    return render_template('invoice_form.html', order=order,
+        org=order.organization, invoices=invoices_list,
         states=[{'name': state['name'], 'code': state['short_code_text']} for state in indian_states],
         countries=[{'name': country.name, 'code': country.alpha_2} for country in pycountry.countries])
 

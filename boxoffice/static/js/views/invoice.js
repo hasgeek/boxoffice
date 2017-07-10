@@ -5,20 +5,19 @@ window.Boxoffice.Invoice = {
     baseURL: window.location.origin,
     submit: {
       method: 'POST',
-      urlFor: function(id) {
-        return Boxoffice.Invoice.config.baseURL + '/order/' + id + '/invoice';
+      urlFor: function(accessToken) {
+        return Boxoffice.Invoice.config.baseURL + '/order/' + accessToken + '/invoice';
       }
     }
   },
-  init: function(invoiceDetails, states, countries) {
+  init: function(invoices, accessToken, states, countries) {
     var invoice = this;
     invoice.formComponent = new Ractive({
       el: '#boxoffice-invoice',
       template: '#boxoffice-invoice-form-template',
       data: {
-        invoiceDetails: invoiceDetails,
-        editDetails: true,
-        errorMsg: "",
+        invoices: invoices,
+        accessToken: accessToken,
         utils : {
           states: states,
           countries: countries
@@ -27,17 +26,25 @@ window.Boxoffice.Invoice = {
       scrollTop: function() {
         $('html,body').animate({ scrollTop: $(invoiceComponent.el).offset().top }, '300');
       },
-      submitInvoiceDetails: function(event) {
+      submitInvoiceDetails: function(event, invoice_item, invoice_id) {
         var validationConfig = [{
-          name: 'name',
+          name: 'invoicee_name',
           rules: 'required'
         },
         {
-          name: 'email',
+          name: 'invoicee_email',
           rules: 'required'
         },
         {
-          name: 'street',
+          name: 'street_address',
+          rules: 'required'
+        },
+        {
+          name: 'country_code',
+          rules: 'required'
+        },
+        {
+          name: 'state_code',
           rules: 'required'
         },
         {
@@ -45,59 +52,51 @@ window.Boxoffice.Invoice = {
           rules: 'required'
         },
         {
-          name: 'pincode',
-          rules: 'required'
-        },
-        {
-          name: 'country',
-          rules: 'required'
-        },
-        {
-          name: 'state',
+          name: 'postcode',
           rules: 'required'
         }];
 
-        var formValidator = new FormValidator('invoice-details-form', validationConfig, function(errors, event) {
+        var invoiceForm = 'invoice-details-form-' + invoice_id;
+
+        var formValidator = new FormValidator(invoiceForm, validationConfig, function(errors, event) {
           event.preventDefault();
-          invoice.formComponent.set('invoiceDetails.errormsg', '');
+          invoice.formComponent.set(invoice_item + '.errormsg', '');
           if (errors.length > 0) {
-            invoice.formComponent.set('invoiceDetails.errormsg.' + errors[0].name, errors[0].message);
+            invoice.formComponent.set(invoice_item + '.errormsg.' + errors[0].name, errors[0].message);
             invoice.formComponent.scrollTop();
           } else {
-            invoice.formComponent.set('invoiceDetails.submittingInvoiceDetails', true);
-            invoice.formComponent.postInvoiceDetails();
+            invoice.formComponent.set(invoice_item + '.submittingInvoiceDetails', true);
+            invoice.formComponent.postInvoiceDetails(invoice_item, invoice_id);
           }
         });
+
+        formValidator.setMessage('required', 'Please fill out the this field');
       },
-      postInvoiceDetails: function() {
+      postInvoiceDetails: function(invoice_item, invoice_id) {
+        var invoiceForm = 'invoice-' + invoice_id;
+        var formElements = $('#'+ invoiceForm).serializeArray();
+        var invoiceDetails ={};
+        for (var formIndex=0; formIndex < formElements.length; formIndex++) {
+          if (formElements[formIndex].value) {
+            invoiceDetails[formElements[formIndex].name] = formElements[formIndex].value;
+          }
+        }
+
         $.ajax({
-          url: invoice.config.submit.urlFor(invoice.formComponent.get('invoiceDetails.orderId')),
+          url: invoice.config.submit.urlFor(invoice.formComponent.get('accessToken')),
           type: invoice.config.submit.method,
-          crossDomain: true,
-          headers: {'X-Requested-With': 'XMLHttpRequest'},
           dataType: 'json',
           contentType: 'application/json',
           data: JSON.stringify({
-            invoice:{
-              buyer_taxid: invoice.formComponent.get('invoiceDetails.gstin'),
-              invoicee_name: invoice.formComponent.get('invoiceDetails.name'),
-              invoicee_email: invoice.formComponent.get('invoiceDetails.email'),
-              street_address: invoice.formComponent.get('invoiceDetails.street'),
-              city: invoice.formComponent.get('invoiceDetails.city'),
-              state: invoice.formComponent.get('invoiceDetails.state')  || "",
-              state_code: invoice.formComponent.get('invoiceDetails.stateCode')  || "",
-              country_code: invoice.formComponent.get('invoiceDetails.countryCode'),
-              postcode: invoice.formComponent.get('invoiceDetails.pincode')
-            }
+            invoice: invoiceDetails,
+            invoice_id: invoice_id
           }),
           timeout: 5000,
           retries: 5,
           retryInterval: 5000,
           success: function(data) {
-            invoice.formComponent.set({
-              'submittingBuyerAddress': false,
-              'editDetails': false,
-            });
+            invoice.formComponent.set(invoice_item + '.submittingInvoiceDetails', false);
+            invoice.formComponent.set(invoice_item + '.hideForm', true);
           },
           error: function(response) {
             var ajaxLoad = this;
@@ -105,18 +104,14 @@ window.Boxoffice.Invoice = {
             var errorMsg;
             if (response.readyState === 4) {
               errorMsg = JSON.parse(response.responseText).message + ". Sorry, something went wrong. Please write to us at support@hasgeek.com.";
-              invoice.formComponent.set({
-                'errorMsg': errorMsg,
-                'submittingInvoiceDetails': false
-              });
+              invoice.formComponent.set(invoice_item + '.errorMsg', errorMsg);
+              invoice.formComponent.set(invoice_item + '.submittingInvoiceDetails', false);
             }
             else if (response.readyState === 0) {
               if (ajaxLoad.retries < 0) {
                 errorMsg = "Unable to connect. Please write to us at support@hasgeek.com.";
-                invoice.formComponent.set({
-                  'errorMsg': errorMsg,
-                  'submittingInvoiceDetails': false
-                });
+                invoice.formComponent.set(invoice_item + '.errorMsg', errorMsg);
+                invoice.formComponent.set(invoice_item + '.submittingInvoiceDetails', false);
               } else {
                 setTimeout(function() {
                   $.post(ajaxLoad);
@@ -125,6 +120,10 @@ window.Boxoffice.Invoice = {
             }
           }
         });
+      },
+      showInvoiceForm: function(event, invoice_item) {
+        event.original.preventDefault();
+        invoice.formComponent.set(invoice_item + '.hideForm', false);
       }
     });
   }

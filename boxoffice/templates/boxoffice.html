@@ -203,18 +203,6 @@
               <label class="group-label">Street address</label>
               {{#errormsg.street}}<p class="form-error-msg">{{ errormsg.street }}</p>{{/}}
             </div>
-            <div class="group inline-group left-group">
-              <input class="group-input {{#city}}filled{{/}}" type="text" name="city" value="{{city}}">
-              <span class="bar"></span>
-              <label class="group-label">City</label>
-              {{#errormsg.city}}<p class="form-error-msg">{{ errormsg.city }}</p>{{/}}
-            </div>
-            <div class="group inline-group right-group">
-              <input class="group-input right-group {{#pincode}}filled{{/}}" type="text" name="pincode" value="{{pincode}}">
-              <span class="bar"></span>
-              <label class="group-label">Pincode</label>
-              {{#errormsg.pincode}}<p class="form-error-msg">{{ errormsg.pincode }}</p>{{/}}
-            </div>
             <div class="group-select inline-group left-group">
               <select name="country" value="{{countryCode}}">
                 {{#utils.countries}} {{# { country: . } }}
@@ -242,6 +230,18 @@
                 <input class="hidden" type="radio" name="{{stateCode}}" value="" checked>
               </div>
             {{/if}}
+            <div class="group inline-group left-group">
+              <input class="group-input {{#city}}filled{{/}}" type="text" name="city" value="{{city}}">
+              <span class="bar"></span>
+              <label class="group-label">City</label>
+              {{#errormsg.city}}<p class="form-error-msg">{{ errormsg.city }}</p>{{/}}
+            </div>
+            <div class="group inline-group right-group">
+              <input class="group-input right-group {{#pincode}}filled{{/}}" type="text" name="pincode" value="{{pincode}}">
+              <span class="bar"></span>
+              <label class="group-label">Pincode</label>
+              {{#errormsg.pincode}}<p class="form-error-msg">{{ errormsg.pincode }}</p>{{/}}
+            </div>
           {{/}}
           <div class="proceed-button-wrapper">
             <button type="submit" class="boxoffice-button boxoffice-button-action left-btn-margin" on-click="submitInvoiceDetails(event, event.keypath, seq, id)" {{#submittingInvoiceDetails}}disabled{{/}}>
