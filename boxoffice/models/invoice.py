@@ -9,13 +9,6 @@ from sqlalchemy.ext.orderinglist import ordering_list
 __all__ = ['Invoice', 'InvoiceLineItem']
 
 
-def get_latest_invoice_no(organization):
-    """
-    Returns the last invoice number used, 0 if no order has ben invoiced yet.
-    """
-    last_invoice_no = db.session.query(sql.functions.max(Invoice.invoice_no))\
-        .filter(Invoice.organization == organization).first()
-    return last_invoice_no[0] if last_invoice_no[0] else 0
 
 
 class Invoice(UuidMixin, BaseMixin, db.Model):
@@ -44,6 +37,16 @@ class Invoice(UuidMixin, BaseMixin, db.Model):
 
     organization_id = db.Column(None, db.ForeignKey('organization.id'), nullable=False)
     organization = db.relationship('Organization', backref=db.backref('invoices', cascade='all, delete-orphan', lazy='dynamic'))
+
+    @classmethod
+    def get_latest_invoice_no(cls, organization):
+        """
+        Returns the last invoice number used, 0 if no order has ben invoiced yet
+        """
+        last_invoice_no = db.session.query(sql.functions.max(cls.invoice_no))\
+            .filter(cls.organization == organization).first()
+        return last_invoice_no[0] if last_invoice_no[0] else 0
+
 
 
 @event.listens_for(Invoice, 'before_update')
