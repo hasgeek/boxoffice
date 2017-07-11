@@ -1,6 +1,7 @@
 {%raw%}
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
+
 <div class="payment-progress-wrapper payment-stages-bg" id="payment-stages">
   <ul class="progress-indicator">
     {{#tabs:tab}}
@@ -117,7 +118,7 @@
         <div class="loader payment-confirmation"><i class="fa fa-spinner fa-spin fa-3x"></i></div>
       {{/}}
       <div id='{{id}}' class="boxoffice-section clearfix" intro='fly:{"x":0,"y":"0"}'>
-        <form role="form" name="buyer-form" class="buyer-details">
+        <form role="form" name="buyer-form" class="boxoffice-form">
           <p class="buyer-form-title">Billing Details</p>
           <div class="group">
             <input class="group-input {{#buyer.name}}filled{{/}}" type="text" name="name" value="{{buyer.name}}">
@@ -159,7 +160,7 @@
             <p class="price">Amount Payable <span class="final-amount"><b><i class="fa fa-inr rupee-sign"></i>{{ order.final_amount }}</b></span></p>
           </div>
           <div class="proceed-button-wrapper">
-            <button class="boxoffice-button boxoffice-button-info edit-order" type="button" on-click="selectItems(event)">Edit order</button>
+            <button class="boxoffice-button boxoffice-button-info left-btn-margin" type="button" on-click="selectItems(event)">Edit order</button>
             <button type="submit" class="boxoffice-button boxoffice-button-action" {{#loadingOrder}}disabled{{/}}>
               Checkout {{#loadingOrder}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'>{{/}}
             </button>
@@ -169,30 +170,115 @@
           {{/}}
         </form> 
       </div>
-    {{elseif id === 'boxoffice-confirm' && id === activeTab}}
+    {{elseif id === 'boxoffice-invoice' && id === activeTab}}
       <div id='{{id}}' class="boxoffice-section clearfix" intro='fly:{"x":600,"y":"0"}'>
-        {{#section}}
-          <p class="confirmation-icon"><i class="fa fa-check-circle"></i></p>
-          <p class="confirmation-header">Thank you for your order!</p>
-          <div class="confirmation-msg">
-            <p class="">We’ve mailed you the cash receipt.</p>
-            <div class="receipt-btn-wrapper">
-              <a href="{{ cashReceiptURL }}" target="_blank" class="boxoffice-button boxoffice-button-action receipt-button" on-click="fire('eventAnalytics','view cash receipt', 'cash receipt')">See cash receipt</a>
-              <a href="{{ attendeeAssignmentURL }}" target="_blank" class="boxoffice-button boxoffice-button-action receipt-button" on-click="fire('eventAnalytics','fill attendee details', 'attendee details')">Fill attendee details</a>
+        <p class="confirmation-icon"><i class="fa fa-check-circle"></i></p>
+        <p class="confirmation-header">Thank you for your order!</p>
+        <div class="confirmation-msg">
+          <p>We’ve mailed you the <a href="{{ buyer.cashReceiptURL }}" target="_blank">cash receipt</a>. If you need a GST invoice, please fill in the details below.</p>
+        </div>
+        <form role="form" name="invoice-details-form" class="boxoffice-form top-margin">
+          {{#invoice}}
+            <div class="group">
+              <input class="group-input {{#gstin}}filled{{/}}" type="text" name="gstin" value="{{gstin}}">
+              <span class="bar"></span>
+              <label class="group-label">GSTIN</label>
+              {{#errormsg.gstin}}<p class="form-error-msg">{{ errormsg.gstin }}</p>{{/}}
             </div>
-            <div class="social-icons">
-              <p>Tell your friends!</p>
-              <span class="tweet-button">
-              <a href="https://twitter.com/share" class="twitter-share-button" data-text="Yay! I'm attending {{eventTitle}}" data-hashtags="HasGeek{{#if eventHashtag}}, {{eventHashtag}}{{/if}}">Tweet</a>
-              </span>
-              <div class="fb-share-button pad-half" data-layout="button"></div>
-              <div id="fb-root"></div>
-              <script>(function(d, s, id) { var js, fjs = d.getElementsByTagName(s)[0]; if (d.getElementById(id)) return; js = d.createElement(s); js.id = id; js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.5"; fjs.parentNode.insertBefore(js, fjs); }(document, 'script', 'facebook-jssdk'));</script>
-              <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+            <p class="form-help-text">Your provisional or permanent GST number. Please leave this blank if your organization is not registered in India</p>
+            <div class="group">
+              <input class="group-input {{#name}}filled{{/}}" type="text" name="name" value="{{name}}">
+              <span class="bar"></span>
+              <label class="group-label">Name</label>
+              {{#errormsg.name}}<p class="form-error-msg">{{ errormsg.name }}</p>{{/}}
             </div>
+            <div class="group">
+              <input class="group-input {{#email}}filled{{/}}" type="text" name="email" value="{{email}}">
+              <span class="bar"></span>
+              <label class="group-label">Email</label>
+              {{#errormsg.email}}<p class="form-error-msg">{{ errormsg.email }}</p>{{/}}
+            </div>
+            <div class="group">
+              <input class="group-input {{#street}}filled{{/}}" type="text" name="street" value="{{street}}">
+              <label class="group-label">Street address</label>
+              {{#errormsg.street}}<p class="form-error-msg">{{ errormsg.street }}</p>{{/}}
+            </div>
+            <div class="group-select inline-group left-group">
+              <select name="country" value="{{countryCode}}">
+                {{#utils.countries}} {{# { country: . } }}
+                  <option value="{{country.code}}">{{country.name}}</option>
+                {{/}}{{/utils.countries}}
+              </select>
+              {{#errormsg.country}}<p class="form-error-msg">{{ errormsg.country }}</p>{{/}}
+            </div>
+            {{#if countryCode == "IN"}}
+              <div class="group-select inline-group right-group">
+                <select name="state" value="{{stateCode}}">
+                  {{#utils.states}} {{# { currentState: . } }}
+                    <option value="{{currentState.code}}">{{currentState.name}}</option>
+                  {{/}}{{/utils.states}}
+                </select>
+                {{#errormsg.state}}<p class="form-error-msg">{{ errormsg.state }}</p>{{/}}
+                <input class="hidden" type="radio" name="{{state}}" value="" checked>
+              </div>
+            {{else}}
+              <div class="group inline-group right-group">
+                <input class="group-input right-group {{#state}}filled{{/}}" type="text" name="state" value="{{state}}">
+                <span class="bar"></span>
+                <label class="group-label">State</label>
+                {{#errormsg.state}}<p class="form-error-msg">{{ errormsg.state }}</p>{{/}}
+                <input class="hidden" type="radio" name="{{stateCode}}" value="" checked>
+              </div>
+            {{/if}}
+            <div class="group inline-group left-group">
+              <input class="group-input {{#city}}filled{{/}}" type="text" name="city" value="{{city}}">
+              <span class="bar"></span>
+              <label class="group-label">City</label>
+              {{#errormsg.city}}<p class="form-error-msg">{{ errormsg.city }}</p>{{/}}
+            </div>
+            <div class="group inline-group right-group">
+              <input class="group-input right-group {{#pincode}}filled{{/}}" type="text" name="pincode" value="{{pincode}}">
+              <span class="bar"></span>
+              <label class="group-label">Pincode</label>
+              {{#errormsg.pincode}}<p class="form-error-msg">{{ errormsg.pincode }}</p>{{/}}
+            </div>
+          {{/}}
+          <div class="proceed-button-wrapper">
+            <button type="submit" class="boxoffice-button boxoffice-button-action left-btn-margin" on-click="submitInvoiceDetails(event)" {{#submittingInvoiceDetails}}disabled{{/}}>
+              Submit {{#submittingInvoiceDetails}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'>{{/}}
+            </button>
           </div>
-        {{/section}}
-      </div>      
+        </form>
+        {{#errorMsg}}
+          <p class="stage-error-msg">{{ errorMsg }}</p>
+        {{/}}
+        <div class="confirmation-msg">
+          <p>If you don't want an invoice, skip to the next step to fill attendee details.</p>
+          <button class="boxoffice-button boxoffice-button-info" on-click="proceedToFillAttendeeDetails(event)">Continue</button>
+        </div>
+      </div>
+    {{elseif id === 'boxoffice-attendee-details' && id === activeTab}}
+      <div id='{{id}}' class="boxoffice-section clearfix" intro='fly:{"x":600,"y":"0"}'>
+        <p class="confirmation-icon"><i class="fa fa-id-card-o"></i></p>
+        <p class="confirmation-header">Almost done!</p>
+        <div class="confirmation-msg">
+          {{#if invoice.isFilled}}<p>Thank you for submitting the details, we will mail you the invoice shortly. {{/if}}
+          <p>We need a few more details to print your badge.</p>
+        </div>
+        <div class="receipt-btn-wrapper">
+          <a href="{{ buyer.attendeeAssignmentURL }}" target="_blank" class="boxoffice-button boxoffice-button-action receipt-button" on-click="fire('eventAnalytics','fill attendee details', 'attendee details')">Fill attendee details</a>
+        </div>
+        <div class="social-icons">
+          <p>Tell your friends!</p>
+          <span class="tweet-button">
+          <a href="https://twitter.com/share" class="twitter-share-button" data-text="Yay! I'm attending {{eventTitle}}" data-hashtags="HasGeek{{#if eventHashtag}}, {{eventHashtag}}{{/if}}">Tweet</a>
+          </span>
+          <div class="fb-share-button pad-half" data-layout="button"></div>
+          <div id="fb-root"></div>
+          <script>(function(d, s, id) { var js, fjs = d.getElementsByTagName(s)[0]; if (d.getElementById(id)) return; js = d.createElement(s); js.id = id; js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.5"; fjs.parentNode.insertBefore(js, fjs); }(document, 'script', 'facebook-jssdk'));</script>
+          <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+        </div>
+      </div>
     {{/if}}
   {{/}}
 </div>
@@ -632,15 +718,31 @@
     margin: 0px 0 10px;
     color: #b94a48;
   }
-  .buyer-details {
+  .boxoffice-form {
     max-width: 650px;
     margin: auto;
   }
-  .buyer-details .group {
+  .boxoffice-form.top-margin {
+    margin-top: 45px;
+  }
+  .boxoffice-form .group {
     position: relative;
     margin-bottom: 45px;
+    clear: both;
   }
-  .buyer-details .group-input {
+  @media(min-width: 1024px) {
+    .boxoffice-form .inline-group.left-group {
+      width: 45%;
+      float: left;
+      clear: both;
+    }
+    .boxoffice-form .inline-group.right-group {
+      width: 45%;
+      float: right;
+      clear: none;
+    }
+  }
+  .boxoffice-form .group-input {
     font-size: 16px;
     padding: 10px 10px 10px 5px;
     display: block;
@@ -650,10 +752,10 @@
     box-shadow: none;
     background: transparent;
   }
-  .buyer-details .group-input:focus {
+  .boxoffice-form .group-input:focus {
     outline:none;
   }
-  .buyer-details .group-label {
+  .boxoffice-form .group-label {
     color: #999;
     font-size: 16px;
     margin: 0;
@@ -666,18 +768,18 @@
     -moz-transition: 0.2s ease all;
     -webkit-transition: 0.2s ease all;
   }
-  .buyer-details .group-input:focus ~ .group-label,
-  .buyer-details .group-input.filled ~ .group-label {
+  .boxoffice-form .group-input:focus ~ .group-label,
+  .boxoffice-form .group-input.filled ~ .group-label {
     top: -20px;
     color: #800080;
   }
-  .buyer-details .bar {
+  .boxoffice-form .bar {
     position: relative;
     display:block;
     width: 100%;
   }
-  .buyer-details .bar:before,
-  .buyer-details .bar:after {
+  .boxoffice-form .bar:before,
+  .boxoffice-form .bar:after {
     content: '';
     height: 2px;
     width: 0;
@@ -688,17 +790,63 @@
     -moz-transition: 0.2s ease all;
     -webkit-transition: 0.2s ease all;
   }
-  .buyer-details .bar:before {
+  .boxoffice-form .bar:before {
     left: 50%;
   }
-  .buyer-details .bar:after {
+  .boxoffice-form .bar:after {
     right: 50%;
   }
-  .buyer-details .group-input:focus ~ .bar:before,
-  .buyer-details .group-input:focus ~ .bar:after {
+  .boxoffice-form .group-input:focus ~ .bar:before,
+  .boxoffice-form .group-input:focus ~ .bar:after {
     width: 50%;
   }
-  .form-error-msg {
+  .boxoffice-form .group-select select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 100%;
+    font-size: 16px;
+    padding: 10px 10px 10px 1px;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    border-bottom: 1px solid #757575;
+    position: relative;
+    top: 2px;
+  }
+  .boxoffice-form .group-select select:-moz-focusring { 
+    color: transparent;
+    text-shadow: 0 0 0 #000;
+  }
+  .boxoffice-form .group-select select:focus{
+    outline: 0;
+  }
+  .boxoffice-form .group-select{
+    position: relative;
+    margin-bottom: 45px;
+  }
+  .boxoffice-form .group-select:after {
+    position: absolute;
+    top: 22px;
+    right: 2px;
+    width: 0;
+    height: 0;
+    padding: 0;
+    content: '';
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid #757575;
+    pointer-events: none;
+  }
+  .boxoffice-form .form-help-text {
+    font-size: 13px;
+    color: #aaa;
+    margin: 10px 0;
+    position: relative;
+    top: -40px;
+    left: 5px;
+  }
+  .boxoffice-form .form-error-msg {
     color: white;
     font-size: 12px;
     border-radius: 3px;
@@ -709,7 +857,7 @@
     position: relative;
     display: inline-block;
   }
-  .form-error-msg::before {
+  .boxoffice-form .form-error-msg::before {
     display: block;
     content: "";
     position: absolute;
@@ -768,7 +916,7 @@
     margin: 15px 0 10px;
     float: right;
   }
-  .edit-order {
+  .left-btn-margin {
     margin-right: 10px;
   }
   .loader.payment-confirmation .fa-spin {
@@ -793,6 +941,7 @@
   .confirmation-msg {
     font-size: 16px;
     text-align: center;
+    clear: both;
   }
   @media (min-width: 768px) {
     .confirmation-icon {

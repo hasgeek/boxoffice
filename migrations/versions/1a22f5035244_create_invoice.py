@@ -22,7 +22,7 @@ def upgrade():
         sa.Column('updated_at', sa.DateTime(), nullable=False),
         sa.Column('invoicee_name', sa.Unicode(length=255), nullable=True),
         sa.Column('invoicee_email', sa.Unicode(length=254), nullable=True),
-        sa.Column('invoice_no', sa.Unicode(length=32), nullable=True),
+        sa.Column('invoice_no', sa.Integer(), nullable=True),
         sa.Column('invoiced_at', sa.DateTime(), nullable=True),
         sa.Column('street_address', sa.Unicode(length=255), nullable=True),
         sa.Column('city', sa.Unicode(length=255), nullable=True),

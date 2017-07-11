@@ -2,20 +2,22 @@
 
 from datetime import datetime
 from decimal import Decimal
+from pycountry import pycountry
 from sqlalchemy.sql import func
 from flask import url_for, request, jsonify, render_template, make_response, abort
 from coaster.views import render_with, load_models
 from baseframe import _
 from .. import app, lastuser
 from ..models import db
-from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy, OrderSession, Assignee, LINE_ITEM_STATUS
+from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy, OrderSession, Assignee, LINE_ITEM_STATUS, Invoice
 from ..models import Order, OnlinePayment, PaymentTransaction, User, CURRENCY, ORDER_STATUS
 from ..models.payment import TRANSACTION_TYPE
 from ..extapi import razorpay, RAZORPAY_PAYMENT_STATUS
-from ..forms import LineItemForm, BuyerForm, OrderSessionForm, RefundTransactionForm
+from ..forms import LineItemForm, BuyerForm, OrderSessionForm, RefundTransactionForm, InvoiceForm
 from custom_exceptions import PaymentGatewayError
 from boxoffice.mailclient import send_receipt_mail, send_line_item_cancellation_mail, send_order_refund_mail
-from utils import xhr_only, cors, json_date_format
+from utils import xhr_only, cors, json_date_format, api_error, api_success
+from boxoffice.data import indian_states
 
 
 def jsonify_line_items(line_items):
@@ -260,6 +262,8 @@ def payment(order):
         db.session.add(transaction)
         order.confirm_sale()
         db.session.add(order)
+        invoice = Invoice(order=order, organization=order.organization)
+        db.session.add(invoice)
         db.session.commit()
         for line_item in order.line_items:
             line_item.confirm()
@@ -269,7 +273,7 @@ def payment(order):
                 db.session.add(line_item.discount_coupon)
         db.session.commit()
         send_receipt_mail.delay(order.id)
-        return make_response(jsonify(message="Payment verified"), 201)
+        return make_response(jsonify(invoice_id=invoice.id), 201)
     else:
         online_payment.fail()
         db.session.add(online_payment)
@@ -285,6 +289,65 @@ def payment(order):
 def receipt(order):
     line_items = LineItem.query.filter(LineItem.order == order, LineItem.status.in_([LINE_ITEM_STATUS.CONFIRMED, LINE_ITEM_STATUS.CANCELLED])).all()
     return render_template('cash_receipt.html', order=order, org=order.organization, line_items=line_items)
+
+
+@app.route('/order/<access_token>/invoice', methods=['OPTIONS', 'POST'])
+@xhr_only
+@cors
+@load_models(
+    (Order, {'access_token': 'access_token'}, 'order')
+    )
+def edit_invoice_details(order):
+    """
+    Update invoice with buyer's address and taxid
+    """
+    invoice_dict = request.json.get('invoice')
+    if not request.json or not invoice_dict:
+        return api_error(message=_(u"Missing invoice details"), status_code=400)
+    invoice_form = InvoiceForm.from_json(request.json.get('invoice'), meta={'csrf': False})
+    if not invoice_form.validate():
+        return api_error(message=_(u"Incorrect invoice details"),
+            status_code=400, errors=invoice_form.errors)
+    else:
+        invoice = Invoice.query.get(request.json.get('invoice_id'))
+        invoice_form.populate_obj(invoice)
+        db.session.commit()
+        return api_success(result={}, doc=_(u"Invoice details added"), status_code=201)
+
+
+@app.route('/order/<access_token>/invoice', methods=['GET'])
+@load_models(
+    (Order, {'access_token': 'access_token'}, 'order')
+    )
+def view_invoice(order):
+    """
+    View all invoices of an order
+    """
+    if not order.invoices:
+        invoice = Invoice(order=order, organization=order.organization)
+        db.session.add(invoice)
+        db.session.commit()
+    invoices = order.invoices
+
+    invoices_list = []
+    for invoice in invoices:
+        invoices_list.append({
+            'id': invoice.id,
+            'buyer_taxid': invoice.buyer_taxid,
+            'invoicee_name': invoice.invoicee_name,
+            'invoicee_email': invoice.invoicee_email,
+            'street_address': invoice.street_address,
+            'city': invoice.city,
+            'postcode': invoice.postcode,
+            'country_code': invoice.country_code,
+            'state_code': invoice.state_code,
+            'state': invoice.state
+        })
+
+    return render_template('invoice_form.html', order=order,
+        org=order.organization, invoices=invoices_list,
+        states=[{'name': state['name'], 'code': state['short_code_text']} for state in indian_states],
+        countries=[{'name': country.name, 'code': country.alpha_2} for country in pycountry.countries])
 
 
 @app.route('/order/<access_token>/ticket', methods=['GET', 'POST'])
