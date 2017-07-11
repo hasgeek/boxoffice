@@ -13,7 +13,7 @@
 <div class="payment-stages-wrapper">
   {{#tabs:tab}}
     {{#if id === 'boxoffice-selectItems' && id === activeTab}}
-      <div id='{{id}}' class="boxoffice-section ticket-selection-content clearfix" intro-outro='fly:{"x":0,"y":"0"}'>
+      <div id='{{id}}' class="boxoffice-section ticket-selection-content boxoffice-clearfix" intro-outro='fly:{"x":0,"y":"0"}'>
         {{#section.categories}}
           <div id="{{name}}">
             <div>
@@ -23,7 +23,7 @@
             {{#items}}{{# { item: . } }}
               {{#order.line_items}} {{# { line_item: . } }}
                 {{#if line_item.item_name === item.name }}
-                  <div class="ticket-booking clearfix {{#line_item.quantity}}ticket-selected{{/}}" id="{{line_item.item_name}}">
+                  <div class="ticket-booking boxoffice-clearfix {{#line_item.quantity}}ticket-selected{{/}}" id="{{line_item.item_name}}">
                     <div class="ticket-details">
                       <p class="ticket-title">{{ line_item.item_title }}</p>
                       <div class="ticket-description">{{{ line_item.item_description }}}</div>
@@ -48,17 +48,17 @@
                           <span class="multiplier">&times;</span>
                           <div class="ticket-price-wrapper">
                             {{#if line_item.unit_final_amount >= 0 && line_item.quantity === 0}}
-                              <p class="discount-price ticket-price"><i class="fa fa-inr rupee-sign"></i>{{ line_item.unit_final_amount }}</p>
+                              <p class="discount-price ticket-price">&#8377;{{ line_item.unit_final_amount }}</p>
                             {{/if}}
-                            <p class="ticket-price {{#if line_item.unit_final_amount >= 0 && line_item.quantity === 0}}strike{{/if}}"><i class="fa fa-inr rupee-sign"></i>{{ line_item.base_price }}</p>
+                            <p class="ticket-price {{#if line_item.unit_final_amount >= 0 && line_item.quantity === 0}}strike{{/if}}">&#8377;{{ line_item.base_price }}</p>
                           </div>
                         </div>
                         <div class="item-amount">
                           {{#line_item.discounted_amount && !isLoadingFail}}
-                            <p intro-outro='fly:{"x":10,"y":"0"}' class="discount-amount">Discount <span><i class="fa fa-inr rupee-sign"></i>{{line_item.discounted_amount}}</span></p>
+                            <p intro-outro='fly:{"x":10,"y":"0"}' class="discount-amount">Discount <span>&#8377;{{line_item.discounted_amount}}</span></p>
                           {{/}}
                           {{#line_item.discounted_amount || line_item.final_amount && !isLoadingFail}}
-                            <p intro-outro='fly:{"x":10,"y":"0"}' class="subtotal">Subtotal <span><i class="fa fa-inr rupee-sign"></i>{{line_item.final_amount}}</span></p>
+                            <p intro-outro='fly:{"x":10,"y":"0"}' class="subtotal">Subtotal <span>&#8377;{{line_item.final_amount}}</span></p>
                           {{/}}
                         </div>
                         {{#if line_item.quantity_available > 0}}
@@ -74,7 +74,7 @@
                         {{#line_item.discount_policies}}
                           {{#if is_automatic || activated || pre_applied }}
                             <p class="discount {{#activated}}applied{{/}}">
-                               {{ title }} <i class="fa fa-check {{#if !activated && !isLoadingFail}}hidden{{/if}}"></i>
+                               {{ title }} <i class="fa fa-check {{#if !activated && !isLoadingFail}}boxoffice-hidden{{/if}}"></i>
                             </p>
                           {{/if}}
                         {{/line_item.discount_policies}}
@@ -92,11 +92,11 @@
           </div>
         {{/section.categories}}
         <hr class="separator">
-        <div class="ticket-total {{#loadingPrice}}grey-out{{/}} clearfix">
+        <div class="ticket-total {{#loadingPrice}}grey-out{{/}} boxoffice-clearfix">
           {{#loadingPrice && !isLoadingFail}}
             <div class="loader"><i class="fa fa-spinner fa-spin fa-2x"></i></div>
           {{/}}
-          <p class="price">Total <span class="final-amount"><i class="fa fa-inr rupee-sign"></i>{{ order.final_amount }}</span></p>
+          <p class="price">Total <span class="final-amount">&#8377;{{ order.final_amount }}</span></p>
         </div>
         {{#order.readyToCheckout}}
           <div class="proceed-button-wrapper" intro='fly:{"x":200,"y":"0"}'>
@@ -116,7 +116,7 @@
       {{#loadingPaymentConfirmation}}
         <div class="loader payment-confirmation"><i class="fa fa-spinner fa-spin fa-3x"></i></div>
       {{/}}
-      <div id='{{id}}' class="boxoffice-section clearfix" intro='fly:{"x":0,"y":"0"}'>
+      <div id='{{id}}' class="boxoffice-section boxoffice-clearfix" intro='fly:{"x":0,"y":"0"}'>
         <form role="form" name="buyer-form" class="buyer-details">
           <p class="buyer-form-title">Billing Details</p>
           <div class="group">
@@ -143,20 +143,20 @@
               {{#if line_item.quantity > 0 }}
                 <div class="item-summary">
                   <p class="booked-ticket-title"><i class="fa fa-ticket"></i>{{ line_item.item_title }}</p>
-                  <p class="booked-ticket-qty">Qty {{ line_item.quantity }} &times; <i class="fa fa-inr rupee-sign"></i>{{line_item.base_price}}</p>
+                  <p class="booked-ticket-qty">Qty {{ line_item.quantity }} &times; &#8377;{{line_item.base_price}}</p>
                   {{#line_item.discounted_amount}}
-                    <p class="booked-ticket-qty">Discount <i class="fa fa-inr rupee-sign"></i>{{line_item.discounted_amount}}</p>
+                    <p class="booked-ticket-qty">Discount &#8377;{{line_item.discounted_amount}}</p>
                   {{/line_item.discounted_amount}}
                   {{#line_item.discount_policies}}
                     {{#if activated}}
                     <p class="discount-applied">Applied {{ title }}</p>
                     {{/if}}
                   {{/line_item.discount_policies}}
-                  <p class="booked-ticket-qty">Subtotal <i class="fa fa-inr rupee-sign"></i>{{line_item.final_amount}}</p>
+                  <p class="booked-ticket-qty">Subtotal &#8377;{{line_item.final_amount}}</p>
                 </div>
               {{/if}}
             {{/}}{{/order.line_items}}
-            <p class="price">Amount Payable <span class="final-amount"><b><i class="fa fa-inr rupee-sign"></i>{{ order.final_amount }}</b></span></p>
+            <p class="price">Amount Payable <span class="final-amount"><b>&#8377;{{ order.final_amount }}</b></span></p>
           </div>
           <div class="proceed-button-wrapper">
             <button class="boxoffice-button boxoffice-button-info edit-order" type="button" on-click="selectItems(event)">Edit order</button>
@@ -170,7 +170,7 @@
         </form> 
       </div>
     {{elseif id === 'boxoffice-confirm' && id === activeTab}}
-      <div id='{{id}}' class="boxoffice-section clearfix" intro='fly:{"x":600,"y":"0"}'>
+      <div id='{{id}}' class="boxoffice-section boxoffice-clearfix" intro='fly:{"x":600,"y":"0"}'>
         {{#section}}
           <p class="confirmation-icon"><i class="fa fa-check-circle"></i></p>
           <p class="confirmation-header">Thank you for your order!</p>
@@ -224,8 +224,19 @@
     .box-widget-button,
     .box-widget-button-info {
       font-size: 17px;
-    } 
+    }
   }
+
+  .boxoffice-clearfix:after, .boxoffice-clearfix:before {
+    display: table;
+    content: " ";
+    clear: both;
+  }
+
+  .boxoffice-hidden {
+    display: none !important;
+  }
+
   .payment-progress-wrapper {
     background-color: #eee;
     padding: 20px;
