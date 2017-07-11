@@ -3,12 +3,22 @@
 from decimal import Decimal
 from boxoffice.models import db, BaseMixin, UuidMixin
 from sqlalchemy import event
-from sqlalchemy import sql
+from sqlalchemy import sql, func
 from sqlalchemy.ext.orderinglist import ordering_list
 
 __all__ = ['Invoice', 'InvoiceLineItem']
 
 
+def get_latest_invoice_no(organization):
+    """
+    Returns the last invoice number used, 0 if no order has ben invoiced yet
+    """
+    query = db.session.query(sql.functions.max(Invoice.invoice_no))\
+        .filter(Invoice.organization == organization)
+    if organization.fy_start_at:
+        query = query.filter(Invoice.invoiced_at >= organization.fy_start_at)
+    last_invoice_no = query.first()
+    return last_invoice_no[0] if last_invoice_no[0] else 0
 
 
 class Invoice(UuidMixin, BaseMixin, db.Model):
@@ -18,7 +28,7 @@ class Invoice(UuidMixin, BaseMixin, db.Model):
 
     invoicee_name = db.Column(db.Unicode(255), nullable=True)
     invoicee_email = db.Column(db.Unicode(254), nullable=True)
-    invoice_no = db.Column(db.Unicode(32), nullable=True)
+    invoice_no = db.Column(db.Integer(), nullable=True)
     invoiced_at = db.Column(db.DateTime, nullable=True)
     street_address = db.Column(db.Unicode(255), nullable=True)
     city = db.Column(db.Unicode(255), nullable=True)
@@ -38,15 +48,13 @@ class Invoice(UuidMixin, BaseMixin, db.Model):
     organization_id = db.Column(None, db.ForeignKey('organization.id'), nullable=False)
     organization = db.relationship('Organization', backref=db.backref('invoices', cascade='all, delete-orphan', lazy='dynamic'))
 
-    @classmethod
-    def get_latest_invoice_no(cls, organization):
-        """
-        Returns the last invoice number used, 0 if no order has ben invoiced yet
-        """
-        last_invoice_no = db.session.query(sql.functions.max(cls.invoice_no))\
-            .filter(cls.organization == organization).first()
-        return last_invoice_no[0] if last_invoice_no[0] else 0
-
+    def __init__(self, *args, **kwargs):
+        organization = kwargs.get('organization')
+        if not organization:
+            raise ValueError(u"Invoice MUST be initialized with an organization")
+        self.invoice_no = get_latest_invoice_no(organization) + 1
+        self.invoiced_at = func.utcnow()
+        super(Invoice, self).__init__(*args, **kwargs)
 
 
 @event.listens_for(Invoice, 'before_update')
