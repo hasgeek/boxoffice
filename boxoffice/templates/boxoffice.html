@@ -13,7 +13,7 @@
 <div class="payment-stages-wrapper">
   {{#tabs:tab}}
     {{#if id === 'boxoffice-selectItems' && id === activeTab}}
-      <div id='{{id}}' class="boxoffice-section ticket-selection-content clearfix" intro-outro='fly:{"x":0,"y":"0"}'>
+      <div id='{{id}}' class="boxoffice-section ticket-selection-content boxoffice-clearfix" intro-outro='fly:{"x":0,"y":"0"}'>
         {{#section.categories}}
           <div id="{{name}}">
             <div>
@@ -23,7 +23,7 @@
             {{#items}}{{# { item: . } }}
               {{#order.line_items}} {{# { line_item: . } }}
                 {{#if line_item.item_name === item.name }}
-                  <div class="ticket-booking clearfix {{#line_item.quantity}}ticket-selected{{/}}" id="{{line_item.item_name}}">
+                  <div class="ticket-booking boxoffice-clearfix {{#line_item.quantity}}ticket-selected{{/}}" id="{{line_item.item_name}}">
                     <div class="ticket-details">
                       <p class="ticket-title">{{ line_item.item_title }}</p>
                       <div class="ticket-description">{{{ line_item.item_description }}}</div>
@@ -74,7 +74,7 @@
                         {{#line_item.discount_policies}}
                           {{#if is_automatic || activated || pre_applied }}
                             <p class="discount {{#activated}}applied{{/}}">
-                               {{ title }} <i class="fa fa-check {{#if !activated && !isLoadingFail}}hidden{{/if}}"></i>
+                               {{ title }} <i class="fa fa-check {{#if !activated && !isLoadingFail}}boxoffice-hidden{{/if}}"></i>
                             </p>
                           {{/if}}
                         {{/line_item.discount_policies}}
@@ -92,7 +92,7 @@
           </div>
         {{/section.categories}}
         <hr class="separator">
-        <div class="ticket-total {{#loadingPrice}}grey-out{{/}} clearfix">
+        <div class="ticket-total {{#loadingPrice}}grey-out{{/}} boxoffice-clearfix">
           {{#loadingPrice && !isLoadingFail}}
             <div class="loader"><i class="fa fa-spinner fa-spin fa-2x"></i></div>
           {{/}}
@@ -116,7 +116,7 @@
       {{#loadingPaymentConfirmation}}
         <div class="loader payment-confirmation"><i class="fa fa-spinner fa-spin fa-3x"></i></div>
       {{/}}
-      <div id='{{id}}' class="boxoffice-section clearfix" intro='fly:{"x":0,"y":"0"}'>
+      <div id='{{id}}' class="boxoffice-section boxoffice-clearfix" intro='fly:{"x":0,"y":"0"}'>
         <form role="form" name="buyer-form" class="buyer-details">
           <p class="buyer-form-title">Billing Details</p>
           <div class="group">
@@ -170,7 +170,7 @@
         </form> 
       </div>
     {{elseif id === 'boxoffice-confirm' && id === activeTab}}
-      <div id='{{id}}' class="boxoffice-section clearfix" intro='fly:{"x":600,"y":"0"}'>
+      <div id='{{id}}' class="boxoffice-section boxoffice-clearfix" intro='fly:{"x":600,"y":"0"}'>
         {{#section}}
           <p class="confirmation-icon"><i class="fa fa-check-circle"></i></p>
           <p class="confirmation-header">Thank you for your order!</p>
@@ -224,8 +224,19 @@
     .box-widget-button,
     .box-widget-button-info {
       font-size: 17px;
-    } 
+    }
   }
+
+  .boxoffice-clearfix:after, .boxoffice-clearfix:before {
+    display: table;
+    content: " ";
+    clear: both;
+  }
+
+  .boxoffice-hidden {
+    display: none !important;
+  }
+
   .payment-progress-wrapper {
     background-color: #eee;
     padding: 20px;
