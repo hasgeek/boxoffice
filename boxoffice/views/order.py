@@ -323,7 +323,12 @@ def view_invoice(order):
     """
     View all invoices of an order
     """
+    if not order.invoices:
+        invoice = Invoice(order=order, organization=order.organization)
+        db.session.add(invoice)
+        db.session.commit()
     invoices = order.invoices
+
     invoices_list = []
     for invoice in invoices:
         invoices_list.append({
@@ -338,6 +343,7 @@ def view_invoice(order):
             'state_code': invoice.state_code,
             'state': invoice.state
         })
+
     return render_template('invoice_form.html', order=order,
         org=order.organization, invoices=invoices_list,
         states=[{'name': state['name'], 'code': state['short_code_text']} for state in indian_states],
