@@ -35,8 +35,6 @@ from siteadmin import ItemCollectionModelView, ItemModelView, PriceModelView, Di
 coaster.app.init_app(app)
 db.init_app(app)
 db.app = app
-app.jinja_env.auto_reload = True
-app.config['TEMPLATES_AUTO_RELOAD'] = True
 migrate = Migrate(app, db)
 RQ(app)
 
