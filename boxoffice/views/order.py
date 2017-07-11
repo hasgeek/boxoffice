@@ -262,7 +262,7 @@ def payment(order):
         db.session.add(transaction)
         order.confirm_sale()
         db.session.add(order)
-        invoice = Invoice(order=order, organization=order.organization, invoice_no=int(Invoice.get_latest_invoice_no(order.organization)) + 1)
+        invoice = Invoice(order=order, organization=order.organization)
         db.session.add(invoice)
         db.session.commit()
         for line_item in order.line_items:
