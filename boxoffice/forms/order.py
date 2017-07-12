@@ -72,6 +72,7 @@ class RefundTransactionForm(forms.Form):
 
 
 def validate_state_code(form, field):
+    # Note: state_code is only a required field if the chosen country is India
     if form.country_code.data == "IN":
         if field.data not in [state['short_code_text'] for state in indian_states]:
             raise forms.validators.StopValidation(__("Please select a valid Indian state"))
