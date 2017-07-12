@@ -186,9 +186,9 @@ class TestKharchaAPI(unittest.TestCase):
         coupon = DiscountCoupon.query.filter_by(code='noprice').first()
         discounted_quantity = 1
         kharcha_req = {'line_items': [{'item_id': unicode(first_item.id), 'quantity': discounted_quantity}], 'discount_coupons': [coupon.code]}
-        print first_item.discount_policies.all()
+        # print first_item.discount_policies.all()
         resp = self.client.post(url_for('kharcha'), data=json.dumps(kharcha_req), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
-        print resp.status_code
+        # print resp.status_code
         self.assertEquals(resp.status_code, 200)
         resp_json = json.loads(resp.get_data())
 
