@@ -13,6 +13,8 @@ install:
   - pip install -r requirements.txt
   - pip install https://github.com/hasgeek/coaster/archive/master.zip
   - npm install casperjs
+env:
+  - FLASK_ENV=testing
 script:
   - ./runtests.sh
 after_success:

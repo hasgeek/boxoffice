@@ -13,8 +13,6 @@ class TestKharchaAPI(unittest.TestCase):
     def setUp(self):
         self.ctx = app.test_request_context()
         self.ctx.push()
-        db.drop_all()
-        db.create_all()
         init_data()
         self.client = app.test_client()
 
