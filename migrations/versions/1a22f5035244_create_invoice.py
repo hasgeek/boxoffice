@@ -46,7 +46,7 @@ def upgrade():
         sa.Column('updated_at', sa.DateTime(), nullable=False),
         sa.Column('seq', sa.Integer(), nullable=False),
         sa.Column('item_title', sa.Unicode(length=255), nullable=False),
-        sa.Column('quantity', sa.SmallInteger(), nullable=False),
+        sa.Column('quantity', sa.Integer(), nullable=False),
         sa.Column('tax_type', sa.Unicode(length=255), nullable=False),
         sa.Column('tax_subtype', sa.Unicode(length=255), nullable=False),
         sa.Column('discount_title', sa.Unicode(length=255), nullable=False),

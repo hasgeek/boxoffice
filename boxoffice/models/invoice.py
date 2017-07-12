@@ -70,7 +70,7 @@ class InvoiceLineItem(UuidMixin, BaseMixin, db.Model):
 
     seq = db.Column(db.Integer, nullable=False)
     item_title = db.Column(db.Unicode(255), nullable=False)
-    quantity = db.Column(db.SmallInteger, nullable=False, default=1)
+    quantity = db.Column(db.Integer, nullable=False, default=1)
     # In India, this will be GST
     tax_type = db.Column(db.Unicode(255), nullable=False)
     tax_subtype = db.Column(db.Unicode(255), nullable=False)
