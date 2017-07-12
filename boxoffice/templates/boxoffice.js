@@ -288,16 +288,15 @@ $(function() {
           boxoffice.ractive.set('activeTab', boxoffice.ractive.get('tabs.selectItems.id'));
           boxoffice.ractive.scrollTop();
         },
-        retryAjaxRequest: function(ajaxLoad, response, serverErrorCallback, networkErrorCallback) {
-          ajaxLoad.retries -= 1;
+        xhrRetry: function(ajaxLoad, response, onServerError, onNetworkError) {
           if (response.readyState === 4) {
           	//Server error
-            serverErrorCallback();
+            onServerError();
           }
           else if (response.readyState === 0) {
             if (ajaxLoad.retries < 0) {
               //Network error
-              networkErrorCallback();
+              onNetworkError();
             } else {
               setTimeout(function() {
                 $.post(ajaxLoad);
@@ -350,7 +349,8 @@ $(function() {
             },
             error: function(response) {
             	var ajaxLoad = this;
-              boxoffice.ractive.retryAjaxRequest(ajaxLoad, response);
+              ajaxLoad.retries -= 1;
+              boxoffice.ractive.xhrRetry(ajaxLoad, response);
             }
           });
         },
@@ -459,21 +459,22 @@ $(function() {
               },
               error: function(response) {
               	var ajaxLoad = this;
-              	var serverErrorCallback = function() {
+              	var onServerError = function() {
               		boxoffice.ractive.set({
 	                  'tabs.selectItems.errorMsg': JSON.parse(response.responseText).message,
 	                  'tabs.selectItems.isLoadingFail': true,
 	                  'order.readyToCheckout': false
 	                });
               	};
-              	var networkErrorCallback = function() {
+              	var onNetworkError = function() {
               		boxoffice.ractive.set({
 	                  'tabs.selectItems.errorMsg': "Unable to connect. Please try again later.",
 	                  'tabs.selectItems.isLoadingFail': true,
 	                  'order.readyToCheckout': false
 	                });
               	};
-              	boxoffice.ractive.retryAjaxRequest(ajaxLoad, response, serverErrorCallback, networkErrorCallback);
+                ajaxLoad.retries -= 1;
+              	boxoffice.ractive.xhrRetry(ajaxLoad, response, onServerError, onNetworkError);
               }
             });
           } else {
@@ -592,7 +593,7 @@ $(function() {
             },
             error: function(response) {
               var ajaxLoad = this;
-              var serverErrorCallback = function() {
+              var onServerError = function() {
               	var resp = JSON.parse(response.responseText);
               	if (resp.error_type === 'order_calculation') {
                   boxoffice.ractive.calculateOrder();
@@ -602,13 +603,14 @@ $(function() {
 	                'tabs.payment.loadingOrder': false
 	              });
               };
-              var networkErrorCallback = function() {
+              var onNetworkError = function() {
 								boxoffice.ractive.set({
 	                'tabs.payment.errorMsg': "Unable to connect. Please try again later.",
 	                'tabs.payment.loadingOrder': false
 	              });
               };
-              boxoffice.ractive.retryAjaxRequest(ajaxLoad, response, serverErrorCallback, networkErrorCallback);
+              ajaxLoad.retries -= 1;
+              boxoffice.ractive.xhrRetry(ajaxLoad, response, onServerError, onNetworkError);
             }
           });
         },
@@ -676,19 +678,20 @@ $(function() {
             },
             error: function(response) {
             	var ajaxLoad = this;
-            	var serverErrorCallback = function() {
+            	var onServerError = function() {
             		boxoffice.ractive.set({
 	                'tabs.payment.errorMsg': JSON.parse(response.responseText).message,
 	                'tabs.payment.loadingPaymentConfirmation': false
 	              });
             	};
-            	var networkErrorCallback = function() {
+            	var onNetworkError = function() {
             		boxoffice.ractive.set({
 	                'tabs.payment.errorMsg': "Unable to connect. Please write to us at support@hasgeek.com with your order id " + boxoffice.ractive.get('order.order_id') + ".",
 	                'tabs.payment.loadingPaymentConfirmation': false
 	              });
             	};
-              boxoffice.ractive.retryAjaxRequest(ajaxLoad, response, serverErrorCallback, networkErrorCallback);
+              ajaxLoad.retries -= 1;
+              boxoffice.ractive.xhrRetry(ajaxLoad, response, onServerError, onNetworkError);
             }
           });
         },
@@ -716,19 +719,20 @@ $(function() {
             },
             error: function(response) {
             	var ajaxLoad = this;
-              var serverErrorCallback = function() {
+              var onServerError = function() {
 								boxoffice.ractive.set({
 	                'tabs.payment.errorMsg': JSON.parse(response.responseText).message + ". Sorry, something went wrong. We will get in touch with you shortly. This is your order id " + boxoffice.ractive.get('order.order_id') + ".",
 	                'tabs.payment.loadingPaymentConfirmation': false
 	              });
               };
-              var networkErrorCallback = function() {
+              var onNetworkError = function() {
               	boxoffice.ractive.set({
 	                'tabs.payment.errorMsg': "Unable to connect. Please write to us at support@hasgeek.com with your order id " + boxoffice.ractive.get('order.order_id') + ".",
 	                'tabs.payment.loadingPaymentConfirmation': false
 	              });
               };
-              boxoffice.ractive.retryAjaxRequest(ajaxLoad, response, serverErrorCallback, networkErrorCallback);
+              ajaxLoad.retries -= 1;
+              boxoffice.ractive.xhrRetry(ajaxLoad, response, onServerError, onNetworkError);
             }
           });
         },
@@ -772,7 +776,7 @@ $(function() {
               boxoffice.ractive.postInvoiceDetails();
             }
           });
-          
+
           formValidator.setMessage('required', 'Please fill out the %s field');
           formValidator.setMessage('valid_email', 'Please enter a valid email');
 	      },
@@ -813,19 +817,20 @@ $(function() {
             },
             error: function(response) {
             	var ajaxLoad = this;
-            	var serverErrorCallback = function() {
+            	var onServerError = function() {
             		boxoffice.ractive.set({
 	                'tabs.invoice.errorMsg': JSON.parse(response.responseText).message + ". Sorry, something went wrong. Please write to us at support@hasgeek.com.",
 	                'tabs.invoice.submittingInvoiceDetails': false
 	              });
             	};
-            	var networkErrorCallback = function() {
+            	var onNetworkError = function() {
             		boxoffice.ractive.set({
 	                'tabs.invoice.errorMsg': "Unable to connect. Please write to us at support@hasgeek.com.",
 	                'tabs.invoice.submittingInvoiceDetails': false
 	              });
             	};
-              boxoffice.ractive.retryAjaxRequest(ajaxLoad, response, serverErrorCallback, networkErrorCallback);
+              ajaxLoad.retries -= 1;
+              boxoffice.ractive.xhrRetry(ajaxLoad, response, onServerError, onNetworkError);
             }
           });
 	      },

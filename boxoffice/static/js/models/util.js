@@ -47,8 +47,7 @@ export const post = function (config) {
   });
 };
 
-export const retryAjaxRequest = function(ajaxLoad, response, serverErrorCallback, networkErrorCallback) {
-  ajaxLoad.retries -= 1;
+export const xhrRetry = function(ajaxLoad, response, serverErrorCallback, networkErrorCallback) {
   if (response.readyState === 4) {
     //Server error
     serverErrorCallback();

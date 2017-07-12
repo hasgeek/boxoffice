@@ -1,4 +1,4 @@
-import {retryAjaxRequest, getFormJSObject} from '../models/util.js';
+import {xhrRetry, getFormJSObject} from '../models/util.js';
 import {InvoiceEditFormTemplate} from '../templates/invoice_edit_form.html.js';
 
 export const Invoice = {
@@ -30,15 +30,16 @@ export const Invoice = {
       },
       error: function(response) {
         var ajaxLoad = this;
-        var serverErrorCallback = function() {
+        var onServerError = function() {
           var errorMsg = "Server error. ";
           $("#error-description").html(errorMsg);
         };
-        var networkErrorCallback = function() {
+        var onNetworkError = function() {
           var errorMsg = "Unable to connect. Please try again later.";
           $("#notify-msg").html(errorMsg);
         };
-        retryAjaxRequest(ajaxLoad, response, serverErrorCallback, networkErrorCallback);
+        ajaxLoad.retries -= 1;
+        xhrRetry(ajaxLoad, response, onServerError, onNetworkError);
       }
     });
   },
@@ -127,7 +128,7 @@ export const Invoice = {
           },
           error: function(response) {
             var ajaxLoad = this;
-            var serverErrorCallback = function() {
+            var onServerError = function() {
               var errorTxt = "";
               var errors = JSON.parse(response.responseText).errors;
               if (errors && !$.isEmptyObject(errors)) {
@@ -141,12 +142,13 @@ export const Invoice = {
               invoice.formComponent.set(invoice_item + '.errorMsg', errorTxt);
               invoice.formComponent.set(invoice_item + '.submittingInvoiceDetails', false);
             };
-            var networkErrorCallback = function() {
+            var onNetworkError = function() {
               var errorMsg = "<p>Unable to connect. Please write to us at support@hasgeek.com.<p>";
               invoice.formComponent.set(invoice_item + '.errorMsg', errorMsg);
               invoice.formComponent.set(invoice_item + '.submittingInvoiceDetails', false);
             };
-            retryAjaxRequest(ajaxLoad, response, serverErrorCallback, networkErrorCallback);
+            ajaxLoad.retries -= 1;
+            xhrRetry(ajaxLoad, response, onServerError, onNetworkError);
           }
         });
       },

@@ -291,6 +291,21 @@ def receipt(order):
     return render_template('cash_receipt.html', order=order, org=order.organization, line_items=line_items)
 
 
+def jsonify_invoice(invoice):
+    return {
+        'id': invoice.id,
+        'buyer_taxid': invoice.buyer_taxid,
+        'invoicee_name': invoice.invoicee_name,
+        'invoicee_email': invoice.invoicee_email,
+        'street_address': invoice.street_address,
+        'city': invoice.city,
+        'postcode': invoice.postcode,
+        'country_code': invoice.country_code,
+        'state_code': invoice.state_code,
+        'state': invoice.state
+    }
+
+
 @app.route('/order/<access_token>/invoice', methods=['OPTIONS', 'POST'])
 @xhr_only
 @cors
@@ -312,31 +327,20 @@ def edit_invoice_details(order):
         invoice = Invoice.query.get(request.json.get('invoice_id'))
         invoice_form.populate_obj(invoice)
         db.session.commit()
-        return api_success(result={}, doc=_(u"Invoice details added"), status_code=201)
+        return api_success(result={'message': 'Invoice updated', 'invoice': jsonify_invoice(invoice)}, doc=_(u"Invoice details added"), status_code=201)
 
 
-def jsonify_invoice(data_dict):
+def jsonify_invoices(data_dict):
     invoices_list = []
     for invoice in data_dict['invoices']:
-        invoices_list.append({
-            'id': invoice.id,
-            'buyer_taxid': invoice.buyer_taxid,
-            'invoicee_name': invoice.invoicee_name,
-            'invoicee_email': invoice.invoicee_email,
-            'street_address': invoice.street_address,
-            'city': invoice.city,
-            'postcode': invoice.postcode,
-            'country_code': invoice.country_code,
-            'state_code': invoice.state_code,
-            'state': invoice.state
-        })
+        invoices_list.append(jsonify_invoice(invoice))
     return jsonify(invoices=invoices_list, access_token=data_dict['order'].access_token,
         states=[{'name': state['name'], 'code': state['short_code_text']} for state in indian_states],
         countries=[{'name': country.name, 'code': country.alpha_2} for country in pycountry.countries])
 
 
 @app.route('/order/<access_token>/invoice', methods=['GET'])
-@render_with({'text/html': 'invoice_form.html', 'application/json': jsonify_invoice})
+@render_with({'text/html': 'invoice_form.html', 'application/json': jsonify_invoices})
 @load_models(
     (Order, {'access_token': 'access_token'}, 'order')
     )

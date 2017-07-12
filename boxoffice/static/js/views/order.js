@@ -1,4 +1,4 @@
-import {retryAjaxRequest, getFormJSObject} from '../models/util.js';
+import {xhrRetry, getFormJSObject} from '../models/util.js';
 import {TicketAssignmentTemplate} from '../templates/ticket_assigment.html.js';
 
 export const Order = {
@@ -30,15 +30,16 @@ export const Order = {
       },
       error: function(response) {
         var ajaxLoad = this;
-        var serverErrorCallback = function() {
+        var onServerError = function() {
           var errorMsg = "Server error. ";
           $("#error-description").html(errorMsg);
         };
-        var networkErrorCallback = function() {
+        var onNetworkError = function() {
           var errorMsg = "Unable to connect. Please try again later.";
           $("#notify-msg").html(errorMsg);
         };
-        retryAjaxRequest(ajaxLoad, response, serverErrorCallback, networkErrorCallback);
+        ajaxLoad.retries -= 1;
+        xhrRetry(ajaxLoad, response, onServerError, onNetworkError);
       }
     });
   },
@@ -167,15 +168,16 @@ export const Order = {
           },
           error: function(response) {
             var ajaxLoad = this;
-            var serverErrorCallback = function() {
+            var onServerError = function() {
               order.ticketComponent.set(line_item + '.errorMsg', 'Server error');
               order.ticketComponent.set(line_item + '.assigningTicket', false);
             };
-            var networkErrorCallback = function() {
+            var onNetworkError = function() {
               order.ticketComponent.set(line_item + '.errorMsg', "Unable to connect. Please try again later.");
               order.ticketComponent.set(line_item + '.assigningTicket', false);
             };
-            retryAjaxRequest(ajaxLoad, response, serverErrorCallback, networkErrorCallback);
+            ajaxLoad.retries -= 1;
+            xhrRetry(ajaxLoad, response, onServerError, onNetworkError);
           }
         });
       }
