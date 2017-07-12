@@ -4,8 +4,9 @@ from decimal import Decimal
 from datetime import datetime
 from collections import namedtuple
 from sqlalchemy import sql
-from boxoffice.models import db, BaseMixin, User
+from boxoffice.models import db, BaseMixin, User, ItemCollection
 from coaster.utils import LabeledEnum, buid
+from coaster.roles import set_roles
 from baseframe import __
 
 __all__ = ['Order', 'ORDER_STATUS', 'OrderSession']
@@ -64,6 +65,23 @@ class Order(BaseMixin, db.Model):
 
     invoice_no = db.Column(db.Integer, nullable=True)
 
+    __roles__ = {
+        'order_owner': {
+            'write': {},
+            'read': {'id', 'buyer_email', 'buyer_fullname', 'buyer_phone'}
+        }
+    }
+
+    def roles_for(self, user=None, token=None):
+        if not user and not token:
+            return set()
+        roles = super(Order, self).roles_for(user, token)
+        if user or token:
+            roles.add('user')
+        if self.item_collection.organization.userid in user.organizations_owned_ids():
+            roles.add('order_owner')
+        return roles
+
     def permissions(self, user, inherited=None):
         perms = super(Order, self).permissions(user, inherited)
         if self.organization.userid in user.organizations_owned_ids():
@@ -113,6 +131,14 @@ class Order(BaseMixin, db.Model):
             if not line_item.current_assignee:
                 return False
         return True
+
+
+@set_roles(read={'all', 'item_collection_owner'})
+def get_transacted_orders(self):
+    """Returns a SQLAlchemy query object preset with an item collection's transacted orders"""
+    return Order.query.filter(Order.item_collection == self, Order.status.in_(ORDER_STATUS.TRANSACTION))
+
+ItemCollection.get_transacted_orders = get_transacted_orders
 
 
 class OrderSession(BaseMixin, db.Model):
