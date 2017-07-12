@@ -9,9 +9,9 @@ var streamify = require('gulp-streamify');
 var _ = require('underscore');
 
 var config = {
-  entryFile: './views/main.js',
-  outputDir: './dist',
-  outputFile: 'bundle.js'
+    entryFile: './views/main_invoice.js',
+    outputDir: './dist',
+    outputFile: 'invoice_bundle.js'
 };
 
 var bundler;

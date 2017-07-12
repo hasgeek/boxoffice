@@ -304,7 +304,7 @@ def edit_invoice_details(order):
     invoice_dict = request.json.get('invoice')
     if not request.json or not invoice_dict:
         return api_error(message=_(u"Missing invoice details"), status_code=400)
-    invoice_form = InvoiceForm.from_json(request.json.get('invoice'), meta={'csrf': False})
+    invoice_form = InvoiceForm.from_json(invoice_dict, meta={'csrf': False})
     if not invoice_form.validate():
         return api_error(message=_(u"Incorrect invoice details"),
             status_code=400, errors=invoice_form.errors)
@@ -315,22 +315,9 @@ def edit_invoice_details(order):
         return api_success(result={}, doc=_(u"Invoice details added"), status_code=201)
 
 
-@app.route('/order/<access_token>/invoice', methods=['GET'])
-@load_models(
-    (Order, {'access_token': 'access_token'}, 'order')
-    )
-def view_invoice(order):
-    """
-    View all invoices of an order
-    """
-    if not order.invoices:
-        invoice = Invoice(order=order, organization=order.organization)
-        db.session.add(invoice)
-        db.session.commit()
-    invoices = order.invoices
-
+def jsonify_invoice(data_dict):
     invoices_list = []
-    for invoice in invoices:
+    for invoice in data_dict['invoices']:
         invoices_list.append({
             'id': invoice.id,
             'buyer_taxid': invoice.buyer_taxid,
@@ -343,11 +330,27 @@ def view_invoice(order):
             'state_code': invoice.state_code,
             'state': invoice.state
         })
-
-    return render_template('invoice_form.html', order=order,
-        org=order.organization, invoices=invoices_list,
+    return jsonify(invoices=invoices_list, access_token=data_dict['order'].access_token,
         states=[{'name': state['name'], 'code': state['short_code_text']} for state in indian_states],
         countries=[{'name': country.name, 'code': country.alpha_2} for country in pycountry.countries])
+
+
+@app.route('/order/<access_token>/invoice', methods=['GET'])
+@render_with({'text/html': 'invoice_form.html', 'application/json': jsonify_invoice})
+@load_models(
+    (Order, {'access_token': 'access_token'}, 'order')
+    )
+def invoice_details_form(order):
+    """
+    View all invoices of an order
+    """
+    if not order.invoices:
+        invoice = Invoice(order=order, organization=order.organization)
+        db.session.add(invoice)
+        db.session.commit()
+    invoices = order.invoices
+
+    return dict(order=order, org=order.organization, invoices=invoices)
 
 
 @app.route('/order/<access_token>/ticket', methods=['GET', 'POST'])

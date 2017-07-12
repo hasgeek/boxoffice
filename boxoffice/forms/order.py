@@ -75,25 +75,27 @@ def validate_state_code(form, field):
     # Note: state_code is only a required field if the chosen country is India
     if form.country_code.data == "IN":
         if field.data not in [state['short_code_text'] for state in indian_states]:
-            raise forms.validators.StopValidation(__("Please enter a valid Indian state"))
+            raise forms.validators.StopValidation(__("Please select a valid Indian state"))
 
 
 class InvoiceForm(forms.Form):
     buyer_taxid = forms.StringField(__("GSTIN"), validators=[forms.validators.Optional(),
         forms.validators.Length(max=255)], filters=[forms.filters.strip(), forms.filters.none_if_empty()])
-    invoicee_name = forms.StringField(__("Full name"), validators=[forms.validators.DataRequired(),
+    invoicee_name = forms.StringField(__("Full name"), validators=[forms.validators.DataRequired(__("Please enter the buyer's fullname")),
         forms.validators.Length(max=255)], filters=[forms.filters.strip()])
-    invoicee_email = forms.EmailField(__("Email"), validators=[forms.validators.DataRequired(),
-        forms.validators.Length(max=80)], filters=[forms.filters.strip()])
-    street_address = forms.StringField(__("Street"), validators=[forms.validators.DataRequired(),
+    invoicee_email = forms.EmailField(__("Email"), validators=[forms.validators.DataRequired(__("Please enter an email address")),
+        forms.validators.Length(min=5, max=80),
+        forms.validators.ValidEmail(__("Please enter a valid email"))],
+        filters=[forms.filters.strip()])
+    street_address = forms.StringField(__("Street"), validators=[forms.validators.DataRequired(__("Please enter the street address")),
         forms.validators.Length(max=255)], filters=[forms.filters.strip()])
-    city = forms.StringField(__("City"), validators=[forms.validators.DataRequired(),
+    city = forms.StringField(__("City"), validators=[forms.validators.DataRequired(__("Please enter the city")),
         forms.validators.Length(max=255)], filters=[forms.filters.strip()])
-    country_code = forms.StringField(__("Country"), validators=[forms.validators.DataRequired(),
+    country_code = forms.StringField(__("Country"), validators=[forms.validators.DataRequired(__("Please select a country")),
         forms.validators.Length(max=2)], filters=[forms.filters.strip()])
     state_code = forms.StringField(__("State code"), validators=[forms.validators.Length(max=4),
         validate_state_code], filters=[forms.filters.strip()])
     state = forms.StringField(__("State"), validators=[forms.validators.Optional(),
         forms.validators.Length(max=255)], filters=[forms.filters.strip(), forms.filters.none_if_empty()])
-    postcode = forms.StringField(__("Pincode"), validators=[forms.validators.DataRequired(),
+    postcode = forms.StringField(__("Pincode"), validators=[forms.validators.DataRequired(__("Please enter a postcode")),
         forms.validators.Length(max=8)], filters=[forms.filters.strip()])

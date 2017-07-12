@@ -1,26 +1,58 @@
-window.Boxoffice = window.Boxoffice || {};
+import {retryAjaxRequest, getFormJSObject} from '../models/util.js';
+import {InvoiceEditFormTemplate} from '../templates/invoice_edit_form.html.js';
 
-window.Boxoffice.Invoice = {
+export const Invoice = {
   config: {
     baseURL: window.location.origin,
+    view: {
+      method: 'GET',
+      urlFor: function() {
+        return window.location.href;
+      }
+    },
     submit: {
       method: 'POST',
       urlFor: function(accessToken) {
-        return Boxoffice.Invoice.config.baseURL + '/order/' + accessToken + '/invoice';
+        return Invoice.config.baseURL + '/order/' + accessToken + '/invoice';
       }
     }
   },
-  init: function(invoices, accessToken, states, countries) {
+  init: function() {
+    $.ajax({
+      url: Invoice.config.view.urlFor(),
+      type: Invoice.config.view.method,
+      timeout: 5000,
+      retries: 5,
+      dataType: 'json',
+      retryInterval: 5000,
+      success: function(data) {
+        Invoice.view(data);
+      },
+      error: function(response) {
+        var ajaxLoad = this;
+        var serverErrorCallback = function() {
+          var errorMsg = "Server error. ";
+          $("#error-description").html(errorMsg);
+        };
+        var networkErrorCallback = function() {
+          var errorMsg = "Unable to connect. Please try again later.";
+          $("#notify-msg").html(errorMsg);
+        };
+        retryAjaxRequest(ajaxLoad, response, serverErrorCallback, networkErrorCallback);
+      }
+    });
+  },
+  view: function(data) {
     var invoice = this;
     invoice.formComponent = new Ractive({
       el: '#boxoffice-invoice',
-      template: '#boxoffice-invoice-form-template',
+      template: InvoiceEditFormTemplate,
       data: {
-        invoices: invoices,
-        accessToken: accessToken,
+        invoices: data.invoices,
+        accessToken: data.access_token,
         utils : {
-          states: states,
-          countries: countries
+          states: data.states,
+          countries: data.countries
         }
       },
       scrollTop: function() {
@@ -33,7 +65,7 @@ window.Boxoffice.Invoice = {
         },
         {
           name: 'invoicee_email',
-          rules: 'required'
+          rules: 'required|valid_email'
         },
         {
           name: 'street_address',
@@ -70,17 +102,12 @@ window.Boxoffice.Invoice = {
           }
         });
 
-        formValidator.setMessage('required', 'Please fill out the this field');
+        formValidator.setMessage('required', 'Please fill out the %s field');
+        formValidator.setMessage('valid_email', 'Please enter a valid email');
       },
       postInvoiceDetails: function(invoice_item, invoice_id) {
-        var invoiceForm = 'invoice-' + invoice_id;
-        var formElements = $('#'+ invoiceForm).serializeArray();
-        var invoiceDetails ={};
-        for (var formIndex=0; formIndex < formElements.length; formIndex++) {
-          if (formElements[formIndex].value) {
-            invoiceDetails[formElements[formIndex].name] = formElements[formIndex].value;
-          }
-        }
+        var invoiceForm = '#' + 'invoice-' + invoice_id;
+        var invoiceDetails = getFormJSObject(invoiceForm);
 
         $.ajax({
           url: invoice.config.submit.urlFor(invoice.formComponent.get('accessToken')),
@@ -100,24 +127,26 @@ window.Boxoffice.Invoice = {
           },
           error: function(response) {
             var ajaxLoad = this;
-            ajaxLoad.retries -= 1;
-            var errorMsg;
-            if (response.readyState === 4) {
-              errorMsg = JSON.parse(response.responseText).message + ". Sorry, something went wrong. Please write to us at support@hasgeek.com.";
+            var serverErrorCallback = function() {
+              var errorTxt = "";
+              var errors = JSON.parse(response.responseText).errors;
+              if (errors && !$.isEmptyObject(errors)) {
+                for (let error in errors) {
+                  errorTxt += "<p>" + errors[error] + "</p>"
+                }
+              }
+              else {
+                errorTxt = "<p>" + JSON.parse(response.responseText).message + "<p>";
+              }
+              invoice.formComponent.set(invoice_item + '.errorMsg', errorTxt);
+              invoice.formComponent.set(invoice_item + '.submittingInvoiceDetails', false);
+            };
+            var networkErrorCallback = function() {
+              var errorMsg = "<p>Unable to connect. Please write to us at support@hasgeek.com.<p>";
               invoice.formComponent.set(invoice_item + '.errorMsg', errorMsg);
               invoice.formComponent.set(invoice_item + '.submittingInvoiceDetails', false);
-            }
-            else if (response.readyState === 0) {
-              if (ajaxLoad.retries < 0) {
-                errorMsg = "Unable to connect. Please write to us at support@hasgeek.com.";
-                invoice.formComponent.set(invoice_item + '.errorMsg', errorMsg);
-                invoice.formComponent.set(invoice_item + '.submittingInvoiceDetails', false);
-              } else {
-                setTimeout(function() {
-                  $.post(ajaxLoad);
-                }, ajaxLoad.retryInterval);
-              }
-            }
+            };
+            retryAjaxRequest(ajaxLoad, response, serverErrorCallback, networkErrorCallback);
           }
         });
       },

@@ -47,6 +47,25 @@ export const post = function (config) {
   });
 };
 
+export const retryAjaxRequest = function(ajaxLoad, response, serverErrorCallback, networkErrorCallback) {
+  ajaxLoad.retries -= 1;
+  if (response.readyState === 4) {
+    //Server error
+    serverErrorCallback();
+  }
+  else if (response.readyState === 0) {
+    if (ajaxLoad.retries < 0) {
+      //Network error
+      networkErrorCallback();
+    } 
+    else {
+      setTimeout(function() {
+        $.ajax(ajaxLoad);
+      }, ajaxLoad.retryInterval);
+    }
+  }         
+};
+
 export const scrollToElement = function (element, speed=500) {
   $('html,body').animate({
     scrollTop: $(element).offset().top
@@ -56,6 +75,23 @@ export const scrollToElement = function (element, speed=500) {
 export const getFormParameters = function (form) {
   return $.param($(form).serializeArray());
 };
+
+export const getFormJSObject = function (form) {
+  var formElements = $(form).serializeArray();
+  var formDetails ={};
+  $.each(formElements, function () {
+    if (formDetails[this.name] !== undefined) {
+      if (!formDetails[this.name].push) {
+        formDetails[this.name] = [formDetails[this.name]];
+      }      
+      formDetails[this.name].push(this.value || '');
+    } 
+    else {
+      formDetails[this.name] = this.value || '';
+    }
+  });
+  return formDetails;
+}
 
 export const getCsrfToken = function () {
   return document.head.querySelector("[name=csrf-token]").content;

@@ -52,7 +52,7 @@ class Invoice(UuidMixin, BaseMixin, db.Model):
         organization = kwargs.get('organization')
         if not organization:
             raise ValueError(u"Invoice MUST be initialized with an organization")
-        self.invoice_no = get_latest_invoice_no(organization) + 1
+        self.invoice_no = int(get_latest_invoice_no(organization)) + 1
         self.invoiced_at = func.utcnow()
         super(Invoice, self).__init__(*args, **kwargs)
 
