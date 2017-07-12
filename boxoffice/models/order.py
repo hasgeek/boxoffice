@@ -26,8 +26,8 @@ def get_latest_invoice_no(organization):
     Returns the last invoice number used, 0 if no order has ben invoiced yet.
     """
     last_invoice_no = db.session.query(sql.functions.max(Order.invoice_no))\
-        .filter(Order.organization == organization).first()
-    return last_invoice_no[0] if last_invoice_no[0] else 0
+        .filter(Order.organization == organization).scalar()
+    return last_invoice_no or 0
 
 
 def order_amounts_ntuple(base_amount, discounted_amount, final_amount, confirmed_amount):
