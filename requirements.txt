@@ -21,3 +21,4 @@ Flask-Admin
 unicodecsv
 isoweek
 Flask-Migrate
+pycountry

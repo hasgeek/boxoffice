@@ -27,8 +27,8 @@ assets['boxoffice.js'][version] = 'js/scripts.js'
 
 
 from . import extapi, views  # NOQA
-from boxoffice.models import db, User, Item, Price, DiscountPolicy, DiscountCoupon, ItemCollection, Organization, Category  # noqa
-from siteadmin import ItemCollectionModelView, ItemModelView, PriceModelView, DiscountPolicyModelView, DiscountCouponModelView, OrganizationModelView, CategoryModelView  # noqa
+from boxoffice.models import db, User, Item, Price, DiscountPolicy, DiscountCoupon, ItemCollection, Organization, Category, Invoice  # noqa
+from siteadmin import ItemCollectionModelView, ItemModelView, PriceModelView, DiscountPolicyModelView, DiscountCouponModelView, OrganizationModelView, CategoryModelView, InvoiceModelView  # noqa
 
 
 # Configure the app
@@ -41,7 +41,7 @@ RQ(app)
 lastuser.init_app(app)
 lastuser.init_usermanager(UserManager(db, User))
 app.config['tz'] = timezone(app.config['TIMEZONE'])
-baseframe.init_app(app, requires=['boxoffice'], ext_requires=['baseframe-bs3', 'fontawesome>=4.0.0', 'ractive', 'ractive-transitions-fly', 'validate', 'nprogress', 'baseframe-footable'])
+baseframe.init_app(app, requires=['boxoffice'], ext_requires=['baseframe-bs3', 'fontawesome>=4.0.0', 'baseframe-footable'])
 
 mail.init_app(app)
 wtforms_json.init()
@@ -57,5 +57,6 @@ try:
     admin.add_view(PriceModelView(Price, db.session))
     admin.add_view(DiscountPolicyModelView(DiscountPolicy, db.session))
     admin.add_view(DiscountCouponModelView(DiscountCoupon, db.session))
+    admin.add_view(InvoiceModelView(Invoice, db.session))
 except AssertionError:
     pass

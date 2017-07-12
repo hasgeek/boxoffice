@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+{% block title %}{{ org.title }}{% endblock %}
+{% block headerbox %}
+{% endblock %}
+
+{% block headline %}
+{% endblock %}
+
+{% block content %}
+  <div class="org-header">
+    {%- if org.details.get('logo') %}
+      <div class="organization-logo">
+       <img src="{{org.details.get('logo')}}" />
+      </div>
+    {%- endif %}
+    <h1 class="item-collection-title">{{ order.item_collection.title }}</h1>
+    <p class="text-center">Receipt No: {{ order.invoice_no }}</p>
+  </div>
+
+  <div class="row" id="boxoffice-invoice">
+    <p class="text-center" id="notify-msg"><span id="error-description">Loading. </span>If this takes too long, please mail {{order.item_collection.organization.support_email}} with your receipt number.</p>
+  </div>
+{% endblock %}
+
+{% block footerscripts %}
+  <script src='/static/js/dist/invoice_bundle.js'></script>
+{% endblock %}
