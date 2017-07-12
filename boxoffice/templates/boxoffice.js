@@ -47,6 +47,10 @@ $(function() {
   var boxoffice = window.Boxoffice;
   boxoffice.util = {};
 
+  var boxoffice = {};
+  boxoffice.util = {};
+  boxoffice.config = window.Boxoffice.config;
+
   boxoffice.util.getQueryParams = function() {
     // Returns an array of query parameters
     // Eg: "?code=xxx&cody=yyy" -> ["code=xxx", "code=yyy"]
@@ -161,7 +165,7 @@ $(function() {
   boxoffice.init = function(widgetConfig) {
     // Config variables provided by the client embedding the widget
     this.widgetConfig = widgetConfig;
-    boxoffice.initResources({
+    this.initResources({
       ic: widgetConfig.itemCollection
     });
 
@@ -735,7 +739,7 @@ $(function() {
           },
           {
             name: 'email',
-            rules: 'required'
+            rules: 'required|valid_email'
           },
           {
             name: 'street',
@@ -768,6 +772,9 @@ $(function() {
               boxoffice.ractive.postInvoiceDetails();
             }
           });
+          
+          formValidator.setMessage('required', 'Please fill out the %s field');
+          formValidator.setMessage('valid_email', 'Please enter a valid email');
 	      },
 	      postInvoiceDetails: function() {
 	      	$.post({
@@ -847,6 +854,10 @@ $(function() {
         }
       });
     });
+  };
+
+  window.Boxoffice.init = function(widgetConfig) {
+	boxoffice.init(widgetConfig);
   };
 });
 {% endraw %}
