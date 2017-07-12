@@ -136,9 +136,9 @@
 
     <p>Hello {{ order.buyer_fullname }},</p>
 
-    <p class="content">Thanks for your interest in {{ order.item_collection.title }}.</p>
+    <p class="content">Thanks for your interest in {{ order.item_collection.title }}. Please take a moment to tell us who will be attending on your ticket(s).</p>
 
-    <p><a class="button" href={{"{base_url}/order/{access_token}/ticket".format(base_url=base_url, access_token=order.access_token)}} target="_blank">See ticket</a></p>
+    <p><a class="button" href={{"{base_url}/order/{access_token}/ticket".format(base_url=base_url, access_token=order.access_token)}} target="_blank">Fill attendee details</a></p>
 
     <h1 class="header">Cash Receipt</h1>
     

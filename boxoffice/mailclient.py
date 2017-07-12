@@ -86,7 +86,7 @@ def send_ticket_assignment_mail(line_item_id):
         order = line_item.order
         subject = order.item_collection.title + ": Here's your ticket"
         msg = Message(subject=subject, recipients=[line_item.current_assignee.email], bcc=[order.buyer_email])
-        html = email_transform(render_template('ticket_assignment_mail.html', order=order, org=order.organization, line_item=line_item, base_url=app.config['BASE_URL']))
+        html = email_transform(render_template('ticket_assignment_mail.html', org=order.organization, item_collection=order.item_collection, order=order, line_item=line_item, base_url=app.config['BASE_URL']))
         msg.html = html
         msg.body = html2text(html)
         mail.send(msg)

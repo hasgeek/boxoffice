@@ -17,6 +17,7 @@ class Item(BaseScopedNameMixin, db.Model):
     __table_args__ = (db.UniqueConstraint('item_collection_id', 'name'),)
 
     description = MarkdownColumn('description', default=u'', nullable=False)
+    details = db.Column(JsonDict, server_default='{}', nullable=False)
     seq = db.Column(db.Integer, nullable=False)
 
     item_collection_id = db.Column(None, db.ForeignKey('item_collection.id'), nullable=False)

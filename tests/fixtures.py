@@ -21,7 +21,7 @@ def init_data():
     db.session.add(rootconf)
     db.session.commit()
 
-    rc2016 = ItemCollection(title='2016', organization=rootconf)
+    rc2016 = ItemCollection(title='2016', organization=rootconf, details={'website': 'www.rootconf.in', 'logo': 'https://imgee.s3.amazonaws.com/imgee/769dc463009d4cf09be7352c8c7b3628.png', 'twitter': 'rootconf', 'banner_color': '#453750', 'font_color': '#fff'})
     db.session.add(rc2016)
     db.session.commit()
 
@@ -35,7 +35,7 @@ def init_data():
 
     # import IPython; IPython.embed()
     with db.session.no_autoflush:
-        conf_ticket = Item(title='Conference ticket', description='<p><i class="fa fa-calendar"></i>14 - 15 April 2016</p><p><i class="fa fa-map-marker ticket-venue"></i>MLR Convention Center, JP Nagar</p><p>This ticket gets you access to rootconf conference on 14th and 15th April 2016.</p>', item_collection=rc2016, category=Category.query.filter_by(name='conference').first(), quantity_total=1000)
+        conf_ticket = Item(title='Conference ticket', description='<p><i class="fa fa-calendar"></i>14 - 15 April 2016</p><p><i class="fa fa-map-marker ticket-venue"></i>MLR Convention Center, JP Nagar</p><p>This ticket gets you access to rootconf conference on 14th and 15th April 2016.</p>', details={'date': '14-15 April 2016', 'venue': 'MLR Convention Centre, JP Nagar, Bangalore', 'venue_url': 'http://goo.gl/maps/pTOsq', 'time': '8:40 am'}, item_collection=rc2016, category=Category.query.filter_by(name='conference').first(), quantity_total=1000)
         rc2016.items.append(conf_ticket)
         db.session.commit()
 

@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8">
   <title>{{ org.title }}</title>
   <style type="text/css">
     * { 
@@ -24,78 +24,100 @@
 
     p {
       font-size: 15px;
-      margin: 5px 0;
+      margin: 5px 0 10px;
     }
 
     .text-center {
       text-align: center;
     }
 
-    .wrapper {
-      background: #EBD3A3;
-      text-decoration: none;
-      padding: 10px;
-      max-width: 500px;
-      margin: 20px 0;
-      border-radius: 5px;
+    .ticket-wrapper {
+      width: 90%;
+      margin: 15px 0;
+      max-width: 350px;
     }
 
-    .ticket-table {
-      width: 100%;
-      border-collapse: collapse;
+    .header {
+      background-color: #856A91;
+      color: #fff;
+      border-radius: 5px 5px 0 0;
+      padding: 15px;
+      min-height: 65px;
     }
 
-    .ticket-table td { 
-      border: 2px solid #cf6f01;
+    {%- if item_collection.details.banner_color and item_collection.details.font_color -%}
+      .header {
+        background-color: {{item_collection.details.banner_color}};
+        color: {{item_collection.details.font_color}};
+      }
+    {%- endif %}
+
+    .logo {
+      float: left;
+      width: 10%;
+      min-width: 60px;
     }
 
-    .ticket-title-wrapper {
-      max-width: 180px;
-      padding: 10px 10px 0;
+    .event {
+      float: left;
+      margin-left: 15px;
     }
 
-    .ticket-title {
+    .event-title {
+      font-size: 20px;
+      margin: 0 0 10px;
+    }
+
+    .event-date {
+      font-size: 14px;
+      margin: 0 0 10px;
+    }
+
+    .ticket-body {
+      background-color: #f5f6f7;
+      border-radius: 0 0 5px 5px;
+      padding: 15px;
+      min-height: 50px;
+    }
+
+    .type {
+      color: #b8b9b9;
+      font-size: 15px;
+      margin: 5px 0;
+    }
+
+    .content {
+      color: #333;
       font-size: 18px;
-      font-weight: bold;
-      margin-bottom: 20px;
-    }
-
-    .receipt-no {
-      color: #941f2d;
-      font-size: 13px;
-      font-style: italic;
-      margin: 5px 0 0;
-    }
-
-    .details-wrapper {
-      padding: 10px;
-    }
-
-    .fullname {
-      margin: 5px auto;
-      padding-bottom: 5px;
-    }
-
-    .company {
-      border-top: 2px solid #000;
-      padding-top: 5px;
+      margin: 0 0 15px;
     }
 
     .twitter-handle {
       color: #1da1f2;
     }
 
-    .button {
+    .seperator {
+      border-width: 2px;
+      border-color: #fafafa;
+      margin: 15px -15px;
+      border-style: solid;
+    }
+
+    .edit-button {
       border-width: 0px 0px 3px;
       border-style: solid;
       border-radius: 5px;
-      padding: 6px 12px;
+      width: 90%;
+      padding: 15px;
+      max-width: 350px;
       color: #fff;
-      font-size: 15px;
+      font-size: 16px;
       display: inline-block;
-      background-color: #5BC0DE;
-      border-color: #46B8DA;
-      margin: 0 0 5px;
+      background-color: #e05f26;
+      border-color: #b94c1d;
+      color: #fff;
+      text-align: center;
+      margin: 15px 0;
     }
   </style>
 </head>
@@ -105,25 +127,64 @@
 
     <p>Hello {{ line_item.current_assignee.fullname }},</p>
 
-    <div class="wrapper">
-      <table class="ticket-table"> 
-        <tr>
-          <td class="ticket-title-wrapper">
-            <p class="text-center ticket-title">{{ line_item.item.title }}</p>
-            <p class="receipt-no">Receipt No: {{order.invoice_no}}</p>
-          </td>
-
-          <td class="details-wrapper">
-            <p class="text-center fullname">{{ line_item.current_assignee.fullname }}</p>
-            {%- if line_item.current_assignee.details.company -%}<p class="text-center company">{{ line_item.current_assignee.details.company }}</p>{%- endif %}
-            {%- if line_item.current_assignee.details.twitter -%}<p class="text-center twitter-handle">@{{ line_item.current_assignee.details.twitter | replace("@", "") }}</p>{%- endif %}
-          </td>
-        </tr>
-      </table>
+    <div class="ticket-wrapper ">
+      <div class="ticket">
+        <div class="header">
+          {%- if item_collection.details.logo -%}
+            <img src="{{ item_collection.details.logo }}" class="logo"/>
+          {%- elif org.details.logo %}
+            <img src="{{ org.details.logo }}" class="logo"/>
+          {%- endif %}
+          <div class="event">
+            <p class="event-title">{{ item_collection.title }}</p>
+            <p class="event-date">
+            {%- if line_item.item.details.date -%}
+              <span>{{ line_item.item.details.date }}</span>
+            {%- endif %}
+            {%- if line_item.item.details.time -%}
+              &nbsp; &#124; &nbsp;<span>{{ line_item.item.details.time }}</span>
+            {%- endif %}
+            </p>
+          </div>
+        </div>
+        <div class="ticket-body">
+          <p class="type">Ticket</p>
+          <p class="content">{{ line_item.item.title }}</p>
+          <p class="type">Name</p>
+          <p class="content">{{ line_item.current_assignee.fullname }}</p>
+          {%- if line_item.current_assignee.details.company -%}
+            <p class="type">Company</p>
+            <p class="content">{{ line_item.current_assignee.details.company }}</p>
+          {%- endif %}
+          {%- if line_item.current_assignee.details.twitter -%}
+            <p class="type">Twitter</p>
+            <p class="content twitter-handle">@{{ line_item.current_assignee.details.twitter | replace("@", "") }}</p>
+          {%- endif %}
+          {%- if line_item.item.details.venue -%}
+            <p class="type">Venue</p>
+            {%- if line_item.item.details.venue_url -%}
+              <p class="content"><a href="{{line_item.item.details.venue_url}}">{{ line_item.item.details.venue }}</a></p>
+            {%- else -%}
+              <p class="content">{{ line_item.item.details.venue }}</p>
+            {%- endif %}
+          {%- endif %}
+          <hr class="seperator">
+          <p class="type">Receipt No: {{ order.invoice_no }}</p>
+          <hr class="seperator">
+          <p class="content">
+            {%- if item_collection.details.twitter -%}
+              <a href="https://twitter.com/{{ item_collection.details.twitter | replace('@', '') }}" class="twitter-handle">@{{ item_collection.details.twitter | replace("@", "") }}</a>
+            {%- endif %}
+            {%- if item_collection.details.website -%}
+              &nbsp; &#124; &nbsp;<a href="{{ item_collection.details.website }}">{{ item_collection.details.website }}</a>
+            {%- endif %}
+          </p>
+        </div>
+      </div>
+      <p><a class="edit-button" href={{"{base_url}/order/{access_token}/ticket".format(base_url=base_url, access_token=order.access_token)}} target="_blank">Edit details</a></p>
     </div>
 
-    <p><a class="button" href={{"{base_url}/order/{access_token}/ticket".format(base_url=base_url, access_token=order.access_token)}} target="_blank">Edit details</a></p>
-    <div class="terms-content">{{org.details.get('ticket_faq', '') | safe}}</div>
+    <div class="terms-content">{{ org.details.get('ticket_faq') | safe }}</div>
 
     <p>Thank you,</p>
     <p>{{ org.title }}</p>

@@ -179,6 +179,7 @@ $(function() {
             'discounted_amount': undefined,
             'final_amount': undefined,
             'item_description': item.description,
+            'item_details': item.details,
             'price_valid_upto': boxoffice.util.formatDate(item.price_valid_upto),
             'has_higher_price': item.has_higher_price,
             'discount_policies': item.discount_policies,
@@ -227,12 +228,16 @@ $(function() {
             },
             confirm: {
               id: 'boxoffice-confirm',
-              label: 'Confirm',
+              label: 'Register',
               complete: false,
               section: {
-                cashReceiptURL: '',
-                eventTitle: widgetConfig.paymentDesc,
-                eventHashtag: widgetConfig.event_hashtag,
+                eventTitle: data.eventTitle,
+                eventDetails: data.eventDetails,
+                getConfirmedTicket: function(line_items) {
+                	return line_items.filter(function(line_item) {
+                		return line_item.quantity > 0
+                	})[0];
+                }
               }
             }
           },

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ..models import db, BaseScopedNameMixin, Organization, MarkdownColumn
+from ..models import db, JsonDict, BaseScopedNameMixin, Organization, MarkdownColumn
 
 __all__ = ['ItemCollection']
 
@@ -14,6 +14,7 @@ class ItemCollection(BaseScopedNameMixin, db.Model):
     __table_args__ = (db.UniqueConstraint('organization_id', 'name'),)
 
     description = MarkdownColumn('description', default=u'', nullable=False)
+    details = db.Column(JsonDict, server_default='{}', nullable=False)
 
     organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'), nullable=False)
     organization = db.relationship(Organization, backref=db.backref('item_collections', cascade='all, delete-orphan'))
