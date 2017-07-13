@@ -53,8 +53,8 @@ def boxofficejs():
     return make_response(jsonify({
         'script': render_template('boxoffice.js', base_url=request.url_root.strip('/'),
         razorpay_key_id=app.config['RAZORPAY_KEY_ID'],
-        states=[{'name': state['name'], 'code': state['short_code_text']} for state in indian_states],
-        countries=[{'name': country.name, 'code': country.alpha_2} for country in pycountry.countries])
+        states=[{'name': state['name'], 'code': state['short_code_text']} for state in sorted(indian_states, key=lambda k: k['name'])],
+        countries=[{'name': country.name, 'code': country.alpha_2} for country in sorted(pycountry.countries, key=lambda k: k.name)])
     }))
 
 

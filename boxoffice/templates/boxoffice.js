@@ -580,14 +580,14 @@ $(function() {
               boxoffice.ractive.set({
                 'tabs.payment.loadingOrder': false,
                 'tabs.payment.errorMsg' : '',
-                'order.order_id': data.order_id,
-                'order.access_token': data.order_access_token,
-                'order.final_amount': data.final_amount
+                'order.order_id': data.result.order_id,
+                'order.access_token': data.result.order_access_token,
+                'order.final_amount': data.result.final_amount
               });
               if (boxoffice.ractive.get('order.final_amount') === 0){
-                boxoffice.ractive.completeFreeOrder(data.free_order_url);
+                boxoffice.ractive.completeFreeOrder(data.result.free_order_url);
               } else {
-                boxoffice.ractive.capturePayment(data.payment_url, data.razorpay_payment_id);
+                boxoffice.ractive.capturePayment(data.result.payment_url, data.result.razorpay_payment_id);
               }
               boxoffice.ractive.scrollTop();
             },
@@ -595,7 +595,7 @@ $(function() {
               var ajaxLoad = this;
               var onServerError = function() {
               	var resp = JSON.parse(response.responseText);
-              	if (resp.error_type === 'order_calculation') {
+              	if (resp.errors[0] === 'order calculation error') {
                   boxoffice.ractive.calculateOrder();
                 }
                 boxoffice.ractive.set({
@@ -604,7 +604,7 @@ $(function() {
 	              });
               };
               var onNetworkError = function() {
-								boxoffice.ractive.set({
+                boxoffice.ractive.set({
 	                'tabs.payment.errorMsg': "Unable to connect. Please try again later.",
 	                'tabs.payment.loadingOrder': false
 	              });
@@ -668,7 +668,7 @@ $(function() {
                 'tabs.payment.loadingPaymentConfirmation': false,
                 'tabs.payment.complete': true,
                 'activeTab': boxoffice.ractive.get('tabs.invoice.id'),
-                'invoice.invoice_id': data.invoice_id,
+                'invoice.invoice_id': data.result.invoice_id,
                 'invoice.name': boxoffice.ractive.get('buyer.name'),
                 'invoice.email': boxoffice.ractive.get('buyer.email'),
                 'buyer.cashReceiptURL': boxoffice.config.resources.receipt.urlFor(boxoffice.ractive.get('order.access_token')),

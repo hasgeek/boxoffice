@@ -75,7 +75,7 @@ def validate_state_code(form, field):
     # Note: state_code is only a required field if the chosen country is India
     if form.country_code.data == "IN":
         if field.data not in [state['short_code_text'] for state in indian_states]:
-            raise forms.validators.StopValidation(__("Please select a valid Indian state"))
+            raise forms.validators.StopValidation(__("Please select a state"))
 
 
 class InvoiceForm(forms.Form):
@@ -97,5 +97,5 @@ class InvoiceForm(forms.Form):
         validate_state_code], filters=[forms.filters.strip()])
     state = forms.StringField(__("State"), validators=[forms.validators.Optional(),
         forms.validators.Length(max=255)], filters=[forms.filters.strip(), forms.filters.none_if_empty()])
-    postcode = forms.StringField(__("Pincode"), validators=[forms.validators.DataRequired(__("Please enter a postcode")),
+    postcode = forms.StringField(__("Postcode"), validators=[forms.validators.DataRequired(__("Please enter a postcode")),
         forms.validators.Length(max=8)], filters=[forms.filters.strip()])

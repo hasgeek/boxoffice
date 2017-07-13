@@ -4,7 +4,7 @@ from datetime import datetime
 from decimal import Decimal
 from pycountry import pycountry
 from sqlalchemy.sql import func
-from flask import url_for, request, jsonify, render_template, make_response, abort
+from flask import url_for, request, jsonify, render_template, abort
 from coaster.views import render_with, load_models
 from baseframe import _
 from .. import app, lastuser
@@ -95,10 +95,12 @@ def kharcha():
     {item_id: {'quantity': Y, 'final_amount': Z, 'discounted_amount': Z, 'discount_policy_ids': ['d1', 'd2']}}
     """
     if not request.json or not request.json.get('line_items'):
-        return make_response(jsonify(message='Missing line items'), 400)
+        return api_error(message='Missing line items',
+                    status_code=400)
     line_item_forms = LineItemForm.process_list(request.json.get('line_items'))
     if not line_item_forms:
-        return make_response(jsonify(message='Invalid line items'), 400)
+        return api_error(message='Missing line items',
+                    status_code=400)
 
     # Make line item splits and compute amounts and discounts
     line_items = LineItem.calculate([{'item_id': li_form.data.get('item_id')}
@@ -125,14 +127,17 @@ def order(item_collection):
     and the URL to be used to register a payment against the order.
     """
     if not request.json or not request.json.get('line_items'):
-        return make_response(jsonify(message='Missing line items'), 400)
+        return api_error(message='Missing line items',
+                    status_code=400)
     line_item_forms = LineItemForm.process_list(request.json.get('line_items'))
     if not line_item_forms:
-        return make_response(jsonify(message='Invalid line items'), 400)
+        return api_error(message='Invalid line items',
+                    status_code=400)
     # See comment in LineItemForm about CSRF
     buyer_form = BuyerForm.from_json(request.json.get('buyer'), meta={'csrf': False})
     if not buyer_form.validate():
-        return make_response(jsonify(message='Invalid buyer details'), 400)
+        return api_error(message='Invalid buyer details',
+                    status_code=400)
 
     invalid_quantity_error_msg = _(u'Selected quantity for ‘{item}’ is not available. Please edit the order and update the quantity')
     item_dicts = Item.get_availability([line_item_form.data.get('item_id') for line_item_form in line_item_forms])
@@ -142,13 +147,15 @@ def order(item_collection):
         if title_quantity_count:
             item_title, item_quantity_total, line_item_count = title_quantity_count
             if (line_item_count + line_item_form.data.get('quantity')) > item_quantity_total:
-                return make_response(jsonify(error_type='order_calculation',
-                    message=invalid_quantity_error_msg.format(item=item_title)), 400)
+                return api_error(message=invalid_quantity_error_msg.format(item=item_title),
+                    status_code=400,
+                    errors=['order calculation error'])
         else:
             item = Item.query.get(line_item_form.data.get('item_id'))
             if line_item_form.data.get('quantity') > item.quantity_total:
-                return make_response(jsonify(error_type='order_calculation',
-                    message=invalid_quantity_error_msg.format(item=item.title)), 400)
+                return api_error(message=invalid_quantity_error_msg.format(item=item_title),
+                    status_code=400,
+                    errors=['order calculation error'])
 
     user = User.query.filter_by(email=buyer_form.email.data).first()
     order = Order(user=user,
@@ -183,8 +190,9 @@ def order(item_collection):
                 final_amount=line_item_tup.base_amount-line_item_tup.discounted_amount)
             db.session.add(line_item)
         else:
-            return make_response(jsonify(error_type='order_calculation',
-                message=_(u'‘{item}’ is no longer available.').format(item=item.title)), 400)
+            return api_error(message=_(u'‘{item}’ is no longer available.').format(item=item.title),
+                    status_code=400,
+                    errors=['order calculation error'])
 
     db.session.add(order)
 
@@ -197,11 +205,13 @@ def order(item_collection):
 
     db.session.commit()
 
-    return make_response(jsonify(order_id=order.id,
-        order_access_token=order.access_token,
-        payment_url=url_for('payment', order=order.id),
-        free_order_url=url_for('free', order=order.id),
-        final_amount=order.get_amounts(LINE_ITEM_STATUS.PURCHASE_ORDER).final_amount), 201)
+    return api_success(doc=_(u"New purchase order created"),
+        result={'order_id': order.id,
+        'order_access_token': order.access_token,
+        'payment_url': url_for('payment', order=order.id),
+        'free_order_url': url_for('free', order=order.id),
+        'final_amount': order.get_amounts(LINE_ITEM_STATUS.PURCHASE_ORDER).final_amount},
+        status_code=201)
 
 
 @app.route('/order/<order>/free', methods=['GET', 'OPTIONS', 'POST'])
@@ -227,9 +237,12 @@ def free(order):
                 db.session.add(line_item.discount_coupon)
         db.session.commit()
         send_receipt_mail.delay(order.id)
-        return make_response(jsonify(message="Free order confirmed"), 201)
+        return api_success(result={'order_id': order.id},
+            doc=_(u"Free order confirmed"), status_code=201)
+
     else:
-        return make_response(jsonify(message='Free order confirmation failed'), 402)
+        return api_error(message="Free order confirmation failed",
+            status_code=402)
 
 
 @app.route('/order/<order>/payment', methods=['GET', 'OPTIONS', 'POST'])
@@ -248,7 +261,8 @@ def payment(order):
     A successful capture results in a `payment_transaction` registered against the order.
     """
     if not request.json.get('pg_paymentid'):
-        return make_response(jsonify(message='Missing payment id.'), 400)
+        return api_error(message="Missing payment id",
+                    status_code=400)
 
     order_amounts = order.get_amounts(LINE_ITEM_STATUS.PURCHASE_ORDER)
     online_payment = OnlinePayment(pg_paymentid=request.json.get('pg_paymentid'), order=order)
@@ -273,7 +287,8 @@ def payment(order):
                 db.session.add(line_item.discount_coupon)
         db.session.commit()
         send_receipt_mail.delay(order.id)
-        return make_response(jsonify(invoice_id=invoice.id), 201)
+        return api_success(result={'invoice_id': invoice.id},
+            doc=_(u"Payment verified"), status_code=201)
     else:
         online_payment.fail()
         db.session.add(online_payment)
@@ -335,8 +350,8 @@ def jsonify_invoices(data_dict):
     for invoice in data_dict['invoices']:
         invoices_list.append(jsonify_invoice(invoice))
     return jsonify(invoices=invoices_list, access_token=data_dict['order'].access_token,
-        states=[{'name': state['name'], 'code': state['short_code_text']} for state in indian_states],
-        countries=[{'name': country.name, 'code': country.alpha_2} for country in pycountry.countries])
+        states=[{'name': state['name'], 'code': state['short_code_text']} for state in sorted(indian_states, key=lambda k: k['name'])],
+        countries=[{'name': country.name, 'code': country.alpha_2} for country in sorted(pycountry.countries, key=lambda k: k.name)])
 
 
 @app.route('/order/<access_token>/invoice', methods=['GET'])
@@ -506,11 +521,14 @@ def process_line_item_cancellation(line_item):
     )
 def cancel_line_item(line_item):
     if not line_item.is_cancellable():
-        return make_response(jsonify(status='error', error='non_cancellable', error_description='This ticket is not cancellable'), 403)
+        return api_error(message='This ticket is not cancellable',
+                    status_code=403,
+                    errors=['non cancellable'])
 
     refund_amount = process_line_item_cancellation(line_item)
     send_line_item_cancellation_mail.delay(line_item.id, refund_amount)
-    return make_response(jsonify(status='ok', result={'message': 'Ticket cancelled', 'cancelled_at': json_date_format(line_item.cancelled_at)}), 200)
+    return api_success(result={'cancelled_at': json_date_format(line_item.cancelled_at)},
+            doc=_(u"Ticket cancelled"), status_code=200)
 
 
 def process_partial_refund_for_order(order, form_dict):
@@ -518,12 +536,14 @@ def process_partial_refund_for_order(order, form_dict):
     if form.validate():
         requested_refund_amount = form.amount.data
         if not order.paid_amount:
-            return make_response(jsonify(status='error', error='free_order',
-                error_description='Refunds can only be issued for paid orders'), 403)
+            return api_error(message='Refunds can only be issued for paid orders',
+                    status_code=403,
+                    errors=['non cancellable'])
 
         if (order.refunded_amount + requested_refund_amount) > order.paid_amount:
-            return make_response(jsonify(status='error', error='excess_partial_refund',
-                error_description='Invalid refund amount, must be lesser than net amount paid for the order'), 403)
+            return api_error(message='Invalid refund amount, must be lesser than net amount paid for the order',
+                    status_code=403,
+                    errors=['excess partial refund'])
 
         payment = OnlinePayment.query.filter_by(order=order,
             pg_payment_status=RAZORPAY_PAYMENT_STATUS.CAPTURED).one()
@@ -536,17 +556,16 @@ def process_partial_refund_for_order(order, form_dict):
             db.session.add(transaction)
             db.session.commit()
             send_order_refund_mail.delay(order.id, transaction.amount, transaction.note_to_user)
-            return make_response(jsonify(status='ok', result={
-                'message': "Refund processed for order",
-                'order_net_amount': order.net_amount
-                }), 200)
+            return api_success(result={'order_net_amount': order.net_amount},
+                doc=_(u"Refund processed for order"), status_code=200)
         else:
             raise PaymentGatewayError("Refund failed for order - {order} with the following details - {msg}".format(order=order.id,
                 msg=rp_resp.content), 424,
             "Refund failed. Please try again or contact support at {email}.".format(email=order.organization.contact_email))
     else:
-        return make_response(jsonify(status='error', error='invalid_input',
-            error_description=form.errors), 403)
+        return api_error(message='Invalid input',
+                    status_code=403,
+                    errors=form.errors)
 
 
 @app.route('/order/<order_id>/partial_refund', methods=['POST'])

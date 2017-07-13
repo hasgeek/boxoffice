@@ -76,7 +76,7 @@ def cors(f):
         if not origin:
             # Firefox doesn't send the Origin header, so read the Referer header instead
             # TODO: Remove this conditional when Firefox starts adding an Origin header
-            referer = request.headers.get('Referer')
+            referer = request.referrer
             if referer:
                 origin = basepath(referer)
 
