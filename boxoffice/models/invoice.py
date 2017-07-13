@@ -8,7 +8,7 @@ from sqlalchemy import sql, func
 from sqlalchemy.ext.orderinglist import ordering_list
 from boxoffice.models.user import get_financial_year
 
-__all__ = ['Invoice', 'InvoiceLineItem']
+__all__ = ['Invoice']
 
 
 def get_latest_invoice_no(organization, jurisdiction, invoice_dt):
@@ -70,30 +70,3 @@ def validate_invoice_organization(mapper, connection, target):
         raise ValueError(u"Invoice MUST be associated with the same organization as its order")
 
 
-class InvoiceLineItem(UuidMixin, BaseMixin, db.Model):
-    __tablename__ = 'invoice_line_item'
-    __uuid_primary_key__ = True
-    __table_args__ = (db.UniqueConstraint('invoice_id', 'seq'),)
-
-    seq = db.Column(db.Integer, nullable=False)
-    item_title = db.Column(db.Unicode(255), nullable=False)
-    quantity = db.Column(db.Integer, nullable=False, default=1)
-    # In India, this will be GST
-    tax_type = db.Column(db.Unicode(255), nullable=False)
-    tax_subtype = db.Column(db.Unicode(255), nullable=False)
-    discount_title = db.Column(db.Unicode(255), nullable=False)
-
-    currency = db.Column(db.Unicode(3), nullable=False)
-    base_amount = db.Column(db.Numeric, default=Decimal(0), nullable=False)
-    discounted_amount = db.Column(db.Numeric, default=Decimal(0), nullable=False)
-    # Total amount includes tax
-    total_amount = db.Column(db.Numeric, default=Decimal(0), nullable=False)
-
-    cgst_tax_rate = db.Column(db.Integer, nullable=True, default=0)
-    sgst_tax_rate = db.Column(db.Integer, nullable=True, default=0)
-    igst_tax_rate = db.Column(db.Integer, nullable=True, default=0)
-    gst_compensation_cess = db.Column(db.SmallInteger, nullable=True, default=0)
-
-    invoice_id = db.Column(None, db.ForeignKey('invoice.id'), nullable=False, index=True, unique=False)
-    invoice = db.relationship(Invoice, backref=db.backref('line_items', cascade='all, delete-orphan'),
-        order_by=seq, collection_class=ordering_list('seq', count_from=1))
