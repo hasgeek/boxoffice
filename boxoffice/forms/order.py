@@ -2,7 +2,7 @@
 
 from baseframe import __
 import baseframe.forms as forms
-from boxoffice.data import indian_states
+from boxoffice.data import indian_states_dict
 
 __all__ = ['LineItemForm', 'BuyerForm', 'OrderSessionForm', 'RefundTransactionForm', 'InvoiceForm']
 
@@ -74,7 +74,7 @@ class RefundTransactionForm(forms.Form):
 def validate_state_code(form, field):
     # Note: state_code is only a required field if the chosen country is India
     if form.country_code.data == "IN":
-        if field.data not in [state['short_code_text'] for state in indian_states]:
+        if field.data.upper() not in indian_states_dict:
             raise forms.validators.StopValidation(__("Please select a state"))
 
 
