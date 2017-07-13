@@ -47,9 +47,7 @@ def naive_to_utc(dt, timezone=None):
 
 class Organization(ProfileBase, db.Model):
     __tablename__ = 'organization'
-    __table_args__ = (db.UniqueConstraint('contact_email'),
-        db.CheckConstraint('fy_start_month >= 1 and fy_start_month <= 12', 'org_month_check'),
-        db.CheckConstraint('fy_start_day >= 1 and fy_start_month <= 31', 'org_day_check'))
+    __table_args__ = (db.UniqueConstraint('contact_email'),)
 
     # The currently used fields in details are address(html), cin (Corporate Identity Number)
     # pan service_tax_no, support_email,
