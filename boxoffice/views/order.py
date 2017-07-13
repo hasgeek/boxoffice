@@ -153,7 +153,7 @@ def order(item_collection):
         else:
             item = Item.query.get(line_item_form.data.get('item_id'))
             if line_item_form.data.get('quantity') > item.quantity_total:
-                return api_error(message=invalid_quantity_error_msg.format(item=item_title),
+                return api_error(message=invalid_quantity_error_msg.format(item=item.title),
                     status_code=400,
                     errors=['order calculation error'])
 

@@ -7,7 +7,6 @@ var source = require('vinyl-source-stream');
 var uglify = require('gulp-uglify');
 var streamify = require('gulp-streamify');
 var _ = require('underscore');
-var runSequence = require('run-sequence');
 
 configfiles = [{
     entryFile: './views/main_admin.js',
