@@ -7,41 +7,57 @@ var source = require('vinyl-source-stream');
 var uglify = require('gulp-uglify');
 var streamify = require('gulp-streamify');
 var _ = require('underscore');
+var runSequence = require('run-sequence');
 
-var config = {
+configfiles = [{
+    entryFile: './views/main_admin.js',
+    outputFile: 'admin_bundle.js',
+    destination: './dist'
+  },
+  {
+    entryFile: './views/main_order.js',
+    outputFile: 'order_bundle.js',
+    destination: './dist'
+  },
+  {
     entryFile: './views/main_invoice.js',
-    outputDir: './dist',
-    outputFile: 'invoice_bundle.js'
-};
-
-var bundler;
-function getBundler() {
-  if (!bundler) {
-    bundler = watchify(browserify(config.entryFile, _.extend({ debug: true }, watchify.args)));
+    outputFile: 'invoice_bundle.js',
+    destination: './dist'
   }
-  return bundler;
+];
+
+var isWatchify = false;
+
+const createBundle = options => {
+  let fileBundle = browserify(options.entry).transform(babelify);
+
+  const rebundle = () =>
+    fileBundle.bundle()
+    // log errors if they happen
+    .on('error', function(err) { console.log('Error: ' + err.message); })
+    .pipe(source(options.output))
+    .pipe(streamify(uglify()))
+    .pipe(gulp.dest(options.destination));
+
+  if (isWatchify) {
+    fileBundle = watchify(fileBundle);
+    fileBundle.on('update', rebundle);
+  }
+
+  return rebundle();
 };
 
-function bundle() {
-  return getBundler()
-    .transform(babelify)
-    .bundle()
-    .on('error', function(err) { console.log('Error: ' + err.message); })
-    .pipe(source(config.outputFile))
-    .pipe(streamify(uglify()))
-    .pipe(gulp.dest(config.outputDir));
-}
+gulp.task('build', [], () =>
+  configfiles.forEach( bundle =>
+    createBundle({
+      entry: bundle.entryFile,
+      output: bundle.outputFile,
+      destination: bundle.destination
+    })
+  )
+);
 
-gulp.task('build-persistent', [], function() {
-  return bundle();
-});
-
-gulp.task('build', ['build-persistent'], function() {
-  process.exit(0);
-});
-
-gulp.task('watch', ['build-persistent'], function() {
-  getBundler().on('update', function() {
-    gulp.start('build-persistent')
-  });
+gulp.task('watch', () => {
+  isWatchify = true;
+  gulp.start("build");
 });
