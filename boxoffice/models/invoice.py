@@ -1,22 +1,25 @@
 # -*- coding: utf-8 -*-
 
+from datetime import datetime
 from decimal import Decimal
 from boxoffice.models import db, BaseMixin, UuidMixin
 from sqlalchemy import event
 from sqlalchemy import sql, func
 from sqlalchemy.ext.orderinglist import ordering_list
+from boxoffice.models.user import get_financial_year
 
 __all__ = ['Invoice', 'InvoiceLineItem']
 
 
-def get_latest_invoice_no(organization):
+def get_latest_invoice_no(organization, jurisdiction, invoice_dt):
     """
     Returns the last invoice number used, 0 if no order has been invoiced yet
     """
     query = db.session.query(sql.functions.max(Invoice.invoice_no))\
         .filter(Invoice.organization == organization)
-    if organization.fy_start_at:
-        query = query.filter(Invoice.invoiced_at >= organization.fy_start_at)
+    fy_start_at, fy_end_at = get_financial_year(jurisdiction, invoice_dt)
+    if fy_start_at and fy_end_at:
+        query = query.filter(Invoice.invoiced_at >= fy_start_at, Invoice.invoiced_at < fy_end_at)
     return query.scalar() or 0
 
 
@@ -49,10 +52,14 @@ class Invoice(UuidMixin, BaseMixin, db.Model):
 
     def __init__(self, *args, **kwargs):
         organization = kwargs.get('organization')
+        country_code = kwargs.get('country_code')
+        if not country_code:
+            # Default to India
+            country_code = u'IN'
         if not organization:
             raise ValueError(u"Invoice MUST be initialized with an organization")
-        self.invoice_no = get_latest_invoice_no(organization) + 1
-        self.invoiced_at = func.utcnow()
+        self.invoiced_at = datetime.utcnow()
+        self.invoice_no = get_latest_invoice_no(organization, country_code, self.invoiced_at) + 1
         super(Invoice, self).__init__(*args, **kwargs)
 
 
