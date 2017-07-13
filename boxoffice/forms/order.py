@@ -89,7 +89,7 @@ class InvoiceForm(forms.Form):
         filters=[forms.filters.strip()])
     street_address_1 = forms.StringField(__("Street address 1"), validators=[forms.validators.DataRequired(__("Please enter the street address")),
         forms.validators.Length(max=255)], filters=[forms.filters.strip()])
-    street_address_2 = forms.StringField(__("Street address 2"), validators=[forms.validators.DataRequired(__("Please enter the street address")),
+    street_address_2 = forms.StringField(__("Street address 2"), validators=[forms.validators.Optional(),
         forms.validators.Length(max=255)], filters=[forms.filters.strip()])
     city = forms.StringField(__("City"), validators=[forms.validators.DataRequired(__("Please enter the city")),
         forms.validators.Length(max=255)], filters=[forms.filters.strip()])

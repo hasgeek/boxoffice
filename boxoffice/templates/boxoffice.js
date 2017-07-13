@@ -224,7 +224,8 @@ $(function() {
           	gstin: "",
           	name: "",
           	email: "",
-            street: "",
+            streetAddress1: "",
+            streetAddress2: "",
             city: "",
             state: "",
             stateCode: "KA",
@@ -746,15 +747,15 @@ $(function() {
             rules: 'required|valid_email'
           },
           {
-            name: 'street',
+            name: 'streetAddress1',
             rules: 'required'
           },
           {
-            name: 'country',
+            name: 'countryCode',
             rules: 'required'
           },
           {
-            name: 'state',
+            name: 'stateCode',
             rules: 'required'
           },
           {
@@ -792,7 +793,8 @@ $(function() {
               	buyer_taxid: boxoffice.ractive.get('invoice.gstin'),
                 invoicee_name: boxoffice.ractive.get('invoice.name'),
                 invoicee_email: boxoffice.ractive.get('invoice.email'),
-                street_address: boxoffice.ractive.get('invoice.street'),
+                street_address_1: boxoffice.ractive.get('invoice.streetAddress1'),
+                street_address_2: boxoffice.ractive.get('invoice.streetAddress2'),
                 city: boxoffice.ractive.get('invoice.city'),
                 state: boxoffice.ractive.get('invoice.state') || "",
                 state_code: boxoffice.ractive.get('invoice.stateCode') || "",

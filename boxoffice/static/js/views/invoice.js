@@ -69,7 +69,7 @@ export const Invoice = {
           rules: 'required|valid_email'
         },
         {
-          name: 'street_address',
+          name: 'street_address_1',
           rules: 'required'
         },
         {

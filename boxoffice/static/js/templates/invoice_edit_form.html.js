@@ -24,9 +24,14 @@ export const InvoiceEditFormTemplate = `
                 {{#errormsg.invoicee_email}}<p class="form-error-msg">{{ errormsg.invoicee_email }}</p>{{/}}
               </div>
               <div class="group">
-                <input class="group-input {{#street_address}}filled{{/}}" type="text" name="street_address" value="{{ street_address }}">
-                <label class="group-label">Street</label>
-                {{#errormsg.street_address}}<p class="form-error-msg">{{ errormsg.street_address }}</p>{{/}}
+                <input class="group-input {{#street_address_1}}filled{{/}}" type="text" name="street_address_1" value="{{ street_address_1 }}">
+                <label class="group-label">Street address 1</label>
+                {{#errormsg.street_address_1}}<p class="form-error-msg">{{ errormsg.street_address_1 }}</p>{{/}}
+              </div>
+              <div class="group">
+                <input class="group-input {{#street_address_2}}filled{{/}}" type="text" name="street_address_2" value="{{ street_address_2 }}">
+                <label class="group-label">Street address 2</label>
+                {{#errormsg.street_address_2}}<p class="form-error-msg">{{ errormsg.street_address_2 }}</p>{{/}}
               </div>
               <div class="group-select inline-group left-group">
                 <select name="country_code" value="{{country_code}}">
