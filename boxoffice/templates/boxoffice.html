@@ -118,7 +118,7 @@
         <div class="loader payment-confirmation"><i class="fa fa-spinner fa-spin fa-3x"></i></div>
       {{/}}
       <div id='{{id}}' class="boxoffice-section boxoffice-clearfix" intro='fly:{"x":0,"y":"0"}'>
-        <form role="form" name="buyer-form" class="boxoffice-form">
+        <form role="form" name="buyer-form" class="boxoffice-form clearfix">
           <p class="buyer-form-title">Billing Details</p>
           <div class="group">
             <input class="group-input {{#buyer.name}}filled{{/}}" type="text" name="name" value="{{buyer.name}}">
@@ -175,7 +175,8 @@
         <p class="confirmation-icon"><i class="fa fa-check-circle"></i></p>
         <p class="confirmation-header">Thank you for your order!</p>
         <div class="confirmation-msg">
-          <p>We’ve mailed you the <a href="{{ buyer.cashReceiptURL }}" target="_blank">cash receipt</a>. If you need a GST invoice, please fill in the details below.</p>
+          <p>We’ve mailed you the <a href="{{ buyer.cashReceiptURL }}" target="_blank">cash receipt</a>.</p>
+          <p>If you need a GST invoice, please fill in the details below.</p>
         </div>
         <form role="form" name="invoice-details-form" class="boxoffice-form top-margin">
           {{#invoice}}
@@ -258,7 +259,8 @@
           <p class="stage-error-msg">{{ errorMsg }}</p>
         {{/}}
         <div class="confirmation-msg">
-          <p>If you don't want an invoice, skip to the next step to fill attendee details.</p>
+          <p>Don't have a GST registration yet? No problem, you can fill these details later.<p>
+          <p>Proceed to fill details for your badge!</p>
           <button class="boxoffice-button boxoffice-button-info" on-click="proceedToFillAttendeeDetails(event)">Continue</button>
         </div>
       </div>
@@ -958,6 +960,9 @@
     font-size: 16px;
     text-align: center;
     clear: both;
+  }
+  .confirmation-msg p{
+    margin: 5px 0;
   }
   @media (min-width: 768px) {
     .confirmation-icon {

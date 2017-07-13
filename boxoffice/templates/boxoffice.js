@@ -778,7 +778,7 @@ $(function() {
             }
           });
 
-          formValidator.setMessage('required', 'Please fill out the %s field');
+          formValidator.setMessage('required', 'Please fill out this field');
           formValidator.setMessage('valid_email', 'Please enter a valid email');
 	      },
 	      postInvoiceDetails: function() {
