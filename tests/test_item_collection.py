@@ -49,7 +49,6 @@ class TestItemCollectionAPI(unittest.TestCase):
     def setUp(self):
         self.ctx = app.test_request_context()
         self.ctx.push()
-        db.create_all()
         init_data()
         self.client = app.test_client()
         ic = ItemCollection.query.first()

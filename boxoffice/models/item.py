@@ -33,19 +33,6 @@ class Item(BaseScopedNameMixin, db.Model):
 
     parent = db.synonym('item_collection')
 
-    gst_type = db.Column(db.SmallInteger, default=GST_TYPE.SERVICE, nullable=True)
-    # Harmonized System of Nomenclature code
-    hsn = db.Column(db.Unicode(255), nullable=True)
-    # Services Accounting Code
-    sac = db.Column(db.Unicode(255), nullable=True)
-    cgst_tax_rate = db.Column(db.SmallInteger, nullable=True, default=0)
-    sgst_tax_rate = db.Column(db.SmallInteger, nullable=True, default=0)
-    igst_tax_rate = db.Column(db.SmallInteger, nullable=True, default=0)
-    gst_compensation_cess = db.Column(db.SmallInteger, nullable=True, default=0)
-    state_code = db.Column(db.Unicode(4), nullable=True)
-    # ISO country code
-    country_code = db.Column(db.Unicode(2), nullable=True)
-
     category_id = db.Column(None, db.ForeignKey('category.id'), nullable=False)
     category = db.relationship(Category, backref=db.backref('items', cascade='all, delete-orphan'))
 

@@ -11,14 +11,13 @@ __all__ = ['Invoice', 'InvoiceLineItem']
 
 def get_latest_invoice_no(organization):
     """
-    Returns the last invoice number used, 0 if no order has ben invoiced yet
+    Returns the last invoice number used, 0 if no order has been invoiced yet
     """
     query = db.session.query(sql.functions.max(Invoice.invoice_no))\
         .filter(Invoice.organization == organization)
     if organization.fy_start_at:
         query = query.filter(Invoice.invoiced_at >= organization.fy_start_at)
-    last_invoice_no = query.first()
-    return last_invoice_no[0] if last_invoice_no[0] else 0
+    return query.scalar() or 0
 
 
 class Invoice(UuidMixin, BaseMixin, db.Model):
@@ -71,10 +70,10 @@ class InvoiceLineItem(UuidMixin, BaseMixin, db.Model):
 
     seq = db.Column(db.Integer, nullable=False)
     item_title = db.Column(db.Unicode(255), nullable=False)
-    quantity = db.Column(db.SmallInteger, nullable=False, default=1)
+    quantity = db.Column(db.Integer, nullable=False, default=1)
     # In India, this will be GST
     tax_type = db.Column(db.Unicode(255), nullable=False)
-    gst_type = db.Column(db.Unicode(7), nullable=False)
+    tax_subtype = db.Column(db.Unicode(255), nullable=False)
     discount_title = db.Column(db.Unicode(255), nullable=False)
 
     currency = db.Column(db.Unicode(3), nullable=False)
