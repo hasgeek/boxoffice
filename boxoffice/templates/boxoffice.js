@@ -214,23 +214,24 @@ $(function() {
           },
           // Prefill name, email, phone if user is found to be logged in
           buyer: {
-            name: widgetConfig.user_name,
+            fullname: widgetConfig.user_name,
             email: widgetConfig.user_email,
             phone: widgetConfig.user_phone || '+91',
             cashReceiptURL: "",
             attendeeAssignmentURL: ""
           },
           invoice: {
-          	gstin: "",
-          	name: "",
-          	email: "",
-            streetAddress1: "",
-            streetAddress2: "",
+            buyer_taxid: "",
+            invoicee_name: "",
+            invoicee_company: "",
+            invoicee_email: "",
+            street_address_1: "",
+            street_address_2: "",
             city: "",
             state: "",
-            stateCode: "KA",
-            countryCode: "IN",
-            pincode: "",
+            state_code: "KA",
+            country_code: "IN",
+            postcode: "",
             isFilled: false
           },
           activeTab: 'boxoffice-selectItems',
@@ -304,6 +305,22 @@ $(function() {
               }, ajaxLoad.retryInterval);
             }
           }        	
+        },
+        getFormJSObject: function (form) {
+          var formElements = $(form).serializeArray();
+          var formDetails ={};
+          $.each(formElements, function () {
+            if (formDetails[this.name] !== undefined) {
+              if (!formDetails[this.name].push) {
+                formDetails[this.name] = [formDetails[this.name]];
+              }
+              formDetails[this.name].push(this.value || '');
+            }
+            else {
+              formDetails[this.name] = this.value || '';
+            }
+          });
+          return formDetails;
         },
         preApplyDiscount: function(discount_coupons) {
           //Ask server for the corresponding line_item for the discount coupon. Add one quantity of that line_item
@@ -498,7 +515,7 @@ $(function() {
           boxoffice.ractive.scrollTop();
 
           var validationConfig = [{
-            name: 'name',
+            name: 'fullname',
             rules: 'required|max_length[80]'
           },
           {
@@ -551,6 +568,9 @@ $(function() {
         },
         sendOrder: function() {
           boxoffice.ractive.fire('eventAnalytics', 'order creation', 'sendOrder', boxoffice.ractive.get('order.final_amount'));
+          var buyerForm = '#boxoffice-buyer-form';
+          var buyerDetails = boxoffice.ractive.getFormJSObject(buyerForm);
+
           $.post({
             url: boxoffice.config.resources.purchaseOrder.urlFor(),
             crossDomain: true,
@@ -558,11 +578,7 @@ $(function() {
             headers: {'X-Requested-With': 'XMLHttpRequest'},
             contentType: 'application/json',
             data: JSON.stringify({
-              buyer:{
-                email: boxoffice.ractive.get('buyer.email'),
-                fullname: boxoffice.ractive.get('buyer.name'),
-                phone: boxoffice.ractive.get('buyer.phone')
-              },
+              buyer: buyerDetails,
               line_items: boxoffice.ractive.get('order.line_items').filter(function(line_item) {
                 return line_item.quantity > 0;
               }).map(function(line_item) {
@@ -645,7 +661,7 @@ $(function() {
               boxoffice.ractive.confirmPayment(paymentUrl, data.razorpay_payment_id);
             },
             "prefill": {
-              "name": boxoffice.ractive.get('buyer.name'),
+              "name": boxoffice.ractive.get('buyer.fullname'),
               "email": boxoffice.ractive.get('buyer.email'),
               "contact": boxoffice.ractive.get('buyer.phone')
             },
@@ -682,8 +698,8 @@ $(function() {
                 'tabs.payment.complete': true,
                 'activeTab': boxoffice.ractive.get('tabs.invoice.id'),
                 'invoice.invoice_id': data.result.invoice_id,
-                'invoice.name': boxoffice.ractive.get('buyer.name'),
-                'invoice.email': boxoffice.ractive.get('buyer.email'),
+                'invoice.invoicee_name': boxoffice.ractive.get('buyer.fullname'),
+                'invoice.invoicee_email': boxoffice.ractive.get('buyer.email'),
                 'buyer.cashReceiptURL': boxoffice.config.resources.receipt.urlFor(boxoffice.ractive.get('order.access_token')),
                 'buyer.attendeeAssignmentURL': boxoffice.config.resources.attendeeAssignment.urlFor(boxoffice.ractive.get('order.access_token'))
               });
@@ -751,23 +767,23 @@ $(function() {
         },
         submitInvoiceDetails: function(event) {
           var validationConfig = [{
-            name: 'name',
+            name: 'invoicee_name',
             rules: 'required'
           },
           {
-            name: 'email',
+            name: 'invoicee_email',
             rules: 'required|valid_email'
           },
           {
-            name: 'streetAddress1',
+            name: 'street_address_1',
             rules: 'required'
           },
           {
-            name: 'countryCode',
+            name: 'country_code',
             rules: 'required'
           },
           {
-            name: 'stateCode',
+            name: 'state_code',
             rules: 'required'
           },
           {
@@ -775,7 +791,7 @@ $(function() {
             rules: 'required'
           },
           {
-            name: 'pincode',
+            name: 'postcode',
             rules: 'required'
           }];
 
@@ -794,6 +810,9 @@ $(function() {
           formValidator.setMessage('valid_email', 'Please enter a valid email');
 	      },
 	      postInvoiceDetails: function() {
+          var invoiceForm = '#boxoffice-invoice-form';
+          var invoiceDetails = boxoffice.ractive.getFormJSObject(invoiceForm);
+
 	      	$.post({
             url: boxoffice.config.resources.invoiceDetails.urlFor(boxoffice.ractive.get('order.access_token')),
             crossDomain: true,
@@ -801,18 +820,7 @@ $(function() {
             headers: {'X-Requested-With': 'XMLHttpRequest'},
             contentType: 'application/json',
             data: JSON.stringify({
-              invoice:{
-              	buyer_taxid: boxoffice.ractive.get('invoice.gstin'),
-                invoicee_name: boxoffice.ractive.get('invoice.name'),
-                invoicee_email: boxoffice.ractive.get('invoice.email'),
-                street_address_1: boxoffice.ractive.get('invoice.streetAddress1'),
-                street_address_2: boxoffice.ractive.get('invoice.streetAddress2'),
-                city: boxoffice.ractive.get('invoice.city'),
-                state: boxoffice.ractive.get('invoice.state') || "",
-                state_code: boxoffice.ractive.get('invoice.stateCode') || "",
-                country_code: boxoffice.ractive.get('invoice.countryCode'),
-                postcode: boxoffice.ractive.get('invoice.pincode')
-              },
+              invoice:invoiceDetails,
               invoice_id: boxoffice.ractive.get('invoice.invoice_id')
             }),
             timeout: 5000,

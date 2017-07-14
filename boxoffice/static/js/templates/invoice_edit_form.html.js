@@ -18,6 +18,12 @@ export const InvoiceEditFormTemplate = `
                 {{#errormsg.invoicee_name}}<p class="form-error-msg">{{ errormsg.invoicee_name }}</p>{{/}}
               </div>
               <div class="group">
+                <input class="group-input {{#invoicee_company}}filled{{/}}" type="text" name="invoicee_company" value="{{ invoicee_company }}">
+                <span class="bar"></span>
+                <label class="group-label">Company</label>
+                {{#errormsg.invoicee_company}}<p class="form-error-msg">{{ errormsg.invoicee_company }}</p>{{/}}
+              </div>
+              <div class="group">
                 <input class="group-input {{#invoicee_email}}filled{{/}}" type="text" name="invoicee_email" value="{{ invoicee_email }}">
                 <span class="bar"></span>
                 <label class="group-label">Email</label>

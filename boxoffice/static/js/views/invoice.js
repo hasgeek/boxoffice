@@ -123,6 +123,7 @@ export const Invoice = {
           retries: 5,
           retryInterval: 5000,
           success: function(data) {
+            invoice.formComponent.set(invoice_item + '.errorMsg', "");
             invoice.formComponent.set(invoice_item + '.submittingInvoiceDetails', false);
             invoice.formComponent.set(invoice_item + '.hideForm', true);
           },

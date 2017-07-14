@@ -43,7 +43,7 @@ class LineItemForm(forms.Form):
 
 class BuyerForm(forms.Form):
     email = forms.EmailField(__("Email"), validators=[forms.validators.DataRequired(__("Please enter an email address")), forms.validators.Length(min=5, max=80)])
-    fullname = forms.StringField(__("Full name"), validators=[forms.validators.DataRequired(__("Please enter the buyer's fullname")), forms.validators.Length(max=80)])
+    fullname = forms.StringField(__("Full name"), validators=[forms.validators.DataRequired(__("Please enter the buyer's full name")), forms.validators.Length(max=80)])
     phone = forms.StringField(__("Phone number"), validators=[forms.validators.DataRequired(__("Please enter a phone number")), forms.validators.Length(max=16)])
 
 
@@ -98,7 +98,9 @@ def validate_gstin(form, field):
 class InvoiceForm(forms.Form):
     buyer_taxid = forms.StringField(__("GSTIN"), validators=[forms.validators.Optional(),
         forms.validators.Length(max=255), validate_gstin], filters=[forms.filters.strip(), forms.filters.none_if_empty()])
-    invoicee_name = forms.StringField(__("Full name"), validators=[forms.validators.DataRequired(__("Please enter the buyer's fullname")),
+    invoicee_name = forms.StringField(__("Full name"), validators=[forms.validators.DataRequired(__("Please enter the buyer's full name")),
+        forms.validators.Length(max=255)], filters=[forms.filters.strip()])
+    invoicee_company = forms.StringField(__("Company"), validators=[forms.validators.Optional(),
         forms.validators.Length(max=255)], filters=[forms.filters.strip()])
     invoicee_email = forms.EmailField(__("Email"), validators=[forms.validators.DataRequired(__("Please enter an email address")),
         forms.validators.Length(min=5, max=80),

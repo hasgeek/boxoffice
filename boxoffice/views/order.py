@@ -311,6 +311,7 @@ def jsonify_invoice(invoice):
         'id': invoice.id,
         'buyer_taxid': invoice.buyer_taxid,
         'invoicee_name': invoice.invoicee_name,
+        'invoicee_company': invoice.invoicee_company,
         'invoicee_email': invoice.invoicee_email,
         'street_address_1': invoice.street_address_1,
         'street_address_2': invoice.street_address_2,
