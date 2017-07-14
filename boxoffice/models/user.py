@@ -62,13 +62,13 @@ class Organization(ProfileBase, db.Model):
         return perms
 
 
-def get_financial_year(jurisdiction, dt):
+def get_fiscal_year(jurisdiction, dt):
     """
     Returns a tuple of timestamps that represent the beginning and end of the current
     financial year for a given jurisdiction and a timestamp. Only supports India as of now.
 
     Example::
-        get_financial_year('IN', datetime.datetime.utcnow())
+        get_fiscal_year('IN', datetime.datetime.utcnow())
     """
     if jurisdiction.lower() == u'in':
         if dt.month < 4:
@@ -81,4 +81,4 @@ def get_financial_year(jurisdiction, dt):
         fy_end = datetime(start_year + 1, 4, 1)
         timezone = u'Asia/Kolkata'
         return (naive_to_utc(fy_start, timezone), naive_to_utc(fy_end, timezone))
-    return (None, None)
+    return (naive_to_utc(datetime(dt.year, 1, 1)), naive_to_utc(datetime(dt.year+1, 1, 1)))

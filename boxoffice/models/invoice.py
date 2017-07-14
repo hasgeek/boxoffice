@@ -8,7 +8,7 @@ from sqlalchemy import event
 from sqlalchemy import sql, func
 from sqlalchemy.ext.orderinglist import ordering_list
 from baseframe import __
-from boxoffice.models.user import get_financial_year
+from boxoffice.models.user import get_fiscal_year
 
 
 __all__ = ['Invoice', 'INVOICE_STATUS']
@@ -25,9 +25,8 @@ def get_latest_invoice_no(organization, jurisdiction, invoice_dt):
     """
     query = db.session.query(sql.functions.max(Invoice.invoice_no))\
         .filter(Invoice.organization == organization)
-    fy_start_at, fy_end_at = get_financial_year(jurisdiction, invoice_dt)
-    if fy_start_at and fy_end_at:
-        query = query.filter(Invoice.invoiced_at >= fy_start_at, Invoice.invoiced_at < fy_end_at)
+    fy_start_at, fy_end_at = get_fiscal_year(jurisdiction, invoice_dt)
+    query = query.filter(Invoice.invoiced_at >= fy_start_at, Invoice.invoiced_at < fy_end_at)
     return query.scalar() or 0
 
 
