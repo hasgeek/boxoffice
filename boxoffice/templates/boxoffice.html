@@ -166,7 +166,7 @@
             </button>
           </div>
           {{#errorMsg}}
-            <p class="stage-error-msg">{{ errorMsg }}</p>
+            <div class="stage-error-msg">{{{ errorMsg }}}</div>
           {{/}}
         </form> 
       </div>
@@ -256,7 +256,7 @@
           </div>
         </form>
         {{#errorMsg}}
-          <p class="stage-error-msg">{{ errorMsg }}</p>
+          <div class="stage-error-msg">{{{ errorMsg }}}</div>
         {{/}}
         <div class="confirmation-msg">
           <p>Don't have a GST registration yet? No problem, you can fill these details later.<p>

@@ -137,7 +137,7 @@ def order(item_collection):
     buyer_form = BuyerForm.from_json(request.json.get('buyer'), meta={'csrf': False})
     if not buyer_form.validate():
         return api_error(message='Invalid buyer details',
-                    status_code=400)
+                    status_code=400, errors=buyer_form.errors)
 
     invalid_quantity_error_msg = _(u'Selected quantity for ‘{item}’ is not available. Please edit the order and update the quantity')
     item_dicts = Item.get_availability([line_item_form.data.get('item_id') for line_item_form in line_item_forms])

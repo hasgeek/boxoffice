@@ -595,18 +595,30 @@ $(function() {
             error: function(response) {
               var ajaxLoad = this;
               var onServerError = function() {
-              	var resp = JSON.parse(response.responseText);
-              	if (resp.errors[0] === 'order calculation error') {
+                var errorTxt = "";
+                var resp = JSON.parse(response.responseText);
+                var errors = resp.errors;
+                if (errors[0] === 'order calculation error') {
                   boxoffice.ractive.calculateOrder();
+                  errorTxt = "<p>" + JSON.parse(response.responseText).message + "<p>";
+                }
+                else if (errors && !$.isEmptyObject(errors)) {
+                  for (let error in errors) {
+                    errorTxt += "<p>" + errors[error] + "</p>"
+                  }
+                }
+                else {
+                  errorTxt = "<p>" + JSON.parse(response.responseText).message + "<p>";
                 }
                 boxoffice.ractive.set({
-	                'tabs.payment.errorMsg': resp.message,
+	                'tabs.payment.errorMsg': errorTxt,
 	                'tabs.payment.loadingOrder': false
 	              });
               };
               var onNetworkError = function() {
+                var errorTxt = "<p>Unable to connect. Please write to us at support@hasgeek.com.<p>";
                 boxoffice.ractive.set({
-	                'tabs.payment.errorMsg': "Unable to connect. Please try again later.",
+	                'tabs.payment.errorMsg': errorTxt,
 	                'tabs.payment.loadingOrder': false
 	              });
               };
@@ -820,14 +832,25 @@ $(function() {
             error: function(response) {
             	var ajaxLoad = this;
             	var onServerError = function() {
+                var errorTxt = "";
+                var errors = JSON.parse(response.responseText).errors;
+                if (errors && !$.isEmptyObject(errors)) {
+                  for (let error in errors) {
+                    errorTxt += "<p>" + errors[error] + "</p>"
+                  }
+                }
+                else {
+                  errorTxt = "<p>" + JSON.parse(response.responseText).message + "<p>";
+                }
             		boxoffice.ractive.set({
-	                'tabs.invoice.errorMsg': JSON.parse(response.responseText).message + ". Sorry, something went wrong. Please write to us at support@hasgeek.com.",
+	                'tabs.invoice.errorMsg': errorTxt,
 	                'tabs.invoice.submittingInvoiceDetails': false
 	              });
             	};
             	var onNetworkError = function() {
+                var errorTxt = "<p>Unable to connect. Please write to us at support@hasgeek.com.<p>";
             		boxoffice.ractive.set({
-	                'tabs.invoice.errorMsg': "Unable to connect. Please write to us at support@hasgeek.com.",
+	                'tabs.invoice.errorMsg': errorTxt,
 	                'tabs.invoice.submittingInvoiceDetails': false
 	              });
             	};

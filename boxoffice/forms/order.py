@@ -42,9 +42,9 @@ class LineItemForm(forms.Form):
 
 
 class BuyerForm(forms.Form):
-    email = forms.EmailField(__("Email"), validators=[forms.validators.DataRequired(), forms.validators.Length(max=80)])
-    fullname = forms.StringField(__("Full name"), validators=[forms.validators.DataRequired(), forms.validators.Length(max=80)])
-    phone = forms.StringField(__("Phone number"), validators=[forms.validators.Length(max=16)])
+    email = forms.EmailField(__("Email"), validators=[forms.validators.DataRequired(__("Please enter an email address")), forms.validators.Length(min=5, max=80)])
+    fullname = forms.StringField(__("Full name"), validators=[forms.validators.DataRequired(__("Please enter the buyer's fullname")), forms.validators.Length(max=80)])
+    phone = forms.StringField(__("Phone number"), validators=[forms.validators.DataRequired(__("Please enter a phone number")), forms.validators.Length(max=16)])
 
 
 class OrderSessionForm(forms.Form):

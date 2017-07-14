@@ -143,8 +143,8 @@ export const Invoice = {
               invoice.formComponent.set(invoice_item + '.submittingInvoiceDetails', false);
             };
             var onNetworkError = function() {
-              var errorMsg = "<p>Unable to connect. Please write to us at support@hasgeek.com.<p>";
-              invoice.formComponent.set(invoice_item + '.errorMsg', errorMsg);
+              var errorTxt = "<p>Unable to connect. Please write to us at support@hasgeek.com.<p>";
+              invoice.formComponent.set(invoice_item + '.errorMsg', errorTxt);
               invoice.formComponent.set(invoice_item + '.submittingInvoiceDetails', false);
             };
             ajaxLoad.retries -= 1;
