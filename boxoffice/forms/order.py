@@ -92,7 +92,7 @@ def validate_gstin(form, field):
     """
     # 15 length, first 2 digits, valid pan, checksum
     if len(field.data) != 15 or int(field.data[:2]) not in short_codes or not field.data[2:12].isalnum() or not field.data[-1].isalnum():
-        raise forms.validators.StopValidation(__("Invalid GSTIN"))
+        raise forms.validators.StopValidation(__("This does not appear to be a valid GSTIN"))
 
 
 class InvoiceForm(forms.Form):
