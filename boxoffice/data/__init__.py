@@ -40,3 +40,5 @@ indian_states = [
 ]
 
 indian_states_dict = dict((d["short_code_text"], d) for d in indian_states)
+
+short_codes = [state['short_code'] for state in indian_states]

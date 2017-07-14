@@ -2,7 +2,7 @@
 
 from baseframe import __
 import baseframe.forms as forms
-from boxoffice.data import indian_states_dict
+from boxoffice.data import indian_states_dict, short_codes
 
 __all__ = ['LineItemForm', 'BuyerForm', 'OrderSessionForm', 'RefundTransactionForm', 'InvoiceForm']
 
@@ -78,9 +78,26 @@ def validate_state_code(form, field):
             raise forms.validators.StopValidation(__("Please select a state"))
 
 
+def validate_gstin(form, field):
+    """
+    Raise a StopValidation exception if the supplied field's data is not a valid GSTIN.
+
+    Checks if the data is:
+    - 15 characters in length
+    - First two characters form a valid short code for an Indian state
+    - Contains a PAN (alphanumeric sub-string ranging from the 2nd to the 11th character)
+    - Last character is an alphanumeric
+
+    Reference: https://cleartax.in/s/know-your-gstin
+    """
+    # 15 length, first 2 digits, valid pan, checksum
+    if len(field.data) != 15 or int(field.data[:2]) not in short_codes or not field.data[2:12].isalnum() or not field.data[-1].isalnum():
+        raise forms.validators.StopValidation(__("Invalid GSTIN"))
+
+
 class InvoiceForm(forms.Form):
     buyer_taxid = forms.StringField(__("GSTIN"), validators=[forms.validators.Optional(),
-        forms.validators.Length(max=255)], filters=[forms.filters.strip(), forms.filters.none_if_empty()])
+        forms.validators.Length(max=255), validate_gstin], filters=[forms.filters.strip(), forms.filters.none_if_empty()])
     invoicee_name = forms.StringField(__("Full name"), validators=[forms.validators.DataRequired(__("Please enter the buyer's fullname")),
         forms.validators.Length(max=255)], filters=[forms.filters.strip()])
     invoicee_email = forms.EmailField(__("Email"), validators=[forms.validators.DataRequired(__("Please enter an email address")),
