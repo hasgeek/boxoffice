@@ -2,13 +2,21 @@
 
 from datetime import datetime
 from decimal import Decimal
+from coaster.utils import LabeledEnum
 from boxoffice.models import db, BaseMixin, UuidMixin
 from sqlalchemy import event
 from sqlalchemy import sql, func
 from sqlalchemy.ext.orderinglist import ordering_list
+from baseframe import __
 from boxoffice.models.user import get_financial_year
 
-__all__ = ['Invoice']
+
+__all__ = ['Invoice', 'INVOICE_STATUS']
+
+
+class INVOICE_STATUS(LabeledEnum):
+    DRAFT = (0, __("Draft"))
+    FINAL = (1, __("Final"))
 
 
 def get_latest_invoice_no(organization, jurisdiction, invoice_dt):
@@ -28,7 +36,9 @@ class Invoice(UuidMixin, BaseMixin, db.Model):
     __uuid_primary_key__ = True
     __table_args__ = (db.UniqueConstraint('organization_id', 'invoice_no'),)
 
+    status = db.Column(db.SmallInteger, default=INVOICE_STATUS.DRAFT, nullable=False)
     invoicee_name = db.Column(db.Unicode(255), nullable=True)
+    invoicee_company = db.Column(db.Unicode(255), nullable=True)
     invoicee_email = db.Column(db.Unicode(254), nullable=True)
     invoice_no = db.Column(db.Integer(), nullable=True)
     invoiced_at = db.Column(db.DateTime, nullable=True)
