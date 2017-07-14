@@ -45,8 +45,8 @@ class Invoice(UuidMixin, BaseMixin, db.Model):
     street_address_2 = db.Column(db.Unicode(255), nullable=True)
     city = db.Column(db.Unicode(255), nullable=True)
     state = db.Column(db.Unicode(255), nullable=True)
-    # India specific: this is the state short code. Eg: KA for Karnataka
-    state_code = db.Column(db.Unicode(4), nullable=True)
+    # ISO 3166-2 code. Eg: KA for Karnataka
+    state_code = db.Column(db.Unicode(3), nullable=True)
     # ISO country code
     country_code = db.Column(db.Unicode(2), nullable=True)
     postcode = db.Column(db.Unicode(8), nullable=True)

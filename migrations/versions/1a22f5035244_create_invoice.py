@@ -30,7 +30,7 @@ def upgrade():
         sa.Column('street_address_2', sa.Unicode(length=255), nullable=True),
         sa.Column('city', sa.Unicode(length=255), nullable=True),
         sa.Column('state', sa.Unicode(length=255), nullable=True),
-        sa.Column('state_code', sa.Unicode(length=4), nullable=True),
+        sa.Column('state_code', sa.Unicode(length=3), nullable=True),
         sa.Column('country_code', sa.Unicode(length=2), nullable=True),
         sa.Column('postcode', sa.Unicode(length=8), nullable=True),
         sa.Column('buyer_taxid', sa.Unicode(length=255), nullable=True),
