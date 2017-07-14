@@ -5,7 +5,8 @@ from decimal import Decimal
 from coaster.utils import LabeledEnum
 from boxoffice.models import db, BaseMixin, UuidMixin
 from sqlalchemy import event
-from sqlalchemy import sql, func
+# from sqlalchemy import sql, func
+from sqlalchemy.sql import select, func
 from sqlalchemy.ext.orderinglist import ordering_list
 from baseframe import __
 from boxoffice.models.user import get_fiscal_year
@@ -19,15 +20,15 @@ class INVOICE_STATUS(LabeledEnum):
     FINAL = (1, __("Final"))
 
 
-def get_latest_invoice_no(organization, jurisdiction, invoice_dt):
+def gen_invoice_no(organization, jurisdiction, invoice_dt):
     """
-    Returns the last invoice number used, 0 if no order has been invoiced yet
+    Generates a sequential invoice number scoped by the given organization for
+    the fiscal year of the given invoice datetime
     """
-    query = db.session.query(sql.functions.max(Invoice.invoice_no))\
-        .filter(Invoice.organization == organization)
     fy_start_at, fy_end_at = get_fiscal_year(jurisdiction, invoice_dt)
-    query = query.filter(Invoice.invoiced_at >= fy_start_at, Invoice.invoiced_at < fy_end_at)
-    return query.scalar() or 0
+    return select([func.coalesce(func.max(Invoice.invoice_no + 1), 1)]).where(
+        Invoice.organization == organization).where(
+        Invoice.invoiced_at >= fy_start_at).where(Invoice.invoiced_at < fy_end_at)
 
 
 class Invoice(UuidMixin, BaseMixin, db.Model):
@@ -69,7 +70,7 @@ class Invoice(UuidMixin, BaseMixin, db.Model):
         if not organization:
             raise ValueError(u"Invoice MUST be initialized with an organization")
         self.invoiced_at = datetime.utcnow()
-        self.invoice_no = get_latest_invoice_no(organization, country_code, self.invoiced_at) + 1
+        self.invoice_no = gen_invoice_no(organization, country_code, self.invoiced_at)
         super(Invoice, self).__init__(*args, **kwargs)
 
 
