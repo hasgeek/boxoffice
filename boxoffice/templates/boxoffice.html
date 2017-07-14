@@ -250,14 +250,14 @@
             </div>
           {{/}}
           <div class="proceed-button-wrapper">
-            <button type="submit" class="boxoffice-button boxoffice-button-action left-btn-margin" on-click="submitInvoiceDetails(event)" {{#submittingInvoiceDetails}}disabled{{/}}>
+            <button type="submit" class="boxoffice-button boxoffice-button-action" on-click="submitInvoiceDetails(event)" {{#submittingInvoiceDetails}}disabled{{/}}>
               Submit {{#submittingInvoiceDetails}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'>{{/}}
             </button>
           </div>
+          {{#errorMsg}}
+            <div class="stage-error-msg">{{{ errorMsg }}}</div>
+          {{/}}
         </form>
-        {{#errorMsg}}
-          <div class="stage-error-msg">{{{ errorMsg }}}</div>
-        {{/}}
         <div class="confirmation-msg">
           <p>Don't have a GST registration yet? No problem, you can fill these details later.<p>
           <p>Proceed to fill details for your badge!</p>
