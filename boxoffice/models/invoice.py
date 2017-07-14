@@ -5,7 +5,6 @@ from decimal import Decimal
 from coaster.utils import LabeledEnum
 from boxoffice.models import db, BaseMixin, UuidMixin
 from sqlalchemy import event
-# from sqlalchemy import sql, func
 from sqlalchemy.sql import select, func
 from sqlalchemy.ext.orderinglist import ordering_list
 from baseframe import __
