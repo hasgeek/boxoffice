@@ -1,10 +1,12 @@
 window.Boxoffice = {
   // Initial config setup
   config:{
-    baseURL: "{{base_url}}",
-    razorpayKeyId: "{{razorpay_key_id}}",
+    baseURL: "{{ base_url }}",
+    razorpayKeyId: "{{ razorpay_key_id }}",
     orgName: 'HasGeek',
-    razorpayBanner: "https://hasgeek.com/static/img/hg-banner.png"
+    razorpayBanner: "https://hasgeek.com/static/img/hg-banner.png",
+    states: {{ states | tojson }},
+    countries: {{ countries | tojson }}
   }
 };
 
@@ -44,6 +46,10 @@ $(function() {
 
   var boxoffice = window.Boxoffice;
   boxoffice.util = {};
+
+  var boxoffice = {};
+  boxoffice.util = {};
+  boxoffice.config = window.Boxoffice.config;
 
   boxoffice.util.getQueryParams = function() {
     // Returns an array of query parameters
@@ -91,7 +97,7 @@ $(function() {
     });
     utm_values['referrer'] = document.referrer;
     return utm_values;
-  }
+  };
 
   boxoffice.util.formatDateTime = function(valid_upto) {
     // Returns date in the format 00:00:00 AM, Sun Apr 10 2016
@@ -146,6 +152,12 @@ $(function() {
         urlFor: function(accessToken){
           return boxoffice.config.baseURL + "/order/" + accessToken + "/ticket";
         }
+      },
+      invoiceDetails: {
+      	method: 'POST',
+        urlFor: function(accessToken){
+          return boxoffice.config.baseURL + "/order/" + accessToken + "/invoice";
+        }
       }
     };
   };
@@ -153,7 +165,7 @@ $(function() {
   boxoffice.init = function(widgetConfig) {
     // Config variables provided by the client embedding the widget
     this.widgetConfig = widgetConfig;
-    boxoffice.initResources({
+    this.initResources({
       ic: widgetConfig.itemCollection
     });
 
@@ -202,9 +214,25 @@ $(function() {
           },
           // Prefill name, email, phone if user is found to be logged in
           buyer: {
-            name: widgetConfig.user_name,
+            fullname: widgetConfig.user_name,
             email: widgetConfig.user_email,
-            phone: widgetConfig.user_phone || '+91'
+            phone: widgetConfig.user_phone || '+91',
+            cashReceiptURL: "",
+            attendeeAssignmentURL: ""
+          },
+          invoice: {
+            buyer_taxid: "",
+            invoicee_name: "",
+            invoicee_company: "",
+            invoicee_email: "",
+            street_address_1: "",
+            street_address_2: "",
+            city: "",
+            state: "",
+            state_code: "KA",
+            country_code: "IN",
+            postcode: "",
+            isFilled: false
           },
           activeTab: 'boxoffice-selectItems',
           tabs: {
@@ -215,7 +243,7 @@ $(function() {
               section: {
                 categories: data.categories
               },
-              errorMsg: ''
+              errorMsg: ""
             },
             payment: {
               id: 'boxoffice-payment',
@@ -223,19 +251,30 @@ $(function() {
               complete: false,
               section: {
               },
-              errorMsg: ''
+              errorMsg: ""
             },
-            confirm: {
-              id: 'boxoffice-confirm',
-              label: 'Confirm',
+            invoice: {
+              id: 'boxoffice-invoice',
+              label: 'invoice',
               complete: false,
               section: {
-                cashReceiptURL: '',
-                eventTitle: widgetConfig.paymentDesc,
+              },
+              errorMsg: ""
+            },
+            attendeeDetails: {
+              id: 'boxoffice-attendee-details',
+              label: 'Attendee details',
+              complete: false,
+              section: {
+              	eventTitle: widgetConfig.paymentDesc,
                 eventHashtag: widgetConfig.event_hashtag,
               }
             }
           },
+          utils : {
+          	states: boxoffice.config.states,
+          	countries: boxoffice.config.countries
+          }
         },
         scrollTop: function(){
           //Scroll the page up to top of boxoffice widget.
@@ -250,6 +289,38 @@ $(function() {
           boxoffice.ractive.fire('eventAnalytics', 'edit order', 'Edit order', boxoffice.ractive.get('order.final_amount'));
           boxoffice.ractive.set('activeTab', boxoffice.ractive.get('tabs.selectItems.id'));
           boxoffice.ractive.scrollTop();
+        },
+        xhrRetry: function(ajaxLoad, response, onServerError, onNetworkError) {
+          if (response.readyState === 4) {
+          	//Server error
+            onServerError();
+          }
+          else if (response.readyState === 0) {
+            if (ajaxLoad.retries < 0) {
+              //Network error
+              onNetworkError();
+            } else {
+              setTimeout(function() {
+                $.post(ajaxLoad);
+              }, ajaxLoad.retryInterval);
+            }
+          }        	
+        },
+        getFormJSObject: function (form) {
+          var formElements = $(form).serializeArray();
+          var formDetails ={};
+          $.each(formElements, function () {
+            if (formDetails[this.name] !== undefined) {
+              if (!formDetails[this.name].push) {
+                formDetails[this.name] = [formDetails[this.name]];
+              }
+              formDetails[this.name].push(this.value || '');
+            }
+            else {
+              formDetails[this.name] = this.value || '';
+            }
+          });
+          return formDetails;
         },
         preApplyDiscount: function(discount_coupons) {
           //Ask server for the corresponding line_item for the discount coupon. Add one quantity of that line_item
@@ -295,13 +366,9 @@ $(function() {
               }
             },
             error: function(response) {
-              var ajaxLoad = this;
+            	var ajaxLoad = this;
               ajaxLoad.retries -= 1;
-              if (response.readyState === 0 && ajaxLoad.retries > 0) {
-                setTimeout(function() {
-                  $.post(ajaxLoad);
-                }, ajaxLoad.retryInterval);
-              }
+              boxoffice.ractive.xhrRetry(ajaxLoad, response);
             }
           });
         },
@@ -409,28 +476,23 @@ $(function() {
                 });
               },
               error: function(response) {
-                var ajaxLoad = this;
+              	var ajaxLoad = this;
+              	var onServerError = function() {
+              		boxoffice.ractive.set({
+	                  'tabs.selectItems.errorMsg': JSON.parse(response.responseText).message,
+	                  'tabs.selectItems.isLoadingFail': true,
+	                  'order.readyToCheckout': false
+	                });
+              	};
+              	var onNetworkError = function() {
+              		boxoffice.ractive.set({
+	                  'tabs.selectItems.errorMsg': "Unable to connect. Please try again later.",
+	                  'tabs.selectItems.isLoadingFail': true,
+	                  'order.readyToCheckout': false
+	                });
+              	};
                 ajaxLoad.retries -= 1;
-                if (response.readyState === 4) {
-                  boxoffice.ractive.set({
-                    'tabs.selectItems.errorMsg': JSON.parse(response.responseText).message,
-                    'tabs.selectItems.isLoadingFail': true,
-                    'order.readyToCheckout': false
-                  });
-                }
-                else if (response.readyState === 0) {
-                  if (ajaxLoad.retries < 0) {
-                    boxoffice.ractive.set({
-                      'tabs.selectItems.errorMsg': "Unable to connect. Please try again later.",
-                      'tabs.selectItems.isLoadingFail': true,
-                      'order.readyToCheckout': false
-                    });
-                  } else {
-                    setTimeout(function() {
-                      $.post(ajaxLoad);
-                    }, ajaxLoad.retryInterval);
-                  }
-                }
+              	boxoffice.ractive.xhrRetry(ajaxLoad, response, onServerError, onNetworkError);
               }
             });
           } else {
@@ -453,7 +515,7 @@ $(function() {
           boxoffice.ractive.scrollTop();
 
           var validationConfig = [{
-            name: 'name',
+            name: 'fullname',
             rules: 'required|max_length[80]'
           },
           {
@@ -506,6 +568,9 @@ $(function() {
         },
         sendOrder: function() {
           boxoffice.ractive.fire('eventAnalytics', 'order creation', 'sendOrder', boxoffice.ractive.get('order.final_amount'));
+          var buyerForm = '#boxoffice-buyer-form';
+          var buyerDetails = boxoffice.ractive.getFormJSObject(buyerForm);
+
           $.post({
             url: boxoffice.config.resources.purchaseOrder.urlFor(),
             crossDomain: true,
@@ -513,11 +578,7 @@ $(function() {
             headers: {'X-Requested-With': 'XMLHttpRequest'},
             contentType: 'application/json',
             data: JSON.stringify({
-              buyer:{
-                email: boxoffice.ractive.get('buyer.email'),
-                fullname: boxoffice.ractive.get('buyer.name'),
-                phone: boxoffice.ractive.get('buyer.phone')
-              },
+              buyer: buyerDetails,
               line_items: boxoffice.ractive.get('order.line_items').filter(function(line_item) {
                 return line_item.quantity > 0;
               }).map(function(line_item) {
@@ -536,41 +597,49 @@ $(function() {
               boxoffice.ractive.set({
                 'tabs.payment.loadingOrder': false,
                 'tabs.payment.errorMsg' : '',
-                'order.order_id': data.order_id,
-                'order.access_token': data.order_access_token,
-                'order.final_amount': data.final_amount
+                'order.order_id': data.result.order_id,
+                'order.access_token': data.result.order_access_token,
+                'order.final_amount': data.result.final_amount
               });
               if (boxoffice.ractive.get('order.final_amount') === 0){
-                boxoffice.ractive.completeFreeOrder(data.free_order_url);
+                boxoffice.ractive.completeFreeOrder(data.result.free_order_url);
               } else {
-                boxoffice.ractive.capturePayment(data.payment_url, data.razorpay_payment_id);
+                boxoffice.ractive.capturePayment(data.result.payment_url, data.result.razorpay_payment_id);
               }
               boxoffice.ractive.scrollTop();
             },
             error: function(response) {
               var ajaxLoad = this;
-              ajaxLoad.retries -= 1;
-              var resp = JSON.parse(response.responseText);
-              if (response.readyState === 4) {
-                if (resp.error_type === 'order_calculation') {
+              var onServerError = function() {
+                var errorTxt = "";
+                var resp = JSON.parse(response.responseText);
+                var errors = resp.errors;
+                if (errors[0] === 'order calculation error') {
                   boxoffice.ractive.calculateOrder();
+                  errorTxt = "<p>" + JSON.parse(response.responseText).message + "<p>";
+                }
+                else if (errors && !$.isEmptyObject(errors)) {
+                  for (let error in errors) {
+                    errorTxt += "<p>" + errors[error] + "</p>"
+                  }
+                }
+                else {
+                  errorTxt = "<p>" + JSON.parse(response.responseText).message + "<p>";
                 }
                 boxoffice.ractive.set({
-                  'tabs.payment.errorMsg': resp.message,
-                  'tabs.payment.loadingOrder': false
-                });
-              } else if (response.readyState === 0) {
-                if(ajaxLoad.retries < 0) {
-                  boxoffice.ractive.set({
-                    'tabs.payment.errorMsg': "Unable to connect. Please try again later.",
-                    'tabs.payment.loadingOrder': false
-                  });
-                } else {
-                  setTimeout(function() {
-                    $.post(ajaxLoad);
-                  }, ajaxLoad.retryInterval);
-                }
-              }
+	                'tabs.payment.errorMsg': errorTxt,
+	                'tabs.payment.loadingOrder': false
+	              });
+              };
+              var onNetworkError = function() {
+                var errorTxt = "<p>Unable to connect. Please write to us at support@hasgeek.com.<p>";
+                boxoffice.ractive.set({
+	                'tabs.payment.errorMsg': errorTxt,
+	                'tabs.payment.loadingOrder': false
+	              });
+              };
+              ajaxLoad.retries -= 1;
+              boxoffice.ractive.xhrRetry(ajaxLoad, response, onServerError, onNetworkError);
             }
           });
         },
@@ -592,7 +661,7 @@ $(function() {
               boxoffice.ractive.confirmPayment(paymentUrl, data.razorpay_payment_id);
             },
             "prefill": {
-              "name": boxoffice.ractive.get('buyer.name'),
+              "name": boxoffice.ractive.get('buyer.fullname'),
               "email": boxoffice.ractive.get('buyer.email'),
               "contact": boxoffice.ractive.get('buyer.phone')
             },
@@ -609,7 +678,7 @@ $(function() {
           razorpay.open();
         },
         confirmPayment: function(paymentUrl, paymentID) {
-          // Sends the paymentId to the server, transitions the state to 'Confirm'
+          // Sends the paymentId to the server, transitions the state to 'Invoice'
           boxoffice.ractive.set('tabs.payment.loadingPaymentConfirmation', true);
           boxoffice.ractive.fire('eventAnalytics', 'capture payment', 'confirmPayment', boxoffice.ractive.get('order.final_amount'));
           $.post({
@@ -623,39 +692,35 @@ $(function() {
             retries: 5,
             retryInterval: 10000,
             success: function(data) {
+              // Set invoice to be the next active tab and pre fill invoice form with buyer's name & email
               boxoffice.ractive.set({
                 'tabs.payment.loadingPaymentConfirmation': false,
                 'tabs.payment.complete': true,
-                'activeTab': boxoffice.ractive.get('tabs.confirm.id'),
-                'tabs.confirm.section.cashReceiptURL': boxoffice.config.resources.receipt.urlFor(boxoffice.ractive.get('order.access_token')),
-                'tabs.confirm.section.attendeeAssignmentURL': boxoffice.config.resources.attendeeAssignment.urlFor(boxoffice.ractive.get('order.access_token'))
+                'activeTab': boxoffice.ractive.get('tabs.invoice.id'),
+                'invoice.invoice_id': data.result.invoice_id,
+                'invoice.invoicee_name': boxoffice.ractive.get('buyer.fullname'),
+                'invoice.invoicee_email': boxoffice.ractive.get('buyer.email'),
+                'buyer.cashReceiptURL': boxoffice.config.resources.receipt.urlFor(boxoffice.ractive.get('order.access_token')),
+                'buyer.attendeeAssignmentURL': boxoffice.config.resources.attendeeAssignment.urlFor(boxoffice.ractive.get('order.access_token'))
               });
               boxoffice.ractive.fire('eventAnalytics', 'booking complete', 'confirmPayment success', boxoffice.ractive.get('order.final_amount'));
             },
             error: function(response) {
-              var ajaxLoad = this;
-              var responseText = JSON.parse(response.responseText);
-              var errorMsg;
+            	var ajaxLoad = this;
+            	var onServerError = function() {
+            		boxoffice.ractive.set({
+	                'tabs.payment.errorMsg': JSON.parse(response.responseText).message,
+	                'tabs.payment.loadingPaymentConfirmation': false
+	              });
+            	};
+            	var onNetworkError = function() {
+            		boxoffice.ractive.set({
+	                'tabs.payment.errorMsg': "Unable to connect. Please write to us at support@hasgeek.com with your order id " + boxoffice.ractive.get('order.order_id') + ".",
+	                'tabs.payment.loadingPaymentConfirmation': false
+	              });
+            	};
               ajaxLoad.retries -= 1;
-              if (response.readyState === 4) {
-                boxoffice.ractive.set({
-                  'tabs.payment.errorMsg': responseText.error_description,
-                  'tabs.payment.loadingPaymentConfirmation': false
-                });
-              }
-              else if (response.readyState === 0) {
-                if (ajaxLoad.retries < 0) {
-                  errorMsg = "Unable to connect. Please write to us at support@hasgeek.com with your order id " + boxoffice.ractive.get('order.order_id') + ".";
-                  boxoffice.ractive.set({
-                    'tabs.payment.errorMsg': errorMsg,
-                    'tabs.payment.loadingPaymentConfirmation': false
-                  });
-                } else {
-                  setTimeout(function() {
-                    $.post(ajaxLoad);
-                  }, ajaxLoad.retryInterval);
-                }
-              }
+              boxoffice.ractive.xhrRetry(ajaxLoad, response, onServerError, onNetworkError);
             }
           });
         },
@@ -674,39 +739,141 @@ $(function() {
               boxoffice.ractive.set({
                 'tabs.payment.loadingPaymentConfirmation': false,
                 'tabs.payment.complete': true,
-                'activeTab': boxoffice.ractive.get('tabs.confirm.id'),
-                'tabs.confirm.section.cashReceiptURL': boxoffice.config.resources.receipt.urlFor(boxoffice.ractive.get('order.access_token')),
-                'tabs.confirm.section.attendeeAssignmentURL': boxoffice.config.resources.attendeeAssignment.urlFor(boxoffice.ractive.get('order.access_token'))
+                'tabs.invoice.complete': true,
+                'activeTab': boxoffice.ractive.get('tabs.attendeeDetails.id'),
+                'buyer.cashReceiptURL': boxoffice.config.resources.receipt.urlFor(boxoffice.ractive.get('order.access_token')),
+                'buyer.attendeeAssignmentURL': boxoffice.config.resources.attendeeAssignment.urlFor(boxoffice.ractive.get('order.access_token'))
               });
               boxoffice.ractive.fire('eventAnalytics', 'booking complete', 'completeFreeOrder success', 0);
             },
             error: function(response) {
-              var ajaxLoad = this;
+            	var ajaxLoad = this;
+              var onServerError = function() {
+								boxoffice.ractive.set({
+	                'tabs.payment.errorMsg': JSON.parse(response.responseText).message + ". Sorry, something went wrong. We will get in touch with you shortly. This is your order id " + boxoffice.ractive.get('order.order_id') + ".",
+	                'tabs.payment.loadingPaymentConfirmation': false
+	              });
+              };
+              var onNetworkError = function() {
+              	boxoffice.ractive.set({
+	                'tabs.payment.errorMsg': "Unable to connect. Please write to us at support@hasgeek.com with your order id " + boxoffice.ractive.get('order.order_id') + ".",
+	                'tabs.payment.loadingPaymentConfirmation': false
+	              });
+              };
               ajaxLoad.retries -= 1;
-              var errorMsg;
-              if (response.readyState === 4) {
-                errorMsg = JSON.parse(response.responseText).message + ". Sorry, something went wrong. We will get in touch with you shortly. This is your order id " + boxoffice.ractive.get('order.order_id') + ".";
-                boxoffice.ractive.set({
-                  'tabs.payment.errorMsg': errorMsg,
-                  'tabs.payment.loadingPaymentConfirmation': false
-                });
-              }
-              else if (response.readyState === 0) {
-                if (ajaxLoad.retries < 0) {
-                  errorMsg = "Unable to connect. Please write to us at support@hasgeek.com with your order id " + boxoffice.ractive.get('order.order_id') + ".";
-                  boxoffice.ractive.set({
-                    'tabs.payment.errorMsg': errorMsg,
-                    'tabs.payment.loadingPaymentConfirmation': false
-                  });
-                } else {
-                  setTimeout(function() {
-                    $.post(ajaxLoad);
-                  }, ajaxLoad.retryInterval);
-                }
-              }
+              boxoffice.ractive.xhrRetry(ajaxLoad, response, onServerError, onNetworkError);
             }
           });
         },
+        submitInvoiceDetails: function(event) {
+          var validationConfig = [{
+            name: 'invoicee_name',
+            rules: 'required'
+          },
+          {
+            name: 'invoicee_email',
+            rules: 'required|valid_email'
+          },
+          {
+            name: 'street_address_1',
+            rules: 'required'
+          },
+          {
+            name: 'country_code',
+            rules: 'required'
+          },
+          {
+            name: 'state_code',
+            rules: 'required'
+          },
+          {
+            name: 'city',
+            rules: 'required'
+          },
+          {
+            name: 'postcode',
+            rules: 'required'
+          }];
+
+          var formValidator = new FormValidator('invoice-details-form', validationConfig, function(errors, event) {
+            event.preventDefault();
+            boxoffice.ractive.set('invoice.errormsg', '');
+            if (errors.length > 0) {
+              boxoffice.ractive.set('invoice.errormsg.' + errors[0].name, errors[0].message);
+            } else {
+              boxoffice.ractive.set('tabs.invoice.submittingInvoiceDetails', true);
+              boxoffice.ractive.postInvoiceDetails();
+            }
+          });
+
+          formValidator.setMessage('required', 'Please fill out this field');
+          formValidator.setMessage('valid_email', 'Please enter a valid email');
+	      },
+	      postInvoiceDetails: function() {
+          var invoiceForm = '#boxoffice-invoice-form';
+          var invoiceDetails = boxoffice.ractive.getFormJSObject(invoiceForm);
+
+	      	$.post({
+            url: boxoffice.config.resources.invoiceDetails.urlFor(boxoffice.ractive.get('order.access_token')),
+            crossDomain: true,
+            dataType: 'json',
+            headers: {'X-Requested-With': 'XMLHttpRequest'},
+            contentType: 'application/json',
+            data: JSON.stringify({
+              invoice:invoiceDetails,
+              invoice_id: boxoffice.ractive.get('invoice.invoice_id')
+            }),
+            timeout: 5000,
+            retries: 5,
+            retryInterval: 5000,
+            success: function(data) {
+              boxoffice.ractive.set({
+                'tabs.invoice.submittingInvoiceDetails': false,
+                'tabs.invoice.errorMsg': "",
+                'tabs.invoice.complete': true,
+                'invoice.isFilled': true,
+                'activeTab': boxoffice.ractive.get('tabs.attendeeDetails.id')
+              });
+              boxoffice.ractive.scrollTop();
+              boxoffice.ractive.fire('eventAnalytics', 'submit buyer address', 'sendBuyerAddress success', 0);
+            },
+            error: function(response) {
+            	var ajaxLoad = this;
+            	var onServerError = function() {
+                var errorTxt = "";
+                var errors = JSON.parse(response.responseText).errors;
+                if (errors && !$.isEmptyObject(errors)) {
+                  for (let error in errors) {
+                    errorTxt += "<p>" + errors[error] + "</p>"
+                  }
+                }
+                else {
+                  errorTxt = "<p>" + JSON.parse(response.responseText).message + "<p>";
+                }
+            		boxoffice.ractive.set({
+	                'tabs.invoice.errorMsg': errorTxt,
+	                'tabs.invoice.submittingInvoiceDetails': false
+	              });
+            	};
+            	var onNetworkError = function() {
+                var errorTxt = "<p>Unable to connect. Please write to us at support@hasgeek.com.<p>";
+            		boxoffice.ractive.set({
+	                'tabs.invoice.errorMsg': errorTxt,
+	                'tabs.invoice.submittingInvoiceDetails': false
+	              });
+            	};
+              ajaxLoad.retries -= 1;
+              boxoffice.ractive.xhrRetry(ajaxLoad, response, onServerError, onNetworkError);
+            }
+          });
+	      },
+	      proceedToFillAttendeeDetails: function() {
+	      	boxoffice.ractive.scrollTop();
+	      	boxoffice.ractive.set({
+            'tabs.invoice.complete': true,
+            'activeTab': boxoffice.ractive.get('tabs.attendeeDetails.id')
+          });
+	      },
         oncomplete: function() {
           boxoffice.ractive.on('eventAnalytics', function(userAction, label, value) {
             if (typeof boxoffice.ractive.get('sendEventHits') === "undefined") {
@@ -725,6 +892,10 @@ $(function() {
         }
       });
     });
+  };
+
+  window.Boxoffice.init = function(widgetConfig) {
+	boxoffice.init(widgetConfig);
   };
 });
 {% endraw %}

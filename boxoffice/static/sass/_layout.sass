@@ -148,6 +148,17 @@ a.boxoffice-button:focus
   position: relative
   margin-bottom: 45px
 
+@media(min-width: 1024px)
+  .inline-group.left-group
+    width: 45%
+    float: left
+    clear: both
+
+  .inline-group.right-group 
+    width: 45%
+    float: right
+    clear: none
+
 .group-margin-top
   margin-top: 20px
 
@@ -214,12 +225,16 @@ input.icon-placeholder
   -moz-appearance: none
   appearance: none
   width: 100%
-  padding: 10px 10px 10px 5px
+  font-size: 18px
+  padding: 10px 10px 10px 1px
   background: transparent
   border: none
   border-radius: 0
   border-bottom: 1px solid $color-form-field-border
   position: relative
+
+.inline-group select
+  top: 2px
 
 .group-select select:-moz-focusring
   color: transparent
@@ -245,6 +260,8 @@ input.icon-placeholder
   border-top: 5px solid $color-form-field-border
   pointer-events: none
 
+.inline-group.group-select:after
+  top: 22px
 
 .inline-group .input-group
   width: 75%

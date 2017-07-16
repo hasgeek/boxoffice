@@ -64,6 +64,8 @@ class LineItem(BaseMixin, db.Model):
     """
     Note: Line Items MUST NOT be deleted.
     They must only be cancelled.
+
+    # TODO: Rename this model to `Ticket`
     """
     __tablename__ = 'line_item'
     __uuid_primary_key__ = True
