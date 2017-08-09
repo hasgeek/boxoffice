@@ -113,7 +113,7 @@ def csv_response(headers, rows, row_type=None, row_handler=None):
         csv_writer.writerows(row_handler(row) for row in rows)
     else:
         csv_writer.writerows(rows)
-    return Response(unicode(stream.getvalue()), mimetype='text/csv')
+    return Response(unicode(stream.getvalue().decode('utf-8')), mimetype='text/csv')
 
 
 def api_error(message, status_code, errors=[]):

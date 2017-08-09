@@ -4,6 +4,7 @@ from coaster.sqlalchemy import BaseMixin, BaseNameMixin, BaseScopedNameMixin, Ba
 
 from coaster.db import db
 
+from .utils import *
 from .user import *
 from .item_collection import *
 from .category import *
