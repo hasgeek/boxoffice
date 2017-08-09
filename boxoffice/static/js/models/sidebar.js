@@ -20,6 +20,12 @@ export const SideBarModel = {
           view: 'org'
         },
         {
+          url: urlFor('index', {resource: 'reports', scope_ns: 'o', scope_id: org_name}),
+          title: 'Org reports',
+          icon: 'fa-file-excel-o',
+          view: 'org_reports'
+        },
+        {
           url: this.ic_id ? urlFor('view', {resource: 'ic', id: this.ic_id}) : "",
           title: 'Dashboard',
           icon: 'fa-dashboard',
