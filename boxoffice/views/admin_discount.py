@@ -87,12 +87,12 @@ def admin_discount_policies(organization, search=None, page=1, size=None):
     )
 def admin_new_discount_policy(organization):
     discount_policy = DiscountPolicy(organization=organization)
-    discount_policy_form = DiscountPolicyForm()
+    discount_policy_form = DiscountPolicyForm(model=DiscountPolicy)
     discount_policy_form.populate_obj(discount_policy)
     discount_policy_error_msg = _(u"The discount could not be created. Please rectify the indicated issues")
 
     if discount_policy.is_price_based:
-        discount_policy_form = PriceBasedDiscountPolicyForm(parent=discount_policy.organization)
+        discount_policy_form = PriceBasedDiscountPolicyForm(model=DiscountPolicy, parent=discount_policy.organization)
         with db.session.no_autoflush:
             if not discount_policy_form.validate_on_submit():
                 return api_error(message=discount_policy_error_msg,
@@ -100,7 +100,7 @@ def admin_new_discount_policy(organization):
                     errors=discount_policy_form.errors)
             discount_policy_form.populate_obj(discount_policy)
             discount_policy.make_name()
-            discount_price_form = DiscountPriceForm(parent=discount_policy)
+            discount_price_form = DiscountPriceForm(model=Price, parent=discount_policy)
             if not discount_price_form.validate_on_submit():
                 return api_error(message=_(u"There was an issue with the price. Please rectify the indicated issues"),
                     status_code=400,
@@ -111,14 +111,14 @@ def admin_new_discount_policy(organization):
         db.session.add(discount_price)
         discount_policy.items.append(discount_price.item)
     elif discount_policy.is_coupon:
-        discount_policy_form = CouponBasedDiscountPolicyForm(parent=discount_policy.organization)
+        discount_policy_form = CouponBasedDiscountPolicyForm(model=DiscountPolicy, parent=discount_policy.organization)
         with db.session.no_autoflush:
             if not discount_policy_form.validate_on_submit():
                 return api_error(message=discount_policy_error_msg, status_code=400, errors=discount_policy_form.errors)
         discount_policy_form.populate_obj(discount_policy)
         discount_policy.make_name()
     elif discount_policy.is_automatic:
-        discount_policy_form = AutomaticDiscountPolicyForm(parent=discount_policy.organization)
+        discount_policy_form = AutomaticDiscountPolicyForm(model=DiscountPolicy, parent=discount_policy.organization)
         with db.session.no_autoflush:
             if not discount_policy_form.validate_on_submit():
                 return api_error(message=discount_policy_error_msg, status_code=400, errors=discount_policy_form.errors)
