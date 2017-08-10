@@ -81,7 +81,7 @@ def fetch_invoices(self):
         "invoicee_email", "street_address_1", "street_address_2", "city", "state", "state_code",
         "country_code", "postcode", "invoiced_at"]
     invoices_join = db.join(Invoice, Order)
-    invoices_query = db.select([Order.id, Order.receipt_no, Invoice.invoice_no, Invoice.status,
+    invoices_query = db.select([Order.id, Order.invoice_no, Invoice.invoice_no, Invoice.status,
         Invoice.buyer_taxid, Invoice.seller_taxid, Invoice.invoicee_name, Invoice.invoicee_company, Invoice.invoicee_email, Invoice.street_address_1, Invoice.street_address_2, Invoice.city,
         Invoice.state, Invoice.state_code, Invoice.country_code, Invoice.postcode, Invoice.invoiced_at
         ]).where(Invoice.organization == self).select_from(invoices_join).order_by(Invoice.invoice_no)

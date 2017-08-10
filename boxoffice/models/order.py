@@ -61,9 +61,8 @@ class Order(BaseMixin, db.Model):
     buyer_fullname = db.Column(db.Unicode(80), nullable=False)
     buyer_phone = db.Column(db.Unicode(16), nullable=False)
 
-    # TODO: Deprecate invoice_no, use receipt_no instead
+    # TODO: Deprecate invoice_no, rename to receipt_no instead
     invoice_no = db.Column(db.Integer, nullable=True)
-    receipt_no = db.synonym('invoice_no')
 
     def permissions(self, user, inherited=None):
         perms = super(Order, self).permissions(user, inherited)
