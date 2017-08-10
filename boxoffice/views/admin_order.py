@@ -58,7 +58,9 @@ def jsonify_admin_orders(data_dict):
                 'receipt': url_for('receipt', access_token=order.access_token),
                 'assignee': url_for('line_items', access_token=order.access_token)
             })
-    return jsonify(org_name=data_dict['item_collection'].organization.name, title=data_dict['item_collection'].title, orders=order_dicts)
+    return jsonify(org_name=data_dict['item_collection'].organization.name,
+        org_title=data_dict['item_collection'].organization.title,
+        ic_title=data_dict['item_collection'].title, orders=order_dicts)
 
 
 @app.route('/admin/ic/<ic_id>/orders')

@@ -4,7 +4,7 @@ from flask import jsonify
 from .. import app, lastuser
 from coaster.views import load_models, render_with
 from baseframe import localize_timezone, get_locale
-from boxoffice.models import Organization, ItemCollection, LineItem
+from boxoffice.models import Organization, ItemCollection, LineItem, INVOICE_STATUS
 from boxoffice.views.utils import check_api_access, csv_response
 from babel.dates import format_datetime
 from datetime import datetime
@@ -12,8 +12,9 @@ from datetime import datetime
 
 def jsonify_report(data_dict):
     return jsonify(org_name=data_dict['item_collection'].organization.name,
-        name=data_dict['item_collection'].name,
-        title=data_dict['item_collection'].title)
+        org_title=data_dict['item_collection'].organization.title,
+        ic_name=data_dict['item_collection'].name,
+        ic_title=data_dict['item_collection'].title)
 
 
 @app.route('/admin/ic/<ic_id>/reports')
@@ -24,6 +25,20 @@ def jsonify_report(data_dict):
     permission='org_admin')
 def admin_report(item_collection):
     return dict(item_collection=item_collection)
+
+
+def jsonify_org_report(data_dict):
+    return jsonify(org_title=data_dict['organization'].title)
+
+
+@app.route('/admin/o/<org_name>/reports')
+@lastuser.requires_login
+@render_with({'text/html': 'index.html', 'application/json': jsonify_org_report})
+@load_models(
+    (Organization, {'name': 'org_name'}, 'organization'),
+    permission='org_admin')
+def admin_org_report(organization):
+    return dict(organization=organization)
 
 
 @app.route('/admin/ic/<ic_id>/tickets.csv')
@@ -47,7 +62,6 @@ def tickets_report(item_collection):
     (ItemCollection, {'id': 'ic_id'}, 'item_collection'),
     permission='org_admin')
 def attendees_report(item_collection):
-
     # Generated a unique list of headers for all 'assignee_details' keys in all items in this item collection. This flattens the 'assignee_details' dict. This will need to be updated if we add additional dicts to our csv export.
     attendee_details_headers = []
     for item in item_collection.items:
@@ -70,7 +84,7 @@ def attendees_report(item_collection):
         # Convert row to a dict
         dict_row = {}
         for idx, item in enumerate(row):
-            # 'assignee_details' is a dict already, so copy and include prefixs
+            # 'assignee_details' is a dict already, so copy and include prefixes
             if idx == attendee_details_index and isinstance(item, dict):
                 for key in item.keys():
                     dict_row['attendee_details_'+key] = item[key]
@@ -137,3 +151,21 @@ def orders_api(organization, item_collection):
         csv_headers.remove('attendee_details')
 
     return csv_response(csv_headers, rows, row_type='dict', row_handler=row_handler)
+
+@app.route('/admin/o/<org_name>/invoices.csv')
+@lastuser.requires_login
+@load_models(
+    (Organization, {'name': 'org_name'}, 'organization'),
+    permission='org_admin')
+def invoices_report(organization):
+    headers, rows = organization.fetch_invoices()
+
+    def row_handler(row):
+        dict_row = dict(zip(headers, row))
+        if dict_row.get('status') in INVOICE_STATUS.keys():
+            dict_row['status'] = INVOICE_STATUS.get(dict_row['status'])
+        if isinstance(dict_row.get('invoiced_at'), datetime):
+            dict_row['invoiced_at'] = format_datetime(localize_timezone(dict_row['invoiced_at']), format='long', locale=get_locale() or 'en')
+        return dict_row
+
+    return csv_response(headers, rows, row_type='dict', row_handler=row_handler)

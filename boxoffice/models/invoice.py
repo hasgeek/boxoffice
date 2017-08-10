@@ -3,7 +3,7 @@
 from datetime import datetime
 from decimal import Decimal
 from coaster.utils import LabeledEnum
-from boxoffice.models import db, BaseMixin, UuidMixin
+from boxoffice.models import db, BaseMixin, UuidMixin, HeadersAndDataTuple, Organization, Order
 from sqlalchemy import event
 from sqlalchemy.sql import select, func
 from sqlalchemy.ext.orderinglist import ordering_list
@@ -73,10 +73,28 @@ class Invoice(UuidMixin, BaseMixin, db.Model):
         super(Invoice, self).__init__(*args, **kwargs)
 
 
+def fetch_invoices(self):
+    """
+    Returns invoices for an organization as a tuple of (row_headers, rows)
+    """
+    headers = ["order_id", "receipt_no", "invoice_no", "status", "buyer_taxid", "seller_taxid", "invoicee_name", "invoicee_company",
+        "invoicee_email", "street_address_1", "street_address_2", "city", "state", "state_code",
+        "country_code", "postcode", "invoiced_at"]
+    invoices_join = db.join(Invoice, Order)
+    invoices_query = db.select([Order.id, Order.invoice_no, Invoice.invoice_no, Invoice.status,
+        Invoice.buyer_taxid, Invoice.seller_taxid, Invoice.invoicee_name, Invoice.invoicee_company, Invoice.invoicee_email, Invoice.street_address_1, Invoice.street_address_2, Invoice.city,
+        Invoice.state, Invoice.state_code, Invoice.country_code, Invoice.postcode, Invoice.invoiced_at
+        ]).where(Invoice.organization == self).select_from(invoices_join).order_by(Invoice.invoice_no)
+    return HeadersAndDataTuple(
+        headers,
+        db.session.execute(invoices_query).fetchall()
+    )
+
+Organization.fetch_invoices = fetch_invoices
+
+
 @event.listens_for(Invoice, 'before_update')
 @event.listens_for(Invoice, 'before_insert')
 def validate_invoice_organization(mapper, connection, target):
     if target.organization != target.order.organization:
         raise ValueError(u"Invoice MUST be associated with the same organization as its order")
-
-

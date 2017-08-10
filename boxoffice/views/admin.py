@@ -27,8 +27,7 @@ def index():
 def jsonify_org(data):
     item_collections_list = ItemCollection.query.filter(ItemCollection.organization == data['org']).order_by('created_at desc').all()
     return jsonify(id=data['org'].id,
-        name=data['org'].name,
-        title=data['org'].title,
+        org_title=data['org'].title,
         item_collections=[{'id': ic.id, 'name': ic.name, 'title': ic.title, 'url': '/ic/' + unicode(ic.id), 'description_text': ic.description_text, 'description_html': ic.description_html} for ic in item_collections_list])
 
 

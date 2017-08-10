@@ -8,6 +8,8 @@
     "c3": "~0.4.11",
     "clipboard": "^1.6.0",
     "d3": "~3.5.17",
+    "gulp-concat": "^2.6.1",
+    "gulp-minify-css": "^1.2.4",
     "moment": "^2.18.1",
     "nprogress": "^0.2.0",
     "ractive": "^0.7.3",
