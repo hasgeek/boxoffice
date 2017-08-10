@@ -52,7 +52,7 @@ gulp.task('bundle_css', () =>
   gulp.src(['./node_modules/c3/c3.min.css','./node_modules/bootstrap-daterangepicker/daterangepicker.css', './node_modules/nprogress/nprogress.css'])
   .pipe(concat('admin_bundle.css'))
   .pipe(minify())
-  .pipe(gulp.dest('./dist/css/'))
+  .pipe(gulp.dest('../css/dist/'))
 );
 
 gulp.task('build', [], () => {
