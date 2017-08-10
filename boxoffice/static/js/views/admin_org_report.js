@@ -13,7 +13,6 @@ export const OrgReportView = {
         el: '#main-content-area',
         template: OrgReportTemplate,
         data:  {
-          orgName: org_name,
           orgTitle: org_title,
           reportType: "invoices",
           reportsUrl: function() {
@@ -21,7 +20,7 @@ export const OrgReportView = {
             return urlFor('index', {
               resource: reportType,
               scope_ns: 'o',
-              scope_id: orgName,
+              scope_id: org_name,
               ext: 'csv',
               root: true
             });
