@@ -32,7 +32,7 @@ export const OrgReportView = {
         }
       });
 
-      SideBarView.render('org_reports', {name});
+      SideBarView.render('org_reports', {org_name});
       setPageTitle("Organization reports", reportComponent.get('orgTitle'));
       NProgress.done();
 

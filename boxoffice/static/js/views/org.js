@@ -18,7 +18,7 @@ export const OrgView = {
         }
       });
 
-      SideBarView.hide();
+      SideBarView.render('org', {org_name});
       setPageTitle(orgComponent.get('orgTitle'));
       NProgress.done();
 

@@ -533,7 +533,8 @@ export const DiscountPolicyView = {
         }
       });
 
-      SideBarView.render('discount-policies', {org_name});
+      let item_collection = "";
+      SideBarView.render('discount-policies', {org_name, item_collection});
       setPageTitle("Discount policies", discountPolicyComponent.get('orgTitle'));
       NProgress.done();
 
