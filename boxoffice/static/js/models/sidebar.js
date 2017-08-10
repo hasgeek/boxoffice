@@ -18,17 +18,17 @@ export const SideBarModel = {
           view: 'org'
         },
         {
-          url: urlFor('index', {resource: 'reports', scope_ns: 'o', scope_id: org_name}),
-          title: 'Reports',
-          icon: 'fa-file-excel-o',
-          view: 'org_reports',
-          subItem: true
-        },
-        {
           url: urlFor('index', {scope_ns: 'o', scope_id: org_name, resource: 'discount_policy'}),
           title: 'Discount Policies',
           icon: 'fa-tags',
           view: 'discount-policies',
+          subItem: true
+        },
+        {
+          url: urlFor('index', {resource: 'reports', scope_ns: 'o', scope_id: org_name}),
+          title: 'Reports',
+          icon: 'fa-file-excel-o',
+          view: 'org_reports',
           subItem: true
         },
         {
