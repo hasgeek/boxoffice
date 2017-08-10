@@ -161,9 +161,9 @@ def invoices_report(organization):
         dict_row = {}
         for idx, item in enumerate(row):
             dict_row[headers[idx]] = item
-        if dict_row.get('status') is not None:
+        if dict_row.get('status') in INVOICE_STATUS.keys():
             dict_row['status'] = INVOICE_STATUS.get(dict_row['status'])
-        if dict_row.get('invoiced_at') is not None:
+        if isinstance(dict_row.get('invoiced_at'), datetime):
             dict_row['invoiced_at'] = format_datetime(localize_timezone(dict_row['invoiced_at']), format='long', locale=get_locale() or 'en')
         return dict_row
 
