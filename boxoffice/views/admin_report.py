@@ -12,8 +12,9 @@ from datetime import datetime
 
 def jsonify_report(data_dict):
     return jsonify(org_name=data_dict['item_collection'].organization.name,
-        name=data_dict['item_collection'].name,
-        title=data_dict['item_collection'].title)
+        org_title=data_dict['item_collection'].organization.title,
+        ic_name=data_dict['item_collection'].name,
+        ic_title=data_dict['item_collection'].title)
 
 
 @app.route('/admin/ic/<ic_id>/reports')
@@ -25,8 +26,10 @@ def jsonify_report(data_dict):
 def admin_report(item_collection):
     return dict(item_collection=item_collection)
 
+
 def jsonify_org_report(data_dict):
-    return jsonify(name=data_dict['organization'].name, title=data_dict['organization'].title)
+    return jsonify(org_title=data_dict['organization'].title)
+
 
 @app.route('/admin/o/<org_name>/reports')
 @lastuser.requires_login

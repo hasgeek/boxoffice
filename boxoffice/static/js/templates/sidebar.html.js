@@ -7,7 +7,7 @@ export const SideBarTemplate = `
       <div class="admin-sidebar-content">
         {{#sidebarItems}}
           {{#url}}
-            <a class="sidebar-title {{#if activeItem === view}} active {{/if}} {{#if title == 'Dashboard'}}sidebar-item-border{{/if}}" href="javascript:void(0)" on-click="navigate(event)"><i class="sidebar-title-icon fa fa-fw {{icon}}"></i>{{ title }}</a>
+            <a class="sidebar-title {{#if activeItem === view}}active{{/if}} {{#subItem}}sidebar-subitem{{/}}" title="{{ title }}" href="javascript:void(0)" on-click="navigate(event)"><i class="sidebar-title-icon fa fa-fw {{icon}}"></i>{{ title }}</a>
           {{/}}
         {{/sidebarItems}}
       </div>

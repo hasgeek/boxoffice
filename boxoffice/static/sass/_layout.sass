@@ -422,6 +422,10 @@ input.icon-placeholder
   font-size: 16px
   text-decoration: none
   color: #18a1c8
+  width: 100%
+  white-space: nowrap
+  overflow: hidden
+  text-overflow: ellipsis
 
 .admin-sidebar .sidebar-title:active,
 .admin-sidebar .sidebar-title:focus 
@@ -435,8 +439,9 @@ input.icon-placeholder
   color: #856a91
   cursor: default
 
-.sidebar-item-border
-  border-top: 1px solid
+.admin-sidebar .sidebar-subitem
+  padding-left: 40px
+  font-size: 14px
 
 .sidebar-title-icon 
   padding-right: 10px
@@ -451,7 +456,7 @@ input.icon-placeholder
   .admin-sidebar 
     top: 37px
     left: 0
-    width: 13%
+    width: 15%
   
   .admin-sidebar-content 
     width: 100%
@@ -469,12 +474,20 @@ input.icon-placeholder
     cursor: default
   
   .content-wrapper
-    width: 87%
-    margin: 0 13% 30px
+    width: 85%
+    margin: 0 15% 30px
 
   .content-wrapper .header
     text-align: left
     padding: 0 15px
+
+@media (min-width: 1400px)
+  .admin-sidebar 
+    width: 13%
+
+  .content-wrapper
+    width: 87%
+    margin: 0 13% 30px
 
 .title-wrapper
   margin-bottom: 12px

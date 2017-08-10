@@ -8,13 +8,13 @@ export const OrderView = {
 
     fetch({
       url: urlFor('index', {scope_ns: 'ic', scope_id: ic_id, resource: 'orders', root: true})
-    }).done(({org_name, title, orders}) => {
+    }).done(({org_name, org_title, ic_title, orders}) => {
       // Initial render
       let orderComponent = new Ractive({
         el: '#main-content-area',
         template: OrderTemplate,
         data:  {
-          icTitle: title,
+          icTitle: ic_title,
           orders: orders,
           formatDateTime: function (dateTimeString) {
             return Util.formatDateTime(dateTimeString);
@@ -25,8 +25,8 @@ export const OrderView = {
         }
       });
 
-      SideBarView.render('orders', {org_name, ic_id});
-      setPageTitle("Orders", orderComponent.get('icTitle'));
+      SideBarView.render('orders', {org_name, org_title, ic_id, ic_title});
+      setPageTitle("Orders", ic_title);
       NProgress.done();
 
       $('#orders-table').footable({

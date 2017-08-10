@@ -7,14 +7,14 @@ export const OrgReportView = {
   render: function({org_name}={}) {
     fetch({
       url: urlFor('index', {resource: 'reports', scope_ns: 'o', scope_id: org_name, root: true})
-    }).done(({name, title}) => {
+    }).done(({org_title}) => {
       // Initial render
       let reportComponent = new Ractive({
         el: '#main-content-area',
         template: OrgReportTemplate,
         data:  {
-          orgName: name,
-          orgTitle: title,
+          orgName: org_name,
+          orgTitle: org_title,
           reportType: "invoices",
           reportsUrl: function() {
             let reportType = this.get('reportType');
@@ -32,8 +32,8 @@ export const OrgReportView = {
         }
       });
 
-      SideBarView.render('org_reports', {org_name});
-      setPageTitle("Organization reports", reportComponent.get('orgTitle'));
+      SideBarView.render('org_reports', {org_name, org_title});
+      setPageTitle("Organization reports", org_title);
       NProgress.done();
 
       window.addEventListener('popstate', (event) => {

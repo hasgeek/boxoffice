@@ -40,14 +40,14 @@ export const DiscountPolicyView = {
 
     fetch({
       url: url
-    }).done(({org_name, title, discount_policies, currency_symbol, total_pages, paginated, current_page}) => {
+    }).done(({org_title, discount_policies, currency_symbol, total_pages, paginated, current_page}) => {
       // Initial render
       let discountPolicyComponent = new Ractive({
         el: '#main-content-area',
         template: DiscountPolicyTemplate,
         data:  {
           orgName: org_name,
-          orgTitle: title,
+          orgTitle: org_title,
           discountPolicies: discount_policies,
           currency_symbol: currency_symbol,
           paginated: paginated,
@@ -533,9 +533,8 @@ export const DiscountPolicyView = {
         }
       });
 
-      let item_collection = "";
-      SideBarView.render('discount-policies', {org_name, item_collection});
-      setPageTitle("Discount policies", discountPolicyComponent.get('orgTitle'));
+      SideBarView.render('discount-policies', {org_name, org_title});
+      setPageTitle("Discount policies", org_title);
       NProgress.done();
 
       window.addEventListener('popstate', (event) => {
