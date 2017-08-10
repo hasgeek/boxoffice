@@ -84,7 +84,7 @@ def fetch_invoices(self):
     invoices_query = db.select([Order.id, Order.receipt_no, Invoice.invoice_no, Invoice.status,
         Invoice.buyer_taxid, Invoice.seller_taxid, Invoice.invoicee_name, Invoice.invoicee_company, Invoice.invoicee_email, Invoice.street_address_1, Invoice.street_address_2, Invoice.city,
         Invoice.state, Invoice.state_code, Invoice.country_code, Invoice.postcode, Invoice.invoiced_at
-        ]).select_from(invoices_join).order_by(Invoice.invoice_no)
+        ]).where(Invoice.organization == self).select_from(invoices_join).order_by(Invoice.invoice_no)
     return HeadersAndDataTuple(
         headers,
         db.session.execute(invoices_query).fetchall()
