@@ -21,13 +21,13 @@ export const OrgReportView = {
             return urlFor('index', {
               resource: reportType,
               scope_ns: 'o',
-              scope_id: name,
+              scope_id: orgName,
               ext: 'csv',
               root: true
             });
           },
           reportsFilename: function() {
-            return this.get('orgName') + '_' + this.get('reportType') + '.csv';
+            return org_name + '_' + this.get('reportType') + '.csv';
           }
         }
       });
