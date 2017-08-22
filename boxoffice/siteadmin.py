@@ -13,7 +13,7 @@ class OrganizationModelView(SiteAdminModelView):
     column_display_pk = True
     column_list = ('id', 'title')
     form_list = ('id', 'userid', 'title')
-    form_excluded_columns = ['userid', 'item_collections', 'discount_policies', 'orders', 'created_at', 'updated_at']
+    form_excluded_columns = ['userid', 'item_collections', 'discount_policies', 'invoices', 'orders', 'created_at', 'updated_at']
     form_overrides = dict(details=JSONField)
 
 
