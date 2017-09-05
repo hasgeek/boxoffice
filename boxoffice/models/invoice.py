@@ -85,7 +85,7 @@ def validate_immutable_finalized_invoice(mapper, connection, target):
     # get_history helps check if the invoice was previously in draft status.
     # This check is necessary to allow edits to an invoice which may be transitioning from draft to final
     if target.is_final and get_history(target, 'status').deleted.count(INVOICE_STATUS.DRAFT) == 0:
-        raise ValueError("Price-based discounts MUST have only one associated item")
+        raise ValueError("Finalized invoice cannot be modified")
 
 
 def fetch_invoices(self):
