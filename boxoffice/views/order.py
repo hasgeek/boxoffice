@@ -336,15 +336,21 @@ def edit_invoice_details(order):
     invoice_dict = request.json.get('invoice')
     if not request.json or not invoice_dict:
         return api_error(message=_(u"Missing invoice details"), status_code=400)
+
+    invoice = Invoice.query.get(request.json.get('invoice_id'))
+    if invoice.is_final:
+        return api_error(message=_(u"This invoice has already been generated and hence cannot be modified"),
+    status_code=400)
+
     invoice_form = InvoiceForm.from_json(invoice_dict, meta={'csrf': False})
     if not invoice_form.validate():
         return api_error(message=_(u"Incorrect invoice details"),
             status_code=400, errors=invoice_form.errors)
     else:
-        invoice = Invoice.query.get(request.json.get('invoice_id'))
         invoice_form.populate_obj(invoice)
         db.session.commit()
-        return api_success(result={'message': 'Invoice updated', 'invoice': jsonify_invoice(invoice)}, doc=_(u"Invoice details added"), status_code=201)
+        return api_success(result={'message': 'Invoice updated', 'invoice': jsonify_invoice(invoice)},
+            doc=_(u"Invoice details added"), status_code=201)
 
 
 def jsonify_invoices(data_dict):

@@ -7,6 +7,7 @@ from boxoffice.models import db, BaseMixin, UuidMixin, HeadersAndDataTuple, Orga
 from sqlalchemy import event
 from sqlalchemy.sql import select, func
 from sqlalchemy.ext.orderinglist import ordering_list
+from sqlalchemy.orm.attributes import get_history
 from baseframe import __
 from boxoffice.models.user import get_fiscal_year
 
@@ -71,6 +72,18 @@ class Invoice(UuidMixin, BaseMixin, db.Model):
         self.invoiced_at = datetime.utcnow()
         self.invoice_no = gen_invoice_no(organization, country_code, self.invoiced_at)
         super(Invoice, self).__init__(*args, **kwargs)
+
+    @property
+    def is_final(self):
+        return self.status == INVOICE_STATUS.FINAL
+
+@event.listens_for(Invoice, 'before_update')
+def validate_immutable_finalized_invoice(mapper, connection, target):
+    """
+    Raises ValueError if a finalized invoice is being modified. Allows for the status to be toggled.
+    """
+    if target.is_final and get_history(target, 'status').deleted.count(INVOICE_STATUS.DRAFT) == 0:
+        raise ValueError("Price-based discounts MUST have only one associated item")
 
 
 def fetch_invoices(self):
