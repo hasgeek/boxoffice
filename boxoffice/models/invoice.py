@@ -7,6 +7,7 @@ from boxoffice.models import db, BaseMixin, UuidMixin, HeadersAndDataTuple, Orga
 from sqlalchemy import event
 from sqlalchemy.sql import select, func
 from sqlalchemy.ext.orderinglist import ordering_list
+from sqlalchemy.orm import validates
 from baseframe import __
 from boxoffice.models.user import get_fiscal_year
 
@@ -72,6 +73,17 @@ class Invoice(UuidMixin, BaseMixin, db.Model):
         self.invoice_no = gen_invoice_no(organization, country_code, self.invoiced_at)
         super(Invoice, self).__init__(*args, **kwargs)
 
+    @property
+    def is_final(self):
+        return self.status == INVOICE_STATUS.FINAL
+
+    @validates('invoicee_name', 'invoicee_company', 'invoicee_email', 'invoice_no', 'invoiced_at',
+    'street_address_1', 'street_address_2', 'city', 'state', 'state_code', 'country_code', 'postcode',
+    'buyer_taxid', 'seller_taxid', 'customer_order_id', 'organization_id')
+    def validate_immutable_final_invoice(self, key, val):
+        if self.status == INVOICE_STATUS.FINAL:
+            raise ValueError("`{attr}` cannot be modified in a finalized invoice".format(attr=key))
+        return val
 
 def fetch_invoices(self):
     """
