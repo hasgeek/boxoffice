@@ -339,7 +339,7 @@ def edit_invoice_details(order):
 
     invoice = Invoice.query.get(request.json.get('invoice_id'))
     if invoice.is_final:
-        return api_error(message=_(u"This invoice has already been generated and hence cannot be modified"),
+        return api_error(message=_(u"This invoice has been finalised and hence cannot be modified"),
     status_code=400)
 
     invoice_form = InvoiceForm.from_json(invoice_dict, meta={'csrf': False})
