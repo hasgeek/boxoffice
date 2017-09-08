@@ -81,7 +81,7 @@ class Invoice(UuidMixin, BaseMixin, db.Model):
     'street_address_1', 'street_address_2', 'city', 'state', 'state_code', 'country_code', 'postcode',
     'buyer_taxid', 'seller_taxid', 'customer_order_id', 'organization_id')
     def validate_immutable_final_invoice(self, key, val):
-        if self.status is INVOICE_STATUS.FINAL:
+        if self.status == INVOICE_STATUS.FINAL:
             raise ValueError("`{attr}` cannot be modified in a finalized invoice".format(attr=key))
         return val
 
