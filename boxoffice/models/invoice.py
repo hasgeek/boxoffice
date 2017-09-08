@@ -7,7 +7,7 @@ from boxoffice.models import db, BaseMixin, UuidMixin, HeadersAndDataTuple, Orga
 from sqlalchemy import event
 from sqlalchemy.sql import select, func
 from sqlalchemy.ext.orderinglist import ordering_list
-from sqlalchemy.orm.attributes import get_history
+from sqlalchemy.orm import validates
 from baseframe import __
 from boxoffice.models.user import get_fiscal_year
 
@@ -77,16 +77,13 @@ class Invoice(UuidMixin, BaseMixin, db.Model):
     def is_final(self):
         return self.status == INVOICE_STATUS.FINAL
 
-@event.listens_for(Invoice, 'before_update')
-def validate_immutable_finalized_invoice(mapper, connection, target):
-    """
-    Raises ValueError if a finalized invoice is being modified. Allows the status to be toggled.
-    """
-    # get_history helps check if the invoice was previously in draft status.
-    # This check is necessary to allow edits to an invoice which may be transitioning from draft to final
-    if target.is_final and get_history(target, 'status').deleted.count(INVOICE_STATUS.DRAFT) == 0:
-        raise ValueError("Finalized invoice cannot be modified")
-
+    @validates('invoicee_name', 'invoicee_company', 'invoicee_email', 'invoice_no', 'invoiced_at',
+    'street_address_1', 'street_address_2', 'city', 'state', 'state_code', 'country_code', 'postcode',
+    'buyer_taxid', 'seller_taxid', 'customer_order_id', 'organization_id')
+    def validate_immutable_final_invoice(self, key, val):
+        if self.status is INVOICE_STATUS.FINAL:
+            raise ValueError("`{attr}` cannot be modified in a finalized invoice".format(attr=key))
+        return val
 
 def fetch_invoices(self):
     """
