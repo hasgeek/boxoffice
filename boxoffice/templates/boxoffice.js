@@ -5,7 +5,6 @@ window.Boxoffice = {
     razorpayKeyId: "{{ razorpay_key_id }}",
     orgName: 'HasGeek',
     razorpayBanner: "https://hasgeek.com/static/img/hg-banner.png",
-    categories: [],
     states: {{ states | tojson }},
     countries: {{ countries | tojson }}
   }
