@@ -137,6 +137,7 @@ $(function() {
   };
 
   boxoffice.init = function(widgetConfig) {
+    widgetConfig.categories = widgetConfig.categories || [];
     // Config variables provided by the client embedding the widget
     this.widgetConfig = widgetConfig;
     this.initResources({
