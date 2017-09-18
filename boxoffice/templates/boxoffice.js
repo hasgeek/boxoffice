@@ -187,6 +187,7 @@ $(function() {
             })
           }
         });
+      }
 
       boxoffice.ractive = new Ractive({
         el: '#boxoffice-widget',
