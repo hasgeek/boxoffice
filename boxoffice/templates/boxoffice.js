@@ -156,7 +156,7 @@ $(function() {
 
       // Keep a flattened array of items so it's easier to loop through
       if (should_filter_items) {
-        data.items = [];
+        var flattenedItems = [];
       }
 
       /* load inventory from server, initialize lineItems with
@@ -165,7 +165,7 @@ $(function() {
         category.items.forEach(function(item) {
           // Keep a flattened array of items so it's easier to loop through
           if (should_filter_items) {
-            data.items.push(item);
+            flattenedItems.push(item);
           }
           lineItems.push({
             'item_id': item.id,
@@ -196,10 +196,10 @@ $(function() {
             title: category.title,
             items: []
           }
-          // While it's more efficient to loop over data.items and do a search in item_names, we
+          // While it's more efficient to loop over flattenedItems and do a search in item_names, we
           // lose ordering. Looping over item_names first ensures we find the items in the right order.
           category.item_names.forEach(function(item_name) {
-            data.items.forEach(function(item) {
+            flattenedItems.forEach(function(item) {
               if(item_name == item.name) {
                 tempCategory.items.push(item);
               }
