@@ -178,17 +178,15 @@ $(function() {
       });
 
       if (widgetConfig.categories.length > 0) {
-        categories = [];
-        widgetConfig.categories.forEach(function(widget_category) {
-          categories.push({
+        categories = widgetConfig.categories.map(function(widget_category) {
+          return {
             name: widget_category.name,
             title: widget_category.title,
-            items: widget_category.item_ids.map(function(item_id){
+            items: widget_category.item_ids.map(function(item_id) {
               return item_map[item_id];
             })
-          });
+          }
         });
-      }
 
       boxoffice.ractive = new Ractive({
         el: '#boxoffice-widget',
@@ -885,7 +883,7 @@ $(function() {
   };
 
   window.Boxoffice.init = function(widgetConfig) {
-	boxoffice.init(widgetConfig);
+	  boxoffice.init(widgetConfig);
   };
 });
 {% endraw %}
