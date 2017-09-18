@@ -150,23 +150,14 @@ $(function() {
       dataType: 'json'
     }).done(function(data) {
       var lineItems = [];
-
-      // Flag: If items have been explicitly specified in the config
-      var should_filter_items = widgetConfig.categories.length > 0;
-
-      // Keep a flattened array of items so it's easier to loop through
-      if (should_filter_items) {
-        var flattenedItems = [];
-      }
+      var item_map = {};
+      var categories = data.categories;
 
       /* load inventory from server, initialize lineItems with
       their quantities set to 0 */
       data.categories.forEach(function(category) {
         category.items.forEach(function(item) {
-          // Keep a flattened array of items so it's easier to loop through
-          if (should_filter_items) {
-            flattenedItems.push(item);
-          }
+          item_map[item.id] = item;
           lineItems.push({
             'item_id': item.id,
             'item_name': item.name,
@@ -186,31 +177,17 @@ $(function() {
         });
       });
 
-
-      var categories;
-      if (should_filter_items) {
+      if (widgetConfig.categories.length > 0) {
         categories = [];
-        widgetConfig.categories.forEach(function(category) {
-          var tempCategory = {
-            name: category.name,
-            title: category.title,
-            items: []
-          }
-          // While it's more efficient to loop over flattenedItems and do a search in item_names, we
-          // lose ordering. Looping over item_names first ensures we find the items in the right order.
-          category.item_names.forEach(function(item_name) {
-            flattenedItems.forEach(function(item) {
-              if(item_name == item.name) {
-                tempCategory.items.push(item);
-              }
-            });
+        widgetConfig.categories.forEach(function(widget_category) {
+          categories.push({
+            name: widget_category.name,
+            title: widget_category.title,
+            items: widget_category.item_ids.map(function(item_id){
+              return item_map[item_id];
+            })
           });
-          categories.push(tempCategory);
-        })
-      }
-      // No customization, use server defined categories.
-      else {
-        categories = data.categories;
+        });
       }
 
       boxoffice.ractive = new Ractive({
