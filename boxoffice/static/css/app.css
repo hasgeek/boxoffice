@@ -181,6 +181,19 @@ a.boxoffice-button:focus {
   margin-bottom: 45px;
 }
 
+@media(min-width: 1024px) {
+  .inline-group.left-group {
+    width: 45%;
+    float: left;
+    clear: both;
+  }
+
+  .inline-group.right-group {
+    width: 45%;
+    float: right;
+    clear: none;
+  }
+}
 .group-margin-top {
   margin-top: 20px;
 }
@@ -259,12 +272,17 @@ input.icon-placeholder {
   -moz-appearance: none;
   appearance: none;
   width: 100%;
-  padding: 10px 10px 10px 5px;
+  font-size: 18px;
+  padding: 10px 10px 10px 1px;
   background: transparent;
   border: none;
   border-radius: 0;
   border-bottom: 1px solid #757575;
   position: relative;
+}
+
+.inline-group select {
+  top: 2px;
 }
 
 .group-select select:-moz-focusring {
@@ -293,6 +311,10 @@ input.icon-placeholder {
   border-right: 5px solid transparent;
   border-top: 5px solid #757575;
   pointer-events: none;
+}
+
+.inline-group.group-select:after {
+  top: 22px;
 }
 
 .inline-group .input-group {
@@ -476,6 +498,10 @@ input.icon-placeholder {
   font-size: 16px;
   text-decoration: none;
   color: #18a1c8;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .admin-sidebar .sidebar-title:active,
@@ -490,6 +516,11 @@ input.icon-placeholder {
   text-decoration: none;
   color: #856a91;
   cursor: default;
+}
+
+.admin-sidebar .sidebar-subitem {
+  padding-left: 40px;
+  font-size: 14px;
 }
 
 .sidebar-title-icon {
@@ -508,7 +539,7 @@ input.icon-placeholder {
   .admin-sidebar {
     top: 37px;
     left: 0;
-    width: 13%;
+    width: 15%;
   }
 
   .admin-sidebar-content {
@@ -531,13 +562,23 @@ input.icon-placeholder {
   }
 
   .content-wrapper {
-    width: 87%;
-    margin: 0 13% 30px;
+    width: 85%;
+    margin: 0 15% 30px;
   }
 
   .content-wrapper .header {
     text-align: left;
     padding: 0 15px;
+  }
+}
+@media (min-width: 1400px) {
+  .admin-sidebar {
+    width: 13%;
+  }
+
+  .content-wrapper {
+    width: 87%;
+    margin: 0 13% 30px;
   }
 }
 .title-wrapper {
@@ -624,19 +665,26 @@ input.icon-placeholder {
   overflow-x: inherit;
 }
 
+.org-header {
+  text-align: center;
+  margin: 0 auto 15px;
+}
+
 .organization-logo {
-  float: left;
   max-width: 80px;
-  padding: 10px 0;
+  margin: 0 auto;
 }
 
 .organization-logo img {
   width: 100%;
 }
 
+.item-collection-title {
+  font-size: 24px;
+}
+
 .item-collection-description {
   font-size: 18px;
-  text-align: center;
 }
 
 .ticket {

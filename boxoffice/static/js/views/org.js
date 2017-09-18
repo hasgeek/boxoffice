@@ -8,18 +8,18 @@ export const OrgView = {
 
     fetch({
       url: urlFor('view', {resource: 'o', id: org_name, root: true})
-    }).then(function({id, name, title, item_collections}){
+    }).then(function({id, org_title, item_collections}){
       let orgComponent = new Ractive({
         el: '#main-content-area',
         template: orgTemplate,
         data: {
-          orgTitle: title,
+          orgTitle: org_title,
           item_collections: item_collections
         }
       });
 
-      SideBarView.hide();
-      setPageTitle(orgComponent.get('orgTitle'));
+      SideBarView.render('org', {org_name, org_title});
+      setPageTitle(org_title);
       NProgress.done();
 
       orgComponent.on('navigate', function(event, method){

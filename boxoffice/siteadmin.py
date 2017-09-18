@@ -13,7 +13,7 @@ class OrganizationModelView(SiteAdminModelView):
     column_display_pk = True
     column_list = ('id', 'title')
     form_list = ('id', 'userid', 'title')
-    form_excluded_columns = ['userid', 'item_collections', 'discount_policies', 'orders', 'created_at', 'updated_at']
+    form_excluded_columns = ['userid', 'item_collections', 'discount_policies', 'invoices', 'orders', 'created_at', 'updated_at']
     form_overrides = dict(details=JSONField)
 
 
@@ -66,3 +66,11 @@ class DiscountCouponModelView(SiteAdminModelView):
     column_searchable_list = ['code']
     column_list = ('code', 'discount_policy')
     form_excluded_columns = ['line_items', 'created_at', 'updated_at']
+
+
+class InvoiceModelView(SiteAdminModelView):
+    can_delete = False
+    column_filters = ['invoice_no']
+    column_searchable_list = ['invoicee_email']
+    column_list = ('customer_order_id', 'invoice_no', 'invoicee_name', 'invoicee_email')
+    form_excluded_columns = ['customer_order_id', 'organization_id', 'created_at', 'updated_at']

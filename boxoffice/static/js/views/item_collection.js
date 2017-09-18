@@ -111,13 +111,13 @@ export const ItemCollectionView = {
 
     fetch({
       url: urlFor('view', {resource: 'ic', id: ic_id, root: true})
-    }).done(({org_name, title, categories, date_item_counts, date_sales, today_sales, net_sales, sales_delta}) => {
+    }).done(({org_name, org_title, ic_title, categories, date_item_counts, date_sales, today_sales, net_sales, sales_delta}) => {
       // Initial render
       let icComponent = new Ractive({
         el: '#main-content-area',
         template: ItemCollectionTemplate,
         data: {
-          icTitle: title,
+          icTitle: ic_title,
           categories: categories,
           date_item_counts: date_item_counts,
           date_sales: date_sales,
@@ -132,8 +132,8 @@ export const ItemCollectionView = {
         components: {TableComponent: TableComponent, AggChartComponent: AggChartComponent}
       });
 
-      SideBarView.render('dashboard', {org_name, ic_id});
-      setPageTitle(icComponent.get('icTitle'));
+      SideBarView.render('dashboard', {org_name, org_title, ic_id, ic_title});
+      setPageTitle(ic_title);
       NProgress.done();
 
       window.addEventListener('popstate', (event) => {

@@ -4,11 +4,18 @@ from datetime import datetime
 from decimal import Decimal
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.orderinglist import ordering_list
+from baseframe import __
+from coaster.utils import LabeledEnum
 from . import db, JsonDict, BaseScopedNameMixin, MarkdownColumn
 from . import ItemCollection, Category
 from .discount_policy import item_discount_policy
 
 __all__ = ['Item', 'Price']
+
+
+class GST_TYPE(LabeledEnum):
+    GOOD = (0, __("Good"))
+    SERVICE = (1, __("Service"))
 
 
 class Item(BaseScopedNameMixin, db.Model):

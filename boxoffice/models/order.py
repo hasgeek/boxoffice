@@ -3,7 +3,7 @@
 from decimal import Decimal
 from datetime import datetime
 from collections import namedtuple
-from sqlalchemy import sql
+from sqlalchemy.sql import select, func
 from boxoffice.models import db, BaseMixin, User
 from coaster.utils import LabeledEnum, buid
 from baseframe import __
@@ -21,13 +21,12 @@ ORDER_STATUS.CONFIRMED = [ORDER_STATUS.SALES_ORDER, ORDER_STATUS.INVOICE]
 ORDER_STATUS.TRANSACTION = [ORDER_STATUS.SALES_ORDER, ORDER_STATUS.INVOICE, ORDER_STATUS.CANCELLED]
 
 
-def get_latest_invoice_no(organization):
+def gen_invoice_no(organization):
     """
-    Returns the last invoice number used, 0 if no order has ben invoiced yet.
+    Generates a sequential invoice number for an order scoped by the given organization
     """
-    last_invoice_no = db.session.query(sql.functions.max(Order.invoice_no))\
-        .filter(Order.organization == organization).first()
-    return last_invoice_no[0] if last_invoice_no[0] else 0
+    return select([func.coalesce(func.max(Order.invoice_no + 1), 1)]).where(
+        Order.organization == organization)
 
 
 def order_amounts_ntuple(base_amount, discounted_amount, final_amount, confirmed_amount):
@@ -62,6 +61,7 @@ class Order(BaseMixin, db.Model):
     buyer_fullname = db.Column(db.Unicode(80), nullable=False)
     buyer_phone = db.Column(db.Unicode(16), nullable=False)
 
+    # TODO: Deprecate invoice_no, rename to receipt_no instead
     invoice_no = db.Column(db.Integer, nullable=True)
 
     def permissions(self, user, inherited=None):
@@ -74,7 +74,7 @@ class Order(BaseMixin, db.Model):
         """Updates the status to ORDER_STATUS.SALES_ORDER"""
         for line_item in self.line_items:
             line_item.confirm()
-        self.invoice_no = get_latest_invoice_no(self.organization) + 1
+        self.invoice_no = gen_invoice_no(self.organization)
         self.status = ORDER_STATUS.SALES_ORDER
         self.paid_at = datetime.utcnow()
 

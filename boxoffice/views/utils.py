@@ -2,6 +2,7 @@
 
 from flask import request, abort, Response, jsonify, make_response
 from functools import wraps
+from urlparse import urlparse
 try:
     from cStringIO import StringIO
 except ImportError:
@@ -36,6 +37,22 @@ def longdate(date):
     return localize_timezone(date).strftime('%e %B %Y')
 
 
+def basepath(url):
+    """
+    Returns the base path of a given a URL
+    Eg::
+
+        basepath("https://hasgeek.com/1")
+        >> u"https://hasgeek.com
+
+    :param url: A valid URL unicode string. Eg: https://hasgeek.com
+    """
+    parsed_url = urlparse(url)
+    if not (parsed_url.scheme or parsed_url.netloc):
+        raise ValueError("Invalid URL")
+    return u"{scheme}://{netloc}".format(scheme=parsed_url.scheme, netloc=parsed_url.netloc)
+
+
 def cors(f):
     """
     Adds CORS headers to the decorated view function.
@@ -56,7 +73,14 @@ def cors(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
         origin = request.headers.get('Origin')
-        if not origin or origin not in app.config['ALLOWED_ORIGINS']:
+        if not origin:
+            # Firefox doesn't send the Origin header, so read the Referer header instead
+            # TODO: Remove this conditional when Firefox starts adding an Origin header
+            referer = request.referrer
+            if referer:
+                origin = basepath(referer)
+
+        if request.method == 'POST' and not origin or origin not in app.config['ALLOWED_ORIGINS']:
             abort(401)
 
         if request.method == 'OPTIONS':
@@ -89,7 +113,7 @@ def csv_response(headers, rows, row_type=None, row_handler=None):
         csv_writer.writerows(row_handler(row) for row in rows)
     else:
         csv_writer.writerows(rows)
-    return Response(unicode(stream.getvalue()), mimetype='text/csv')
+    return Response(unicode(stream.getvalue().decode('utf-8')), mimetype='text/csv')
 
 
 def api_error(message, status_code, errors=[]):

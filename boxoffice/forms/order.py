@@ -2,8 +2,9 @@
 
 from baseframe import __
 import baseframe.forms as forms
+from boxoffice.data import indian_states_dict, short_codes
 
-__all__ = ['LineItemForm', 'BuyerForm', 'OrderSessionForm', 'RefundTransactionForm']
+__all__ = ['LineItemForm', 'BuyerForm', 'OrderSessionForm', 'RefundTransactionForm', 'InvoiceForm']
 
 
 def trim(length):
@@ -41,9 +42,9 @@ class LineItemForm(forms.Form):
 
 
 class BuyerForm(forms.Form):
-    email = forms.EmailField(__("Email"), validators=[forms.validators.DataRequired(), forms.validators.Length(max=80)])
-    fullname = forms.StringField(__("Full name"), validators=[forms.validators.DataRequired(), forms.validators.Length(max=80)])
-    phone = forms.StringField(__("Phone number"), validators=[forms.validators.Length(max=16)])
+    email = forms.EmailField(__("Email"), validators=[forms.validators.DataRequired(__("Please enter an email address")), forms.validators.Length(min=5, max=80)])
+    fullname = forms.StringField(__("Full name"), validators=[forms.validators.DataRequired(__("Please enter the buyer's full name")), forms.validators.Length(max=80)])
+    phone = forms.StringField(__("Phone number"), validators=[forms.validators.DataRequired(__("Please enter a phone number")), forms.validators.Length(max=16)])
 
 
 class OrderSessionForm(forms.Form):
@@ -68,3 +69,54 @@ class RefundTransactionForm(forms.Form):
         description=__("Why is this order receiving a refund?"), filters=[forms.filters.none_if_empty()])
     note_to_user = forms.MarkdownField(__("Note to user"),
         description=__("Send this note to the buyer"), filters=[forms.filters.none_if_empty()])
+
+
+def validate_state_code(form, field):
+    # Note: state_code is only a required field if the chosen country is India
+    if form.country_code.data == "IN":
+        if field.data.upper() not in indian_states_dict:
+            raise forms.validators.StopValidation(__("Please select a state"))
+
+
+def validate_gstin(form, field):
+    """
+    Raise a StopValidation exception if the supplied field's data is not a valid GSTIN.
+
+    Checks if the data is:
+    - 15 characters in length
+    - First two characters form a valid short code for an Indian state
+    - Contains a PAN (alphanumeric sub-string ranging from the 2nd to the 11th character)
+    - Last character is an alphanumeric
+
+    Reference: https://cleartax.in/s/know-your-gstin
+    """
+    # 15 length, first 2 digits, valid pan, checksum
+    if len(field.data) != 15 or int(field.data[:2]) not in short_codes or not field.data[2:12].isalnum() or not field.data[-1].isalnum():
+        raise forms.validators.StopValidation(__("This does not appear to be a valid GSTIN"))
+
+
+class InvoiceForm(forms.Form):
+    buyer_taxid = forms.StringField(__("GSTIN"), validators=[forms.validators.Optional(),
+        forms.validators.Length(max=255), validate_gstin], filters=[forms.filters.strip(), forms.filters.none_if_empty()])
+    invoicee_name = forms.StringField(__("Full name"), validators=[forms.validators.DataRequired(__("Please enter the buyer's full name")),
+        forms.validators.Length(max=255)], filters=[forms.filters.strip()])
+    invoicee_company = forms.StringField(__("Company"), validators=[forms.validators.Optional(),
+        forms.validators.Length(max=255)], filters=[forms.filters.strip()])
+    invoicee_email = forms.EmailField(__("Email"), validators=[forms.validators.DataRequired(__("Please enter an email address")),
+        forms.validators.Length(min=5, max=80),
+        forms.validators.ValidEmail(__("Please enter a valid email"))],
+        filters=[forms.filters.strip()])
+    street_address_1 = forms.StringField(__("Street address 1"), validators=[forms.validators.DataRequired(__("Please enter the street address")),
+        forms.validators.Length(max=255)], filters=[forms.filters.strip()])
+    street_address_2 = forms.StringField(__("Street address 2"), validators=[forms.validators.Optional(),
+        forms.validators.Length(max=255)], filters=[forms.filters.strip()])
+    city = forms.StringField(__("City"), validators=[forms.validators.DataRequired(__("Please enter the city")),
+        forms.validators.Length(max=255)], filters=[forms.filters.strip()])
+    country_code = forms.StringField(__("Country"), validators=[forms.validators.DataRequired(__("Please select a country")),
+        forms.validators.Length(max=2)], filters=[forms.filters.strip()])
+    state_code = forms.StringField(__("State code"), validators=[forms.validators.Length(max=4),
+        validate_state_code], filters=[forms.filters.strip()])
+    state = forms.StringField(__("State"), validators=[forms.validators.Optional(),
+        forms.validators.Length(max=255)], filters=[forms.filters.strip(), forms.filters.none_if_empty()])
+    postcode = forms.StringField(__("Postcode"), validators=[forms.validators.DataRequired(__("Please enter a postcode")),
+        forms.validators.Length(max=8)], filters=[forms.filters.strip()])

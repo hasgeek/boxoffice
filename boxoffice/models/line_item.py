@@ -7,7 +7,7 @@ from collections import namedtuple, OrderedDict
 from sqlalchemy.sql import select, func
 from sqlalchemy.ext.orderinglist import ordering_list
 from isoweek import Week
-from boxoffice.models import db, JsonDict, BaseMixin, ItemCollection, Order, Item, DiscountPolicy, DISCOUNT_TYPE, DiscountCoupon, OrderSession
+from boxoffice.models import db, JsonDict, BaseMixin, HeadersAndDataTuple, ItemCollection, Order, Item, DiscountPolicy, DISCOUNT_TYPE, DiscountCoupon, OrderSession
 from coaster.utils import LabeledEnum, isoweek_datetime, midnight_to_utc
 from baseframe import __
 
@@ -24,9 +24,6 @@ class LINE_ITEM_STATUS(LabeledEnum):
 
 
 LineItemTuple = namedtuple('LineItemTuple', ['item_id', 'id', 'base_amount', 'discount_policy_id', 'discount_coupon_id', 'discounted_amount', 'final_amount'])
-
-HeadersAndDataTuple = namedtuple('HeadersAndDataTuple', ['headers', 'data'])
-
 
 def make_ntuple(item_id, base_amount, **kwargs):
     return LineItemTuple(item_id,
@@ -64,6 +61,8 @@ class LineItem(BaseMixin, db.Model):
     """
     Note: Line Items MUST NOT be deleted.
     They must only be cancelled.
+
+    # TODO: Rename this model to `Ticket`
     """
     __tablename__ = 'line_item'
     __uuid_primary_key__ = True

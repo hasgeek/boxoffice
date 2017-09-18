@@ -18,7 +18,6 @@ class TestOrder(unittest.TestCase):
     def setUp(self):
         self.ctx = app.test_request_context()
         self.ctx.push()
-        db.create_all()
         init_data()
         self.client = app.test_client()
 
@@ -34,12 +33,12 @@ class TestOrder(unittest.TestCase):
             }
         ic = ItemCollection.query.first()
         resp = self.client.post('/ic/{ic}/order'.format(ic=ic.id), data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
-        data = json.loads(resp.data)
         self.assertEquals(resp.status_code, 201)
-        order = Order.query.get(data.get('order_id'))
+        resp_data = json.loads(resp.data)['result']
+        order = Order.query.get(resp_data.get('order_id'))
         self.assertEquals(order.status, ORDER_STATUS.PURCHASE_ORDER)
         # 3500*2 = 7000
-        self.assertEquals(data['final_amount'], 7000)
+        self.assertEquals(resp_data['final_amount'], 7000)
 
     def test_basic_with_utm_headers(self):
         item = Item.query.filter_by(name='conference-ticket').first()
@@ -69,9 +68,9 @@ class TestOrder(unittest.TestCase):
             }
         ic = ItemCollection.query.first()
         resp = self.client.post('/ic/{ic}/order'.format(ic=ic.id), data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
-        data = json.loads(resp.data)
         self.assertEquals(resp.status_code, 201)
-        order = Order.query.get(data.get('order_id'))
+        resp_data = json.loads(resp.data)['result']
+        order = Order.query.get(resp_data.get('order_id'))
         order_session = order.session
         self.assertEquals(order_session.utm_campaign, utm_campaign)
         self.assertEquals(order_session.utm_medium, utm_medium)
@@ -107,9 +106,9 @@ class TestOrder(unittest.TestCase):
             }
         ic = ItemCollection.query.first()
         resp = self.client.post('/ic/{ic}/order'.format(ic=ic.id), data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
-        data = json.loads(resp.data)
         self.assertEquals(resp.status_code, 201)
-        self.assertEquals(data['final_amount'], 2375)
+        resp_data = json.loads(resp.data)['result']
+        self.assertEquals(resp_data['final_amount'], 2375)
 
     def test_expired_item_order(self):
         expired_ticket = Item.query.filter_by(name='expired-ticket').first()
@@ -142,8 +141,8 @@ class TestOrder(unittest.TestCase):
             }
         ic = ItemCollection.query.first()
         resp = self.client.post('/ic/{ic}/order'.format(ic=ic.id), data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
-        resp_data = json.loads(resp.data)
         self.assertEquals(resp.status_code, 201)
+        resp_data = json.loads(resp.data)['result']
         self.assertEquals(resp_data['final_amount'], first_item.current_price().amount - (signed_policy.percentage*first_item.current_price().amount)/decimal.Decimal(100.0))
         line_item = LineItem.query.filter_by(customer_order_id=resp_data['order_id']).first()
         self.assertEquals(line_item.discount_coupon.code, signed_code)
@@ -169,10 +168,10 @@ class TestOrder(unittest.TestCase):
             }
         ic = ItemCollection.query.first()
         resp = self.client.post('/ic/{ic}/order'.format(ic=ic.id), data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
-        data = json.loads(resp.data)
         self.assertEquals(resp.status_code, 201)
         # 10*3500@90% + 5*500*@95 = 33875
-        self.assertEquals(data['final_amount'], 33875)
+        resp_data = json.loads(resp.data)['result']
+        self.assertEquals(resp_data['final_amount'], 33875)
 
     def test_discounted_complex_order(self):
         conf = Item.query.filter_by(name='conference-ticket').first()
@@ -202,9 +201,8 @@ class TestOrder(unittest.TestCase):
             }
         ic = ItemCollection.query.first()
         resp = self.client.post('/ic/{ic}/order'.format(ic=ic.id), data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
-        data = json.loads(resp.data)
         self.assertEquals(resp.status_code, 201)
-        resp_json = json.loads(resp.get_data())
+        resp_json = json.loads(resp.data)['result']
         order = Order.query.get(resp_json.get('order_id'))
         tshirt_policy = DiscountPolicy.query.filter_by(title='5% discount on 5 t-shirts').first()
         tshirt_final_amount = (tshirt_price * tshirt_quantity) - (tshirt_quantity * (tshirt_policy.percentage * tshirt_price)/decimal.Decimal(100))
@@ -229,12 +227,12 @@ class TestOrder(unittest.TestCase):
 
     def test_free_order(self):
         resp = self.make_free_order()
-        data = json.loads(resp.data)
         self.assertEquals(resp.status_code, 201)
-        order = Order.query.get(data.get('order_id'))
+        resp_json = json.loads(resp.data)['result']
+        order = Order.query.get(resp_json.get('order_id'))
         self.assertEquals(order.status, ORDER_STATUS.PURCHASE_ORDER)
         self.assertEquals(order.line_items[0].status, LINE_ITEM_STATUS.PURCHASE_ORDER)
-        self.assertEquals(data['final_amount'], 0)
+        self.assertEquals(resp_json['final_amount'], 0)
         resp = self.client.post('/order/{order_id}/free'.format(order_id=order.id), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
         self.assertEquals(resp.status_code, 201)
         coupon = DiscountCoupon.query.filter_by(code='coupon2').first()
@@ -257,11 +255,11 @@ class TestOrder(unittest.TestCase):
         ic = ItemCollection.query.first()
         # make a purchase order
         resp = self.client.post('/ic/{ic}/order'.format(ic=ic.id), data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
-        data = json.loads(resp.data)
         self.assertEquals(resp.status_code, 201)
-        self.assertEquals(data['final_amount'], total_amount)
+        resp_json = json.loads(resp.data)['result']
+        self.assertEquals(resp_json['final_amount'], total_amount)
 
-        order = Order.query.get(data['order_id'])
+        order = Order.query.get(resp_json['order_id'])
         # Create fake payment and transaction objects
         online_payment = OnlinePayment(pg_paymentid='pg_testpayment', order=order)
         online_payment.confirm()
@@ -302,11 +300,11 @@ class TestOrder(unittest.TestCase):
         ic = ItemCollection.query.first()
         # make a purchase order
         resp = self.client.post('/ic/{ic}/order'.format(ic=ic.id), data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
-        data = json.loads(resp.data)
         self.assertEquals(resp.status_code, 201)
-        self.assertEquals(data['final_amount'], (total_amount - 5*total_amount/decimal.Decimal(100)))
+        resp_json = json.loads(resp.data)['result']
+        self.assertEquals(resp_json['final_amount'], (total_amount - 5*total_amount/decimal.Decimal(100)))
 
-        order = Order.query.get(data['order_id'])
+        order = Order.query.get(resp_json['order_id'])
         # Create fake payment and transaction objects
         online_payment = OnlinePayment(pg_paymentid='pg_testpayment', order=order)
         online_payment.confirm()
@@ -356,7 +354,7 @@ class TestOrder(unittest.TestCase):
 
         # test free line item cancellation
         free_order_resp = self.make_free_order()
-        free_order_resp_data = json.loads(free_order_resp.data)
+        free_order_resp_data = json.loads(free_order_resp.data)['result']
         free_order = Order.query.get(free_order_resp_data.get('order_id'))
         free_line_item = free_order.line_items[0]
         process_line_item_cancellation(free_line_item)
@@ -378,11 +376,11 @@ class TestOrder(unittest.TestCase):
         ic = ItemCollection.query.first()
         # make a purchase order
         resp = self.client.post('/ic/{ic}/order'.format(ic=ic.id), data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
-        data = json.loads(resp.data)
         self.assertEquals(resp.status_code, 201)
-        self.assertEquals(data['final_amount'], (total_amount - 5*total_amount/decimal.Decimal(100)))
+        resp_data = json.loads(resp.data)['result']
+        self.assertEquals(resp_data['final_amount'], (total_amount - 5*total_amount/decimal.Decimal(100)))
 
-        order = Order.query.get(data['order_id'])
+        order = Order.query.get(resp_data['order_id'])
         # Create fake payment and transaction objects
         online_payment = OnlinePayment(pg_paymentid='pg_testpayment', order=order)
         online_payment.confirm()
@@ -412,15 +410,14 @@ class TestOrder(unittest.TestCase):
         invalid_refund_amount = 100000000
         invalid_refund_dict = {'amount': invalid_refund_amount}
         resp = process_partial_refund_for_order(order, invalid_refund_dict)
-        data = json.loads(resp.data)
         self.assertEquals(resp.status_code, 403)
         refund_transactions = order.transactions.filter_by(transaction_type=TRANSACTION_TYPE.REFUND).all()
         self.assertEquals(refund_transactions[0].amount, decimal.Decimal(valid_refund_amount))
 
         resp = self.make_free_order()
-        data = json.loads(resp.data)
         self.assertEquals(resp.status_code, 201)
-        order = Order.query.get(data.get('order_id'))
+        resp_data = json.loads(resp.data)['result']
+        order = Order.query.get(resp_data.get('order_id'))
         invalid_refund_amount = 100000000
         invalid_refund_dict = {'amount': invalid_refund_amount}
         refund_resp = process_partial_refund_for_order(order, invalid_refund_dict)
