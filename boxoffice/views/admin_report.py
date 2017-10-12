@@ -19,7 +19,7 @@ def jsonify_report(data_dict):
 
 @app.route('/admin/ic/<ic_id>/reports')
 @lastuser.requires_login
-@render_with({'text/html': 'index.html', 'application/json': jsonify_report})
+@render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_report})
 @load_models(
     (ItemCollection, {'id': 'ic_id'}, 'item_collection'),
     permission='org_admin')
@@ -33,7 +33,7 @@ def jsonify_org_report(data_dict):
 
 @app.route('/admin/o/<org_name>/reports')
 @lastuser.requires_login
-@render_with({'text/html': 'index.html', 'application/json': jsonify_org_report})
+@render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_org_report})
 @load_models(
     (Organization, {'name': 'org_name'}, 'organization'),
     permission='org_admin')

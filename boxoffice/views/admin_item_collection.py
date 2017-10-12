@@ -43,7 +43,7 @@ def jsonify_item_collection(item_collection_dict):
 
 @app.route('/admin/ic/<ic_id>')
 @lastuser.requires_login
-@render_with({'text/html': 'index.html', 'application/json': jsonify_item_collection})
+@render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_item_collection})
 @load_models(
     (ItemCollection, {'id': 'ic_id'}, 'item_collection'),
     permission='org_admin'
