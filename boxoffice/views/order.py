@@ -303,7 +303,7 @@ def payment(order):
     )
 def receipt(order):
     line_items = LineItem.query.filter(LineItem.order == order, LineItem.status.in_([LINE_ITEM_STATUS.CONFIRMED, LINE_ITEM_STATUS.CANCELLED])).all()
-    return render_template('cash_receipt.html', order=order, org=order.organization, line_items=line_items)
+    return render_template('cash_receipt.html.jinja2', order=order, org=order.organization, line_items=line_items)
 
 
 def jsonify_invoice(invoice):
@@ -363,7 +363,7 @@ def jsonify_invoices(data_dict):
 
 
 @app.route('/order/<access_token>/invoice', methods=['GET'])
-@render_with({'text/html': 'invoice_form.html', 'application/json': jsonify_invoices})
+@render_with({'text/html': 'invoice_form.html.jinja2', 'application/json': jsonify_invoices})
 @load_models(
     (Order, {'access_token': 'access_token'}, 'order')
     )
@@ -381,7 +381,7 @@ def invoice_details_form(order):
 
 
 @app.route('/order/<access_token>/ticket', methods=['GET', 'POST'])
-@render_with({'text/html': 'order.html', 'application/json': jsonify_order}, json=True)
+@render_with({'text/html': 'order.html.jinja2', 'application/json': jsonify_order}, json=True)
 @load_models(
     (Order, {'access_token': 'access_token'}, 'order')
     )

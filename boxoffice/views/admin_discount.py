@@ -55,7 +55,7 @@ def jsonify_discount_policies(data_dict):
 
 @app.route('/admin/o/<org>/discount_policy')
 @lastuser.requires_login
-@render_with({'text/html': 'index.html', 'application/json': jsonify_discount_policies})
+@render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_discount_policies})
 @load_models(
     (Organization, {'name': 'org'}, 'organization'),
     permission='org_admin'
