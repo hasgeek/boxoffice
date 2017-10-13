@@ -363,7 +363,7 @@ def jsonify_invoices(data_dict):
 
 
 @app.route('/order/<access_token>/invoice', methods=['GET'])
-@render_with({'text/html.jinja2': 'invoice_form.html.jinja2', 'application/json': jsonify_invoices})
+@render_with({'text/html': 'invoice_form.html.jinja2', 'application/json': jsonify_invoices})
 @load_models(
     (Order, {'access_token': 'access_token'}, 'order')
     )
