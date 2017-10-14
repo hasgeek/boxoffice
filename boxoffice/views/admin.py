@@ -19,7 +19,7 @@ def jsonify_dashboard(data):
 
 @app.route('/admin/')
 @lastuser.requires_login
-@render_with({'text/html': 'index.html', 'application/json': jsonify_dashboard})
+@render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_dashboard})
 def index():
     return dict(user=g.user)
 
@@ -33,7 +33,7 @@ def jsonify_org(data):
 
 @app.route('/admin/o/<org>')
 @lastuser.requires_login
-@render_with({'text/html': 'index.html', 'application/json': jsonify_org})
+@render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_org})
 @load_models(
     (Organization, {'name': 'org'}, 'organization'),
     permission='org_admin'
