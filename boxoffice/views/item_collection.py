@@ -70,7 +70,7 @@ def item_collection(item_collection):
         category_json = jsonify_category(category)
         if category_json:
             categories_json.append(category_json)
-    return jsonify(html=render_template('boxoffice.html'), categories=categories_json, refund_policy=item_collection.organization.details.get('refund_policy', ''))
+    return jsonify(html=render_template('boxoffice.html.jinja2'), categories=categories_json, refund_policy=item_collection.organization.details.get('refund_policy', ''))
 
 
 @app.route('/<org_name>/<item_collection_name>', methods=['GET', 'OPTIONS'])
@@ -80,4 +80,6 @@ def item_collection(item_collection):
     (ItemCollection, {'name': 'item_collection_name'}, 'item_collection')
     )
 def item_collection_listing(organization, item_collection):
-    return render_template('item_collection_listing.html', organization=organization, item_collection=item_collection)
+    return render_template('item_collection_listing.html.jinja2',
+        organization=organization,
+        item_collection=item_collection)

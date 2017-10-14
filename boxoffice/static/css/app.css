@@ -665,6 +665,14 @@ input.icon-placeholder {
   overflow-x: inherit;
 }
 
+@media (min-width: 768px) {
+  h1.boxoffice-listing {
+    margin-left: 3em;
+    border-bottom: 2px solid;
+    padding-bottom: 5px;
+    display: inline;
+  }
+}
 .org-header {
   text-align: center;
   margin: 0 auto 15px;
