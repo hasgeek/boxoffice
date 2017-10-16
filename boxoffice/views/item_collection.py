@@ -79,6 +79,8 @@ def item_collection(item_collection):
     (ItemCollection, {'name': 'item_collection_name', 'organization': 'organization'}, 'item_collection')
     )
 def item_collection_listing(organization, item_collection):
+    show_title = False if request.args.get('show_title') == 'f' else True
     return render_template('item_collection_listing.html.jinja2',
         organization=organization,
-        item_collection=item_collection)
+        item_collection=item_collection,
+        show_title=show_title)

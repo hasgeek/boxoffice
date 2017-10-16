@@ -27,7 +27,9 @@ $(function() {
   boxoffice.util.getQueryParams = function() {
     // Returns an array of query parameters
     // Eg: "?code=xxx&cody=yyy" -> ["code=xxx", "code=yyy"]
-    var searchStr = window.location.search.split('?');
+
+    // Use the parent window's URL if executed in an iframe, else use the current window's URL
+    var searchStr = (window.location !== window.parent.location ? document.referrer : window.location.search).split('?');
     if (searchStr.length > 1) {
       return searchStr[1].split('&');
     }

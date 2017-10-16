@@ -14,16 +14,17 @@
 {% block main -%}
   <div id="sidebar"></div>
   <div id="main-content-area">
-
-    <div class='container'>
-    <div class='row'>
-      <div class='col-xs-12'>
-        <h1 class='boxoffice-listing'>
-          {{organization.title}}: {{item_collection.title}}
-        </h1>
+    {% if show_title %}
+      <div class='container'>
+        <div class='row'>
+          <div class='col-xs-12'>
+            <h1 class='boxoffice-listing'>
+              {{organization.title}}: {{item_collection.title}}
+            </h1>
+          </div>
+        </div>
       </div>
-    </div>
-    </div>
+    {% endif %}
     <div id="boxoffice-widget"><p class="text-center regular col-sm-8 col-sm-offset-2 col-xs-12">Loading...</p></div>
   </div>
 {% endblock %}
@@ -72,7 +73,7 @@
             }
           }
         }
+      });
     });
-  });
   </script>
 {% endblock %}
