@@ -3,6 +3,7 @@
 from flask import make_response, render_template, jsonify, request
 from pycountry import pycountry
 from coaster.views import load_models
+from coaster.utils import getbool
 from boxoffice import app
 from boxoffice.models import Organization, ItemCollection, Item
 from utils import xhr_only, cors
@@ -79,6 +80,8 @@ def item_collection(item_collection):
     (ItemCollection, {'name': 'item_collection_name', 'organization': 'organization'}, 'item_collection')
     )
 def item_collection_listing(organization, item_collection):
+    show_title = getbool(request.args.get('show_title', True))
     return render_template('item_collection_listing.html.jinja2',
         organization=organization,
-        item_collection=item_collection)
+        item_collection=item_collection,
+        show_title=show_title)
