@@ -15,6 +15,7 @@ export const orgTemplate = `
             <p class="section-title">Item collection description</p>
             <div class="section-content">{{{description_html}}}</div>
             <div class="btn-wrapper">
+              <a class="boxoffice-button boxoffice-button-action" href="/{{orgName}}/{{name}}">View listing</a>
               <a class="boxoffice-button boxoffice-button-action" href="javascript:void(0)" on-click="navigate">View dashboard</a>
             </div>
             {{#infoMsg}}

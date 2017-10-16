@@ -5,7 +5,6 @@ import {SideBarView} from './sidebar.js'
 
 export const OrgView = {
   render: function({org_name}={}) {
-
     fetch({
       url: urlFor('view', {resource: 'o', id: org_name, root: true})
     }).then(function({id, org_title, item_collections}){
@@ -13,6 +12,7 @@ export const OrgView = {
         el: '#main-content-area',
         template: orgTemplate,
         data: {
+          orgName: org_name,
           orgTitle: org_title,
           item_collections: item_collections
         }
