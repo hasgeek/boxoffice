@@ -1,0 +1,78 @@
+{% extends "layout.html.jinja2" %}
+
+{% block hgnav %}
+{% endblock %}
+
+{%- block layoutheaders %}
+{% endblock %}
+
+{% block title %}{% if title %} {{ title }}{% else %}{% trans %}Ticket listing{% endtrans %}{% endif %}{% endblock %}
+
+{% block headline %}
+{% endblock %}
+
+{% block main -%}
+  <div id="sidebar"></div>
+  <div id="main-content-area">
+
+    <div class='container'>
+    <div class='row'>
+      <div class='col-xs-12'>
+        <h1 class='boxoffice-listing'>
+          {{organization.title}}: {{item_collection.title}}
+        </h1>
+      </div>
+    </div>
+    </div>
+    <div id="boxoffice-widget"><p class="text-center regular col-sm-8 col-sm-offset-2 col-xs-12">Loading...</p></div>
+  </div>
+{% endblock %}
+{% block footerscripts %}
+  <script>
+    var organization_title = '{{organization.title}}';
+    var item_collection_id = '{{item_collection.id}}';
+
+    $(document).ready(function() {
+      var boxofficeUrl = "";
+      $.get({
+        url: boxofficeUrl + "/api/1/boxoffice.js",   
+        timeout: 8000,
+        retries: 5,
+        retryInterval: 8000,
+        success: function (data) {
+          var boxofficeScript = document.createElement('script');
+          boxofficeScript.innerHTML = data.script;
+          document.getElementsByTagName('body')[0].appendChild(boxofficeScript);
+          window.Boxoffice.init({
+            org: organization_title, // Organisation to show
+            itemCollection: item_collection_id, // ItemCollection ID to show
+            paymentDesc: organization_title // Description for payments widget
+          });
+        },
+        error: function (response) {
+          var ajaxLoad = this;
+          ajaxLoad.retries -= 1;
+          var errorMsg;
+          if (response.readyState === 4) {
+            errorMsg = "Server error, please try again later.";
+            $('#boxoffice-widget p').html(errorMsg);
+          } else if (response.readyState === 0) {
+            if (ajaxLoad.retries < 0) {
+              if(!navigator.onLine) {
+                errorMsg = "Unable to connect. There is no network!";
+                $('#boxoffice-widget p').html(errorMsg);
+              } else {
+                errorMsg = "Unable to connect. If you are behind a firewall or using any script blocking extension (like Privacy Badger). Please ensure your browser can load boxoffice.hasgeek.com, api.razorpay.com and checkout.razorpay.com .";
+                $('#boxoffice-widget p').html(errorMsg);
+              }
+            } else {
+              setTimeout(function() {
+                $.get(ajaxLoad);
+              }, ajaxLoad.retryInterval);
+            }
+          }
+        }
+    });
+  });
+  </script>
+{% endblock %}

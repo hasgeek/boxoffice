@@ -1,5 +1,4 @@
 {% extends "baseframe.html.jinja2" -%}
-{% from "baseframe/components.html.jinja2" import hgnav with context %}
 
 {%- block layoutheaders %}
   <script>
@@ -12,12 +11,15 @@
 {% endblock %}
 
 {% block headerbox %}
-  {% macro site_title() %}
-    <div class="page-header">
-      <h1><a href="{{ url_for('index') }}">{{ config['SITE_TITLE'] }}</a></h1>
-    </div>
-  {% endmacro %}
-  {{ hgnav(site_title=site_title()) }}
+  {% block hgnav %}
+    {% macro site_title() %}
+      <div class="page-header">
+        <h1><a href="{{ url_for('index') }}">{{ config['SITE_TITLE'] }}</a></h1>
+      </div>
+    {% endmacro %}
+    {% from "baseframe/components.html.jinja2" import hgnav with context %}
+    {{ hgnav(site_title=site_title()) }}
+  {% endblock %}
 {% endblock %}
 
 {% block baseheadline -%}
@@ -35,3 +37,12 @@
   </div>
 {%- endblock %}
 {%- endblock %}
+
+{% block jquery -%}
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+<script type="text/javascript">
+  if (typeof jQuery === 'undefined')
+    document.write('<script type="text/javascript" src="{{ url_for("baseframe.static", filename="js/jquery-2.2.4.min.js") }}"><\/script>');
+</script>
+{%- endblock %}
+

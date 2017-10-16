@@ -4,7 +4,7 @@ from flask import make_response, render_template, jsonify, request
 from pycountry import pycountry
 from coaster.views import load_models
 from boxoffice import app
-from boxoffice.models import ItemCollection, Item
+from boxoffice.models import Organization, ItemCollection, Item
 from utils import xhr_only, cors
 from boxoffice.data import indian_states
 
@@ -71,3 +71,14 @@ def item_collection(item_collection):
         if category_json:
             categories_json.append(category_json)
     return jsonify(html=render_template('boxoffice.html.jinja2'), categories=categories_json, refund_policy=item_collection.organization.details.get('refund_policy', ''))
+
+
+@app.route('/<org_name>/<item_collection_name>', methods=['GET', 'OPTIONS'])
+@load_models(
+    (Organization, {'name': 'org_name'}, 'organization'),
+    (ItemCollection, {'name': 'item_collection_name', 'organization': 'organization'}, 'item_collection')
+    )
+def item_collection_listing(organization, item_collection):
+    return render_template('item_collection_listing.html.jinja2',
+        organization=organization,
+        item_collection=item_collection)
