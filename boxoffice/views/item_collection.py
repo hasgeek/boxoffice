@@ -74,10 +74,9 @@ def item_collection(item_collection):
 
 
 @app.route('/<org_name>/<item_collection_name>', methods=['GET', 'OPTIONS'])
-# @cors
 @load_models(
     (Organization, {'name': 'org_name'}, 'organization'),
-    (ItemCollection, {'name': 'item_collection_name'}, 'item_collection')
+    (ItemCollection, {'name': 'item_collection_name', 'organization': 'organization'}, 'item_collection')
     )
 def item_collection_listing(organization, item_collection):
     return render_template('item_collection_listing.html.jinja2',
