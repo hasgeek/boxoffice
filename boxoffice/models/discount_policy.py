@@ -7,7 +7,7 @@ from werkzeug import cached_property
 from itsdangerous import Signer, BadSignature
 from sqlalchemy import event, DDL
 from baseframe import __
-from coaster.utils import LabeledEnum, uuid1mc, buid
+from coaster.utils import LabeledEnum, buid
 from boxoffice.models import db, IdMixin, BaseScopedNameMixin
 from boxoffice.models import Organization
 
@@ -125,10 +125,6 @@ class DiscountCoupon(IdMixin, db.Model):
     __tablename__ = 'discount_coupon'
     __uuid_primary_key__ = True
     __table_args__ = (db.UniqueConstraint('discount_policy_id', 'code'),)
-
-    def __init__(self, *args, **kwargs):
-        self.id = uuid1mc()
-        super(DiscountCoupon, self).__init__(*args, **kwargs)
 
     code = db.Column(db.Unicode(100), nullable=False, default=generate_coupon_code)
     usage_limit = db.Column(db.Integer, nullable=False, default=1)
