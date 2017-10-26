@@ -236,7 +236,7 @@ def free(order):
                 line_item.discount_coupon.update_used_count()
                 db.session.add(line_item.discount_coupon)
         db.session.commit()
-        send_receipt_mail.delay(order.id, subject="{0} - Thank you for your order! (Receipt #{1})".format(order.item_collection.title, order.invoice_no))
+        send_receipt_mail.delay(order.id, subject="{item_collection_title} - Thank you for your order! (Receipt #{invoice_no})".format(item_collection_title=order.item_collection.title, invoice_no=order.invoice_no))
         return api_success(result={'order_id': order.id},
             doc=_(u"Free order confirmed"), status_code=201)
 
@@ -286,7 +286,7 @@ def payment(order):
                 line_item.discount_coupon.update_used_count()
                 db.session.add(line_item.discount_coupon)
         db.session.commit()
-        send_receipt_mail.delay(order.id, subject="{0} - Thank you for your order! (Receipt #{1})".format(order.item_collection.title, order.invoice_no))
+        send_receipt_mail.delay(order.id, subject="{item_collection_title} - Thank you for your order! (Receipt #{invoice_no})".format(item_collection_title=order.item_collection.title, invoice_no=order.invoice_no))
         return api_success(result={'invoice_id': invoice.id},
             doc=_(u"Payment verified"), status_code=201)
     else:
