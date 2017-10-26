@@ -74,6 +74,8 @@ class PaymentTransaction(BaseMixin, db.Model):
     internal_note = db.Column(db.Unicode(250), nullable=True)
     refund_description = db.Column(db.Unicode(250), nullable=True)
     note_to_user = MarkdownColumn('note_to_user', nullable=True)
+    # Refund id issued by the payment gateway
+    pg_refundid = db.Column(db.Unicode(80), nullable=True)
 
 
 def get_refund_transactions(self):

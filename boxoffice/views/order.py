@@ -445,7 +445,7 @@ def regenerate_line_item(order, original_line_item, updated_line_item_tup, line_
     else:
         coupon = None
 
-    return LineItem(order=order, item=item, discount_policy=policy,
+    return LineItem(order=order, item=item, discount_policy=policy, previous=original_line_item,
         status=LINE_ITEM_STATUS.CONFIRMED,
         line_item_seq=line_item_seq,
         discount_coupon=coupon,
@@ -507,8 +507,9 @@ def process_line_item_cancellation(line_item):
         payment = OnlinePayment.query.filter_by(order=line_item.order, pg_payment_status=RAZORPAY_PAYMENT_STATUS.CAPTURED).one()
         rp_resp = razorpay.refund_payment(payment.pg_paymentid, refund_amount)
         if rp_resp.status_code == 200:
+            rp_refund = rp_resp.json()
             db.session.add(PaymentTransaction(order=order, transaction_type=TRANSACTION_TYPE.REFUND,
-                online_payment=payment, amount=refund_amount, currency=CURRENCY.INR, refunded_at=func.utcnow(),
+                pg_refundid=rp_refund['id'], online_payment=payment, amount=refund_amount, currency=CURRENCY.INR, refunded_at=func.utcnow(),
                 refund_description='Refund: {line_item_title}'.format(line_item_title=line_item.item.title)))
         else:
             raise PaymentGatewayError("Cancellation failed for order - {order} with the following details - {msg}".format(order=order.id,
@@ -557,8 +558,9 @@ def process_partial_refund_for_order(order, form_dict):
             pg_payment_status=RAZORPAY_PAYMENT_STATUS.CAPTURED).one()
         rp_resp = razorpay.refund_payment(payment.pg_paymentid, requested_refund_amount)
         if rp_resp.status_code == 200:
+            rp_refund = rp_resp.json()
             transaction = PaymentTransaction(order=order, transaction_type=TRANSACTION_TYPE.REFUND,
-                online_payment=payment, currency=CURRENCY.INR,
+                online_payment=payment, currency=CURRENCY.INR, pg_refundid=rp_refund['id'],
                 refunded_at=func.utcnow())
             form.populate_obj(transaction)
             db.session.add(transaction)

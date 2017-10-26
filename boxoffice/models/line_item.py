@@ -22,6 +22,8 @@ class LINE_ITEM_STATUS(LabeledEnum):
     #: a line item. Eg: a discount no longer applicable on a line item as a result of a cancellation
     VOID = (3, __("Void"))
 
+LINE_ITEM_STATUS.TRANSACTION = [LINE_ITEM_STATUS.CONFIRMED, LINE_ITEM_STATUS.VOID, LINE_ITEM_STATUS.CANCELLED]
+
 
 LineItemTuple = namedtuple('LineItemTuple', ['item_id', 'id', 'base_amount', 'discount_policy_id', 'discount_coupon_id', 'discounted_amount', 'final_amount'])
 
@@ -66,17 +68,24 @@ class LineItem(BaseMixin, db.Model):
     """
     __tablename__ = 'line_item'
     __uuid_primary_key__ = True
-    __table_args__ = (db.UniqueConstraint('customer_order_id', 'line_item_seq'),)
+    __table_args__ = (db.UniqueConstraint('customer_order_id', 'line_item_seq'),
+        db.UniqueConstraint('previous_id'))
 
     # line_item_seq is the relative number of the line item per order.
     line_item_seq = db.Column(db.Integer, nullable=False)
-    customer_order_id = db.Column(None, db.ForeignKey('customer_order.id'), nullable=False, index=True, unique=False)
+    customer_order_id = db.Column(None, db.ForeignKey('customer_order.id'), nullable=False, index=True, unique=True)
     order = db.relationship(Order, backref=db.backref('line_items', cascade='all, delete-orphan',
         order_by=line_item_seq,
         collection_class=ordering_list('line_item_seq', count_from=1)))
 
     item_id = db.Column(None, db.ForeignKey('item.id'), nullable=False, index=True, unique=False)
     item = db.relationship(Item, backref=db.backref('line_items', cascade='all, delete-orphan'))
+
+    previous_id = db.Column(None, db.ForeignKey('line_item.id'), nullable=True, index=True, unique=True)
+    previous = db.relationship('LineItem',
+        primaryjoin=('line_item.c.id==line_item.c.previous_id'),
+        backref=db.backref('revision', uselist=False),
+        remote_side="LineItem.id")
 
     discount_policy_id = db.Column(None, db.ForeignKey('discount_policy.id'), nullable=True, index=True, unique=False)
     discount_policy = db.relationship('DiscountPolicy', backref=db.backref('line_items'))
@@ -323,6 +332,11 @@ def sales_delta(user_tz, item_ids):
 def get_confirmed_line_items(self):
     return LineItem.query.filter(LineItem.order == self, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).all()
 Order.get_confirmed_line_items = property(get_confirmed_line_items)
+
+
+def get_initial_line_items(self):
+    return LineItem.query.filter(LineItem.order == self, LineItem.previous == None, LineItem.status.in_(LINE_ITEM_STATUS.TRANSACTION))
+Order.get_initial_line_items = property(get_initial_line_items)
 
 
 def get_from_item(cls, item, qty, coupon_codes=[]):

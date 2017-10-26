@@ -44,3 +44,8 @@ def refund_payment(paymentid, amount):
     # Razorpay requires the amount to be in paisa and of type integer
     resp = requests.post(url, data={'amount': int(amount * 100)}, auth=(app.config['RAZORPAY_KEY_ID'], app.config['RAZORPAY_KEY_SECRET']))
     return resp
+
+def get_settlements(date_range):
+    settlements_url = 'https://api.razorpay.com/v1/settlements/report/combined'
+    settlement_resp = requests.get(settlements_url, params={'year': date_range['year'], 'month': date_range['month']}, auth=(app.config['RAZORPAY_KEY_ID'], app.config['RAZORPAY_KEY_SECRET']))
+    return settlement_resp.json()
