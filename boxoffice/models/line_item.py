@@ -73,7 +73,7 @@ class LineItem(BaseMixin, db.Model):
 
     # line_item_seq is the relative number of the line item per order.
     line_item_seq = db.Column(db.Integer, nullable=False)
-    customer_order_id = db.Column(None, db.ForeignKey('customer_order.id'), nullable=False, index=True, unique=True)
+    customer_order_id = db.Column(None, db.ForeignKey('customer_order.id'), nullable=False, index=True, unique=False)
     order = db.relationship(Order, backref=db.backref('line_items', cascade='all, delete-orphan',
         order_by=line_item_seq,
         collection_class=ordering_list('line_item_seq', count_from=1)))
