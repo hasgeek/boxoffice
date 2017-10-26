@@ -85,7 +85,7 @@ class LineItem(BaseMixin, db.Model):
     previous = db.relationship('LineItem',
         primaryjoin=('line_item.c.id==line_item.c.previous_id'),
         backref=db.backref('revision', uselist=False),
-        remote_side="LineItem.id")
+        remote_side='LineItem.id')
 
     discount_policy_id = db.Column(None, db.ForeignKey('discount_policy.id'), nullable=True, index=True, unique=False)
     discount_policy = db.relationship('DiscountPolicy', backref=db.backref('line_items'))
