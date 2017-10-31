@@ -21,9 +21,7 @@ class LINE_ITEM_STATUS(LabeledEnum):
     #: A line item can be made void by the system to invalidate
     #: a line item. Eg: a discount no longer applicable on a line item as a result of a cancellation
     VOID = (3, __("Void"))
-
-LINE_ITEM_STATUS.TRANSACTION = [LINE_ITEM_STATUS.CONFIRMED, LINE_ITEM_STATUS.VOID, LINE_ITEM_STATUS.CANCELLED]
-
+    TRANSACTION = {CONFIRMED, VOID, CANCELLED}
 
 LineItemTuple = namedtuple('LineItemTuple', ['item_id', 'id', 'base_amount', 'discount_policy_id', 'discount_coupon_id', 'discounted_amount', 'final_amount'])
 
@@ -334,9 +332,9 @@ def get_confirmed_line_items(self):
 Order.get_confirmed_line_items = property(get_confirmed_line_items)
 
 
-def get_initial_line_items(self):
+def initial_line_items(self):
     return LineItem.query.filter(LineItem.order == self, LineItem.previous == None, LineItem.status.in_(LINE_ITEM_STATUS.TRANSACTION))
-Order.get_initial_line_items = property(get_initial_line_items)
+Order.initial_line_items = property(initial_line_items)
 
 
 def get_from_item(cls, item, qty, coupon_codes=[]):

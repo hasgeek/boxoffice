@@ -22,16 +22,11 @@ from boxoffice.models.line_item import LINE_ITEM_STATUS
 
 
 def find_nearest_timestamp(lst, timestamp):
-    nearest_ts = None
-    for ts in lst:
-        diff = abs(timestamp - ts).total_seconds()
-        if diff < 1:
-            if nearest_ts and diff > abs(timestamp - nearest_ts).total_seconds():
-                # there's a timestamp that's closer
-                pass
-            else:
-                nearest_ts = ts
-    return nearest_ts
+    if not lst:
+        return None
+    nearest_ts = min(lst, key=lambda ts: abs(ts-timestamp).total_seconds())
+    if abs(nearest_ts - timestamp).total_seconds() < 1:
+        return nearest_ts
 
 def set_previous_keys_for_line_items(line_items):
     timestamped_line_items = OrderedDict()
@@ -54,17 +49,20 @@ def set_previous_keys_for_line_items(line_items):
     # The previous line item for a line item, is a line item that has an earlier timestamp with a void status
     # with the same item_id. Find it and set it
     used_line_item_ids = set()
-    for idx, (timestamp, line_item_dicts) in enumerate(timestamped_line_items.items()):
-        # 0th timestamps are root line items
-        if idx > 0:
-            for li_dict in timestamped_line_items[timestamp]:
-                previous_li_dict = [previous_li_dict
-                    for previous_li_dict in timestamped_line_items[timestamped_line_items.keys()[idx-1]]
-                    if previous_li_dict['item_id'] == li_dict['item_id']
+    for idx, (timestamp, line_item_dicts) in enumerate(timestamped_line_items.items()[1:]):
+        # 0th timestamps are root line items, so they're skipped since
+        # they don't need their `previous_id` to be updated
+        for li_dict in timestamped_line_items[timestamp]:
+            # timestamped_line_items.keys()[idx] and not timestamped_line_items.keys()[idx-1]
+            # because the timestamped_line_items.items() list is enumerated from index 1
+            previous_li_dict = [previous_li_dict
+                for previous_li_dict in timestamped_line_items[timestamped_line_items.keys()[idx]]
+                if previous_li_dict['item_id'] == li_dict['item_id']
                     and previous_li_dict['id'] not in used_line_item_ids
-                    and previous_li_dict['status'] == LINE_ITEM_STATUS.VOID][0]
-                li_dict['previous_id'] = previous_li_dict['id']
-                used_line_item_ids.add(previous_li_dict['id'])
+                    and previous_li_dict['status'] == LINE_ITEM_STATUS.VOID
+            ][0]
+            li_dict['previous_id'] = previous_li_dict['id']
+            used_line_item_ids.add(previous_li_dict['id'])
     
     return [li_dict for li_dicts in timestamped_line_items.values() for li_dict in li_dicts]
 
