@@ -169,5 +169,3 @@ def calculate_weekly_refunds(item_collection_ids, user_tz, year):
         ordered_week_refunds[int(week_refund.sales_week)] = week_refund.sum
 
     return ordered_week_refunds
-
-

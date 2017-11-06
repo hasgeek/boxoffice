@@ -81,7 +81,7 @@ class LineItem(BaseMixin, db.Model):
 
     previous_id = db.Column(None, db.ForeignKey('line_item.id'), nullable=True, index=True, unique=True)
     previous = db.relationship('LineItem',
-        primaryjoin=('line_item.c.id==line_item.c.previous_id'),
+        primaryjoin='line_item.c.id==line_item.c.previous_id',
         backref=db.backref('revision', uselist=False),
         remote_side='LineItem.id')
 
