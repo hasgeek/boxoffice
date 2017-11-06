@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 
-from flask import jsonify
+from flask import jsonify, request, g, abort
 from .. import app, lastuser
 from coaster.views import load_models, render_with
 from baseframe import localize_timezone, get_locale
 from boxoffice.models import Organization, ItemCollection, LineItem, INVOICE_STATUS
-from boxoffice.views.utils import check_api_access, csv_response
+from boxoffice.views.utils import check_api_access, csv_response, api_error
 from babel.dates import format_datetime
-from datetime import datetime
+from datetime import datetime, date
+from ..extapi.razorpay import get_settled_transactions
 
 
 def jsonify_report(data_dict):
@@ -169,3 +170,23 @@ def invoices_report(organization):
         return dict_row
 
     return csv_response(headers, rows, row_type='dict', row_handler=row_handler)
+
+
+@app.route('/admin/o/<org_name>/settlements.csv')
+@lastuser.requires_login
+@load_models(
+    (Organization, {'name': 'org_name'}, 'organization'),
+    permission='org_admin')
+def settled_transactions(organization):
+    if not organization.merchant:
+        abort(401)
+    year = int(request.args.get('year'))
+    month = int(request.args.get('month'))
+    try:
+        date(year, month, 1)
+    except (ValueError, TypeError):
+        return api_error(message='Invalid year/month',
+                status_code=403,
+                errors=['invalid_date'])
+    headers, rows = get_settled_transactions({'year': year, 'month': month}, g.user.timezone)
+    return csv_response(headers, rows, row_type='dict')

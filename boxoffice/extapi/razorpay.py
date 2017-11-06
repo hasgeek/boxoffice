@@ -53,10 +53,10 @@ def get_settled_transactions(date_range, tz=None):
     for settled_transaction in settled_transactions:
         if settled_transaction['type'] == 'settlement':
           rows.append({
-              'settlement_id': settled_transaction['entity_id'],
-              'settlement_amount': settled_transaction['amount'],
-              'settled_at': settled_transaction['settled_at']
-
+            'settlement_id': settled_transaction['entity_id'],
+            'settlement_amount': settled_transaction['amount'],
+            'settled_at': settled_transaction['settled_at'],
+            'transaction_type': settled_transaction['type']
           })
         elif settled_transaction['type'] == 'payment':
             payment = OnlinePayment.query.filter_by(pg_paymentid=settled_transaction['entity_id']).one_or_none()
@@ -93,7 +93,7 @@ def get_settled_transactions(date_range, tz=None):
                     'description': external_transaction_msg
                 })
         elif settled_transaction['type'] == 'refund':
-            payment = OnlinePayment.query.filter_by(settled_transactionid=settled_transaction['payment_id']).one()
+            payment = OnlinePayment.query.filter_by(pg_paymentid=settled_transaction['payment_id']).one()
             refund = PaymentTransaction.query.filter(PaymentTransaction.online_payment == payment,
                 PaymentTransaction.transaction_type == TRANSACTION_TYPE.REFUND,
                 PaymentTransaction.pg_refundid == settled_transaction['entity_id']
@@ -103,6 +103,7 @@ def get_settled_transactions(date_range, tz=None):
                 'settlement_id': settled_transaction['settlement_id'],
                 'refund_id': settled_transaction['entity_id'],
                 'payment_id': settled_transaction['payment_id'],
+                'transaction_type': settled_transaction['type'],
                 'order_id': order.id,
                 'razorpay_fees': settled_transaction['fee'],
                 'debit': settled_transaction['debit'],

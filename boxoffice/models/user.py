@@ -54,6 +54,9 @@ class Organization(ProfileBase, db.Model):
     # logo (image url), refund_policy (html), ticket_faq (html), website (url)
     details = db.Column(JsonDict, nullable=False, server_default='{}')
     contact_email = db.Column(db.Unicode(254), nullable=False)
+    # Merchant account involves settlements and hence can access
+    # settlement reports
+    merchant = db.Column(db.Boolean, nullable=False, default=False)
 
     def permissions(self, user, inherited=None):
         perms = super(Organization, self).permissions(user, inherited)

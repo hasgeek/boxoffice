@@ -673,6 +673,10 @@ input.icon-placeholder {
     display: inline;
   }
 }
+p.settlements-month-widget {
+  margin-top: 10px;
+}
+
 .org-header {
   text-align: center;
   margin: 0 auto 15px;
