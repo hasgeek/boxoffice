@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from flask import make_response, render_template, jsonify, request
+from flask import make_response, render_template, jsonify, request, Markup
 from pycountry import pycountry
 from coaster.views import load_models
 from coaster.utils import getbool
@@ -48,15 +48,20 @@ def jsonify_category(category):
         }
 
 
+def render_boxoffice_js():
+        return render_template('boxoffice.js', base_url=request.url_root.strip('/'),
+            razorpay_key_id=app.config['RAZORPAY_KEY_ID'],
+            states=[{'name': state['name'], 'code': state['short_code_text']}
+                for state in sorted(indian_states, key=lambda k: k['name'])],
+            countries=[{'name': country.name, 'code': country.alpha_2}
+                for country in sorted(pycountry.countries, key=lambda k: k.name)])
+
 @app.route('/api/1/boxoffice.js')
 @cors
 def boxofficejs():
-    return make_response(jsonify({
-        'script': render_template('boxoffice.js', base_url=request.url_root.strip('/'),
-        razorpay_key_id=app.config['RAZORPAY_KEY_ID'],
-        states=[{'name': state['name'], 'code': state['short_code_text']} for state in sorted(indian_states, key=lambda k: k['name'])],
-        countries=[{'name': country.name, 'code': country.alpha_2} for country in sorted(pycountry.countries, key=lambda k: k.name)])
-    }))
+    return jsonify({
+        'script': render_boxoffice_js()
+    })
 
 
 @app.route('/ic/<item_collection>', methods=['GET', 'OPTIONS'])
@@ -84,4 +89,4 @@ def item_collection_listing(organization, item_collection):
     return render_template('item_collection_listing.html.jinja2',
         organization=organization,
         item_collection=item_collection,
-        show_title=show_title)
+        show_title=show_title, boxoffice_js=Markup(render_boxoffice_js()))

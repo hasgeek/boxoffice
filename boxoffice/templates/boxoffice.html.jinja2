@@ -266,7 +266,7 @@
         </form>
         <div class="confirmation-msg">
           <p>Don't have a GST registration yet? No problem, you can fill these details later.<p>
-          <p>Proceed to fill details for your badge!</p>
+          <p>To complete your registration, we need a few more details.</p>
           <button class="boxoffice-button boxoffice-button-info" on-click="proceedToFillAttendeeDetails(event)">Continue</button>
         </div>
       </div>
@@ -276,7 +276,7 @@
         <p class="confirmation-header">Almost done!</p>
         <div class="confirmation-msg">
           {{#if invoice.isFilled}}<p>Thank you for submitting the details, we will mail you the invoice shortly. {{/if}}
-          <p>We need a few more details to print your badge.</p>
+          <p>To complete your registration, we need a few more details.</p>
         </div>
         <div class="receipt-btn-wrapper">
           <a href="{{ buyer.attendeeAssignmentURL }}" target="_blank" class="boxoffice-button boxoffice-button-action receipt-button" on-click="fire('eventAnalytics','fill attendee details', 'attendee details')">Fill attendee details</a>
