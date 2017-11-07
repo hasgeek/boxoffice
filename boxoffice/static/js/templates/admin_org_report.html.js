@@ -12,7 +12,15 @@ export const OrgReportTemplate = `
               <p class="field-title filled">Report type</p>
               <select name="report-type" value="{{ reportType }}">
                 <option value="invoices" selected="selected">Invoices</option>
+                {{#if siteadmin}}
+                  <option value="settlements">Settlements</option>
+                {{/if}}
               </select>
+              {{#if reportType == "settlements"}}
+                <p class='settlements-month-widget'>
+                  <input id="month" type="month" value="{{monthYear}}">
+                </p>
+              {{/if}}
             </div>
             <div class="btn-wrapper"> 
               <a href="{{ reportsUrl() }}" download="{{ reportsFilename() }}" class="boxoffice-button boxoffice-button-action">Download</a>

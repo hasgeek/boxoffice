@@ -5,9 +5,9 @@ from sqlalchemy.sql import func
 from decimal import Decimal
 from coaster.utils import LabeledEnum, isoweek_datetime
 from isoweek import Week
-from baseframe import __
+from baseframe import __, localize_timezone
 from boxoffice.models import db, BaseMixin, Order, ORDER_STATUS, MarkdownColumn, ItemCollection
-from ..extapi import RAZORPAY_PAYMENT_STATUS
+from ..extapi.razorpay_status import RAZORPAY_PAYMENT_STATUS
 
 __all__ = ['OnlinePayment', 'PaymentTransaction', 'CURRENCY', 'CURRENCY_SYMBOL', 'TRANSACTION_TYPE']
 
@@ -35,7 +35,7 @@ class OnlinePayment(BaseMixin, db.Model):
     order = db.relationship(Order, backref=db.backref('online_payments', cascade='all, delete-orphan'))
 
     # Payment id issued by the payment gateway
-    pg_paymentid = db.Column(db.Unicode(80), nullable=False)
+    pg_paymentid = db.Column(db.Unicode(80), nullable=False, unique=True)
     # Payment status issued by the payment gateway
     pg_payment_status = db.Column(db.Integer, nullable=False)
     confirmed_at = db.Column(db.DateTime, nullable=True)
@@ -74,6 +74,8 @@ class PaymentTransaction(BaseMixin, db.Model):
     internal_note = db.Column(db.Unicode(250), nullable=True)
     refund_description = db.Column(db.Unicode(250), nullable=True)
     note_to_user = MarkdownColumn('note_to_user', nullable=True)
+    # Refund id issued by the payment gateway
+    pg_refundid = db.Column(db.Unicode(80), nullable=True, unique=True)
 
 
 def get_refund_transactions(self):
