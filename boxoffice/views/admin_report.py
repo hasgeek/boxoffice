@@ -29,7 +29,7 @@ def admin_report(item_collection):
 
 
 def jsonify_org_report(data_dict):
-    return jsonify(org_title=data_dict['organization'].title)
+    return jsonify(org_title=data_dict['organization'].title, siteadmin=data_dict['siteadmin'])
 
 
 @app.route('/admin/o/<org_name>/reports')
@@ -39,7 +39,7 @@ def jsonify_org_report(data_dict):
     (Organization, {'name': 'org_name'}, 'organization'),
     permission='org_admin')
 def admin_org_report(organization):
-    return dict(organization=organization)
+    return dict(organization=organization, siteadmin=lastuser.has_permission('siteadmin'))
 
 
 @app.route('/admin/ic/<ic_id>/tickets.csv')
@@ -173,13 +173,10 @@ def invoices_report(organization):
 
 
 @app.route('/admin/o/<org_name>/settlements.csv')
-@lastuser.requires_login
+@lastuser.requires_permission('siteadmin')
 @load_models(
-    (Organization, {'name': 'org_name'}, 'organization'),
-    permission='org_admin')
+    (Organization, {'name': 'org_name'}, 'organization'))
 def settled_transactions(organization):
-    if not organization.merchant:
-        abort(401)
     year = int(request.args.get('year'))
     month = int(request.args.get('month'))
     try:

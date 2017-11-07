@@ -7,7 +7,7 @@ export const OrgReportView = {
   render: function({org_name}={}) {
     fetch({
       url: urlFor('index', {resource: 'reports', scope_ns: 'o', scope_id: org_name, root: true})
-    }).done(({org_title}) => {
+    }).done(({org_title, siteadmin}) => {
       // Initial render
       let currentDate = new Date();
       let currentYear = currentDate.getFullYear();
@@ -20,6 +20,7 @@ export const OrgReportView = {
           orgTitle: org_title,
           reportType: "invoices",
           monthYear: `${currentYear}-${currentMonth}`,
+          siteadmin: siteadmin,
           reportsUrl: function() {
             let reportType = this.get('reportType');
             let url = urlFor('index', {
