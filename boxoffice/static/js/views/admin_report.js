@@ -1,4 +1,6 @@
 
+var NProgress = require('nprogress');
+var Ractive = require('ractive');
 import {fetch, urlFor, setPageTitle} from '../models/util.js';
 import {ReportTemplate} from '../templates/admin_report.html.js';
 import {SideBarView} from './sidebar.js';

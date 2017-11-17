@@ -1,3 +1,7 @@
+
+var Ractive = require('ractive');
+import {eventBus} from './main_admin.js'
+var NProgress = require('nprogress');
 import {SideBarModel} from '../models/sidebar.js';
 import {SideBarTemplate} from '../templates/sidebar.html.js';
 

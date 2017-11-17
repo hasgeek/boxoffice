@@ -23,5 +23,5 @@
 {% endblock %}
 
 {% block footerscripts %}
-  <script src='/static/js/dist/invoice_bundle.js'></script>
+  {{ javascript_tag('main_invoice') | safe }}
 {% endblock %}

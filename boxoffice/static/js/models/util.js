@@ -1,4 +1,5 @@
 // A collection of utility functions
+var moment = require("moment");
 
 export const Util = {
   formatToIndianRupee: function (value) {

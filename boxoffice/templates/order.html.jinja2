@@ -28,5 +28,5 @@
   </div>
 {% endblock %}
 {% block footerscripts %}
-  <script src="/static/js/dist/order_bundle.js"></script>
+  {{ javascript_tag('main_order') | safe }}
 {% endblock %}

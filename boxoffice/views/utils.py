@@ -137,3 +137,11 @@ def api_success(result, doc, status_code):
     :param int status_code: HTTP status code to be used for the response
     """
     return make_response(jsonify(status='ok', doc=doc, result=result), status_code)
+
+@app.context_processor
+def javascript_tag_processor():
+    def javascript_tag(bundle_key):
+        return "<script type='text/javascript' src='{path}/{bundle}'></script>".format(
+        path=app.config['ASSET_BASE_PATH'],
+        bundle=app.config[bundle_key])
+    return dict(javascript_tag=javascript_tag)

@@ -1,4 +1,9 @@
 
+var NProgress = require('nprogress');
+var Ractive = require('ractive');
+Ractive.transitions.fly = require( 'ractive-transitions-fly' );
+var _ = require("underscore");
+var Clipboard = require("clipboard");
 import {Util, fetch, post, scrollToElement, getFormParameters, getCsrfToken, updateBrowserHistory, urlFor, setPageTitle} from '../models/util.js';
 import {DiscountPolicyTemplate} from '../templates/admin_discount_policy.html.js';
 import {SideBarView} from './sidebar.js';
