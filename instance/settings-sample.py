@@ -32,7 +32,6 @@ LASTUSER_CLIENT_ID = ''
 #: LastUser client secret
 LASTUSER_CLIENT_SECRET = ''
 DEBUG = True
-WEBPACK = True
-ASSETS_MANIFEST_PATH = "static/build/manifest.json"
+ASSET_MANIFEST_PATH = "static/build/manifest.json"
 # no trailing slash
 ASSET_BASE_PATH = '/static/build'
