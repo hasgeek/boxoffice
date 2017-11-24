@@ -3,7 +3,7 @@ var path = require('path');
 var dev = process.env.NODE_ENV === "development";
 
 function ManifestPlugin(options){
-  this.manifestPath = options.manifestPath;
+  this.manifestPath = options.manifestPath ? options.manifestPath : 'build/manifest.json';
 }
 
 ManifestPlugin.prototype.apply = function(compiler) {
@@ -13,7 +13,7 @@ ManifestPlugin.prototype.apply = function(compiler) {
       assets: stats_json.assetsByChunkName,
     }
     require('fs').writeFileSync(
-      path.join(__dirname, 'build/manifest.json'),
+      path.join(__dirname, this.manifestPath),
       JSON.stringify(parsed_stats)
     );
   });
@@ -23,10 +23,15 @@ module.exports = {
   context: __dirname,
   devtool: dev ? "inline-sourcemap" : false,
   watch: dev ? true : false,
+  resolve: {
+    modules: [
+      __dirname + '/node_modules'
+    ]
+  },
   entry: {
-    main_admin: "./js/views/main_admin.js",
-    main_order: "./js/views/main_order.js",
-    main_invoice: "./js/views/main_invoice.js"
+    main_admin: "../assets/js/views/main_admin.js",
+    main_order: "../assets/js/views/main_order.js",
+    main_invoice: "../assets/js/views/main_invoice.js"
   },
   output: {
     path: __dirname + "/build",
@@ -37,7 +42,12 @@ module.exports = {
     loaders: [{
       test: /\.js$/,
       exclude: /node_modules/,
-      loader: 'babel-loader'
+      loader: 'babel-loader',
+      query: {
+        presets: [
+          'babel-preset-es2015',
+        ].map(require.resolve),
+      }
     }]
   },
   plugins: dev ? [new ManifestPlugin({manifestPath: ''})] : [
