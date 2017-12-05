@@ -2,6 +2,7 @@
 
 from pytz import timezone
 from flask import Flask
+import json
 from flask_migrate import Migrate
 from flask_rq import RQ
 from flask_mail import Mail
@@ -45,6 +46,7 @@ baseframe.init_app(app, requires=['boxoffice'], ext_requires=['baseframe-bs3', '
 
 mail.init_app(app)
 wtforms_json.init()
+
 
 # This is a temporary solution for an admin interface, only
 # to be used until the native admin interface is ready.

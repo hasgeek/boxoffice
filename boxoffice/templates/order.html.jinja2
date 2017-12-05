@@ -28,5 +28,5 @@
   </div>
 {% endblock %}
 {% block footerscripts %}
-  <script src="/static/js/dist/order_bundle.js"></script>
+  <script src='{{ asset_path('main_order') | safe }}' type="text/javascript"></script>
 {% endblock %}

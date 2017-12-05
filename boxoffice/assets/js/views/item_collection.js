@@ -1,7 +1,12 @@
 
+var Ractive = require("ractive");
+var NProgress = require('nprogress');
+var _ = require("underscore");
+var c3 = require("c3");
 import {Util, fetch, urlFor, setPageTitle} from '../models/util.js';
 import {TableTemplate, AggChartTemplate, ItemCollectionTemplate} from '../templates/item_collection.html.js';
 import {SideBarView} from './sidebar.js'
+
 
 let TableComponent = Ractive.extend({
   isolated: false,

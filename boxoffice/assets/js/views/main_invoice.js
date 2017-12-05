@@ -7,7 +7,5 @@ import {Invoice} from './invoice';
 
 $(function() {
   Ractive.DEBUG = false;
-
   Invoice.init();
-
 });

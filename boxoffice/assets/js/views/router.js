@@ -1,4 +1,4 @@
-
+var Backbone = require("backbone");
 import {IndexView} from './index.js';
 import {OrgView} from './org.js';
 import {OrgReportView} from './admin_org_report.js';
@@ -6,6 +6,7 @@ import {DiscountPolicyView} from './admin_discount_policy.js';
 import {ItemCollectionView} from './item_collection.js';
 import {OrderView} from './admin_order.js';
 import {ReportView} from './admin_report.js';
+import {ItemView} from './admin_item.js';
 
 export const Router = Backbone.Router.extend({
   url_root: '/admin/',
@@ -15,6 +16,7 @@ export const Router = Backbone.Router.extend({
     "o/:org_name/reports": "org_report",
     "o/:org_name/discount_policy": 'discount_policy',
     "o/:org_name/discount_policy?:params": 'discount_policy',
+    "o/:org_name/items/new": "new_item",
     "ic/:ic_id": "item_collection",
     "ic/:ic_id/orders": "order",
     "ic/:ic_id/reports": "report"
@@ -39,6 +41,9 @@ export const Router = Backbone.Router.extend({
   },
   report: function(ic_id) {
     ReportView.render({ic_id});
+  },
+  new_item: function(org_name) {
+    ItemView.render({org_name});
   },
   _extractParameters: function(route, fragment) {
     var result = route.exec(fragment).slice(1);

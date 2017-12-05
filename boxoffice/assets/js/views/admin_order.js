@@ -1,4 +1,6 @@
 
+var NProgress = require('nprogress');
+var Ractive = require('ractive');
 import {Util, fetch, post, scrollToElement, urlFor, setPageTitle} from '../models/util.js';
 import {OrderTemplate} from '../templates/admin_order.html.js';
 import {SideBarView} from './sidebar.js';

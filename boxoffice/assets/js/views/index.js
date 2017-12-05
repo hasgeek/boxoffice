@@ -1,4 +1,7 @@
 
+import {eventBus} from './main_admin.js'
+var NProgress = require('nprogress');
+var Ractive = require('ractive');
 import {fetch, urlFor, setPageTitle} from '../models/util.js';
 import {IndexModel} from '../models/index.js';
 import {IndexTemplate} from '../templates/index.html.js';
