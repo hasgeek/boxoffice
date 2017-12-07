@@ -1,5 +1,6 @@
 import {xhrRetry, getFormJSObject} from '../models/util.js';
 import {InvoiceEditFormTemplate} from '../templates/invoice_edit_form.html.js';
+var FormValidator = require('validate-js');
 
 export const Invoice = {
   config: {

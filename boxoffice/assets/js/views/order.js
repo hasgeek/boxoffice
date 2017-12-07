@@ -1,5 +1,6 @@
 import {xhrRetry, getFormJSObject} from '../models/util.js';
 import {TicketAssignmentTemplate} from '../templates/ticket_assigment.html.js';
+var FormValidator = require('validate-js');
 
 export const Order = {
   config: {

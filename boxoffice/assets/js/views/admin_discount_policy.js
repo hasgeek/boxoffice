@@ -4,6 +4,8 @@ var Ractive = require('ractive');
 Ractive.transitions.fly = require( 'ractive-transitions-fly' );
 var _ = require("underscore");
 var Clipboard = require("clipboard");
+var FormValidator = require('validate-js');
+window.daterangepicker = require("bootstrap-daterangepicker");
 import {Util, fetch, post, scrollToElement, getFormParameters, getCsrfToken, updateBrowserHistory, urlFor, setPageTitle} from '../models/util.js';
 import {DiscountPolicyTemplate} from '../templates/admin_discount_policy.html.js';
 import {SideBarView} from './sidebar.js';
