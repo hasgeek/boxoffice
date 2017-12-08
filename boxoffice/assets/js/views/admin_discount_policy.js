@@ -5,7 +5,8 @@ Ractive.transitions.fly = require( 'ractive-transitions-fly' );
 var _ = require("underscore");
 var Clipboard = require("clipboard");
 var FormValidator = require('validate-js');
-window.daterangepicker = require("bootstrap-daterangepicker");
+var rome = require('rome');
+var moment = rome.moment;
 import {Util, fetch, post, scrollToElement, getFormParameters, getCsrfToken, updateBrowserHistory, urlFor, setPageTitle} from '../models/util.js';
 import {DiscountPolicyTemplate} from '../templates/admin_discount_policy.html.js';
 import {SideBarView} from './sidebar.js';
@@ -177,12 +178,12 @@ export const DiscountPolicyView = {
             if (discountPolicy) {
               let discount_policy_id = discountPolicyComponent.get(discountPolicy + '.id');
               addItemSelector = "#add-item-" + discount_policy_id;
-              startDateSelector = "#start-date-" + discount_policy_id;
-              endDateSelector = "#end-date-" + discount_policy_id;
+              startDateSelector = "start-date-" + discount_policy_id;
+              endDateSelector = "end-date-" + discount_policy_id;
             } else {
               addItemSelector = "#add-item";
-              startDateSelector = "#start-date";
-              endDateSelector = "#end-date";
+              startDateSelector = "start-date";
+              endDateSelector = "end-date";
             }
 
             $(addItemSelector).select2({
@@ -220,27 +221,9 @@ export const DiscountPolicyView = {
               }
             });
 
-            $(startDateSelector).daterangepicker({
-              singleDatePicker: true,
-              showDropdowns: true,
-              timePicker: true,
-              timePicker24Hour: true,
-              opens: 'left',
-              locale: {
-                format: 'YYYY-MM-DD H:mm'
-              }
-            });
+            rome(document.getElementById(startDateSelector));
+            rome(document.getElementById(endDateSelector));
 
-            $(endDateSelector).daterangepicker({
-              singleDatePicker: true,
-              showDropdowns: true,
-              timePicker: true,
-              timePicker24Hour: true,
-              opens: 'left',
-              locale: {
-                format: 'YYYY-MM-DD H:mm'
-              }
-            });
           } else {
             let addItemsSelector;
 
