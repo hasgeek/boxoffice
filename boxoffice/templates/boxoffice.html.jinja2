@@ -48,10 +48,10 @@
                           </div>
                           <span class="multiplier">&#215;</span>
                           <div class="ticket-price-wrapper">
-                            {{#if line_item.unit_final_amount >= 0 && line_item.quantity === 0}}
+                            {{#if line_item.unit_final_amount >= 0 && line_item.quantity <= 1}}
                               <p class="discount-price ticket-price">&#8377;{{ line_item.unit_final_amount }}</p>
                             {{/if}}
-                            <p class="ticket-price {{#if line_item.unit_final_amount >= 0 && line_item.quantity === 0}}strike{{/if}}">&#8377;{{ line_item.base_price }}</p>
+                            <p class="ticket-price {{#if line_item.unit_final_amount >= 0 && line_item.quantity <= 1}}strike{{/if}}">&#8377;{{ line_item.base_price }}</p>
                           </div>
                         </div>
                         <div class="item-amount">
