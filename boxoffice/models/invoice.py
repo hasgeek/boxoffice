@@ -58,8 +58,12 @@ class Invoice(UuidMixin, BaseMixin, db.Model):
     customer_order_id = db.Column(None, db.ForeignKey('customer_order.id'), nullable=False, index=True)
     order = db.relationship('Order', backref=db.backref('invoices', cascade='all, delete-orphan'))
 
+    # An invoice may be associated with a different organization as compared to its order
+    # to allow for the following use case. An invoice may be issued by a parent entity, while the order is booked through
+    # the child entity.
     organization_id = db.Column(None, db.ForeignKey('organization.id'), nullable=False)
     organization = db.relationship('Organization', backref=db.backref('invoices', cascade='all, delete-orphan', lazy='dynamic'))
+
 
     def __init__(self, *args, **kwargs):
         organization = kwargs.get('organization')
@@ -103,10 +107,3 @@ def fetch_invoices(self):
     )
 
 Organization.fetch_invoices = fetch_invoices
-
-
-@event.listens_for(Invoice, 'before_update')
-@event.listens_for(Invoice, 'before_insert')
-def validate_invoice_organization(mapper, connection, target):
-    if target.organization != target.order.organization:
-        raise ValueError(u"Invoice MUST be associated with the same organization as its order")
