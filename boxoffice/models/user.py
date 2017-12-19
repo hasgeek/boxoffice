@@ -54,6 +54,11 @@ class Organization(ProfileBase, db.Model):
     # logo (image url), refund_policy (html), ticket_faq (html), website (url)
     details = db.Column(JsonDict, nullable=False, server_default='{}')
     contact_email = db.Column(db.Unicode(254), nullable=False)
+    # This is to allow organizations to have their orders invoiced by the parent organization
+    invoicer_id = db.Column(None, db.ForeignKey('organization.id'), nullable=True)
+    invoicer = db.relationship('Organization', remote_side='Organization.id',
+        backref=db.backref('subsidiaries', cascade='all, delete-orphan', lazy='dynamic'))
+
 
     def permissions(self, user, inherited=None):
         perms = super(Organization, self).permissions(user, inherited)
