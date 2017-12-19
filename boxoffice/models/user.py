@@ -55,8 +55,8 @@ class Organization(ProfileBase, db.Model):
     details = db.Column(JsonDict, nullable=False, server_default='{}')
     contact_email = db.Column(db.Unicode(254), nullable=False)
     # This is to allow organizations to have their orders invoiced by the parent organization
-    parent_id = db.Column(None, db.ForeignKey('organization.id'), nullable=True)
-    parent = db.relationship('Organization', remote_side='Organization.id',
+    invoicer_id = db.Column(None, db.ForeignKey('organization.id'), nullable=True)
+    invoicer = db.relationship('Organization', remote_side='Organization.id',
         backref=db.backref('subsidiaries', cascade='all, delete-orphan', lazy='dynamic'))
 
 
