@@ -285,8 +285,7 @@ $(function() {
           if (response.readyState === 4) {
           	//Server error
             onServerError();
-          }
-          else if (response.readyState === 0) {
+          } else if (response.readyState === 0) {
             if (ajaxLoad.retries < 0) {
               //Network error
               onNetworkError();
@@ -306,8 +305,7 @@ $(function() {
                 formDetails[this.name] = [formDetails[this.name]];
               }
               formDetails[this.name].push(this.value || '');
-            }
-            else {
+            } else {
               formDetails[this.name] = this.value || '';
             }
           });
@@ -543,15 +541,13 @@ $(function() {
             if (phone.length > 16) {
               formValidator.setMessage('validate_phone', "Please enter a valid mobile number");
               return false;
-            }
-            else if (phone.match(validPhone)) {
+            } else if (phone.match(validPhone)) {
               //Indian number starting with '+91'
               if (phone.indexOf('+91') === 0 && phone.length != 13) {
                 formValidator.setMessage('validate_phone', "Please enter a valid Indian mobile number");
                 return false;
               }
-            }
-            else {
+            } else {
               formValidator.setMessage('validate_phone', "Please prefix your phone number with '+' and country code.");
               return false;
             }
@@ -608,13 +604,11 @@ $(function() {
                 if (errors[0] === 'order calculation error') {
                   boxoffice.ractive.calculateOrder();
                   errorTxt = "<p>" + JSON.parse(response.responseText).message + "<p>";
-                }
-                else if (errors && !$.isEmptyObject(errors)) {
+                } else if (errors && !$.isEmptyObject(errors)) {
                   for (let error in errors) {
                     errorTxt += "<p>" + errors[error] + "</p>"
                   }
-                }
-                else {
+                } else {
                   errorTxt = "<p>" + JSON.parse(response.responseText).message + "<p>";
                 }
                 boxoffice.ractive.set({
@@ -837,8 +831,7 @@ $(function() {
                   for (let error in errors) {
                     errorTxt += "<p>" + errors[error] + "</p>"
                   }
-                }
-                else {
+                } else {
                   errorTxt = "<p>" + JSON.parse(response.responseText).message + "<p>";
                 }
             		boxoffice.ractive.set({
@@ -891,12 +884,11 @@ $(function() {
 
   // Raise a custom event once boxoffice.js has been loaded
   if (typeof(window.Event) === "function") {
-    var event = new Event('boxofficeScript-load');
-  }
-  else {
+    var event = new Event('onBoxofficeInit');
+  } else {
     // 'Event' constructor is not supported by IE
     var event = document.createEvent('Event');
-    event.initEvent('boxofficeScript-load', true, true);
+    event.initEvent('onBoxofficeInit', true, true);
   }
   window.dispatchEvent(event);
 
