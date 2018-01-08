@@ -888,5 +888,17 @@ $(function() {
   window.Boxoffice.init = function(widgetConfig) {
 	  boxoffice.init(widgetConfig);
   };
+
+  // Raise a custom event once boxoffice.js has been loaded
+  if (typeof(window.Event) === "function") {
+    var event = new Event('boxofficeScript-load');
+  }
+  else {
+    // 'Event' constructor is not supported by IE
+    var event = document.createEvent('Event');
+    event.initEvent('boxofficeScript-load', true, true);
+  }
+  window.dispatchEvent(event);
+
 });
 {% endraw %}
