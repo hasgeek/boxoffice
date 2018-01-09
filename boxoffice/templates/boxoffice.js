@@ -884,13 +884,13 @@ $(function() {
 
   // Raise a custom event once boxoffice.js has been loaded
   if (typeof(window.Event) === "function") {
-    var event = new Event('onBoxofficeInit');
+    var onBoxofficeInit = new Event('onBoxofficeInit');
   } else {
     // 'Event' constructor is not supported by IE
-    var event = document.createEvent('Event');
-    event.initEvent('onBoxofficeInit', true, true);
+    var onBoxofficeInit = document.createEvent('Event');
+    onBoxofficeInit.initEvent('onBoxofficeInit', true, true);
   }
-  window.dispatchEvent(event);
+  window.dispatchEvent(onBoxofficeInit);
 
 });
 {% endraw %}
