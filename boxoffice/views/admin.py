@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 
 from flask import g, jsonify, request
-import pytz
 from .. import app, lastuser
 from coaster.views import load_models, render_with
 from coaster.utils import getbool
 from baseframe import _
-from boxoffice.models import Organization, ItemCollection
+from baseframe.forms import render_form
+from boxoffice.models import db, Organization, ItemCollection
 from boxoffice.models.line_item import calculate_weekly_sales
 from boxoffice.models.payment import calculate_weekly_refunds
-from boxoffice.views.utils import check_api_access, api_error, api_success
+from boxoffice.views.utils import xhr_only, check_api_access, api_error, api_success
+from boxoffice.forms import ItemCollectionForm
 
 
 def jsonify_dashboard(data):
@@ -24,11 +25,27 @@ def index():
     return dict(user=g.user)
 
 
+def jsonify_ic(ic):
+    if ic:
+        return {
+            'id': ic.id,
+            'name': ic.name,
+            'title': ic.title,
+            'url': '/ic/' + unicode(ic.id),
+            'description_text': ic.description_text,
+            'description_html': ic.description_html
+        }
+    return None
+
+
 def jsonify_org(data):
     item_collections_list = ItemCollection.query.filter(ItemCollection.organization == data['org']).order_by('created_at desc').all()
+    form = ItemCollectionForm()
+    html_form = render_form(form=form, title=u"New Item Collection", submit=u"Save", ajax=False, with_chrome=False)
     return jsonify(id=data['org'].id,
         org_title=data['org'].title,
-        item_collections=[{'id': ic.id, 'name': ic.name, 'title': ic.title, 'url': '/ic/' + unicode(ic.id), 'description_text': ic.description_text, 'description_html': ic.description_html} for ic in item_collections_list])
+        item_collections=[jsonify_ic(ic) for ic in item_collections_list],
+        form=html_form)
 
 
 @app.route('/admin/o/<org>')
@@ -40,6 +57,26 @@ def jsonify_org(data):
     )
 def org(organization):
     return dict(org=organization, title=organization.title)
+
+
+@app.route('/admin/o/<org>/ic/new', methods=['POST'])
+@lastuser.requires_login
+@xhr_only
+@load_models(
+    (Organization, {'name': 'org'}, 'organization'),
+    permission='org_admin'
+    )
+def admin_new_ic(organization):
+    ic_form = ItemCollectionForm()
+    if ic_form.validate_on_submit():
+        ic = ItemCollection(organization=organization)
+        ic_form.populate_obj(ic)
+        if not ic.name:
+            ic.make_name()
+        db.session.add(ic)
+        db.session.commit()
+        return api_success(result={'item_collection': jsonify_ic(ic)}, doc=_(u"New item collection created"), status_code=201)
+    return api_error(message=_(u"Incorrect data"), errors=ic_form.errors, status_code=400)
 
 
 @app.route('/api/1/organization/<org>/weekly_revenue', methods=['GET', 'OPTIONS'])

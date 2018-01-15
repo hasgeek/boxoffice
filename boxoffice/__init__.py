@@ -43,6 +43,7 @@ lastuser.init_app(app)
 lastuser.init_usermanager(UserManager(db, User))
 app.config['tz'] = timezone(app.config['TIMEZONE'])
 baseframe.init_app(app, requires=['boxoffice'], ext_requires=['baseframe-bs3', 'fontawesome>=4.0.0', 'baseframe-footable'])
+app.assets.register('js_tinymce', assets.require('!jquery.js', 'tinymce.js>=4.0.0', 'jquery.tinymce.js>=4.0.0'))
 
 mail.init_app(app)
 wtforms_json.init()

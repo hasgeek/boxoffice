@@ -28,6 +28,17 @@ export const Util = {
     else {
       return moment(dateTimeString).toString();
     }
+  },
+  getElementId: function(htmlString) {
+    return htmlString.match(/id="(.*?)"/)[1];
+  },
+  getFormTemplate: function(htmlString) {
+    // Add on click event handler for Ractive to submit the form
+    const formTemplate = `${htmlString.slice(0, htmlString.search(/type="submit"/))} on-click="onFormSubmit(event)" {{#formOnSubmit}}disabled{{/}} ${htmlString.slice(htmlString.search(/type="submit"/))}`;
+    return formTemplate
+  },
+  showFormErrors: function(formId, errors) {
+    window.Baseframe.Forms.showValidationErrors(formId, errors);
   }
 };
 
@@ -43,6 +54,7 @@ export const post = function (config) {
     url: config.url,
     type: 'POST',
     data: config.data,
+    processData: config.processData ? config.processData : false,
     contentType : config.contentType ? config.contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
     dataType: config.dataType ? config.dataType : 'json',
   });
