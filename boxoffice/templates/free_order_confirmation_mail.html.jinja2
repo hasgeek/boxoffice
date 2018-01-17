@@ -119,6 +119,10 @@
       padding: 10px;
     }
 
+    .center {
+      text-align: center;
+    }
+
     .footer {
       background-color: #f9fafc;
       padding: 10px;
@@ -177,7 +181,7 @@
       <p class="receipt-no">Order no: {{ order.invoice_no }}</p>
 
       <p class="content name">Hello {{ order.buyer_fullname }},</p>
-      <p class="content">Please find your ticket details below.In order to create a personlized badge for you, we need a few details. Looking forward to seeing you at the event!</p>
+      <p class="content">Please find your ticket details below.In order to create a personalized badge for you, we need a few details. Looking forward to seeing you at the event!</p>
       <div class="btn-wrapper"><a class="button" href={{"{base_url}/order/{access_token}/ticket".format(base_url=base_url, access_token=order.access_token)}} target="_blank">Fill attendee details</a></div>
 
       <hr class="line-break">
@@ -185,7 +189,7 @@
       <p class="ticket-box-title">Here {% if line_items|length > 1 %} are your <b>tickets</b>{% else %} is your <b>ticket</b>{% endif %}!</p>
       <table>
         <tr>
-          <th>Ticket No:</th>
+          <th>Ticket No.</th>
           <th>Ticket</th>
           <th>Details</th>
           <th>Ticket type</th>
@@ -193,9 +197,9 @@
         {% for line_item in line_items -%}
           <tr>
             <td class="center" valign="middle">{{ line_item.line_item_seq }}</td>
-            <td class="center" valign="middle">{{ line_item.item.title }}</td>
-            <td class="center" valign="top">{{ line_item.item.description.text|safe }}</td>
-            <td class="center" valign="top">This is a <b>free</b> ticket.</td>
+            <td valign="middle">{{ line_item.item.title }}</td>
+            <td valign="top">{{ line_item.item.description.text|safe }}</td>
+            <td class="center" valign="middle">This is a <b>free</b> ticket.</td>
           </tr>
         {%- endfor %}
       </table>
