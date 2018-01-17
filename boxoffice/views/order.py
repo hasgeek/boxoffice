@@ -236,7 +236,7 @@ def free(order):
                 line_item.discount_coupon.update_used_count()
                 db.session.add(line_item.discount_coupon)
         db.session.commit()
-        send_receipt_mail.delay(order.id, subject="{item_collection_title}: Thank you for your order (#{invoice_no})!".format(item_collection_title=order.item_collection.title, invoice_no=order.invoice_no))
+        send_receipt_mail.delay(order.id, subject="{item_collection_title}: Your registration is confirmed!".format(item_collection_title=order.item_collection.title), template='free_order_confirmation_mail.html.jinja2')
         return api_success(result={'order_id': order.id},
             doc=_(u"Free order confirmed"), status_code=201)
 

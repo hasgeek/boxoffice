@@ -146,7 +146,7 @@
 
     <p>
       <a class="button" href={{"{base_url}/order/{access_token}/ticket".format(base_url=base_url, access_token=order.access_token)}} target="_blank">Fill attendee details</a>
-      {%- if order_confirmed_amount > 0 %}
+      {%- if order.paid_amount > 0 %}
         <a class="button invoice-btn" href={{"{base_url}/order/{access_token}/invoice".format(base_url=base_url, access_token=order.access_token)}} target="_blank">Get GST invoice</a>
       {%- endif %}
     </p>
@@ -250,7 +250,7 @@
       <tr>
           <td></td>
           <td colspan="2" class="total gray">Total</td>
-          <td class="total-amount gray center"><div id="total">&#8377; {{ order_confirmed_amount }}</div></td>
+          <td class="total-amount gray center"><div id="total">&#8377; {{ order.paid_amount }}</div></td>
       </tr>
     </table>
     

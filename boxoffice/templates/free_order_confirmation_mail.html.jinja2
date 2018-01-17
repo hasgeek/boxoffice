@@ -181,7 +181,7 @@
       <p class="receipt-no">Order no: {{ order.invoice_no }}</p>
 
       <p class="content name">Hello {{ order.buyer_fullname }},</p>
-      <p class="content">Please find your ticket details below.In order to create a personalized badge for you, we need a few details. Looking forward to seeing you at the event!</p>
+      <p class="content">Please find your ticket details below. Looking forward to seeing you at the event!</p>
       <div class="btn-wrapper"><a class="button" href={{"{base_url}/order/{access_token}/ticket".format(base_url=base_url, access_token=order.access_token)}} target="_blank">Fill attendee details</a></div>
 
       <hr class="line-break">
