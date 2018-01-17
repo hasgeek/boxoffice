@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>{{order.item_collection.description}}</title>
+  <style type="text/css">
+    * { 
+      margin: 0; 
+      padding: 0; 
+    }
+
+    body {
+      font-family: "Source Sans Pro",Arial,sans-serif;
+      font-size: 16px;
+      line-height: 1.2;
+      color: #333;
+      background-color: #fff;
+    }
+
+    a {
+      text-decoration: none;
+    }
+
+    p { 
+      margin: 5px 0 5px;
+      font-size: 15px;
+    }
+
+    .heading {
+      background-color: #eff2f7;
+      padding: 10px;
+    }
+
+    .logo-wrapper {
+      float: left;
+      max-width: 30px;
+      margin-bottom: 10px;
+      padding: 10px;
+      border-radius: 50%;
+      background-color: #ffffff;
+      box-shadow: 0 2px 4px 0 #C0CCDA;
+      text-align: center;
+    }
+
+    .logo {
+      margin: 2px auto 0;
+      width: 100%;
+    }
+
+    .ic-title {
+      text-align: center;
+      font-size: 24px;
+      color: #1f2d3d;
+      margin: 7px auto 15px;
+    }
+
+    .content-wrapper {
+      padding: 10px;
+    }
+
+    .receipt-no {
+      color: #8492a6;
+      font-size: 16px;
+      float: right;
+    }
+
+    .content {
+      clear: both;
+      color: #1f2d3d;
+      font-size: 16px;
+    }
+
+    .name {
+      margin-bottom: 10px;
+    }
+
+    .btn-wrapper {
+      text-align: center;
+      margin: 25px auto;
+    }
+
+    .button {
+      border-width: 0px 0px 3px;
+      border-style: solid;
+      border-radius: 5px;
+      padding: 6px 12px;
+      color: #fff;
+      font-size: 15px;
+      display: inline-block;
+      background-color: #5BC0DE;
+      border-color: #46B8DA;
+    }
+
+    .line-break {
+      color: #EFF2F7;
+      margin: 10px -10px;
+    }
+
+    .ticket-box-title {
+      color: #1f2d3d;
+      font-size: 32px;
+      text-align: center;
+      margin: 25px auto;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    table th {
+      border: 1px solid transparent;
+      border-bottom: 1px solid #eff2f7;
+      padding: 10px;
+    }
+    table td {
+      border: 1px solid #eff2f7;
+      padding: 10px;
+    }
+
+    .footer {
+      background-color: #f9fafc;
+      padding: 10px;
+      color: #8492a6;
+      margin: 25px 0 0;
+    }
+
+    .footer .footer-content a {
+      font-size: 14px !important;
+      text-decoration: none !important;
+      color: #8492A6 !important;
+    }
+
+    .footer-left-content {
+      float: left;
+    }
+
+    .footer-left-content h2 {
+      margin: 5px 0 5px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .footer-right-content {
+      float: right;
+    }
+    
+    .footer-title {
+      font-size: 12px;
+    }
+
+    .footer-content {
+      font-size: 14px;
+    }
+
+    .clear {
+      clear: both;
+    }
+  </style>
+</head>
+
+<body>
+  <div>
+
+    <div class="heading">
+      {%- if org.details.get('logo') %}
+        <div class="logo-wrapper">
+         <img src="{{ org.details.get('logo') }}" class="logo"/>
+        </div>
+      {%- endif %}
+      <h1 class="ic-title">{{ order.item_collection.title }}
+    </div>
+
+    <div class="content-wrapper">
+
+      <p class="receipt-no">Order no: {{ order.invoice_no }}</p>
+
+      <p class="content name">Hello {{ order.buyer_fullname }},</p>
+      <p class="content">Please find your ticket details below.In order to create a personlized badge for you, we need a few details. Looking forward to seeing you at the event!</p>
+      <div class="btn-wrapper"><a class="button" href={{"{base_url}/order/{access_token}/ticket".format(base_url=base_url, access_token=order.access_token)}} target="_blank">Fill attendee details</a></div>
+
+      <hr class="line-break">
+
+      <p class="ticket-box-title">Here {% if line_items|length > 1 %} are your <b>tickets</b>{% else %} is your <b>ticket</b>{% endif %}!</p>
+      <table>
+        <tr>
+          <th>Ticket No:</th>
+          <th>Ticket</th>
+          <th>Details</th>
+          <th>Ticket type</th>
+        </tr>
+        {% for line_item in line_items -%}
+          <tr>
+            <td class="center" valign="middle">{{ line_item.line_item_seq }}</td>
+            <td class="center" valign="middle">{{ line_item.item.title }}</td>
+            <td class="center" valign="top">{{ line_item.item.description.text|safe }}</td>
+            <td class="center" valign="top">This is a <b>free</b> ticket.</td>
+          </tr>
+        {%- endfor %}
+      </table>
+    </div>
+
+    <div class="footer">
+      <div class="footer-left-content">
+        {%- if org.details.get('address') %}
+          <p class="footer-title">Event organized by</p>
+          <div class="footer-content">{{org.details.get('address') | safe}}</div>
+        {%- endif %}
+      </div>
+      <div class="footer-right-content">
+        <p class="footer-title">For information regarding event, contact</p>
+        {%- if org.details.get('support_email') %}
+          <p class="footer-content">{{org.details.get('support_email')}}</p>
+        {%- else %}
+          <p class="footer-content">{{org.contact_email}}</p>
+        {%- endif %}
+        {%- if org.details.get('phone') %}
+          <p>{{org.details.get('phone')}}</p>
+        {%- endif %}
+      </div>
+      <p class="clear"></p>
+    </div>
+    
+  
+  </div>
+</body>
+
+</html>
