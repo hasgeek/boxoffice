@@ -26,7 +26,8 @@ export const OrgView = {
         onFormSubmit: function(event) {
           event.original.preventDefault();
           let self = this;
-          let formSelector = '#' + this.get('addFormId');
+          let formSelector = '#' + self.get('addFormId');
+          self.set('formOnSubmit', true);
           post({
             url: urlFor('new', {
               scope_ns: 'o',
@@ -37,16 +38,17 @@ export const OrgView = {
             processData: false,
             data: getFormParameters(formSelector)
           }).done((remoteData) => {
+            self.set('formOnSubmit', false);
             orgComponent.unshift('item_collections', remoteData.result.item_collection);
             orgComponent.hideNewIcForm();
           }).fail(function (response) {
+            self.set('formOnSubmit', false);
             let errorMsg = DEFAULT.empty;
             if (response.readyState === 4) {
               if (response.status === 500) {
                 errorMsg = "Internal Server Error";
               } else {
-                console.log('response', response);
-                Util.showFormErrors(self.get('addFormId'), response.responseJSONerrors);
+                Util.showFormErrors(self.get('addFormId'), response.responseJSON.errors);
               }
             } else {
               errorMsg = "Unable to connect. Please try again.";
