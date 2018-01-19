@@ -11,6 +11,8 @@ export const OrgView = {
     const DEFAULT = {
       showForm: true,
       hideForm: false,
+      btnDisable: true,
+      btnEnable: false,
       empty: ""
     };
 
@@ -27,7 +29,7 @@ export const OrgView = {
           event.original.preventDefault();
           let self = this;
           let formSelector = '#' + self.get('addFormId');
-          self.set('formOnSubmit', true);
+          self.set('formOnSubmit', DEFAULT.btnDisable);
           post({
             url: urlFor('new', {
               scope_ns: 'o',
@@ -38,11 +40,11 @@ export const OrgView = {
             processData: false,
             data: getFormParameters(formSelector)
           }).done((remoteData) => {
-            self.set('formOnSubmit', false);
+            self.set('formOnSubmit', DEFAULT.btnEnable);
             orgComponent.unshift('item_collections', remoteData.result.item_collection);
             orgComponent.hideNewIcForm();
           }).fail(function (response) {
-            self.set('formOnSubmit', false);
+            self.set('formOnSubmit', DEFAULT.btnEnable);
             let errorMsg = DEFAULT.empty;
             if (response.readyState === 4) {
               if (response.status === 500) {
@@ -67,7 +69,7 @@ export const OrgView = {
           item_collections: item_collections,
           newIC: '',
           showAddForm: DEFAULT.hideForm,
-          formOnSubmit: DEFAULT.hideLoader
+          formOnSubmit: DEFAULT.btnEnable
         },
         components: {AddICFormComponent: AddICFormComponent},
         showNewIcForm: function(event) {
