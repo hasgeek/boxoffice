@@ -237,6 +237,13 @@
         <td colspan="2" class="total gray">Total paid</td>
         <td class="total-amount gray center"><div id="total">&#8377; {{ order.paid_amount }}</div></td>
       </tr>
+      {% if order.refunded_amount > 0 %}
+        <tr>
+          <td></td>
+          <td colspan="2" class="total gray">Net paid (post refund)</td>
+          <td class="total-amount gray center"><div id="net-amount">&#8377; {{ order.net_amount }}</div></td>
+        </tr>
+      {% endif %}
     </table>
 
     {%- if order.refunded_amount %}
