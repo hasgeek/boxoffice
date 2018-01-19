@@ -72,7 +72,7 @@ export const OrgView = {
           formOnSubmit: DEFAULT.btnEnable
         },
         components: {AddICFormComponent: AddICFormComponent},
-        showNewIcForm: function(event) {
+        showNewIcForm: function (event) {
           this.set('showAddForm', DEFAULT.showForm);
         },
         hideNewIcForm: function (event) {
@@ -84,7 +84,7 @@ export const OrgView = {
       setPageTitle(org_title);
       NProgress.done();
 
-      orgComponent.on('navigate', function(event, method){
+      orgComponent.on('navigate', function (event, method){
         NProgress.configure({ showSpinner: false}).start();
         eventBus.trigger('navigate', event.context.url);
       });
