@@ -9,7 +9,7 @@ export const orgTemplate = `
         <button on-click="hideNewIcForm(event)" class="close-button"><i class="fa fa-close"></i></button>
         <p class="content-slider-title">Add a new item collection</p>
         <div class="content-slider-wrapper">
-          <AddICFormComponent></AddICFormComponent>
+          <ICForm></ICForm>
           <p class="error-msg">{{{ newIC.errorMsg }}}</p>
         </div>
       </div>

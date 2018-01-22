@@ -19,16 +19,16 @@ export const OrgView = {
     fetch({
       url: urlFor('view', {resource: 'o', id: org_name, root: true})
     }).then(function({id, org_title, item_collections, form}) {
-      let AddICFormComponent = Ractive.extend({
+      let ICForm = Ractive.extend({
         isolated: false,
         template: Util.getFormTemplate(form),
         data: {
-          addFormId: Util.getElementId(form),
+          formId: Util.getElementId(form),
         },
         onFormSubmit: function(event) {
           event.original.preventDefault();
           let self = this;
-          let formSelector = '#' + self.get('addFormId');
+          let formSelector = '#' + self.get('formId');
           self.set('formOnSubmit', DEFAULT.btnDisable);
           post({
             url: urlFor('new', {
@@ -37,7 +37,6 @@ export const OrgView = {
               resource: 'ic',
               root: true
             }),
-            processData: false,
             data: getFormParameters(formSelector)
           }).done((remoteData) => {
             self.set('formOnSubmit', DEFAULT.btnEnable);
@@ -50,7 +49,7 @@ export const OrgView = {
               if (response.status === 500) {
                 errorMsg = "Internal Server Error";
               } else {
-                Util.showFormErrors(self.get('addFormId'), response.responseJSON.errors);
+                window.Baseframe.Forms.showValidationErrors(self.get('formId'), response.responseJSON.errors);
               }
             } else {
               errorMsg = "Unable to connect. Please try again.";
@@ -71,7 +70,7 @@ export const OrgView = {
           showAddForm: DEFAULT.hideForm,
           formOnSubmit: DEFAULT.btnEnable
         },
-        components: {AddICFormComponent: AddICFormComponent},
+        components: {ICForm: ICForm},
         showNewIcForm: function (event) {
           this.set('showAddForm', DEFAULT.showForm);
         },
