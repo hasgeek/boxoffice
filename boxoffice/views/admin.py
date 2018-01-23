@@ -25,24 +25,13 @@ def index():
     return dict(user=g.user)
 
 
-def jsonify_ic(ic):
-    return {
-        'id': ic.id,
-        'name': ic.name,
-        'title': ic.title,
-        'url': '/ic/' + unicode(ic.id),
-        'description_text': ic.description_text,
-        'description_html': ic.description_html
-    }
-
-
 def jsonify_org(data):
     item_collections_list = ItemCollection.query.filter(ItemCollection.organization == data['org']).order_by('created_at desc').all()
     form = ItemCollectionForm()
     html_form = render_form(form=form, title=u"New Item Collection", submit=u"Save", ajax=False, with_chrome=False)
     return jsonify(id=data['org'].id,
         org_title=data['org'].title,
-        item_collections=[jsonify_ic(ic) for ic in item_collections_list],
+        item_collections=[dict(ic.access_for(user=g.user)) for ic in item_collections_list],
         form=html_form)
 
 
@@ -73,7 +62,7 @@ def admin_new_ic(organization):
             ic.make_name()
         db.session.add(ic)
         db.session.commit()
-        return api_success(result={'item_collection': jsonify_ic(ic)}, doc=_(u"New item collection created"), status_code=201)
+        return api_success(result={'item_collection': dict(ic.access_for(user=g.user))}, doc=_(u"New item collection created"), status_code=201)
     return api_error(message=_(u"Incorrect data"), errors=ic_form.errors, status_code=400)
 
 

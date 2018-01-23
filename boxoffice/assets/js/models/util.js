@@ -80,12 +80,6 @@ export const xhrRetry = function(ajaxLoad, response, serverErrorCallback, networ
   }
 };
 
-export const scrollToElement = function (element, speed=500) {
-  $('html,body').animate({
-    scrollTop: $(element).offset().top
-  }, speed);
-};
-
 export const getFormParameters = function (form) {
   return $.param($(form).serializeArray());
 };
@@ -125,6 +119,12 @@ export const formErrorHandler = function(errorResponse, formId) {
   $("#" + formId).find('button[type="submit"]').prop('disabled', false);
   $("#" + formId).find(".loading").addClass('hidden');
   return errorMsg;
+};
+
+export const scrollToElement = function (element, speed=500) {
+  $('html,body').animate({
+    scrollTop: $(element).offset().top
+  }, speed);
 };
 
 export const updateBrowserHistory = function (newUrl) {

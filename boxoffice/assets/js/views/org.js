@@ -42,7 +42,7 @@ export const OrgView = {
           }).fail((response) => {
             let errorMsg;
             errorMsg = formErrorHandler(response, this.get('formId'));
-            orgComponent.set('newIC.errorMsg', errorMsg);
+            orgComponent.set('icForm.errorMsg', errorMsg);
           });
         }
       });
@@ -54,9 +54,8 @@ export const OrgView = {
           orgName: org_name,
           orgTitle: org_title,
           item_collections: item_collections,
-          newIC: '',
-          showAddForm: DEFAULT.hideForm,
-          formOnSubmit: DEFAULT.btnEnable
+          icForm: '',
+          showAddForm: DEFAULT.hideForm
         },
         components: {ICForm: ICForm},
         showNewIcForm: function (event) {
@@ -64,17 +63,18 @@ export const OrgView = {
         },
         hideNewIcForm: function (event) {
           this.set('showAddForm', DEFAULT.hideForm);
+        },
+        viewDashboard: function (event) {
+          NProgress.configure({ showSpinner: false}).start();
+          //Relative paths(without '/admin') are defined in router.js
+          let icViewUrl = event.context.url_for.replace('/admin', '');
+          eventBus.trigger('navigate', icViewUrl);
         }
       });
 
       SideBarView.render('org', {org_name, org_title});
       setPageTitle(org_title);
       NProgress.done();
-
-      orgComponent.on('navigate', function (event, method) {
-        NProgress.configure({ showSpinner: false}).start();
-        eventBus.trigger('navigate', event.context.url);
-      });
     });
 
     window.addEventListener('popstate', (event) => {

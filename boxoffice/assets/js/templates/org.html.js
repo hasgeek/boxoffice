@@ -10,7 +10,7 @@ export const orgTemplate = `
         <p class="content-slider-title">Add a new item collection</p>
         <div class="content-slider-wrapper">
           <ICForm></ICForm>
-          <p class="error-msg">{{{ newIC.errorMsg }}}</p>
+          <p class="error-msg">{{{ icForm.errorMsg }}}</p>
         </div>
       </div>
     {{/if}}
@@ -24,16 +24,13 @@ export const orgTemplate = `
         <div class="content">
           <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
             <p class="section-title">Item collection id</p>
-            <p class="section-content">{{id}}</p>
+            <p class="section-content">{{ id }}</p>
             <p class="section-title">Item collection description</p>
-            <div class="section-content">{{{description_html}}}</div>
+            <div class="section-content">{{{ description }}}</div>
             <div class="btn-wrapper">
               <a class="boxoffice-button boxoffice-button-action" href="/{{orgName}}/{{name}}">View listing</a>
-              <a class="boxoffice-button boxoffice-button-action" href="javascript:void(0)" on-click="navigate">View dashboard</a>
+              <a class="boxoffice-button boxoffice-button-action" href="javascript:void(0)" on-click="viewDashboard(event)">View dashboard</a>
             </div>
-            {{#infoMsg}}
-              <p class="info-msg">{{ infoMsg }} <i class="fa fa-check"></i></p>
-            {{/}}
           </div>
       </div>
     {{/item_collections}}
