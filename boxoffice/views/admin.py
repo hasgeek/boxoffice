@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from flask import g, jsonify, request, url_for
+from flask import g, jsonify, request
 from .. import app, lastuser
 from coaster.views import load_models, render_with
 from coaster.utils import getbool
@@ -26,15 +26,14 @@ def index():
 
 
 def jsonify_ic(ic):
-    if ic:
-        return {
-            'id': ic.id,
-            'name': ic.name,
-            'title': ic.title,
-            'url': url_for('admin_item_collection', ic_id=ic.id),
-            'description_text': ic.description_text,
-            'description_html': ic.description_html
-        }
+    return {
+        'id': ic.id,
+        'name': ic.name,
+        'title': ic.title,
+        'url': '/ic/' + unicode(ic.id),
+        'description_text': ic.description_text,
+        'description_html': ic.description_html
+    }
 
 
 def jsonify_org(data):

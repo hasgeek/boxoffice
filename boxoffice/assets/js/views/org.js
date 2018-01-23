@@ -2,7 +2,7 @@
 var Ractive = require('ractive');
 import {eventBus} from './main_admin.js'
 var NProgress = require('nprogress');
-import {Util, fetch, post, getFormParameters, urlFor, setPageTitle} from '../models/util.js';
+import {Util, fetch, post, formErrorHandler, getFormParameters, urlFor, setPageTitle} from '../models/util.js';
 import {orgTemplate} from '../templates/org.html.js';
 import {SideBarView} from './sidebar.js'
 
@@ -11,8 +11,6 @@ export const OrgView = {
     const DEFAULT = {
       showForm: true,
       hideForm: false,
-      btnDisable: true,
-      btnEnable: false,
       empty: ""
     };
 
@@ -21,15 +19,14 @@ export const OrgView = {
     }).then(function({id, org_title, item_collections, form}) {
       let ICForm = Ractive.extend({
         isolated: false,
-        template: Util.getFormTemplate(form),
+        template: Util.getFormTemplate(form, 'onFormSubmit(event)'),
         data: {
           formId: Util.getElementId(form),
+          formSubmit: DEFAULT.btnEnable
         },
         onFormSubmit: function(event) {
           event.original.preventDefault();
-          let self = this;
-          let formSelector = '#' + self.get('formId');
-          self.set('formOnSubmit', DEFAULT.btnDisable);
+          let formSelector = '#' + this.get('formId');
           post({
             url: urlFor('new', {
               scope_ns: 'o',
@@ -37,23 +34,14 @@ export const OrgView = {
               resource: 'ic',
               root: true
             }),
-            data: getFormParameters(formSelector)
+            data: getFormParameters(formSelector),
+            formId: formSelector
           }).done((remoteData) => {
-            self.set('formOnSubmit', DEFAULT.btnEnable);
             orgComponent.unshift('item_collections', remoteData.result.item_collection);
             orgComponent.hideNewIcForm();
-          }).fail(function (response) {
-            self.set('formOnSubmit', DEFAULT.btnEnable);
-            let errorMsg = DEFAULT.empty;
-            if (response.readyState === 4) {
-              if (response.status === 500) {
-                errorMsg = "Internal Server Error";
-              } else {
-                window.Baseframe.Forms.showValidationErrors(self.get('formId'), response.responseJSON.errors);
-              }
-            } else {
-              errorMsg = "Unable to connect. Please try again.";
-            }
+          }).fail((response) => {
+            let errorMsg;
+            errorMsg = formErrorHandler(response, this.get('formId'));
             orgComponent.set('newIC.errorMsg', errorMsg);
           });
         }
@@ -83,7 +71,7 @@ export const OrgView = {
       setPageTitle(org_title);
       NProgress.done();
 
-      orgComponent.on('navigate', function (event, method){
+      orgComponent.on('navigate', function (event, method) {
         NProgress.configure({ showSpinner: false}).start();
         eventBus.trigger('navigate', event.context.url);
       });

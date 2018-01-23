@@ -11,4 +11,4 @@ class ItemCollectionForm(forms.Form):
         validators=[forms.validators.DataRequired(__("Please specify a title")),
         forms.validators.Length(max=250)], filters=[forms.filters.strip()])
     description = forms.TinyMce4Field(__("Description"))
-    tax_type = forms.SelectField(u"Tax type", choices=[('GST', 'GST')], default="GST")
+    tax_type = forms.SelectField(__("Tax type"), choices=[('GST', 'GST')], default='GST')

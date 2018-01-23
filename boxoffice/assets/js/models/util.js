@@ -32,10 +32,10 @@ export const Util = {
   getElementId: function(htmlString) {
     return htmlString.match(/id="(.*?)"/)[1];
   },
-  getFormTemplate: function(htmlString) {
+  getFormTemplate: function(htmlString, submitHandler) {
     // Add on click event handler for Ractive to submit the form
-    return `${htmlString.slice(0, htmlString.search(/type="submit"/))} on-click="onFormSubmit(event)" 
-      {{#formOnSubmit}}disabled{{/}} ${htmlString.slice(htmlString.search(/type="submit"/))}`;
+    return `${htmlString.slice(0, htmlString.search(/type="submit"/))} on-click=${submitHandler}
+      ${htmlString.slice(htmlString.search(/type="submit"/))}`;
   }
 };
 
@@ -53,6 +53,12 @@ export const post = function (config) {
     data: config.data,
     contentType : config.contentType ? config.contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
     dataType: config.dataType ? config.dataType : 'json',
+    beforeSend: function() {
+      if (config.formId) {
+        $(config.formId).find('button[type="submit"]').prop('disabled', true);
+        $(config.formId).find(".loading").removeClass('hidden');
+      }
+    }
   });
 };
 
@@ -65,13 +71,13 @@ export const xhrRetry = function(ajaxLoad, response, serverErrorCallback, networ
     if (ajaxLoad.retries < 0) {
       //Network error
       networkErrorCallback();
-    } 
+    }
     else {
       setTimeout(function() {
         $.ajax(ajaxLoad);
       }, ajaxLoad.retryInterval);
     }
-  }         
+  }
 };
 
 export const scrollToElement = function (element, speed=500) {
@@ -91,9 +97,9 @@ export const getFormJSObject = function (form) {
     if (formDetails[this.name] !== undefined) {
       if (!formDetails[this.name].push) {
         formDetails[this.name] = [formDetails[this.name]];
-      }      
+      }
       formDetails[this.name].push(this.value || '');
-    } 
+    }
     else {
       formDetails[this.name] = this.value || '';
     }
@@ -103,6 +109,22 @@ export const getFormJSObject = function (form) {
 
 export const getCsrfToken = function () {
   return document.head.querySelector("[name=csrf-token]").content;
+};
+
+export const formErrorHandler = function(errorResponse, formId) {
+  let errorMsg = "";
+  if (errorResponse.readyState === 4) {
+    if (errorResponse.status === 500) {
+      errorMsg = "Internal Server Error";
+    } else {
+      window.Baseframe.Forms.showValidationErrors(formId, errorResponse.responseJSON.errors);
+    }
+  } else {
+    errorMsg = "Unable to connect. Please try again.";
+  }
+  $("#" + formId).find('button[type="submit"]').prop('disabled', false);
+  $("#" + formId).find(".loading").addClass('hidden');
+  return errorMsg;
 };
 
 export const updateBrowserHistory = function (newUrl) {
@@ -116,7 +138,7 @@ export const urlFor = function(action, params={}) {
 
   `action` is a required parameter and MUST be one of 'index', 'view',
   'new', 'edit' or 'search'.
-  
+
   The URLs provided follow the following pattern for a particular resource:
   - 'index' -> /
   - 'view' -> /<id>
@@ -140,7 +162,7 @@ export const urlFor = function(action, params={}) {
   let ext = '';
   let resource = '';
   let url;
-  
+
   if (params.scope_ns && params.scope_id) {
     scope = `${params.scope_ns}/${params.scope_id}/`;
   }
