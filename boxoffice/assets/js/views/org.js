@@ -37,8 +37,9 @@ export const OrgView = {
             data: getFormParameters(formSelector),
             formId: formSelector
           }).done((remoteData) => {
-            orgComponent.unshift('item_collections', remoteData.result.item_collection);
-            orgComponent.hideNewIcForm();
+            NProgress.configure({ showSpinner: false}).start();
+            let newICUrl = remoteData.result.item_collection.url_for_view.replace('/admin', '');
+            eventBus.trigger('navigate', newICUrl);
           }).fail((response) => {
             let errorMsg;
             errorMsg = formErrorHandler(response, this.get('formId'));
@@ -67,7 +68,7 @@ export const OrgView = {
         viewDashboard: function (event) {
           NProgress.configure({ showSpinner: false}).start();
           //Relative paths(without '/admin') are defined in router.js
-          let icViewUrl = event.context.url_for.replace('/admin', '');
+          let icViewUrl = event.context.url_for_view.replace('/admin', '');
           eventBus.trigger('navigate', icViewUrl);
         }
       });

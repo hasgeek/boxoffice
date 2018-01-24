@@ -21,14 +21,18 @@ class ItemCollection(BaseScopedNameMixin, db.Model):
     parent = db.synonym('organization')
     tax_type = db.Column(db.Unicode(80), nullable=True, default=u'GST')
 
+    def url_for(self, action='view', _external=False, **kwargs):
+        if action == 'view':
+            return url_for('admin_item_collection', ic_id=self.id, _external=_external, **kwargs)
+
     @property
-    def url_for(self):
-        return url_for('admin_item_collection', ic_id=self.id)
+    def url_for_view(self):
+        return self.url_for('view')
 
     __roles__ = {
         'ic_owner': {
             'write': {},
-            'read': {'id', 'name', 'title', 'url_for', 'description'}
+            'read': {'id', 'name', 'title', 'url_for_view', 'description'}
         }
     }
 

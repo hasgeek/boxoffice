@@ -112,6 +112,7 @@ export const formErrorHandler = function(errorResponse, formId) {
       errorMsg = "Internal Server Error";
     } else {
       window.Baseframe.Forms.showValidationErrors(formId, errorResponse.responseJSON.errors);
+      errorMsg = "Error";
     }
   } else {
     errorMsg = "Unable to connect. Please try again.";

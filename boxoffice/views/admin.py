@@ -27,8 +27,7 @@ def index():
 
 def jsonify_org(data):
     item_collections_list = ItemCollection.query.filter(ItemCollection.organization == data['org']).order_by('created_at desc').all()
-    form = ItemCollectionForm()
-    html_form = render_form(form=form, title=u"New Item Collection", submit=u"Save", ajax=False, with_chrome=False)
+    html_form = render_form(form=ItemCollectionForm(), title=u"New Item Collection", submit=u"Save", ajax=False, with_chrome=False)
     return jsonify(id=data['org'].id,
         org_title=data['org'].title,
         item_collections=[dict(ic.access_for(user=g.user)) for ic in item_collections_list],
