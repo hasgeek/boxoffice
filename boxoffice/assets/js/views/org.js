@@ -19,13 +19,13 @@ export const OrgView = {
     }).then(function({id, org_title, item_collections, form}) {
       let ICForm = Ractive.extend({
         isolated: false,
-        template: Util.getFormTemplate(form, 'onFormSubmit(event)'),
+        template: form,
         data: {
           formId: Util.getElementId(form),
           formSubmit: DEFAULT.btnEnable
         },
         onFormSubmit: function(event) {
-          event.original.preventDefault();
+          event.preventDefault();
           let formSelector = '#' + this.get('formId');
           post({
             url: urlFor('new', {
@@ -45,6 +45,12 @@ export const OrgView = {
             errorMsg = formErrorHandler(response, this.get('formId'));
             orgComponent.set('icForm.errorMsg', errorMsg);
           });
+        },
+        onrender: function(){
+          let formEl = document.getElementById(this.get('formId'));
+          formEl.addEventListener('click', function(event){
+            this.onFormSubmit(event);
+          }.bind(this));
         }
       });
 
