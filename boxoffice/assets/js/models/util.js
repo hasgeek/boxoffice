@@ -203,3 +203,8 @@ export const setPageTitle = function (...subTitles) {
   subTitles.push(window.boxofficeAdmin.siteTitle);
   $('title').html(subTitles.join(" — "));
 }
+
+export const registerSubmitHandler = function(formId, formHandler){
+  let formEl = document.getElementById(formId);
+  formEl.addEventListener('submit', formHandler.bind(this));
+}

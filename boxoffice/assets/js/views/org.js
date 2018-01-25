@@ -2,7 +2,7 @@
 var Ractive = require('ractive');
 import {eventBus} from './main_admin.js'
 var NProgress = require('nprogress');
-import {Util, fetch, post, formErrorHandler, getFormParameters, urlFor, setPageTitle} from '../models/util.js';
+import {Util, fetch, post, formErrorHandler, getFormParameters, urlFor, setPageTitle, registerSubmitHandler} from '../models/util.js';
 import {orgTemplate} from '../templates/org.html.js';
 import {SideBarView} from './sidebar.js'
 
@@ -47,10 +47,7 @@ export const OrgView = {
           });
         },
         onrender: function(){
-          let formEl = document.getElementById(this.get('formId'));
-          formEl.addEventListener('click', function(event){
-            this.onFormSubmit(event);
-          }.bind(this));
+          registerSubmitHandler.call(this, this.get('formId'), this.onFormSubmit);
         }
       });
 
