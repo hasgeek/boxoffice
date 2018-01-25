@@ -107,6 +107,7 @@ export const getCsrfToken = function () {
 
 export const formErrorHandler = function(errorResponse, formId) {
   let errorMsg = "";
+  // xhr readyState '4' indicates server has received the request & response is ready
   if (errorResponse.readyState === 4) {
     if (errorResponse.status === 500) {
       errorMsg = "Internal Server Error";

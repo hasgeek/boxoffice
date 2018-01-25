@@ -62,7 +62,7 @@ def admin_new_ic(organization):
         db.session.add(ic)
         db.session.commit()
         return api_success(result={'item_collection': dict(ic.access_for(user=g.user))}, doc=_(u"New item collection created"), status_code=201)
-    return api_error(message=_(u"Incorrect data"), errors=ic_form.errors, status_code=400)
+    return api_error(message=_(u"There was a problem with creating the item collection"), errors=ic_form.errors, status_code=400)
 
 
 @app.route('/api/1/organization/<org>/weekly_revenue', methods=['GET', 'OPTIONS'])
