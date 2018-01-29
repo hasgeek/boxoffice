@@ -28,6 +28,9 @@ export const Util = {
     else {
       return moment(dateTimeString).toString();
     }
+  },
+  getElementId: function(htmlString) {
+    return htmlString.match(/id="(.*?)"/)[1];
   }
 };
 
@@ -45,6 +48,12 @@ export const post = function (config) {
     data: config.data,
     contentType : config.contentType ? config.contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
     dataType: config.dataType ? config.dataType : 'json',
+    beforeSend: function() {
+      if (config.formId) {
+        $(config.formId).find('button[type="submit"]').prop('disabled', true);
+        $(config.formId).find(".loading").removeClass('hidden');
+      }
+    }
   });
 };
 
@@ -57,19 +66,13 @@ export const xhrRetry = function(ajaxLoad, response, serverErrorCallback, networ
     if (ajaxLoad.retries < 0) {
       //Network error
       networkErrorCallback();
-    } 
+    }
     else {
       setTimeout(function() {
         $.ajax(ajaxLoad);
       }, ajaxLoad.retryInterval);
     }
-  }         
-};
-
-export const scrollToElement = function (element, speed=500) {
-  $('html,body').animate({
-    scrollTop: $(element).offset().top
-  }, speed);
+  }
 };
 
 export const getFormParameters = function (form) {
@@ -83,9 +86,9 @@ export const getFormJSObject = function (form) {
     if (formDetails[this.name] !== undefined) {
       if (!formDetails[this.name].push) {
         formDetails[this.name] = [formDetails[this.name]];
-      }      
+      }
       formDetails[this.name].push(this.value || '');
-    } 
+    }
     else {
       formDetails[this.name] = this.value || '';
     }
@@ -95,6 +98,30 @@ export const getFormJSObject = function (form) {
 
 export const getCsrfToken = function () {
   return document.head.querySelector("[name=csrf-token]").content;
+};
+
+export const formErrorHandler = function(errorResponse, formId) {
+  let errorMsg = "";
+  // xhr readyState '4' indicates server has received the request & response is ready
+  if (errorResponse.readyState === 4) {
+    if (errorResponse.status === 500) {
+      errorMsg = "Internal Server Error";
+    } else {
+      window.Baseframe.Forms.showValidationErrors(formId, errorResponse.responseJSON.errors);
+      errorMsg = "Error";
+    }
+  } else {
+    errorMsg = "Unable to connect. Please try again.";
+  }
+  $("#" + formId).find('button[type="submit"]').prop('disabled', false);
+  $("#" + formId).find(".loading").addClass('hidden');
+  return errorMsg;
+};
+
+export const scrollToElement = function (element, speed=500) {
+  $('html,body').animate({
+    scrollTop: $(element).offset().top
+  }, speed);
 };
 
 export const updateBrowserHistory = function (newUrl) {
@@ -108,7 +135,7 @@ export const urlFor = function(action, params={}) {
 
   `action` is a required parameter and MUST be one of 'index', 'view',
   'new', 'edit' or 'search'.
-  
+
   The URLs provided follow the following pattern for a particular resource:
   - 'index' -> /
   - 'view' -> /<id>
@@ -132,7 +159,7 @@ export const urlFor = function(action, params={}) {
   let ext = '';
   let resource = '';
   let url;
-  
+
   if (params.scope_ns && params.scope_id) {
     scope = `${params.scope_ns}/${params.scope_id}/`;
   }
@@ -175,4 +202,9 @@ export const setPageTitle = function (...subTitles) {
   Eg:- "Orders — JSFoo 2016 — Boxoffice" */
   subTitles.push(window.boxofficeAdmin.siteTitle);
   $('title').html(subTitles.join(" — "));
+}
+
+export const registerSubmitHandler = function(formId, formHandler){
+  let formEl = document.getElementById(formId);
+  formEl.addEventListener('submit', formHandler.bind(this));
 }

@@ -380,6 +380,10 @@ input.icon-placeholder {
   color: #800080;
 }
 
+.form-control.field-title {
+  color: inherit;
+}
+
 .group textarea {
   border: 1px solid #757575;
 }
