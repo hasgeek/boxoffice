@@ -49,8 +49,9 @@ class Organization(ProfileBase, db.Model):
     __tablename__ = 'organization'
     __table_args__ = (db.UniqueConstraint('contact_email'),)
 
-    # The currently used fields in details are address(html), cin (Corporate Identity Number)
-    # pan service_tax_no, support_email,
+    # The currently used fields in details are address(html)
+    # cin (Corporate Identity Number) or llpin (Limited Liability Partnership Identification Number),
+    # pan, service_tax_no, support_email,
     # logo (image url), refund_policy (html), ticket_faq (html), website (url)
     details = db.Column(JsonDict, nullable=False, server_default='{}')
     contact_email = db.Column(db.Unicode(254), nullable=False)
@@ -61,6 +62,7 @@ class Organization(ProfileBase, db.Model):
 
 
     def permissions(self, user, inherited=None):
+        # import IPython; IPython.embed();
         perms = super(Organization, self).permissions(user, inherited)
         if self.userid in user.organizations_owned_ids():
             perms.add('org_admin')

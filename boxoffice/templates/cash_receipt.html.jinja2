@@ -165,6 +165,8 @@
         {%- endif %}
         {%- if org.details.get('cin') %}
           <p>CIN: {{org.details.get('cin')}}</p>
+        {%- elif org.details.get('llpin') %}
+          <p>LLPIN: {{org.details.get('llpin')}}</p>
         {%- endif %}
         {%- if org.details.get('pan') %}
           <p>PAN No: {{org.details.get('pan')}}</p>
