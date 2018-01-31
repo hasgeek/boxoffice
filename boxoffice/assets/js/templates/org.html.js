@@ -20,18 +20,29 @@ export const orgTemplate = `
           {{#title}}
             <p class="heading-title">{{ title }}</p>
           {{/title}}
+          <div class="heading-edit">
+            <button class="edit-btn" on-click="showEditICForm(event)"><i class="fa fa-edit"></i>{{#loadingEditForm}}<i class="fa fa-spinner fa-spin">{{/}}</button>
+          </div>
         </div>
         <div class="content">
-          <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
-            <p class="section-title">Item collection id</p>
-            <p class="section-content">{{ id }}</p>
-            <p class="section-title">Item collection description</p>
-            <div class="section-content">{{{ description }}}</div>
-            <div class="btn-wrapper">
-              <a class="boxoffice-button boxoffice-button-action" href="/{{orgName}}/{{name}}">View listing</a>
-              <a class="boxoffice-button boxoffice-button-action" href="javascript:void(0)" on-click="viewDashboard(event)">View dashboard</a>
+          {{#if showEditForm}}
+            <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
+              <EditICForm formTemplate="{{ formTemplate }}" ic="{{ item_collection }}" icId="{{ id }}"></EditICForm>
+              <p class="error-msg">{{{ errorMsg }}}</p>
             </div>
-          </div>
+          {{else}}
+            <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
+              <p class="section-title">Item collection id</p>
+              <p class="section-content">{{ id }}</p>
+              <p class="section-title">Item collection description</p>
+              <div class="section-content">{{{ description }}}</div>
+              <div class="btn-wrapper">
+                <a class="boxoffice-button boxoffice-button-action" href="/{{ orgName }}/{{ name }}">View listing</a>
+                <a class="boxoffice-button boxoffice-button-action" href="javascript:void(0)" on-click="viewDashboard(event)">View dashboard</a>
+              </div>
+            </div>
+          {{/if}}
+        </div>
       </div>
     {{/item_collections}}
   </div>

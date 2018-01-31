@@ -31,6 +31,11 @@ export const Util = {
   },
   getElementId: function(htmlString) {
     return htmlString.match(/id="(.*?)"/)[1];
+  },
+  getFormTemplate: function(htmlString, submitHandler) {
+    // Add on click event handler for Ractive to submit the form
+    return `${htmlString.slice(0, htmlString.search(/type="submit"/))} on-click=${submitHandler}
+    ${htmlString.slice(htmlString.search(/type="submit"/))}`;
   }
 };
 
@@ -202,9 +207,4 @@ export const setPageTitle = function (...subTitles) {
   Eg:- "Orders — JSFoo 2016 — Boxoffice" */
   subTitles.push(window.boxofficeAdmin.siteTitle);
   $('title').html(subTitles.join(" — "));
-}
-
-export const registerSubmitHandler = function(formId, formHandler){
-  let formEl = document.getElementById(formId);
-  formEl.addEventListener('submit', formHandler.bind(this));
 }
