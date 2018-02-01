@@ -34,7 +34,7 @@ export const Util = {
   },
   getFormTemplate: function(htmlString, submitHandler) {
     // Add on click event handler for Ractive to submit the form
-    return `${htmlString.slice(0, htmlString.search(/type="submit"/))} on-click=${submitHandler}
+    return `${htmlString.slice(0, htmlString.search(/type="submit"/))} on-click='${submitHandler}'
     ${htmlString.slice(htmlString.search(/type="submit"/))}`;
   }
 };

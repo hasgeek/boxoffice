@@ -21,59 +21,47 @@ export const OrgView = {
     }).then(function({id, org_title, item_collections, form}) {
       let ICForm = Ractive.extend({
         isolated: false,
-        template: Util.getFormTemplate(form, 'onFormSubmit(event)'),
-        data: {
-          formId: Util.getElementId(form)
-        },
-        onFormSubmit: function(event) {
-          event.original.preventDefault();
-          let formSelector = '#' + this.get('formId');
-          post({
-            url: urlFor('new', { scope_ns: 'o', scope_id: org_name, resource: 'ic', root: true }),
-            data: getFormParameters(formSelector),
-            formId: formSelector
-          }).done((remoteData) => {
-            NProgress.configure({ showSpinner: false}).start();
-            let newICUrl = remoteData.result.item_collection.url_for_view.replace('/admin', '');
-            eventBus.trigger('navigate', newICUrl);
-          }).fail((response) => {
-            let errorMsg;
-            errorMsg = formErrorHandler(response, this.get('formId'));
-            orgComponent.set('icForm.errorMsg', errorMsg);
-          });
-        }
-      });
-
-      let EditICForm = Ractive.extend({
-        isolated: false,
         template: function(data) {
           if(this.get('formTemplate')) {
-            return Util.getFormTemplate(this.get('formTemplate'), 'onFormSubmit(event)');
+            // Add ractive on click event handler to the baseframe form
+            return Util.getFormTemplate(this.get('formTemplate'), 'onFormSubmit(event, "edit")');
           }
-          return '<div>Error/div>';
+          return Util.getFormTemplate(form, 'onFormSubmit(event, "new")');
         },
         computed: {
           formId: {
             get: function() {
-              return Util.getElementId(this.get('formTemplate'))
+              if(this.get('formTemplate')) {
+                return Util.getElementId(this.get('formTemplate'));
+              }
+              return Util.getElementId(form);
             }
           }
         },
-        onFormSubmit: function(event) {
+        onFormSubmit: function(event, action) {
           event.original.preventDefault();
           let formSelector = '#' + this.get('formId'),
-            currentIC = 'item_collections.' + this.get('ic');
+            url = action === "edit" ? urlFor('edit', { resource: 'ic', id: this.get('icId'), root: true}) :
+                  urlFor('new', { scope_ns: 'o', scope_id: org_name, resource: 'ic', root: true }),
+            ic = action === "edit" ? 'item_collections.' + this.get('ic') : '';
+
           post({
-            url: urlFor('edit', { resource: 'ic', id: this.get('icId'), root: true}),
+            url: url,
             data: getFormParameters(formSelector),
             formId: formSelector
           }).done((remoteData) => {
-            orgComponent.set(currentIC + '.showEditForm', DEFAULT.hideForm);
-            orgComponent.set(currentIC, remoteData.result.item_collection);
+            if (action === "edit") {
+              //Update the item collection details
+              orgComponent.set(ic + '.showEditForm', DEFAULT.hideForm);
+              orgComponent.set(ic, remoteData.result.item_collection);
+            } else {
+              // On creating a new item collection, load it's the dashboard.
+              orgComponent.viewDashboard(remoteData.result.item_collection.url_for_view);
+            }
           }).fail((response) => {
             let errorMsg;
             errorMsg = formErrorHandler(response, this.get('formId'));
-            orgComponent.set(currentIC + '.errorMsg', errorMsg);
+            orgComponent.set(ic + '.errorMsg', errorMsg);
           });
         }
       });
@@ -85,36 +73,36 @@ export const OrgView = {
           orgName: org_name,
           orgTitle: org_title,
           item_collections: item_collections,
-          icForm: '',
           showAddForm: DEFAULT.hideForm,
-          editIcForm: ''
         },
-        components: {ICForm: ICForm, EditICForm: EditICForm},
-        showNewIcForm: function (event) {
-          this.set('showAddForm', DEFAULT.showForm);
+        components: {ICForm: ICForm},
+        showIcForm: function (event, action) {
+          if (action === "edit") {
+            let ic = event.keypath,
+              icId = event.context.id;
+            this.set(ic + '.loadingEditForm', DEFAULT.showLoader);
+            fetch({
+              url: urlFor('edit', { resource: 'ic', id: icId, root: true})
+            }).done(({form_template}) => {
+              // Set the from baseframe form html as the item collection's form template
+              orgComponent.set(ic + '.formTemplate', form_template);
+              orgComponent.set(ic + '.showEditForm', DEFAULT.showForm);
+              orgComponent.set(ic + '.loadingEditForm', DEFAULT.hideLoader);
+            }).fail(() => {
+              orgComponent.set(ic + '.loadingEditForm', DEFAULT.hideLoader);
+            })
+          } else {
+            this.set('showAddForm', DEFAULT.showForm);
+          }
         },
         hideNewIcForm: function (event) {
           this.set('showAddForm', DEFAULT.hideForm);
         },
-        viewDashboard: function (event) {
+        viewDashboard: function (url) {
           NProgress.configure({ showSpinner: false}).start();
           //Relative paths(without '/admin') are defined in router.js
-          let icViewUrl = event.context.url_for_view.replace('/admin', '');
+          let icViewUrl = url.replace('/admin', '');
           eventBus.trigger('navigate', icViewUrl);
-        },
-        showEditICForm: function (event) {
-          let ic = event.keypath,
-            icId = event.context.id;
-          this.set(ic + '.loadingEditForm', DEFAULT.showLoader);
-          fetch({
-            url: urlFor('edit', { resource: 'ic', id: icId, root: true})
-          }).done(({form_template}) => {
-            orgComponent.set(ic + '.formTemplate', form_template);
-            orgComponent.set(ic + '.showEditForm', DEFAULT.showForm);
-            orgComponent.set(ic + '.loadingEditForm', DEFAULT.hideLoader);
-          }).fail(() => {
-            orgComponent.set(ic + '.loadingEditForm', DEFAULT.hideLoader);
-          });
         }
       });
 
