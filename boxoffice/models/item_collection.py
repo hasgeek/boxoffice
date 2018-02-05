@@ -36,10 +36,10 @@ class ItemCollection(BaseScopedNameMixin, db.Model):
         }
     }
 
-    def roles_for(self, user=None, token=None):
-        if not user and not token:
+    def roles_for(self, actor=None, anchors=()):
+        if not actor and not anchors:
             return set()
-        roles = super(ItemCollection, self).roles_for(user, token)
-        if self.organization.userid in user.organizations_owned_ids():
+        roles = super(ItemCollection, self).roles_for(actor, anchors)
+        if self.organization.userid in actor.organizations_owned_ids():
             roles.add('ic_owner')
         return roles
