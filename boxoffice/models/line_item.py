@@ -364,8 +364,6 @@ def get_from_item(cls, item, qty, coupon_codes=[]):
                             used_count=0)
                         db.session.add(coupon)
                     coupons.append(coupon)
-                else:
-                    coupon = None
             else:
                 coupons = DiscountCoupon.query.filter(
                     DiscountCoupon.discount_policy_id.in_(coupon_policy_ids),
