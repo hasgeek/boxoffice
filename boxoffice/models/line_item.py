@@ -351,20 +351,29 @@ def get_from_item(cls, item, qty, coupon_codes=[]):
         coupon_policies = item.discount_policies.filter(DiscountPolicy.discount_type == DISCOUNT_TYPE.COUPON).all()
         coupon_policy_ids = [cp.id for cp in coupon_policies]
         for coupon_code in coupon_codes:
+            coupons = []
             if DiscountPolicy.is_signed_code_format(coupon_code):
                 policy = DiscountPolicy.get_from_signed_code(coupon_code)
                 if policy and policy.id in coupon_policy_ids:
                     coupon = DiscountCoupon.query.filter_by(discount_policy=policy, code=coupon_code).one_or_none()
                     if not coupon:
-                        coupon = DiscountCoupon(discount_policy=policy, code=coupon_code, usage_limit=policy.bulk_coupon_usage_limit, used_count=0)
+                        coupon = DiscountCoupon(
+                            discount_policy=policy,
+                            code=coupon_code,
+                            usage_limit=policy.bulk_coupon_usage_limit,
+                            used_count=0)
                         db.session.add(coupon)
+                    coupons.append(coupon)
                 else:
                     coupon = None
             else:
-                coupon = DiscountCoupon.query.filter(DiscountCoupon.discount_policy_id.in_(coupon_policy_ids), DiscountCoupon.code == coupon_code).one_or_none()
-            if coupon and coupon.usage_limit > coupon.used_count:
-                policies.append((coupon.discount_policy, coupon))
+                coupons = DiscountCoupon.query.filter(
+                    DiscountCoupon.discount_policy_id.in_(coupon_policy_ids),
+                    DiscountCoupon.code == coupon_code).all()
 
+            for coupon in coupons:
+                if coupon.usage_limit > coupon.used_count:
+                    policies.append((coupon.discount_policy, coupon))
     return policies
 
 DiscountPolicy.get_from_item = classmethod(get_from_item)
