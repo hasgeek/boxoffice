@@ -12,6 +12,7 @@ from boxoffice.models.line_item import calculate_weekly_sales
 from boxoffice.models.payment import calculate_weekly_refunds
 from boxoffice.views.utils import xhr_only, check_api_access, api_error, api_success
 from boxoffice.forms import ItemCollectionForm
+from coaster.auth import current_auth
 
 
 def jsonify_dashboard(data):
@@ -31,7 +32,7 @@ def jsonify_org(data):
     html_form = render_form(form=ItemCollectionForm(), title=u"New Item Collection", submit=u"Save", ajax=False, with_chrome=False)
     return jsonify(id=data['org'].id,
         org_title=data['org'].title,
-        item_collections=[dict(ic.access_for(actor=g.user)) for ic in item_collections_list],
+        item_collections=[dict(ic.current_access()) for ic in item_collections_list],
         form=html_form)
 
 
@@ -62,7 +63,7 @@ def admin_new_ic(organization):
             ic.make_name()
         db.session.add(ic)
         db.session.commit()
-        return api_success(result={'item_collection': dict(ic.access_for(actor=g.user))}, doc=_(u"New item collection created"), status_code=201)
+        return api_success(result={'item_collection': dict(ic.current_access())}, doc=_(u"New item collection created"), status_code=201)
     return api_error(message=_(u"There was a problem with creating the item collection"), errors=ic_form.errors, status_code=400)
 
 
