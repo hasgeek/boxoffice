@@ -1,7 +1,10 @@
+# -*- coding: utf-8 -*-
+
 import decimal
 import json
 import unittest
 from flask import url_for
+from coaster.utils import make_name
 from boxoffice import app
 from boxoffice.models import (db)
 from fixtures import init_data
@@ -122,24 +125,28 @@ class TestKharchaAPI(unittest.TestCase):
 
     def test_unlimited_coupon_kharcha(self):
         first_item = Item.query.filter_by(name='conference-ticket').first()
-        coupon = DiscountCoupon.query.filter_by(code='unlimited').first()
+        coupon_code = 'unlimited'
         discounted_quantity = 5
-        kharcha_req = {'line_items': [{'item_id': unicode(first_item.id), 'quantity': discounted_quantity}], 'discount_coupons': [coupon.code]}
+        kharcha_req = {'line_items': [{
+            'item_id': unicode(first_item.id),
+            'quantity': discounted_quantity
+        }], 'discount_coupons': [coupon_code]}
+
         resp = self.client.post(url_for('kharcha'), data=json.dumps(kharcha_req), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
-        self.assertEquals(resp.status_code, 200)
         resp_json = json.loads(resp.get_data())
+        self.assertEquals(resp.status_code, 200)
 
         base_amount = discounted_quantity * first_item.current_price().amount
-        discounted_amount = 100 * discounted_quantity
+        discount_policy = DiscountPolicy.query.filter_by(name=make_name('Unlimited Geek')).one()
+        discounted_amount = discounted_quantity * ((discount_policy.percentage/decimal.Decimal('100')) * first_item.current_price().amount)
         self.assertEquals(resp_json.get('line_items')[unicode(first_item.id)].get('final_amount'),
-            base_amount-discounted_amount)
+            base_amount - discounted_amount)
 
-        expected_discount_policy_ids = [unicode(coupon.discount_policy_id)]
         policy_ids = [unicode(policy) for policy in resp_json.get('line_items')[unicode(first_item.id)].get('discount_policy_ids')]
-
+        expected_discount_policy_ids = [discount_policy.id]
         # Test that all the discount policies are returned
         for expected_policy_id in expected_discount_policy_ids:
-            self.assertIn(expected_policy_id, [policy for policy in policy_ids])
+            self.assertIn(unicode(expected_policy_id), [policy for policy in policy_ids])
 
     def test_coupon_limit(self):
         first_item = Item.query.filter_by(name='conference-ticket').first()
