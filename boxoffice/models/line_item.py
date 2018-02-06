@@ -246,7 +246,27 @@ def get_confirmed_line_items(self):
     return LineItem.query.filter(LineItem.item == self, LineItem.status == LINE_ITEM_STATUS.CONFIRMED)
 
 
+def sold(self):
+    return LineItem.query.filter(LineItem.item == self, LineItem.final_amount > 0, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).count()
+
+
+def free(self):
+    return LineItem.query.filter(LineItem.item == self, LineItem.final_amount == 0, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).count()
+
+
+def cancelled(self):
+    return LineItem.query.filter(LineItem.item == self, LineItem.status == LINE_ITEM_STATUS.CANCELLED).count()
+
+
+def net_sales(self):
+    return db.session.query(func.sum(LineItem.final_amount)).filter(LineItem.item == self, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).first()[0]
+
+
 Item.get_confirmed_line_items = property(get_confirmed_line_items)
+Item.sold = property(sold)
+Item.free = property(free)
+Item.cancelled = property(cancelled)
+Item.net_sales = property(net_sales)
 
 
 def counts_per_date_per_item(item_collection, user_tz):

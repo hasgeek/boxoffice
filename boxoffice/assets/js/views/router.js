@@ -16,10 +16,10 @@ export const Router = Backbone.Router.extend({
     "o/:org_name/reports": "org_report",
     "o/:org_name/discount_policy": 'discount_policy',
     "o/:org_name/discount_policy?:params": 'discount_policy',
-    "o/:org_name/items/new": "new_item",
     "ic/:ic_id": "item_collection",
     "ic/:ic_id/orders": "order",
-    "ic/:ic_id/reports": "report"
+    "ic/:ic_id/reports": "report",
+    "item/:item_id": "item",
   },
   index: function() {
     IndexView.render();
@@ -42,8 +42,8 @@ export const Router = Backbone.Router.extend({
   report: function(ic_id) {
     ReportView.render({ic_id});
   },
-  new_item: function(org_name) {
-    ItemView.render({org_name});
+  item: function(item_id) {
+    ItemView.render({item_id});
   },
   _extractParameters: function(route, fragment) {
     var result = route.exec(fragment).slice(1);

@@ -23,15 +23,15 @@ export const TableTemplate = `
                   <td class="active" rowspan="{{category.items.length}}">{{ category.title }}</td>
                 {{/if}}
                 <td>{{ index + 1 }}</td>
-                <td>{{ title }}</td>
+                <td><a class="" href="javascript:void(0)" on-click="viewItem(url_for_view)">{{ title }} <i class="fas fa-eye"></i></a></td>
                 <td>{{ available }}</td>
                 <td>{{ sold }} <input type="checkbox" name="sold" on-click="onItemsSelected(event, 'sold')" /></td>
                 <td>{{ free }} <input type="checkbox" name="free" on-click="onItemsSelected(event, 'free')" /></td>
                 <td>{{ cancelled }}</td>
-                {{#if current_price !==  "No active price"}}
-                  <td>{{ formatToIndianRupee(current_price) }}</td>
+                {{#if active_price}}
+                  <td>{{ formatToIndianRupee(active_price) }}</td>
                 {{else}}
-                  <td>{{ current_price }}</td>
+                  <td>No active price</td>
                 {{/if}}
                 <td>{{ formatToIndianRupee(net_sales) }}</td>
               </tr>

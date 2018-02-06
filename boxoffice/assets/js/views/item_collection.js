@@ -3,6 +3,7 @@ var Ractive = require("ractive");
 var NProgress = require('nprogress');
 var _ = require("underscore");
 var c3 = require("c3");
+import {eventBus} from './main_admin.js'
 import {Util, fetch, urlFor, setPageTitle} from '../models/util.js';
 import {TableTemplate, AggChartTemplate, ItemCollectionTemplate} from '../templates/item_collection.html.js';
 import {SideBarView} from './sidebar.js'
@@ -19,6 +20,12 @@ let TableComponent = Ractive.extend({
     else {
       this.parent.set('totalSelected', totalSelected - event.context[ticketType]);
     }
+  },
+  viewItem: function (url) {
+    NProgress.configure({ showSpinner: false}).start();
+    //Relative paths(without '/admin') are defined in router.js
+    let itemViewUrl = url.replace('/admin', '');
+    eventBus.trigger('navigate', itemViewUrl);
   }
 });
 

@@ -1,48 +1,26 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import division
-from flask import jsonify
+from flask import jsonify, g
 from .. import app, lastuser
 from baseframe import _
 from coaster.views import load_models, render_with, requestargs
 from ..models import db
-from boxoffice.models import Organization, DiscountPolicy, DiscountCoupon, Price, CURRENCY_SYMBOL, CURRENCY
+from boxoffice.models import Organization, DiscountPolicy, DiscountCoupon, Price, CURRENCY
 from ..forms import DiscountPolicyForm, DiscountCouponForm, DiscountPriceForm, CouponBasedDiscountPolicyForm, AutomaticDiscountPolicyForm, PriceBasedDiscountPolicyForm
-from utils import xhr_only, json_date_format, api_error, api_success
-
-
-def jsonify_price(price):
-    if price:
-        return {
-            'amount': price.amount,
-            'start_at': json_date_format(price.start_at),
-            'end_at': json_date_format(price.end_at)
-        }
-    else:
-        return None
-
-
-def jsonify_discount_policy(policy):
-    return {
-        'id': policy.id,
-        'name': policy.name,
-        'title': policy.title,
-        'discount_type': "Automatic" if policy.is_automatic else "Coupon based",
-        'item_quantity_min': policy.item_quantity_min,
-        'percentage': policy.percentage,
-        'is_price_based': policy.is_price_based,
-        'discount_code_base': policy.discount_code_base,
-        'bulk_coupon_usage_limit': policy.bulk_coupon_usage_limit,
-        'price_details': jsonify_price(Price.query.filter(Price.discount_policy == policy).first()) if policy.is_price_based else '',
-        'currency_symbol': CURRENCY_SYMBOL['INR'],
-        'dp_items': [{'id': str(item.id), 'title': "{ic_title}: {title}".format(ic_title=item.item_collection.title, title=item.title)} for item in policy.items]
-    }
+from utils import xhr_only, api_error, api_success
 
 
 def jsonify_discount_policies(data_dict):
     discount_policies_list = []
     for policy in data_dict['discount_policies']:
-        discount_policies_list.append(jsonify_discount_policy(policy))
+        details = dict(policy.access_for(user=g.user))
+        details['price_details'] = {}
+        if policy.is_price_based:
+            price = Price.query.filter(Price.discount_policy == policy).first()
+            details['price_details'] = dict(price.access_for(user=g.user))
+        details['dp_items'] = [{'id': str(item.id), 'title': "{ic_title}: {title}".format(ic_title=item.item_collection.title, title=item.title)} for item in policy.items]
+        discount_policies_list.append(details)
     return jsonify(org_name=data_dict['org'].name,
         org_title=data_dict['org'].title,
         discount_policies=discount_policies_list,
