@@ -12,7 +12,6 @@ from boxoffice.models.line_item import calculate_weekly_sales
 from boxoffice.models.payment import calculate_weekly_refunds
 from boxoffice.views.utils import xhr_only, check_api_access, api_error, api_success
 from boxoffice.forms import ItemCollectionForm
-from coaster.auth import current_auth
 
 
 def jsonify_dashboard(data):
