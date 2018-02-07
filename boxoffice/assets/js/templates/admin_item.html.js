@@ -19,7 +19,11 @@ export const itemTemplate = `
           Sold/Available
         </p>
         <p class="">
-          <b>{{ formatToIndianRupee(item.net_sales) }}</b>
+          {{#if item.net_sales}}
+            <b>{{ formatToIndianRupee(item.net_sales) }}</b>
+          {{else}}
+            <b>0</b>
+          {{/if}}
         </p>
         <p class="">
           Gross revenue earned
@@ -52,18 +56,21 @@ export const itemTemplate = `
       <div class="box col-xs-6 col-xs-12">
         {{#prices: i}}
           <div class="content">
-            <div class="heading-edit">
-              <button class="edit-btn" on-click="showPriceForm(event, 'edit')"><i class="fa fa-edit"></i>{{#loadingEditForm}}<i class="fa fa-spinner fa-spin">{{/}}</button>
-            </div>
-            {{#if showEditForm}}
+            {{#if showForm}}
+              <div class="heading-edit">
+                <button class="edit-btn" on-click="hidePriceForm(event, 'edit')"><i class="fa fa-close"></i></button>
+              </div>
               <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
-                <ICForm formTemplate="{{ formTemplate }}" price="{{ i }}" priceId="{{ prices[i].id }}"></ICForm>
+                <PriceForm formTemplate="{{ formTemplate }}" price="{{ i }}" priceId="{{ prices[i].id }}" action="edit"></PriceForm>
                 <p class="error-msg">{{{ prices[i].errorMsg }}}</p>
               </div>
             {{else}}
+              <div class="heading-edit">
+                <button class="edit-btn" on-click="showPriceForm(event, 'edit')"><i class="fa fa-edit"></i>{{#loadingEditForm}}<i class="fa fa-spinner fa-spin">{{/}}</button>
+              </div>
               <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
                 <p>start time</p>
-                <p>{{ prices[i].json_start_at }}</p>
+                <p>{{ formatDateTime(prices[i].json_start_at) }}</p>
                 <p>{{ formatToIndianRupee(prices[i].amount) }}</p>
               </div>
             {{/if}}
@@ -72,14 +79,14 @@ export const itemTemplate = `
       </div>
       <div class="box col-xs-6 col-xs-12">
         <div class="content">
-          {{#if !priceFrom.showAddForm }}
+          {{#if !priceForm.showForm }}
             <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
               <p>Add a new price</p>
               <button class="boxoffice-button boxoffice-button-action btn-right" on-click="showPriceForm(event, 'new')">Create</button>
             </div>
-          {{else }}
+          {{else}}
             <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
-              <ICForm formTemplate="{{ priceFrom.form }}"></ICForm>
+              <PriceForm formTemplate="{{ priceForm.form }}" action="new"></PriceForm>
               <p class="error-msg">{{{ priceForm.errorMsg }}}</p>
             </div>
           {{/if}}
@@ -93,12 +100,16 @@ export const itemTemplate = `
         <div class="box col-sm-4 col-xs-6">
           <p class="title">{{ discount_policies[i].title }}</p>
           <p>Tickets bought with this discount policy</p>
-          {{#if is_automatic}}
+          {{#if discount_policies[i].is_automatic}}
             <p>DISCOUNT TYPE <b>Automatic</b></p>
           {{else}}
               <p>DISCOUNT TYPE <b>Coupon based</b></p>
           {{/if}}
-          <p>DISCOUNT RATE{{ discount_policies[i].percentage }}%</p>
+          {{#if discount_policies[i].percentage}}
+            <p>DISCOUNT RATE <b>{{ discount_policies[i].percentage }}%</b></p>
+          {{elseif discount_policies[i].is_price_based}}
+            <p>DISCOUNT RATE <b>{{ formatToIndianRupee(discount_policies[i].price_details.amount) }}</b></p>
+          {{/if}}
         </div>
       {{/}}
     </div>

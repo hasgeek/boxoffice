@@ -22,11 +22,7 @@ export const ItemView = {
       let PriceForm = Ractive.extend({
         isolated: false,
         template: function(data) {
-          if(this.get('formTemplate')) {
-            // Add ractive on click event handler to the baseframe form
-            return Util.getFormTemplate(this.get('formTemplate'), 'onFormSubmit(event, "edit")');
-          }
-          return Util.getFormTemplate(price_form, 'onFormSubmit(event, "new")');
+          return Util.getFormTemplate(price_form, 'onFormSubmit(event)');
         },
         computed: {
           formId: {
@@ -34,29 +30,29 @@ export const ItemView = {
               if(this.get('formTemplate')) {
                 return Util.getElementId(this.get('formTemplate'));
               }
-              return Util.getElementId(price_form);
             }
           }
         },
-        onFormSubmit: function(event, action) {
+        onFormSubmit: function(event) {
           event.original.preventDefault();
           let formSelector = '#' + this.get('formId'),
-            url = action === "edit" ? urlFor('edit', { resource: 'price', id: this.get('priceId'), root: true}) :
+            url = this.get('action') === "edit" ? urlFor('edit', { resource: 'price', id: this.get('priceId'), root: true}) :
                   urlFor('new', { scope_ns: 'item', scope_id: item.id, resource: 'price', root: true }),
-            price = action === "edit" ? 'prices.' + this.get('price') : '';
+            price = this.get('action') === "edit" ? 'prices.' + this.get('price') : '';
 
           post({
             url: url,
             data: getFormParameters(formSelector),
             formId: formSelector
           }).done((remoteData) => {
-            if (action === "edit") {
+            if (this.get('action') === "edit") {
               //Update the price details
               itemComponent.set(price + '.showEditForm', DEFAULT.hideForm);
-              itemComponent.set(price, remoteData.result.item_collection);
+              itemComponent.set(price, remoteData.result.price);
             } else {
               // On creating a new price, add it to prices list
-              itemComponent.viewDashboard(remoteData.result.item_collection.url_for_view);
+              prices.push(remoteData.result.price);
+              this.hidePriceForm();
             }
           }).fail((response) => {
             let errorMsg;
@@ -75,7 +71,7 @@ export const ItemView = {
           itemForm: item_form,
           priceForm: {
             form: price_form,
-            showAddForm: DEFAULT.hideForm,
+            showForm: DEFAULT.hideForm,
             errorMsg: DEFAULT.empty,
           },
           discount_policies: discount_policies,
@@ -87,9 +83,7 @@ export const ItemView = {
           }
         },
         components: {PriceForm: PriceForm},
-        showPriceForm: function (event, action) {
-                      window.main = this;
-            console.log('showPriceForm');
+        showPriceForm: function (event, action="new") {
           if (action === "edit") {
             let price = event.keypath,
               priceId = event.context.id;
@@ -99,17 +93,22 @@ export const ItemView = {
             }).done(({form_template}) => {
               // Set the from baseframe form html as the price's form template
               itemComponent.set(price + '.formTemplate', form_template);
-              itemComponent.set(price + '.showEditForm', DEFAULT.showForm);
+              itemComponent.set(price + '.showForm', DEFAULT.showForm);
               itemComponent.set(price + '.loadingEditForm', DEFAULT.hideLoader);
             }).fail(() => {
               itemComponent.set(price + '.loadingEditForm', DEFAULT.hideLoader);
             })
           } else {
-            this.set('priceForm.showAddForm', DEFAULT.showForm);
+            this.set('priceForm.showForm', DEFAULT.showForm);
           }
         },
-        hidePriceForm: function (event) {
-          this.set('priceForm.showAddForm', DEFAULT.hideForm);
+        hidePriceForm: function (event, action="new") {
+          if (action === "edit") {
+            let price = event.keypath;
+            itemComponent.set(price + '.showForm', DEFAULT.hideForm);
+          } else {
+            this.set('priceForm.showForm', DEFAULT.hideForm);
+          }
         },
       });
 

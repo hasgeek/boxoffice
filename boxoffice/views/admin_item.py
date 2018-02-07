@@ -2,10 +2,11 @@
 
 from flask import g, jsonify, request
 from .. import app, lastuser
+from coaster.utils import buid
 from coaster.views import load_models, requestargs, render_with
 from baseframe import _
 from baseframe.forms import render_form
-from boxoffice.models import db, Organization, ItemCollection, Item
+from boxoffice.models import db, Organization, ItemCollection, Item, Price
 from boxoffice.views.utils import api_error, api_success
 from boxoffice.forms import PriceForm
 from utils import xhr_only
@@ -35,13 +36,20 @@ def items(organization, search=None):
 
 
 def jsonify_item(data_dict):
+    discount_policies_list = []
+    for policy in data_dict['item'].discount_policies:
+        details = dict(policy.access_for(user=g.user))
+        if policy.is_price_based:
+            dp_price = Price.query.filter(Price.discount_policy == policy).first()
+            details['price_details'] = {'amount': dp_price.amount}
+        discount_policies_list.append(details)
     return jsonify(org_name=data_dict['item'].item_collection.organization.name,
         org_title=data_dict['item'].item_collection.organization.title,
         ic_name=data_dict['item'].item_collection.name,
         ic_title=data_dict['item'].item_collection.title,
         item=dict(data_dict['item'].access_for(user=g.user)),
         prices=[dict(price.access_for(user=g.user)) for price in data_dict['item'].prices],
-        discount_policies=[dict(dp.access_for(user=g.user)) for dp in data_dict['item'].discount_policies],
+        discount_policies=discount_policies_list,
         price_form=render_form(form=PriceForm(), title=u"New Price", submit=u"Save", ajax=False, with_chrome=False))
 
 
@@ -58,7 +66,7 @@ def admin_item(item):
     return dict(title=item.title, item=item)
 
 
-@app.route('/admin/o/<item_id>/price/new', methods=['POST'])
+@app.route('/admin/item/<item_id>/price/new', methods=['POST'])
 @lastuser.requires_login
 @xhr_only
 @load_models(
@@ -68,8 +76,9 @@ def admin_item(item):
 def admin_new_price(item):
     price_form = PriceForm()
     if price_form.validate_on_submit():
-        price = ItemCollection(item=item)
+        price = Price(item=item)
         price_form.populate_obj(price)
+        price.title = item.title + '-price-' + buid()
         if not price.name:
             price.make_name()
         db.session.add(price)
@@ -81,12 +90,11 @@ def admin_new_price(item):
 @app.route('/admin/price/<price_id>/edit', methods=['POST', 'GET'])
 @lastuser.requires_login
 @load_models(
-    (Item, {'id': 'price_id'}, 'price'),
+    (Price, {'id': 'price_id'}, 'price'),
     permission='org_admin'
     )
 def admin_price(price):
     price_form = PriceForm(obj=price)
-    print 'price', price
     if request.method == 'GET':
         return jsonify(form_template=render_form(form=price_form, title=u"Edit Price", submit=u"Save", ajax=False, with_chrome=False))
     if price_form.validate_on_submit():
