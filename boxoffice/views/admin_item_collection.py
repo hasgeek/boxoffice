@@ -77,5 +77,5 @@ def admin_edit_ic(item_collection):
     if ic_form.validate_on_submit():
         ic_form.populate_obj(item_collection)
         db.session.commit()
-        return api_success(result={'item_collection': dict(item_collection.access_for(user=g.user))}, doc=_(u"Edited Item Collection {title}.".format(title=item_collection.title)), status_code=200)
+        return api_success(result={'item_collection': dict(item_collection.current_access())}, doc=_(u"Edited Item Collection {title}.".format(title=item_collection.title)), status_code=200)
     return api_error(message=_(u"There was a problem with editing the item collection"), errors=ic_form.errors, status_code=400)

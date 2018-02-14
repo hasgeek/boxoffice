@@ -85,9 +85,9 @@ export const OrgView = {
         },
         onError: function(config, response) {
           let errorMsg;
-          errorMsg = formErrorHandler(response, this.get('formId'));
+          errorMsg = formErrorHandler(response, config.formSelector);
           if (config.action === "edit") {
-            orgComponent.set('itemCollections.' + '.errorMsg', errorMsg);
+            orgComponent.set('itemCollections.' + config.elementIndex + '.errorMsg', errorMsg);
           } else {
             orgComponent.set('icForm.errorMsg', errorMsg);
           }
