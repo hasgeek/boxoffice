@@ -1,6 +1,5 @@
 export const itemTemplate = `
   <div class="content-wrapper">
-
     <div class="box col-sm-6 col-xs-12">
 	    <div class="content">
         <div class="content-box">
@@ -61,7 +60,7 @@ export const itemTemplate = `
                 <button class="edit-btn" on-click="hidePriceForm(event, 'edit')"><i class="fa fa-close"></i></button>
               </div>
               <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
-                <PriceForm formTemplate="{{ formTemplate }}" price="{{ i }}" priceId="{{ prices[i].id }}" action="edit"></PriceForm>
+                <BaseframeForm formTemplate="{{ formTemplate }}" index="{{ i }}" action="edit" url="{{ postUrl('edit', prices[i].id) }}"></BaseframeForm>
                 <p class="error-msg">{{{ prices[i].errorMsg }}}</p>
               </div>
             {{else}}
@@ -85,8 +84,11 @@ export const itemTemplate = `
               <button class="boxoffice-button boxoffice-button-action btn-right" on-click="showPriceForm(event, 'new')">Create</button>
             </div>
           {{else}}
+            <div class="heading-edit">
+              <button class="edit-btn" on-click="hidePriceForm(event, 'new')"><i class="fa fa-close"></i></button>
+            </div>
             <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
-              <PriceForm formTemplate="{{ priceForm.form }}" action="new"></PriceForm>
+              <BaseframeForm formTemplate="{{ priceForm.form }}" index="" action="new" url="{{ postUrl('new') }}"></BaseframeForm>
               <p class="error-msg">{{{ priceForm.errorMsg }}}</p>
             </div>
           {{/if}}

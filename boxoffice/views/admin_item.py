@@ -100,5 +100,5 @@ def admin_price(price):
     if price_form.validate_on_submit():
         price_form.populate_obj(price)
         db.session.commit()
-        return api_success(result={'price_form': dict(price_form.access_for(user=g.user))}, doc=_(u"Edited price {title}.".format(title=price.title)), status_code=200)
+        return api_success(result={'price': dict(price.access_for(user=g.user))}, doc=_(u"Edited price {title}.".format(title=price.title)), status_code=200)
     return api_error(message=_(u"There was a problem with editing the price"), errors=price_form.errors, status_code=400)

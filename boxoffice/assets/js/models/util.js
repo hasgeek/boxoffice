@@ -32,10 +32,15 @@ export const Util = {
   getElementId: function(htmlString) {
     return htmlString.match(/id="(.*?)"/)[1];
   },
-  getFormTemplate: function(htmlString, submitHandler) {
-    // Add on click event handler for Ractive to submit the form
-    return `${htmlString.slice(0, htmlString.search(/type="submit"/))} on-click='${submitHandler}'
-    ${htmlString.slice(htmlString.search(/type="submit"/))}`;
+  getFormConfig: function(component, onSuccess, onError) {
+    return {
+      action: component.get('action'),
+      url: component.get('url'),
+      formSelector: `#${component.get('formId')}`,
+      elementIndex: component.get('index'),
+      onSuccess: onSuccess,
+      onError: onError
+    };
   }
 };
 
