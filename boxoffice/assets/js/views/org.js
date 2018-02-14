@@ -22,7 +22,7 @@ export const OrgView = {
     }).then(function({id, org_title, item_collections, form}) {
 
       BaseframeForm.defaults.oncomplete = function() {
-        window.Baseframe.Forms.handleAjaxPost(Util.getFormConfig(this, orgComponent.onSuccess, orgComponent.onError));
+        window.Baseframe.Forms.submitForm(this.get('url'), `#${this.get('formId')}`, orgComponent.onSuccess, orgComponent.onError, Util.getFormConfig(this));
       };
 
       let orgComponent = new Ractive({

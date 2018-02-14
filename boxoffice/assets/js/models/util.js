@@ -32,14 +32,10 @@ export const Util = {
   getElementId: function(htmlString) {
     return htmlString.match(/id="(.*?)"/)[1];
   },
-  getFormConfig: function(component, onSuccess, onError) {
+  getFormConfig: function(component) {
     return {
       action: component.get('action'),
-      url: component.get('url'),
-      formSelector: `#${component.get('formId')}`,
-      elementIndex: component.get('index'),
-      onSuccess: onSuccess,
-      onError: onError
+      elementIndex: component.get('index')
     };
   }
 };
