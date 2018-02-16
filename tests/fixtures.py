@@ -149,6 +149,20 @@ def init_data():
         db.session.add(discount_price)
         db.session.commit()
 
+        unlimited_geek = DiscountPolicy(title='Unlimited Geek',
+            item_quantity_min=1,
+            discount_type=DISCOUNT_TYPE.COUPON,
+            percentage=10,
+            organization=rootconf)
+        unlimited_geek.items.append(conf_ticket)
+        db.session.add(unlimited_geek)
+        db.session.commit()
+
+        unlimited_coupon = DiscountCoupon(code='unlimited', discount_policy=unlimited_geek,
+            usage_limit=500)
+        db.session.add(unlimited_coupon)
+        db.session.commit()
+
         zero_discount = DiscountPolicy(title='Zero Discount',
             item_quantity_min=1,
             is_price_based=True,
