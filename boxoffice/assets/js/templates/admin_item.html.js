@@ -86,6 +86,7 @@ export const itemTemplate = `
               </div>
             </div>
           </div>
+
           <div class="panel-body bg-highlight hg-bb">
             <div class="row ">
               <div class="col-md-4 col-xs-5">

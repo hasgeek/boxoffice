@@ -116,11 +116,9 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
         }
     }
 
-    def roles_for(self, user=None, token=None):
-        if not user and not token:
-            return set()
-        roles = super(DiscountPolicy, self).roles_for(user, token)
-        if self.organization.userid in user.organizations_owned_ids():
+    def roles_for(self, actor=None, anchors=()):
+        roles = super(DiscountPolicy, self).roles_for(actor, anchors)
+        if self.organization.userid in actor.organizations_owned_ids():
             roles.add('dp_owner')
         return roles
 

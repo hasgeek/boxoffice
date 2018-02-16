@@ -4,7 +4,8 @@ import {eventBus} from './main_admin.js'
 var NProgress = require('nprogress');
 import {Util, fetch, post, formErrorHandler, getFormParameters, urlFor, setPageTitle, registerSubmitHandler} from '../models/util.js';
 import {orgTemplate} from '../templates/org.html.js';
-import {SideBarView} from './sidebar.js'
+import {SideBarView} from './sidebar.js';
+import {BaseframeForm} from '../models/form_component.js';
 
 export const OrgView = {
   render: function({org_name}={}) {
@@ -19,52 +20,30 @@ export const OrgView = {
     fetch({
       url: urlFor('view', {resource: 'o', id: org_name, root: true})
     }).then(function({id, org_title, item_collections, form}) {
-      let ICForm = Ractive.extend({
-        isolated: false,
-        template: function(data) {
-          if(this.get('formTemplate')) {
-            // Add ractive on click event handler to the baseframe form
-            return Util.getFormTemplate(this.get('formTemplate'), 'onFormSubmit(event, "edit")');
-          }
-          return Util.getFormTemplate(form, 'onFormSubmit(event, "new")');
-        },
-        computed: {
-          formId: {
-            get: function() {
-              if(this.get('formTemplate')) {
-                return Util.getElementId(this.get('formTemplate'));
-              }
-              return Util.getElementId(form);
-            }
-          }
-        },
-        onFormSubmit: function(event, action) {
-          event.original.preventDefault();
-          let formSelector = '#' + this.get('formId'),
-            url = action === "edit" ? urlFor('edit', { resource: 'ic', id: this.get('icId'), root: true}) :
-                  urlFor('new', { scope_ns: 'o', scope_id: org_name, resource: 'ic', root: true }),
-            ic = action === "edit" ? 'item_collections.' + this.get('ic') : '';
 
-          post({
-            url: url,
-            data: getFormParameters(formSelector),
-            formId: formSelector
-          }).done((remoteData) => {
-            if (action === "edit") {
-              //Update the item collection details
-              orgComponent.set(ic + '.showEditForm', DEFAULT.hideForm);
-              orgComponent.set(ic, remoteData.result.item_collection);
-            } else {
-              // On creating a new item collection, load it's the dashboard.
-              orgComponent.viewDashboard(remoteData.result.item_collection.url_for_view);
-            }
-          }).fail((response) => {
-            let errorMsg;
-            errorMsg = formErrorHandler(response, this.get('formId'));
-            orgComponent.set(ic + '.errorMsg', errorMsg);
-          });
-        }
-      });
+      BaseframeForm.defaults.oncomplete = function() {
+        let config = Util.getComponentConfig(this);
+        let onSuccess = function(remoteData) {
+          if (config.action === "edit") {
+            //Update the item collection details
+            orgComponent.set('itemCollections.' + config.elementIndex + '.showEditForm', DEFAULT.hideForm);
+            orgComponent.set('itemCollections.' + config.elementIndex , remoteData.result.item_collection);
+          } else {
+            // On creating a new item collection, load it's the dashboard.
+            orgComponent.viewDashboard(remoteData.result.item_collection.url_for_view);
+          }
+        };
+        let onError = function(response) {
+          let errorMsg;
+          errorMsg = formErrorHandler(response, config.formSelector);
+          if (config.action === "edit") {
+            orgComponent.set('itemCollections.' + config.elementIndex + '.errorMsg', errorMsg);
+          } else {
+            orgComponent.set('icForm.errorMsg', errorMsg);
+          }
+        };
+        window.Baseframe.Forms.handleFormSubmit(this.get('url'), `#${this.get('formId')}`, onSuccess, onError, {});
+      };
 
       let orgComponent = new Ractive({
         el: '#main-content-area',
@@ -72,10 +51,20 @@ export const OrgView = {
         data: {
           orgName: org_name,
           orgTitle: org_title,
-          item_collections: item_collections,
-          showAddForm: DEFAULT.hideForm,
+          itemCollections: item_collections,
+          icForm: {
+            form: form,
+            showForm: DEFAULT.hideForm,
+            errorMsg: DEFAULT.empty,
+          },
+          postUrl: function(action, id="") {
+            if (action === "edit") {
+              return urlFor('edit', { resource: 'ic', id: id, root: true})
+            }
+            return urlFor('new', { scope_ns: 'o', scope_id: org_name, resource: 'ic', root: true });
+          }
         },
-        components: {ICForm: ICForm},
+        components: {BaseframeForm: BaseframeForm},
         showIcForm: function (event, action) {
           if (action === "edit") {
             let ic = event.keypath,
@@ -92,11 +81,15 @@ export const OrgView = {
               orgComponent.set(ic + '.loadingEditForm', DEFAULT.hideLoader);
             })
           } else {
-            this.set('showAddForm', DEFAULT.showForm);
+            orgComponent.set('icForm.showAddForm', DEFAULT.showForm);
           }
         },
-        hideNewIcForm: function (event) {
-          this.set('showAddForm', DEFAULT.hideForm);
+        hideNewIcForm: function (event, action) {
+          if (action === "edit") {
+            orgComponent.set(event.keypath + '.showEditForm', DEFAULT.hideForm);
+          } else {
+            orgComponent.set('icForm.showAddForm', DEFAULT.hideForm);
+          }
         },
         viewDashboard: function (url) {
           NProgress.configure({ showSpinner: false}).start();

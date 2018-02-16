@@ -106,11 +106,9 @@ class Item(BaseScopedNameMixin, db.Model):
         }
     }
 
-    def roles_for(self, user=None, token=None):
-        if not user and not token:
-            return set()
-        roles = super(Item, self).roles_for(user, token)
-        if self.item_collection.organization.userid in user.organizations_owned_ids():
+    def roles_for(self, actor=None, anchors=()):
+        roles = super(Item, self).roles_for(actor, anchors)
+        if self.item_collection.organization.userid in actor.organizations_owned_ids():
             roles.add('item_owner')
         return roles
 
@@ -154,10 +152,8 @@ class Price(BaseScopedNameMixin, db.Model):
         }
     }
 
-    def roles_for(self, user=None, token=None):
-        if not user and not token:
-            return set()
-        roles = super(Price, self).roles_for(user, token)
-        if self.item.item_collection.organization.userid in user.organizations_owned_ids():
+    def roles_for(self, actor=None, anchors=()):
+        roles = super(Price, self).roles_for(actor, anchors)
+        if self.item.item_collection.organization.userid in actor.organizations_owned_ids():
             roles.add('price_owner')
         return roles

@@ -18,7 +18,7 @@ def jsonify_item_collection(item_collection_dict):
     return jsonify(org_name=item_collection_dict['item_collection'].organization.name,
         org_title=item_collection_dict['item_collection'].organization.title,
         ic_title=item_collection_dict['item_collection'].title,
-        categories=[{'title': category.title, 'items': [dict(item.access_for(user=g.user)) for item in category.items]}
+        categories=[{'title': category.title, 'items': [dict(item.current_access()) for item in category.items]}
             for category in item_collection_dict['item_collection'].categories],
         date_item_counts=item_collection_dict['date_item_counts'],
         date_sales=item_collection_dict['date_sales'],
@@ -61,5 +61,5 @@ def admin_edit_ic(item_collection):
     if ic_form.validate_on_submit():
         ic_form.populate_obj(item_collection)
         db.session.commit()
-        return api_success(result={'item_collection': dict(item_collection.access_for(user=g.user))}, doc=_(u"Edited Item Collection {title}.".format(title=item_collection.title)), status_code=200)
+        return api_success(result={'item_collection': dict(item_collection.current_access())}, doc=_(u"Edited Item Collection {title}.".format(title=item_collection.title)), status_code=200)
     return api_error(message=_(u"There was a problem with editing the item collection"), errors=ic_form.errors, status_code=400)

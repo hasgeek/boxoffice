@@ -4,30 +4,36 @@ export const orgTemplate = `
     <div class="title-wrapper col-xs-12">
       <button class="boxoffice-button boxoffice-button-action btn-right" on-click="showIcForm(event, 'new')">Create new item collection</button>
     </div>
-    {{#if showAddForm}}
+    {{#if icForm.showAddForm}}
       <div class="content-slider align-down" intro-outro='fly:{x:200,y:0,duration:200}'>
-        <button on-click="hideNewIcForm(event)" class="close-button"><i class="fa fa-close"></i></button>
+        <button on-click="hideNewIcForm(event, 'new')" class="close-button"><i class="fa fa-close"></i></button>
         <p class="content-slider-title">Add a new item collection</p>
         <div class="content-slider-wrapper">
-          <ICForm></ICForm>
-          <p class="error-msg">{{{ errorMsg }}}</p>
+          <BaseframeForm formTemplate="{{ icForm.form }}" index="" action="new" url="{{ postUrl('new') }}"></BaseframeForm>
+          <p class="error-msg">{{{ icForm.errorMsg }}}</p>
         </div>
       </div>
     {{/if}}
-    {{#item_collections:item_collection}}
+    {{#itemCollections:ic}}
       <div class="box col-sm-6 col-xs-12" id="item-collection-{{ @index }}">
         <div class="heading">
           {{#title}}
             <p class="heading-title">{{ title }}</p>
           {{/title}}
-          <div class="heading-edit">
-            <button class="edit-btn" on-click="showIcForm(event, 'edit')"><i class="fa fa-edit"></i>{{#loadingEditForm}}<i class="fa fa-spinner fa-spin">{{/}}</button>
-          </div>
+          {{#if showEditForm}}
+            <div class="heading-edit">
+              <button class="edit-btn" on-click="hideNewIcForm(event, 'edit')"><i class="fa fa-edit"></i></button>
+            </div>
+          {{else}}
+            <div class="heading-edit">
+              <button class="edit-btn" on-click="showIcForm(event, 'edit')"><i class="fa fa-edit"></i>{{#loadingEditForm}}<i class="fa fa-spinner fa-spin">{{/}}</button>
+            </div>
+          {{/if}}
         </div>
         <div class="content">
           {{#if showEditForm}}
             <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
-              <ICForm formTemplate="{{ formTemplate }}" ic="{{ item_collection }}" icId="{{ id }}"></ICForm>
+              <BaseframeForm formTemplate="{{ formTemplate }}" index="{{ @index }}" action="edit" url="{{ postUrl('edit', id) }}"></BaseframeForm>
               <p class="error-msg">{{{ errorMsg }}}</p>
             </div>
           {{else}}
@@ -44,6 +50,6 @@ export const orgTemplate = `
           {{/if}}
         </div>
       </div>
-    {{/item_collections}}
+    {{/itemCollections}}
   </div>
 `
