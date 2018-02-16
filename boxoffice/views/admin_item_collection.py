@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
 
 import datetime
-from flask import jsonify, g
+from flask import jsonify, g, request
 from decimal import Decimal
 from .. import app, lastuser
 from sqlalchemy import func
 from coaster.views import load_models, render_with
-from baseframe import localize_timezone
+from baseframe import localize_timezone, _
+from baseframe.forms import render_form
 from boxoffice.models import db, ItemCollection, LineItem, LINE_ITEM_STATUS
 from boxoffice.models.line_item import sales_delta, sales_by_date, counts_per_date_per_item
+from boxoffice.forms import ItemCollectionForm
+from boxoffice.views.utils import api_error, api_success
 
 
 def jsonify_item(item):
@@ -59,3 +62,20 @@ def admin_item_collection(item_collection):
     return dict(title=item_collection.title, item_collection=item_collection, date_item_counts=date_item_counts,
         date_sales=date_sales, today_sales=today_sales,
         sales_delta=sales_delta(g.user.timezone, item_ids))
+
+
+@app.route('/admin/ic/<ic_id>/edit', methods=['POST', 'GET'])
+@lastuser.requires_login
+@load_models(
+    (ItemCollection, {'id': 'ic_id'}, 'item_collection'),
+    permission='org_admin'
+    )
+def admin_edit_ic(item_collection):
+    ic_form = ItemCollectionForm(obj=item_collection)
+    if request.method == 'GET':
+        return jsonify(form_template=render_form(form=ic_form, title=u"Edit Item Collection", submit=u"Save", ajax=False, with_chrome=False))
+    if ic_form.validate_on_submit():
+        ic_form.populate_obj(item_collection)
+        db.session.commit()
+        return api_success(result={'item_collection': dict(item_collection.current_access())}, doc=_(u"Edited Item Collection {title}.".format(title=item_collection.title)), status_code=200)
+    return api_error(message=_(u"There was a problem with editing the item collection"), errors=ic_form.errors, status_code=400)
