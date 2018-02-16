@@ -160,8 +160,6 @@ export const itemTemplate = `
   </div><!-- /.content-wrapper -->
 
 
-
-
 <!-- <div class="content-wrapper">
    <div>
      <h3>Ticket price</h3>
