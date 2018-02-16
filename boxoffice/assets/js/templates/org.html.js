@@ -6,7 +6,7 @@ export const orgTemplate = `
     </div>
     {{#if icForm.showAddForm}}
       <div class="content-slider align-down" intro-outro='fly:{x:200,y:0,duration:200}'>
-        <button on-click="hideNewIcForm(event)" class="close-button"><i class="fa fa-close"></i></button>
+        <button on-click="hideNewIcForm(event, 'new')" class="close-button"><i class="fa fa-close"></i></button>
         <p class="content-slider-title">Add a new item collection</p>
         <div class="content-slider-wrapper">
           <BaseframeForm formTemplate="{{ icForm.form }}" index="" action="new" url="{{ postUrl('new') }}"></BaseframeForm>
@@ -20,9 +20,15 @@ export const orgTemplate = `
           {{#title}}
             <p class="heading-title">{{ title }}</p>
           {{/title}}
-          <div class="heading-edit">
-            <button class="edit-btn" on-click="showIcForm(event, 'edit')"><i class="fa fa-edit"></i>{{#loadingEditForm}}<i class="fa fa-spinner fa-spin">{{/}}</button>
-          </div>
+          {{#if showEditForm}}
+            <div class="heading-edit">
+              <button class="edit-btn" on-click="hideNewIcForm(event, 'edit')"><i class="fa fa-edit"></i></button>
+            </div>
+          {{else}}
+            <div class="heading-edit">
+              <button class="edit-btn" on-click="showIcForm(event, 'edit')"><i class="fa fa-edit"></i>{{#loadingEditForm}}<i class="fa fa-spinner fa-spin">{{/}}</button>
+            </div>
+          {{/if}}
         </div>
         <div class="content">
           {{#if showEditForm}}

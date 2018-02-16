@@ -22,7 +22,27 @@ export const OrgView = {
     }).then(function({id, org_title, item_collections, form}) {
 
       BaseframeForm.defaults.oncomplete = function() {
-        window.Baseframe.Forms.handleAjaxPost(Util.getFormConfig(this, orgComponent.onSuccess, orgComponent.onError));
+        let config = Util.getComponentConfig(this);
+        let onSuccess = function(remoteData) {
+          if (config.action === "edit") {
+            //Update the item collection details
+            orgComponent.set('itemCollections.' + config.elementIndex + '.showEditForm', DEFAULT.hideForm);
+            orgComponent.set('itemCollections.' + config.elementIndex , remoteData.result.item_collection);
+          } else {
+            // On creating a new item collection, load it's the dashboard.
+            orgComponent.viewDashboard(remoteData.result.item_collection.url_for_view);
+          }
+        };
+        let onError = function(response) {
+          let errorMsg;
+          errorMsg = formErrorHandler(response, config.formSelector);
+          if (config.action === "edit") {
+            orgComponent.set('itemCollections.' + config.elementIndex + '.errorMsg', errorMsg);
+          } else {
+            orgComponent.set('icForm.errorMsg', errorMsg);
+          }
+        };
+        window.Baseframe.Forms.handleFormSubmit(this.get('url'), `#${this.get('formId')}`, onSuccess, onError, {});
       };
 
       let orgComponent = new Ractive({
@@ -64,33 +84,18 @@ export const OrgView = {
             orgComponent.set('icForm.showAddForm', DEFAULT.showForm);
           }
         },
-        hideNewIcForm: function (event) {
-          orgComponent.set('icForm.showAddForm', DEFAULT.hideForm);
+        hideNewIcForm: function (event, action) {
+          if (action === "edit") {
+            orgComponent.set(event.keypath + '.showEditForm', DEFAULT.hideForm);
+          } else {
+            orgComponent.set('icForm.showAddForm', DEFAULT.hideForm);
+          }
         },
         viewDashboard: function (url) {
           NProgress.configure({ showSpinner: false}).start();
           //Relative paths(without '/admin') are defined in router.js
           let icViewUrl = url.replace('/admin', '');
           eventBus.trigger('navigate', icViewUrl);
-        },
-        onSuccess: function(config, remoteData) {
-          if (config.action === "edit") {
-            //Update the item collection details
-            orgComponent.set('itemCollections.' + config.elementIndex + '.showEditForm', DEFAULT.hideForm);
-            orgComponent.set('itemCollections.' + config.elementIndex , remoteData.result.item_collection);
-          } else {
-            // On creating a new item collection, load it's the dashboard.
-            orgComponent.viewDashboard(remoteData.result.item_collection.url_for_view);
-          }
-        },
-        onError: function(config, response) {
-          let errorMsg;
-          errorMsg = formErrorHandler(response, this.get('formId'));
-          if (config.action === "edit") {
-            orgComponent.set('itemCollections.' + '.errorMsg', errorMsg);
-          } else {
-            orgComponent.set('icForm.errorMsg', errorMsg);
-          }
         }
       });
 

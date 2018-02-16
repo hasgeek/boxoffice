@@ -22,7 +22,28 @@ export const ItemView = {
     }).then(function({org_name, org_title, ic_id, ic_title, item, prices, item_form, price_form, discount_policies}) {
 
       BaseframeForm.defaults.oncomplete = function() {
-        window.Baseframe.Forms.handleAjaxPost(Util.getFormConfig(this, itemComponent.onSuccess, itemComponent.onError));
+        let config = Util.getComponentConfig(this);
+        let onSuccess = function(remoteData) {
+          if (config.action === "edit") {
+            //Update the price details
+            itemComponent.set('prices.' + config.elementIndex + '.showEditForm', DEFAULT.hideForm);
+            itemComponent.set('prices.' + config.elementIndex, remoteData.result.price);
+          } else {
+            // On creating a new price, add it to prices list
+            prices.push(remoteData.result.price);
+            itemComponent.hidePriceForm();
+          }
+        };
+        let onError = function(response) {
+          let errorMsg;
+          errorMsg = formErrorHandler(response, config.formSelector);
+          if (config.action === "edit") {
+            itemComponent.set('prices.' + config.elementIndex + '.errorMsg', errorMsg);
+          } else {
+            itemComponent.set('priceForm.errorMsg', errorMsg);
+          }
+        };
+        window.Baseframe.Forms.handleFormSubmit(this.get('url'), `#${this.get('formId')}`, onSuccess, onError, {});
       };
 
       let itemComponent = new Ractive({
@@ -52,7 +73,7 @@ export const ItemView = {
           }
         },
         components: {BaseframeForm: BaseframeForm},
-        showPriceForm(event, action="new") {
+        showPriceForm: function(event, action) {
           if (action === "edit") {
             let price = event.keypath,
               priceId = event.context.id;
@@ -71,31 +92,11 @@ export const ItemView = {
             itemComponent.set('priceForm.showForm', DEFAULT.showForm);
           }
         },
-        hidePriceForm(event, action="new") {
+        hidePriceForm: function(event, action) {
           if (action === "edit") {
             itemComponent.set(event.keypath + '.showForm', DEFAULT.hideForm);
           } else {
             itemComponent.set('priceForm.showForm', DEFAULT.hideForm);
-          }
-        },
-        onSuccess(config, remoteData) {
-          if (config.action === "edit") {
-            //Update the price details
-            itemComponent.set('prices.' + config.elementIndex + '.showEditForm', DEFAULT.hideForm);
-            itemComponent.set('prices.' + config.elementIndex, remoteData.result.price);
-          } else {
-            // On creating a new price, add it to prices list
-            prices.push(remoteData.result.price);
-            itemComponent.hidePriceForm();
-          }
-        },
-        onError(config, response) {
-          let errorMsg;
-          errorMsg = formErrorHandler(response, config.formSelector);
-          if (config.action === "edit") {
-            itemComponent.set('prices.' + '.errorMsg', errorMsg);
-          } else {
-            itemComponent.set('priceForm.errorMsg', errorMsg);
           }
         }
       });

@@ -38,7 +38,7 @@ def items(organization, search=None):
 def jsonify_item(data_dict):
     discount_policies_list = []
     for policy in data_dict['item'].discount_policies:
-        details = dict(policy.access_for(user=g.user))
+        details = dict(policy.current_access())
         if policy.is_price_based:
             dp_price = Price.query.filter(Price.discount_policy == policy).first()
             details['price_details'] = {'amount': dp_price.amount}
@@ -47,8 +47,8 @@ def jsonify_item(data_dict):
         org_title=data_dict['item'].item_collection.organization.title,
         ic_name=data_dict['item'].item_collection.name,
         ic_title=data_dict['item'].item_collection.title,
-        item=dict(data_dict['item'].access_for(user=g.user)),
-        prices=[dict(price.access_for(user=g.user)) for price in data_dict['item'].prices],
+        item=dict(data_dict['item'].current_access()),
+        prices=[dict(price.current_access()) for price in data_dict['item'].prices],
         discount_policies=discount_policies_list,
         price_form=render_form(form=PriceForm(), title=u"New Price", submit=u"Save", ajax=False, with_chrome=False))
 
@@ -83,7 +83,7 @@ def admin_new_price(item):
             price.make_name()
         db.session.add(price)
         db.session.commit()
-        return api_success(result={'price': dict(price.access_for(user=g.user))}, doc=_(u"New price created"), status_code=201)
+        return api_success(result={'price': dict(price.current_access())}, doc=_(u"New price created"), status_code=201)
     return api_error(message=_(u"There was a problem with creating the price"), errors=price_form.errors, status_code=400)
 
 
@@ -100,5 +100,5 @@ def admin_price(price):
     if price_form.validate_on_submit():
         price_form.populate_obj(price)
         db.session.commit()
-        return api_success(result={'price': dict(price.access_for(user=g.user))}, doc=_(u"Edited price {title}.".format(title=price.title)), status_code=200)
+        return api_success(result={'price': dict(price.current_access())}, doc=_(u"Edited price {title}.".format(title=price.title)), status_code=200)
     return api_error(message=_(u"There was a problem with editing the price"), errors=price_form.errors, status_code=400)
