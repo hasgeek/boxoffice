@@ -42,7 +42,7 @@ export const OrgView = {
             orgComponent.set('icForm.errorMsg', errorMsg);
           }
         };
-        window.Baseframe.Forms.submitForm(this.get('url'), `#${this.get('formId')}`, onSuccess, onError, {});
+        window.Baseframe.Forms.handleFormSubmit(this.get('url'), `#${this.get('formId')}`, onSuccess, onError, {});
       };
 
       let orgComponent = new Ractive({
