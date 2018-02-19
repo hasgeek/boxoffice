@@ -1,7 +1,6 @@
 export const itemTemplate = `
   <div class="content-wrapper">
     <div class="col-md-8 col-md-offset-1 col-xs-12">
-      <a href="" class="edit-page-link"><img src="https://images.hasgeek.com/embed/file/f2fb5593b4024b25968ac10e3cad8fd7" width="14px" alt="" style="margin-top: -4px;"> Edit this page</a>
       <div class="has-box">
         <h4>{{ item.title }}</h4>
           <p>{{{ item.description_html }}}</p>
@@ -58,86 +57,47 @@ export const itemTemplate = `
     <div class="col-md-5 col-md-offset-1 col-xs-12">
       <div class="row">
         <div class="panel panel-default price-panel">
-          <div class="panel-body bg-light hg-bb">
-            <div class="row ">
-              <div class="col-md-4 col-xs-5">
-                <p class="past-price text-uppercase">Past Price</p>
-                <p class="start-time"><strong>Start time</strong> <br>Wed 7 Feb 2018, 2:00PM</p>
-              </div>
-              <div class="col-md-6 col-xs-5 text-center">
-                <p class="price-digits">₹2000</p>
-              </div>
-              <div class="col-md-2 col-xs-1 text-right">
-                <img class="more-icon" src="https://images.hasgeek.com/embed/file/83ad090da94b44c5890e4936d89451f1" alt="" width="6px">
-              </div>
+          {{#prices: i}}
+            <div class="panel-body bg-light hg-bb">
+              {{#if prices[i].showForm}}
+                <div intro='fly:{"x":20,"y":"0"}'>
+                  <button class="edit-btn pull-right" on-click="hidePriceForm(event, 'edit')"><i class="fa fa-edit"></i></button>
+                  <BaseframeForm formTemplate="{{ prices[i].form }}" index="{{ i }}" action="edit" url="{{ postUrl('edit', prices[i].id) }}"></BaseframeForm>
+                  <p class="error-msg">{{{ prices[i].errorMsg }}}</p>
+                </div>
+              {{else}}
+                <div class="row">
+                  <div class="col-md-4 col-xs-5">
+                    <p class="past-price text-uppercase">Past Price</p>
+                    <p class="start-time"><strong>Start time</strong> <br>{{ formatDateTime(prices[i].json_start_at) }}</p>
+                  </div>
+                  <div class="col-md-6 col-xs-5 text-center">
+                    <p class="price-digits">{{ formatToIndianRupee(prices[i].amount) }}</p>
+                  </div>
+                  <div class="col-md-2 col-xs-1 text-right">
+                    <button class="edit-btn" on-click="showPriceForm(event, 'edit')"><i class="fa fa-edit"></i>{{#loadingEditForm}}<i class="fa fa-spinner fa-spin">{{/}}</button>
+                  </div>
+                </div>
+              {{/if}}
             </div>
-          </div>
-          <div class="panel-body bg-light hg-bb">
-            <div class="row ">
-              <div class="col-md-4 col-xs-5">
-                <p class="past-price text-uppercase">Past Price</p>
-                <p class="start-time"><strong>Start time</strong> <br>Wed 7 Feb 2018, 2:00PM</p>
-              </div>
-              <div class="col-md-6 col-xs-5 text-center">
-                <p class="price-digits">₹2000</p>
-              </div>
-              <div class="col-md-2 col-xs-1 text-right">
-                <img class="more-icon" src="https://images.hasgeek.com/embed/file/83ad090da94b44c5890e4936d89451f1" alt="" width="6px">
-              </div>
-            </div>
-          </div>
-
-          <div class="panel-body bg-highlight hg-bb">
-            <div class="row ">
-              <div class="col-md-4 col-xs-5">
-                <p class="current-price text-uppercase">Current Price</p>
-                <p class="start-time"><strong>Start time</strong> <br>Wed 7 Feb 2018, 2:00PM</p>
-              </div>
-              <div class="col-md-6 col-xs-5 text-center">
-                <p class="current-price-digits">₹2000</p>
-              </div>
-              <div class="col-md-2 col-xs-1 text-right">
-                <img class="more-icon" src="https://images.hasgeek.com/embed/file/83ad090da94b44c5890e4936d89451f1" alt="" width="6px">
-              </div>
-            </div>
-          </div>
-          <div class="panel-body bg-light hg-bb">
-            <div class="row ">
-              <div class="col-md-4 col-xs-5">
-                <p class="upcoming-price text-uppercase">Upcoming Price</p>
-                <p class="start-time"><strong>Start time</strong> <br>Wed 7 Feb 2018, 2:00PM</p>
-              </div>
-              <div class="col-md-6 col-xs-5 text-center">
-                <p class="price-digits">₹2000</p>
-              </div>
-              <div class="col-md-2 col-xs-1 text-right">
-                <img class="more-icon" src="https://images.hasgeek.com/embed/file/83ad090da94b44c5890e4936d89451f1" alt="" width="6px">
-              </div>
-            </div>
-          </div>
-          <div class="panel-body bg-light">
-            <div class="row ">
-              <div class="col-md-4 col-xs-5">
-                <p class="upcoming-price text-uppercase">Upcoming Price</p>
-                <p class="start-time"><strong>Start time</strong> <br>Wed 7 Feb 2018, 2:00PM</p>
-              </div>
-              <div class="col-md-6 col-xs-5 text-center">
-                <p class="price-digits">₹2000</p>
-              </div>
-              <div class="col-md-2 col-xs-1 text-right">
-                <img class="more-icon" src="https://images.hasgeek.com/embed/file/83ad090da94b44c5890e4936d89451f1" alt="" width="6px">
-              </div>
-            </div>
-          </div>
+          {{/prices}}
         </div>
       </div>
     </div>
     <div class="col-md-5 col-xs-12">
-      <div class="create-new-price text-center">
-        <img src="https://images.hasgeek.com/embed/file/5dd8006572a84f7e8c46eeddb76742af" alt="" width="80px">
-        <h4 class="color-white">Create new price</h4>
-        <button type="button" class="btn btn-hg-primary">Create</button>
-      </div>
+      {{#if priceForm.showForm }}
+        <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
+          <button on-click="hidePriceForm(event, 'new')" class="edit-btn pull-right"><i class="fa fa-close"></i></button>
+          <BaseframeForm formTemplate="{{ priceForm.form }}" index="" action="new" url="{{ postUrl('new') }}"></BaseframeForm>
+          <p class="error-msg">{{{ priceForm.errorMsg }}}</p>
+        </div>
+      {{else}}
+        <div class="create-new-price text-center">
+          <img src="https://images.hasgeek.com/embed/file/5dd8006572a84f7e8c46eeddb76742af" alt="" width="80px">
+          <h4 class="color-white">Create new price</h4>
+          <button class="btn btn-hg-primary" on-click="showPriceForm(event, 'new')">Create</button>
+        </div>
+      {{/if}}
     </div>
     <div class="col-md-10 col-md-offset-1">
       <h2>Related discount policies</h2>
@@ -158,48 +118,5 @@ export const itemTemplate = `
       </div>
       {{/}}
     </div>
-  </div><!-- /.content-wrapper -->
-
-
-<!-- <div class="content-wrapper">
-   <div>
-     <h3>Ticket price</h3>
-     <div class="box col-xs-6 col-xs-12">
-       {{#prices: i}}
-         <div class="content">
-           <div class="heading-edit">
-             <button class="edit-btn" on-click="showPriceForm(event, 'edit')"><i class="fa fa-edit"></i>{{#loadingEditForm}}<i class="fa fa-spinner fa-spin">{{/}}</button>
-           </div>
-           {{#if showEditForm}}
-             <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
-               <ICForm formTemplate="{{ formTemplate }}" price="{{ i }}" priceId="{{ prices[i].id }}"></ICForm>
-               <p class="error-msg">{{{ prices[i].errorMsg }}}</p>
-             </div>
-           {{else}}
-             <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
-               <p>start time</p>
-               <p>{{ prices[i].json_start_at }}</p>
-               <p>{{ formatToIndianRupee(prices[i].amount) }}</p>
-             </div>
-           {{/if}}
-         </div>
-       {{/prices}}
-     </div>
-      <div class="box col-xs-6 col-xs-12">
-        <div class="content">
-        {{#if !priceFrom.showAddForm }}
-          <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
-            <p>Add a new price</p>
-             <button class="boxoffice-button boxoffice-button-action btn-right" on-click="showPriceForm(event, 'new')">Create</button>
-          </div>
-          {{else }}
-          <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
-            <ICForm formTemplate="{{ priceFrom.form }}"></ICForm>
-            <p class="error-msg">{{{ priceForm.errorMsg }}}</p>
-          </div>
-          {{/if}}
-        </div>
-      </div>
-   </div>
- </div> -->
+  </div>
 `

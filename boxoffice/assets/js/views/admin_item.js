@@ -36,14 +36,14 @@ export const ItemView = {
         };
         let onError = function(response) {
           let errorMsg;
-          errorMsg = formErrorHandler(response, config.formSelector);
+          errorMsg = formErrorHandler(config.formId, response);
           if (config.action === "edit") {
             itemComponent.set('prices.' + config.elementIndex + '.errorMsg', errorMsg);
           } else {
             itemComponent.set('priceForm.errorMsg', errorMsg);
           }
         };
-        window.Baseframe.Forms.handleFormSubmit(this.get('url'), `#${this.get('formId')}`, onSuccess, onError, {});
+        window.Baseframe.Forms.handleFormSubmit(this.get('formId'), this.get('url'), onSuccess, onError, {});
       };
 
       let itemComponent = new Ractive({
@@ -63,7 +63,7 @@ export const ItemView = {
             return Util.formatToIndianRupee(amount);
           },
           formatDateTime: function (datetime) {
-            return Util.formatDateTime(datetime);
+            return Util.formatDateTime(datetime, "dddd, MMMM Do YYYY, h:mmA");
           },
           postUrl: function(action, id) {
             if (action === "edit") {
@@ -82,7 +82,7 @@ export const ItemView = {
               url: urlFor('edit', { resource: 'price', id: priceId, root: true})
             }).done(({form_template}) => {
               // Set the from baseframe form html as the price's form template
-              itemComponent.set(price + '.formTemplate', form_template);
+              itemComponent.set(price + '.form', form_template);
               itemComponent.set(price + '.showForm', DEFAULT.showForm);
               itemComponent.set(price + '.loadingEditForm', DEFAULT.hideLoader);
             }).fail(() => {
