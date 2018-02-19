@@ -402,6 +402,7 @@ def jsonify_orders(orders):
             'phone': line_item.current_assignee.phone
         }
 
+        # if line_item.item.assignee_details:
         for key in line_item.item.assignee_details:
             assignee[key] = line_item.current_assignee.details.get(key)
         return assignee

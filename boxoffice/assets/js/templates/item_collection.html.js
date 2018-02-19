@@ -1,4 +1,8 @@
 export const TableTemplate = `
+  <div class="col-xs-3">.</div>
+  <div class="col-xs-9">
+    <a id='eic' href='/admin/ic/{{ic_id}}/edit' data-navigate>Edit item collection</a>
+  </div>
   <div class="col-xs-12">
     <div class="table-responsive item-stats-table">
       <table class="table table-bordered table-hover stats-table">
@@ -59,6 +63,7 @@ export const AggChartTemplate = `
 export const ItemCollectionTemplate = `
   <div class="content-wrapper">
     <h1 class="header">{{ icTitle }}</h1>
+    <div id='item-collection-form'></div>
     <div class="stats clearfix">
       <div class="col-md-4 col-sm-6 col-xs-12">
         <div class="card clearfix">

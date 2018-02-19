@@ -20,7 +20,6 @@ export const OrgView = {
     fetch({
       url: urlFor('view', {resource: 'o', id: org_name, root: true})
     }).then(function({id, org_title, item_collections, form}) {
-
       BaseframeForm.defaults.oncomplete = function() {
         let config = Util.getComponentConfig(this);
         let onSuccess = function(remoteData) {

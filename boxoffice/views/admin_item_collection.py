@@ -64,13 +64,8 @@ def admin_item_collection(item_collection):
         sales_delta=sales_delta(g.user.timezone, item_ids))
 
 
-@app.route('/admin/ic/<ic_id>/edit', methods=['POST', 'GET'])
-@lastuser.requires_login
-@load_models(
-    (ItemCollection, {'id': 'ic_id'}, 'item_collection'),
-    permission='org_admin'
-    )
-def admin_edit_ic(item_collection):
+def jsonify_edit_item_collection(item_collection_dict):
+    item_collection = item_collection_dict['item_collection']
     ic_form = ItemCollectionForm(obj=item_collection)
     if request.method == 'GET':
         return jsonify(form_template=render_form(form=ic_form, title=u"Edit Item Collection", submit=u"Save", ajax=False, with_chrome=False))
@@ -79,3 +74,14 @@ def admin_edit_ic(item_collection):
         db.session.commit()
         return api_success(result={'item_collection': dict(item_collection.current_access())}, doc=_(u"Edited Item Collection {title}.".format(title=item_collection.title)), status_code=200)
     return api_error(message=_(u"There was a problem with editing the item collection"), errors=ic_form.errors, status_code=400)
+
+
+@app.route('/admin/ic/<ic_id>/edit', methods=['POST', 'GET'])
+@lastuser.requires_login
+@render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_edit_item_collection})
+@load_models(
+    (ItemCollection, {'id': 'ic_id'}, 'item_collection'),
+    permission='org_admin'
+)
+def admin_edit_ic(item_collection):
+    return dict(item_collection=item_collection)

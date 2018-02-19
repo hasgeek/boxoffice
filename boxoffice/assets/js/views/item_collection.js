@@ -122,6 +122,7 @@ export const ItemCollectionView = {
         el: '#main-content-area',
         template: ItemCollectionTemplate,
         data: {
+          ic_id: ic_id,
           icTitle: ic_title,
           categories: categories,
           date_item_counts: date_item_counts,
