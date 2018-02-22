@@ -8,10 +8,10 @@ from sqlalchemy import func
 from coaster.views import load_models, render_with
 from baseframe import localize_timezone, _
 from baseframe.forms import render_form
-from boxoffice.models import db, ItemCollection, LineItem, LINE_ITEM_STATUS
+from boxoffice.models import db, Organization, ItemCollection, LineItem, LINE_ITEM_STATUS
 from boxoffice.models.line_item import sales_delta, sales_by_date, counts_per_date_per_item
 from boxoffice.forms import ItemCollectionForm
-from boxoffice.views.utils import api_error, api_success
+from boxoffice.views.utils import xhr_only, api_error, api_success
 
 
 def jsonify_item(item):
@@ -64,11 +64,37 @@ def admin_item_collection(item_collection):
         sales_delta=sales_delta(g.user.timezone, item_ids))
 
 
+def jsonify_new_item_collection(item_collection_dict):
+    ic_form = ItemCollectionForm()
+    if request.method == 'GET':
+        return jsonify(html_response=render_form(form=ic_form, title=u"New item collection", submit=u"Create", ajax=False, with_chrome=False))
+    if ic_form.validate_on_submit():
+        ic = ItemCollection(organization=item_collection_dict['organization'])
+        ic_form.populate_obj(ic)
+        if not ic.name:
+            ic.make_name()
+        db.session.add(ic)
+        db.session.commit()
+        return api_success(result={'item_collection': dict(ic.current_access())}, doc=_(u"New item collection created"), status_code=201)
+    return api_error(message=_(u"There was a problem with creating the item collection"), errors=ic_form.errors, status_code=400)
+
+
+@app.route('/admin/o/<org>/ic/new', methods=['GET', 'POST'])
+@lastuser.requires_login
+@render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_new_item_collection})
+@load_models(
+    (Organization, {'name': 'org'}, 'organization'),
+    permission='org_admin'
+    )
+def admin_new_ic(organization):
+    return dict(organization=organization)
+
+
 def jsonify_edit_item_collection(item_collection_dict):
     item_collection = item_collection_dict['item_collection']
     ic_form = ItemCollectionForm(obj=item_collection)
     if request.method == 'GET':
-        return jsonify(form_template=render_form(form=ic_form, title=u"Edit Item Collection", submit=u"Save", ajax=False, with_chrome=False))
+        return jsonify(html_response=render_form(form=ic_form, title=u"Edit item collection", submit=u"Save", ajax=False, with_chrome=False))
     if ic_form.validate_on_submit():
         ic_form.populate_obj(item_collection)
         db.session.commit()

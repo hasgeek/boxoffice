@@ -5,6 +5,17 @@ var Backbone = require("backbone");
 import {Router} from './router';
 export const eventBus = _.clone(Backbone.Events);
 
+export const navigateTo = function(url){
+	NProgress.configure({ showSpinner: false}).start();
+	//Relative paths(without '/admin') are defined in router.js
+	eventBus.trigger('navigate', url.replace('/admin', ''));
+}
+
+export const navigateBack = function(){
+  window.history.go(-1);
+  return false;
+}
+
 $(function(){
   let appRouter = new Router();
   Backbone.history.start({pushState: true, root: appRouter.url_root});
@@ -12,11 +23,8 @@ $(function(){
   document.addEventListener('click', function(event){
     event.preventDefault();
     var ele = event.target;
-    console.log(ele.href);
     if ('navigate' in ele.dataset){
-      NProgress.configure({ showSpinner: false}).start();
-      //Relative paths(without '/admin') are defined in router.js
-      eventBus.trigger('navigate', ele.getAttribute('href').replace('/admin', ''));
+      navigateTo(ele.getAttribute('href'));
     }
   });
 

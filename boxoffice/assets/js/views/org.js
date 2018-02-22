@@ -2,109 +2,59 @@
 var Ractive = require('ractive');
 import {eventBus} from './main_admin.js'
 var NProgress = require('nprogress');
-import {Util, fetch, post, formErrorHandler, getFormParameters, urlFor, setPageTitle, registerSubmitHandler} from '../models/util.js';
-import {orgTemplate} from '../templates/org.html.js';
+import {fetch, urlFor, setPageTitle} from '../models/util.js';
 import {SideBarView} from './sidebar.js';
-import {BaseframeForm} from '../models/form_component.js';
+
+const orgTemplate = `
+  <div class="content-wrapper">
+    <h1 class="header">{{ orgTitle }}</h1>
+    <div class="title-wrapper col-xs-12">
+      <a class="boxoffice-button boxoffice-button-action btn-right" href="/admin/o/{{orgName}}/ic/new" data-navigate>
+        New item collection
+      </a>
+    </div>
+    {{#itemCollections:ic}}
+      <div class="box col-sm-6 col-xs-12" id="item-collection-{{ @index }}">
+        <div class="heading">
+          {{#title}}
+            <p class="heading-title">{{ title }}</p>
+          {{/title}}
+        </div>
+        <div class="content">
+          <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
+            <p class="section-title">Item collection id</p>
+            <p class="section-content">{{ id }}</p>
+            <p class="section-title">Item collection description</p>
+            <div class="section-content">{{{ description }}}</div>
+            <div class="btn-wrapper">
+              <a class="boxoffice-button boxoffice-button-action" href="/{{ orgName }}/{{ name }}">View listing</a>
+              <a class="boxoffice-button boxoffice-button-action" href="/admin/ic/{{id}}" data-navigate>View dashboard</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    {{/itemCollections}}
+  </div>
+`
 
 export const OrgView = {
   render: function({org_name}={}) {
-    const DEFAULT = {
-      showForm: true,
-      hideForm: false,
-      showLoader: true,
-      hideLoader: false,
-      empty: ""
-    };
-
     fetch({
       url: urlFor('view', {resource: 'o', id: org_name, root: true})
     }).then(function({id, org_title, item_collections, form}) {
-      BaseframeForm.defaults.oncomplete = function() {
-        let config = Util.getComponentConfig(this);
-        let onSuccess = function(remoteData) {
-          if (config.action === "edit") {
-            //Update the item collection details
-            orgComponent.set('itemCollections.' + config.elementIndex + '.showEditForm', DEFAULT.hideForm);
-            orgComponent.set('itemCollections.' + config.elementIndex , remoteData.result.item_collection);
-          } else {
-            // On creating a new item collection, load it's the dashboard.
-            orgComponent.viewDashboard(remoteData.result.item_collection.url_for_view);
-          }
-        };
-        let onError = function(response) {
-          let errorMsg;
-          errorMsg = formErrorHandler(response, config.formSelector);
-          if (config.action === "edit") {
-            orgComponent.set('itemCollections.' + config.elementIndex + '.errorMsg', errorMsg);
-          } else {
-            orgComponent.set('icForm.errorMsg', errorMsg);
-          }
-        };
-        window.Baseframe.Forms.handleFormSubmit(this.get('url'), `#${this.get('formId')}`, onSuccess, onError, {});
-      };
-
       let orgComponent = new Ractive({
         el: '#main-content-area',
         template: orgTemplate,
         data: {
           orgName: org_name,
           orgTitle: org_title,
-          itemCollections: item_collections,
-          icForm: {
-            form: form,
-            showForm: DEFAULT.hideForm,
-            errorMsg: DEFAULT.empty,
-          },
-          postUrl: function(action, id="") {
-            if (action === "edit") {
-              return urlFor('edit', { resource: 'ic', id: id, root: true})
-            }
-            return urlFor('new', { scope_ns: 'o', scope_id: org_name, resource: 'ic', root: true });
-          }
-        },
-        components: {BaseframeForm: BaseframeForm},
-        showIcForm: function (event, action) {
-          if (action === "edit") {
-            let ic = event.keypath,
-              icId = event.context.id;
-            this.set(ic + '.loadingEditForm', DEFAULT.showLoader);
-            fetch({
-              url: urlFor('edit', { resource: 'ic', id: icId, root: true})
-            }).done(({form_template}) => {
-              // Set the from baseframe form html as the item collection's form template
-              orgComponent.set(ic + '.formTemplate', form_template);
-              orgComponent.set(ic + '.showEditForm', DEFAULT.showForm);
-              orgComponent.set(ic + '.loadingEditForm', DEFAULT.hideLoader);
-            }).fail(() => {
-              orgComponent.set(ic + '.loadingEditForm', DEFAULT.hideLoader);
-            })
-          } else {
-            orgComponent.set('icForm.showAddForm', DEFAULT.showForm);
-          }
-        },
-        hideNewIcForm: function (event, action) {
-          if (action === "edit") {
-            orgComponent.set(event.keypath + '.showEditForm', DEFAULT.hideForm);
-          } else {
-            orgComponent.set('icForm.showAddForm', DEFAULT.hideForm);
-          }
-        },
-        viewDashboard: function (url) {
-          NProgress.configure({ showSpinner: false}).start();
-          //Relative paths(without '/admin') are defined in router.js
-          let icViewUrl = url.replace('/admin', '');
-          eventBus.trigger('navigate', icViewUrl);
+          itemCollections: item_collections
         }
       });
 
       SideBarView.render('org', {org_name, org_title});
       setPageTitle(org_title);
       NProgress.done();
-    });
-
-    window.addEventListener('popstate', (event) => {
-      NProgress.configure({ showSpinner: false}).start();
     });
   }
 }

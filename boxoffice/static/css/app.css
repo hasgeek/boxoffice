@@ -662,7 +662,8 @@ input.icon-placeholder {
 
 .close-button .fa {
   position: relative;
-  top: -1px;
+  top: -2px;
+  left: -1px;
 }
 
 .table-responsive {
@@ -679,6 +680,12 @@ input.icon-placeholder {
 }
 p.settlements-month-widget {
   margin-top: 10px;
+}
+
+#detail-view > .content-slider {
+  top: 23%;
+  left: 16%;
+  z-index: 2000;
 }
 
 .org-header {

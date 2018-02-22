@@ -22,7 +22,7 @@ let TableComponent = Ractive.extend({
   }
 });
 
-let AggChartComponent = Ractive.extend({
+window.AggChartComponent = Ractive.extend({
   template: AggChartTemplate,
   format_columns: function(){
     let date_item_counts = this.parent.get('date_item_counts');
@@ -141,10 +141,6 @@ export const ItemCollectionView = {
       SideBarView.render('dashboard', {org_name, org_title, ic_id, ic_title});
       setPageTitle(ic_title);
       NProgress.done();
-
-      window.addEventListener('popstate', (event) => {
-        NProgress.configure({ showSpinner: false}).start();
-      });
     });
   }
 }
