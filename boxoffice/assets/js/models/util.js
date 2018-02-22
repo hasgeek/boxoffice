@@ -37,7 +37,6 @@ export const Util = {
 };
 
 export const fetch = function (config) {
-  console.log(config);
   return $.ajax({
     url: config.url,
     dataType: config.dataType ? config.dataType : 'json'

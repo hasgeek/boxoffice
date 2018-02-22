@@ -1,6 +1,7 @@
 
 var Ractive = require('ractive');
-import {fetch, Util, formErrorHandler} from '../models/util.js'
+import {fetch, Util, formErrorHandler} from '../models/util.js';
+import {navigateBack} from './main_admin.js';
 
 /*
 ** `DetailView` provides an interface to show a specific resource's details

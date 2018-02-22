@@ -5,6 +5,9 @@ var Backbone = require("backbone");
 import {Router} from './router';
 export const eventBus = _.clone(Backbone.Events);
 
+let appRouter = new Router();
+Backbone.history.start({pushState: true, root: appRouter.url_root});
+
 export const navigateTo = function(url){
   NProgress.configure({ showSpinner: false}).start();
   //Relative paths(without '/admin') are defined in router.js
@@ -16,10 +19,7 @@ export const navigateBack = function(){
   return false;
 }
 
-$(function(){
-  let appRouter = new Router();
-  Backbone.history.start({pushState: true, root: appRouter.url_root});
-
+function handleNavigation(){
   /*
     To trigger page transitions through pushState, add `data-navigate` to
     the anchor tag and specify the URL in the `href` attribute
@@ -34,5 +34,9 @@ $(function(){
 
   eventBus.on('navigate', function (msg) {
     appRouter.navigate(msg, {trigger: true});
-  })
+  });
+}
+
+$(function(){
+  handleNavigation();  
 });

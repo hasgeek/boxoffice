@@ -41,7 +41,8 @@ def jsonify_item_collection(item_collection_dict):
         date_sales=item_collection_dict['date_sales'],
         today_sales=item_collection_dict['today_sales'],
         net_sales=item_collection_dict['item_collection'].net_sales,
-        sales_delta=item_collection_dict['sales_delta'])
+        sales_delta=item_collection_dict['sales_delta']
+    )
 
 
 @app.route('/admin/ic/<ic_id>')
@@ -50,7 +51,7 @@ def jsonify_item_collection(item_collection_dict):
 @load_models(
     (ItemCollection, {'id': 'ic_id'}, 'item_collection'),
     permission='org_admin'
-    )
+)
 def admin_item_collection(item_collection):
     item_ids = [str(item.id) for item in item_collection.items]
     date_item_counts = {}
@@ -76,8 +77,10 @@ def jsonify_new_item_collection(item_collection_dict):
             ic.make_name()
         db.session.add(ic)
         db.session.commit()
-        return api_success(result={'item_collection': dict(ic.current_access())}, doc=_(u"New item collection created"), status_code=201)
-    return api_error(message=_(u"There was a problem with creating the item collection"), errors=ic_form.errors, status_code=400)
+        return api_success(result={'item_collection': dict(ic.current_access())},
+            doc=_(u"New item collection created"), status_code=201)
+    return api_error(message=_(u"There was a problem with creating the item collection"),
+        errors=ic_form.errors, status_code=400)
 
 
 @app.route('/admin/o/<org>/ic/new', methods=['GET', 'POST'])
@@ -86,7 +89,7 @@ def jsonify_new_item_collection(item_collection_dict):
 @load_models(
     (Organization, {'name': 'org'}, 'organization'),
     permission='org_admin'
-    )
+)
 def admin_new_ic(organization):
     return dict(organization=organization)
 
@@ -100,8 +103,10 @@ def jsonify_edit_item_collection(item_collection_dict):
     if ic_form.validate_on_submit():
         ic_form.populate_obj(item_collection)
         db.session.commit()
-        return api_success(result={'item_collection': dict(item_collection.current_access())}, doc=_(u"Edited Item Collection {title}.".format(title=item_collection.title)), status_code=200)
-    return api_error(message=_(u"There was a problem with editing the item collection"), errors=ic_form.errors, status_code=400)
+        return api_success(result={'item_collection': dict(item_collection.current_access())},
+            doc=_(u"Edited item collection {title}.".format(title=item_collection.title)), status_code=200)
+    return api_error(message=_(u"There was a problem with editing the item collection"),
+        errors=ic_form.errors, status_code=400)
 
 
 @app.route('/admin/ic/<ic_id>/edit', methods=['POST', 'GET'])
