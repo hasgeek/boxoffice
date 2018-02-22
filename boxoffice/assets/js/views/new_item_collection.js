@@ -1,5 +1,6 @@
 
-import {DetailView, urlFor} from '../models/util.js';
+import {urlFor} from '../models/util.js';
+import {DetailView} from './detail_view.js';
 import {navigateTo} from '../views/main_admin.js';
 
 export const ItemCollectionNewView = {
@@ -11,6 +12,6 @@ export const ItemCollectionNewView = {
       onSuccess: function(responseData){
         navigateTo(urlFor('view', {resource: 'ic', id: responseData.result.item_collection.id, root: true}))
       }
-    })
+    });
   }
 }

@@ -37,6 +37,7 @@ export const Util = {
 };
 
 export const fetch = function (config) {
+  console.log(config);
   return $.ajax({
     url: config.url,
     dataType: config.dataType ? config.dataType : 'json'
@@ -205,86 +206,3 @@ export const setPageTitle = function (...subTitles) {
   subTitles.push(window.boxofficeAdmin.siteTitle);
   $('title').html(subTitles.join(" — "));
 }
-
-let DetailViewSliderTemplate = `
-  {{#if shown}}
-    <div class="content-slider align-down" intro-outro='fly:{x:200,y:0,duration:200}'>
-      <button class="close-button" on-click="hide"><i class="fa fa-close"></i></button>
-      <p class="content-slider-title">{{{title}}}</p>
-      <div class="content-slider-wrapper">
-        {{#if handleForm}}
-          {{{ formHTML }}}
-          <p class="error-msg">{{{errors}}}</p>
-        {{else}}
-          {{{template}}}
-        {{/if}}
-      </div>
-    </div>
-  {{/if}}
-`;
-
-/*
-** `DetailView` provides an interface to show a specific resource's details
-** or to show a form to create or edit a resource.
-*/
-export const DetailView = new Ractive({
-  el: '#detail-view',
-  template: DetailViewSliderTemplate,
-  data: {
-    shown: false,
-    title: '',
-    formHTML: '',
-    errors: '',
-    handleForm: false,
-    template: '',
-    // Use this to set custom attributes in the template
-    attributes: {}
-  },
-  load: function(options){
-    fetch({url: options.url}).then((response) => {
-      this.hide();
-      this.set('title', options.title);
-      this.show();
-      if (options.handleForm) {
-        this.handleForm(response, options);
-      } else {
-        this.handleTemplate(options);
-      }
-    });
-  },
-  show: function(){
-    this.set('shown', true);
-  },
-  hide: function(){
-    this.set('shown', false);
-  },
-  handleForm: function(response, options){
-    this.set('handleTemplate', false);
-    this.set('handleForm', true);
-    this.set('formHTML', response.form_template);
-
-    var formId = Util.getElementId(response.form_template);
-    var onSuccess = (responseData) => {
-      this.hide();
-      options.onSuccess(responseData);
-    }
-    var onError = (response) => {
-      var errors = formErrorHandler(response, formId);
-      this.set('errors', errors);
-      if (typeof options.onError === 'object'){
-        options.onError(response);
-      }
-    }
-    Baseframe.Forms.handleFormSubmit(formId, options.url, onSuccess, onError, {});
-  },
-  handleTemplate: function(options){
-    this.set('handleForm', false);
-    this.set('handleTemplate', true);
-    this.set('template', options.template);
-  }
-});
-
-DetailView.on('hide', function(event){
-  this.hide();
-  navigateBack();
-});

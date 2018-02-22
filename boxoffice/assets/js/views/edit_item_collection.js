@@ -1,5 +1,6 @@
 
-import {DetailView, urlFor} from '../models/util.js';
+import {urlFor} from '../models/util.js';
+import {DetailView} from './detail_view.js';
 import {navigateTo} from '../views/main_admin.js';
 
 export const ItemCollectionEditView = {
