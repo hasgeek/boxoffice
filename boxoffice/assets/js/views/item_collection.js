@@ -22,7 +22,7 @@ let TableComponent = Ractive.extend({
   }
 });
 
-window.AggChartComponent = Ractive.extend({
+let AggChartComponent = Ractive.extend({
   template: AggChartTemplate,
   format_columns: function(){
     let date_item_counts = this.parent.get('date_item_counts');
@@ -113,7 +113,6 @@ window.AggChartComponent = Ractive.extend({
 
 export const ItemCollectionView = {
   render: function ({ic_id}={}) {
-    console.log('rendering item collection view');
     fetch({
       url: urlFor('view', {resource: 'ic', id: ic_id, root: true})
     }).done(({org_name, org_title, ic_title, categories, date_item_counts, date_sales, today_sales, net_sales, sales_delta}) => {

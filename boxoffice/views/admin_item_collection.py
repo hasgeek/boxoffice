@@ -11,7 +11,7 @@ from baseframe.forms import render_form
 from boxoffice.models import db, Organization, ItemCollection, LineItem, LINE_ITEM_STATUS
 from boxoffice.models.line_item import sales_delta, sales_by_date, counts_per_date_per_item
 from boxoffice.forms import ItemCollectionForm
-from boxoffice.views.utils import xhr_only, api_error, api_success
+from boxoffice.views.utils import api_error, api_success
 
 
 def jsonify_item(item):
@@ -67,7 +67,8 @@ def admin_item_collection(item_collection):
 def jsonify_new_item_collection(item_collection_dict):
     ic_form = ItemCollectionForm()
     if request.method == 'GET':
-        return jsonify(html_response=render_form(form=ic_form, title=u"New item collection", submit=u"Create", ajax=False, with_chrome=False))
+        return jsonify(form_template=render_form(form=ic_form,
+            title=u"New item collection", submit=u"Create", ajax=False, with_chrome=False))
     if ic_form.validate_on_submit():
         ic = ItemCollection(organization=item_collection_dict['organization'])
         ic_form.populate_obj(ic)
@@ -94,7 +95,8 @@ def jsonify_edit_item_collection(item_collection_dict):
     item_collection = item_collection_dict['item_collection']
     ic_form = ItemCollectionForm(obj=item_collection)
     if request.method == 'GET':
-        return jsonify(html_response=render_form(form=ic_form, title=u"Edit item collection", submit=u"Save", ajax=False, with_chrome=False))
+        return jsonify(form_template=render_form(form=ic_form,
+            title=u"Edit item collection", submit=u"Save", ajax=False, with_chrome=False))
     if ic_form.validate_on_submit():
         ic_form.populate_obj(item_collection)
         db.session.commit()

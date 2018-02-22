@@ -6,7 +6,7 @@ from .. import app, lastuser
 from coaster.views import load_models, render_with
 from coaster.utils import getbool
 from baseframe import _
-from boxoffice.models import db, Organization, ItemCollection
+from boxoffice.models import Organization, ItemCollection
 from boxoffice.models.line_item import calculate_weekly_sales
 from boxoffice.models.payment import calculate_weekly_refunds
 from boxoffice.views.utils import check_api_access, api_error, api_success

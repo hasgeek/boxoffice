@@ -33,13 +33,6 @@ export const Util = {
   },
   getElementId: function(htmlString) {
     return htmlString.match(/id="(.*?)"/)[1];
-  },
-  getComponentConfig: function(component) {
-    return {
-      action: component.get('action'),
-      elementIndex: component.get('index'),
-      formSelector: `#${component.get('formId')}`
-    };
   }
 };
 
@@ -110,7 +103,6 @@ export const getCsrfToken = function () {
 };
 
 export const formErrorHandler = function(errorResponse, formSelector) {
-  console.log('formErrorHandler!')
   let errorMsg = "";
   // xhr readyState '4' indicates server has received the request & response is ready
   if (errorResponse.readyState === 4) {
@@ -252,7 +244,6 @@ export const DetailView = new Ractive({
     fetch({url: options.url}).then((response) => {
       this.hide();
       this.set('title', options.title);
-      this.set('formHTML', response.html_response);
       this.show();
       if (options.handleForm) {
         this.handleForm(response, options);
@@ -270,7 +261,9 @@ export const DetailView = new Ractive({
   handleForm: function(response, options){
     this.set('handleTemplate', false);
     this.set('handleForm', true);
-    var formId = Util.getElementId(response.html_response);
+    this.set('formHTML', response.form_template);
+
+    var formId = Util.getElementId(response.form_template);
     var onSuccess = (responseData) => {
       this.hide();
       options.onSuccess(responseData);

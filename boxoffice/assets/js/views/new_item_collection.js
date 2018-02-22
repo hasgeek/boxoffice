@@ -9,7 +9,6 @@ export const ItemCollectionNewView = {
       title: 'New item collection',
       handleForm: true,
       onSuccess: function(responseData){
-        console.log(responseData);
         navigateTo(urlFor('view', {resource: 'ic', id: responseData.result.item_collection.id, root: true}))
       }
     })
