@@ -41,11 +41,15 @@ export const Router = Backbone.Router.extend({
     ItemCollectionView.render({ic_id});
   },
   new_item_collection: function(org_name){
-    OrgView.render({org_name});
+    if (window.boxofficeFirstLoad){
+      OrgView.render({org_name});
+    }
     ItemCollectionNewView.render({org_name});
   },
   edit_item_collection: function(ic_id){
-    ItemCollectionView.render({ic_id});
+    if (window.boxofficeFirstLoad){
+      ItemCollectionView.render({ic_id});
+    }
     ItemCollectionEditView.render({ic_id});
   },
   order: function(ic_id) {

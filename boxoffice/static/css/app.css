@@ -682,7 +682,7 @@ p.settlements-month-widget {
   margin-top: 10px;
 }
 
-#detail-view > .content-slider {
+#form-view > .content-slider {
   top: 23%;
   left: 16%;
   z-index: 2000;
