@@ -58,7 +58,7 @@ export const AggChartTemplate = `
 
 export const ItemCollectionTemplate = `
   <div class="content-wrapper">
-    <h1 class="header">{{ icTitle }}</h1>
+    <h1 class="header col-xs-12">{{ icTitle }}</h1>
     <div class="title-wrapper col-xs-12">
       <a class="boxoffice-button boxoffice-button-action btn-right" href="/admin/ic/{{ic_id}}/edit" data-navigate>
         Edit item collection
