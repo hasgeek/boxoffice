@@ -25,7 +25,7 @@ import {BaseframeForm} from './baseframe_form.js';
 
 let FormViewSliderTemplate = `
   {{#if shown}}
-    <div class="content-slider align-down" intro-outro='fly:{x:200,y:0,duration:200}'>
+    <div class="content-slider" intro-outro='fly:{x:200,y:0,duration:200}'>
       <button class="close-button" on-click="hide"><i class="fa fa-close"></i></button>
       <p class="content-slider-title">{{{title}}}</p>
       <div class="content-slider-wrapper">

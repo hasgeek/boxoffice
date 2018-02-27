@@ -7,7 +7,7 @@ import {SideBarView} from './sidebar.js';
 
 const orgTemplate = `
   <div class="content-wrapper">
-    <h1 class="header">{{ orgTitle }}</h1>
+    <h1 class="header col-xs-12">{{ orgTitle }}</h1>
     <div class="title-wrapper col-xs-12">
       <a class="boxoffice-button boxoffice-button-action btn-right" href="/admin/o/{{orgName}}/ic/new" data-navigate>
         New item collection
