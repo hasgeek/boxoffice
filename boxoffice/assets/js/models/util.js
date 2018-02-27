@@ -1,7 +1,7 @@
 // A collection of utility functions
 var moment = require("moment");
 var Ractive = require('ractive');
-import {redirectTo, navigateBack} from '../views/main_admin.js'
+import {redirectTo} from '../views/main_admin.js'
 
 export const Util = {
   formatToIndianRupee: function (value) {

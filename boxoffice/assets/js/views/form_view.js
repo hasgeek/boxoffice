@@ -6,12 +6,12 @@ import {fetch, Util, formErrorHandler} from '../models/util.js';
 import {BaseframeForm} from './baseframe_form.js';
 
 /*
-** `FormView` provides an interface to show a specific resource's details
-** or to show a form to create or edit a resource.
+** `FormView` provides an interface to show a form to create or edit a resource.
 ** 
 ** `FormView` accepts the following parameters:
-** `url`: The `url` from which a resource's content for form needs to be loaded
+** `url`: The `url` from which a resource's form needs to be loaded
 ** `title`: The title for the view
+** `onHide`: A handler that is called when the form view is hidden
 ** `onSuccess`: A handler that is called when a form submit is successful. Called with `responseData`
 ** `onError`: A handler that is invoked when a form submit fails. Called with `response`.
 **
