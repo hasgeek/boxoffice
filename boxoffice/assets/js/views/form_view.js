@@ -42,7 +42,6 @@ export const FormView = new Ractive({
   components: {BaseframeForm: BaseframeForm},
   data: {
     shown: false,
-    unrendered: false,
     title: '',
     formHTML: '',
     errors: '',
@@ -50,9 +49,7 @@ export const FormView = new Ractive({
   },
   load: function(options){
     fetch({url: options.url}).then((response) => {
-      if (this.get('shown')) {
-        this.hide();
-      }
+      this.hide();
       this.set('title', options.title);
       this.set('formHTML', response.form_template);
       if (options.onHide){
@@ -78,27 +75,13 @@ export const FormView = new Ractive({
   },
   show: function(){
     this.set('shown', true);
-    if (this.get('unrendered')) {
-      this.render();
-    }
   },
   hide: function(){
-    if (this.get('shown')) {
-      this.set('shown', false);
-      this.unrender();
-    }
+    this.set('shown', false);
   }
 });
 
 FormView.on('hide', function(event){
   this.hide();
   this.get('onHide')();
-});
-
-FormView.on('render', function(){
-  this.set('unrendered', false);
-});
-
-FormView.on('unrender', function(){
-  this.set('unrendered', true);
 });
