@@ -662,7 +662,8 @@ input.icon-placeholder {
 
 .close-button .fa {
   position: relative;
-  top: -1px;
+  top: -2px;
+  left: -1px;
 }
 
 .table-responsive {
@@ -681,6 +682,33 @@ p.settlements-month-widget {
   margin-top: 10px;
 }
 
+#root {
+  position: relative;
+}
+
+#form-view > .content-slider {
+  position: absolute;
+  top: 15px;
+  bottom: 0;
+  left: 15px;
+  z-index: 1000;
+  width: calc(100% - 15px);
+}
+
+@media (min-width: 1200px) {
+  #form-view > .content-slider {
+    left: 15%;
+    margin-left: 15px;
+    width: calc(85% - 15px);
+  }
+}
+@media (min-width: 1400px) {
+  #form-view > .content-slider {
+    left: 13%;
+    margin-left: 15px;
+    width: calc(87% - 15px);
+  }
+}
 .org-header {
   text-align: center;
   margin: 0 auto 15px;

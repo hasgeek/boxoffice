@@ -113,7 +113,6 @@ let AggChartComponent = Ractive.extend({
 
 export const ItemCollectionView = {
   render: function ({ic_id}={}) {
-
     fetch({
       url: urlFor('view', {resource: 'ic', id: ic_id, root: true})
     }).done(({org_name, org_title, ic_title, categories, date_item_counts, date_sales, today_sales, net_sales, sales_delta}) => {
@@ -122,6 +121,7 @@ export const ItemCollectionView = {
         el: '#main-content-area',
         template: ItemCollectionTemplate,
         data: {
+          ic_id: ic_id,
           icTitle: ic_title,
           categories: categories,
           date_item_counts: date_item_counts,
@@ -140,10 +140,6 @@ export const ItemCollectionView = {
       SideBarView.render('dashboard', {org_name, org_title, ic_id, ic_title});
       setPageTitle(ic_title);
       NProgress.done();
-
-      window.addEventListener('popstate', (event) => {
-        NProgress.configure({ showSpinner: false}).start();
-      });
     });
   }
 }

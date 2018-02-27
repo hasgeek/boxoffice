@@ -4,6 +4,8 @@ import {OrgView} from './org.js';
 import {OrgReportView} from './admin_org_report.js';
 import {DiscountPolicyView} from './admin_discount_policy.js';
 import {ItemCollectionView} from './item_collection.js';
+import {ItemCollectionNewView} from './new_item_collection.js';
+import {ItemCollectionEditView} from './edit_item_collection.js';
 import {OrderView} from './admin_order.js';
 import {ReportView} from './admin_report.js';
 import {ItemView} from './admin_item.js';
@@ -18,6 +20,8 @@ export const Router = Backbone.Router.extend({
     "o/:org_name/discount_policy?:params": 'discount_policy',
     "o/:org_name/items/new": "new_item",
     "ic/:ic_id": "item_collection",
+    "o/:org_name/ic/new": "new_item_collection",
+    "ic/:ic_id/edit": "edit_item_collection",
     "ic/:ic_id/orders": "order",
     "ic/:ic_id/reports": "report"
   },
@@ -35,6 +39,18 @@ export const Router = Backbone.Router.extend({
   },
   item_collection: function(ic_id) {
     ItemCollectionView.render({ic_id});
+  },
+  new_item_collection: function(org_name){
+    if (window.boxofficeFirstLoad){
+      OrgView.render({org_name});
+    }
+    ItemCollectionNewView.render({org_name});
+  },
+  edit_item_collection: function(ic_id){
+    if (window.boxofficeFirstLoad){
+      ItemCollectionView.render({ic_id});
+    }
+    ItemCollectionEditView.render({ic_id});
   },
   order: function(ic_id) {
     OrderView.render({ic_id});

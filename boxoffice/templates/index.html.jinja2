@@ -12,11 +12,13 @@
 {% block main -%}
   <div id="sidebar"></div>
   <div id="main-content-area"></div>
+  <div id='form-view'></div>
 {% endblock %}
 {% block footerscripts %}
   <script type="text/javascript">
     window.boxofficeAdmin = {};
     window.boxofficeAdmin.siteTitle = "{{ config['SITE_TITLE'] }}";
+    window.boxofficeFirstLoad = true;
   </script>
   <script src='{{ asset_path('main_admin') | safe }}' type="text/javascript"></script>
 {% endblock %}

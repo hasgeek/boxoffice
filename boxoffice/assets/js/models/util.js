@@ -1,5 +1,7 @@
 // A collection of utility functions
 var moment = require("moment");
+var Ractive = require('ractive');
+import {redirectTo} from '../views/main_admin.js'
 
 export const Util = {
   formatToIndianRupee: function (value) {
@@ -100,21 +102,21 @@ export const getCsrfToken = function () {
   return document.head.querySelector("[name=csrf-token]").content;
 };
 
-export const formErrorHandler = function(errorResponse, formId) {
+export const formErrorHandler = function(errorResponse, formSelector) {
   let errorMsg = "";
   // xhr readyState '4' indicates server has received the request & response is ready
   if (errorResponse.readyState === 4) {
     if (errorResponse.status === 500) {
       errorMsg = "Internal Server Error";
     } else {
-      window.Baseframe.Forms.showValidationErrors(formId, errorResponse.responseJSON.errors);
+      window.Baseframe.Forms.showValidationErrors(formSelector, errorResponse.responseJSON.errors);
       errorMsg = "Error";
     }
   } else {
     errorMsg = "Unable to connect. Please try again.";
   }
-  $("#" + formId).find('button[type="submit"]').prop('disabled', false);
-  $("#" + formId).find(".loading").addClass('hidden');
+  $('#' + formSelector).find('button[type="submit"]').prop('disabled', false);
+  $('#' + formSelector).find(".loading").addClass('hidden');
   return errorMsg;
 };
 
@@ -202,9 +204,4 @@ export const setPageTitle = function (...subTitles) {
   Eg:- "Orders — JSFoo 2016 — Boxoffice" */
   subTitles.push(window.boxofficeAdmin.siteTitle);
   $('title').html(subTitles.join(" — "));
-}
-
-export const registerSubmitHandler = function(formId, formHandler){
-  let formEl = document.getElementById(formId);
-  formEl.addEventListener('submit', formHandler.bind(this));
 }
