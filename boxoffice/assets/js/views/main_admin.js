@@ -22,16 +22,16 @@ function handleNavigation(){
     the anchor tag and specify the URL in the `href` attribute
   */
   document.addEventListener('click', function(event){
-    event.preventDefault();
     var ele = event.target;
     if ('navigate' in ele.dataset){
+      event.preventDefault();
       navigateTo(ele.getAttribute('href'));
     }
   });
 
   eventBus.on('navigate', function (msg) {
     // Set `boxofficeFirstLoad` to `false` since this is this isn't the first loaded page anymore
-    if (!window.boxofficeFirstLoad){
+    if (window.boxofficeFirstLoad){
       window.boxofficeFirstLoad = false;
     }
     FormView.hide();
