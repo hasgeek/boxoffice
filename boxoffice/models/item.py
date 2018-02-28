@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
+from flask import url_for
 from datetime import datetime
 from decimal import Decimal
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.orderinglist import ordering_list
-from baseframe import __
+from baseframe import __, localize_timezone
 from coaster.utils import LabeledEnum
 from . import db, JsonDict, BaseScopedNameMixin, MarkdownColumn
 from . import ItemCollection, Category
@@ -85,6 +86,32 @@ class Item(BaseScopedNameMixin, db.Model):
     def is_cancellable(self):
         return datetime.utcnow() < self.cancellable_until if self.cancellable_until else True
 
+    def url_for(self, action='view', _external=False, **kwargs):
+        if action == 'view':
+            return url_for('admin_item', item_id=self.id, _external=_external, **kwargs)
+
+    @property
+    def url_for_view(self):
+        return self.url_for('view')
+
+    @property
+    def active_price(self):
+        return self.current_price().amount if self.current_price() else None
+
+    __roles__ = {
+        'item_owner': {
+            'write': {},
+            'read': {'id', 'title', 'url_for_view', 'description_html', 'quantity_total', 'quantity_available', 'active_price',
+                    'sold', 'free', 'cancelled', 'net_sales'}
+        }
+    }
+
+    def roles_for(self, actor=None, anchors=()):
+        roles = super(Item, self).roles_for(actor, anchors)
+        if self.item_collection.organization.userid in actor.organizations_owned_ids():
+            roles.add('item_owner')
+        return roles
+
 
 class Price(BaseScopedNameMixin, db.Model):
     __tablename__ = 'price'
@@ -105,3 +132,28 @@ class Price(BaseScopedNameMixin, db.Model):
 
     amount = db.Column(db.Numeric, default=Decimal(0), nullable=False)
     currency = db.Column(db.Unicode(3), nullable=False, default=u'INR')
+
+    @property
+    def discount_policy_title(self):
+        return self.discount_policy.title if self.discount_policy else None
+
+    @property
+    def json_start_at(self):
+        return localize_timezone(self.start_at).isoformat()
+
+    @property
+    def json_end_at(self):
+        return localize_timezone(self.end_at).isoformat()
+
+    __roles__ = {
+        'price_owner': {
+            'write': {},
+            'read': {'id', 'json_start_at', 'json_end_at', 'amount', 'currency', 'discount_policy_title'}
+        }
+    }
+
+    def roles_for(self, actor=None, anchors=()):
+        roles = super(Price, self).roles_for(actor, anchors)
+        if self.item.item_collection.organization.userid in actor.organizations_owned_ids():
+            roles.add('price_owner')
+        return roles

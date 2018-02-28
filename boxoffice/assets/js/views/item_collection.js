@@ -3,6 +3,7 @@ var Ractive = require("ractive");
 var NProgress = require('nprogress');
 var _ = require("underscore");
 var c3 = require("c3");
+import {eventBus} from './main_admin.js'
 import {Util, fetch, urlFor, setPageTitle} from '../models/util.js';
 import {TableTemplate, AggChartTemplate, ItemCollectionTemplate} from '../templates/item_collection.html.js';
 import {SideBarView} from './sidebar.js'
@@ -58,6 +59,7 @@ let AggChartComponent = Ractive.extend({
     // let bar_graph_headers = columns.map((col) => col[0]).filter((header) => header !== 'x');
 
     columns.push(date_sales_column);
+    console.log(columns);
     return columns;
   },
   oncomplete: function(){

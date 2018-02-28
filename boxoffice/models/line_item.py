@@ -208,6 +208,20 @@ def fetch_all_details(self):
 ItemCollection.fetch_all_details = fetch_all_details
 
 
+def demand_curve(self):
+    query = db.session.query('final_amount', 'count').from_statement(db.text('''
+        SELECT final_amount, count(*)
+        FROM line_item
+        WHERE item_id = :item_id
+        AND final_amount > 0
+        GROUP BY final_amount
+        ORDER BY final_amount;
+    ''')).params(item_id=self.id)
+    return db.session.execute(query).fetchall()
+
+Item.demand_curve = demand_curve
+
+
 def fetch_assignee_details(self):
     """
     Returns invoice_no, ticket title, assignee fullname, assignee email, assignee phone and assignee details
@@ -246,7 +260,27 @@ def get_confirmed_line_items(self):
     return LineItem.query.filter(LineItem.item == self, LineItem.status == LINE_ITEM_STATUS.CONFIRMED)
 
 
+def sold(self):
+    return LineItem.query.filter(LineItem.item == self, LineItem.final_amount > 0, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).count()
+
+
+def free(self):
+    return LineItem.query.filter(LineItem.item == self, LineItem.final_amount == 0, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).count()
+
+
+def cancelled(self):
+    return LineItem.query.filter(LineItem.item == self, LineItem.status == LINE_ITEM_STATUS.CANCELLED).count()
+
+
+def net_sales(self):
+    return db.session.query(func.sum(LineItem.final_amount)).filter(LineItem.item == self, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).first()[0]
+
+
 Item.get_confirmed_line_items = property(get_confirmed_line_items)
+Item.sold = property(sold)
+Item.free = property(free)
+Item.cancelled = property(cancelled)
+Item.net_sales = property(net_sales)
 
 
 def counts_per_date_per_item(item_collection, user_tz):
@@ -377,9 +411,14 @@ def get_from_item(cls, item, qty, coupon_codes=[]):
 DiscountPolicy.get_from_item = classmethod(get_from_item)
 
 
+def line_items_count(self):
+    return LineItem.query.filter(LineItem.discount_policy == self, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).count()
+
+DiscountPolicy.line_items_count = property(line_items_count)
+
+
 def update_used_count(self):
     self.used_count = select([func.count()]).where(LineItem.discount_coupon == self).where(LineItem.status == LINE_ITEM_STATUS.CONFIRMED).as_scalar()
-
 
 DiscountCoupon.update_used_count = update_used_count
 

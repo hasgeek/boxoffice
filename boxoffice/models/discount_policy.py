@@ -109,6 +109,19 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
         """
         return cls(discount_type=DISCOUNT_TYPE.COUPON, discount_code_base=discount_code_base, secret=buid(), **kwargs)
 
+    __roles__ = {
+        'dp_owner': {
+            'write': {},
+            'read': {'id', 'name', 'title', 'is_automatic', 'item_quantity_min', 'percentage', 'is_price_based', 'discount_code_base', 'line_items_count'}
+        }
+    }
+
+    def roles_for(self, actor=None, anchors=()):
+        roles = super(DiscountPolicy, self).roles_for(actor, anchors)
+        if self.organization.userid in actor.organizations_owned_ids():
+            roles.add('dp_owner')
+        return roles
+
 
 @event.listens_for(DiscountPolicy, 'before_update')
 @event.listens_for(DiscountPolicy, 'before_insert')
