@@ -60,7 +60,10 @@ export const ItemCollectionTemplate = `
   <div class="content-wrapper">
     <h1 class="header col-xs-12">{{ icTitle }}</h1>
     <div class="title-wrapper col-xs-12">
-      <a class="boxoffice-button boxoffice-button-action btn-right" href="/admin/ic/{{ic_id}}/edit" data-navigate>
+      <a class="boxoffice-button boxoffice-button-action btn-right" href="/admin/ic/{{ic_id}}/item/new" data-navigate>
+        New item
+      </a>
+      <a class="boxoffice-button boxoffice-button-action btn-right btn-margin-right" href="/admin/ic/{{ic_id}}/edit" data-navigate>
         Edit item collection
       </a>
     </div>

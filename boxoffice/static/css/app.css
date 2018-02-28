@@ -961,6 +961,18 @@ h2.dp-header {
   color: #4A90E2;
 }
 
+.btn-margin-right {
+  margin-right: 10px;
+}
+
+.col-header-nav-item {
+  margin-top: 18px;
+}
+
+.big-header-nav-item {
+  margin-top: 40px;
+}
+
 .org-header {
   text-align: center;
   margin: 0 auto 15px;

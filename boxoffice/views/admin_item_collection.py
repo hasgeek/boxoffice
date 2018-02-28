@@ -11,7 +11,6 @@ from boxoffice.models import db, Organization, ItemCollection
 from boxoffice.models.line_item import sales_delta, sales_by_date, counts_per_date_per_item
 from boxoffice.forms import ItemCollectionForm
 from boxoffice.views.utils import api_error, api_success
-from boxoffice.forms import ItemForm
 
 
 def jsonify_item_collection(item_collection_dict):
@@ -24,8 +23,8 @@ def jsonify_item_collection(item_collection_dict):
         date_sales=item_collection_dict['date_sales'],
         today_sales=item_collection_dict['today_sales'],
         net_sales=item_collection_dict['item_collection'].net_sales,
-        sales_delta=item_collection_dict['sales_delta'],
-        item_add_form=render_form(form=ItemForm(), title=u"New Item", submit=u"Save", ajax=False, with_chrome=False))
+        sales_delta=item_collection_dict['sales_delta']
+    )
 
 
 @app.route('/admin/ic/<ic_id>')

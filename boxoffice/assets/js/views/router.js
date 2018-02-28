@@ -9,6 +9,11 @@ import {ItemCollectionEditView} from './edit_item_collection.js';
 import {OrderView} from './admin_order.js';
 import {ReportView} from './admin_report.js';
 import {ItemView} from './admin_item.js';
+import {NewItemView} from './new_item.js';
+import {EditItemView} from './edit_item.js';
+import {NewPriceView} from './new_price.js';
+import {EditPriceView} from './edit_price.js';
+
 
 export const Router = Backbone.Router.extend({
   url_root: '/admin/',
@@ -23,7 +28,11 @@ export const Router = Backbone.Router.extend({
     "ic/:ic_id/edit": "edit_item_collection",
     "ic/:ic_id/orders": "order",
     "ic/:ic_id/reports": "report",
+    "ic/:ic_id/item/new": "new_item",
+    "item/:item_id/edit": "edit_item",
     "item/:item_id": "item",
+    "item/:item_id/price/new": "new_price",
+    "item/:item_id/price/:price_id/edit": "edit_price",
   },
   index: function() {
     IndexView.render();
@@ -51,6 +60,30 @@ export const Router = Backbone.Router.extend({
       ItemCollectionView.render({ic_id});
     }
     ItemCollectionEditView.render({ic_id});
+  },
+  new_item: function(ic_id){
+    if (window.boxofficeFirstLoad){
+      ItemCollectionView.render({ic_id});
+    }
+    NewItemView.render({ic_id});
+  },
+  edit_item: function(item_id){
+    if (window.boxofficeFirstLoad){
+      ItemView.render({item_id});
+    }
+    EditItemView.render({item_id});
+  },
+  new_price: function(item_id){
+    if (window.boxofficeFirstLoad){
+      ItemView.render({item_id});
+    }
+    NewPriceView.render({item_id});
+  },
+  edit_price: function(item_id, price_id){
+    if (window.boxofficeFirstLoad){
+      ItemView.render({item_id});
+    }
+    EditPriceView.render({item_id, price_id});
   },
   order: function(ic_id) {
     OrderView.render({ic_id});

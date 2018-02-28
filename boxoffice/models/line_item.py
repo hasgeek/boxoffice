@@ -10,6 +10,7 @@ from isoweek import Week
 from boxoffice.models import db, JsonDict, BaseMixin, HeadersAndDataTuple, ItemCollection, Order, Item, DiscountPolicy, DISCOUNT_TYPE, DiscountCoupon, OrderSession
 from coaster.utils import LabeledEnum, isoweek_datetime, midnight_to_utc
 from baseframe import __
+import time
 
 __all__ = ['LineItem', 'LINE_ITEM_STATUS', 'Assignee', 'LineItemDiscounter']
 
@@ -186,6 +187,7 @@ def fetch_all_details(self):
     assignee (if any), discount policy (if any), discount coupon (if any), item, order and order session (if any)
     as a tuple of (keys, rows)
     """
+    start = time.time()
     line_item_join = db.outerjoin(LineItem, Assignee, db.and_(LineItem.id == Assignee.line_item_id,
         Assignee.current == True)).outerjoin(DiscountCoupon,
         LineItem.discount_coupon_id == DiscountCoupon.id).outerjoin(DiscountPolicy,
@@ -199,10 +201,14 @@ def fetch_all_details(self):
         Order.paid_at]).select_from(line_item_join).where(LineItem.status ==
         LINE_ITEM_STATUS.CONFIRMED).where(Order.item_collection ==
         self).order_by(LineItem.ordered_at)
-    return HeadersAndDataTuple(
+
+    result = HeadersAndDataTuple(
         ['ticket_id', 'order_id', 'receipt_no', 'ticket_type', 'base_amount', 'discounted_amount', 'final_amount', 'discount_policy', 'discount_code', 'buyer_fullname', 'buyer_email', 'buyer_phone', 'attendee_fullname', 'attendee_email', 'attendee_phone', 'attendee_details', 'utm_campaign', 'utm_source', 'utm_medium', 'utm_term', 'utm_content', 'utm_id', 'gclid', 'referrer', 'date'],
         db.session.execute(line_item_query).fetchall()
         )
+    end = time.time()
+    print 'That took', end - start, 'time'
+    return True
 
 
 ItemCollection.fetch_all_details = fetch_all_details

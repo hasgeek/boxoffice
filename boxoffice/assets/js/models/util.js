@@ -185,7 +185,7 @@ export const urlFor = function(action, params={}) {
       url = `${scope}${resource}/new`;
       break;
     case 'edit':
-      url = `${resource}/${params.id}/edit`;
+      url = `${scope}${resource}/${params.id}/edit`;
       break;
     case 'search':
       url = params.page ? `${scope}${resource}?search=${params.search}&page=${params.page}&size=${params.size}` : `${scope}${resource}?search=${params.search}`;

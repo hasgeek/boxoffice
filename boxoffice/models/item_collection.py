@@ -41,3 +41,4 @@ class ItemCollection(BaseScopedNameMixin, db.Model):
         if self.organization.userid in actor.organizations_owned_ids():
             roles.add('ic_owner')
         return roles
+        

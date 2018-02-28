@@ -145,10 +145,20 @@ class Price(BaseScopedNameMixin, db.Model):
     def json_end_at(self):
         return localize_timezone(self.end_at).isoformat()
 
+    @property
+    def tense(self):
+        now = datetime.utcnow()
+        if self.end_at < now:
+            return u"past"
+        elif self.start_at > now:
+            return u"upcoming"
+        else:
+            return u"current"
+
     __roles__ = {
         'price_owner': {
             'write': {},
-            'read': {'id', 'json_start_at', 'json_end_at', 'amount', 'currency', 'discount_policy_title'}
+            'read': {'id', 'item_id', 'json_start_at', 'json_end_at', 'amount', 'currency', 'discount_policy_title', 'tense'}
         }
     }
 

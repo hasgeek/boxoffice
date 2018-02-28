@@ -59,7 +59,6 @@ let AggChartComponent = Ractive.extend({
     // let bar_graph_headers = columns.map((col) => col[0]).filter((header) => header !== 'x');
 
     columns.push(date_sales_column);
-    console.log(columns);
     return columns;
   },
   oncomplete: function(){

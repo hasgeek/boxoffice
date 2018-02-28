@@ -8,11 +8,14 @@ import {SideBarView} from './sidebar.js';
 
 const ItemTemplate = `
   <div class="content-wrapper">
-    <div class="col-md-10 col-md-offset-1 col-xs-12">
-      <div class="has-box">
-        <h4>{{ item.title }}</h4>
-          <p>{{{ item.description_html }}}</p>
-      </div>
+    <div class="col-md-8 col-md-offset-1 col-xs-12">
+      <h4>{{ item.title }}</h4>
+      <p>{{{ item.description_html }}}</p>
+    </div>
+    <div class="col-md-2 col-xs-12">
+      <p class='big-header-nav-item pull-right'>
+        <a class="boxoffice-button boxoffice-button-action" href="/admin/item/{{item.id}}/edit" data-navigate>Edit item</a>
+      </p>
     </div>
     <div class="col-md-10 col-md-offset-1 col-xs-12">
       <div class="has-box item-stats">
@@ -25,10 +28,10 @@ const ItemTemplate = `
           </div>
           <div class="col-md-3 col-xs-6">
             <div class="">
-              {{#if active_price}}
-              <h4 class="digits">{{ formatToIndianRupee(item.net_sales) }}</h4>
+              {{#if item.net_sales}}
+                <h4 class="digits">{{ formatToIndianRupee(item.net_sales) }}</h4>
               {{else}}
-              <h4 class="digits">0</h4>
+                <h4 class="digits">0</h4>
               {{/if}}
               <p class="text-uppercase callout-text">Gross revenue earned</p>
             </div>
@@ -36,19 +39,19 @@ const ItemTemplate = `
           <div class="col-md-3 col-xs-6">
             <div class="">
               {{#if active_price}}
-              <h4 class="digits">{{ formatToIndianRupee(item.active_price) }}</h4>
+                <h4 class="digits">{{ formatToIndianRupee(item.active_price) }}</h4>
               {{else}}
-              <h4 class="digits">N/A</h4>
+                <h4 class="digits">N/A</h4>
               {{/if}}
               <p class="text-uppercase callout-text">Active Price</p>
             </div>
           </div>
           <div class="col-md-3 col-xs-6">
             <div class="">
-              {{#if active_price}}
-              <h4 class="digits">{{ item.free }}</h4>
+              {{#if item.free}}
+                <h4 class="digits">{{ item.free }}</h4>
               {{else}}
-              <h4 class="digits">0</h4>
+                <h4 class="digits">0</h4>
               {{/if}}
               <p class="text-uppercase callout-text">Free tickets issued</p>
             </div>
@@ -59,8 +62,13 @@ const ItemTemplate = `
         </div>
       </div>
     </div>
-    <div class="col-md-5 col-md-offset-1 col-xs-12">
+    <div class="col-md-3 col-md-offset-1 col-xs-12">
       <h2>Ticket prices</h2>
+    </div>
+    <div class="col-md-2 col-xs-12">
+      <p class='col-header-nav-item pull-right'>
+        <a href="/admin/item/{{item.id}}/price/new" data-navigate>New price</a>
+      </p>
     </div>
     <div class="col-md-5 col-xs-12">
       <h2 class='dp-header'>Associated discount policies</h2>
@@ -70,26 +78,22 @@ const ItemTemplate = `
         <div class="panel panel-default price-panel">
           {{#prices: i}}
             <div class="panel-body bg-light hg-bb">
-              {{#if prices[i].showForm}}
-                <div intro='fly:{"x":20,"y":"0"}'>
-                  <button class="edit-btn pull-right" on-click="hidePriceForm(event, 'edit')"><i class="fa fa-edit"></i></button>
-                  <BaseframeForm formTemplate="{{ prices[i].form }}" index="{{ i }}" action="edit" url="{{ postUrl('edit', prices[i].id) }}"></BaseframeForm>
-                  <p class="error-msg">{{{ prices[i].errorMsg }}}</p>
-                </div>
-              {{else}}
-                <div class="row">
-                  <div class="col-md-4 col-xs-5">
+              <div class="row">
+                <div class="col-md-4 col-xs-5">
+                  {{#if prices[i].tense === 'past'}}
                     <p class="past-price text-uppercase">Past Price</p>
-                    <p class="start-time"><strong>Start time</strong> <br>{{ formatDateTime(prices[i].json_start_at) }}</p>
-                  </div>
-                  <div class="col-md-6 col-xs-5 text-center">
-                    <p class="price-digits">{{ formatToIndianRupee(prices[i].amount) }}</p>
-                  </div>
-                  <div class="col-md-2 col-xs-1 text-right">
-                    <!-- TODO: Edit link -->
-                  </div>
+                  {{elseif prices[i].tense == 'upcoming'}}
+                    <p class="upcoming-price text-uppercase">Upcoming Price</p>
+                  {{else}}
+                    <p class="current-price text-uppercase">Current Price</p>
+                  {{/if}}
+                  <p class="start-time"><strong>Start time</strong> <br>{{ formatDateTime(prices[i].json_start_at) }}</p>
+                  <a href="/admin/item/{{item.id}}/price/{{prices[i].id}}/edit" data-navigate>Edit price</a>
                 </div>
-              {{/if}}
+                <div class="col-md-6 col-xs-5 text-center">
+                  <p class="price-digits">{{ formatToIndianRupee(prices[i].amount) }}</p>
+                </div>
+              </div>
             </div>
           {{/prices}}
         </div>
@@ -102,9 +106,9 @@ const ItemTemplate = `
             <p class="discount-title">{{ discount_policies[i].title }}</p>
             <p class="discount-ticket-amount">Tickets bought: <span class="pull-right">{{discount_policies[i].line_items_count}}</span></p>
             {{#if is_automatic}}
-            <p class="discount-type hg-bb">Discount type: <span class="pull-right">Automatic</span></p>
+              <p class="discount-type hg-bb">Discount type: <span class="pull-right">Automatic</span></p>
             {{else}}
-            <p class="discount-type hg-bb">Discount type: <span class="pull-right">Coupon based</span></p>
+              <p class="discount-type hg-bb">Discount type: <span class="pull-right">Coupon based</span></p>
             {{/if}}
             <p class="discount-type">Discount rate: <span class="pull-right">{{ discount_policies[i].percentage }}%</span></p>
           </div>
@@ -136,7 +140,6 @@ let DemandGraph = Ractive.extend({
     return [xs, ys];
   },
   oncomplete: function(){
-    console.log(this.format_columns());
     this.chart = c3.generate({
       data: {
         x: 'x',

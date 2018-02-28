@@ -63,7 +63,7 @@ export const FormView = new Ractive({
         options.onSuccess(responseData);
       }
       var onError = (response) => {
-        var errors = formErrorHandler(response, formId);
+        var errors = formErrorHandler(formId, response);
         this.set('errors', errors);
         if (_.isFunction(options.onError)) {
           options.onError(response);
