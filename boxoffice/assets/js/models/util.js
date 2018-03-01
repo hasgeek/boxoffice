@@ -8,6 +8,7 @@ export const Util = {
     // Takes a floating point value and formats it to the Indian currency format
     // with the rupee sign.
     // Taken from https://github.com/hasgeek/hasjob/blob/master/hasjob/static/js/app.js
+    if (!value) return value;
     value = value.toString();
     value = value.replace(/[^0-9.]/g, '');  // Remove non-digits, assume . for decimals
     var afterPoint = '';

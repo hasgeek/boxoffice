@@ -7,15 +7,15 @@ import {Util, fetch, post, formErrorHandler, getFormParameters, urlFor, setPageT
 import {SideBarView} from './sidebar.js';
 
 const ItemTemplate = `
-  <div class="content-wrapper">
+  <div class="content-wrapper clearfix">
     <div class="col-md-8 col-md-offset-1 col-xs-12">
       <h4>{{ item.title }}</h4>
-      <p>{{{ item.description_html }}}</p>
     </div>
     <div class="col-md-2 col-xs-12">
-      <p class='big-header-nav-item pull-right'>
-        <a class="boxoffice-button boxoffice-button-action" href="/admin/item/{{item.id}}/edit" data-navigate>Edit item</a>
-      </p>
+      <a class="boxoffice-button boxoffice-button-action align-right-btn" href="/admin/item/{{item.id}}/edit" data-navigate>Edit item</a>
+    </div>
+    <div class="col-md-8 col-md-offset-1 col-xs-12">
+      <div class="has-box">{{{ item.description_html }}}</div>
     </div>
     <div class="col-md-10 col-md-offset-1 col-xs-12">
       <div class="has-box item-stats">
@@ -27,7 +27,7 @@ const ItemTemplate = `
             </div>
           </div>
           <div class="col-md-3 col-xs-6">
-            <div class="">
+            <div>
               {{#if item.net_sales}}
                 <h4 class="digits">{{ formatToIndianRupee(item.net_sales) }}</h4>
               {{else}}
@@ -62,42 +62,44 @@ const ItemTemplate = `
         </div>
       </div>
     </div>
-    <div class="col-md-3 col-md-offset-1 col-xs-12">
-      <h2>Ticket prices</h2>
-    </div>
-    <div class="col-md-2 col-xs-12">
-      <p class='col-header-nav-item pull-right'>
-        <a href="/admin/item/{{item.id}}/price/new" data-navigate>New price</a>
-      </p>
+    <div class="col-md-5 col-md-offset-1">
+      <div class="col-md-6 col-xs-12">
+        <h4>Ticket prices</h4>
+      </div>
+      <div class="col-md-6 col-xs-12">
+        <a href="/admin/item/{{item.id}}/price/new" data-navigate class="boxoffice-button boxoffice-button-action align-right-btn">New price</a>
+      </div>
+      <div class="col-xs-12">
+        <div class="row">
+          <div class="panel panel-default price-panel">
+            {{#prices: i}}
+              <div class="panel-body bg-light hg-bb">
+                <div class="row">
+                  <div class="col-md-4 col-xs-5">
+                    {{#if prices[i].tense === 'past'}}
+                      <p class="past-price text-uppercase">Past Price</p>
+                    {{elseif prices[i].tense == 'upcoming'}}
+                      <p class="upcoming-price text-uppercase">Upcoming Price</p>
+                    {{else}}
+                      <p class="current-price text-uppercase">Current Price</p>
+                    {{/if}}
+                    <p class="start-time"><strong>Start time</strong> <br>{{ formatDateTime(prices[i].json_start_at) }}</p>
+                  </div>
+                  <div class="col-md-6 col-xs-5 text-center">
+                    <p class="price-digits">{{ formatToIndianRupee(prices[i].amount) }}</p>
+                  </div>
+                  <div class="col-md-2 col-xs-1 text-right">
+                    <a class="edit-btn" href="/admin/item/{{item.id}}/price/{{prices[i].id}}/edit" data-navigate><i class="fa fa-edit"></i></a>
+                  </div>
+                </div>
+              </div>
+            {{/prices}}
+          </div>
+        </div>
+      </div>
     </div>
     <div class="col-md-5 col-xs-12">
       <h2 class='dp-header'>Associated discount policies</h2>
-    </div>
-    <div class="col-md-5 col-md-offset-1 col-xs-12">
-      <div class="row">
-        <div class="panel panel-default price-panel">
-          {{#prices: i}}
-            <div class="panel-body bg-light hg-bb">
-              <div class="row">
-                <div class="col-md-4 col-xs-5">
-                  {{#if prices[i].tense === 'past'}}
-                    <p class="past-price text-uppercase">Past Price</p>
-                  {{elseif prices[i].tense == 'upcoming'}}
-                    <p class="upcoming-price text-uppercase">Upcoming Price</p>
-                  {{else}}
-                    <p class="current-price text-uppercase">Current Price</p>
-                  {{/if}}
-                  <p class="start-time"><strong>Start time</strong> <br>{{ formatDateTime(prices[i].json_start_at) }}</p>
-                  <a href="/admin/item/{{item.id}}/price/{{prices[i].id}}/edit" data-navigate>Edit price</a>
-                </div>
-                <div class="col-md-6 col-xs-5 text-center">
-                  <p class="price-digits">{{ formatToIndianRupee(prices[i].amount) }}</p>
-                </div>
-              </div>
-            </div>
-          {{/prices}}
-        </div>
-      </div>
     </div>
     <div class="col-md-5 col-xs-12">
       {{#discount_policies: i}}

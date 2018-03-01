@@ -23,7 +23,7 @@ export const TableTemplate = `
                   <td class="active" rowspan="{{category.items.length}}">{{ category.title }}</td>
                 {{/if}}
                 <td>{{ index + 1 }}</td>
-                <td><a class="" href="/admin/item/{{id}}" data-navigate>{{ title }}</a></td>
+                <td><a class="" href="/admin/item/{{id}}" data-navigate>{{ title }} <i class="fa fa-eye"></i></a></td>
                 <td>{{ available }}</td>
                 <td>{{ sold }} <input type="checkbox" name="sold" on-click="onItemsSelected(event, 'sold')" /></td>
                 <td>{{ free }} <input type="checkbox" name="free" on-click="onItemsSelected(event, 'free')" /></td>
