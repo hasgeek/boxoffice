@@ -15,13 +15,14 @@ class ItemForm(forms.Form):
     description_html = forms.TinyMce4Field(__("Description"),
         validators=[forms.validators.DataRequired(__("Please specify a description"))])
     seq = forms.IntegerField(__("Sequence"),
+        description=__("The sequence of the ticket on the listing"),
         validators=[forms.validators.DataRequired(__("Please specify the sequence order"))])
     category = QuerySelectField(__("Category"), get_label='title',
         validators=[forms.validators.DataRequired(__("Please select a category"))])
-    quantity_total = forms.IntegerField(__("Quantity"),
+    quantity_total = forms.IntegerField(__("Quantity available"),
         validators=[forms.validators.DataRequired(__("Please specify the quantity available for sale"))])
     assignee_details_html = forms.TextAreaField(__("Assignee details"))
-    cancellable_until = forms.DateTimeField(__("Cancellable until"))
+    cancellable_until = forms.DateTimeField(__("Cancellable until"), validators=[forms.validators.Optional()])
 
     def set_queries(self):
         self.category.query = Category.query.join(ItemCollection).filter(
