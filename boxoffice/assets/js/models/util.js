@@ -103,42 +103,14 @@ export const getCsrfToken = function () {
   return document.head.querySelector("[name=csrf-token]").content;
 };
 
-var showValidationErrors = function(formId, errors) {
-  var form = document.getElementById(formId);
-  Object.keys(errors).forEach(function(fieldName) {
-    if (Array.isArray(errors[fieldName])) {
-      var fieldWrapper = form.querySelector("#field-" + fieldName);
-      if (fieldWrapper) {
-        var errorElem = fieldWrapper.querySelector('.help-error');
-        // If error P tag doesn't exist, create it
-        if (!errorElem) {
-          errorElem = document.createElement('p');
-          errorElem.classList.add('help-error');
-        }
-        errorElem.innerText = errors[fieldName][0];
-        var field = form.querySelector("#field-" + fieldName)
-        console.log(fieldName);
-        // Insert the p tag below the field
-        console.log('field is');
-        console.log(field);
-        field.parentNode.insertBefore(errorElem, field.nextSibling);
-        // Add error class to field wrapper
-        fieldWrapper.classList.add('has-error');
-      }
-    }
-  });
-}
-
 export const formErrorHandler = function(formId, errorResponse) {
   let errorMsg = "";
-  console.log(errorResponse);
-  console.log(errorResponse.responseJSON.errors);
   // xhr readyState '4' indicates server has received the request & response is ready
   if (errorResponse.readyState === 4) {
     if (errorResponse.status === 500) {
       errorMsg = "Internal Server Error";
     } else {
-      showValidationErrors(formId, errorResponse.responseJSON.errors);
+      Baseframe.Forms.showValidationErrors(formId, errorResponse.responseJSON.errors);
       errorMsg = "Error";
     }
   } else {

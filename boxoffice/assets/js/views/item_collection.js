@@ -260,7 +260,6 @@ export const ItemCollectionView = {
         },
         components: {TableComponent: TableComponent, AggChartComponent: AggChartComponent}
       });
-      console.log(icComponent.get('date_item_counts'));
       SideBarView.render('dashboard', {org_name, org_title, ic_id, ic_title});
       setPageTitle(ic_title);
       NProgress.done();
