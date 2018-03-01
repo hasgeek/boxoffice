@@ -6,6 +6,7 @@ from datetime import datetime
 from werkzeug import cached_property
 from itsdangerous import Signer, BadSignature
 from sqlalchemy import event, DDL
+from sqlalchemy.sql import select, func
 from baseframe import __
 from coaster.utils import LabeledEnum, uuid1mc, buid
 from boxoffice.models import db, IdMixin, BaseScopedNameMixin
@@ -116,6 +117,50 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
         }
     }
 
+    @classmethod
+    def get_from_item(cls, item, qty, coupon_codes=[]):
+        """
+        Returns a list of (discount_policy, discount_coupon) tuples
+        applicable for an item, given the quantity of line items and coupons if any.
+        """
+        automatic_discounts = item.discount_policies.filter(cls.discount_type == DISCOUNT_TYPE.AUTOMATIC,
+            cls.item_quantity_min <= qty).all()
+        policies = [(discount, None) for discount in automatic_discounts]
+        if not coupon_codes:
+            return policies
+        else:
+            coupon_policies = item.discount_policies.filter(cls.discount_type == DISCOUNT_TYPE.COUPON).all()
+            coupon_policy_ids = [cp.id for cp in coupon_policies]
+            for coupon_code in coupon_codes:
+                coupons = []
+                if cls.is_signed_code_format(coupon_code):
+                    policy = cls.get_from_signed_code(coupon_code)
+                    if policy and policy.id in coupon_policy_ids:
+                        coupon = DiscountCoupon.query.filter_by(discount_policy=policy, code=coupon_code).one_or_none()
+                        if not coupon:
+                            coupon = DiscountCoupon(
+                                discount_policy=policy,
+                                code=coupon_code,
+                                usage_limit=policy.bulk_coupon_usage_limit,
+                                used_count=0)
+                            db.session.add(coupon)
+                        coupons.append(coupon)
+                else:
+                    coupons = DiscountCoupon.query.filter(
+                        DiscountCoupon.discount_policy_id.in_(coupon_policy_ids),
+                        DiscountCoupon.code == coupon_code).all()
+
+                for coupon in coupons:
+                    if coupon.usage_limit > coupon.used_count:
+                        policies.append((coupon.discount_policy, coupon))
+        return policies
+
+    @property
+    def line_items_count(self):
+        from ..models import LineItem, LINE_ITEM_STATUS
+
+        return LineItem.query.filter(LineItem.discount_policy == self, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).count()
+
     def roles_for(self, actor=None, anchors=()):
         roles = super(DiscountPolicy, self).roles_for(actor, anchors)
         if self.organization.userid in actor.organizations_owned_ids():
@@ -149,6 +194,11 @@ class DiscountCoupon(IdMixin, db.Model):
 
     discount_policy_id = db.Column(None, db.ForeignKey('discount_policy.id'), nullable=False)
     discount_policy = db.relationship(DiscountPolicy, backref=db.backref('discount_coupons', cascade='all, delete-orphan'))
+
+    def update_used_count(self):
+        from ..models import LineItem, LINE_ITEM_STATUS
+
+        self.used_count = select([func.count()]).where(LineItem.discount_coupon == self).where(LineItem.status == LINE_ITEM_STATUS.CONFIRMED).as_scalar()
 
 
 create_title_trgm_trigger = DDL(

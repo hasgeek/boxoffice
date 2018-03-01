@@ -23,7 +23,7 @@ export const TableTemplate = `
                   <td class="active" rowspan="{{category.items.length}}">{{ category.title }}</td>
                 {{/if}}
                 <td>{{ index + 1 }}</td>
-                <td><a class="" href="/admin/item/{{id}}" data-navigate>{{ title }} <i class="fa fa-eye"></i></a></td>
+                <td><a class="" href="/admin/item/{{id}}" data-navigate>{{ title }}</a></td>
                 <td>{{ available }}</td>
                 <td>{{ sold }} <input type="checkbox" name="sold" on-click="onItemsSelected(event, 'sold')" /></td>
                 <td>{{ free }} <input type="checkbox" name="free" on-click="onItemsSelected(event, 'free')" /></td>
@@ -57,14 +57,20 @@ export const AggChartTemplate = `
 `
 
 export const ItemCollectionTemplate = `
-  <div class="content-wrapper">
+  <div class="content-wrapper clearfix">
     <h1 class="header col-xs-12">{{ icTitle }}</h1>
     <div class="title-wrapper col-xs-12">
       <a class="boxoffice-button boxoffice-button-action btn-right" href="/admin/ic/{{ic_id}}/item/new" data-navigate>
         New item
       </a>
+      <a class="boxoffice-button boxoffice-button-action btn-right btn-margin-right" href="/admin/ic/{{ic_id}}/category/new" data-navigate>
+        New category
+      </a>
       <a class="boxoffice-button boxoffice-button-action btn-right btn-margin-right" href="/admin/ic/{{ic_id}}/edit" data-navigate>
         Edit item collection
+      </a>
+      <a class="boxoffice-button boxoffice-button-action btn-right btn-margin-right" href="/{{ org_name }}/{{ ic_name }}">
+        View listing
       </a>
     </div>
     <div class="stats clearfix">

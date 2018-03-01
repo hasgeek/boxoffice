@@ -64,7 +64,7 @@ const ItemTemplate = `
     </div>
     <div class="col-md-5 col-md-offset-1">
       <div class="col-md-6 col-xs-12">
-        <h4>Ticket prices</h4>
+        <h2 class='col-header'>Ticket prices</h2>
       </div>
       <div class="col-md-6 col-xs-12">
         <a href="/admin/item/{{item.id}}/price/new" data-navigate class="boxoffice-button boxoffice-button-action align-right-btn">New price</a>
@@ -99,23 +99,27 @@ const ItemTemplate = `
       </div>
     </div>
     <div class="col-md-5 col-xs-12">
-      <h2 class='dp-header'>Associated discount policies</h2>
+      <h2 class='col-header'>Associated discount policies</h2>
     </div>
     <div class="col-md-5 col-xs-12">
-      {{#discount_policies: i}}
-        <div class="col-xs-12">
-          <div class="has-box no-padding">
-            <p class="discount-title">{{ discount_policies[i].title }}</p>
-            <p class="discount-ticket-amount">Tickets bought: <span class="pull-right">{{discount_policies[i].line_items_count}}</span></p>
-            {{#if is_automatic}}
-              <p class="discount-type hg-bb">Discount type: <span class="pull-right">Automatic</span></p>
-            {{else}}
-              <p class="discount-type hg-bb">Discount type: <span class="pull-right">Coupon based</span></p>
-            {{/if}}
-            <p class="discount-type">Discount rate: <span class="pull-right">{{ discount_policies[i].percentage }}%</span></p>
+      {{#if discount_policies}}
+        {{#discount_policies: i}}
+          <div class="col-xs-12">
+            <div class="has-box no-padding">
+              <p class="discount-title">{{ discount_policies[i].title }}</p>
+              <p class="discount-ticket-amount">Tickets bought: <span class="pull-right">{{discount_policies[i].line_items_count}}</span></p>
+              {{#if is_automatic}}
+                <p class="discount-type hg-bb">Discount type: <span class="pull-right">Automatic</span></p>
+              {{else}}
+                <p class="discount-type hg-bb">Discount type: <span class="pull-right">Coupon based</span></p>
+              {{/if}}
+              <p class="discount-type">Discount rate: <span class="pull-right">{{ discount_policies[i].percentage }}%</span></p>
+            </div>
           </div>
-        </div>
-      {{/}}
+        {{/}}
+      {{else}}
+        <p class='margin-left'>No associated discounts yet. <a href="/admin/o/{{org_name}}/discount_policy" data-navigate>Add</a></p>
+      {{/if}}
     </div>
     <div class="col-md-10 col-md-offset-1">
     </div>
@@ -164,13 +168,14 @@ export const ItemView = {
   render: function({item_id}={}) {
     fetch({
       url: urlFor('view', {resource: 'item', id: item_id, root: true})
-    }).then(function({org_name, demand_curve, org_title, ic_id, ic_title, item, prices, item_form, discount_policies}) {
+    }).then(function({org_name, demand_curve, org_title, ic_id, ic_title, item, prices, discount_policies}) {
       let itemComponent = new Ractive({
         el: '#main-content-area',
         template: ItemTemplate,
         components: {DemandGraph: DemandGraph},
         data: {
           item: item,
+          org_name: org_name,
           prices: prices,
           discount_policies: discount_policies,
           demand_curve: demand_curve,

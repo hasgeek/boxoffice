@@ -114,6 +114,18 @@ class Order(BaseMixin, db.Model):
                 return False
         return True
 
+    @property
+    def get_confirmed_line_items(self):
+        from ..models import LineItem, LINE_ITEM_STATUS
+
+        return LineItem.query.filter(LineItem.order == self, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).all()
+
+    @property
+    def initial_line_items(self):
+        from ..models import LineItem, LINE_ITEM_STATUS
+
+        return LineItem.query.filter(LineItem.order == self, LineItem.previous == None, LineItem.status.in_(LINE_ITEM_STATUS.TRANSACTION))
+
 
 class OrderSession(BaseMixin, db.Model):
     """

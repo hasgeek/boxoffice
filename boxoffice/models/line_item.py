@@ -1,18 +1,17 @@
 # -*- coding: utf-8 -*-
 
-import itertools
 from decimal import Decimal
 import datetime
 from collections import namedtuple, OrderedDict
-from sqlalchemy.sql import select, func
+from sqlalchemy.sql import func
 from sqlalchemy.ext.orderinglist import ordering_list
 from isoweek import Week
-from boxoffice.models import db, JsonDict, BaseMixin, HeadersAndDataTuple, ItemCollection, Order, Item, DiscountPolicy, DISCOUNT_TYPE, DiscountCoupon, OrderSession
+from boxoffice.models import db, JsonDict, BaseMixin, Order, Item, LineItemDiscounter
 from coaster.utils import LabeledEnum, isoweek_datetime, midnight_to_utc
 from baseframe import __
-import time
 
-__all__ = ['LineItem', 'LINE_ITEM_STATUS', 'Assignee', 'LineItemDiscounter']
+
+__all__ = ['LineItem', 'LINE_ITEM_STATUS', 'Assignee']
 
 
 class LINE_ITEM_STATUS(LabeledEnum):
@@ -25,6 +24,7 @@ class LINE_ITEM_STATUS(LabeledEnum):
     TRANSACTION = {CONFIRMED, VOID, CANCELLED}
 
 LineItemTuple = namedtuple('LineItemTuple', ['item_id', 'id', 'base_amount', 'discount_policy_id', 'discount_coupon_id', 'discounted_amount', 'final_amount'])
+
 
 def make_ntuple(item_id, base_amount, **kwargs):
     return LineItemTuple(item_id,
@@ -181,114 +181,6 @@ class LineItem(BaseMixin, db.Model):
         return db.session.query(func.max(LineItem.line_item_seq)).filter(LineItem.order == order).scalar()
 
 
-def fetch_all_details(self):
-    """
-    Returns details for all the line items in a given item collection, along with the associated
-    assignee (if any), discount policy (if any), discount coupon (if any), item, order and order session (if any)
-    as a tuple of (keys, rows)
-    """
-    start = time.time()
-    line_item_join = db.outerjoin(LineItem, Assignee, db.and_(LineItem.id == Assignee.line_item_id,
-        Assignee.current == True)).outerjoin(DiscountCoupon,
-        LineItem.discount_coupon_id == DiscountCoupon.id).outerjoin(DiscountPolicy,
-        LineItem.discount_policy_id == DiscountPolicy.id).join(Item).join(Order).outerjoin(OrderSession)
-    line_item_query = db.select([LineItem.id, LineItem.customer_order_id, Order.invoice_no, Item.title, LineItem.base_amount,
-        LineItem.discounted_amount, LineItem.final_amount, DiscountPolicy.title, DiscountCoupon.code,
-        Order.buyer_fullname, Order.buyer_email, Order.buyer_phone, Assignee.fullname,
-        Assignee.email, Assignee.phone, Assignee.details, OrderSession.utm_campaign,
-        OrderSession.utm_source, OrderSession.utm_medium, OrderSession.utm_term,
-        OrderSession.utm_content, OrderSession.utm_id, OrderSession.gclid, OrderSession.referrer,
-        Order.paid_at]).select_from(line_item_join).where(LineItem.status ==
-        LINE_ITEM_STATUS.CONFIRMED).where(Order.item_collection ==
-        self).order_by(LineItem.ordered_at)
-
-    result = HeadersAndDataTuple(
-        ['ticket_id', 'order_id', 'receipt_no', 'ticket_type', 'base_amount', 'discounted_amount', 'final_amount', 'discount_policy', 'discount_code', 'buyer_fullname', 'buyer_email', 'buyer_phone', 'attendee_fullname', 'attendee_email', 'attendee_phone', 'attendee_details', 'utm_campaign', 'utm_source', 'utm_medium', 'utm_term', 'utm_content', 'utm_id', 'gclid', 'referrer', 'date'],
-        db.session.execute(line_item_query).fetchall()
-        )
-    end = time.time()
-    print 'That took', end - start, 'time'
-    return True
-
-
-ItemCollection.fetch_all_details = fetch_all_details
-
-
-def demand_curve(self):
-    query = db.session.query('final_amount', 'count').from_statement(db.text('''
-        SELECT final_amount, count(*)
-        FROM line_item
-        WHERE item_id = :item_id
-        AND final_amount > 0
-        GROUP BY final_amount
-        ORDER BY final_amount;
-    ''')).params(item_id=self.id)
-    return db.session.execute(query).fetchall()
-
-Item.demand_curve = demand_curve
-
-
-def fetch_assignee_details(self):
-    """
-    Returns invoice_no, ticket title, assignee fullname, assignee email, assignee phone and assignee details
-    for all the line items in a given item collection as a tuple of (keys, rows)
-    """
-    line_item_join = db.join(LineItem, Assignee, db.and_(LineItem.id == Assignee.line_item_id,
-        Assignee.current == True)).join(Item).join(Order)
-    line_item_query = db.select([Order.invoice_no, LineItem.line_item_seq, LineItem.id, Item.title, Assignee.fullname,
-        Assignee.email, Assignee.phone, Assignee.details]).select_from(line_item_join).where(LineItem.status ==
-        LINE_ITEM_STATUS.CONFIRMED).where(Order.item_collection ==
-        self).order_by(LineItem.ordered_at)
-    return HeadersAndDataTuple(
-        ['receipt_no', 'ticket_no', 'ticket_id', 'ticket_type', 'attendee_fullname', 'attendee_email', 'attendee_phone', 'attendee_details'],
-        db.session.execute(line_item_query).fetchall()
-        )
-
-
-ItemCollection.fetch_assignee_details = fetch_assignee_details
-
-
-def get_availability(cls, item_ids):
-    """Returns a dict -> {'item_id': ('item title', 'quantity_total', 'line_item_count')}"""
-    items_dict = {}
-    item_tups = db.session.query(cls.id, cls.title, cls.quantity_total, func.count(cls.id)).join(LineItem).filter(
-        LineItem.item_id.in_(item_ids), LineItem.status == LINE_ITEM_STATUS.CONFIRMED).group_by(cls.id).all()
-    for item_tup in item_tups:
-        items_dict[unicode(item_tup[0])] = item_tup[1:]
-    return items_dict
-
-
-Item.get_availability = classmethod(get_availability)
-
-
-def get_confirmed_line_items(self):
-    """Returns a SQLAlchemy query object preset with an item's confirmed line items"""
-    return LineItem.query.filter(LineItem.item == self, LineItem.status == LINE_ITEM_STATUS.CONFIRMED)
-
-
-def sold(self):
-    return LineItem.query.filter(LineItem.item == self, LineItem.final_amount > 0, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).count()
-
-
-def free(self):
-    return LineItem.query.filter(LineItem.item == self, LineItem.final_amount == 0, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).count()
-
-
-def cancelled(self):
-    return LineItem.query.filter(LineItem.item == self, LineItem.status == LINE_ITEM_STATUS.CANCELLED).count()
-
-
-def net_sales(self):
-    return db.session.query(func.sum(LineItem.final_amount)).filter(LineItem.item == self, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).first()[0]
-
-
-Item.get_confirmed_line_items = property(get_confirmed_line_items)
-Item.sold = property(sold)
-Item.free = property(free)
-Item.cancelled = property(cancelled)
-Item.net_sales = property(net_sales)
-
-
 def counts_per_date_per_item(item_collection, user_tz):
     """
     Returns number of line items sold per date per item.
@@ -365,197 +257,3 @@ def sales_delta(user_tz, item_ids):
     if not today_sales or not yesterday_sales:
         return 0
     return round(Decimal('100') * (today_sales - yesterday_sales)/yesterday_sales, 2)
-
-
-def get_confirmed_line_items(self):
-    return LineItem.query.filter(LineItem.order == self, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).all()
-Order.get_confirmed_line_items = property(get_confirmed_line_items)
-
-
-def initial_line_items(self):
-    return LineItem.query.filter(LineItem.order == self, LineItem.previous == None, LineItem.status.in_(LINE_ITEM_STATUS.TRANSACTION))
-Order.initial_line_items = property(initial_line_items)
-
-
-def get_from_item(cls, item, qty, coupon_codes=[]):
-    """
-    Returns a list of (discount_policy, discount_coupon) tuples
-    applicable for an item, given the quantity of line items and coupons if any.
-    """
-    automatic_discounts = item.discount_policies.filter(DiscountPolicy.discount_type == DISCOUNT_TYPE.AUTOMATIC,
-        DiscountPolicy.item_quantity_min <= qty).all()
-    policies = [(discount, None) for discount in automatic_discounts]
-    if not coupon_codes:
-        return policies
-    else:
-        coupon_policies = item.discount_policies.filter(DiscountPolicy.discount_type == DISCOUNT_TYPE.COUPON).all()
-        coupon_policy_ids = [cp.id for cp in coupon_policies]
-        for coupon_code in coupon_codes:
-            coupons = []
-            if DiscountPolicy.is_signed_code_format(coupon_code):
-                policy = DiscountPolicy.get_from_signed_code(coupon_code)
-                if policy and policy.id in coupon_policy_ids:
-                    coupon = DiscountCoupon.query.filter_by(discount_policy=policy, code=coupon_code).one_or_none()
-                    if not coupon:
-                        coupon = DiscountCoupon(
-                            discount_policy=policy,
-                            code=coupon_code,
-                            usage_limit=policy.bulk_coupon_usage_limit,
-                            used_count=0)
-                        db.session.add(coupon)
-                    coupons.append(coupon)
-            else:
-                coupons = DiscountCoupon.query.filter(
-                    DiscountCoupon.discount_policy_id.in_(coupon_policy_ids),
-                    DiscountCoupon.code == coupon_code).all()
-
-            for coupon in coupons:
-                if coupon.usage_limit > coupon.used_count:
-                    policies.append((coupon.discount_policy, coupon))
-    return policies
-
-DiscountPolicy.get_from_item = classmethod(get_from_item)
-
-
-def line_items_count(self):
-    return LineItem.query.filter(LineItem.discount_policy == self, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).count()
-
-DiscountPolicy.line_items_count = property(line_items_count)
-
-
-def update_used_count(self):
-    self.used_count = select([func.count()]).where(LineItem.discount_coupon == self).where(LineItem.status == LINE_ITEM_STATUS.CONFIRMED).as_scalar()
-
-DiscountCoupon.update_used_count = update_used_count
-
-
-class LineItemDiscounter():
-    def get_discounted_line_items(self, line_items, coupons=[]):
-        """
-        Returns line items with the maximum possible discount applied.
-        """
-        if not line_items:
-            return None
-        if len(set(line_item.item_id for line_item in line_items)) > 1:
-            raise ValueError("line_items must be of the same item_id")
-
-        valid_discounts = self.get_valid_discounts(line_items, coupons)
-        if len(valid_discounts) > 1:
-            # Multiple discounts found, find the combination of discounts that results
-            # in the maximum discount and apply those discounts to the line items.
-            return self.apply_max_discount(valid_discounts, line_items)
-        elif len(valid_discounts) == 1:
-            return self.apply_discount(valid_discounts[0], line_items)
-        return line_items
-
-    def get_valid_discounts(self, line_items, coupons):
-        """
-        Returns all the applicable discounts given the quantity of items
-        selected and any coupons.
-        """
-        if not line_items:
-            return []
-
-        item = Item.query.get(line_items[0].item_id)
-        if not item.is_available and not item.is_cancellable():
-            # item unavailable, no discounts
-            return []
-
-        return DiscountPolicy.get_from_item(item, len(line_items), coupons)
-
-    def calculate_discounted_amount(self, discount_policy, line_item):
-        if line_item.base_amount is None:
-            # item has expired, no discount
-            return Decimal(0)
-
-        if discount_policy.is_price_based:
-            item = Item.query.get(line_item.item_id)
-            discounted_price = item.discounted_price(discount_policy)
-            if discounted_price is None:
-                # no discounted price
-                return Decimal(0)
-            if discounted_price.amount >= line_item.base_amount:
-                # No discount, base_amount is cheaper
-                return Decimal(0)
-            return line_item.base_amount - discounted_price.amount
-        return (discount_policy.percentage * line_item.base_amount/Decimal(100))
-
-    def is_coupon_usable(self, coupon, applied_to_count):
-        return (coupon.usage_limit - coupon.used_count) > applied_to_count
-
-    def apply_discount(self, policy_coupon, line_items, combo=False):
-        """
-        Returns the line_items with the given discount_policy and
-        the discounted amount assigned to each line item.
-
-        Assumes that the discount policies and discount coupons passed as arguments are valid and usable.
-        """
-        discounted_line_items = []
-        # unpack (discount_policy, dicount_coupon)
-        discount_policy, coupon = policy_coupon
-        applied_to_count = 0
-        for line_item in line_items:
-            discounted_amount = self.calculate_discounted_amount(discount_policy, line_item)
-            if (coupon and self.is_coupon_usable(coupon, applied_to_count) or discount_policy.is_automatic) and discounted_amount > 0 and (
-                    not line_item.discount_policy_id or (combo and line_item.discounted_amount < discounted_amount)):
-                # if the line item's assigned discount is lesser
-                # than the current discount, assign the current discount to the line item
-                discounted_line_items.append(make_ntuple(item_id=line_item.item_id,
-                    base_amount=line_item.base_amount,
-                    line_item_id=line_item.id if line_item.id else None,
-                    discount_policy_id=discount_policy.id,
-                    discount_coupon_id=coupon.id if coupon else None,
-                    discounted_amount=discounted_amount,
-                    final_amount=line_item.base_amount - discounted_amount))
-                applied_to_count += 1
-            else:
-                # Current discount is not applicable, copy over the line item as it is.
-                discounted_line_items.append(line_item)
-        return discounted_line_items
-
-    def apply_combo_discount(self, discounts, line_items):
-        """
-        Applies multiple discounts to a list of line items recursively.
-        """
-        if len(discounts) == 0:
-            return line_items
-        if len(discounts) == 1:
-            return self.apply_discount(discounts[0], line_items, combo=True)
-        return self.apply_combo_discount([discounts[0]], self.apply_combo_discount(discounts[1:], line_items))
-
-    def apply_max_discount(self, discounts, line_items):
-        """
-        Fetches the various discount combinations and applies the discount policy
-        combination that results in the maximum discount for the given list of
-        line items.
-        """
-        discounts.extend(self.get_combos(discounts, len(line_items)))
-        discounted_line_items_list = []
-
-        for discount in discounts:
-            if isinstance(discount[0], tuple):
-                # Combo discount
-                discounted_line_items_list.append(self.apply_combo_discount(discount, line_items))
-            else:
-                discounted_line_items_list.append(self.apply_discount(discount, line_items))
-        return max(discounted_line_items_list,
-            key=lambda line_item_list: sum([line_item.discounted_amount for line_item in line_item_list]))
-
-    def get_combos(self, discounts, qty):
-        """
-        Returns the various valid discount combinations given a list of discount policies
-        """
-        valid_combos = []
-        if len(discounts) < 2:
-            return valid_combos
-
-        # Get all possible valid combinations of discounts in groups of 2..n,
-        # where n is the number of discounts
-        for n in range(2, len(discounts) + 1):
-            combos = list(itertools.combinations(discounts, n))
-            for combo in combos:
-                if sum([discount.item_quantity_min for discount, coupon in combo]) <= qty:
-                    # if number of line items is gte to number of items the discount policies
-                    # as a combo supports, count it as a valid combo
-                    valid_combos.append(combo)
-        return valid_combos

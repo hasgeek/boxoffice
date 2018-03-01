@@ -743,7 +743,7 @@ p.settlements-month-widget {
   padding-top: 2em 0 0 0;
 }
 
-h2.dp-header {
+h2.col-header, p.margin-left {
   margin-left: 15px;
 }
 

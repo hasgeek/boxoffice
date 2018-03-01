@@ -5,3 +5,4 @@ from .item import *
 from .price import *
 from .order import *
 from .discount import *
+from .category import *

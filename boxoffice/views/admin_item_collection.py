@@ -16,6 +16,7 @@ from boxoffice.views.utils import api_error, api_success
 def jsonify_item_collection(item_collection_dict):
     return jsonify(org_name=item_collection_dict['item_collection'].organization.name,
         org_title=item_collection_dict['item_collection'].organization.title,
+        ic_name=item_collection_dict['item_collection'].name,
         ic_title=item_collection_dict['item_collection'].title,
         categories=[{'title': category.title, 'items': [dict(item.current_access()) for item in category.items]}
             for category in item_collection_dict['item_collection'].categories],
