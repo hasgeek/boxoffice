@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from flask import url_for
 from datetime import datetime
 from decimal import Decimal
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -48,8 +47,7 @@ class Item(BaseScopedNameMixin, db.Model):
 
     __roles__ = {
         'item_owner': {
-            'write': {},
-            'read': {'id', 'title', 'url_for_view', 'description_html', 'quantity_total', 'quantity_available', 'active_price'}
+            'read': {'id', 'title', 'description_html', 'quantity_total', 'quantity_available', 'active_price'}
         }
     }
 
@@ -96,14 +94,6 @@ class Item(BaseScopedNameMixin, db.Model):
 
     def is_cancellable(self):
         return datetime.utcnow() < self.cancellable_until if self.cancellable_until else True
-
-    def url_for(self, action='view', _external=False, **kwargs):
-        if action == 'view':
-            return url_for('admin_item', item_id=self.id, _external=_external, **kwargs)
-
-    @property
-    def url_for_view(self):
-        return self.url_for('view')
 
     @property
     def active_price(self):
@@ -188,7 +178,6 @@ class Price(BaseScopedNameMixin, db.Model):
 
     __roles__ = {
         'price_owner': {
-            'write': {},
             'read': {'id', 'item_id', 'json_start_at', 'json_end_at', 'amount', 'currency', 'discount_policy_title'}
         }
     }

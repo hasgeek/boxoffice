@@ -62,6 +62,18 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     # `n` here is essentially bulk_coupon_usage_limit.
     bulk_coupon_usage_limit = db.Column(db.Integer, nullable=True, default=1)
 
+    __roles__ = {
+        'dp_owner': {
+            'read': {'id', 'name', 'title', 'is_automatic', 'item_quantity_min', 'percentage', 'is_price_based', 'discount_code_base', 'line_items_count'}
+        }
+    }
+
+    def roles_for(self, actor=None, anchors=()):
+        roles = super(DiscountPolicy, self).roles_for(actor, anchors)
+        if self.organization.userid in actor.organizations_owned_ids():
+            roles.add('dp_owner')
+        return roles
+
     def __init__(self, *args, **kwargs):
         self.secret = kwargs.get('secret') if kwargs.get('secret') else buid()
         super(DiscountPolicy, self).__init__(*args, **kwargs)
@@ -110,13 +122,6 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
         """
         return cls(discount_type=DISCOUNT_TYPE.COUPON, discount_code_base=discount_code_base, secret=buid(), **kwargs)
 
-    __roles__ = {
-        'dp_owner': {
-            'write': {},
-            'read': {'id', 'name', 'title', 'is_automatic', 'item_quantity_min', 'percentage', 'is_price_based', 'discount_code_base', 'line_items_count'}
-        }
-    }
-
     @classmethod
     def get_from_item(cls, item, qty, coupon_codes=[]):
         """
@@ -159,12 +164,6 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     def line_items_count(self):
         from ..models import LineItem, LINE_ITEM_STATUS
         return self.line_items.filter(LineItem.status == LINE_ITEM_STATUS.CONFIRMED).count()
-
-    def roles_for(self, actor=None, anchors=()):
-        roles = super(DiscountPolicy, self).roles_for(actor, anchors)
-        if self.organization.userid in actor.organizations_owned_ids():
-            roles.add('dp_owner')
-        return roles
 
 
 @event.listens_for(DiscountPolicy, 'before_update')

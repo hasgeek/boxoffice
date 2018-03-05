@@ -20,7 +20,6 @@ class Category(BaseScopedNameMixin, db.Model):
 
     __roles__ = {
         'category_owner': {
-            'write': {},
             'read': {'id', 'name', 'title', 'item_collection_id'}
         }
     }
