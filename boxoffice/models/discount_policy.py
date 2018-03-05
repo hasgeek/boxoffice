@@ -6,7 +6,6 @@ from datetime import datetime
 from werkzeug import cached_property
 from itsdangerous import Signer, BadSignature
 from sqlalchemy import event, DDL
-from sqlalchemy.sql import select, func
 from baseframe import __
 from coaster.utils import LabeledEnum, uuid1mc, buid
 from boxoffice.models import db, IdMixin, BaseScopedNameMixin
@@ -158,8 +157,7 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     @property
     def line_items_count(self):
         from ..models import LineItem, LINE_ITEM_STATUS
-
-        return LineItem.query.filter(LineItem.discount_policy == self, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).count()
+        return self.line_items.filter(LineItem.status == LINE_ITEM_STATUS.CONFIRMED).count()
 
     def roles_for(self, actor=None, anchors=()):
         roles = super(DiscountPolicy, self).roles_for(actor, anchors)
@@ -198,7 +196,7 @@ class DiscountCoupon(IdMixin, db.Model):
     def update_used_count(self):
         from ..models import LineItem, LINE_ITEM_STATUS
 
-        self.used_count = select([func.count()]).where(LineItem.discount_coupon == self).where(LineItem.status == LINE_ITEM_STATUS.CONFIRMED).as_scalar()
+        self.used_count = db.select([db.func.count()]).where(LineItem.discount_coupon == self).where(LineItem.status == LINE_ITEM_STATUS.CONFIRMED).as_scalar()
 
 
 create_title_trgm_trigger = DDL(

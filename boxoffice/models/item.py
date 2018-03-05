@@ -5,7 +5,6 @@ from datetime import datetime
 from decimal import Decimal
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.orderinglist import ordering_list
-from sqlalchemy.sql import func
 from baseframe import __, localize_timezone
 from coaster.utils import LabeledEnum
 from . import db, JsonDict, BaseScopedNameMixin, MarkdownColumn
@@ -115,31 +114,31 @@ class Item(BaseScopedNameMixin, db.Model):
         """Returns a SQLAlchemy query object preset with an item's confirmed line items"""
         from ..models import LineItem, LINE_ITEM_STATUS
 
-        return LineItem.query.filter(LineItem.item == self, LineItem.status == LINE_ITEM_STATUS.CONFIRMED)
+        return self.line_items.filter(LineItem.status == LINE_ITEM_STATUS.CONFIRMED)
 
     @property
     def sold(self):
-        from ..models import LineItem, LINE_ITEM_STATUS
+        from ..models import LineItem
 
-        return LineItem.query.filter(LineItem.item == self, LineItem.final_amount > 0, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).count()
+        return self.get_confirmed_line_items.filter(LineItem.final_amount > 0).count()
 
     @property
     def free(self):
-        from ..models import LineItem, LINE_ITEM_STATUS
+        from ..models import LineItem
 
-        return LineItem.query.filter(LineItem.item == self, LineItem.final_amount == 0, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).count()
+        return self.get_confirmed_line_items.filter(LineItem.final_amount == 0).count()
 
     @property
     def cancelled(self):
         from ..models import LineItem, LINE_ITEM_STATUS
 
-        return LineItem.query.filter(LineItem.item == self, LineItem.status == LINE_ITEM_STATUS.CANCELLED).count()
+        return self.line_items.filter(LineItem.status == LINE_ITEM_STATUS.CANCELLED).count()
 
     @property
     def net_sales(self):
         from ..models import LineItem, LINE_ITEM_STATUS
 
-        return db.session.query(func.sum(LineItem.final_amount)).filter(LineItem.item == self,
+        return db.session.query(db.func.sum(LineItem.final_amount)).filter(LineItem.item == self,
             LineItem.status == LINE_ITEM_STATUS.CONFIRMED).first()[0]
 
     @classmethod
@@ -148,7 +147,7 @@ class Item(BaseScopedNameMixin, db.Model):
         from ..models import LineItem, LINE_ITEM_STATUS
 
         items_dict = {}
-        item_tups = db.session.query(cls.id, cls.title, cls.quantity_total, func.count(cls.id)).join(LineItem).filter(
+        item_tups = db.session.query(cls.id, cls.title, cls.quantity_total, db.func.count(cls.id)).join(LineItem).filter(
             LineItem.item_id.in_(item_ids), LineItem.status == LINE_ITEM_STATUS.CONFIRMED).group_by(cls.id).all()
         for item_tup in item_tups:
             items_dict[unicode(item_tup[0])] = item_tup[1:]

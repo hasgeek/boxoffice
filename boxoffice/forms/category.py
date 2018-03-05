@@ -2,8 +2,6 @@
 
 from baseframe import __
 import baseframe.forms as forms
-from baseframe.forms.sqlalchemy import QuerySelectField
-from ..models import db, ItemCollection
 
 __all__ = ['CategoryForm']
 

@@ -78,7 +78,7 @@ class LineItem(BaseMixin, db.Model):
         collection_class=ordering_list('line_item_seq', count_from=1)))
 
     item_id = db.Column(None, db.ForeignKey('item.id'), nullable=False, index=True, unique=False)
-    item = db.relationship(Item, backref=db.backref('line_items', cascade='all, delete-orphan'))
+    item = db.relationship(Item, backref=db.backref('line_items', cascade='all, delete-orphan', lazy='dynamic'))
 
     previous_id = db.Column(None, db.ForeignKey('line_item.id'), nullable=True, index=True, unique=True)
     previous = db.relationship('LineItem',
@@ -87,7 +87,7 @@ class LineItem(BaseMixin, db.Model):
         remote_side='LineItem.id')
 
     discount_policy_id = db.Column(None, db.ForeignKey('discount_policy.id'), nullable=True, index=True, unique=False)
-    discount_policy = db.relationship('DiscountPolicy', backref=db.backref('line_items'))
+    discount_policy = db.relationship('DiscountPolicy', backref=db.backref('line_items', lazy='dynamic'))
 
     discount_coupon_id = db.Column(None, db.ForeignKey('discount_coupon.id'), nullable=True, index=True, unique=False)
     discount_coupon = db.relationship('DiscountCoupon', backref=db.backref('line_items'))

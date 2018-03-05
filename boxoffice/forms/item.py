@@ -3,8 +3,7 @@
 from baseframe import __
 import baseframe.forms as forms
 from baseframe.forms.sqlalchemy import QuerySelectField
-from ..models import db, Item, Category, ItemCollection
-from sqlalchemy.sql import select, func
+from ..models import db, Category, ItemCollection
 
 __all__ = ['ItemForm']
 

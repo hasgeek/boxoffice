@@ -3,7 +3,7 @@ var Ractive = require('ractive');
 var c3 = require("c3");
 import {eventBus} from './main_admin.js'
 var NProgress = require('nprogress');
-import {Util, fetch, post, formErrorHandler, getFormParameters, urlFor, setPageTitle, registerSubmitHandler} from '../models/util.js';
+import {Util, fetch, urlFor, setPageTitle} from '../models/util.js';
 import {SideBarView} from './sidebar.js';
 
 const ItemTemplate = `
@@ -15,7 +15,9 @@ const ItemTemplate = `
       <a class="boxoffice-button boxoffice-button-action align-right-btn" href="/admin/item/{{item.id}}/edit" data-navigate>Edit item</a>
     </div>
     <div class="col-md-8 col-md-offset-1 col-xs-12">
-      <div class="has-box">{{{ item.description_html }}}</div>
+      {{#if item.description_html}}
+        <div class="has-box">{{{ item.description_html }}}</div>
+      {{/if}}
     </div>
     <div class="col-md-10 col-md-offset-1 col-xs-12">
       <div class="has-box item-stats">
@@ -89,7 +91,7 @@ const ItemTemplate = `
                     <p class="price-digits">{{ formatToIndianRupee(prices[i].amount) }}</p>
                   </div>
                   <div class="col-md-2 col-xs-1 text-right">
-                    <a class="edit-btn" href="/admin/item/{{item.id}}/price/{{prices[i].id}}/edit" data-navigate><i class="fa fa-edit"></i></a>
+                    <a class="edit-btn" href="/admin/item/{{item.id}}/price/{{prices[i].id}}/edit" data-navigate>Edit</a>
                   </div>
                 </div>
               </div>
