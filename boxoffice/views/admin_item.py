@@ -87,7 +87,7 @@ def jsonify_item(data_dict):
 @load_models(
     (Item, {'id': 'item_id'}, 'item'),
     permission='org_admin'
-    )
+)
 def admin_item(item):
     return dict(item=item)
 
@@ -166,7 +166,7 @@ def jsonify_new_price(data_dict):
 @load_models(
     (Item, {'id': 'item_id'}, 'item'),
     permission='org_admin'
-    )
+)
 def admin_new_price(item):
     return dict(item=item)
 
@@ -189,6 +189,6 @@ def jsonify_edit_price(data_dict):
 @load_models(
     (Price, {'id': 'price_id'}, 'price'),
     permission='org_admin'
-    )
+)
 def admin_edit_price(price):
     return dict(price=price)

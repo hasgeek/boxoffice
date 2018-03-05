@@ -14,11 +14,11 @@ from utils import xhr_only, api_error, api_success
 def jsonify_discount_policies(data_dict):
     discount_policies_list = []
     for policy in data_dict['discount_policies']:
-        details = dict(policy.access_for(actor=g.user))
+        details = dict(policy.current_access())
         details['price_details'] = {}
         if policy.is_price_based:
             price = Price.query.filter(Price.discount_policy == policy).first()
-            details['price_details'] = dict(price.access_for(actor=g.user))
+            details['price_details'] = dict(price.current_access())
         details['dp_items'] = [{'id': str(item.id), 'title': "{ic_title}: {title}".format(ic_title=item.item_collection.title, title=item.title)} for item in policy.items]
         discount_policies_list.append(details)
     return jsonify(org_name=data_dict['org'].name,
