@@ -141,25 +141,39 @@ let DemandGraph = Ractive.extend({
   template: DemandGraphTemplate,
   format_columns: function(){
     let price_counts = this.parent.get('demand_curve');
-    let xs = Object.keys(price_counts);
-    let ys = Object.values(price_counts);
-    xs.unshift('x');
-    ys.unshift('count');
-    return [xs, ys];
+    let prices = Object.keys(price_counts);
+    let quantity_demanded_counts = ['quantity_demanded'];
+    let demand_counts = ['demand'];
+    prices.forEach((price) => {
+      quantity_demanded_counts.push(price_counts[price]['quantity_demanded']);
+      demand_counts.push(price_counts[price]['demand']);
+    });
+    prices.unshift('x');
+    return [prices, quantity_demanded_counts, demand_counts];
   },
   oncomplete: function(){
     this.chart = c3.generate({
       data: {
         x: 'x',
         columns: this.format_columns(),
-        type: 'area',
+        types: {
+          quantity_demanded: 'area',
+          demand: 'spline'
+        },
+        axes: {
+          demand: 'y2'
+        }
       },
       axis: {
         x: {
           label: 'Price'
         },
         y: {
-          label: 'No. of tickets'
+          label: 'Quantity demanded'
+        },
+        y2: {
+          show: true,
+          label: 'Demand'
         }
       }
     });

@@ -85,7 +85,8 @@ class Item(BaseScopedNameMixin, db.Model):
 
     @hybrid_property
     def quantity_available(self):
-        return self.quantity_total - self.confirmed_line_items.count()
+        available_count = self.quantity_total - self.confirmed_line_items.count()
+        return available_count if available_count > 0 else 0
 
     @property
     def is_available(self):
@@ -145,14 +146,17 @@ class Item(BaseScopedNameMixin, db.Model):
         return items_dict
 
     def demand_curve(self):
+        from ..models import LINE_ITEM_STATUS
+
         query = db.session.query('final_amount', 'count').from_statement(db.text('''
             SELECT final_amount, count(*)
             FROM line_item
             WHERE item_id = :item_id
             AND final_amount > 0
+            AND status = :status
             GROUP BY final_amount
             ORDER BY final_amount;
-        ''')).params(item_id=self.id)
+        ''')).params(item_id=self.id, status=LINE_ITEM_STATUS.CONFIRMED)
         return db.session.execute(query).fetchall()
 
 

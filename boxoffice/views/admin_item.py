@@ -41,6 +41,19 @@ def jsonify_price(price):
     return price_details
 
 
+def format_demand_curve(item):
+    result = dict()
+    demand_counter = 0
+
+    for amount, quantity_demanded in reversed(item.demand_curve()):
+        demand_counter += quantity_demanded
+        result[amount] = {
+            'quantity_demanded': quantity_demanded,
+            'demand': demand_counter
+        }
+    return result
+
+
 def jsonify_item(data_dict):
     item = data_dict['item']
     discount_policies_list = []
@@ -58,7 +71,7 @@ def jsonify_item(data_dict):
     item_details['net_sales'] = data_dict['item'].net_sales()
     
     return jsonify(org_name=data_dict['item'].item_collection.organization.name,
-        demand_curve=dict(item.demand_curve()),
+        demand_curve=format_demand_curve(item),
         org_title=data_dict['item'].item_collection.organization.title,
         ic_id=data_dict['item'].item_collection.id,
         ic_name=data_dict['item'].item_collection.name,
