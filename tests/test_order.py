@@ -339,7 +339,7 @@ class TestOrder(unittest.TestCase):
         refund_transaction1 = PaymentTransaction.query.filter_by(order=order, transaction_type=TRANSACTION_TYPE.REFUND).first()
         self.assertEquals(refund_transaction1.amount, expected_refund_amount)
 
-        second_line_item = order.get_confirmed_line_items[0]
+        second_line_item = order.confirmed_line_items[0]
         razorpay.refund_payment = MagicMock(return_value=MockResponse(response_data={'id': buid()}))
         process_line_item_cancellation(second_line_item)
         self.assertEquals(second_line_item.status, LINE_ITEM_STATUS.CANCELLED)
@@ -347,7 +347,7 @@ class TestOrder(unittest.TestCase):
         self.assertEquals(refund_transaction2.amount, second_line_item.final_amount)
 
         # test failed cancellation
-        third_line_item = order.get_confirmed_line_items[0]
+        third_line_item = order.confirmed_line_items[0]
         failed_response = make_response('', 400)
         failed_response.content = 'failed'
         razorpay.refund_payment = MagicMock(return_value=failed_response)
@@ -359,7 +359,7 @@ class TestOrder(unittest.TestCase):
         refund_dict = {'amount': refund_amount, 'internal_note': 'internal reference', 'note_to_user': 'you get a refund!'}
         razorpay.refund_payment = MagicMock(return_value=MockResponse(response_data={'id': buid()}))
         process_partial_refund_for_order(order, refund_dict)
-        third_line_item = order.get_confirmed_line_items[0]
+        third_line_item = order.confirmed_line_items[0]
         pre_cancellation_transactions_count = order.refund_transactions.count()
         cancelled_refund_amount = process_line_item_cancellation(third_line_item)
         self.assertEquals(cancelled_refund_amount, decimal.Decimal(0))

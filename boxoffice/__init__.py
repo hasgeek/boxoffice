@@ -2,7 +2,6 @@
 
 from pytz import timezone
 from flask import Flask
-import json
 from flask_migrate import Migrate
 from flask_rq import RQ
 from flask_mail import Mail
@@ -29,7 +28,7 @@ assets['boxoffice.js'][version] = 'js/scripts.js'
 
 from . import extapi, views  # NOQA
 from boxoffice.models import db, User, Item, Price, DiscountPolicy, DiscountCoupon, ItemCollection, Organization, Category, Invoice  # noqa
-from siteadmin import ItemCollectionModelView, ItemModelView, PriceModelView, DiscountPolicyModelView, DiscountCouponModelView, OrganizationModelView, CategoryModelView, InvoiceModelView  # noqa
+from siteadmin import OrganizationModelView, DiscountCouponModelView, InvoiceModelView  # noqa
 
 
 # Configure the app
@@ -53,11 +52,6 @@ wtforms_json.init()
 try:
     admin = Admin(app, name=u"Boxoffice Admin", template_mode='bootstrap3', url='/siteadmin')
     admin.add_view(OrganizationModelView(Organization, db.session))
-    admin.add_view(ItemCollectionModelView(ItemCollection, db.session))
-    admin.add_view(CategoryModelView(Category, db.session))
-    admin.add_view(ItemModelView(Item, db.session))
-    admin.add_view(PriceModelView(Price, db.session))
-    admin.add_view(DiscountPolicyModelView(DiscountPolicy, db.session))
     admin.add_view(DiscountCouponModelView(DiscountCoupon, db.session))
     admin.add_view(InvoiceModelView(Invoice, db.session))
 except AssertionError:

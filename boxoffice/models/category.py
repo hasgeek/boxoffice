@@ -15,7 +15,7 @@ class Category(BaseScopedNameMixin, db.Model):
     seq = db.Column(db.Integer, nullable=False)
     item_collection = db.relationship(ItemCollection,
         backref=db.backref('categories', cascade='all, delete-orphan',
-        order_by=seq, collection_class=ordering_list('seq', count_from=1)))
+            order_by=seq, collection_class=ordering_list('seq', count_from=1)))
     parent = db.synonym('item_collection')
 
     __roles__ = {

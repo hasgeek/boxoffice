@@ -24,7 +24,7 @@ const ItemTemplate = `
         <div class="row">
           <div class="col-md-3 col-xs-6">
             <div class="">
-              <h4 class="digits">{{ item.sold }}/{{ item.quantity_available }}</h4>
+              <h4 class="digits">{{ item.sold_count }}/{{ item.quantity_available }}</h4>
               <p class="text-uppercase callout-text">Tickets sold/available</p>
             </div>
           </div>
@@ -50,8 +50,8 @@ const ItemTemplate = `
           </div>
           <div class="col-md-3 col-xs-6">
             <div class="">
-              {{#if item.free}}
-                <h4 class="digits">{{ item.free }}</h4>
+              {{#if item.free_count}}
+                <h4 class="digits">{{ item.free_count }}</h4>
               {{else}}
                 <h4 class="digits">0</h4>
               {{/if}}

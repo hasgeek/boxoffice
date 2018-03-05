@@ -11,7 +11,7 @@ __all__ = ['ItemForm']
 class ItemForm(forms.Form):
     title = forms.StringField(__("Item title"),
         validators=[forms.validators.DataRequired(__("Please specify a title")),
-        forms.validators.Length(max=250)], filters=[forms.filters.strip()])
+            forms.validators.Length(max=250)], filters=[forms.filters.strip()])
     description_html = forms.TinyMce4Field(__("Description"),
         validators=[forms.validators.DataRequired(__("Please specify a description"))])
     seq = forms.IntegerField(__("Sequence"),

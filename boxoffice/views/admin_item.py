@@ -18,7 +18,7 @@ from utils import xhr_only
 @load_models(
     (Organization, {'name': 'org'}, 'organization'),
     permission='org_admin'
-    )
+)
 @requestargs('search')
 def items(organization, search=None):
     if search:
@@ -35,6 +35,12 @@ def items(organization, search=None):
         return api_error(message=_(u"Missing search query"), status_code=400)
 
 
+def jsonify_price(price):
+    price_details = dict(price.current_access())
+    price_details['tense'] = price.tense()
+    return price_details
+
+
 def jsonify_item(data_dict):
     item = data_dict['item']
     discount_policies_list = []
@@ -44,6 +50,12 @@ def jsonify_item(data_dict):
             dp_price = Price.query.filter(Price.discount_policy == policy).first()
             details['price_details'] = {'amount': dp_price.amount}
         discount_policies_list.append(details)
+
+    item_details = dict(data_dict['item'].current_access())
+    item_details['sold_count'] = data_dict['item'].sold_count()
+    item_details['free_count'] = data_dict['item'].free_count()
+    item_details['cancelled_count'] = data_dict['item'].cancelled_count()
+    item_details['net_sales'] = data_dict['item'].net_sales()
     
     return jsonify(org_name=data_dict['item'].item_collection.organization.name,
         demand_curve=dict(item.demand_curve()),
@@ -51,8 +63,8 @@ def jsonify_item(data_dict):
         ic_id=data_dict['item'].item_collection.id,
         ic_name=data_dict['item'].item_collection.name,
         ic_title=data_dict['item'].item_collection.title,
-        item=dict(data_dict['item'].current_access()),
-        prices=[dict(price.current_access()) for price in data_dict['item'].prices],
+        item=item_details,
+        prices=[jsonify_price(price) for price in data_dict['item'].prices],
         discount_policies=discount_policies_list)
 
 

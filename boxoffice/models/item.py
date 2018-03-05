@@ -7,6 +7,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.orderinglist import ordering_list
 from baseframe import __, localize_timezone
 from coaster.utils import LabeledEnum
+from coaster.sqlalchemy import with_roles
 from . import db, JsonDict, BaseScopedNameMixin, MarkdownColumn
 from . import ItemCollection, Category
 from .discount_policy import item_discount_policy
@@ -48,8 +49,7 @@ class Item(BaseScopedNameMixin, db.Model):
     __roles__ = {
         'item_owner': {
             'write': {},
-            'read': {'id', 'title', 'url_for_view', 'description_html', 'quantity_total', 'quantity_available', 'active_price',
-                    'sold', 'free', 'cancelled', 'net_sales'}
+            'read': {'id', 'title', 'url_for_view', 'description_html', 'quantity_total', 'quantity_available', 'active_price'}
         }
     }
 
@@ -87,7 +87,7 @@ class Item(BaseScopedNameMixin, db.Model):
 
     @hybrid_property
     def quantity_available(self):
-        return self.quantity_total - self.get_confirmed_line_items.count()
+        return self.quantity_total - self.confirmed_line_items.count()
 
     @property
     def is_available(self):
@@ -107,34 +107,35 @@ class Item(BaseScopedNameMixin, db.Model):
 
     @property
     def active_price(self):
-        return self.current_price().amount if self.current_price() else None
+        current_price = self.current_price()
+        return current_price.amount if current_price else None
 
     @property
-    def get_confirmed_line_items(self):
+    def confirmed_line_items(self):
         """Returns a SQLAlchemy query object preset with an item's confirmed line items"""
         from ..models import LineItem, LINE_ITEM_STATUS
 
         return self.line_items.filter(LineItem.status == LINE_ITEM_STATUS.CONFIRMED)
 
-    @property
-    def sold(self):
+    @with_roles(call={'item_owner'})
+    def sold_count(self):
         from ..models import LineItem
 
-        return self.get_confirmed_line_items.filter(LineItem.final_amount > 0).count()
+        return self.confirmed_line_items.filter(LineItem.final_amount > 0).count()
 
-    @property
-    def free(self):
+    @with_roles(call={'item_owner'})
+    def free_count(self):
         from ..models import LineItem
 
-        return self.get_confirmed_line_items.filter(LineItem.final_amount == 0).count()
+        return self.confirmed_line_items.filter(LineItem.final_amount == 0).count()
 
-    @property
-    def cancelled(self):
+    @with_roles(call={'item_owner'})
+    def cancelled_count(self):
         from ..models import LineItem, LINE_ITEM_STATUS
 
         return self.line_items.filter(LineItem.status == LINE_ITEM_STATUS.CANCELLED).count()
 
-    @property
+    @with_roles(call={'item_owner'})
     def net_sales(self):
         from ..models import LineItem, LINE_ITEM_STATUS
 
@@ -188,7 +189,7 @@ class Price(BaseScopedNameMixin, db.Model):
     __roles__ = {
         'price_owner': {
             'write': {},
-            'read': {'id', 'item_id', 'json_start_at', 'json_end_at', 'amount', 'currency', 'discount_policy_title', 'tense'}
+            'read': {'id', 'item_id', 'json_start_at', 'json_end_at', 'amount', 'currency', 'discount_policy_title'}
         }
     }
 
@@ -210,7 +211,7 @@ class Price(BaseScopedNameMixin, db.Model):
     def json_end_at(self):
         return localize_timezone(self.end_at).isoformat()
 
-    @property
+    @with_roles(call={'price_owner'})
     def tense(self):
         now = datetime.utcnow()
         if self.end_at < now:

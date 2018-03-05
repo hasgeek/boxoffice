@@ -115,10 +115,10 @@ class Order(BaseMixin, db.Model):
         return True
 
     @property
-    def get_confirmed_line_items(self):
+    def confirmed_line_items(self):
         from ..models import LineItem, LINE_ITEM_STATUS
 
-        return LineItem.query.filter(LineItem.order == self, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).all()
+        return LineItem.query.filter(LineItem.order == self, LineItem.status == LINE_ITEM_STATUS.CONFIRMED)
 
     @property
     def initial_line_items(self):
