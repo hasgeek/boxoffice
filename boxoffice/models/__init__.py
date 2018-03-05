@@ -11,6 +11,7 @@ from .category import *
 from .item import *
 from .discount_policy import *
 from .order import *
+from .line_item_discounter import *
 from .line_item import *
 from .payment import *
 from .invoice import *

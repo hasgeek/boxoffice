@@ -4,38 +4,21 @@ import datetime
 from flask import jsonify, g, request
 from decimal import Decimal
 from .. import app, lastuser
-from sqlalchemy import func
 from coaster.views import load_models, render_with
 from baseframe import localize_timezone, _
 from baseframe.forms import render_form
-from boxoffice.models import db, Organization, ItemCollection, LineItem, LINE_ITEM_STATUS
+from boxoffice.models import db, Organization, ItemCollection
 from boxoffice.models.line_item import sales_delta, sales_by_date, counts_per_date_per_item
 from boxoffice.forms import ItemCollectionForm
 from boxoffice.views.utils import api_error, api_success
 
 
-def jsonify_item(item):
-    sold = LineItem.query.filter(LineItem.item == item, LineItem.final_amount > 0, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).count()
-    free = LineItem.query.filter(LineItem.item == item, LineItem.final_amount == 0, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).count()
-    cancelled = LineItem.query.filter(LineItem.item == item, LineItem.status == LINE_ITEM_STATUS.CANCELLED).count()
-    net_sales = db.session.query(func.sum(LineItem.final_amount)).filter(LineItem.item == item, LineItem.status == LINE_ITEM_STATUS.CONFIRMED).first()
-    return {
-        'id': item.id,
-        'title': item.title,
-        'available': item.quantity_available,
-        'sold': sold,
-        'free': free,
-        'cancelled': cancelled,
-        'current_price': item.current_price().amount if item.current_price() else "No active price",
-        'net_sales': net_sales[0] if net_sales[0] else 0
-    }
-
-
 def jsonify_item_collection(item_collection_dict):
     return jsonify(org_name=item_collection_dict['item_collection'].organization.name,
         org_title=item_collection_dict['item_collection'].organization.title,
+        ic_name=item_collection_dict['item_collection'].name,
         ic_title=item_collection_dict['item_collection'].title,
-        categories=[{'title': category.title, 'items': [jsonify_item(item) for item in category.items]}
+        categories=[{'title': category.title, 'items': [dict(item.current_access()) for item in category.items]}
             for category in item_collection_dict['item_collection'].categories],
         date_item_counts=item_collection_dict['date_item_counts'],
         date_sales=item_collection_dict['date_sales'],

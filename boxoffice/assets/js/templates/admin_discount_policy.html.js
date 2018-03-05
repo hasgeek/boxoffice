@@ -207,13 +207,13 @@ export const DiscountPolicyTemplate = `
                         </div>
                         <div class="group">
                           <p class="field-title filled">Price start date</p>
-                          <input type="text" name="start_at" value="{{ start_at }}" twoway="false" class="group-input date" id="start-date-{{ id }}" />
+                          <input type="text" name="start_at" value="{{ json_start_at }}" twoway="false" class="group-input date" id="start-date-{{ id }}" />
                           <i class="fa fa-calendar calendar-icon"></i>
                           {{#errormsg.start_at}}<p class="form-error-msg">{{ errormsg.start_at }}</p>{{/}}
                         </div>
                         <div class="group">
                           <p class="field-title filled">Price end date</p>
-                          <input type="text" name="end_at" value="{{ end_at }}" twoway="false" class="group-input date" id="end-date-{{ id }}" />
+                          <input type="text" name="end_at" value="{{ json_end_at }}" twoway="false" class="group-input date" id="end-date-{{ id }}" />
                           <i class="fa fa-calendar calendar-icon"></i>
                           {{#errormsg.end_at}}<p class="form-error-msg">{{ errormsg.end_at }}</p>{{/}}
                         </div>

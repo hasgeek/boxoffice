@@ -17,3 +17,15 @@ class Category(BaseScopedNameMixin, db.Model):
         backref=db.backref('categories', cascade='all, delete-orphan',
             order_by=seq, collection_class=ordering_list('seq', count_from=1)))
     parent = db.synonym('item_collection')
+
+    __roles__ = {
+        'category_owner': {
+            'read': {'id', 'name', 'title', 'item_collection_id'}
+        }
+    }
+
+    def roles_for(self, actor=None, anchors=()):
+        roles = super(Category, self).roles_for(actor, anchors)
+        if self.item_collection.organization.userid in actor.organizations_owned_ids():
+            roles.add('category_owner')
+        return roles

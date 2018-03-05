@@ -4,8 +4,9 @@ from datetime import datetime
 from decimal import Decimal
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.orderinglist import ordering_list
-from baseframe import __
+from baseframe import __, localize_timezone
 from coaster.utils import LabeledEnum
+from coaster.sqlalchemy import with_roles
 from . import db, JsonDict, BaseScopedNameMixin, MarkdownColumn
 from . import ItemCollection, Category
 from .discount_policy import item_discount_policy
@@ -44,6 +45,18 @@ class Item(BaseScopedNameMixin, db.Model):
 
     cancellable_until = db.Column(db.DateTime, nullable=True)
 
+    __roles__ = {
+        'item_owner': {
+            'read': {'id', 'title', 'description_html', 'quantity_total', 'quantity_available', 'active_price'}
+        }
+    }
+
+    def roles_for(self, actor=None, anchors=()):
+        roles = super(Item, self).roles_for(actor, anchors)
+        if self.item_collection.organization.userid in actor.organizations_owned_ids():
+            roles.add('item_owner')
+        return roles
+
     def current_price(self):
         """
         Returns the current price object for an item
@@ -54,18 +67,15 @@ class Item(BaseScopedNameMixin, db.Model):
         """
         Checks if item has a higher price than the given current price
         """
-        return Price.query.filter(Price.end_at > current_price.end_at, Price.item == self, Price.discount_policy == None).notempty()
+        return Price.query.filter(Price.end_at > current_price.end_at,
+            Price.item == self, Price.discount_policy == None).notempty()
 
     def discounted_price(self, discount_policy):
-        """
-        Returns the discounted price for an item
-        """
+        """Return the discounted price for an item."""
         return Price.query.filter(Price.item == self, Price.discount_policy == discount_policy).one_or_none()
 
     def price_at(self, timestamp):
-        """
-        Returns the price object for an item at a given time
-        """
+        """Return the price object for an item at a given time."""
         return Price.query.filter(Price.item == self, Price.start_at <= timestamp,
             Price.end_at > timestamp, Price.discount_policy == None).order_by('created_at desc').first()  # NOQA
 
@@ -75,15 +85,79 @@ class Item(BaseScopedNameMixin, db.Model):
 
     @hybrid_property
     def quantity_available(self):
-        return self.quantity_total - self.get_confirmed_line_items.count()
+        available_count = self.quantity_total - self.confirmed_line_items.count()
+        return available_count if available_count > 0 else 0
 
     @property
     def is_available(self):
-        """Checks if an item has a current price object and has a positive quantity_available"""
+        """Check if an item has a current price object and has a positive quantity_available"""
         return bool(self.current_price() and self.quantity_available > 0)
 
     def is_cancellable(self):
         return datetime.utcnow() < self.cancellable_until if self.cancellable_until else True
+
+    @property
+    def active_price(self):
+        current_price = self.current_price()
+        return current_price.amount if current_price else None
+
+    @property
+    def confirmed_line_items(self):
+        """Returns a SQLAlchemy query object preset with an item's confirmed line items"""
+        from ..models import LineItem, LINE_ITEM_STATUS
+
+        return self.line_items.filter(LineItem.status == LINE_ITEM_STATUS.CONFIRMED)
+
+    @with_roles(call={'item_owner'})
+    def sold_count(self):
+        from ..models import LineItem
+
+        return self.confirmed_line_items.filter(LineItem.final_amount > 0).count()
+
+    @with_roles(call={'item_owner'})
+    def free_count(self):
+        from ..models import LineItem
+
+        return self.confirmed_line_items.filter(LineItem.final_amount == 0).count()
+
+    @with_roles(call={'item_owner'})
+    def cancelled_count(self):
+        from ..models import LineItem, LINE_ITEM_STATUS
+
+        return self.line_items.filter(LineItem.status == LINE_ITEM_STATUS.CANCELLED).count()
+
+    @with_roles(call={'item_owner'})
+    def net_sales(self):
+        from ..models import LineItem, LINE_ITEM_STATUS
+
+        return db.session.query(db.func.sum(LineItem.final_amount)).filter(LineItem.item == self,
+            LineItem.status == LINE_ITEM_STATUS.CONFIRMED).first()[0]
+
+    @classmethod
+    def get_availability(cls, item_ids):
+        """Returns a dict -> {'item_id': ('item title', 'quantity_total', 'line_item_count')}"""
+        from ..models import LineItem, LINE_ITEM_STATUS
+
+        items_dict = {}
+        item_tups = db.session.query(cls.id, cls.title, cls.quantity_total, db.func.count(cls.id)).join(LineItem).filter(
+            LineItem.item_id.in_(item_ids), LineItem.status == LINE_ITEM_STATUS.CONFIRMED).group_by(cls.id).all()
+        for item_tup in item_tups:
+            items_dict[unicode(item_tup[0])] = item_tup[1:]
+        return items_dict
+
+    def demand_curve(self):
+        from ..models import LINE_ITEM_STATUS
+
+        query = db.session.query('final_amount', 'count').from_statement(db.text('''
+            SELECT final_amount, count(*)
+            FROM line_item
+            WHERE item_id = :item_id
+            AND final_amount > 0
+            AND status = :status
+            GROUP BY final_amount
+            ORDER BY final_amount;
+        ''')).params(item_id=self.id, status=LINE_ITEM_STATUS.CONFIRMED)
+        return db.session.execute(query).fetchall()
 
 
 class Price(BaseScopedNameMixin, db.Model):
@@ -105,3 +179,37 @@ class Price(BaseScopedNameMixin, db.Model):
 
     amount = db.Column(db.Numeric, default=Decimal(0), nullable=False)
     currency = db.Column(db.Unicode(3), nullable=False, default=u'INR')
+
+    __roles__ = {
+        'price_owner': {
+            'read': {'id', 'item_id', 'json_start_at', 'json_end_at', 'amount', 'currency', 'discount_policy_title'}
+        }
+    }
+
+    def roles_for(self, actor=None, anchors=()):
+        roles = super(Price, self).roles_for(actor, anchors)
+        if self.item.item_collection.organization.userid in actor.organizations_owned_ids():
+            roles.add('price_owner')
+        return roles
+
+    @property
+    def discount_policy_title(self):
+        return self.discount_policy.title if self.discount_policy else None
+
+    @property
+    def json_start_at(self):
+        return localize_timezone(self.start_at).isoformat()
+
+    @property
+    def json_end_at(self):
+        return localize_timezone(self.end_at).isoformat()
+
+    @with_roles(call={'price_owner'})
+    def tense(self):
+        now = datetime.utcnow()
+        if self.end_at < now:
+            return u"past"
+        elif self.start_at > now:
+            return u"upcoming"
+        else:
+            return u"current"

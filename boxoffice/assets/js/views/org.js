@@ -6,7 +6,7 @@ import {fetch, urlFor, setPageTitle} from '../models/util.js';
 import {SideBarView} from './sidebar.js';
 
 const orgTemplate = `
-  <div class="content-wrapper">
+  <div class="content-wrapper clearfix">
     <h1 class="header col-xs-12">{{ orgTitle }}</h1>
     <div class="title-wrapper col-xs-12">
       <a class="boxoffice-button boxoffice-button-action btn-right" href="/admin/o/{{orgName}}/ic/new" data-navigate>

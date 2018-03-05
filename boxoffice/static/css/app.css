@@ -709,6 +709,236 @@ p.settlements-month-widget {
     width: calc(87% - 15px);
   }
 }
+.color-black {
+  color: #1F2D3D;
+}
+
+.color-white {
+  color: white;
+}
+
+.bg-white {
+  background-color: #ffffff;
+}
+
+.bg-light {
+  background-color: #F9FAFC;
+}
+
+.bg-highlight {
+  background-color: #FBF9DE;
+}
+
+.has-box {
+  background: #FFFFFF;
+  box-shadow: 0 1px 6px 0 rgba(192, 204, 218, 0.67);
+  border-radius: 5px;
+  padding: 20px;
+  float: none;
+  background-color: #F9FAFC;
+  margin: 10px 0 32px;
+}
+
+.item-stats {
+  padding-top: 2em 0 0 0;
+}
+
+h2.col-header, p.margin-left {
+  margin-left: 15px;
+}
+
+.no-padding {
+  padding: 0px !important;
+}
+
+.item-stats {
+  text-align: center;
+}
+
+.item-stats .callout-text {
+  font-size: 14px;
+  color: #8492A6;
+  letter-spacing: -0.37px;
+}
+
+.item-stats .digits {
+  font-size: 24px;
+  color: #1F2D3D;
+  letter-spacing: -0.64px;
+  font-weight: 700;
+}
+
+.item-stats .border-radius-left {
+  border-radius: 5px 0px 0px 5px;
+}
+
+.item-stats .border-radius-right {
+  border-radius: 0px 5px 5px 0px;
+}
+
+.price-digits {
+  font-size: 24px;
+  color: #8492A6;
+  letter-spacing: -0.64px;
+  font-weight: 600;
+  margin-top: 14px;
+  margin-bottom: 0;
+}
+
+.current-price-digits {
+  color: #1F2D3D;
+  letter-spacing: -0.64px;
+  font-weight: 600;
+  margin-top: 12px;
+  font-size: 32px;
+  margin-bottom: 0;
+}
+
+@media (min-width: 768px) {
+  .item-stats .digits {
+    margin-top: 8px;
+  }
+}
+.past-price {
+  background: #8492A6;
+  border-radius: 13px;
+  font-size: 12px;
+  color: white;
+  padding: 2px 6px;
+  display: inline;
+}
+
+.upcoming-price {
+  background: #4A90E2;
+  border-radius: 13px;
+  font-size: 12px;
+  color: white;
+  padding: 2px 6px;
+  display: inline;
+}
+
+.current-price {
+  background: #61C491;
+  border-radius: 13px;
+  font-size: 12px;
+  color: white;
+  padding: 2px 6px;
+  display: inline;
+}
+
+@media (max-width: 500px) {
+  .past-price {
+    font-size: 10px;
+  }
+
+  .upcoming-price {
+    font-size: 10px;
+  }
+
+  .current-price {
+    font-size: 10px;
+  }
+}
+.start-time {
+  font-size: 12px;
+  color: #8492A6;
+  line-height: 1.25;
+  margin-top: 8px;
+  margin-bottom: 0;
+}
+
+@media (max-width: 500px) {
+  .more-icon {
+    margin-top: 20px;
+  }
+}
+.hg-bt {
+  -webkit-border-top: 1px solid #D2DBE5;
+  -moz-border-top: 1px solid #D2DBE5;
+  border-top: 1px solid #D2DBE5;
+}
+
+.hg-bb {
+  -webkit-border-bottom: 1px solid #D2DBE5;
+  -moz-border-bottom: 1px solid #D2DBE5;
+  border-bottom: 1px solid #D2DBE5;
+}
+
+.price-panel {
+  margin-left: 15px;
+  margin-right: 15px;
+  border-color: #D2DBE5;
+}
+
+.btn-hg-primary {
+  background: #E05F26;
+  border-radius: 4px;
+  color: white;
+  padding: 6px 40px;
+  font-size: 18px;
+}
+
+.btn-hg-primary:hover {
+  color: white;
+  background: #E66D37;
+  box-shadow: 0 2px 4px 0 rgba(31, 45, 61, 0.6);
+}
+
+.btn-hg-primary:focus {
+  color: white;
+  background: #E66D37;
+  box-shadow: 0 2px 4px 0 rgba(31, 45, 61, 0.6);
+}
+
+.discount-title {
+  font-size: 18px;
+  color: #1F2D3D;
+  letter-spacing: -0.48px;
+  font-weight: 600;
+  margin-bottom: 0;
+  padding: 16px;
+}
+
+.discount-ticket-amount {
+  font-size: 14px;
+  background-color: #EFF9F4;
+  padding: 16px;
+  border-bottom: 1px dashed #D2DBE5;
+  border-top: 1px dashed #D2DBE5;
+  margin-bottom: 0;
+}
+
+.discount-type {
+  font-size: 14px;
+  color: #8492A6;
+  letter-spacing: -0.37px;
+  padding: 16px;
+  text-transform: uppercase;
+}
+
+.discount-type span {
+  font-size: 16px;
+  color: #1F2D3D;
+  letter-spacing: -0.43px;
+  text-transform: capitalize;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.edit-page-link {
+  font-size: 16px;
+  color: #4A90E2;
+}
+
+.btn-margin-right {
+  margin-right: 10px;
+}
+
+.align-right-btn {
+  float: right;
+  margin: 10px 0 5px;
+}
+
 .org-header {
   text-align: center;
   margin: 0 auto 15px;
@@ -887,7 +1117,7 @@ p.settlements-month-widget {
 
 .chart-wrapper {
   min-height: 350px;
-  margin: 40px 15px;
+  margin: 20px 15px;
 }
 
 .sales-chart {

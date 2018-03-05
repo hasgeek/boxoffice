@@ -9,6 +9,12 @@ import {ItemCollectionEditView} from './edit_item_collection.js';
 import {OrderView} from './admin_order.js';
 import {ReportView} from './admin_report.js';
 import {ItemView} from './admin_item.js';
+import {NewItemView} from './new_item.js';
+import {EditItemView} from './edit_item.js';
+import {NewPriceView} from './new_price.js';
+import {EditPriceView} from './edit_price.js';
+import {NewCategoryView} from './new_category.js';
+
 
 export const Router = Backbone.Router.extend({
   url_root: '/admin/',
@@ -18,12 +24,17 @@ export const Router = Backbone.Router.extend({
     "o/:org_name/reports": "org_report",
     "o/:org_name/discount_policy": 'discount_policy',
     "o/:org_name/discount_policy?:params": 'discount_policy',
-    "o/:org_name/items/new": "new_item",
     "ic/:ic_id": "item_collection",
     "o/:org_name/ic/new": "new_item_collection",
     "ic/:ic_id/edit": "edit_item_collection",
     "ic/:ic_id/orders": "order",
-    "ic/:ic_id/reports": "report"
+    "ic/:ic_id/reports": "report",
+    "ic/:ic_id/item/new": "new_item",
+    "item/:item_id/edit": "edit_item",
+    "item/:item_id": "item",
+    "item/:item_id/price/new": "new_price",
+    "item/:item_id/price/:price_id/edit": "edit_price",
+    "ic/:ic_id/category/new": "new_category",
   },
   index: function() {
     IndexView.render();
@@ -52,14 +63,44 @@ export const Router = Backbone.Router.extend({
     }
     ItemCollectionEditView.render({ic_id});
   },
+  new_item: function(ic_id){
+    if (window.boxofficeFirstLoad){
+      ItemCollectionView.render({ic_id});
+    }
+    NewItemView.render({ic_id});
+  },
+  edit_item: function(item_id){
+    if (window.boxofficeFirstLoad){
+      ItemView.render({item_id});
+    }
+    EditItemView.render({item_id});
+  },
+  new_price: function(item_id){
+    if (window.boxofficeFirstLoad){
+      ItemView.render({item_id});
+    }
+    NewPriceView.render({item_id});
+  },
+  edit_price: function(item_id, price_id){
+    if (window.boxofficeFirstLoad){
+      ItemView.render({item_id});
+    }
+    EditPriceView.render({item_id, price_id});
+  },
+  new_category: function(ic_id){
+    if (window.boxofficeFirstLoad){
+      ItemCollectionView.render({ic_id});
+    }
+    NewCategoryView.render({ic_id});
+  },
   order: function(ic_id) {
     OrderView.render({ic_id});
   },
   report: function(ic_id) {
     ReportView.render({ic_id});
   },
-  new_item: function(org_name) {
-    ItemView.render({org_name});
+  item: function(item_id) {
+    ItemView.render({item_id});
   },
   _extractParameters: function(route, fragment) {
     var result = route.exec(fragment).slice(1);

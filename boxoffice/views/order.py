@@ -490,7 +490,7 @@ def process_line_item_cancellation(line_item):
     if (not line_item.is_free) and order.net_amount > Decimal('0'):
         if line_item.discount_policy:
             pre_cancellation_order_amount = order.get_amounts(LINE_ITEM_STATUS.CONFIRMED).confirmed_amount - order.refunded_amount
-            pre_cancellation_line_items = order.get_confirmed_line_items
+            pre_cancellation_line_items = order.confirmed_line_items
             line_item.cancel()
             updated_order = update_order_on_line_item_cancellation(order, pre_cancellation_line_items, line_item)
             post_cancellation_order_amount = updated_order.get_amounts(LINE_ITEM_STATUS.CONFIRMED).confirmed_amount - order.refunded_amount

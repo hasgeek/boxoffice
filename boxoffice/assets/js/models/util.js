@@ -8,6 +8,7 @@ export const Util = {
     // Takes a floating point value and formats it to the Indian currency format
     // with the rupee sign.
     // Taken from https://github.com/hasgeek/hasjob/blob/master/hasjob/static/js/app.js
+    if (!value) return value;
     value = value.toString();
     value = value.replace(/[^0-9.]/g, '');  // Remove non-digits, assume . for decimals
     var afterPoint = '';
@@ -102,21 +103,21 @@ export const getCsrfToken = function () {
   return document.head.querySelector("[name=csrf-token]").content;
 };
 
-export const formErrorHandler = function(errorResponse, formSelector) {
+export const formErrorHandler = function(formId, errorResponse) {
   let errorMsg = "";
   // xhr readyState '4' indicates server has received the request & response is ready
   if (errorResponse.readyState === 4) {
     if (errorResponse.status === 500) {
       errorMsg = "Internal Server Error";
     } else {
-      window.Baseframe.Forms.showValidationErrors(formSelector, errorResponse.responseJSON.errors);
+      Baseframe.Forms.showValidationErrors(formId, errorResponse.responseJSON.errors);
       errorMsg = "Error";
     }
   } else {
     errorMsg = "Unable to connect. Please try again.";
   }
-  $('#' + formSelector).find('button[type="submit"]').prop('disabled', false);
-  $('#' + formSelector).find(".loading").addClass('hidden');
+  $("#" + formId).find('button[type="submit"]').prop('disabled', false);
+  $("#" + formId).find(".loading").addClass('hidden');
   return errorMsg;
 };
 
@@ -185,7 +186,7 @@ export const urlFor = function(action, params={}) {
       url = `${scope}${resource}/new`;
       break;
     case 'edit':
-      url = `${resource}/${params.id}/edit`;
+      url = `${scope}${resource}/${params.id}/edit`;
       break;
     case 'search':
       url = params.page ? `${scope}${resource}?search=${params.search}&page=${params.page}&size=${params.size}` : `${scope}${resource}?search=${params.search}`;
