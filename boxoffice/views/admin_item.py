@@ -54,6 +54,16 @@ def format_demand_curve(item):
     return result
 
 
+def format_item_details(item):
+    item_details = dict(item.current_access())
+    item_details['sold_count'] = item.sold_count()
+    item_details['free_count'] = item.free_count()
+    item_details['cancelled_count'] = item.cancelled_count()
+    item_details['net_sales'] = item.net_sales()
+    item_details['quantity_available'] = item.quantity_available
+    return item_details
+
+
 def jsonify_item(data_dict):
     item = data_dict['item']
     discount_policies_list = []
@@ -64,19 +74,13 @@ def jsonify_item(data_dict):
             details['price_details'] = {'amount': dp_price.amount}
         discount_policies_list.append(details)
 
-    item_details = dict(data_dict['item'].current_access())
-    item_details['sold_count'] = data_dict['item'].sold_count()
-    item_details['free_count'] = data_dict['item'].free_count()
-    item_details['cancelled_count'] = data_dict['item'].cancelled_count()
-    item_details['net_sales'] = data_dict['item'].net_sales()
-    
     return jsonify(org_name=data_dict['item'].item_collection.organization.name,
         demand_curve=format_demand_curve(item),
         org_title=data_dict['item'].item_collection.organization.title,
         ic_id=data_dict['item'].item_collection.id,
         ic_name=data_dict['item'].item_collection.name,
         ic_title=data_dict['item'].item_collection.title,
-        item=item_details,
+        item=format_item_details(data_dict['item']),
         prices=[jsonify_price(price) for price in data_dict['item'].prices],
         discount_policies=discount_policies_list)
 

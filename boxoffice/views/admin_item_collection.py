@@ -11,6 +11,7 @@ from boxoffice.models import db, Organization, ItemCollection
 from boxoffice.models.line_item import sales_delta, sales_by_date, counts_per_date_per_item
 from boxoffice.forms import ItemCollectionForm
 from boxoffice.views.utils import api_error, api_success
+from boxoffice.views.admin_item import format_item_details
 
 
 def jsonify_item_collection(item_collection_dict):
@@ -18,7 +19,7 @@ def jsonify_item_collection(item_collection_dict):
         org_title=item_collection_dict['item_collection'].organization.title,
         ic_name=item_collection_dict['item_collection'].name,
         ic_title=item_collection_dict['item_collection'].title,
-        categories=[{'title': category.title, 'items': [dict(item.current_access()) for item in category.items]}
+        categories=[{'title': category.title, 'items': [format_item_details(item) for item in category.items]}
             for category in item_collection_dict['item_collection'].categories],
         date_item_counts=item_collection_dict['date_item_counts'],
         date_sales=item_collection_dict['date_sales'],

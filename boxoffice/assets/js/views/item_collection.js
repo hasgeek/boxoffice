@@ -33,10 +33,10 @@ export const TableTemplate = `
                 {{/if}}
                 <td>{{ index + 1 }}</td>
                 <td><a class="" href="/admin/item/{{id}}" data-navigate>{{ title }}</a></td>
-                <td>{{ available }}</td>
-                <td>{{ sold }} <input type="checkbox" name="sold" on-click="onItemsSelected(event, 'sold')" /></td>
-                <td>{{ free }} <input type="checkbox" name="free" on-click="onItemsSelected(event, 'free')" /></td>
-                <td>{{ cancelled }}</td>
+                <td>{{ quantity_available }}</td>
+                <td>{{ sold_count }} <input type="checkbox" name="sold" on-click="onItemsSelected(event, 'sold_count')" /></td>
+                <td>{{ free_count }} <input type="checkbox" name="free" on-click="onItemsSelected(event, 'free_count')" /></td>
+                <td>{{ cancelled_count }}</td>
                 {{#if active_price}}
                   <td>{{ formatToIndianRupee(active_price) }}</td>
                 {{else}}
@@ -133,13 +133,13 @@ export const ItemCollectionTemplate = `
 let TableComponent = Ractive.extend({
   isolated: false,
   template: TableTemplate,
-  onItemsSelected: function (event, ticketType) {
+  onItemsSelected: function (event, attribute) {
     let totalSelected = this.parent.get('totalSelected');
     if (event.node.checked) {
-      this.parent.set('totalSelected', totalSelected + event.context[ticketType]);
+      this.parent.set('totalSelected', totalSelected + event.context[attribute]);
     }
     else {
-      this.parent.set('totalSelected', totalSelected - event.context[ticketType]);
+      this.parent.set('totalSelected', totalSelected - event.context[attribute]);
     }
   }
 });
