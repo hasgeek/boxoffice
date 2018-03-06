@@ -61,6 +61,7 @@ def format_item_details(item):
     item_details['cancelled_count'] = item.cancelled_count()
     item_details['net_sales'] = item.net_sales()
     item_details['quantity_available'] = item.quantity_available
+    item_details['active_price'] = item.active_price
     return item_details
 
 

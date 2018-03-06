@@ -40,7 +40,7 @@ const ItemTemplate = `
           </div>
           <div class="col-md-3 col-xs-6">
             <div class="">
-              {{#if active_price}}
+              {{#if item.active_price}}
                 <h4 class="digits">{{ formatToIndianRupee(item.active_price) }}</h4>
               {{else}}
                 <h4 class="digits">N/A</h4>
