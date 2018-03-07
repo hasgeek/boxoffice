@@ -47,7 +47,7 @@ class Item(BaseScopedNameMixin, db.Model):
 
     __roles__ = {
         'item_owner': {
-            'read': {'id', 'title', 'description_html', 'quantity_total', 'quantity_available', 'active_price'}
+            'read': {'id', 'title', 'description_text', 'description_html', 'quantity_total', 'quantity_available', 'active_price', 'assignee_details'}
         }
     }
 
