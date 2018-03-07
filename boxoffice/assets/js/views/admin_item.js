@@ -85,7 +85,7 @@ const ItemTemplate = `
                     {{else}}
                       <p class="current-price text-uppercase">Current Price</p>
                     {{/if}}
-                    <p class="start-time"><strong>Start time</strong> <br>{{ formatDateTime(prices[i].json_start_at) }}</p>
+                    <p class="start-time"><strong>Start time</strong> <br>{{ formatDateTime(prices[i].start_at) }}</p>
                   </div>
                   <div class="col-md-6 col-xs-5 text-center">
                     <p class="price-digits">{{ formatToIndianRupee(prices[i].amount) }}</p>

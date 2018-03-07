@@ -64,7 +64,7 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
 
     __roles__ = {
         'dp_owner': {
-            'read': {'id', 'name', 'title', 'is_automatic', 'is_coupon', 'item_quantity_min', 'percentage', 'is_price_based', 'discount_code_base', 'line_items_count'}
+            'read': {'id', 'name', 'title', 'is_automatic', 'is_coupon', 'item_quantity_min', 'percentage', 'is_price_based', 'discount_code_base', 'bulk_coupon_usage_limit', 'line_items_count'}
         }
     }
 

@@ -11,16 +11,20 @@ from ..forms import DiscountPolicyForm, DiscountCouponForm, DiscountPriceForm, C
 from utils import xhr_only, api_error, api_success
 
 
+def jsonify_discount_policy(discount_policy):
+    details = dict(discount_policy.current_access())
+    details['price_details'] = {}
+    if discount_policy.is_price_based:
+        price = Price.query.filter(Price.discount_policy == discount_policy).first()
+        details['price_details'] = dict(price.current_access())
+    details['dp_items'] = [{'id': str(item.id), 'title': "{ic_title}: {title}".format(ic_title=item.item_collection.title, title=item.title)} for item in discount_policy.items]
+    return details
+
+
 def jsonify_discount_policies(data_dict):
     discount_policies_list = []
-    for policy in data_dict['discount_policies']:
-        details = dict(policy.current_access())
-        details['price_details'] = {}
-        if policy.is_price_based:
-            price = Price.query.filter(Price.discount_policy == policy).first()
-            details['price_details'] = dict(price.current_access())
-        details['dp_items'] = [{'id': str(item.id), 'title': "{ic_title}: {title}".format(ic_title=item.item_collection.title, title=item.title)} for item in policy.items]
-        discount_policies_list.append(details)
+    for discount_policy in data_dict['discount_policies']:
+        discount_policies_list.append(jsonify_discount_policy(discount_policy))
     return jsonify(org_name=data_dict['org'].name,
         org_title=data_dict['org'].title,
         discount_policies=discount_policies_list,

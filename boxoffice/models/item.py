@@ -182,7 +182,7 @@ class Price(BaseScopedNameMixin, db.Model):
 
     __roles__ = {
         'price_owner': {
-            'read': {'id', 'item_id', 'json_start_at', 'json_end_at', 'amount', 'currency', 'discount_policy_title'}
+            'read': {'id', 'item_id', 'start_at', 'end_at', 'amount', 'currency', 'discount_policy_title'}
         }
     }
 
@@ -195,14 +195,6 @@ class Price(BaseScopedNameMixin, db.Model):
     @property
     def discount_policy_title(self):
         return self.discount_policy.title if self.discount_policy else None
-
-    @property
-    def json_start_at(self):
-        return localize_timezone(self.start_at).isoformat()
-
-    @property
-    def json_end_at(self):
-        return localize_timezone(self.end_at).isoformat()
 
     @with_roles(call={'price_owner'})
     def tense(self):

@@ -145,7 +145,7 @@ export const DiscountPolicyTemplate = `
               {{#if !showPolicyForm && !showCouponForm}}
                 <div class="content-box">
                   <p class="content-details"><b>Discount type:</b></p>
-                  <p class="content-details-text">{{ discount_type }}</p>
+                  <p class="content-details-text">{{#if is_automatic}}Automatic{{else}}Coupon based{{/if}}</p>
 
                   {{#if is_price_based}}
                     <p class="content-details"><b>Discounted price:</b></p>
@@ -155,7 +155,7 @@ export const DiscountPolicyTemplate = `
                     <p class="content-details-text">{{ percentage }}%</p>
                   {{/if}}
 
-                  {{#if discount_type == "Automatic"}}
+                  {{#if is_automatic}}
                     <p class="content-details"><b>Minimum number of a particular item that needs to be <br>bought for this discount to apply:</b></p>
                     <p class="content-details-text">{{ item_quantity_min }}</p>
                   {{else}}
@@ -207,13 +207,13 @@ export const DiscountPolicyTemplate = `
                         </div>
                         <div class="group">
                           <p class="field-title filled">Price start date</p>
-                          <input type="text" name="start_at" value="{{ json_start_at }}" twoway="false" class="group-input date" id="start-date-{{ id }}" />
+                          <input type="text" name="start_at" value="{{ start_at }}" twoway="false" class="group-input date" id="start-date-{{ ../id }}" />
                           <i class="fa fa-calendar calendar-icon"></i>
                           {{#errormsg.start_at}}<p class="form-error-msg">{{ errormsg.start_at }}</p>{{/}}
                         </div>
                         <div class="group">
                           <p class="field-title filled">Price end date</p>
-                          <input type="text" name="end_at" value="{{ json_end_at }}" twoway="false" class="group-input date" id="end-date-{{ id }}" />
+                          <input type="text" name="end_at" value="{{ end_at }}" twoway="false" class="group-input date" id="end-date-{{ ../id }}" />
                           <i class="fa fa-calendar calendar-icon"></i>
                           {{#errormsg.end_at}}<p class="form-error-msg">{{ errormsg.end_at }}</p>{{/}}
                         </div>
@@ -230,7 +230,7 @@ export const DiscountPolicyTemplate = `
 
                     {{/if}}
 
-                    {{#if discount_type == "Automatic"}}
+                    {{#if is_automatic}}
                       <input type="hidden" name="discount_type" value=0 />
                       <div class="group">   
                         <input type="number" name="item_quantity_min" value="{{ item_quantity_min }}" min="1" twoway="false" class="group-input {{#if item_quantity_min != ""}}filled{{/if}} longer-labeltxt" />
