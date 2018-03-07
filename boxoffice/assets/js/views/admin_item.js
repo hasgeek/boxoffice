@@ -16,7 +16,7 @@ const ItemTemplate = `
     </div>
     <div class="col-md-8 col-md-offset-1 col-xs-12">
       {{#if item.description_html}}
-        <div class="has-box">{{{ item.description_html }}}</div>
+        <!--<div class="has-box">{{{ item.description_html }}}</div>-->
       {{/if}}
     </div>
     <div class="col-md-10 col-md-offset-1 col-xs-12">
