@@ -19,7 +19,7 @@ def jsonify_item_collection(item_collection_dict):
         org_title=item_collection_dict['item_collection'].organization.title,
         ic_name=item_collection_dict['item_collection'].name,
         ic_title=item_collection_dict['item_collection'].title,
-        categories=[{'title': category.title, 'items': [format_item_details(item) for item in category.items]}
+        categories=[{'title': category.title, 'id': category.id, 'items': [format_item_details(item) for item in category.items]}
             for category in item_collection_dict['item_collection'].categories],
         date_item_counts=item_collection_dict['date_item_counts'],
         date_sales=item_collection_dict['date_sales'],

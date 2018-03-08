@@ -29,7 +29,10 @@ export const TableTemplate = `
             {{#category.items:index}}
               <tr>
                 {{#if !index}}
-                  <td class="active" rowspan="{{category.items.length}}">{{ category.title }}</td>
+                  <td class="active" rowspan="{{category.items.length}}">
+                    {{ category.title }}<br />
+                    <a href='/admin/ic/{{ic_id}}/category/{{category.id}}/edit' data-navigate>Edit</a>
+                  </td>
                 {{/if}}
                 <td>{{ index + 1 }}</td>
                 <td><a class="" href="/admin/item/{{id}}" data-navigate>{{ title }}</a></td>

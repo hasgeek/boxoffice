@@ -10,9 +10,12 @@ __all__ = ['CategoryForm']
 
 # TODO: Add to baseframe.forms.validators.AvailableAttr?
 def available_seq(form, field):
-	if db.session.query(Category.id).filter(
-		Category.item_collection == form.edit_parent, Category.seq == field.data
-		).scalar() is not None:
+	basequery = db.session.query(Category.id).filter(
+		Category.item_collection == form.edit_parent, Category.seq == field.data)
+	if form.edit_obj:
+		basequery = basequery.filter(Category.id != form.edit_obj.id)
+
+	if basequery.scalar() is not None:
 		raise StopValidation(__("This sequence number has already been used. Please pick a different number"))
 
 

@@ -14,6 +14,7 @@ import {EditItemView} from './edit_item.js';
 import {NewPriceView} from './new_price.js';
 import {EditPriceView} from './edit_price.js';
 import {NewCategoryView} from './new_category.js';
+import {EditCategoryView} from './edit_category.js';
 
 
 export const Router = Backbone.Router.extend({
@@ -35,6 +36,7 @@ export const Router = Backbone.Router.extend({
     "item/:item_id/price/new": "new_price",
     "item/:item_id/price/:price_id/edit": "edit_price",
     "ic/:ic_id/category/new": "new_category",
+    "ic/:ic_id/category/:category_id/edit": "edit_category",
   },
   index: function() {
     IndexView.render();
@@ -92,6 +94,12 @@ export const Router = Backbone.Router.extend({
       ItemCollectionView.render({ic_id});
     }
     NewCategoryView.render({ic_id});
+  },
+  edit_category: function(ic_id, category_id){
+    if (window.boxofficeFirstLoad){
+      ItemCollectionView.render({ic_id});
+    }
+    EditCategoryView.render({ic_id, category_id});
   },
   order: function(ic_id) {
     OrderView.render({ic_id});
