@@ -12,7 +12,7 @@ class ItemForm(forms.Form):
     title = forms.StringField(__("Item title"),
         validators=[forms.validators.DataRequired(__("Please specify a title")),
             forms.validators.Length(max=250)], filters=[forms.filters.strip()])
-    description = forms.TinyMce4Field(__("Description"),
+    description = forms.TextAreaField(__("Description"),
         validators=[forms.validators.DataRequired(__("Please specify a description"))])
     seq = forms.IntegerField(__("Sequence"),
         description=__("The sequence of the ticket on the listing"),
