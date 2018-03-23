@@ -10,6 +10,7 @@ from boxoffice import app
 from boxoffice.models import *
 from boxoffice.views.custom_exceptions import PaymentGatewayError
 from boxoffice.models.payment import TRANSACTION_TYPE
+from boxoffice.forms import OrderRefundForm
 from boxoffice.extapi import razorpay
 from boxoffice.views.order import process_line_item_cancellation, process_partial_refund_for_order
 from fixtures import init_data
@@ -285,7 +286,17 @@ class TestOrder(unittest.TestCase):
         refund_dict = {'amount': refund_amount, 'internal_note': 'internal reference', 'note_to_user': 'price has been halved'}
         razorpay.refund_payment = MagicMock(return_value=MockResponse(response_data={'id': buid()}))
         pre_refund_transactions_count = order.refund_transactions.count()
-        process_partial_refund_for_order(order, refund_dict)
+        formdata = {
+            'amount': refund_amount
+        }
+        refund_form = OrderRefundForm(data=formdata)
+        resp = self.client.post('/admin/ic/{ic_id}/order/{order_id}/partial_refund'.format(ic_id=ic.id, order_id=order.id),
+            # content_type='application/x-www-form-urlencoded; charset=UTF-8',
+            content_type='application/json',
+            data=refund_form.data,
+            headers=[('X-Requested-With', 'XMLHttpRequest'),('Origin', app.config['BASE_URL'])])
+        import IPython; IPython.embed()
+        # process_partial_refund_for_order(order, refund_dict)
         self.assertEquals(pre_refund_transactions_count+1, order.refund_transactions.count())
 
         first_line_item = order.line_items[0]

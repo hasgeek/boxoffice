@@ -191,6 +191,8 @@ export const urlFor = function(action, params={}) {
     case 'search':
       url = params.page ? `${scope}${resource}?search=${params.search}&page=${params.page}&size=${params.size}` : `${scope}${resource}?search=${params.search}`;
       break;
+    default:
+      url = params.id? `${scope}${resource}/${params.id}/${action}` : `${scope}${resource}/${action}`
   }
 
   if (params.root) {

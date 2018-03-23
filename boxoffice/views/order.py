@@ -7,17 +7,19 @@ from sqlalchemy.sql import func
 from flask import url_for, request, jsonify, render_template, abort
 from coaster.views import render_with, load_models
 from baseframe import _
+from baseframe.forms import render_form
 from .. import app, lastuser
 from ..models import db
 from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy, OrderSession, Assignee, LINE_ITEM_STATUS, Invoice
 from ..models import Order, OnlinePayment, PaymentTransaction, User, CURRENCY, ORDER_STATUS
 from ..models.payment import TRANSACTION_TYPE
 from ..extapi import razorpay, RAZORPAY_PAYMENT_STATUS
-from ..forms import LineItemForm, BuyerForm, OrderSessionForm, RefundTransactionForm, InvoiceForm
+from ..forms import LineItemForm, BuyerForm, OrderSessionForm, OrderRefundForm, InvoiceForm
 from custom_exceptions import PaymentGatewayError
 from boxoffice.mailclient import send_receipt_mail, send_line_item_cancellation_mail, send_order_refund_mail
 from utils import xhr_only, cors, json_date_format, api_error, api_success
 from boxoffice.data import indian_states
+
 
 
 def jsonify_line_items(line_items):
@@ -541,22 +543,18 @@ def cancel_line_item(line_item):
             doc=_(u"Ticket cancelled"), status_code=200)
 
 
-def process_partial_refund_for_order(order, form_dict):
-    form = RefundTransactionForm.from_json(form_dict, meta={'csrf': False})
-    if form.validate():
+def process_partial_refund_for_order(data_dict):
+    order = data_dict['order']
+    form = data_dict['form']
+    request_method = data_dict['request_method']
+    # form = OrderRefundForm(parent=order)
+
+    if request_method == 'GET':
+        return jsonify(form_template=render_form(form=form, title=u"Partial refund", submit=u"Refund", with_chrome=False))
+
+    if form.validate_on_submit():
         requested_refund_amount = form.amount.data
-        if not order.paid_amount:
-            return api_error(message='Refunds can only be issued for paid orders',
-                    status_code=403,
-                    errors=['non cancellable'])
-
-        if (order.refunded_amount + requested_refund_amount) > order.paid_amount:
-            return api_error(message='Invalid refund amount, must be lesser than net amount paid for the order',
-                    status_code=403,
-                    errors=['excess partial refund'])
-
-        payment = OnlinePayment.query.filter_by(order=order,
-            pg_payment_status=RAZORPAY_PAYMENT_STATUS.CAPTURED).one()
+        payment = OnlinePayment.query.filter_by(order=order, pg_payment_status=RAZORPAY_PAYMENT_STATUS.CAPTURED).one()
         rp_resp = razorpay.refund_payment(payment.pg_paymentid, requested_refund_amount)
         if rp_resp.status_code == 200:
             rp_refund = rp_resp.json()
@@ -575,24 +573,25 @@ def process_partial_refund_for_order(order, form_dict):
             "Refund failed. Please try again or contact support at {email}.".format(email=order.organization.contact_email))
     else:
         return api_error(message='Invalid input',
-                    status_code=403,
-                    errors=form.errors)
+            status_code=403,
+            errors=form.errors)
 
 
-@app.route('/order/<order_id>/partial_refund', methods=['POST'])
+@app.route('/admin/ic/<ic_id>/order/<order_id>/partial_refund', methods=['GET', 'POST'])
 @lastuser.requires_login
+@render_with({'text/html': 'index.html.jinja2', 'application/json': process_partial_refund_for_order})
 @load_models(
     (Order, {'id': 'order_id'}, 'order'),
     permission='org_admin'
-    )
+)
 def partial_refund_order(order):
-    return process_partial_refund_for_order(order, request.json.get('order_refund'))
+    return dict(order=order, form=OrderRefundForm(parent=order), request_method=request.method)
 
 
 @app.route('/api/1/ic/<item_collection>/orders', methods=['GET', 'OPTIONS'])
 @load_models(
     (ItemCollection, {'id': 'item_collection'}, 'item_collection')
-    )
+)
 def item_collection_orders(item_collection):
     organization = item_collection.organization
     # TODO: Replace with a better authentication system
