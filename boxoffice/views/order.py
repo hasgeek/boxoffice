@@ -547,7 +547,6 @@ def process_partial_refund_for_order(data_dict):
     order = data_dict['order']
     form = data_dict['form']
     request_method = data_dict['request_method']
-    # form = OrderRefundForm(parent=order)
 
     if request_method == 'GET':
         return jsonify(form_template=render_form(form=form, title=u"Partial refund", submit=u"Refund", with_chrome=False))
