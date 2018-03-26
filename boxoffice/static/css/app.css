@@ -689,7 +689,6 @@ p.settlements-month-widget {
 #form-view > .content-slider {
   position: absolute;
   top: 15px;
-  bottom: 0;
   left: 15px;
   z-index: 1000;
   width: calc(100% - 15px);
