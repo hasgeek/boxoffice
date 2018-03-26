@@ -5,7 +5,6 @@ import {navigateTo} from '../views/main_admin.js';
 
 export const PartialRefundOrderView = {
   render: function({ic_id, order_id}={}) {
-    console.log(urlFor('partial_refund', {scope_ns: 'ic', scope_id: ic_id, resource: 'order', id: order_id, root: true}));
     FormView.load({
       url: urlFor('partial_refund', {scope_ns: 'ic', scope_id: ic_id, resource: 'order', id: order_id, root: true}),
       title: 'Partial refund for order',
