@@ -2,6 +2,7 @@
 
 import json
 from flask import request
+from html5print import HTMLBeautifier
 from baseframe import __
 import baseframe.forms as forms
 from baseframe.forms.sqlalchemy import QuerySelectField
@@ -13,6 +14,12 @@ __all__ = ['ItemForm']
 def format_json(data):
     if request.method == 'GET':
         return json.dumps(data, indent=4, sort_keys=True)
+    return data
+
+
+def format_description(data):
+    if request.method == 'GET' and data:
+        return HTMLBeautifier.beautify(data.text, 8)
     return data
 
 
@@ -49,7 +56,7 @@ class ItemForm(forms.Form):
     title = forms.StringField(__("Item title"),
         validators=[forms.validators.DataRequired(__("Please specify a title")),
             forms.validators.Length(max=250)], filters=[forms.filters.strip()])
-    description = forms.TextAreaField(__("Description"),
+    description = forms.TextAreaField(__("Description"), filters=[format_description],
         validators=[forms.validators.DataRequired(__("Please specify a description"))])
     seq = forms.IntegerField(__("Sequence"),
         description=__("The sequence of the ticket on the listing"),
