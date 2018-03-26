@@ -14,3 +14,6 @@ LASTUSER_CLIENT_ID = ''
 LASTUSER_CLIENT_SECRET = ''
 TIMEZONE = 'Asia/Calcutta'
 CACHE_TYPE = 'redis'
+ASSET_MANIFEST_PATH = "static/build/manifest.json"
+# no trailing slash
+ASSET_BASE_PATH = '/static/build'

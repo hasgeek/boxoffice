@@ -283,20 +283,21 @@ class TestOrder(unittest.TestCase):
         db.session.commit()
 
         refund_amount = total_amount - 1
-        refund_dict = {'amount': refund_amount, 'internal_note': 'internal reference', 'note_to_user': 'price has been halved'}
         razorpay.refund_payment = MagicMock(return_value=MockResponse(response_data={'id': buid()}))
         pre_refund_transactions_count = order.refund_transactions.count()
         formdata = {
-            'amount': refund_amount
+            'amount': refund_amount,
+            'internal_note': 'internal reference',
+            'refund_description': 'receipt description',
+            'note_to_user': 'price has been halved'
         }
-        refund_form = OrderRefundForm(data=formdata)
-        resp = self.client.post('/admin/ic/{ic_id}/order/{order_id}/partial_refund'.format(ic_id=ic.id, order_id=order.id),
-            # content_type='application/x-www-form-urlencoded; charset=UTF-8',
-            content_type='application/json',
-            data=refund_form.data,
-            headers=[('X-Requested-With', 'XMLHttpRequest'),('Origin', app.config['BASE_URL'])])
-        import IPython; IPython.embed()
-        # process_partial_refund_for_order(order, refund_dict)
+        refund_form = OrderRefundForm(data=formdata, parent=order, meta={'csrf': False})
+        partial_refund_args = {
+            'order': order,
+            'form': refund_form,
+            'request_method': 'POST'
+        }
+        process_partial_refund_for_order(partial_refund_args)
         self.assertEquals(pre_refund_transactions_count+1, order.refund_transactions.count())
 
         first_line_item = order.line_items[0]
@@ -369,7 +370,21 @@ class TestOrder(unittest.TestCase):
         refund_amount = order.net_amount
         refund_dict = {'amount': refund_amount, 'internal_note': 'internal reference', 'note_to_user': 'you get a refund!'}
         razorpay.refund_payment = MagicMock(return_value=MockResponse(response_data={'id': buid()}))
-        process_partial_refund_for_order(order, refund_dict)
+
+        formdata = {
+            'amount': refund_amount,
+            'internal_note': 'internal reference',
+            'refund_description': 'receipt description',
+            'note_to_user': 'price has been halved'
+        }
+        refund_form = OrderRefundForm(data=formdata, parent=order, meta={'csrf': False})
+        partial_refund_args = {
+            'order': order,
+            'form': refund_form,
+            'request_method': 'POST'
+        }
+        process_partial_refund_for_order(partial_refund_args)
+
         third_line_item = order.confirmed_line_items[0]
         pre_cancellation_transactions_count = order.refund_transactions.count()
         cancelled_refund_amount = process_line_item_cancellation(third_line_item)
@@ -417,23 +432,40 @@ class TestOrder(unittest.TestCase):
         # Mock Razorpay's API
         razorpay.refund_payment = MagicMock(return_value=MockResponse(response_data={'id': buid()}))
         valid_refund_amount = 500
-        valid_refund_dict = {
+
+        formdata = {
             'amount': valid_refund_amount,
             'internal_note': 'internal reference',
             'note_to_user': 'you get a refund!',
             'refund_description': 'test refund'
         }
-        process_partial_refund_for_order(order, valid_refund_dict)
+        refund_form = OrderRefundForm(data=formdata, parent=order, meta={'csrf': False})
+        partial_refund_args = {
+            'order': order,
+            'form': refund_form,
+            'request_method': 'POST'
+        }
+        process_partial_refund_for_order(partial_refund_args)
+
         refund_transactions = order.transactions.filter_by(transaction_type=TRANSACTION_TYPE.REFUND).all()
         self.assertIsInstance(refund_transactions[0].refunded_at, datetime.datetime)
         self.assertEquals(refund_transactions[0].amount, decimal.Decimal(valid_refund_amount))
-        self.assertEquals(refund_transactions[0].internal_note, valid_refund_dict['internal_note'])
-        self.assertEquals(refund_transactions[0].note_to_user, valid_refund_dict['note_to_user'])
-        self.assertEquals(refund_transactions[0].refund_description, valid_refund_dict['refund_description'])
+        self.assertEquals(refund_transactions[0].internal_note, formdata['internal_note'])
+        self.assertEquals(refund_transactions[0].note_to_user, formdata['note_to_user'])
+        self.assertEquals(refund_transactions[0].refund_description, formdata['refund_description'])
 
         invalid_refund_amount = 100000000
-        invalid_refund_dict = {'amount': invalid_refund_amount}
-        resp = process_partial_refund_for_order(order, invalid_refund_dict)
+        formdata = {
+            'amount': invalid_refund_amount,
+        }
+        refund_form = OrderRefundForm(data=formdata, parent=order, meta={'csrf': False})
+        partial_refund_args = {
+            'order': order,
+            'form': refund_form,
+            'request_method': 'POST'
+        }
+        resp = process_partial_refund_for_order(partial_refund_args)
+
         self.assertEquals(resp.status_code, 403)
         refund_transactions = order.transactions.filter_by(transaction_type=TRANSACTION_TYPE.REFUND).all()
         self.assertEquals(refund_transactions[0].amount, decimal.Decimal(valid_refund_amount))
@@ -443,8 +475,18 @@ class TestOrder(unittest.TestCase):
         resp_data = json.loads(resp.data)['result']
         order = Order.query.get(resp_data.get('order_id'))
         invalid_refund_amount = 100000000
-        invalid_refund_dict = {'amount': invalid_refund_amount}
-        refund_resp = process_partial_refund_for_order(order, invalid_refund_dict)
+
+        formdata = {
+            'amount': invalid_refund_amount,
+        }
+        refund_form = OrderRefundForm(data=formdata, parent=order, meta={'csrf': False})
+        partial_refund_args = {
+            'order': order,
+            'form': refund_form,
+            'request_method': 'POST'
+        }
+        refund_resp = process_partial_refund_for_order(partial_refund_args)
+
         self.assertEquals(refund_resp.status_code, 403)
 
     def tearDown(self):

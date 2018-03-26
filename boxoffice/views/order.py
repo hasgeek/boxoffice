@@ -552,7 +552,7 @@ def process_partial_refund_for_order(data_dict):
     if request_method == 'GET':
         return jsonify(form_template=render_form(form=form, title=u"Partial refund", submit=u"Refund", with_chrome=False))
 
-    if form.validate_on_submit():
+    if form.validate():
         requested_refund_amount = form.amount.data
         payment = OnlinePayment.query.filter_by(order=order, pg_payment_status=RAZORPAY_PAYMENT_STATUS.CAPTURED).one()
         rp_resp = razorpay.refund_payment(payment.pg_paymentid, requested_refund_amount)
