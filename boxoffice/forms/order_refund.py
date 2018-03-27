@@ -3,7 +3,6 @@
 from baseframe import __
 import baseframe.forms as forms
 from baseframe.forms.validators import StopValidation
-from boxoffice.models import Order
 
 __all__ = ['OrderRefundForm']
 
@@ -21,11 +20,11 @@ class OrderRefundForm(forms.Form):
     amount = forms.IntegerField(__("Amount"),
         validators=[forms.validators.DataRequired(__("Please specify an amount")), validate_amount])
     internal_note = forms.StringField(__("Internal note"),
-        validators=[forms.validators.DataRequired(__("Please specify a note for auditing")), forms.validators.Length(max=250)],
+        validators=[forms.validators.DataRequired(__("Please specify a note for future reference")), forms.validators.Length(max=250)],
         description=__("Add a note for future reference"), filters=[forms.filters.none_if_empty()])
     refund_description = forms.StringField(__("Refund description"),
         validators=[forms.validators.DataRequired(__("Please specify a description for the invoice")), forms.validators.Length(max=250)],
-        description=__("Why is this order receiving a refund?"), filters=[forms.filters.none_if_empty()])
+        description=__("Description for the invoice"), filters=[forms.filters.none_if_empty()])
     note_to_user = forms.MarkdownField(__("Note to user"),
-        validators=[forms.validators.DataRequired(__("Please specify a note for the customer"))],
+        validators=[forms.validators.DataRequired(__("Please specify a note for the buyer"))],
         description=__("Send this note to the buyer"), filters=[forms.filters.none_if_empty()])
