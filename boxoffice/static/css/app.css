@@ -1224,7 +1224,7 @@ h2.col-header, p.margin-left {
   right: 0;
   background: #000;
   z-index: 1032;
-  opacity: 0.2;
+  opacity: 0.5;
 }
 #form-view .content-slider {
   position: absolute;
