@@ -15,6 +15,7 @@ import {NewPriceView} from './new_price.js';
 import {EditPriceView} from './edit_price.js';
 import {NewCategoryView} from './new_category.js';
 import {EditCategoryView} from './edit_category.js';
+import {PartialRefundOrderView} from './partial_refund_order.js';
 
 
 export const Router = Backbone.Router.extend({
@@ -37,6 +38,7 @@ export const Router = Backbone.Router.extend({
     "item/:item_id/price/:price_id/edit": "edit_price",
     "ic/:ic_id/category/new": "new_category",
     "ic/:ic_id/category/:category_id/edit": "edit_category",
+    "ic/:ic_id/order/:order_id/partial_refund": "partial_refund_order"
   },
   index: function() {
     IndexView.render();
@@ -109,6 +111,12 @@ export const Router = Backbone.Router.extend({
   },
   item: function(item_id) {
     ItemView.render({item_id});
+  },
+  partial_refund_order: function(ic_id, order_id){
+    if (window.boxofficeFirstLoad){
+      ItemCollectionView.render({ic_id});
+    }
+    PartialRefundOrderView.render({ic_id, order_id});
   },
   _extractParameters: function(route, fragment) {
     var result = route.exec(fragment).slice(1);
