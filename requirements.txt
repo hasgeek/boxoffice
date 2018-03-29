@@ -22,3 +22,4 @@ unicodecsv
 isoweek
 Flask-Migrate
 pycountry
+html5print

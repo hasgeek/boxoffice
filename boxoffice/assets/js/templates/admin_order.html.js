@@ -54,8 +54,9 @@ export const OrderTemplate = `
               <td><p class="table-content"><a class="boxoffice-button boxoffice-button-info" href="javascript:void(0)" on-click="showOrder">Line Items {{#if loading}}<i class="fa fa-spinner fa-spin"></i>{{/if}}</a></p></td>
               <td>
                 <p class="table-content">
-                  <a class="boxoffice-button boxoffice-button-info btn-inline" href={{ receipt }} target="_blank" >View Receipt</a>
-                  <a class="boxoffice-button boxoffice-button-info btn-inline" href={{ assignee }} target="_blank" >View Assignee details</a>
+                  <a class="boxoffice-button boxoffice-button-info btn-inline" href={{ receipt }} target="_blank" >View receipt</a>
+                  <a class="boxoffice-button boxoffice-button-info btn-inline" href={{ assignee }} target="_blank" >View assignee details</a>
+                  <a class="boxoffice-button boxoffice-button-info btn-inline" href="/admin/ic/{{icId}}/order/{{id}}/partial_refund" data-navigate>Partial refund</a>
                 </p>
               </td>
             </tr>

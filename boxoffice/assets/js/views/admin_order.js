@@ -16,6 +16,7 @@ export const OrderView = {
         el: '#main-content-area',
         template: OrderTemplate,
         data:  {
+          icId: ic_id,
           icTitle: ic_title,
           orders: orders,
           formatDateTime: function (dateTimeString) {
