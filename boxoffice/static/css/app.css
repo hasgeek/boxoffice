@@ -2,6 +2,10 @@ body {
   padding-top: 50px;
 }
 
+#root {
+  position: relative;
+}
+
 #hgnav > div {
   width: 100%;
 }
@@ -682,32 +686,6 @@ p.settlements-month-widget {
   margin-top: 10px;
 }
 
-#root {
-  position: relative;
-}
-
-#form-view > .content-slider {
-  position: absolute;
-  top: 15px;
-  left: 15px;
-  z-index: 1000;
-  width: calc(100% - 15px);
-}
-
-@media (min-width: 1200px) {
-  #form-view > .content-slider {
-    left: 15%;
-    margin-left: 15px;
-    width: calc(85% - 15px);
-  }
-}
-@media (min-width: 1400px) {
-  #form-view > .content-slider {
-    left: 13%;
-    margin-left: 15px;
-    width: calc(87% - 15px);
-  }
-}
 .color-black {
   color: #1F2D3D;
 }
@@ -1235,5 +1213,73 @@ h2.col-header, p.margin-left {
 }
 
 .items-select2 {
+  width: 100%;
+}
+
+#form-view .modal-background {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #000;
+  z-index: 1032;
+  opacity: 0.2;
+}
+#form-view .content-slider {
+  position: absolute;
+  top: -12px;
+  left: 0;
+  width: 100%;
+  background: #fff;
+  z-index: 1034;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
+}
+#form-view .control-group {
+  margin-bottom: 15px;
+}
+#form-view .control-label,
+#form-view .controls {
+  width: 100%;
+  display: block;
+}
+#form-view .control-label {
+  text-align: left;
+  padding-bottom: 10px;
+}
+#form-view .control-label .help-required {
+  position: static;
+}
+#form-view .form-actions div {
+  width: 100%;
+  margin-left: 0;
+}
+@media(min-width: 768px) {
+  #form-view .content-slider {
+    top: 15px;
+    left: 15%;
+    width: 70%;
+    border-radius: 4px;
+    min-height: auto;
+  }
+}
+@media(min-width: 1200px) {
+  #form-view .content-slider {
+    left: 30%;
+    width: 40%;
+  }
+}
+#form-view .content-slider-title {
+  padding: 10px 15px;
+}
+#form-view .content-slider-title .title {
+  float: left;
+}
+#form-view .content-slider-title .hide-button {
+  float: right;
+  background: none;
+  border: none;
+}
+#form-view .form-group .btn {
   width: 100%;
 }
