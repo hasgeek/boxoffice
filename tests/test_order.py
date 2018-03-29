@@ -4,6 +4,7 @@ import unittest
 import json
 import decimal
 from flask import make_response
+from werkzeug.test import EnvironBuilder
 from mock import MagicMock
 from coaster.utils import buid
 from boxoffice import app
@@ -33,6 +34,8 @@ class TestOrder(unittest.TestCase):
         self.ctx.push()
         init_data()
         self.client = app.test_client()
+        builder = EnvironBuilder(method='POST')
+        self.post_env = builder.get_environ()
 
     def test_basic(self):
         item = Item.query.filter_by(name='conference-ticket').first()
@@ -297,7 +300,8 @@ class TestOrder(unittest.TestCase):
             'form': refund_form,
             'request_method': 'POST'
         }
-        process_partial_refund_for_order(partial_refund_args)
+        with app.request_context(self.post_env):
+            process_partial_refund_for_order(partial_refund_args)
         self.assertEquals(pre_refund_transactions_count+1, order.refund_transactions.count())
 
         first_line_item = order.line_items[0]
@@ -383,7 +387,8 @@ class TestOrder(unittest.TestCase):
             'form': refund_form,
             'request_method': 'POST'
         }
-        process_partial_refund_for_order(partial_refund_args)
+        with app.request_context(self.post_env):
+            process_partial_refund_for_order(partial_refund_args)
 
         third_line_item = order.confirmed_line_items[0]
         pre_cancellation_transactions_count = order.refund_transactions.count()
@@ -445,7 +450,8 @@ class TestOrder(unittest.TestCase):
             'form': refund_form,
             'request_method': 'POST'
         }
-        process_partial_refund_for_order(partial_refund_args)
+        with app.request_context(self.post_env):
+            process_partial_refund_for_order(partial_refund_args)
 
         refund_transactions = order.transactions.filter_by(transaction_type=TRANSACTION_TYPE.REFUND).all()
         self.assertIsInstance(refund_transactions[0].refunded_at, datetime.datetime)
@@ -464,7 +470,8 @@ class TestOrder(unittest.TestCase):
             'form': refund_form,
             'request_method': 'POST'
         }
-        resp = process_partial_refund_for_order(partial_refund_args)
+        with app.request_context(self.post_env):
+            resp = process_partial_refund_for_order(partial_refund_args)
 
         self.assertEquals(resp.status_code, 403)
         refund_transactions = order.transactions.filter_by(transaction_type=TRANSACTION_TYPE.REFUND).all()
@@ -485,7 +492,8 @@ class TestOrder(unittest.TestCase):
             'form': refund_form,
             'request_method': 'POST'
         }
-        refund_resp = process_partial_refund_for_order(partial_refund_args)
+        with app.request_context(self.post_env):
+            refund_resp = process_partial_refund_for_order(partial_refund_args)
 
         self.assertEquals(refund_resp.status_code, 403)
 
