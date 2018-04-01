@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime
-from decimal import Decimal
 from coaster.utils import LabeledEnum
 from boxoffice.models import db, BaseMixin, UuidMixin, HeadersAndDataTuple, Organization, Order
-from sqlalchemy import event
 from sqlalchemy.sql import select, func
-from sqlalchemy.ext.orderinglist import ordering_list
 from sqlalchemy.orm import validates
 from baseframe import __
 from boxoffice.models.user import get_fiscal_year
@@ -34,13 +31,15 @@ def gen_invoice_no(organization, jurisdiction, invoice_dt):
 class Invoice(UuidMixin, BaseMixin, db.Model):
     __tablename__ = 'invoice'
     __uuid_primary_key__ = True
-    __table_args__ = (db.UniqueConstraint('organization_id', 'invoice_no'),)
+    __table_args__ = (db.UniqueConstraint('organization_id', 'fy_start_at', 'fy_end_at', 'invoice_no'),)
 
     status = db.Column(db.SmallInteger, default=INVOICE_STATUS.DRAFT, nullable=False)
     invoicee_name = db.Column(db.Unicode(255), nullable=True)
     invoicee_company = db.Column(db.Unicode(255), nullable=True)
     invoicee_email = db.Column(db.Unicode(254), nullable=True)
     invoice_no = db.Column(db.Integer(), nullable=True)
+    fy_start_at = db.Column(db.DateTime, nullable=True)
+    fy_end_at = db.Column(db.DateTime, nullable=True)
     invoiced_at = db.Column(db.DateTime, nullable=True)
     street_address_1 = db.Column(db.Unicode(255), nullable=True)
     street_address_2 = db.Column(db.Unicode(255), nullable=True)
@@ -74,6 +73,7 @@ class Invoice(UuidMixin, BaseMixin, db.Model):
         if not organization:
             raise ValueError(u"Invoice MUST be initialized with an organization")
         self.invoiced_at = datetime.utcnow()
+        self.fy_start_at, self.fy_end_at = get_fiscal_year(country_code, self.invoiced_at)
         self.invoice_no = gen_invoice_no(organization, country_code, self.invoiced_at)
         super(Invoice, self).__init__(*args, **kwargs)
 
