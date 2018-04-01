@@ -338,6 +338,8 @@ def edit_invoice_details(order):
     """
     Update invoice with buyer's address and taxid
     """
+    if not order.is_confirmed:
+        abort(404)
     invoice_dict = request.json.get('invoice')
     if not request.json or not invoice_dict:
         return api_error(message=_(u"Missing invoice details"), status_code=400)
@@ -376,6 +378,8 @@ def invoice_details_form(order):
     """
     View all invoices of an order
     """
+    if not order.is_confirmed:
+        abort(404)
     if not order.invoices:
         invoice = Invoice(order=order, organization=order.organization)
         db.session.add(invoice)
