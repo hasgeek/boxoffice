@@ -81,6 +81,14 @@ export const FormView = new Ractive({
   },
   hide: function(){
     this.set('shown', false);
+  },
+  oncomplete: function () {
+    //Close the form modal when user clicks outside the modal
+    $(document).on("click", function(event) {
+      if(!$(event.target).closest('#form-view .content-slider').length && !$(event.target).is('#form-view .content-slider')) {
+        FormView.fire('hide');
+      }
+    });
   }
 });
 
