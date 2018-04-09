@@ -85,14 +85,24 @@ export const FormView = new Ractive({
   oncomplete: function () {
     //Close the form modal when user clicks outside the modal
     $(document).on("click", function(event) {
-      if(!$(event.target).closest('#form-view .content-slider').length && !$(event.target).is('#form-view .content-slider')) {
+      if (!$(event.target).closest('#form-view .content-slider').length && !$(event.target).is('#form-view .content-slider')) {
+        FormView.fire('hide');
+      }
+    });
+
+    //On pressing ESC, close the modalmn
+    $(document).keydown(function(event) {
+      if (event.keyCode === 27) {
+        event.preventDefault();
         FormView.fire('hide');
       }
     });
   }
 });
 
-FormView.on('hide', function(event){
-  this.hide();
-  this.get('onHide')();
+FormView.on('hide', function(event) {
+  if (this.get('shown')) {
+    this.hide();
+    this.get('onHide')();
+  }
 });
