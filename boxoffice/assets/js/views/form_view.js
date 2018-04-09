@@ -90,7 +90,7 @@ export const FormView = new Ractive({
       }
     });
 
-    //On pressing ESC, close the modalmn
+    //On pressing ESC, close the modal
     $(document).keydown(function(event) {
       if (event.keyCode === 27) {
         event.preventDefault();
