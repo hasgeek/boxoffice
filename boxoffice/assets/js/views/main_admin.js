@@ -14,6 +14,8 @@ export const navigateTo = function(url){
   NProgress.configure({ showSpinner: false}).start();
   //Relative paths(without '/admin') are defined in router.js
   eventBus.trigger('navigate', url.replace('/admin', ''));
+  // Scroll to top of the page
+  window.scrollTo(0, 0);
 }
 
 function handleNavigation(){
