@@ -126,6 +126,38 @@ class Order(BaseMixin, db.Model):
 
         return LineItem.query.filter(LineItem.order == self, LineItem.previous == None, LineItem.status.in_(LINE_ITEM_STATUS.TRANSACTION))
 
+    @classmethod
+    def fetch_order_transactions(cls, item_collection_id):
+        from .payment import TRANSACTION_TYPE
+
+        query = db.session.query('id', 'invoice_no', 'paid_at', 'buyer_fullname',
+            'buyer_email', 'buyer_phone', 'access_token', 'net_amount').from_statement(db.text("""
+            SELECT id, invoice_no, paid_at, buyer_fullname, buyer_email, buyer_phone, access_token,
+                CASE WHEN paid_amount IS NULL THEN 0
+                     WHEN refund_amount IS NULL THEN paid_amount
+                     ELSE (paid_amount - refund_amount) END AS net_amount
+            FROM customer_order
+            LEFT OUTER JOIN (SELECT customer_order_id, SUM(amount) AS paid_amount
+                FROM payment_transaction
+                WHERE transaction_type = :payment_type
+                GROUP BY payment_transaction.customer_order_id
+            ) AS paid_transactions
+            ON customer_order.id = paid_transactions.customer_order_id
+            LEFT OUTER JOIN (SELECT customer_order_id, SUM(amount) AS refund_amount
+                FROM payment_transaction
+                WHERE transaction_type = :refund_type
+                GROUP BY payment_transaction.customer_order_id
+            ) AS refund_transactions
+            ON customer_order.id = refund_transactions.customer_order_id
+            WHERE item_collection_id = :item_collection_id
+            AND STATUS IN :statuses
+            ORDER BY created_at DESC;
+        """)).params(payment_type=TRANSACTION_TYPE.PAYMENT,
+            refund_type=TRANSACTION_TYPE.REFUND, item_collection_id=item_collection_id,
+            statuses=tuple(ORDER_STATUS.CONFIRMED))
+        return db.session.execute(query).fetchall()
+
+
 
 class OrderSession(BaseMixin, db.Model):
     """

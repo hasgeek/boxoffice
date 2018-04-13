@@ -12,21 +12,43 @@ export const OrderView = {
       url: urlFor('index', {scope_ns: 'ic', scope_id: ic_id, resource: 'orders', root: true})
     }).done(({org_name, org_title, ic_title, orders}) => {
       // Initial render
-      let orderComponent = new Ractive({
+      var t0 = performance.now();
+      let initialBatchSize = 19;
+      let batch = orders.slice(0, initialBatchSize);
+      window.orderComponent = new Ractive({
         el: '#main-content-area',
         template: OrderTemplate,
         data:  {
           icId: ic_id,
           icTitle: ic_title,
-          orders: orders,
+          orders: batch,
           formatDateTime: function (dateTimeString) {
             return Util.formatDateTime(dateTimeString);
           },
           formatToIndianRupee: function (amount) {
             return Util.formatToIndianRupee(amount);
           }
+        },
+        oncomplete: function(){
+          setTimeout(() => {
+            // orders.slice(initialBatchSize).forEach(function(order){
+            //   orderComponent.push('orders', order);
+            // });
+            this.merge('orders', orders.slice(initialBatchSize), {compare: 'id'}).then(function(){
+              $('#orders-table').trigger('footable_redraw');
+            });
+            // $('#orders-table').trigger('footable_redraw');
+          }, 200);
         }
       });
+      // setTimeout(function(){
+      //   orderComponent.merge('orders', orders.slice(initialBatchSize));
+      //   // orders.slice(initialBatchSize).forEach(function(order){
+      //   //   orderComponent.merge('orders', order);
+      //   // });
+      // }, 300);
+      var t1 = performance.now();
+      console.log("Rendering orders took " + (t1 - t0) + " milliseconds.");
 
       SideBarView.render('orders', {org_name, org_title, ic_id, ic_title});
       setPageTitle("Orders", ic_title);

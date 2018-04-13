@@ -3,7 +3,7 @@
 from flask import jsonify, url_for
 from .. import app, lastuser
 from coaster.views import load_models, render_with
-from boxoffice.models import ItemCollection, Order, CURRENCY_SYMBOL, LineItem, LINE_ITEM_STATUS
+from boxoffice.models import ItemCollection, Order, CURRENCY_SYMBOL, LineItem, LINE_ITEM_STATUS, ORDER_STATUS
 from utils import json_date_format, xhr_only
 
 
@@ -15,7 +15,7 @@ def format_assignee(assignee):
             'email': assignee.email,
             'phone': assignee.phone,
             'details': assignee.details
-            }
+        }
 
 
 def format_line_items(line_items):
@@ -43,24 +43,25 @@ def format_line_items(line_items):
 def jsonify_admin_orders(data_dict):
     item_collection_id = data_dict['item_collection'].id
     order_dicts = []
-    for order in data_dict['orders']:
-        if (order.is_confirmed):
-            order_dicts.append({
-                'invoice_no': order.invoice_no,
-                'id': order.id,
-                'order_date': json_date_format(order.paid_at),
-                'buyer_fullname': order.buyer_fullname,
-                'buyer_email': order.buyer_email,
-                'buyer_phone': order.buyer_phone,
-                'currency': CURRENCY_SYMBOL['INR'],
-                'amount': order.net_amount,
-                'url': '/ic/' + unicode(item_collection_id) + '/' + unicode(order.id),
-                'receipt': url_for('receipt', access_token=order.access_token),
-                'assignee': url_for('line_items', access_token=order.access_token)
-            })
-    return jsonify(org_name=data_dict['item_collection'].organization.name,
+    orders = Order.fetch_order_transactions(item_collection_id)
+    for order in orders:
+        order_dicts.append({
+            'id': order[0],
+            'invoice_no': order[1],
+            'order_date': json_date_format(order[2]),
+            'buyer_fullname': order[3],
+            'buyer_email': order[4],
+            'buyer_phone': order[5],
+            'currency': CURRENCY_SYMBOL['INR'],
+            'amount': order[7],
+            'url': '/ic/' + unicode(item_collection_id) + '/' + unicode(order[0]),
+            'receipt': url_for('receipt', access_token=order[6]),
+            'assignee': url_for('line_items', access_token=order[6])
+        })
+    resp = jsonify(org_name=data_dict['item_collection'].organization.name,
         org_title=data_dict['item_collection'].organization.title,
         ic_title=data_dict['item_collection'].title, orders=order_dicts)
+    return resp
 
 
 @app.route('/admin/ic/<ic_id>/orders')
@@ -71,7 +72,7 @@ def jsonify_admin_orders(data_dict):
     permission='org_admin'
     )
 def admin_orders(item_collection):
-    return dict(title=item_collection.title, item_collection=item_collection, orders=item_collection.orders)
+    return dict(title=item_collection.title, item_collection=item_collection)
 
 
 @app.route('/admin/order/<order_id>')

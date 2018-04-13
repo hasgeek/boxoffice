@@ -5,7 +5,7 @@ from sqlalchemy.sql import func
 from decimal import Decimal
 from coaster.utils import LabeledEnum, isoweek_datetime
 from isoweek import Week
-from baseframe import __, localize_timezone
+from baseframe import __
 from boxoffice.models import db, BaseMixin, Order, ORDER_STATUS, MarkdownColumn, ItemCollection
 from ..extapi.razorpay_status import RAZORPAY_PAYMENT_STATUS
 
