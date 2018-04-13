@@ -83,14 +83,17 @@ export const FormView = new Ractive({
     this.set('shown', false);
   },
   oncomplete: function () {
-    //Close the form modal when user clicks outside the modal
+    /* Close the form modal when user clicks outside the modal.
+      jquery-timepicker adds a div.ui-timepicker-wrapper to the body, don't close the modal
+      when user selects time from the timepicker dropdown.
+    */
     $(document).on("click", function(event) {
-      if (!$(event.target).closest('#form-view .content-slider').length && !$(event.target).is('#form-view .content-slider')) {
+      if (!$(event.target).closest('#form-view .content-slider').length && !$(event.target).is('#form-view .content-slider') && !$(event.target).closest('.ui-timepicker-wrapper').length) {
         FormView.fire('hide');
       }
     });
 
-    //On pressing ESC, close the modalmn
+    //On pressing ESC, close the modal
     $(document).keydown(function(event) {
       if (event.keyCode === 27) {
         event.preventDefault();
