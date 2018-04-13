@@ -82,7 +82,7 @@ def jsonify_item(data_dict):
         ic_name=data_dict['item'].item_collection.name,
         ic_title=data_dict['item'].item_collection.title,
         item=format_item_details(data_dict['item']),
-        prices=[jsonify_price(price) for price in data_dict['item'].prices],
+        prices=[jsonify_price(price) for price in data_dict['item'].standard_prices()],
         discount_policies=discount_policies_list)
 
 
