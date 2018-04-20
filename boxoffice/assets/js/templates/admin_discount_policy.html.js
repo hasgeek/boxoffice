@@ -177,7 +177,7 @@ export const DiscountPolicyTemplate = `
                   {{/if}}
 
                   {{#if is_coupon}}
-                    <button class="boxoffice-button boxoffice-button-action btn-right" on-click="getCouponList(event)">
+                    <button class="boxoffice-button boxoffice-button-info btn-right" on-click="getCouponList(event)">
                       List coupons{{#loadingCoupons}}<i class="fa fa-spinner fa-spin" intro='fly:{"x":0,"y":"0"}'>{{/}}
                     </button>
                     <button class="boxoffice-button boxoffice-button-action btn-right btn-inline" on-click="showCouponForm(event)">Generate coupon</button>
