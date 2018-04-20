@@ -112,6 +112,7 @@ def jsonify_order(order_dict):
 
 
 @app.route('/admin/o/<org_name>/order/<receipt_no>', methods=['GET', 'POST'])
+@lastuser.requires_permission(('siteadmin', 'org_admin'))
 @lastuser.requires_login
 @render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_order})
 def admin_org_order(org_name, receipt_no):
