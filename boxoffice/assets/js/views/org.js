@@ -59,7 +59,8 @@ export const OrgView = {
         }
       });
 
-      $('#order-jump-form').submit(function(){
+      $('#order-jump-form').submit(function(submitEvt){
+        submitEvt.preventDefault();
         let order_receipt_no = $('#order-receipt-no-input').val();
         navigateTo(`/admin/o/${org_name}/order/${order_receipt_no}`);
       });

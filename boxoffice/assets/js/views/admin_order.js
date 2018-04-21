@@ -57,6 +57,14 @@ export const OrderView = {
         }
       });
 
+      orderComponent.on('closeOrder', function(event, method) {
+        if (window.history.length <= 2) {
+          navigateTo(`/admin/ic/${ic.id}/orders`);
+        } else {
+          window.history.back();
+        }
+      });
+
       // SideBarView.render('org_reports', {org.name, org.title});
       setPageTitle("Orders", org.title);
       NProgress.done();

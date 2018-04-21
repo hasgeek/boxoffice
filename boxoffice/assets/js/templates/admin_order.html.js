@@ -1,6 +1,6 @@
 export const OrderTemplate = `
   <div class="content-slider" intro-outro='fly:{x:200,y:0,duration:200}'>
-    <a href="/admin/ic/{{ic.id}}/orders" class="close-button" data-navigate><i class="fa fa-close"></i></a>
+    <a on-click="closeOrder" class="close-button" data-navigate><i class="fa fa-close"></i></a>
     <p class="content-slider-title">Order receipt no: {{order.invoice_no}}</p>
     <br />
     <ul class='content-slider-content'>

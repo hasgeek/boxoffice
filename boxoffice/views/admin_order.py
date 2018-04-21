@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from flask import jsonify, url_for, abort
+from flask import jsonify, url_for, abort, request
 from .. import app, lastuser
 from coaster.views import load_models, render_with
 from boxoffice.models import ItemCollection, Organization, Order, CURRENCY_SYMBOL, LineItem, LINE_ITEM_STATUS
@@ -111,17 +111,15 @@ def jsonify_order(order_dict):
     )
 
 
-@app.route('/admin/o/<org_name>/order/<receipt_no>', methods=['GET', 'POST'])
-@lastuser.requires_permission(('siteadmin', 'org_admin'))
+@app.route('/admin/o/<org_name>/order/<int:receipt_no>', methods=['GET', 'POST'])
 @lastuser.requires_login
+@load_models(
+    (Organization, {'name': 'org_name'}, 'org'),
+    (Order, {'organization': 'org', 'receipt_no': 'receipt_no'}, 'order'),
+    permission='org_admin'
+)
 @render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_order})
-def admin_org_order(org_name, receipt_no):
-    org = Organization.query.filter_by(name=org_name).one_or_404()
-    try:
-        int(receipt_no)
-    except:
-        abort(400)
-    order = Order.query.filter(Order.organization == org, Order.receipt_no == receipt_no).one_or_404()
+def admin_org_order(org, order):
     line_items = LineItem.query.filter(LineItem.order == order,
         LineItem.status.in_([LINE_ITEM_STATUS.CONFIRMED, LINE_ITEM_STATUS.CANCELLED])).all()
     return dict(org=org, order=order, line_items=line_items)
