@@ -4,11 +4,18 @@ import {eventBus} from './main_admin.js'
 var NProgress = require('nprogress');
 import {fetch, urlFor, setPageTitle} from '../models/util.js';
 import {SideBarView} from './sidebar.js';
+import {navigateTo} from '../views/main_admin.js';
+
 
 const orgTemplate = `
   <div class="content-wrapper clearfix">
     <h1 class="header col-xs-12">{{ orgTitle }}</h1>
-    <div class="title-wrapper col-xs-12">
+    <div class="title-wrapper col-xs-12 col-md-4">
+      <form class="search-form" id='order-jump-form' method='post'>
+        <input autofocus size="30" class='form-control' placeholder='Search order with receipt no.' class='order-jump-input' id='order-receipt-no-input' type="text" />
+      </form>
+    </div>
+    <div class="title-wrapper col-xs-12 col-md-8">
       <a class="boxoffice-button boxoffice-button-action btn-right" href="/admin/o/{{orgName}}/ic/new" data-navigate>
         New item collection
       </a>
@@ -27,8 +34,8 @@ const orgTemplate = `
             <p class="section-title">Item collection description</p>
             <div class="section-content">{{{ description }}}</div>
             <div class="btn-wrapper">
-              <a class="boxoffice-button boxoffice-button-action" href="/{{ orgName }}/{{ name }}">View listing</a>
-              <a class="boxoffice-button boxoffice-button-action" href="/admin/ic/{{id}}" data-navigate>View dashboard</a>
+              <a class="boxoffice-button boxoffice-button-info" href="/{{ orgName }}/{{ name }}">View listing</a>
+              <a class="boxoffice-button boxoffice-button-info" href="/admin/ic/{{id}}" data-navigate>View dashboard</a>
             </div>
           </div>
         </div>
@@ -50,6 +57,12 @@ export const OrgView = {
           orgTitle: org_title,
           itemCollections: item_collections
         }
+      });
+
+      $('#order-jump-form').submit(function(submitEvt){
+        submitEvt.preventDefault();
+        let order_receipt_no = $('#order-receipt-no-input').val();
+        navigateTo(`/admin/o/${org_name}/order/${order_receipt_no}`);
       });
 
       SideBarView.render('org', {org_name, org_title});
