@@ -158,7 +158,7 @@ def jsonify_delete_discount_policy(discount_policy_dict):
     discount_policy = discount_policy_dict['discount_policy']
     form = forms.Form()
     if request.method == 'GET':
-        return jsonify(form_template=render_form(form=form, title=u"Delete dp", submit=u"Delete", with_chrome=False))
+        return jsonify(form_template=render_form(form=form, title=u"Delete discount policy", submit=u"Delete", with_chrome=False))
 
     if not form.validate_on_submit():
         return api_error(message=_(u"The discount policy could not be deleted."),
