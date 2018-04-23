@@ -28,6 +28,7 @@ export const Router = Backbone.Router.extend({
     "o/:org_name/discount_policy": 'discount_policy',
     "o/:org_name/discount_policy?:params": 'discount_policy',
     "ic/:ic_id": "item_collection",
+    "ic/:ic_id/reports": "report",
     "o/:org_name/ic/new": "new_item_collection",
     "ic/:ic_id/edit": "edit_item_collection",
     "ic/:ic_id/orders": "orders",
