@@ -864,9 +864,7 @@ $(function() {
               boxoffice.ractive.set('sendEventHits', 0);
               userAction = 'First interaction';
             }
-            if (typeof ga !== "undefined") {
-              ga('send', { hitType: 'event', eventCategory: 'ticketing', eventAction: userAction, eventLabel: label, eventValue: value});
-            }
+            $(document).trigger('boxofficeTicketingEvents', [userAction, label, value]);
           });
 
           var discount_coupons = boxoffice.util.getDiscountCodes();
