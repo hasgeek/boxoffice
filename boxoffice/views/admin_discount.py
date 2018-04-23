@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import division
-from flask import jsonify, g
+from flask import jsonify, request
 from .. import app, lastuser
 from baseframe import _
+import baseframe.forms as forms
+from baseframe.forms import render_form
 from coaster.views import load_models, render_with, requestargs
 from ..models import db
 from boxoffice.models import Organization, DiscountPolicy, DiscountCoupon, Price, CURRENCY
@@ -152,13 +154,40 @@ def admin_edit_discount_policy(discount_policy):
             errors=discount_policy_form.errors)
 
 
+def jsonify_delete_discount_policy(discount_policy_dict):
+    discount_policy = discount_policy_dict['discount_policy']
+    form = forms.Form()
+    if request.method == 'GET':
+        return jsonify(form_template=render_form(form=form, title=u"Delete dp", submit=u"Delete", with_chrome=False))
+
+    if not form.validate_on_submit():
+        return api_error(message=_(u"The discount policy could not be deleted."),
+            status_code=400,
+            errors=form.errors)
+
+    db.session.delete(discount_policy)
+    db.session.commit()
+    return api_success(result={}, doc="Discount policy deleted.", status_code=200)
+
+
+@app.route('/admin/o/<org_name>/discount_policy/<discount_policy_id>/delete', methods=['GET', 'POST'])
+@lastuser.requires_login
+@render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_delete_discount_policy})
+@load_models(
+    (DiscountPolicy, {'id': 'discount_policy_id'}, 'discount_policy'),
+    permission='org_admin'
+)
+def admin_delete_discount_policy(discount_policy):
+    return dict(discount_policy=discount_policy)
+
+
 @app.route('/admin/discount_policy/<discount_policy_id>/coupons/new', methods=['POST'])
 @lastuser.requires_login
 @xhr_only
 @load_models(
     (DiscountPolicy, {'id': 'discount_policy_id'}, 'discount_policy'),
     permission='org_admin'
-    )
+)
 def admin_new_coupon(discount_policy):
     coupon_form = DiscountCouponForm(parent=discount_policy)
     coupons = []
