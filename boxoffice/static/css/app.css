@@ -131,6 +131,11 @@ body {
   border-color: #df5e0e;
 }
 
+.boxoffice-button-danger {
+  background-color: #c02908;
+  border-color: #c02908;
+}
+
 .boxoffice-button-action:hover {
   background-color: #5CB85C;
   border-color: #4CAE4C;
@@ -618,10 +623,10 @@ input.icon-placeholder {
 
 .content-slider {
   position: absolute;
-  top: -115px;
-  left: 3%;
+  top: 10px;
+  left: 2.5%;
   background: #fff;
-  z-index: 1020;
+  z-index: 1030;
   width: 97%;
   min-height: 100%;
   box-shadow: 0 0 2px rgba(0, 0, 0, 0.8);

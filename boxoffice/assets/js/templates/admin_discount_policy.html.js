@@ -183,7 +183,7 @@ export const DiscountPolicyTemplate = `
                     <button class="boxoffice-button boxoffice-button-action btn-right btn-inline" on-click="showCouponForm(event)">Generate coupon</button>
                     <p class="error-msg">{{{ loadingCouponErrorMsg }}}</p>
                   {{/if}}
-                  <a class="boxoffice-button boxoffice-button-action btn-right" href="/admin/o/{{orgName}}/discount_policy/{{id}}/delete" data-navigate>
+                  <a class="boxoffice-button boxoffice-button-danger btn-right" href="/admin/o/{{orgName}}/discount_policy/{{id}}/delete" data-navigate>
                     Delete discount policy
                   </a>
                 </div>
