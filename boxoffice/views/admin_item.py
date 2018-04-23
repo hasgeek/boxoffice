@@ -23,10 +23,12 @@ from utils import xhr_only
 def items(organization, search=None):
     if search:
         filtered_items = db.session.query(Item, ItemCollection).filter(
-            ItemCollection.organization == organization).filter(
-            Item.title.ilike('%{query}%'.format(query=search))).join(Item.item_collection).options(
-            db.Load(Item).load_only('id', 'title'),
-            db.Load(ItemCollection).load_only('id', 'title')).all()
+            ItemCollection.organization == organization, db.or_(
+                Item.title.ilike('%{query}%'.format(query=search)),
+                ItemCollection.title.ilike('%{query}%'.format(query=search)))).join(
+            Item.item_collection).options(
+                db.Load(Item).load_only('id', 'title'),
+                db.Load(ItemCollection).load_only('id', 'title')).all()
         return api_success(result={'items': [{
             'id': str(item_tuple[0].id),
             'title': "{ic_title}: {title}".format(ic_title=item_tuple[1].title, title=item_tuple[0].title)
@@ -82,7 +84,7 @@ def jsonify_item(data_dict):
         ic_name=data_dict['item'].item_collection.name,
         ic_title=data_dict['item'].item_collection.title,
         item=format_item_details(data_dict['item']),
-        prices=[jsonify_price(price) for price in data_dict['item'].prices],
+        prices=[jsonify_price(price) for price in data_dict['item'].standard_prices()],
         discount_policies=discount_policies_list)
 
 

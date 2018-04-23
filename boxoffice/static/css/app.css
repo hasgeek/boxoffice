@@ -127,8 +127,8 @@ body {
   }
 }
 .boxoffice-button-action {
-  background-color: #5CB85C;
-  border-color: #4CAE4C;
+  background-color: #df5e0e;
+  border-color: #df5e0e;
 }
 
 .boxoffice-button-action:hover {
@@ -137,8 +137,8 @@ body {
 }
 
 .boxoffice-button-info {
-  background-color: #5BC0DE;
-  border-color: #46B8DA;
+  background-color: #856A91;
+  border-color: #856A91;
 }
 
 .boxoffice-button-info:hover {
@@ -633,9 +633,10 @@ input.icon-placeholder {
 
 @media (min-width: 768px) {
   .content-slider {
-    top: -50px;
+    top: 10px;
     left: 1%;
     width: 99%;
+    z-index: 1030;
   }
 }
 .content-slider-title {
@@ -644,6 +645,16 @@ input.icon-placeholder {
   text-align: center;
   border-bottom: 2px solid #ddd;
   margin: 0;
+}
+
+p.content-slider-content {
+  font-size: 18px;
+  margin-left: 32px;
+}
+
+ul.content-slider-content {
+  font-size: 18px;
+  margin-left: 10px;
 }
 
 .content-slider-wrapper {
@@ -916,6 +927,19 @@ h2.col-header, p.margin-left {
   margin: 10px 0 5px;
 }
 
+.order-jump-input {
+  margin-top: 2px;
+}
+
+.search-form {
+  text-align: right;
+}
+
+@media (min-width: 768px) {
+  .search-form {
+    text-align: left;
+  }
+}
 .org-header {
   text-align: center;
   margin: 0 auto 15px;

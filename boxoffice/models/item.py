@@ -74,6 +74,9 @@ class Item(BaseScopedNameMixin, db.Model):
         """Return the discounted price for an item."""
         return Price.query.filter(Price.item == self, Price.discount_policy == discount_policy).one_or_none()
 
+    def standard_prices(self):
+        return Price.query.filter(Price.item == self, Price.discount_policy == None).order_by('start_at desc')
+
     def price_at(self, timestamp):
         """Return the price object for an item at a given time."""
         return Price.query.filter(Price.item == self, Price.start_at <= timestamp,

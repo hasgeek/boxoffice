@@ -533,9 +533,11 @@ input.icon-placeholder
 
 @media (min-width: 768px)
   .content-slider
-    top: -50px
+    // top: -50px
+    top: 10px
     left: 1%
     width: 99%
+    z-index: 1030
 
 .content-slider-title
   padding: 10px 0
@@ -543,6 +545,14 @@ input.icon-placeholder
   text-align: center
   border-bottom: 2px solid #ddd
   margin: 0
+
+p.content-slider-content
+  font-size: 18px
+  margin-left: 32px
+
+ul.content-slider-content
+  font-size: 18px
+  margin-left: 10px
 
 .content-slider-wrapper
   padding: 18px
@@ -773,3 +783,13 @@ h2.col-header, p.margin-left
 .align-right-btn
   float: right
   margin: 10px 0 5px
+
+.order-jump-input
+  margin-top: 2px
+
+.search-form
+  text-align: right
+
+@media (min-width: 768px)
+  .search-form
+    text-align: left

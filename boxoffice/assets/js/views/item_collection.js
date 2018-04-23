@@ -81,7 +81,7 @@ export const ItemCollectionTemplate = `
       <a class="boxoffice-button boxoffice-button-action btn-right btn-margin-right" href="/admin/ic/{{ic_id}}/edit" data-navigate>
         Edit item collection
       </a>
-      <a class="boxoffice-button boxoffice-button-action btn-right btn-margin-right" href="/{{ org_name }}/{{ ic_name }}">
+      <a class="boxoffice-button boxoffice-button-info btn-right btn-margin-right" href="/{{ org_name }}/{{ ic_name }}">
         View listing
       </a>
     </div>

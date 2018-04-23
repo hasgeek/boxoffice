@@ -6,6 +6,7 @@ import {DiscountPolicyView} from './admin_discount_policy.js';
 import {ItemCollectionView} from './item_collection.js';
 import {ItemCollectionNewView} from './new_item_collection.js';
 import {ItemCollectionEditView} from './edit_item_collection.js';
+import {OrdersView} from './admin_orders.js';
 import {OrderView} from './admin_order.js';
 import {ReportView} from './admin_report.js';
 import {ItemView} from './admin_item.js';
@@ -27,10 +28,11 @@ export const Router = Backbone.Router.extend({
     "o/:org_name/discount_policy": 'discount_policy',
     "o/:org_name/discount_policy?:params": 'discount_policy',
     "ic/:ic_id": "item_collection",
+    "ic/:ic_id/reports": "report",
     "o/:org_name/ic/new": "new_item_collection",
     "ic/:ic_id/edit": "edit_item_collection",
-    "ic/:ic_id/orders": "order",
-    "ic/:ic_id/reports": "report",
+    "ic/:ic_id/orders": "orders",
+    "o/:org_name/order/:order_receipt_no": "order",
     "ic/:ic_id/item/new": "new_item",
     "item/:item_id/edit": "edit_item",
     "item/:item_id": "item",
@@ -103,8 +105,11 @@ export const Router = Backbone.Router.extend({
     }
     EditCategoryView.render({ic_id, category_id});
   },
-  order: function(ic_id) {
-    OrderView.render({ic_id});
+  orders: function(ic_id) {
+    OrdersView.render({ic_id});
+  },
+  order: function(org_name, order_receipt_no) {
+    OrderView.render({org_name, order_receipt_no});
   },
   report: function(ic_id) {
     ReportView.render({ic_id});
