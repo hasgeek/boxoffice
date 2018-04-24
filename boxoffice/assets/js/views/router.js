@@ -3,6 +3,7 @@ import {IndexView} from './index.js';
 import {OrgView} from './org.js';
 import {OrgReportView} from './admin_org_report.js';
 import {DiscountPolicyView} from './admin_discount_policy.js';
+import {DeleteDiscountPolicyView} from './delete_discount_policy.js';
 import {ItemCollectionView} from './item_collection.js';
 import {ItemCollectionNewView} from './new_item_collection.js';
 import {ItemCollectionEditView} from './edit_item_collection.js';
@@ -26,6 +27,7 @@ export const Router = Backbone.Router.extend({
     "o/:org_name": "org",
     "o/:org_name/reports": "org_report",
     "o/:org_name/discount_policy": 'discount_policy',
+    "o/:org_name/discount_policy/:id/delete": 'delete_discount_policy',
     "o/:org_name/discount_policy?:params": 'discount_policy',
     "ic/:ic_id": "item_collection",
     "ic/:ic_id/reports": "report",
@@ -53,6 +55,9 @@ export const Router = Backbone.Router.extend({
   },
   discount_policy: function(org_name, {search, page, size}={}) {
     DiscountPolicyView.render({org_name, search, page, size});
+  },
+  delete_discount_policy: function(org_name, id) {
+    DeleteDiscountPolicyView.render({org_name, id});
   },
   item_collection: function(ic_id) {
     ItemCollectionView.render({ic_id});

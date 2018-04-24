@@ -42,7 +42,7 @@ export const OrderTemplate = `
               {{/}}
               {{#cancel_ticket_url && !cancelled_at}}
                 <p>
-                  <button class="boxoffice-button boxoffice-button-small boxoffice-button-action" href="javascript:void(0)" on-click="cancelTicket" {{#cancelling}}disabled{{/}}>
+                  <button class="boxoffice-button boxoffice-button-small boxoffice-button-danger" href="javascript:void(0)" on-click="cancelTicket" {{#cancelling}}disabled{{/}}>
                     Cancel {{#cancelling}}<i class="fa fa-spinner fa-spin"></i>{{/}}
                   </button>
                 </p>

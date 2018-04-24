@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import division
-from flask import jsonify, g
+from flask import jsonify, request
 from .. import app, lastuser
 from baseframe import _
+import baseframe.forms as forms
+from baseframe.forms import render_form
 from coaster.views import load_models, render_with, requestargs
 from ..models import db
 from boxoffice.models import Organization, DiscountPolicy, DiscountCoupon, Price, CURRENCY
@@ -41,7 +43,7 @@ def jsonify_discount_policies(data_dict):
 @load_models(
     (Organization, {'name': 'org'}, 'organization'),
     permission='org_admin'
-    )
+)
 @requestargs('search', ('page', int), ('size', int))
 def admin_discount_policies(organization, search=None, page=1, size=None):
     results_per_page = size or 20
@@ -66,7 +68,7 @@ def admin_discount_policies(organization, search=None, page=1, size=None):
 @load_models(
     (Organization, {'name': 'org'}, 'organization'),
     permission='org_admin'
-    )
+)
 def admin_new_discount_policy(organization):
     discount_policy = DiscountPolicy(organization=organization)
     discount_policy_form = DiscountPolicyForm(model=DiscountPolicy)
@@ -121,7 +123,7 @@ def admin_new_discount_policy(organization):
 @load_models(
     (DiscountPolicy, {'id': 'discount_policy_id'}, 'discount_policy'),
     permission='org_admin'
-    )
+)
 def admin_edit_discount_policy(discount_policy):
     discount_policy_error_msg = _(u"The discount could not be updated. Please rectify the indicated issues")
     if discount_policy.is_price_based and discount_policy.items:
@@ -152,13 +154,35 @@ def admin_edit_discount_policy(discount_policy):
             errors=discount_policy_form.errors)
 
 
+@app.route('/admin/o/<org_name>/discount_policy/<discount_policy_id>/delete', methods=['GET', 'POST'])
+@lastuser.requires_login
+@xhr_only
+@load_models(
+    (DiscountPolicy, {'id': 'discount_policy_id'}, 'discount_policy'),
+    permission='org_admin'
+)
+def admin_delete_discount_policy(discount_policy):
+    form = forms.Form()
+    if request.method == 'GET':
+        return jsonify(form_template=render_form(form=form, title=u"Delete discount policy", submit=u"Delete", with_chrome=False))
+
+    if not form.validate_on_submit():
+        return api_error(message=_(u"The discount policy could not be deleted."),
+            status_code=400,
+            errors=form.errors)
+
+    db.session.delete(discount_policy)
+    db.session.commit()
+    return api_success(result={}, doc="Discount policy deleted.", status_code=200)
+
+
 @app.route('/admin/discount_policy/<discount_policy_id>/coupons/new', methods=['POST'])
 @lastuser.requires_login
 @xhr_only
 @load_models(
     (DiscountPolicy, {'id': 'discount_policy_id'}, 'discount_policy'),
     permission='org_admin'
-    )
+)
 def admin_new_coupon(discount_policy):
     coupon_form = DiscountCouponForm(parent=discount_policy)
     coupons = []
