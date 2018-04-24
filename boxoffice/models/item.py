@@ -4,7 +4,7 @@ from datetime import datetime
 from decimal import Decimal
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.orderinglist import ordering_list
-from baseframe import __, localize_timezone
+from baseframe import __
 from coaster.utils import LabeledEnum
 from coaster.sqlalchemy import with_roles
 from . import db, JsonDict, BaseScopedNameMixin, MarkdownColumn
@@ -44,6 +44,8 @@ class Item(BaseScopedNameMixin, db.Model):
     assignee_details = db.Column(JsonDict, default={}, nullable=False)
 
     cancellable_until = db.Column(db.DateTime, nullable=True)
+
+    restricted_entry = db.Column(db.Boolean, default=False, nullable=False)
 
     __roles__ = {
         'item_owner': {
@@ -161,6 +163,15 @@ class Item(BaseScopedNameMixin, db.Model):
             ORDER BY final_amount;
         ''')).params(item_id=self.id, status=LINE_ITEM_STATUS.CONFIRMED)
         return db.session.execute(query).fetchall()
+
+    def is_coupon_code_valid(self, code):
+        from . import DiscountPolicy, DiscountCoupon
+        if DiscountPolicy.is_signed_code_format(code):
+            policy = DiscountPolicy.get_from_signed_code(code)
+        else:
+            policy = DiscountPolicy.query.join(DiscountCoupon).filter(
+                DiscountCoupon.code == code, DiscountCoupon.used_count < DiscountCoupon.usage_limit).one_or_none()
+        return policy and policy in self.discount_policies and not DiscountCoupon.get(policy, code)
 
 
 class Price(BaseScopedNameMixin, db.Model):

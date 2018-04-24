@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from flask import make_response, render_template, jsonify, request, Markup
+from flask import render_template, jsonify, request, Markup
 from pycountry import pycountry
 from coaster.views import load_models
 from coaster.utils import getbool
@@ -12,7 +12,7 @@ from boxoffice.data import indian_states
 
 def jsonify_item(item):
     price = item.current_price()
-    if price:
+    if price and (not item.restricted_entry or item.is_access_token_valid(request.args.get('access_token'))):
         return {
             'name': item.name,
             'title': item.title,
