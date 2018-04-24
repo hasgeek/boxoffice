@@ -41,23 +41,21 @@ def format_line_items(line_items):
 
 
 def jsonify_admin_orders(data_dict):
-    item_collection_id = data_dict['item_collection'].id
     order_dicts = []
-    for order in data_dict['orders']:
-        if (order.is_confirmed):
-            order_dicts.append({
-                'invoice_no': order.invoice_no,
-                'id': order.id,
-                'order_date': json_date_format(order.paid_at),
-                'buyer_fullname': order.buyer_fullname,
-                'buyer_email': order.buyer_email,
-                'buyer_phone': order.buyer_phone,
-                'currency': CURRENCY_SYMBOL['INR'],
-                'amount': order.net_amount,
-                'url': '/ic/' + unicode(item_collection_id) + '/' + unicode(order.id),
-                'receipt_url': url_for('receipt', access_token=order.access_token),
-                'assignee_url': url_for('line_items', access_token=order.access_token)
-            })
+    for order in Order.fetch_order_transactions(data_dict['item_collection'].id):
+        order_dicts.append({
+            'id': order[0],
+            'invoice_no': order[1],
+            'order_date': json_date_format(order[2]),
+            'buyer_fullname': order[3],
+            'buyer_email': order[4],
+            'buyer_phone': order[5],
+            'currency': CURRENCY_SYMBOL['INR'],
+            'amount': order[7],
+            'url': '/ic/' + unicode(data_dict['item_collection'].id) + '/' + unicode(order[0]),
+            'receipt_url': url_for('receipt', access_token=order[6]),
+            'assignee_url': url_for('line_items', access_token=order[6])
+        })
     return jsonify(org_name=data_dict['item_collection'].organization.name,
         org_title=data_dict['item_collection'].organization.title,
         ic_title=data_dict['item_collection'].title, orders=order_dicts)
@@ -71,7 +69,7 @@ def jsonify_admin_orders(data_dict):
     permission='org_admin'
 )
 def admin_orders(item_collection):
-    return dict(title=item_collection.title, item_collection=item_collection, orders=item_collection.orders)
+    return dict(title=item_collection.title, item_collection=item_collection)
 
 
 @app.route('/admin/order/<order_id>')
