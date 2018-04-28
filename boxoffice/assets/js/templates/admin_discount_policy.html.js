@@ -77,7 +77,7 @@ export const DiscountPolicyTemplate = `
               </div>
             {{else}}
               <div class="group">
-                <input type="number" name="percentage" value={{ newDiscountPolicy.percentage }} min="1" class="group-input {{#if newDiscountPolicy.percentage != undefined}}filled{{/if}}" />
+                <input type="number" name="percentage" value={{ newDiscountPolicy.percentage }} min="0" class="group-input {{#if newDiscountPolicy.percentage != undefined}}filled{{/if}}" />
                 <span class="bar"></span>
                 <label class="group-label">Discount percentage</label>
                 {{#newDiscountPolicy.errormsg.percentage}}<p class="form-error-msg">{{ newDiscountPolicy.errormsg.percentage }}</p>{{/}}
@@ -225,7 +225,7 @@ export const DiscountPolicyTemplate = `
                     {{else}}
                       <input type="hidden" name="is_price_based" value=0 />
                       <div class="group">   
-                        <input type="number" name="percentage" value="{{ percentage }}" min="1" twoway="false" class="group-input {{#if percentage != ""}}filled{{/if}}" />
+                        <input type="number" name="percentage" value="{{ percentage }}" min="0" twoway="false" class="group-input {{#if percentage != ""}}filled{{/if}}" />
                         <span class="bar"></span>
                         <label class="group-label">Percentage</label>
                         {{#errormsg.percentage}}<p class="form-error-msg">{{ errormsg.percentage }}</p>{{/}}

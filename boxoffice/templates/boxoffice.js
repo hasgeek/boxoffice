@@ -144,12 +144,14 @@ $(function() {
     this.initResources({
       ic: widgetConfig.itemCollection
     });
-
     $.ajax({
       url: boxoffice.config.resources.itemCollection.urlFor(),
       crossDomain: true,
       headers: {'X-Requested-With': 'XMLHttpRequest'},
-      dataType: 'json'
+      dataType: 'json',
+      data: {
+        code: JSON.stringify(boxoffice.util.getDiscountCodes())
+      }
     }).done(function(data) {
       var lineItems = [];
       var item_map = {};

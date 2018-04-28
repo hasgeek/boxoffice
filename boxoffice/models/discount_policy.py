@@ -194,8 +194,12 @@ class DiscountCoupon(IdMixin, db.Model):
     discount_policy_id = db.Column(None, db.ForeignKey('discount_policy.id'), nullable=False)
     discount_policy = db.relationship(DiscountPolicy, backref=db.backref('discount_coupons', cascade='all, delete-orphan'))
 
-    def get(cls, policy, code):
-        return cls.query.filter(cls.discount_policy == policy, cls.code == code).one_or_none()
+    @classmethod
+    def is_signed_code_usable(cls, policy, code):
+        obj = cls.query.filter(cls.discount_policy == policy, cls.code == code, cls.used_count == cls.usage_limit).one_or_none()
+        if obj:
+            return False
+        return True
 
     def update_used_count(self):
         from ..models import LineItem, LINE_ITEM_STATUS

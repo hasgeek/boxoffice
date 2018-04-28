@@ -39,12 +39,20 @@ def init_data():
         rc2016.items.append(conf_ticket)
         db.session.commit()
 
+        restricted_ticket = Item(title='Restricted ticket', restricted_entry=True, description='<p><i class="fa fa-calendar"></i>14 - 15 April 2016</p><p><i class="fa fa-map-marker ticket-venue"></i>MLR Convention Center, JP Nagar</p><p>This ticket is restricted.</p>', item_collection=rc2016, category=Category.query.filter_by(name='conference').first(), quantity_total=1000)
+        rc2016.items.append(restricted_ticket)
+        db.session.commit()
+
         expired_ticket = Item(title='Expired ticket', description='<p><i class="fa fa-calendar"></i>14 - 15 April 2016</p><p><i class="fa fa-map-marker ticket-venue"></i>MLR Convention Center, JP Nagar</p><p>This ticket gets you access to rootconf conference on 14th and 15th April 2016.</p>', item_collection=rc2016, category=Category.query.filter_by(name='conference').first(), quantity_total=1000)
         rc2016.items.append(expired_ticket)
         db.session.commit()
 
         price = Price(item=conf_ticket, title='Super Early Geek', start_at=datetime.utcnow(), end_at=one_month_from_now, amount=3500)
         db.session.add(price)
+        db.session.commit()
+
+        restricted_ticket_price = Price(item=restricted_ticket, title='Restricted ticket price', start_at=datetime.utcnow(), end_at=one_month_from_now, amount=3500)
+        db.session.add(restricted_ticket_price)
         db.session.commit()
 
         single_day_conf_ticket = Item(title='Single Day', description='<p><i class="fa fa-calendar"></i>14 April 2016</p><p><i class="fa fa-map-marker ticket-venue"></i>MLR Convention Center, JP Nagar</p><p>This ticket gets you access to rootconf conference on 14th April 2016.</p>', item_collection=rc2016, category=Category.query.filter_by(name='conference').first(), quantity_total=1000)
@@ -74,6 +82,15 @@ def init_data():
         policy = DiscountPolicy(title='10% discount on rootconf', item_quantity_min=10, percentage=10, organization=rootconf)
         policy.items.append(conf_ticket)
         db.session.add(policy)
+        db.session.commit()
+
+        restricted_policy = DiscountPolicy(title='Access for restricted ticket', item_quantity_min=1, percentage=0, organization=rootconf, discount_type=DISCOUNT_TYPE.COUPON)
+        restricted_policy.items.append(restricted_ticket)
+        db.session.add(restricted_policy)
+        db.session.commit()
+
+        restricted_coupon = DiscountCoupon(code='restricted', discount_policy=restricted_policy)
+        db.session.add(restricted_coupon)
         db.session.commit()
 
         tshirt_policy = DiscountPolicy(title='5% discount on 5 t-shirts', item_quantity_min=5, percentage=5, organization=rootconf)

@@ -12,6 +12,13 @@ from baseframe import localize_timezone
 from boxoffice import app
 
 
+def sanitize_coupons(coupons):
+    if not isinstance(coupons, list):
+        return []
+    # Remove falsy values and coerce the valid values into unicode
+    return [unicode(coupon_code) for coupon_code in coupons if coupon_code]
+
+
 def xhr_only(f):
     """Aborts if a request does not have the XMLHttpRequest header set"""
     @wraps(f)
@@ -137,3 +144,12 @@ def api_success(result, doc, status_code):
     :param int status_code: HTTP status code to be used for the response
     """
     return make_response(jsonify(status='ok', doc=doc, result=result), status_code)
+
+
+def request_expects_json():
+    """
+    Checks if the request expects a JSON response
+    Imported from http://flask.pocoo.org/snippets/45/
+    """
+    best = request.accept_mimetypes.best_match(['application/json', 'text/html'])
+    return best == 'application/json' and request.accept_mimetypes[best] > request.accept_mimetypes['text/html']
