@@ -19,6 +19,9 @@ const orgTemplate = `
       <a class="boxoffice-button boxoffice-button-action btn-right" href="/admin/o/{{orgName}}/ic/new" data-navigate>
         New item collection
       </a>
+      <a class="boxoffice-button boxoffice-button-action btn-right btn-margin-right" href="/admin/o/{{orgName}}/edit">
+        Edit organization
+      </a>
     </div>
     {{#itemCollections:ic}}
       <div class="box col-sm-6 col-xs-12" id="item-collection-{{ @index }}">

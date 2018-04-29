@@ -60,11 +60,11 @@ class Organization(ProfileBase, db.Model):
     invoicer = db.relationship('Organization', remote_side='Organization.id',
         backref=db.backref('subsidiaries', cascade='all, delete-orphan', lazy='dynamic'))
 
-
     def permissions(self, user, inherited=None):
         # import IPython; IPython.embed();
         perms = super(Organization, self).permissions(user, inherited)
         if self.userid in user.organizations_owned_ids():
+            print 'hey owner'
             perms.add('org_admin')
         return perms
 
