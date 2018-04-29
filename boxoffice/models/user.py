@@ -64,7 +64,6 @@ class Organization(ProfileBase, db.Model):
         # import IPython; IPython.embed();
         perms = super(Organization, self).permissions(user, inherited)
         if self.userid in user.organizations_owned_ids():
-            print 'hey owner'
             perms.add('org_admin')
         return perms
 
