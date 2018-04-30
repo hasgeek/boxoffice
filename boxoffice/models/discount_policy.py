@@ -36,7 +36,7 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     __uuid_primary_key__ = True
     __table_args__ = (db.UniqueConstraint('organization_id', 'name'),
         db.UniqueConstraint('organization_id', 'discount_code_base'),
-        db.CheckConstraint('percentage >= 0 and percentage <= 100', 'discount_policy_percentage_check'),
+        db.CheckConstraint('percentage > 0 and percentage <= 100', 'discount_policy_percentage_check'),
         db.CheckConstraint('discount_type = 0 or (discount_type = 1 and bulk_coupon_usage_limit IS NOT NULL)', 'discount_policy_bulk_coupon_usage_limit_check'))
 
     organization_id = db.Column(None, db.ForeignKey('organization.id'), nullable=False)
