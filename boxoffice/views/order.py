@@ -168,7 +168,7 @@ def order(item_collection):
         item = Item.query.get(line_item_tup.item_id)
 
         if item.restricted_entry:
-            if not sanitized_coupon_codes or not item.is_valid_coupon(sanitized_coupon_codes):
+            if not sanitized_coupon_codes or not DiscountPolicy.is_valid_access_coupon(item, sanitized_coupon_codes):
                 # Skip adding a restricted item to the cart without the proper access code
                 break
 

@@ -165,6 +165,20 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
         from ..models import LineItem, LINE_ITEM_STATUS
         return self.line_items.filter(LineItem.status == LINE_ITEM_STATUS.CONFIRMED).count()
 
+    @classmethod
+    def is_valid_access_coupon(cls, item, code_list):
+        for code in code_list:
+            if cls.is_signed_code_format(code):
+                policy = cls.get_from_signed_code(code)
+                if policy and not DiscountCoupon.is_signed_code_usable(policy, code):
+                    break
+            else:
+                policy = cls.query.join(DiscountCoupon).filter(
+                    DiscountCoupon.code == code, DiscountCoupon.used_count < DiscountCoupon.usage_limit).one_or_none()
+            if bool(policy) and policy in item.discount_policies:
+                return True
+        return False
+
 
 @event.listens_for(DiscountPolicy, 'before_update')
 @event.listens_for(DiscountPolicy, 'before_insert')

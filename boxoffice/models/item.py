@@ -164,21 +164,6 @@ class Item(BaseScopedNameMixin, db.Model):
         ''')).params(item_id=self.id, status=LINE_ITEM_STATUS.CONFIRMED)
         return db.session.execute(query).fetchall()
 
-    def is_valid_coupon(self, code_list):
-        from . import DiscountPolicy, DiscountCoupon
-
-        for code in code_list:
-            if DiscountPolicy.is_signed_code_format(code):
-                policy = DiscountPolicy.get_from_signed_code(code)
-                if policy and not DiscountCoupon.is_signed_code_usable(policy, code):
-                    break
-            else:
-                policy = DiscountPolicy.query.join(DiscountCoupon).filter(
-                    DiscountCoupon.code == code, DiscountCoupon.used_count < DiscountCoupon.usage_limit).one_or_none()
-            if bool(policy) and policy in self.discount_policies:
-                return True
-        return False
-
 
 class Price(BaseScopedNameMixin, db.Model):
     __tablename__ = 'price'

@@ -6,7 +6,7 @@ from pycountry import pycountry
 from coaster.views import load_models
 from coaster.utils import getbool
 from boxoffice import app
-from boxoffice.models import Organization, ItemCollection, Item
+from boxoffice.models import Organization, ItemCollection, Item, DiscountPolicy
 from utils import xhr_only, cors, sanitize_coupons
 from boxoffice.data import indian_states
 
@@ -14,7 +14,7 @@ from boxoffice.data import indian_states
 def jsonify_item(item):
     if item.restricted_entry:
         code_list = request.args.get('code') and sanitize_coupons(json.loads(request.args.get('code')))
-        if not code_list or not item.is_valid_coupon(code_list):
+        if not code_list or not DiscountPolicy.is_valid_access_coupon(item, code_list):
             return None
 
     price = item.current_price()
