@@ -48,7 +48,6 @@ class TestItemCollectionAPI(unittest.TestCase):
             },
         }
 
-
     def setUp(self):
         self.ctx = app.test_request_context()
         self.ctx.push()

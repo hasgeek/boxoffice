@@ -40,7 +40,7 @@ class CouponBasedDiscountPolicyForm(DiscountPolicyForm):
         validators=[forms.validators.DataRequired(__("Please select at least one item for which the discount is applicable"))])
     percentage = forms.IntegerField(__("Percentage"),
         validators=[forms.validators.DataRequired(__("Please specify a discount percentage")),
-        forms.validators.NumberRange(min=1, max=100, message=__("Percentage should be between >= 1 and <= 100"))])
+            forms.validators.NumberRange(min=1, max=100, message=__("Percentage should be between >= 1 and <= 100"))])
     discount_code_base = forms.StringField(__("Discount title"),
         validators=[forms.validators.DataRequired(__("Please specify a discount code base")),
         forms.validators.Length(max=20), AvailableAttr('discount_code_base', message='This discount code base is already in use. Please pick a different code base.')],
