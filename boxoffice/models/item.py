@@ -173,7 +173,6 @@ class Item(BaseScopedNameMixin, db.Model):
                 if policy and not DiscountCoupon.is_signed_code_usable(policy, code):
                     break
             else:
-                import IPython; IPython.embed()
                 policy = DiscountPolicy.query.join(DiscountCoupon).filter(
                     DiscountCoupon.code == code, DiscountCoupon.used_count < DiscountCoupon.usage_limit).one_or_none()
             if bool(policy) and policy in self.discount_policies:
