@@ -144,12 +144,3 @@ def api_success(result, doc, status_code):
     :param int status_code: HTTP status code to be used for the response
     """
     return make_response(jsonify(status='ok', doc=doc, result=result), status_code)
-
-
-def request_expects_json():
-    """
-    Checks if the request expects a JSON response
-    Imported from http://flask.pocoo.org/snippets/45/
-    """
-    best = request.accept_mimetypes.best_match(['application/json', 'text/html'])
-    return best == 'application/json' and request.accept_mimetypes[best] > request.accept_mimetypes['text/html']

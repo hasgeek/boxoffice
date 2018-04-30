@@ -23,11 +23,6 @@ class DiscountPolicyForm(forms.Form):
             (0, __("Percentage based discount"))])
 
 
-def validate_percentage(form, field):
-    if isinstance(field.data, int) and field.data < 0 or field.data > 100:
-        raise StopValidation(__("Percentage should be a number from 0 to 100"))
-
-
 class AutomaticDiscountPolicyForm(DiscountPolicyForm):
     item_quantity_min = forms.IntegerField(__("Minimum number of tickets"), default=1)
     percentage = forms.IntegerField(__("Percentage"),
@@ -43,7 +38,9 @@ class AutomaticDiscountPolicyForm(DiscountPolicyForm):
 class CouponBasedDiscountPolicyForm(DiscountPolicyForm):
     items = QuerySelectMultipleField(__("Items"), get_label='title',
         validators=[forms.validators.DataRequired(__("Please select at least one item for which the discount is applicable"))])
-    percentage = forms.IntegerField(__("Percentage"), validators=[validate_percentage])
+    percentage = forms.IntegerField(__("Percentage"),
+        validators=[forms.validators.DataRequired(__("Please specify a discount percentage")),
+        forms.validators.NumberRange(min=1, max=100, message=__("Percentage should be between >= 1 and <= 100"))])
     discount_code_base = forms.StringField(__("Discount title"),
         validators=[forms.validators.DataRequired(__("Please specify a discount code base")),
         forms.validators.Length(max=20), AvailableAttr('discount_code_base', message='This discount code base is already in use. Please pick a different code base.')],
