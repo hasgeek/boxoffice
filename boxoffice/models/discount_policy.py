@@ -167,6 +167,13 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
 
     @classmethod
     def is_valid_access_coupon(cls, item, code_list):
+        """
+        Checks if any of the supplied list of codes is a valid access code for the specified item.
+
+        A supplied coupon code can be either a signed coupon code or a custom code. Hence, both cases
+        need to be checked for. Used signed coupon codes are stored. So, if a used signed/unsigned coupon is
+        found in the database, that coupon code is then deemed to be invalid.
+        """
         for code in code_list:
             if cls.is_signed_code_format(code):
                 policy = cls.get_from_signed_code(code)

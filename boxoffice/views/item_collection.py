@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import json
 from flask import render_template, jsonify, request, Markup
 from pycountry import pycountry
 from coaster.views import load_models
@@ -13,7 +12,7 @@ from boxoffice.data import indian_states
 
 def jsonify_item(item):
     if item.restricted_entry:
-        code_list = request.args.get('code') and sanitize_coupons(json.loads(request.args.get('code')))
+        code_list = request.args.getlist('code') and sanitize_coupons(request.args.getlist('code'))
         if not code_list or not DiscountPolicy.is_valid_access_coupon(item, code_list):
             return None
 
