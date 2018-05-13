@@ -17,9 +17,8 @@ from ..extapi import razorpay, RAZORPAY_PAYMENT_STATUS
 from ..forms import LineItemForm, BuyerForm, OrderSessionForm, OrderRefundForm, InvoiceForm
 from custom_exceptions import PaymentGatewayError
 from boxoffice.mailclient import send_receipt_mail, send_line_item_cancellation_mail, send_order_refund_mail
-from utils import xhr_only, cors, json_date_format, api_error, api_success
+from utils import xhr_only, cors, json_date_format, api_error, api_success, sanitize_coupons
 from boxoffice.data import indian_states
-
 
 
 def jsonify_line_items(line_items):
@@ -79,13 +78,6 @@ def jsonify_order(data):
         buyer_phone=order.buyer_phone, line_items=line_items)
 
 
-def sanitize_coupons(coupons):
-    if not isinstance(coupons, list):
-        return []
-    # Remove falsy values and coerce the valid values into unicode
-    return [unicode(coupon_code) for coupon_code in coupons if coupon_code]
-
-
 @app.route('/order/kharcha', methods=['OPTIONS', 'POST'])
 @xhr_only
 @cors
@@ -119,7 +111,7 @@ def kharcha():
 @cors
 @load_models(
     (ItemCollection, {'id': 'item_collection'}, 'item_collection')
-    )
+)
 def order(item_collection):
     """
     Accepts JSON containing an array of line_items with the quantity and item_id
@@ -167,12 +159,19 @@ def order(item_collection):
         buyer_fullname=buyer_form.fullname.data,
         buyer_phone=buyer_form.phone.data)
 
+    sanitized_coupon_codes = sanitize_coupons(request.json.get('discount_coupons'))
     line_item_tups = LineItem.calculate([{'item_id': li_form.data.get('item_id')}
         for li_form in line_item_forms
-            for x in range(li_form.data.get('quantity'))], coupons=sanitize_coupons(request.json.get('discount_coupons')))
+            for x in range(li_form.data.get('quantity'))], coupons=sanitized_coupon_codes)
 
     for idx, line_item_tup in enumerate(line_item_tups):
         item = Item.query.get(line_item_tup.item_id)
+
+        if item.restricted_entry:
+            if not sanitized_coupon_codes or not DiscountPolicy.is_valid_access_coupon(item, sanitized_coupon_codes):
+                # Skip adding a restricted item to the cart without the proper access code
+                break
+
         if item.is_available:
             if line_item_tup.discount_policy_id:
                 policy = DiscountPolicy.query.get(line_item_tup.discount_policy_id)
@@ -333,7 +332,7 @@ def jsonify_invoice(invoice):
 @cors
 @load_models(
     (Order, {'access_token': 'access_token'}, 'order')
-    )
+)
 def edit_invoice_details(order):
     """
     Update invoice with buyer's address and taxid
@@ -373,7 +372,7 @@ def jsonify_invoices(data_dict):
 @render_with({'text/html': 'invoice_form.html.jinja2', 'application/json': jsonify_invoices})
 @load_models(
     (Order, {'access_token': 'access_token'}, 'order')
-    )
+)
 def invoice_details_form(order):
     """
     View all invoices of an order
@@ -393,7 +392,7 @@ def invoice_details_form(order):
 @render_with({'text/html': 'order.html.jinja2', 'application/json': jsonify_order}, json=True)
 @load_models(
     (Order, {'access_token': 'access_token'}, 'order')
-    )
+)
 def line_items(order):
     return dict(order=order, org=order.organization)
 

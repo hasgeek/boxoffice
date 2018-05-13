@@ -12,6 +12,13 @@ from baseframe import localize_timezone
 from boxoffice import app
 
 
+def sanitize_coupons(coupons):
+    if not isinstance(coupons, list):
+        return []
+    # Remove falsy values and coerce the valid values into unicode
+    return [unicode(coupon_code) for coupon_code in coupons if coupon_code]
+
+
 def xhr_only(f):
     """Aborts if a request does not have the XMLHttpRequest header set"""
     @wraps(f)

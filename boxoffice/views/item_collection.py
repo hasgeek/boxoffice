@@ -1,35 +1,42 @@
 # -*- coding: utf-8 -*-
 
-from flask import make_response, render_template, jsonify, request, Markup
+from flask import render_template, jsonify, request, Markup
 from pycountry import pycountry
 from coaster.views import load_models
 from coaster.utils import getbool
 from boxoffice import app
-from boxoffice.models import Organization, ItemCollection, Item
-from utils import xhr_only, cors
+from boxoffice.models import Organization, ItemCollection, Item, DiscountPolicy
+from utils import xhr_only, cors, sanitize_coupons
 from boxoffice.data import indian_states
 
 
 def jsonify_item(item):
+    if item.restricted_entry:
+        code_list = request.args.getlist('code') and sanitize_coupons(request.args.getlist('code'))
+        if not code_list or not DiscountPolicy.is_valid_access_coupon(item, code_list):
+            return None
+
     price = item.current_price()
-    if price:
-        return {
-            'name': item.name,
-            'title': item.title,
-            'id': item.id,
-            'description': item.description.text,
-            'quantity_available': item.quantity_available,
-            'is_available': item.is_available,
-            'quantity_total': item.quantity_total,
-            'category_id': item.category_id,
-            'item_collection_id': item.item_collection_id,
-            'price': price.amount,
-            'price_category': price.title,
-            'price_valid_upto': price.end_at,
-            'has_higher_price': item.has_higher_price(price),
-            'discount_policies': [{'id': policy.id, 'title': policy.title, 'is_automatic': policy.is_automatic}
-                                  for policy in item.discount_policies]
-        }
+    if not price:
+        return None
+
+    return {
+        'name': item.name,
+        'title': item.title,
+        'id': item.id,
+        'description': item.description.text,
+        'quantity_available': item.quantity_available,
+        'is_available': item.is_available,
+        'quantity_total': item.quantity_total,
+        'category_id': item.category_id,
+        'item_collection_id': item.item_collection_id,
+        'price': price.amount,
+        'price_category': price.title,
+        'price_valid_upto': price.end_at,
+        'has_higher_price': item.has_higher_price(price),
+        'discount_policies': [{'id': policy.id, 'title': policy.title, 'is_automatic': policy.is_automatic}
+                              for policy in item.discount_policies]
+    }
 
 
 def jsonify_category(category):
@@ -56,6 +63,7 @@ def render_boxoffice_js():
             countries=[{'name': country.name, 'code': country.alpha_2}
                 for country in sorted(pycountry.countries, key=lambda k: k.name)])
 
+
 @app.route('/api/1/boxoffice.js')
 @cors
 def boxofficejs():
@@ -69,7 +77,7 @@ def boxofficejs():
 @cors
 @load_models(
     (ItemCollection, {'id': 'item_collection'}, 'item_collection')
-    )
+)
 def item_collection(item_collection):
     categories_json = []
     for category in item_collection.categories:
@@ -83,7 +91,7 @@ def item_collection(item_collection):
 @load_models(
     (Organization, {'name': 'org_name'}, 'organization'),
     (ItemCollection, {'name': 'item_collection_name', 'organization': 'organization'}, 'item_collection')
-    )
+)
 def item_collection_listing(organization, item_collection):
     show_title = getbool(request.args.get('show_title', True))
     return render_template('item_collection_listing.html.jinja2',
