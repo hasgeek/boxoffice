@@ -90,7 +90,17 @@ $(function() {
     this.config.resources = {
       itemCollection: {
         method: 'GET',
-        urlFor: function(){
+        urlFor: function(codes){
+          if (codes.length > 0) {
+            var codeParams = "?";
+            for (var codeIndex = 0; codeIndex < codes.length; codeIndex++) {
+              codeParams += "code=" + codes[codeIndex];
+              if (codeIndex < codes.length - 1) {
+                codeParams += "&";
+              }
+            }
+            return boxoffice.config.baseURL + '/ic/' + config.ic + codeParams;
+          }
           return boxoffice.config.baseURL + '/ic/' + config.ic;
         }
       },
@@ -144,9 +154,8 @@ $(function() {
     this.initResources({
       ic: widgetConfig.itemCollection
     });
-
     $.ajax({
-      url: boxoffice.config.resources.itemCollection.urlFor(),
+      url: boxoffice.config.resources.itemCollection.urlFor(boxoffice.util.getDiscountCodes()),
       crossDomain: true,
       headers: {'X-Requested-With': 'XMLHttpRequest'},
       dataType: 'json'
@@ -313,53 +322,55 @@ $(function() {
         },
         preApplyDiscount: function(discount_coupons) {
           //Ask server for the corresponding line_item for the discount coupon. Add one quantity of that line_item
-          $.post({
-            url: boxoffice.config.resources.kharcha.urlFor(),
-            crossDomain: true,
-            dataType: 'json',
-            headers: {'X-Requested-With': 'XMLHttpRequest'},
-            contentType: 'application/json',
-            data: JSON.stringify({
-              line_items: boxoffice.ractive.get('order.line_items').map(function(line_item) {
-                return {
-                  quantity: 1,
-                  item_id: line_item.item_id
-                };
+          if (boxoffice.ractive.get('order.line_items') > 0) {
+            $.post({
+              url: boxoffice.config.resources.kharcha.urlFor(),
+              crossDomain: true,
+              dataType: 'json',
+              headers: {'X-Requested-With': 'XMLHttpRequest'},
+              contentType: 'application/json',
+              data: JSON.stringify({
+                line_items: boxoffice.ractive.get('order.line_items').map(function(line_item) {
+                  return {
+                    quantity: 1,
+                    item_id: line_item.item_id
+                  };
+                }),
+                discount_coupons: discount_coupons
               }),
-              discount_coupons: discount_coupons
-            }),
-            timeout: 5000,
-            retries: 5,
-            retryInterval: 5000,
-            success: function(data) {
-              var discount_applicable = false;
-              var line_items = boxoffice.ractive.get('order.line_items');
-              line_items.forEach(function(line_item) {
-                if (data.line_items.hasOwnProperty(line_item.item_id)) {
-                  if (data.line_items[line_item.item_id].discounted_amount && line_item.quantity_available > 0) {
-                    discount_applicable = true;
-                    line_item.unit_final_amount = data.line_items[line_item.item_id].final_amount;
-                    line_item.discount_policies.forEach(function(discount_policy){
-                      if (data.line_items[line_item.item_id].discount_policy_ids.indexOf(discount_policy.id) >= 0) {
-                        discount_policy.pre_applied = true;
-                      }
-                    });
+              timeout: 5000,
+              retries: 5,
+              retryInterval: 5000,
+              success: function(data) {
+                var discount_applicable = false;
+                var line_items = boxoffice.ractive.get('order.line_items');
+                line_items.forEach(function(line_item) {
+                  if (data.line_items.hasOwnProperty(line_item.item_id)) {
+                    if (data.line_items[line_item.item_id].discounted_amount && line_item.quantity_available > 0) {
+                      discount_applicable = true;
+                      line_item.unit_final_amount = data.line_items[line_item.item_id].final_amount;
+                      line_item.discount_policies.forEach(function(discount_policy){
+                        if (data.line_items[line_item.item_id].discount_policy_ids.indexOf(discount_policy.id) >= 0) {
+                          discount_policy.pre_applied = true;
+                        }
+                      });
+                    }
                   }
-                }
-              });
+                });
 
-              if (discount_applicable) {
-                boxoffice.ractive.set('order.line_items',line_items);
-                // Scroll to the top of the widget when a discount is pre-applied
-                boxoffice.ractive.scrollTop();
+                if (discount_applicable) {
+                  boxoffice.ractive.set('order.line_items',line_items);
+                  // Scroll to the top of the widget when a discount is pre-applied
+                  boxoffice.ractive.scrollTop();
+                }
+              },
+              error: function(response) {
+                var ajaxLoad = this;
+                ajaxLoad.retries -= 1;
+                boxoffice.ractive.xhrRetry(ajaxLoad, response);
               }
-            },
-            error: function(response) {
-            	var ajaxLoad = this;
-              ajaxLoad.retries -= 1;
-              boxoffice.ractive.xhrRetry(ajaxLoad, response);
-            }
-          });
+            });
+          }
         },
         updateOrder: function(event, item_name, quantityAvailable, increment) {
           // Increments or decrements a line item's quantity

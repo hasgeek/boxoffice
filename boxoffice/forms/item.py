@@ -62,6 +62,7 @@ class ItemForm(forms.Form):
             forms.validators.Length(max=250)], filters=[forms.filters.strip()])
     description = forms.TextAreaField(__("Description"), filters=[format_description],
         validators=[forms.validators.DataRequired(__("Please specify a description"))])
+    restricted_entry = forms.BooleanField(__("Restrict entry?"))
     seq = forms.IntegerField(__("Sequence"),
         description=__("The sequence of the ticket on the listing"),
         validators=[forms.validators.DataRequired(__("Please specify the sequence order"))])
