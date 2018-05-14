@@ -12,7 +12,7 @@ from boxoffice.data import indian_states
 
 def jsonify_item(item):
     if item.restricted_entry:
-        code_list = request.args.getlist('code') and sanitize_coupons(request.args.getlist('code'))
+        code_list = sanitize_coupons(request.args.getlist('code')) if 'code' in request.args else None
         if not code_list or not DiscountPolicy.is_valid_access_coupon(item, code_list):
             return None
 
