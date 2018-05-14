@@ -1285,6 +1285,7 @@ h2.col-header, p.margin-left {
 #form-view .controls {
   width: 100%;
   display: block;
+  margin-left: 0;
 }
 #form-view .control-label {
   text-align: left;
