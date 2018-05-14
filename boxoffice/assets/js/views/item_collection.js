@@ -72,17 +72,17 @@ export const ItemCollectionTemplate = `
   <div class="content-wrapper clearfix">
     <h1 class="header col-xs-12">{{ icTitle }}</h1>
     <div class="title-wrapper col-xs-12">
-      <a class="boxoffice-button boxoffice-button-action btn-right" href="/admin/ic/{{ic_id}}/item/new" data-navigate>
-        New item
+      <a class="boxoffice-button boxoffice-button-info btn-right" href="/{{ org_name }}/{{ ic_name }}">
+        View listing
       </a>
-      <a class="boxoffice-button boxoffice-button-action btn-right btn-margin-right" href="/admin/ic/{{ic_id}}/category/new" data-navigate>
-        New category
-      </a>
-      <a class="boxoffice-button boxoffice-button-action btn-right btn-margin-right" href="/admin/ic/{{ic_id}}/edit" data-navigate>
+      <a class="boxoffice-button boxoffice-button-primary btn-right btn-margin-righ" href="/admin/ic/{{ic_id}}/edit" data-navigate>
         Edit item collection
       </a>
-      <a class="boxoffice-button boxoffice-button-info btn-right btn-margin-right" href="/{{ org_name }}/{{ ic_name }}">
-        View listing
+      <a class="boxoffice-button boxoffice-button-action btn-right btn-margin-right" href="/admin/ic/{{ic_id}}/item/new" data-navigate>
+        New item
+      </a>
+      <a class="boxoffice-button boxoffice-button-primary btn-right btn-margin-right" href="/admin/ic/{{ic_id}}/category/new" data-navigate>
+        New category
       </a>
     </div>
     <div class="stats clearfix">
