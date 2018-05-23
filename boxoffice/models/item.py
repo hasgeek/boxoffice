@@ -4,7 +4,7 @@ from datetime import datetime
 from decimal import Decimal
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.orderinglist import ordering_list
-from baseframe import __, localize_timezone
+from baseframe import __
 from coaster.utils import LabeledEnum
 from coaster.sqlalchemy import with_roles
 from . import db, JsonDict, BaseScopedNameMixin, MarkdownColumn
@@ -44,6 +44,8 @@ class Item(BaseScopedNameMixin, db.Model):
     assignee_details = db.Column(JsonDict, default={}, nullable=False)
 
     cancellable_until = db.Column(db.DateTime, nullable=True)
+
+    restricted_entry = db.Column(db.Boolean, default=False, nullable=False)
 
     __roles__ = {
         'item_owner': {

@@ -107,7 +107,7 @@ def jsonify_order(order_dict):
         org=org,
         ic=ic,
         order=order,
-        line_items=format_line_items(order_dict['order'].line_items)
+        line_items=format_line_items(order_dict['line_items'])
     )
 
 

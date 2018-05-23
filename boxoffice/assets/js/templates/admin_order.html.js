@@ -10,7 +10,7 @@ export const OrderTemplate = `
     </ul>
     <p class='content-slider-content'>
       <a class="boxoffice-button boxoffice-button-info btn-inline" href={{ order.receipt_url }} target="_blank" >View receipt</a>
-      <a class="boxoffice-button boxoffice-button-info btn-inline" href={{ order.assignee_url }} target="_blank" >View assignee details</a>
+      <a class="boxoffice-button boxoffice-button-primary btn-inline" href={{ order.assignee_url }} target="_blank" >View assignee details</a>
       <a class="boxoffice-button boxoffice-button-action btn-inline" href="/admin/ic/{{ic.id}}/order/{{order.id}}/partial_refund" data-navigate>Refund</a>
     </p>
     <div class="content-slider-wrapper">

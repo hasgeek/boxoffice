@@ -107,10 +107,6 @@ body
   background-color: $color-action-btn-background
   border-color: $color-action-btn-border
 
-.boxoffice-button-danger
-  background-color: $color-danger-btn-background
-  border-color: $color-danger-btn-border
-
 .boxoffice-button-action:hover
   background-color: $color-action-btn-hover-background
   border-color: $color-action-btn-hover-border
@@ -122,6 +118,22 @@ body
 .boxoffice-button-info:hover
   background-color: $color-info-btn-hover-background
   border-color: $color-info-btn-hover-border
+
+.boxoffice-button-primary
+  background-color: $color-primary-btn-background
+  border-color: $color-primary-btn-border
+
+.boxoffice-button-primary:hover
+  background-color: $color-primary-btn-hover-background
+  border-color: $color-primary-btn-hover-border
+
+.boxoffice-button-danger
+  background-color: $color-danger-btn-background
+  border-color: $color-danger-btn-border
+
+.boxoffice-button-danger:hover
+  background-color: $color-danger-btn-hover-background
+  border-color: $color-danger-btn-hover-border
 
 a.boxoffice-button:hover,
 a.boxoffice-button:focus
@@ -395,7 +407,7 @@ input.icon-placeholder
   -ms-transition: left 0.15s ease-out
   -o-transition: left 0.15s ease-out
   transition: left 0.15s ease-out
-  z-index: 1025
+  z-index: 1000
 
 .admin-sidebar.active
   left: 0
@@ -527,21 +539,20 @@ input.icon-placeholder
   top: 10px
   left: 2.5%
   background: #fff
-  z-index: 1030
+  z-index: 1010
   width: 97%
   min-height: 100%
   box-shadow: 0 0 2px rgba(0,0,0,0.8)
 
 .content-slider.align-down
   top: 0
+  left: 15px
+  width: calc(100% - 15px)
 
 @media (min-width: 768px)
   .content-slider
-    // top: -50px
-    top: 10px
-    left: 1%
-    width: 99%
-    z-index: 1030
+    left: 1.5%
+    width: 98.5%
 
 .content-slider-title
   padding: 10px 0
@@ -563,8 +574,8 @@ ul.content-slider-content
 
 .close-button
   position: absolute
-  top: -15px
-  left: -5px
+  top: -10px
+  left: -10px
   background: #fff
   border: 2px solid #999
   font-size: 18px
@@ -573,11 +584,7 @@ ul.content-slider-content
   background: #eee
   width: 30px
   height: 30px
-
-.close-button .fa
-  position: relative
-  top: -2px
-  left: -1px
+  text-align: center
 
 .table-responsive
   overflow-x: inherit
@@ -647,7 +654,7 @@ h2.col-header, p.margin-left
   border-radius: 0px 5px 5px 0px
 
 .no-border-radius
-  border-radius
+  border-radius: 0
 
 .price-digits
   font-size: 24px

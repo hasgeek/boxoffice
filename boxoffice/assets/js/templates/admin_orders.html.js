@@ -60,7 +60,7 @@ export const OrdersTemplate = `
               <td>
                 <p class="table-content">
                   <a class="boxoffice-button boxoffice-button-info btn-inline" href={{ receipt_url }} target="_blank" >View receipt</a>
-                  <a class="boxoffice-button boxoffice-button-info btn-inline" href={{ assignee_url }} target="_blank" >View assignee details</a>
+                  <a class="boxoffice-button boxoffice-button-primary btn-inline" href={{ assignee_url }} target="_blank" >View assignee details</a>
                   <a class="boxoffice-button boxoffice-button-action btn-inline" href="/admin/ic/{{icId}}/order/{{id}}/partial_refund" data-navigate>Refund</a>
                 </p>
               </td>

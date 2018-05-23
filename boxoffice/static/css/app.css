@@ -127,28 +127,43 @@ body {
   }
 }
 .boxoffice-button-action {
-  background-color: #df5e0e;
-  border-color: #df5e0e;
-}
-
-.boxoffice-button-danger {
-  background-color: #c02908;
-  border-color: #c02908;
+  background-color: #5cb85c;
+  border-color: #4cae4c;
 }
 
 .boxoffice-button-action:hover {
-  background-color: #5CB85C;
-  border-color: #4CAE4C;
+  background-color: #449d44;
+  border-color: #398439;
 }
 
 .boxoffice-button-info {
-  background-color: #856A91;
-  border-color: #856A91;
+  background-color: #5bc0de;
+  border-color: #46b8da;
 }
 
 .boxoffice-button-info:hover {
-  background-color: #5BC0DE;
-  border-color: #46B8DA;
+  background-color: #31b0d5;
+  border-color: #269abc;
+}
+
+.boxoffice-button-primary {
+  background-color: #337ab7;
+  border-color: #2e6da4;
+}
+
+.boxoffice-button-primary:hover {
+  background-color: #286090;
+  border-color: #204d74;
+}
+
+.boxoffice-button-danger {
+  background-color: #d9534f;
+  border-color: #d43f3a;
+}
+
+.boxoffice-button-danger:hover {
+  background-color: #c9302c;
+  border-color: #ac2925;
 }
 
 a.boxoffice-button:hover,
@@ -469,7 +484,7 @@ input.icon-placeholder {
   -ms-transition: left 0.15s ease-out;
   -o-transition: left 0.15s ease-out;
   transition: left 0.15s ease-out;
-  z-index: 1025;
+  z-index: 1000;
 }
 
 .admin-sidebar.active {
@@ -626,7 +641,7 @@ input.icon-placeholder {
   top: 10px;
   left: 2.5%;
   background: #fff;
-  z-index: 1030;
+  z-index: 1010;
   width: 97%;
   min-height: 100%;
   box-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
@@ -634,14 +649,14 @@ input.icon-placeholder {
 
 .content-slider.align-down {
   top: 0;
+  left: 15px;
+  width: calc(100% - 15px);
 }
 
 @media (min-width: 768px) {
   .content-slider {
-    top: 10px;
-    left: 1%;
-    width: 99%;
-    z-index: 1030;
+    left: 1.5%;
+    width: 98.5%;
   }
 }
 .content-slider-title {
@@ -668,8 +683,8 @@ ul.content-slider-content {
 
 .close-button {
   position: absolute;
-  top: -15px;
-  left: -5px;
+  top: -10px;
+  left: -10px;
   background: #fff;
   border: 2px solid #999;
   font-size: 18px;
@@ -678,12 +693,7 @@ ul.content-slider-content {
   background: #eee;
   width: 30px;
   height: 30px;
-}
-
-.close-button .fa {
-  position: relative;
-  top: -2px;
-  left: -1px;
+  text-align: center;
 }
 
 .table-responsive {
@@ -767,6 +777,10 @@ h2.col-header, p.margin-left {
 
 .item-stats .border-radius-right {
   border-radius: 0px 5px 5px 0px;
+}
+
+.no-border-radius {
+  border-radius: 0;
 }
 
 .price-digits {
@@ -1271,6 +1285,7 @@ h2.col-header, p.margin-left {
 #form-view .controls {
   width: 100%;
   display: block;
+  margin-left: 0;
 }
 #form-view .control-label {
   text-align: left;

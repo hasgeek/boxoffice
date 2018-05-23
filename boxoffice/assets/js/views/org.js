@@ -12,7 +12,7 @@ const orgTemplate = `
     <h1 class="header col-xs-12">{{ orgTitle }}</h1>
     <div class="title-wrapper col-xs-12 col-md-4">
       <form class="search-form" id='order-jump-form' method='post'>
-        <input autofocus size="30" class='form-control' placeholder='Search order with receipt no.' class='order-jump-input' id='order-receipt-no-input' type="text" />
+        <input type="text" autofocus size="30" class="form-control icon-placeholder order-jump-input" id="order-receipt-no-input" placeholder="&#xF002; Search order with receipt no." />
       </form>
     </div>
     <div class="title-wrapper col-xs-12 col-md-8">
@@ -38,7 +38,7 @@ const orgTemplate = `
             <div class="section-content">{{{ description }}}</div>
             <div class="btn-wrapper">
               <a class="boxoffice-button boxoffice-button-info" href="/{{ orgName }}/{{ name }}">View listing</a>
-              <a class="boxoffice-button boxoffice-button-info" href="/admin/ic/{{id}}" data-navigate>View dashboard</a>
+              <a class="boxoffice-button boxoffice-button-primary" href="/admin/ic/{{id}}" data-navigate>View dashboard</a>
             </div>
           </div>
         </div>

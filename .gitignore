@@ -8,6 +8,8 @@ instance/testing.py
 .webassets-cache
 baseframe-packed.js
 baseframe-packed.css
-boxoffice/static/js/node_modules/
+node_modules
+boxoffice/static/gen
 boxoffice/static/js/npm-debug.log
 .vscode
+yarn.lock

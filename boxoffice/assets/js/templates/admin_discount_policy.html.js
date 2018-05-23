@@ -1,7 +1,7 @@
 
 export const DiscountPolicyTemplate = `
   <div class="content-wrapper">
-    <h1 class="header">{{ icTitle }}</h1>
+    <h1 class="header">{{ orgTitle }}</h1>
     <div class="title-wrapper col-sm-4 col-xs-12">
       <input type="text" autofocus class="form-control icon-placeholder" placeholder="&#xF002; Search discount policy" value="{{searchText}}" />
       {{#searchText}}<a on-click="clearSearchField()" class="clear-field"><i class="fa fa-close"></i></a>{{/}}
