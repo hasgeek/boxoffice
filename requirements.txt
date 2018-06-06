@@ -18,7 +18,7 @@ premailer==3.2.0
 python-dateutil==2.7.3
 tabulate==0.8.2
 Flask-Admin==1.5.1
-unicodecsv
+unicodecsv==0.14.1
 isoweek
 Flask-Migrate
 pycountry
