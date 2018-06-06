@@ -1,6 +1,6 @@
 Flask==1.0.2
 Flask-SQLAlchemy==2.3.2
-Flask-Assets
+Flask-Assets==0.12
 Flask-Mail
 Flask-WTF
 Flask-RQ
