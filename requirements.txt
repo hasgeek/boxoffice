@@ -1,7 +1,7 @@
 Flask==1.0.2
 Flask-SQLAlchemy==2.3.2
 Flask-Assets==0.12
-Flask-Mail
+Flask-Mail==0.9.1
 Flask-WTF
 Flask-RQ
 git+https://github.com/hasgeek/baseframe
