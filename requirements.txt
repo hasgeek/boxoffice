@@ -3,7 +3,7 @@ Flask-SQLAlchemy==2.3.2
 Flask-Assets==0.12
 Flask-Mail==0.9.1
 Flask-WTF==0.14.2
-Flask-RQ
+Flask-RQ==0.2
 git+https://github.com/hasgeek/baseframe
 git+https://github.com/hasgeek/coaster
 git+https://github.com/hasgeek/flask-lastuser
