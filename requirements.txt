@@ -9,7 +9,7 @@ git+https://github.com/hasgeek/coaster
 git+https://github.com/hasgeek/flask-lastuser
 jsmin==2.2.2
 pytz==2018.4
-psycopg2==2.7.4
+psycopg2==2.7.5
 wtforms_json==0.3.3
 rq==0.11.0
 itsdangerous==0.24
