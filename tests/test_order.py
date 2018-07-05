@@ -497,6 +497,51 @@ class TestOrder(unittest.TestCase):
 
         self.assertEquals(refund_resp.status_code, 403)
 
+    def test_cancel_discounted_line_item_in_order(self):
+        order_item = Item.query.filter_by(name='conference-ticket').first()
+        discount_policy = DiscountPolicy.query.filter_by(title='25% discount').first()
+        coupon_code = '8QGUCN'
+        discounted_quantity = 2
+        item_discounted_amount = order_item.current_price().amount - (discount_policy.percentage * order_item.current_price().amount) / decimal.Decimal(100.0)
+        total_amount = item_discounted_amount * discounted_quantity
+        data = {
+            'line_items': [{'item_id': unicode(order_item.id), 'quantity': discounted_quantity}],
+            'discount_coupons': [coupon_code],
+            'buyer': {
+                'fullname': 'Testing',
+                'phone': '9814141414',
+                'email': 'test@hasgeek.com',
+                }
+            }
+        ic = ItemCollection.query.first()
+        # make a purchase order
+        resp = self.client.post('/ic/{ic}/order'.format(ic=ic.id), data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
+        self.assertEquals(resp.status_code, 201)
+        resp_json = json.loads(resp.data)['result']
+        self.assertEquals(resp_json['final_amount'], total_amount)
+
+        order = Order.query.get(resp_json['order_id'])
+        # Create fake payment and transaction objects
+        online_payment = OnlinePayment(pg_paymentid='pg_testpayment', order=order)
+        online_payment.confirm()
+        order_amounts = order.get_amounts(LINE_ITEM_STATUS.PURCHASE_ORDER)
+        transaction = PaymentTransaction(order=order, online_payment=online_payment, amount=order_amounts.final_amount, currency=CURRENCY.INR)
+        db.session.add(transaction)
+        order.confirm_sale()
+        db.session.commit()
+
+        first_line_item = order.line_items[0]
+        expected_refund_amount = first_line_item.final_amount
+        print 'expected_refund_amount', expected_refund_amount
+        # Mock Razorpay's API
+        razorpay.refund_payment = MagicMock(return_value=MockResponse(response_data={'id': buid()}))
+        refund_amount = process_line_item_cancellation(first_line_item)
+        print 'refund_amount', refund_amount
+        self.assertEquals(first_line_item.status, LINE_ITEM_STATUS.CANCELLED)
+        self.assertEquals(refund_amount, expected_refund_amount)
+        for line_item in order.line_items:
+            print 'line_item', line_item.status, line_item.final_amount 
+
     def tearDown(self):
         db.session.rollback()
         db.drop_all()

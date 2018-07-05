@@ -186,3 +186,16 @@ def init_data():
         bulk.items.append(conf_ticket)
         db.session.add(bulk)
         db.session.commit()
+
+        loyalty_discount = DiscountPolicy(title='25% discount',
+            item_quantity_min=1,
+            discount_type=DISCOUNT_TYPE.COUPON,
+            percentage=25,
+            organization=rootconf)
+        loyalty_discount.items.append(conf_ticket)
+        db.session.add(loyalty_discount)
+        db.session.commit()
+
+        loyalty_coupon = DiscountCoupon(code='8QGUCN', discount_policy=loyalty_discount, usage_limit=2)
+        db.session.add(loyalty_coupon)
+        db.session.commit()
