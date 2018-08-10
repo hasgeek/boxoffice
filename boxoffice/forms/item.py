@@ -1,24 +1,14 @@
 # -*- coding: utf-8 -*-
 
-import json
 from flask import request
 from html5print import HTMLBeautifier
 from baseframe import __
 import baseframe.forms as forms
 from baseframe.forms.sqlalchemy import QuerySelectField
 from ..models import db, Category, ItemCollection
+from .utils import format_json, validate_json
 
 __all__ = ['ItemForm']
-
-
-def format_json(data):
-    if request.method == 'GET':
-        return json.dumps(data, indent=4, sort_keys=True)
-    # `json.loads` doesn't raise an exception for "null"
-    # so assign a default value of `{}`
-    if not data or data == 'null':
-        return json.dumps({})
-    return data
 
 
 def format_description(data):
@@ -47,13 +37,6 @@ ASSIGNEE_DETAILS_PLACEHOLDER = {
         "field_type": "textbox",
     }
 }
-
-
-def validate_json(form, field):
-    try:
-        json.loads(field.data)
-    except ValueError:
-        raise forms.validators.StopValidation(__("Invalid JSON"))
 
 
 class ItemForm(forms.Form):
