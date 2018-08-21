@@ -514,15 +514,15 @@ def process_line_item_cancellation(line_item):
     if refund_amount > Decimal('0'):
         payment = OnlinePayment.query.filter_by(order=line_item.order, pg_payment_status=RAZORPAY_PAYMENT_STATUS.CAPTURED).one()
         rp_resp = razorpay.refund_payment(payment.pg_paymentid, refund_amount)
+        rp_refund = rp_resp.json()
         if rp_resp.status_code == 200:
-            rp_refund = rp_resp.json()
             db.session.add(PaymentTransaction(order=order, transaction_type=TRANSACTION_TYPE.REFUND,
                 pg_refundid=rp_refund['id'], online_payment=payment, amount=refund_amount, currency=CURRENCY.INR, refunded_at=func.utcnow(),
                 refund_description='Refund: {line_item_title}'.format(line_item_title=line_item.item.title)))
         else:
             raise PaymentGatewayError("Cancellation failed for order - {order} with the following details - {msg}".format(order=order.id,
-                msg=rp_resp.content), 424,
-            'Refund failed. Please try again or write to us at {email}.'.format(email=line_item.order.organization.contact_email))
+                msg=rp_refund['error']['description']), 424,
+            'Refund failed. {reason}. Please try again or write to us at {email}.'.format(reason=rp_refund['error']['description'], email=line_item.order.organization.contact_email))
     else:
         # no refund applicable, just cancel the line item
         line_item.cancel()
@@ -559,8 +559,8 @@ def process_partial_refund_for_order(data_dict):
         requested_refund_amount = form.amount.data
         payment = OnlinePayment.query.filter_by(order=order, pg_payment_status=RAZORPAY_PAYMENT_STATUS.CAPTURED).one()
         rp_resp = razorpay.refund_payment(payment.pg_paymentid, requested_refund_amount)
+        rp_refund = rp_resp.json()
         if rp_resp.status_code == 200:
-            rp_refund = rp_resp.json()
             transaction = PaymentTransaction(order=order, transaction_type=TRANSACTION_TYPE.REFUND,
                 online_payment=payment, currency=CURRENCY.INR, pg_refundid=rp_refund['id'],
                 refunded_at=func.utcnow())
@@ -572,8 +572,8 @@ def process_partial_refund_for_order(data_dict):
                 doc=_(u"Refund processed for order"), status_code=200)
         else:
             raise PaymentGatewayError("Refund failed for order - {order} with the following details - {msg}".format(order=order.id,
-                msg=rp_resp.content), 424,
-            "Refund failed. Please try again or contact support at {email}.".format(email=order.organization.contact_email))
+                msg=rp_refund['error']['description']), 424,
+            "Refund failed. {reason}. Please try again or contact support at {email}.".format(reason=rp_refund['error']['description'], email=order.organization.contact_email))
     else:
         return api_error(message='Invalid input',
             status_code=403,
