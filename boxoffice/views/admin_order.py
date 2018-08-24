@@ -3,8 +3,8 @@
 from flask import jsonify, url_for, abort, request
 from .. import app, lastuser
 from coaster.views import load_models, render_with
-from boxoffice.models import ItemCollection, Organization, Order, CURRENCY_SYMBOL, LineItem, LINE_ITEM_STATUS
-from utils import json_date_format, xhr_only
+from boxoffice.models import ItemCollection, Organization, Order, CURRENCY_SYMBOL, LineItem, LINE_ITEM_STATUS, ORDER_STATUS, INVOICE_STATUS
+from utils import json_date_format, xhr_only, check_api_access
 
 
 def format_assignee(assignee):
@@ -123,3 +123,37 @@ def admin_org_order(org, order):
     line_items = LineItem.query.filter(LineItem.order == order,
         LineItem.status.in_([LINE_ITEM_STATUS.CONFIRMED, LINE_ITEM_STATUS.CANCELLED])).all()
     return dict(org=org, order=order, line_items=line_items)
+
+
+@app.route('/api/1/organization/<org_name>/order/<int:receipt_no>', methods=['GET'])
+@load_models(
+    (Organization, {'name': 'org_name'}, 'org'),
+    (Order, {'organization': 'org', 'receipt_no': 'receipt_no'}, 'order')
+)
+def order_api(org, order):
+    check_api_access(org.details.get('access_token'))
+
+    invoices = []
+    for invoice in order.invoices:
+        invoices.append({
+            'status': INVOICE_STATUS[invoice.status],
+            'invoicee_company': invoice.invoicee_company,
+            'invoicee_email': invoice.invoicee_email,
+            'invoice_no': invoice.invoice_no,
+            'invoiced_at': invoice.invoiced_at,
+            'street_address_1': invoice.street_address_1,
+            'street_address_2': invoice.street_address_2,
+            'city': invoice.city,
+            'state': invoice.state,
+            'country_code': invoice.country_code,
+            'postcode': invoice.postcode,
+            'buyer_taxid': invoice.buyer_taxid,
+            'seller_taxid': invoice.seller_taxid,
+        })
+
+    return jsonify(
+        order_id=order.id,
+        receipt_no=order.receipt_no,
+        status=ORDER_STATUS[order.status],
+        invoices=invoices
+    )
