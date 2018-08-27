@@ -133,6 +133,15 @@ def admin_org_order(org, order):
 def order_api(org, order):
     check_api_access(org.details.get('access_token'))
 
+    line_items = []
+    for line_item in order.line_items:
+        line_items.append({
+            'title': line_item.item.title,
+            'base_amount': line_item.base_amount,
+            'discounted_amount': line_item.discounted_amount,
+            'final_amount': line_item.final_amount,
+            })
+
     invoices = []
     for invoice in order.invoices:
         invoices.append({
@@ -155,5 +164,7 @@ def order_api(org, order):
         order_id=order.id,
         receipt_no=order.receipt_no,
         status=ORDER_STATUS[order.status],
+        line_items=line_items,
+        title=order.item_collection.title,
         invoices=invoices
     )
