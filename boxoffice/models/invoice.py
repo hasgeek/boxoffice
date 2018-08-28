@@ -65,10 +65,12 @@ class Invoice(UuidMixin, BaseMixin, db.Model):
 
     __roles__ = {
         'invoicer': {
-            'read': {'status', 'invoicee_company', 'invoicee_email', 'invoice_no',
-            'invoiced_at', 'street_address_1', 'street_address_2', 'city',
-            'state', 'country_code', 'postcode', 'buyer_taxid',
-            'seller_taxid'}
+            'read': {
+                'status', 'invoicee_company', 'invoicee_email', 'invoice_no',
+                'invoiced_at', 'street_address_1', 'street_address_2', 'city',
+                'state', 'country_code', 'postcode', 'buyer_taxid',
+                'seller_taxid'
+                }
         }
     }
 

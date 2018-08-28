@@ -122,6 +122,12 @@ class Order(BaseMixin, db.Model):
         return LineItem.query.filter(LineItem.order == self, LineItem.status == LINE_ITEM_STATUS.CONFIRMED)
 
     @property
+    def confirmed_cancelled_line_items(self):
+        from ..models import LineItem, LINE_ITEM_STATUS
+
+        return LineItem.query.filter(LineItem.order == self, LineItem.status.in_([LINE_ITEM_STATUS.CONFIRMED, LINE_ITEM_STATUS.CANCELLED]))
+
+    @property
     def initial_line_items(self):
         from ..models import LineItem, LINE_ITEM_STATUS
 
