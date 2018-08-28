@@ -82,7 +82,7 @@ class Item(BaseScopedNameMixin, db.Model):
     def price_at(self, timestamp):
         """Return the price object for an item at a given time."""
         return Price.query.filter(Price.item == self, Price.start_at <= timestamp,
-            Price.end_at > timestamp, Price.discount_policy == None).order_by('created_at desc').first()  # NOQA
+            Price.end_at > timestamp, Price.discount_policy == None).order_by(Price.created_at.desc()).first()  # NOQA
 
     @classmethod
     def get_by_category(cls, category):
