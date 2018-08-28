@@ -3,12 +3,12 @@
 import unittest
 import json
 import decimal
-from flask import make_response
 from werkzeug.test import EnvironBuilder
 from mock import MagicMock
 from coaster.utils import buid
 from boxoffice import app
-from boxoffice.models import *
+from boxoffice.models import (db, Item, ItemCollection, Order, DiscountPolicy, DiscountCoupon,
+    OnlinePayment, PaymentTransaction, LineItem, ORDER_STATUS, LINE_ITEM_STATUS, CURRENCY)
 from boxoffice.views.custom_exceptions import PaymentGatewayError
 from boxoffice.models.payment import TRANSACTION_TYPE
 from boxoffice.forms import OrderRefundForm
@@ -159,7 +159,7 @@ class TestOrder(unittest.TestCase):
         resp = self.client.post('/ic/{ic}/order'.format(ic=ic.id), data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
         self.assertEquals(resp.status_code, 201)
         resp_data = json.loads(resp.data)['result']
-        self.assertEquals(resp_data['final_amount'], first_item.current_price().amount - (signed_policy.percentage*first_item.current_price().amount)/decimal.Decimal(100.0))
+        self.assertEquals(resp_data['final_amount'], first_item.current_price().amount - (signed_policy.percentage * first_item.current_price().amount) / decimal.Decimal(100.0))
         line_item = LineItem.query.filter_by(customer_order_id=resp_data['order_id']).first()
         self.assertEquals(line_item.discount_coupon.code, signed_code)
 
@@ -221,10 +221,10 @@ class TestOrder(unittest.TestCase):
         resp_json = json.loads(resp.data)['result']
         order = Order.query.get(resp_json.get('order_id'))
         tshirt_policy = DiscountPolicy.query.filter_by(title='5% discount on 5 t-shirts').first()
-        tshirt_final_amount = (tshirt_price * tshirt_quantity) - (tshirt_quantity * (tshirt_policy.percentage * tshirt_price)/decimal.Decimal(100))
+        tshirt_final_amount = (tshirt_price * tshirt_quantity) - (tshirt_quantity * (tshirt_policy.percentage * tshirt_price) / decimal.Decimal(100))
         conf_policy = DiscountPolicy.query.filter_by(title='10% discount on rootconf').first()
-        conf_final_amount = (conf_price * (conf_quantity-2)) - ((conf_quantity-2) * (conf_policy.percentage * conf_price)/decimal.Decimal(100))
-        self.assertEquals(tshirt_final_amount+conf_final_amount, order.get_amounts(LINE_ITEM_STATUS.PURCHASE_ORDER).final_amount)
+        conf_final_amount = (conf_price * (conf_quantity - 2)) - ((conf_quantity - 2) * (conf_policy.percentage * conf_price) / decimal.Decimal(100))
+        self.assertEquals(tshirt_final_amount + conf_final_amount, order.get_amounts(LINE_ITEM_STATUS.PURCHASE_ORDER).final_amount)
 
     def make_free_order(self):
         item = Item.query.filter_by(name='conference-ticket').first()
@@ -302,7 +302,7 @@ class TestOrder(unittest.TestCase):
         }
         with app.request_context(self.post_env):
             process_partial_refund_for_order(partial_refund_args)
-        self.assertEquals(pre_refund_transactions_count+1, order.refund_transactions.count())
+        self.assertEquals(pre_refund_transactions_count + 1, order.refund_transactions.count())
 
         first_line_item = order.line_items[0]
         # Mock Razorpay's API
@@ -310,7 +310,7 @@ class TestOrder(unittest.TestCase):
         process_line_item_cancellation(first_line_item)
         self.assertEquals(first_line_item.status, LINE_ITEM_STATUS.CANCELLED)
         expected_refund_amount = total_amount - refund_amount
-        refund_transaction1 = PaymentTransaction.query.filter_by(order=order, transaction_type=TRANSACTION_TYPE.REFUND).order_by('created_at desc').first()
+        refund_transaction1 = PaymentTransaction.query.filter_by(order=order, transaction_type=TRANSACTION_TYPE.REFUND).order_by(PaymentTransaction.created_at.desc()).first()
         self.assertEquals(refund_transaction1.amount, expected_refund_amount)
 
     def test_cancel_line_item_in_bulk_order(self):
@@ -330,7 +330,7 @@ class TestOrder(unittest.TestCase):
         resp = self.client.post('/ic/{ic}/order'.format(ic=ic.id), data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
         self.assertEquals(resp.status_code, 201)
         resp_json = json.loads(resp.data)['result']
-        self.assertEquals(resp_json['final_amount'], (total_amount - 5*total_amount/decimal.Decimal(100)))
+        self.assertEquals(resp_json['final_amount'], (total_amount - 5 * total_amount / decimal.Decimal(100)))
 
         order = Order.query.get(resp_json['order_id'])
         # Create fake payment and transaction objects
@@ -359,21 +359,29 @@ class TestOrder(unittest.TestCase):
         razorpay.refund_payment = MagicMock(return_value=MockResponse(response_data={'id': buid()}))
         process_line_item_cancellation(second_line_item)
         self.assertEquals(second_line_item.status, LINE_ITEM_STATUS.CANCELLED)
-        refund_transaction2 = PaymentTransaction.query.filter_by(order=order, transaction_type=TRANSACTION_TYPE.REFUND).order_by('created_at desc').first()
+        refund_transaction2 = PaymentTransaction.query.filter_by(order=order, transaction_type=TRANSACTION_TYPE.REFUND).order_by(PaymentTransaction.created_at.desc()).first()
         self.assertEquals(refund_transaction2.amount, second_line_item.final_amount)
 
         # test failed cancellation
         third_line_item = order.confirmed_line_items[0]
-        failed_response = make_response('', 400)
-        failed_response.content = 'failed'
-        razorpay.refund_payment = MagicMock(return_value=failed_response)
+        razorpay.refund_payment = MagicMock(
+            return_value=MockResponse(
+                response_data={
+                    "error": {
+                        "code": "BAD_REQUEST_ERROR",
+                        "description": "The amount is invalid",
+                        "field": "amount"
+                    }
+                },
+                status_code=400
+            ))
         self.assertRaises(PaymentGatewayError, lambda: process_line_item_cancellation(third_line_item))
 
         # refund the remaining amount paid, and attempt to cancel a line item
         # this should cancel the line item without resulting in a new refund transaction
         refund_amount = order.net_amount
-        refund_dict = {'amount': refund_amount, 'internal_note': 'internal reference', 'note_to_user': 'you get a refund!'}
-        razorpay.refund_payment = MagicMock(return_value=MockResponse(response_data={'id': buid()}))
+        refund_dict = {'id': buid(), 'amount': refund_amount, 'internal_note': 'internal reference', 'note_to_user': 'you get a refund!'}
+        razorpay.refund_payment = MagicMock(return_value=MockResponse(response_data=refund_dict))
 
         formdata = {
             'amount': refund_amount,
@@ -422,7 +430,7 @@ class TestOrder(unittest.TestCase):
         resp = self.client.post('/ic/{ic}/order'.format(ic=ic.id), data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
         self.assertEquals(resp.status_code, 201)
         resp_data = json.loads(resp.data)['result']
-        self.assertEquals(resp_data['final_amount'], (total_amount - 5*total_amount/decimal.Decimal(100)))
+        self.assertEquals(resp_data['final_amount'], (total_amount - 5 * total_amount / decimal.Decimal(100)))
 
         order = Order.query.get(resp_data['order_id'])
         # Create fake payment and transaction objects
