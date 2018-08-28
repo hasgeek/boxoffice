@@ -11,3 +11,5 @@ baseframe-packed.css
 boxoffice/static/js/node_modules/
 boxoffice/static/js/npm-debug.log
 .vscode
+.coverage
+boxoffice/static/gen/*
