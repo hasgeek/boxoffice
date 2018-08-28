@@ -133,18 +133,20 @@ def admin_org_order(org, order):
 def order_api(org, order):
     check_api_access(org.details.get('access_token'))
 
-    line_items = []
-    for line_item in order.line_items:
-        line_items.append({
+    line_items_list = []
+    line_items = LineItem.query.filter(LineItem.order == order, LineItem.status.in_([LINE_ITEM_STATUS.CONFIRMED, LINE_ITEM_STATUS.CANCELLED])).all()
+    for line_item in line_items:
+        line_items_list.append({
             'title': line_item.item.title,
+            'status': LINE_ITEM_STATUS[line_item.status],
             'base_amount': line_item.base_amount,
             'discounted_amount': line_item.discounted_amount,
             'final_amount': line_item.final_amount,
             })
 
-    invoices = []
+    invoices_list = []
     for invoice in order.invoices:
-        invoices.append({
+        invoices_list.append({
             'status': INVOICE_STATUS[invoice.status],
             'invoicee_company': invoice.invoicee_company,
             'invoicee_email': invoice.invoicee_email,
@@ -154,17 +156,27 @@ def order_api(org, order):
             'street_address_2': invoice.street_address_2,
             'city': invoice.city,
             'state': invoice.state,
+            'state_code': invoice.state_code,
             'country_code': invoice.country_code,
             'postcode': invoice.postcode,
             'buyer_taxid': invoice.buyer_taxid,
             'seller_taxid': invoice.seller_taxid,
         })
 
+    refunds_list = []
+    for refund in order.refund_transactions:
+        refunds_list.append({
+            'refund_amount': refund.amount,
+            'refund_description': refund.refund_description if refund.refund_description else '',
+        })
+
     return jsonify(
         order_id=order.id,
         receipt_no=order.receipt_no,
         status=ORDER_STATUS[order.status],
-        line_items=line_items,
+        final_amount=order.net_amount,
+        line_items=line_items_list,
         title=order.item_collection.title,
-        invoices=invoices
+        invoices=invoices_list,
+        refunds=refunds_list
     )
