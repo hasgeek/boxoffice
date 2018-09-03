@@ -71,8 +71,8 @@ class Invoice(UuidMixin, BaseMixin, db.Model):
                 'state', 'country_code', 'postcode', 'buyer_taxid',
                 'seller_taxid'
                 }
+            }
         }
-    }
 
     def roles_for(self, actor=None, anchors=()):
         roles = super(Invoice, self).roles_for(actor, anchors)

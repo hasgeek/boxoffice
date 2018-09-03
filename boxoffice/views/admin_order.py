@@ -139,7 +139,7 @@ def order_api(org, order):
         'base_amount': li.base_amount,
         'discounted_amount': li.discounted_amount,
         'final_amount': li.final_amount
-    } for li in order.confirmed_and_cancelled_line_items]
+        } for li in order.confirmed_and_cancelled_line_items]
 
     invoices_list = [{
         'status': INVOICE_STATUS[invoice.status],
@@ -156,12 +156,12 @@ def order_api(org, order):
         'postcode': invoice.postcode,
         'buyer_taxid': invoice.buyer_taxid,
         'seller_taxid': invoice.seller_taxid,
-    } for invoice in order.invoices]
+        } for invoice in order.invoices]
 
     refunds_list = [{
         'refund_amount': refund.amount,
         'refund_description': refund.refund_description if refund.refund_description else '',
-    } for refund in order.refund_transactions]
+        } for refund in order.refund_transactions]
 
     return jsonify(
         order_id=order.id,
@@ -172,4 +172,4 @@ def order_api(org, order):
         title=order.item_collection.title,
         invoices=invoices_list,
         refunds=refunds_list
-    )
+        )
