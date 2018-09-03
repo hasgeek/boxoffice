@@ -63,6 +63,22 @@ class Invoice(UuidMixin, BaseMixin, db.Model):
     organization_id = db.Column(None, db.ForeignKey('organization.id'), nullable=False)
     organization = db.relationship('Organization', backref=db.backref('invoices', cascade='all, delete-orphan', lazy='dynamic'))
 
+    __roles__ = {
+        'invoicer': {
+            'read': {
+                'status', 'invoicee_company', 'invoicee_email', 'invoice_no',
+                'invoiced_at', 'street_address_1', 'street_address_2', 'city',
+                'state', 'country_code', 'postcode', 'buyer_taxid',
+                'seller_taxid'
+                }
+            }
+        }
+
+    def roles_for(self, actor=None, anchors=()):
+        roles = super(Invoice, self).roles_for(actor, anchors)
+        if self.organization.userid in actor.organizations_owned_ids():
+            roles.add('invoicer')
+        return roles
 
     def __init__(self, *args, **kwargs):
         organization = kwargs.get('organization')
