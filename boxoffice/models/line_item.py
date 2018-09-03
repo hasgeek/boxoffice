@@ -181,6 +181,34 @@ class LineItem(BaseMixin, db.Model):
         return db.session.query(func.max(LineItem.line_item_seq)).filter(LineItem.order == order).scalar()
 
 
+Order.confirmed_line_items = db.relationship(LineItem,
+    lazy='dynamic',
+    primaryjoin=db.and_(
+        LineItem.customer_order_id == Order.id,
+        LineItem.status == LINE_ITEM_STATUS.CONFIRMED
+        )
+    )
+
+
+Order.confirmed_and_cancelled_line_items = db.relationship(LineItem,
+    lazy='dynamic',
+    primaryjoin=db.and_(
+        LineItem.customer_order_id == Order.id,
+        LineItem.status.in_([LINE_ITEM_STATUS.CONFIRMED, LINE_ITEM_STATUS.CANCELLED])
+        )
+    )
+
+
+Order.initial_line_items = db.relationship(LineItem,
+    lazy='dynamic',
+    primaryjoin=db.and_(
+        LineItem.customer_order_id == Order.id,
+        LineItem.previous_id == None,
+        LineItem.status.in_(LINE_ITEM_STATUS.TRANSACTION)
+        )
+    )
+
+
 def counts_per_date_per_item(item_collection, user_tz):
     """
     Returns number of line items sold per date per item.

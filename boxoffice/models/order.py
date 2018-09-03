@@ -65,6 +65,9 @@ class Order(BaseMixin, db.Model):
     invoice_no = db.Column(db.Integer, nullable=True)
     receipt_no = db.synonym('invoice_no')
 
+    # These 3 properties are defined below the LineItem model -
+    # confirmed_line_items, initial_line_items, confirmed_and_cancelled_line_items
+
     def permissions(self, user, inherited=None):
         perms = super(Order, self).permissions(user, inherited)
         if self.organization.userid in user.organizations_owned_ids():
@@ -114,24 +117,6 @@ class Order(BaseMixin, db.Model):
             if not line_item.current_assignee:
                 return False
         return True
-
-    @property
-    def confirmed_line_items(self):
-        from ..models import LineItem, LINE_ITEM_STATUS
-
-        return LineItem.query.filter(LineItem.order == self, LineItem.status == LINE_ITEM_STATUS.CONFIRMED)
-
-    @property
-    def confirmed_cancelled_line_items(self):
-        from ..models import LineItem, LINE_ITEM_STATUS
-
-        return LineItem.query.filter(LineItem.order == self, LineItem.status.in_([LINE_ITEM_STATUS.CONFIRMED, LINE_ITEM_STATUS.CANCELLED]))
-
-    @property
-    def initial_line_items(self):
-        from ..models import LineItem, LINE_ITEM_STATUS
-
-        return LineItem.query.filter(LineItem.order == self, LineItem.previous == None, LineItem.status.in_(LINE_ITEM_STATUS.TRANSACTION))
 
 
 class OrderSession(BaseMixin, db.Model):

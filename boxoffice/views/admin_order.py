@@ -134,12 +134,12 @@ def order_api(org, order):
     check_api_access(org.details.get('access_token'))
 
     line_items_list = [{
-    'title': li.item.title,
-    'status': LINE_ITEM_STATUS[li.status],
-    'base_amount': li.base_amount,
-    'discounted_amount': li.discounted_amount,
-    'final_amount': li.final_amount
-    } for li in order.confirmed_cancelled_line_items]
+        'title': li.item.title,
+        'status': LINE_ITEM_STATUS[li.status],
+        'base_amount': li.base_amount,
+        'discounted_amount': li.discounted_amount,
+        'final_amount': li.final_amount
+    } for li in order.confirmed_and_cancelled_line_items]
 
     invoices_list = [{
         'status': INVOICE_STATUS[invoice.status],
