@@ -49,7 +49,7 @@ def format_demand_curve(item):
 
     for amount, quantity_demanded in reversed(item.demand_curve()):
         demand_counter += quantity_demanded
-        result[amount] = {
+        result[str(amount)] = {
             'quantity_demanded': quantity_demanded,
             'demand': demand_counter
         }
