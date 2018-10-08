@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from flask import jsonify, request, g, abort
+from flask import jsonify, request, g, abort, url_for
 from .. import app, lastuser
 from coaster.views import load_models, render_with
 from baseframe import localize_timezone, get_locale
@@ -49,9 +49,15 @@ def admin_org_report(organization):
     permission='org_admin')
 def tickets_report(item_collection):
     headers, rows = item_collection.fetch_all_details()
+    assignee_url_index = headers.index('assignee_url')
+
     def row_handler(row):
         # localize datetime
         row_list = [v if not isinstance(v, datetime) else format_datetime(localize_timezone(v), format='long', locale=get_locale()) for v in row]
+        # add assignee url
+        access_token = row_list[assignee_url_index]
+        if access_token:
+            row_list.insert(assignee_url_index, url_for('line_items', access_token=access_token, _external=True))
         return row_list
 
     return csv_response(headers, rows, row_handler=row_handler)
