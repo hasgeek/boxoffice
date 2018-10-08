@@ -57,7 +57,7 @@ def tickets_report(item_collection):
         # add assignee url
         access_token = row_list[assignee_url_index]
         if access_token:
-            row_list.insert(assignee_url_index, url_for('line_items', access_token=access_token, _external=True))
+            row_list[assignee_url_index] = url_for('line_items', access_token=access_token, _external=True)
         return row_list
 
     return csv_response(headers, rows, row_handler=row_handler)
