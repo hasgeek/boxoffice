@@ -54,7 +54,7 @@ class ItemCollection(BaseScopedNameMixin, db.Model):
             Order.paid_at]).select_from(line_item_join).where(LineItem.status ==
             LINE_ITEM_STATUS.CONFIRMED).where(Order.item_collection ==
             self).order_by(LineItem.ordered_at)
-
+        # TODO: Use label() instead of this hack https://github.com/hasgeek/boxoffice/pull/236#discussion_r223341927
         return HeadersAndDataTuple(
             ['ticket_id', 'order_id', 'receipt_no', 'ticket_type', 'base_amount',
                 'discounted_amount', 'final_amount', 'discount_policy', 'discount_code',
