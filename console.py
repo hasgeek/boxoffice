@@ -7,7 +7,8 @@ import IPython
 import datetime
 import pytz
 from boxoffice.views.custom_exceptions import PaymentGatewayError
-from boxoffice.mailclient import send_receipt_mail, send_line_item_cancellation_mail
+from boxoffice.mailclient import (send_receipt_mail, send_line_item_cancellation_mail,
+    send_participant_assignment_mail)
 from boxoffice.extapi import razorpay, RAZORPAY_PAYMENT_STATUS
 from coaster.utils import LabeledEnum, isoweek_datetime, midnight_to_utc
 
@@ -15,10 +16,12 @@ import logging
 logging.basicConfig()
 logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
+
 def convert_to_utc(localtime, tz="Asia/Calcutta", is_dst=True):
     local = pytz.timezone(tz)
     local_dt = local.localize(localtime, is_dst=is_dst)
     return local_dt.astimezone(pytz.UTC).replace(tzinfo=None)
+
 
 def sales_by_date(sales_datetime, item_ids, user_tz):
     """
@@ -75,8 +78,9 @@ def sales_delta(user_tz, item_ids):
         return 0
     return round(Decimal('100') * (today_sales - yesterday_sales)/yesterday_sales, 2)
 
+
 def process_payment(order_id, pg_paymentid):
-    order = Order.query.get(order_id)	
+    order = Order.query.get(order_id)
     order_amounts = order.get_amounts(LINE_ITEM_STATUS.PURCHASE_ORDER)
     online_payment = OnlinePayment(pg_paymentid=pg_paymentid, order=order)
 
@@ -107,6 +111,7 @@ def process_payment(order_id, pg_paymentid):
         raise PaymentGatewayError("Online payment failed for order - {order} with the following details - {msg}".format(order=order.id,
             msg=rp_resp.content), 424, 'Your payment failed. Please try again or contact us at {email}.'.format(email=order.organization.contact_email))
 
+
 def reprocess_successful_payment(order_id):
     order = Order.query.get(order_id)
     if not order.is_confirmed:
@@ -131,6 +136,7 @@ def reprocess_successful_payment(order_id):
             send_receipt_mail.delay(order.id)
             return make_response(jsonify(message="Payment verified"), 201)
 
+
 def make_invoice_nos():
     orgs = Organization.query.all()
     for org in orgs:
@@ -139,7 +145,9 @@ def make_invoice_nos():
 	           db.session.add(Invoice(order=order, organization=org))
 	db.session.commit()
 
+
 from boxoffice.views.order import process_partial_refund_for_order
+
 
 def partial_refund(**kwargs):
     """
@@ -157,11 +165,27 @@ def partial_refund(**kwargs):
     with app.test_request_context():
         process_partial_refund_for_order(order, form_dict)
 
+
 def finalize_invoices(org_name, start_at, end_at):
     org = Organization.query.filter_by(name=org_name).one()
     invoices = Invoice.query.filter(Invoice.organization == org, Invoice.created_at >= start_at, Invoice.created_at < end_at).all()
     for inv in invoices:
         inv.status = INVOICE_STATUS.FINAL
     db.session.commit()
+
+
+def resend_attendee_details_email(item_collection_id, sender_team_member_name):
+    ic = ItemCollection.query.get(item_collection_id)
+    headers, rows = ic.fetch_all_details()
+    attendee_name_index = headers.index('attendee_fullname')
+    order_id_index = headers.index('order_id')
+    unfilled_orders = set()
+    for order_row in rows:
+        if not order_row[attendee_name_index]:
+            unfilled_orders.add(order_row[order_id_index])
+
+    for order_id in unfilled_orders:
+        send_participant_assignment_mail(str(order_id), ic.title, sender_team_member_name)
+
 
 IPython.embed()
