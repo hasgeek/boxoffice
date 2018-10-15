@@ -174,7 +174,7 @@ def finalize_invoices(org_name, start_at, end_at):
     db.session.commit()
 
 
-def resend_attendee_details_email(item_collection_id, sender_team_member_name):
+def resend_attendee_details_email(item_collection_id, item_collection_title="", sender_team_member_name="Team HasGeek"):
     ic = ItemCollection.query.get(item_collection_id)
     headers, rows = ic.fetch_all_details()
     attendee_name_index = headers.index('attendee_fullname')
@@ -185,7 +185,7 @@ def resend_attendee_details_email(item_collection_id, sender_team_member_name):
             unfilled_orders.add(order_row[order_id_index])
 
     for order_id in unfilled_orders:
-        send_participant_assignment_mail(str(order_id), ic.title, sender_team_member_name)
+        send_participant_assignment_mail(str(order_id), item_collection_title or ic.title, sender_team_member_name)
 
 
 IPython.embed()
