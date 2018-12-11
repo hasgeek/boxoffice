@@ -35,3 +35,8 @@ DEBUG = True
 ASSET_MANIFEST_PATH = "static/build/manifest.json"
 # no trailing slash
 ASSET_BASE_PATH = '/static/build'
+#: Cache settings
+CACHE_TYPE = 'redis'
+#: RQ settings
+RQ_REDIS_URL = 'redis://localhost:6379/0'
+RQ_SCHEDULER_INTERVAL = 1

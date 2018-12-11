@@ -102,7 +102,7 @@ def process_payment(order_id, pg_paymentid):
                 db.session.add(line_item.discount_coupon)
         db.session.commit()
 	with app.test_request_context():
-            send_receipt_mail.delay(order.id)
+            send_receipt_mail.queue(order.id)
             return make_response(jsonify(message="Payment verified"), 201)
     else:
         online_payment.fail()
@@ -133,7 +133,7 @@ def reprocess_successful_payment(order_id):
                 db.session.add(line_item.discount_coupon)
         db.session.commit()
         with app.test_request_context():
-            send_receipt_mail.delay(order.id)
+            send_receipt_mail.queue(order.id)
             return make_response(jsonify(message="Payment verified"), 201)
 
 
