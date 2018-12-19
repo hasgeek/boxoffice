@@ -78,6 +78,7 @@
 
     .center { 
       text-align: center;
+      vertical-align: top;
     }
 
     .customer-details {
@@ -133,6 +134,11 @@
 
     .footer {
       margin-top: 15px;
+    }
+
+    .discount-policy {
+      font-size: 85%;
+      font-style: italic;
     }
   </style>
 </head>
@@ -230,9 +236,18 @@
           </td>
         </tr>
         <tr>
-          <td class="center">&#8377; {{ line_item.base_amount }}</td>
-          <td class="center">&#8377; {{ line_item.discounted_amount }}</td>
-          <td class="center">&#8377; {{ line_item.final_amount }}</td>
+          <td class="center">
+            <p>&#8377; {{ line_item.base_amount }}</p>
+          </td>
+          <td class="center">
+            <p>&#8377; {{ line_item.discounted_amount }}</p>
+            {% if line_item.discount_policy %}
+              <p class="discount-policy">{{ line_item.discount_policy.title }}</p>
+            {% endif %}
+          </td>
+          <td class="center">
+            <p>&#8377; {{ line_item.final_amount }}</p>
+          </td>
         </tr>
         {% if line_item.is_cancelled %}
           <tr>
