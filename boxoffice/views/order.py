@@ -11,7 +11,7 @@ from baseframe.forms import render_form
 from .. import app, lastuser
 from ..models import db
 from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy, OrderSession, Assignee, LINE_ITEM_STATUS, Invoice
-from ..models import Order, OnlinePayment, PaymentTransaction, User, CURRENCY, ORDER_STATUS
+from ..models import Order, OnlinePayment, PaymentTransaction, User, CURRENCY, CURRENCY_SYMBOL, ORDER_STATUS
 from ..models.payment import TRANSACTION_TYPE
 from ..extapi import razorpay, RAZORPAY_PAYMENT_STATUS
 from ..forms import LineItemForm, BuyerForm, OrderSessionForm, OrderRefundForm, InvoiceForm
@@ -307,7 +307,7 @@ def receipt(order):
     if not order.is_confirmed:
         abort(404)
     line_items = LineItem.query.filter(LineItem.order == order, LineItem.status.in_([LINE_ITEM_STATUS.CONFIRMED])).all()
-    return render_template('cash_receipt.html.jinja2', order=order, org=order.organization, line_items=line_items)
+    return render_template('cash_receipt.html.jinja2', order=order, org=order.organization, line_items=line_items, currency_symbol=CURRENCY_SYMBOL['INR'])
 
 
 def jsonify_invoice(invoice):

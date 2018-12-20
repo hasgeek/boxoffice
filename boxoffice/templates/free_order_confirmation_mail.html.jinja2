@@ -161,6 +161,11 @@
     .clear {
       clear: both;
     }
+
+    .discount-policy {
+      font-size: 85%;
+      font-style: italic;
+    }
   </style>
 </head>
 
@@ -199,7 +204,12 @@
             <td class="center" valign="middle">{{ line_item.line_item_seq }}</td>
             <td valign="middle">{{ line_item.item.title }}</td>
             <td valign="top">{{ line_item.item.description.text|safe }}</td>
-            <td class="center" valign="middle">This is a <b>free</b> ticket.</td>
+            <td class="center" valign="middle">
+              <p>This is a <b>free</b> ticket.</p>   
+              {% if line_item.discount_policy %}
+                <p class="discount-policy">{{ line_item.discount_policy.title }}</p>
+              {% endif %}
+            </td>
           </tr>
         {%- endfor %}
       </table>
