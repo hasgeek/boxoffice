@@ -138,7 +138,8 @@ def order_api(org, order):
         'status': LINE_ITEM_STATUS[li.status],
         'base_amount': li.base_amount,
         'discounted_amount': li.discounted_amount,
-        'final_amount': li.final_amount
+        'final_amount': li.final_amount,
+        'assignee': format_assignee(li.current_assignee),
         } for li in order.confirmed_and_cancelled_line_items]
 
     invoices_list = [{
@@ -171,5 +172,8 @@ def order_api(org, order):
         line_items=line_items_list,
         title=order.item_collection.title,
         invoices=invoices_list,
-        refunds=refunds_list
+        refunds=refunds_list,
+        buyer_name=order.buyer_fullname,
+        buyer_email=order.buyer_email,
+        buyer_phone=order.buyer_phone
         )
