@@ -86,6 +86,7 @@
 
     .center { 
       text-align: center;
+      vertical-align: top;
     }
 
     .cutomer-details {
@@ -144,6 +145,11 @@
 
     .terms {
       margin-top: 20px;
+    }
+
+    .discount-policy {
+      font-size: 85%;
+      font-style: italic;
     }
   </style>
 </head>
@@ -229,21 +235,30 @@
           </td>
         </tr>
         <tr>
-          <td class="center">&#8377; {{ line_item.base_amount }}</td>
-          <td class="center">&#8377; {{ line_item.discounted_amount }}</td>
-          <td class="center">&#8377; {{ line_item.final_amount }}</td>
+          <td class="center">
+            <p>{{ currency_symbol }} {{ line_item.base_amount }}</p>
+          </td>
+          <td class="center">
+            <p>{{ currency_symbol }} {{ line_item.discounted_amount }}</p>
+            {% if line_item.discount_policy %}
+              <p class="discount-policy">{{ line_item.discount_policy.title }}</p>
+            {% endif %}
+          </td>
+          <td class="center">
+            <p>{{ currency_symbol }} {{ line_item.final_amount }}</p>
+          </td>
         </tr>
       {%- endfor %}
       <tr>
         <td></td>
         <td colspan="2" class="total gray">Total paid</td>
-        <td class="total-amount gray center"><div id="total">&#8377; {{ order.paid_amount }}</div></td>
+        <td class="total-amount gray center"><div id="total">{{ currency_symbol }} {{ order.paid_amount }}</div></td>
       </tr>
       {% if order.refunded_amount > 0 %}
         <tr>
           <td></td>
           <td colspan="2" class="total gray">Net paid (post refund)</td>
-          <td class="total-amount gray center"><div id="net-amount">&#8377; {{ order.net_amount }}</div></td>
+          <td class="total-amount gray center"><div id="net-amount">{{ currency_symbol }} {{ order.net_amount }}</div></td>
         </tr>
       {% endif %}
     </table>
@@ -274,13 +289,13 @@
           {%- else %}
             <td>Refund</td>
           {%- endif %}
-          <td class="total-amount center"><div id="total">&#8377; {{ transaction.amount }}</div></td>
+          <td class="total-amount center"><div id="total">{{ currency_symbol }} {{ transaction.amount }}</div></td>
         </tr>
       {%- endfor %}
       <tr>
         <td></td>
         <td colspan="3" class="total gray">Total refund</td>
-        <td class="total gray center">&#8377; {{ order.refunded_amount }}</td>
+        <td class="total gray center">{{ currency_symbol }} {{ order.refunded_amount }}</td>
       </tr>
     </table>
     {%- endif %}
