@@ -125,6 +125,8 @@ def admin_org_order(org, order):
     return dict(org=org, order=order, line_items=line_items)
 
 
+# This enpoint has been added to fetch details of an order to generate invoice outside Boxoffice.
+# Not to be used within the app.
 @app.route('/api/1/organization/<org_name>/order/<int:receipt_no>', methods=['GET'])
 @load_models(
     (Organization, {'name': 'org_name'}, 'org'),
