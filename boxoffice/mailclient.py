@@ -2,16 +2,15 @@
 
 from decimal import Decimal
 from flask import render_template
-from flask_rq import job
 from flask_mail import Message
 from baseframe import __
 from html2text import html2text
 from premailer import transform as email_transform
 from .models import Order, LineItem, LINE_ITEM_STATUS, CURRENCY_SYMBOL
-from . import mail, app
+from . import mail, app, rq
 
 
-@job('boxoffice')
+@rq.job('boxoffice')
 def send_receipt_mail(order_id, subject="Thank you for your order!", template='order_confirmation_mail.html.jinja2'):
     """
     Sends an link to fill attendee details and cash receipt to the order's buyer
@@ -27,7 +26,7 @@ def send_receipt_mail(order_id, subject="Thank you for your order!", template='o
         mail.send(msg)
 
 
-@job('boxoffice')
+@rq.job('boxoffice')
 def send_participant_assignment_mail(order_id, item_collection_title, team_member, subject="Please tell us who's coming!"):
     with app.test_request_context():
         order = Order.query.get(order_id)
@@ -38,7 +37,7 @@ def send_participant_assignment_mail(order_id, item_collection_title, team_membe
         mail.send(msg)
 
 
-@job('boxoffice')
+@rq.job('boxoffice')
 def send_line_item_cancellation_mail(line_item_id, refund_amount, subject="Ticket Cancellation"):
     with app.test_request_context():
         line_item = LineItem.query.get(line_item_id)
@@ -56,7 +55,7 @@ def send_line_item_cancellation_mail(line_item_id, refund_amount, subject="Ticke
         mail.send(msg)
 
 
-@job('boxoffice')
+@rq.job('boxoffice')
 def send_order_refund_mail(order_id, refund_amount, note_to_user):
     with app.test_request_context():
         order = Order.query.get(order_id)
@@ -74,7 +73,7 @@ def send_order_refund_mail(order_id, refund_amount, note_to_user):
         mail.send(msg)
 
 
-@job('boxoffice')
+@rq.job('boxoffice')
 def send_ticket_assignment_mail(line_item_id):
     """
     Sends a confirmation email once details are filled and ticket has been assigned.

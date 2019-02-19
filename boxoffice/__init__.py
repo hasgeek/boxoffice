@@ -3,7 +3,7 @@
 from pytz import timezone
 from flask import Flask
 from flask_migrate import Migrate
-from flask_rq import RQ
+from flask_rq2 import RQ
 from flask_mail import Mail
 from flask_lastuser import Lastuser
 from flask_lastuser.sqlalchemy import UserManager
@@ -18,6 +18,7 @@ app = Flask(__name__, instance_relative_config=True)
 lastuser = Lastuser()
 
 mail = Mail()
+rq = RQ()
 
 # --- Assets ------------------------------------------------------------------
 
@@ -36,7 +37,7 @@ coaster.app.init_app(app)
 db.init_app(app)
 db.app = app
 migrate = Migrate(app, db)
-RQ(app)
+rq.init_app(app)
 
 lastuser.init_app(app)
 lastuser.init_usermanager(UserManager(db, User))

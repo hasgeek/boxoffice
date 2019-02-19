@@ -237,7 +237,7 @@ def free(order):
                 line_item.discount_coupon.update_used_count()
                 db.session.add(line_item.discount_coupon)
         db.session.commit()
-        send_receipt_mail.delay(order.id, subject="{item_collection_title}: Your registration is confirmed!".format(item_collection_title=order.item_collection.title), template='free_order_confirmation_mail.html.jinja2')
+        send_receipt_mail.queue(order.id, subject="{item_collection_title}: Your registration is confirmed!".format(item_collection_title=order.item_collection.title), template='free_order_confirmation_mail.html.jinja2')
         return api_success(result={'order_id': order.id},
             doc=_(u"Free order confirmed"), status_code=201)
 
@@ -288,7 +288,7 @@ def payment(order):
                 line_item.discount_coupon.update_used_count()
                 db.session.add(line_item.discount_coupon)
         db.session.commit()
-        send_receipt_mail.delay(order.id, subject="{item_collection_title}: Thank you for your order (#{invoice_no})!".format(item_collection_title=order.item_collection.title, invoice_no=order.invoice_no))
+        send_receipt_mail.queue(order.id, subject="{item_collection_title}: Thank you for your order (#{invoice_no})!".format(item_collection_title=order.item_collection.title, invoice_no=order.invoice_no))
         return api_success(result={'invoice_id': invoice.id},
             doc=_(u"Payment verified"), status_code=201)
     else:
@@ -543,7 +543,7 @@ def cancel_line_item(line_item):
                     errors=['non cancellable'])
 
     refund_amount = process_line_item_cancellation(line_item)
-    send_line_item_cancellation_mail.delay(line_item.id, refund_amount)
+    send_line_item_cancellation_mail.queue(line_item.id, refund_amount)
     return api_success(result={'cancelled_at': json_date_format(line_item.cancelled_at)},
             doc=_(u"Ticket cancelled"), status_code=200)
 
@@ -567,7 +567,7 @@ def process_partial_refund_for_order(data_dict):
             form.populate_obj(transaction)
             db.session.add(transaction)
             db.session.commit()
-            send_order_refund_mail.delay(order.id, transaction.amount, transaction.note_to_user)
+            send_order_refund_mail.queue(order.id, transaction.amount, transaction.note_to_user)
             return api_success(result={'order_net_amount': order.net_amount},
                 doc=_(u"Refund processed for order"), status_code=200)
         else:

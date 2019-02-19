@@ -45,5 +45,5 @@ def assign(order):
         phone=assignee_dict.get('phone'), details=assignee_details, line_item=line_item)
         db.session.add(new_assignee)
         db.session.commit()
-        send_ticket_assignment_mail.delay(line_item.id)
+        send_ticket_assignment_mail.queue(line_item.id)
     return make_response(jsonify(status='ok', result={'message': 'Ticket assigned'}), 201)
