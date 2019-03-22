@@ -19,6 +19,10 @@ class ItemCollection(BaseScopedNameMixin, db.Model):
     organization = db.relationship(Organization, backref=db.backref('item_collections', cascade='all, delete-orphan'))
     parent = db.synonym('organization')
     tax_type = db.Column(db.Unicode(80), nullable=True, default=u'GST')
+    # ISO 3166-2 code. Eg: KA for Karnataka
+    place_supply_state_code = db.Column(db.Unicode(3), nullable=True)
+    # ISO country code
+    place_supply_country_code = db.Column(db.Unicode(2), nullable=True)
 
     __roles__ = {
         'ic_owner': {

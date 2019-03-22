@@ -43,9 +43,15 @@ class Item(BaseScopedNameMixin, db.Model):
 
     assignee_details = db.Column(JsonDict, default={}, nullable=False)
 
+    event_date = db.Column(db.Date, nullable=True)
+
     cancellable_until = db.Column(db.DateTime, nullable=True)
 
     restricted_entry = db.Column(db.Boolean, default=False, nullable=False)
+    # ISO 3166-2 code. Eg: KA for Karnataka
+    place_supply_state_code = db.Column(db.Unicode(3), nullable=True)
+    # ISO country code
+    place_supply_country_code = db.Column(db.Unicode(2), nullable=True)
 
     __roles__ = {
         'item_owner': {

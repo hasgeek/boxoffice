@@ -3,10 +3,12 @@
 import json
 from flask import request
 from html5print import HTMLBeautifier
+from pycountry import pycountry
 from baseframe import __
 import baseframe.forms as forms
 from baseframe.forms.sqlalchemy import QuerySelectField
 from ..models import db, Category, ItemCollection
+from boxoffice.data import indian_states
 
 __all__ = ['ItemForm']
 
@@ -72,7 +74,16 @@ class ItemForm(forms.Form):
         validators=[forms.validators.DataRequired(__("Please specify the quantity available for sale"))])
     assignee_details = forms.TextAreaField(__("Assignee details"), filters=[format_json],
         validators=[validate_json], default=ASSIGNEE_DETAILS_PLACEHOLDER)
+    event_date = forms.DateField(__("Event date"), validators=[forms.validators.DataRequired(__("Please specify a date for the event"))])
     cancellable_until = forms.DateTimeField(__("Cancellable until"), validators=[forms.validators.Optional()])
+    place_supply_state_code = forms.SelectField(__("State"),
+        choices=[(state['short_code_text'], state['name']) for state in sorted(indian_states, key=lambda k: k['name'])],
+        description=__("Place of supply"),
+        default='KA')
+    place_supply_country_code = forms.SelectField(__("Country"),
+        choices=[(country.alpha_2, country.name) for country in sorted(pycountry.countries, key=lambda k: k.name)],
+        description=__("Place of supply"),
+        default='IN')
 
     def set_queries(self):
         self.category.query = Category.query.join(ItemCollection).filter(
