@@ -83,7 +83,7 @@ class ItemForm(forms.Form):
     place_supply_country_code = forms.SelectField(__("Country"),
         choices=[(country.alpha_2, country.name) for country in sorted(pycountry.countries, key=lambda k: k.name)],
         description=__("Place of supply"),
-        default='IN')
+        default='')
 
     def set_queries(self):
         self.category.query = Category.query.join(ItemCollection).filter(
