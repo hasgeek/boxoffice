@@ -15,7 +15,7 @@ class ItemCollectionForm(forms.Form):
     description_html = forms.TinyMce4Field(__("Description"))
     tax_type = forms.SelectField(__("Tax type"), choices=[('GST', 'GST')], default='GST')
     place_supply_state_code = forms.SelectField(__("State"),
-        choices=[(state['short_code_text'], state['name']) for state in sorted(indian_states, key=lambda k: k['name'])],
+        choices=[(state['short_code'], state['name']) for state in sorted(indian_states, key=lambda k: k['name'])],
         description=__("Place of supply"),
         default='KA')
     place_supply_country_code = forms.SelectField(__("Country"),

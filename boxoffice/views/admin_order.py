@@ -129,7 +129,7 @@ def get_order_details(order):
     line_items_list = [{
         'title': li.item.title,
         'category': li.item.category.title,
-        'event_date': li.item.event_date if li.item.event_date else '',
+        'event_date': li.item.event_date.isoformat() if li.item.event_date else None,
         'status': LINE_ITEM_STATUS[li.status],
         'base_amount': li.base_amount,
         'discounted_amount': li.discounted_amount,
@@ -158,8 +158,8 @@ def get_order_details(order):
 
     refunds_list = [{
         'refund_amount': refund.amount,
-        'refund_description': refund.refund_description if refund.refund_description else '',
-        'internal_note': refund.internal_note if refund.internal_note else ''
+        'refund_description': refund.refund_description,
+        'internal_note': refund.internal_note
         } for refund in order.refund_transactions]
 
     return jsonify(
@@ -177,7 +177,7 @@ def get_order_details(order):
         )
 
 
-# This enpoint has been added to fetch details of an order to generate invoice outside Boxoffice.
+# This endpoint has been added to fetch details of an order to generate invoice outside Boxoffice.
 # Not to be used within the app.
 @app.route('/api/1/organization/<org_name>/order/<int:receipt_no>', methods=['GET'])
 @load_models(
@@ -189,9 +189,9 @@ def order_api(org, order):
     return get_order_details(order)
 
 
-# This enpoint has been added to fetch details of an order to generate invoice outside Boxoffice.
+# This endpoint has been added to fetch details of an order to generate invoice outside Boxoffice.
 # Not to be used within the app.
-@app.route('/api/2/organization/<org_name>/order/<order_id>', methods=['GET'])
+@app.route('/api/1/organization/<org_name>/order/<order_id>', methods=['GET'])
 @load_models(
     (Organization, {'name': 'org_name'}, 'org'),
     (Order, {'organization': 'org', 'id': 'order_id'}, 'order')
