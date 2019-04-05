@@ -8,7 +8,7 @@ from baseframe import __
 import baseframe.forms as forms
 from baseframe.forms.sqlalchemy import QuerySelectField
 from ..models import db, Category, ItemCollection
-from boxoffice.data import indian_states
+from boxoffice.data import indian_states, indian_states_dict
 
 __all__ = ['ItemForm']
 
@@ -77,9 +77,9 @@ class ItemForm(forms.Form):
     event_date = forms.DateField(__("Event date"), validators=[forms.validators.DataRequired(__("Please specify a date for the event"))])
     cancellable_until = forms.DateTimeField(__("Cancellable until"), validators=[forms.validators.Optional()])
     place_supply_state_code = forms.SelectField(__("State"),
-        choices=[(state['short_code_text'], state['name']) for state in sorted(indian_states, key=lambda k: k['name'])],
-        description=__("Place of supply"),
-        default='KA')
+        choices=[(state['short_code'], state['name']) for state in sorted(indian_states, key=lambda k: k['name'])],
+        description=__("Place of supply"), coerce=int,
+        default=indian_states_dict['KA']['short_code'])
     place_supply_country_code = forms.SelectField(__("Country"),
         choices=[(country.alpha_2, country.name) for country in sorted(pycountry.countries, key=lambda k: k.name)],
         description=__("Place of supply"),
