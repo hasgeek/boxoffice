@@ -2,11 +2,10 @@
 
 from datetime import datetime
 from decimal import Decimal
-from pycountry import pycountry
 from sqlalchemy.sql import func
 from flask import url_for, request, jsonify, render_template, abort
 from coaster.views import render_with, load_models
-from baseframe import _
+from baseframe import _, localized_country_list
 from baseframe.forms import render_form
 from .. import app, lastuser
 from ..models import db
@@ -365,7 +364,7 @@ def jsonify_invoices(data_dict):
         invoices_list.append(jsonify_invoice(invoice))
     return jsonify(invoices=invoices_list, access_token=data_dict['order'].access_token,
         states=[{'name': state['name'], 'code': state['short_code_text']} for state in sorted(indian_states, key=lambda k: k['name'])],
-        countries=[{'name': country.name, 'code': country.alpha_2} for country in sorted(pycountry.countries, key=lambda k: k.name)])
+        countries=[{'name': name, 'code': code} for code, name in localized_country_list()])
 
 
 @app.route('/order/<access_token>/invoice', methods=['GET'])

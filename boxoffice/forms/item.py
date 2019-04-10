@@ -3,9 +3,7 @@
 import json
 from flask import request
 from html5print import HTMLBeautifier
-from pycountry import pycountry
-from baseframe import __
-import baseframe.forms as forms
+from baseframe import __, forms, localized_country_list
 from baseframe.forms.sqlalchemy import QuerySelectField
 from ..models import db, Category, ItemCollection
 from boxoffice.data import indian_states, indian_states_dict
@@ -81,10 +79,11 @@ class ItemForm(forms.Form):
         description=__("Place of supply"), coerce=int, default=indian_states_dict['KA']['short_code'],
         validators=[forms.validators.DataRequired(__("Please select a state"))])
     place_supply_country_code = forms.SelectField(__("Country"),
-        choices=[('', '')] + [(country.alpha_2, country.name) for country in sorted(pycountry.countries, key=lambda k: k.name)],
+        choices=[('', '')],
         description=__("Place of supply"), default='IN',
         validators=[forms.validators.DataRequired(__("Please select a country"))])
 
     def set_queries(self):
+        self.place_supply_country_code.choices += localized_country_list()
         self.category.query = Category.query.join(ItemCollection).filter(
             Category.item_collection == self.edit_parent).options(db.load_only('id', 'title'))

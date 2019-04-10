@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from pycountry import pycountry
-from baseframe import __
-from baseframe import forms
+from baseframe import __, forms, localized_country_list
 from boxoffice.data import indian_states, indian_states_dict
 
 __all__ = ['ItemCollectionForm']
@@ -20,6 +18,9 @@ class ItemCollectionForm(forms.Form):
         description=__("Place of supply"), coerce=int, default=indian_states_dict['KA']['short_code'],
         validators=[forms.validators.DataRequired(__("Please select a state"))])
     place_supply_country_code = forms.SelectField(__("Country"),
-        choices=[('', '')] + [(country.alpha_2, country.name) for country in sorted(pycountry.countries, key=lambda k: k.name)],
+        choices=[('', '')],
         description=__("Place of supply"), default='IN',
         validators=[forms.validators.DataRequired(__("Please select a country"))])
+
+    def set_queries(self):
+        self.place_supply_country_code.choices += localized_country_list()
