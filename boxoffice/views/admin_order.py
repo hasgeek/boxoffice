@@ -136,7 +136,8 @@ def get_order_details(order):
         'final_amount': li.final_amount,
         'assignee': format_assignee(li.current_assignee),
         'place_of_supply_city': li.item.place_supply_state_code if li.item.place_supply_state_code else li.item.item_collection.place_supply_state_code,
-        'place_of_supply_country': li.item.place_supply_country_code if li.item.place_supply_country_code else li.item.item_collection.place_supply_country_code
+        'place_of_supply_country': li.item.place_supply_country_code if li.item.place_supply_country_code else li.item.item_collection.place_supply_country_code,
+        'tax_type': li.item.item_collection.tax_type
         } for li in order.confirmed_and_cancelled_line_items]
 
     invoices_list = [{
