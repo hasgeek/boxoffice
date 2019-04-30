@@ -72,7 +72,9 @@ class ItemForm(forms.Form):
         validators=[forms.validators.DataRequired(__("Please specify the quantity available for sale"))])
     assignee_details = forms.TextAreaField(__("Assignee details"), filters=[format_json],
         validators=[validate_json], default=ASSIGNEE_DETAILS_PLACEHOLDER)
-    event_date = forms.DateField(__("Event date"), validators=[forms.validators.DataRequired(__("Please specify a date for the event"))])
+    event_date = forms.DateField(__("Event date"),
+        description=__("The date on which this item will be invoiced"),
+        validators=[forms.validators.DataRequired(__("Please specify a date for the event"))])
     cancellable_until = forms.DateTimeField(__("Cancellable until"), validators=[forms.validators.Optional()])
     place_supply_state_code = forms.SelectField(__("State"),
         choices=[('', '')] + [(state['short_code'], state['name']) for state in sorted(indian_states, key=lambda k: k['name'])],

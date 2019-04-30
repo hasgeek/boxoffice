@@ -58,7 +58,7 @@ def jsonify_category(category):
 def render_boxoffice_js():
     return render_template(
         'boxoffice.js',
-        base_url=request.url_root.strip('/'), razorpay_key_id=app.config['RAZORPAY_KEY_ID'],
+        base_url=request.url_root.rstrip('/'), razorpay_key_id=app.config['RAZORPAY_KEY_ID'],
         states=[{'name': state['name'], 'code': state['short_code_text']}
             for state in sorted(indian_states, key=lambda k: k['name'])],
         countries=[{'name': name, 'code': code} for code, name in localized_country_list()]
