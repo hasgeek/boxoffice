@@ -2,15 +2,7 @@ import csv
 from boxoffice.extapi.razorpay import RAZORPAY_PAYMENT_STATUS
 from decimal import Decimal
 
-from pytz import utc, timezone
-import csv
-from decimal import Decimal
-from boxoffice import *
-from boxoffice.models import *
-from boxoffice.models.payment import TRANSACTION_TYPE
-from boxoffice.extapi.razorpay import RAZORPAY_PAYMENT_STATUS
-
-init_for('prod')
+from boxoffice.models import LineItem, OnlinePayment, LINE_ITEM_STATUS
 
 
 def line_item_is_cancelled(line_item):
@@ -19,6 +11,7 @@ def line_item_is_cancelled(line_item):
 
 def order_net_amount(order):
     return order.get_amounts().final_amount - sum([line_item.final_amount for line_item in order.line_items if line_item_is_cancelled(line_item)])
+
 
 def get_settled_orders(settlement_files):
     entity_dict = {}
@@ -50,7 +43,7 @@ def get_settled_orders(settlement_files):
             'final_amount': line_item.final_amount,
             'payment_status': payment_status,
             'transaction_date': transaction_date
-        }
+            }
 
     settlement_ids = [entity['entity_id'] for entity in entity_dict.values() if entity['type'] == 'settlement']
     settled_orders = []
@@ -59,7 +52,7 @@ def get_settled_orders(settlement_files):
             'settlement_id': settlement_id,
             'settlement_amount': entity_dict[settlement_id]['amount'],
             'settled_at': entity_dict[settlement_id]['settled_at']
-        }))
+            }))
         settlement_payment_ids = [entity['entity_id'] for entity in entity_dict.values() if entity['type'] == 'payment' and entity['settlement_id'] == settlement_id]
         for settlement_payment_id in settlement_payment_ids:
             payment = OnlinePayment.query.filter(OnlinePayment.pg_paymentid == settlement_payment_id, OnlinePayment.pg_payment_status == RAZORPAY_PAYMENT_STATUS.CAPTURED).one()
@@ -72,7 +65,7 @@ def get_settled_orders(settlement_files):
                 'payment_id': payment.pg_paymentid,
                 'razorpay_fees': entity_dict[payment.pg_paymentid]['fee'],
                 'receivable_amount': order_net_amount(order) - Decimal(entity_dict[payment.pg_paymentid]['fee'])
-            }))
+                }))
 
             for line_item in order.line_items:
                 settled_orders.append(format_row(format_line_item(settlement_id, settlement_payment_id, line_item, 'payment')))
@@ -91,12 +84,12 @@ def get_settled_orders(settlement_files):
                 'payment_id': payment.pg_paymentid,
                 'razorpay_fees': Decimal('0'),
                 'receivable_amount': Decimal('0') - Decimal(entity_dict[settlement_refund_id]['debit'])
-            }))
+                }))
             # HACK, fetching by amount in an order
             try:
                 cancelled_line_item = LineItem.query.filter(LineItem.order == order, LineItem.final_amount == Decimal(entity_dict[settlement_refund_id]['debit']), LineItem.status == LINE_ITEM_STATUS.CANCELLED).first()
                 settled_orders.append(format_row(format_line_item(settlement_id, settlement_payment_id, cancelled_line_item, 'refund')))
-            except:
+            except Exception:
                 print "Multiple line items found"
                 print payment.pg_paymentid
                 cancelled_line_item = LineItem.query.filter(LineItem.order == order, LineItem.final_amount == Decimal(entity_dict[settlement_refund_id]['debit']), LineItem.status == LINE_ITEM_STATUS.CANCELLED).first()
@@ -108,6 +101,7 @@ def get_settled_orders(settlement_files):
 
     return settled_orders
 
+
 def write_settled_orders(filename, rows):
     with open(filename, 'w') as csvfile:
         fieldnames = ['settlement_id', 'order_id', 'payment_id', 'line_item_id', 'item_title', 'base_amount', 'discounted_amount', 'final_amount', 'transaction_date', 'payment_status', 'settled_at', 'razorpay_fees', 'order_amount', 'receivable_amount', 'settlement_amount', 'buyer_fullname']
@@ -115,5 +109,3 @@ def write_settled_orders(filename, rows):
         writer.writeheader()
         for row in rows:
             writer.writerow(row)
-
-

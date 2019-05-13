@@ -34,7 +34,7 @@ def jsonify_discount_policies(data_dict):
         total_pages=data_dict['total_pages'],
         paginated=data_dict['total_pages'] > 1,
         current_page=data_dict['current_page']
-    )
+        )
 
 
 @app.route('/admin/o/<org>/discount_policy')
@@ -43,7 +43,7 @@ def jsonify_discount_policies(data_dict):
 @load_models(
     (Organization, {'name': 'org'}, 'organization'),
     permission='org_admin'
-)
+    )
 @requestargs('search', ('page', int), ('size', int))
 def admin_discount_policies(organization, search=None, page=1, size=None):
     results_per_page = size or 20
@@ -68,7 +68,7 @@ def admin_discount_policies(organization, search=None, page=1, size=None):
 @load_models(
     (Organization, {'name': 'org'}, 'organization'),
     permission='org_admin'
-)
+    )
 def admin_new_discount_policy(organization):
     discount_policy = DiscountPolicy(organization=organization)
     discount_policy_form = DiscountPolicyForm(model=DiscountPolicy)
@@ -123,7 +123,7 @@ def admin_new_discount_policy(organization):
 @load_models(
     (DiscountPolicy, {'id': 'discount_policy_id'}, 'discount_policy'),
     permission='org_admin'
-)
+    )
 def admin_edit_discount_policy(discount_policy):
     discount_policy_error_msg = _(u"The discount could not be updated. Please rectify the indicated issues")
     if discount_policy.is_price_based and discount_policy.items:
@@ -160,7 +160,7 @@ def admin_edit_discount_policy(discount_policy):
 @load_models(
     (DiscountPolicy, {'id': 'discount_policy_id'}, 'discount_policy'),
     permission='org_admin'
-)
+    )
 def admin_delete_discount_policy(discount_policy):
     form = forms.Form()
     if request.method == 'GET':
@@ -182,7 +182,7 @@ def admin_delete_discount_policy(discount_policy):
 @load_models(
     (DiscountPolicy, {'id': 'discount_policy_id'}, 'discount_policy'),
     permission='org_admin'
-)
+    )
 def admin_new_coupon(discount_policy):
     coupon_form = DiscountCouponForm(parent=discount_policy)
     coupons = []

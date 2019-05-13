@@ -16,13 +16,13 @@ import sqlalchemy_utils
 from sqlalchemy.sql import table, column
 
 item = table('item',
-  column('id', sqlalchemy_utils.types.uuid.UUIDType()),
-  column('quantity_total', sa.Integer()),
-  column('quantity_available', sa.Integer()))
+    column('id', sqlalchemy_utils.types.uuid.UUIDType()),
+    column('quantity_total', sa.Integer()),
+    column('quantity_available', sa.Integer()))
 
 line_item = table('line_item',
-  column('item_id', sqlalchemy_utils.types.uuid.UUIDType()),
-  column('status', sa.Integer()))
+    column('item_id', sqlalchemy_utils.types.uuid.UUIDType()),
+    column('status', sa.Integer()))
 
 
 def upgrade():

@@ -12,7 +12,6 @@ down_revision = '45de268cd444'
 
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
 from sqlalchemy.sql import table, column
 
 
@@ -44,9 +43,9 @@ def downgrade():
     op.add_column('discount_coupon', sa.Column('quantity_total', sa.INTEGER(), autoincrement=False, nullable=True))
     op.add_column('discount_coupon', sa.Column('quantity_available', sa.INTEGER(), autoincrement=False, nullable=True))
     op.execute(discount_coupon.update().values({'quantity_total': 1}))
-    op.execute(discount_coupon.update().where(discount_coupon.c.used == True).values({'quantity_available': 0}))
-    op.execute(discount_coupon.update().where(discount_coupon.c.used == False).values({'quantity_available': 1}))
-    op.execute(discount_coupon.update().where(discount_coupon.c.used == None).values({'quantity_available': 1}))
+    op.execute(discount_coupon.update().where(discount_coupon.c.used == True).values({'quantity_available': 0}))  # NOQA
+    op.execute(discount_coupon.update().where(discount_coupon.c.used == False).values({'quantity_available': 1}))  # NOQA
+    op.execute(discount_coupon.update().where(discount_coupon.c.used == None).values({'quantity_available': 1}))  # NOQA
     op.alter_column('discount_coupon', 'quantity_total',
                existing_type=sa.INTEGER(),
                nullable=False)

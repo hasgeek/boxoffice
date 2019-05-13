@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 from boxoffice import app, db
-from boxoffice.models import *
 from tests import init_data
 
 db.drop_all()
@@ -33,5 +32,6 @@ def test_page():
 </script>
 </body>
 </html>"""
+
 
 app.run('0.0.0.0', 6500, debug=True)

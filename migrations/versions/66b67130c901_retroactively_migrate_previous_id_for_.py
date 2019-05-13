@@ -13,24 +13,23 @@ down_revision = '171fcb171759'
 from collections import OrderedDict
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
 from sqlalchemy.sql import table, column
 import sqlalchemy_utils
 from boxoffice.models.order import ORDER_STATUS
 from boxoffice.models.line_item import LINE_ITEM_STATUS
 
 
-
 def find_nearest_timestamp(lst, timestamp):
     if not lst:
         return None
-    nearest_ts = min(lst, key=lambda ts: abs(ts-timestamp).total_seconds())
+    nearest_ts = min(lst, key=lambda ts: abs(ts - timestamp).total_seconds())
     if abs(nearest_ts - timestamp).total_seconds() < 1:
         return nearest_ts
 
+
 def set_previous_keys_for_line_items(line_items):
     timestamped_line_items = OrderedDict()
-    
+
     # Assemble the `timestamped_line_items` dictionary with the timestamp at which the line items were created
     # as the key, and the line items that were created at that time as the value (as a list)
     # Some line items may have been created a few milliseconds later, so the nearest timestamp
@@ -44,7 +43,7 @@ def set_previous_keys_for_line_items(line_items):
             'status': line_item.status,
             'item_id': line_item.item_id,
             'previous_id': None
-        })
+            })
 
     # The previous line item for a line item, is a line item that has an earlier timestamp with a void status
     # with the same item_id. Find it and set it
@@ -63,8 +62,9 @@ def set_previous_keys_for_line_items(line_items):
             ][0]
             li_dict['previous_id'] = previous_li_dict['id']
             used_line_item_ids.add(previous_li_dict['id'])
-    
+
     return [li_dict for li_dicts in timestamped_line_items.values() for li_dict in li_dicts]
+
 
 order_table = table('customer_order',
     column('id', sqlalchemy_utils.types.uuid.UUIDType()),
@@ -77,6 +77,7 @@ line_item_table = table('line_item',
     column('previous_id', sqlalchemy_utils.types.uuid.UUIDType()),
     column('status', sa.Integer()),
     column('created_at', sa.Boolean()))
+
 
 def upgrade():
     conn = op.get_bind()
@@ -92,7 +93,7 @@ def upgrade():
             if updated_line_item_dict['previous_id']:
                 conn.execute(sa.update(line_item_table).where(
                     line_item_table.c.id == updated_line_item_dict['id']
-                ).values(previous_id=updated_line_item_dict['previous_id']))
+                    ).values(previous_id=updated_line_item_dict['previous_id']))
 
 
 def downgrade():
@@ -104,4 +105,4 @@ def downgrade():
         for line_item in line_items:
             conn.execute(sa.update(line_item_table).where(
                 line_item_table.c.id == line_item.id
-            ).values(previous_id=None))
+                ).values(previous_id=None))

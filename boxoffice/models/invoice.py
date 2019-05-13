@@ -105,6 +105,7 @@ class Invoice(UuidMixin, BaseMixin, db.Model):
             raise ValueError("`{attr}` cannot be modified in a finalized invoice".format(attr=key))
         return val
 
+
 def fetch_invoices(self):
     """
     Returns invoices for an organization as a tuple of (row_headers, rows)
@@ -120,6 +121,7 @@ def fetch_invoices(self):
     return HeadersAndDataTuple(
         headers,
         db.session.execute(invoices_query).fetchall()
-    )
+        )
+
 
 Organization.fetch_invoices = fetch_invoices

@@ -13,7 +13,6 @@ down_revision = 'adb90a264e3'
 from alembic import op
 import sqlalchemy as sa
 from coaster.sqlalchemy import JsonDict
-import sqlalchemy_utils
 
 
 def upgrade():
@@ -30,7 +29,7 @@ def upgrade():
         sa.ForeignKeyConstraint(['previous_id'], ['assignee.id'], ),
         sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
         sa.PrimaryKeyConstraint('id'),
-    )
+        )
     op.add_column(u'line_item', sa.Column('assignee_id', sa.Integer(), nullable=True))
     op.add_column(u'item', sa.Column('assignee_details', JsonDict(), server_default='{}', nullable=True))
     op.alter_column('item', 'assignee_details', server_default=None)

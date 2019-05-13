@@ -5,7 +5,7 @@ import csv
 from decimal import Decimal
 from boxoffice import app
 from boxoffice.models import OnlinePayment, LINE_ITEM_STATUS, LineItem
-from boxoffice.extapi.razorpay import base_url, RAZORPAY_PAYMENT_STATUS
+from boxoffice.extapi.razorpay import RAZORPAY_PAYMENT_STATUS
 
 
 def line_item_is_cancelled(line_item):
@@ -14,6 +14,7 @@ def line_item_is_cancelled(line_item):
 
 def order_net_amount(order):
     return order.get_amounts(LINE_ITEM_STATUS.CONFIRMED).final_amount
+
 
 def format_row(row):
     fields = ['settlement_id', 'item_collection', 'order_id', 'payment_id', 'line_item_id',
@@ -40,7 +41,7 @@ def format_line_item(settlement_id, payment_id, line_item, payment_status):
         'final_amount': line_item.final_amount,
         'payment_status': payment_status,
         'transaction_date': transaction_date
-    }
+        }
 
 
 def get_settled_orders(date_ranges=[], filenames=[]):
@@ -73,7 +74,7 @@ def get_settled_orders(date_ranges=[], filenames=[]):
             'settlement_id': settlement_id,
             'settlement_amount': entity_dict[settlement_id]['amount'],
             'settled_at': entity_dict[settlement_id]['settled_at']
-        }))
+            }))
         settlement_payment_ids = [entity['entity_id'] for entity in entity_dict.values() if entity['type'] == 'payment' and entity['settlement_id'] == settlement_id]
         for settlement_payment_id in settlement_payment_ids:
             try:
@@ -87,7 +88,7 @@ def get_settled_orders(date_ranges=[], filenames=[]):
                     'payment_id': payment.pg_paymentid,
                     'razorpay_fees': entity_dict[payment.pg_paymentid]['fee'],
                     'receivable_amount': order.get_amounts(LINE_ITEM_STATUS.CONFIRMED).final_amount - Decimal(entity_dict[payment.pg_paymentid]['fee'])
-                }))
+                    }))
 
                 for line_item in order.line_items:
                     settled_orders.append(format_row(format_line_item(settlement_id, settlement_payment_id, line_item, 'payment')))
@@ -110,12 +111,12 @@ def get_settled_orders(date_ranges=[], filenames=[]):
                 'payment_id': payment.pg_paymentid,
                 'razorpay_fees': Decimal('0'),
                 'receivable_amount': Decimal('0') - Decimal(entity_dict[settlement_refund_id]['debit'])
-            }))
+                }))
             # HACK, fetching by amount in an order
             try:
                 cancelled_line_item = LineItem.query.filter(LineItem.order == order, LineItem.final_amount == Decimal(entity_dict[settlement_refund_id]['debit']), LineItem.status == LINE_ITEM_STATUS.CANCELLED).first()
                 settled_orders.append(format_row(format_line_item(settlement_id, settlement_payment_id, cancelled_line_item, 'refund')))
-            except:
+            except Exception:
                 cancelled_line_item = LineItem.query.filter(LineItem.order == order, LineItem.final_amount == Decimal(entity_dict[settlement_refund_id]['debit']), LineItem.status == LINE_ITEM_STATUS.CANCELLED).first()
                 if cancelled_line_item:
                     settled_orders.append(format_row(format_line_item(settlement_id, settlement_payment_id, cancelled_line_item, 'refund')))
@@ -136,4 +137,3 @@ def write_settled_orders(filename, rows):
         writer.writeheader()
         for row in rows:
             writer.writerow(row)
-

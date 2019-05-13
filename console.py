@@ -1,23 +1,25 @@
 # -*- coding: utf-8 -*-
-from flask import make_response, jsonify
-from boxoffice import *
-from boxoffice.models import *
+from collections import OrderedDict
 from decimal import Decimal
-import IPython
 import datetime
+import IPython
 import pytz
+from flask import make_response, jsonify
+from isoweek import Week
+from .. import app
+from boxoffice.models import (db, Invoice, Order, OnlinePayment, Organization,
+    PaymentTransaction, ItemCollection, CURRENCY, INVOICE_STATUS, LINE_ITEM_STATUS)
 from boxoffice.views.custom_exceptions import PaymentGatewayError
-from boxoffice.mailclient import (send_receipt_mail, send_line_item_cancellation_mail,
-    send_participant_assignment_mail)
-from boxoffice.extapi import razorpay, RAZORPAY_PAYMENT_STATUS
-from coaster.utils import LabeledEnum, isoweek_datetime, midnight_to_utc
+from boxoffice.mailclient import send_receipt_mail, send_participant_assignment_mail
+from boxoffice.extapi import razorpay
+from coaster.utils import isoweek_datetime, midnight_to_utc
 
 import logging
 logging.basicConfig()
 logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 
-def convert_to_utc(localtime, tz="Asia/Calcutta", is_dst=True):
+def convert_to_utc(localtime, tz="Asia/Kolkata", is_dst=True):
     local = pytz.timezone(tz)
     local_dt = local.localize(localtime, is_dst=is_dst)
     return local_dt.astimezone(pytz.UTC).replace(tzinfo=None)
@@ -76,7 +78,7 @@ def sales_delta(user_tz, item_ids):
     yesterday_sales = sales_by_date(yesterday, item_ids, user_tz)
     if not today_sales or not yesterday_sales:
         return 0
-    return round(Decimal('100') * (today_sales - yesterday_sales)/yesterday_sales, 2)
+    return round(Decimal('100') * (today_sales - yesterday_sales) / yesterday_sales, 2)
 
 
 def process_payment(order_id, pg_paymentid):
@@ -101,7 +103,7 @@ def process_payment(order_id, pg_paymentid):
                 line_item.discount_coupon.update_used_count()
                 db.session.add(line_item.discount_coupon)
         db.session.commit()
-	with app.test_request_context():
+        with app.test_request_context():
             send_receipt_mail.queue(order.id)
             return make_response(jsonify(message="Payment verified"), 201)
     else:
@@ -141,9 +143,9 @@ def make_invoice_nos():
     orgs = Organization.query.all()
     for org in orgs:
         for order in Order.query.filter(Order.organization == org, Order.paid_at >= '2017-06-30 18:30').all():
-	       if order.get_amounts(LINE_ITEM_STATUS.CONFIRMED).final_amount or order.get_amounts(LINE_ITEM_STATUS.CANCELLED).final_amount:
-	           db.session.add(Invoice(order=order, organization=org))
-	db.session.commit()
+            if order.get_amounts(LINE_ITEM_STATUS.CONFIRMED).final_amount or order.get_amounts(LINE_ITEM_STATUS.CANCELLED).final_amount:
+                db.session.add(Invoice(order=order, organization=org))
+    db.session.commit()
 
 
 from boxoffice.views.order import process_partial_refund_for_order
@@ -159,7 +161,7 @@ def partial_refund(**kwargs):
         'internal_note': kwargs['internal_note'],
         'refund_description': kwargs['refund_description'],
         'note_to_user': kwargs['note_to_user']
-    }
+        }
     order = Order.query.get(kwargs['order_id'])
 
     with app.test_request_context():

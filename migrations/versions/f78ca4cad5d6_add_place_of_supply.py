@@ -12,7 +12,7 @@ down_revision = '6c04555d7d94'
 
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
+
 
 def upgrade():
     op.add_column('item', sa.Column('place_supply_country_code', sa.Unicode(length=2), nullable=True))

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from flask import g, jsonify, request, abort
+from flask import g, jsonify, request
 import pytz
 from .. import app, lastuser
 from coaster.views import load_models, render_with

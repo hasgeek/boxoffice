@@ -13,7 +13,6 @@ down_revision = '23fc9e293ac3'
 from alembic import op
 import sqlalchemy as sa
 import sqlalchemy_utils
-from sqlalchemy.dialects import postgresql
 from sqlalchemy.sql import table, column
 from boxoffice.models.user import get_fiscal_year
 
@@ -38,28 +37,28 @@ def upgrade():
         fy_start_at, fy_end_at = get_fiscal_year(u'in', invoice.invoiced_at)
         conn.execute(sa.update(invoice_table).where(
             invoice_table.c.id == invoice.id
-        ).values(fy_start_at=fy_start_at, fy_end_at=fy_end_at))
+            ).values(fy_start_at=fy_start_at, fy_end_at=fy_end_at))
     op.alter_column('invoice', 'fy_start_at',
-               existing_type=sa.DateTime(),
-               nullable=False)
+        existing_type=sa.DateTime(),
+        nullable=False)
     op.alter_column('invoice', 'fy_end_at',
-               existing_type=sa.DateTime(),
-               nullable=False)
+        existing_type=sa.DateTime(),
+        nullable=False)
 
 
 def downgrade():
     conn = op.get_bind()
     op.alter_column('invoice', 'fy_end_at',
-               existing_type=sa.DateTime(),
-               nullable=True)
+        existing_type=sa.DateTime(),
+        nullable=True)
     op.alter_column('invoice', 'fy_start_at',
-               existing_type=sa.DateTime(),
-               nullable=True)
+        existing_type=sa.DateTime(),
+        nullable=True)
     invoices = conn.execute(sa.select([invoice_table.c.id]).select_from(invoice_table))
     for invoice in invoices:
         conn.execute(sa.update(invoice_table).where(
             invoice_table.c.id == invoice.id
-        ).values(fy_start_at=None, fy_end_at=None))
+            ).values(fy_start_at=None, fy_end_at=None))
     op.drop_constraint('invoice_organization_id_fy_start_at_fy_end_at_invoice_no_key', 'invoice', type_='unique')
     op.create_unique_constraint(u'invoice_organization_id_invoice_no_key', 'invoice', ['organization_id', 'invoice_no'])
     op.drop_column('invoice', 'fy_start_at')

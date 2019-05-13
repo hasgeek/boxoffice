@@ -15,15 +15,19 @@ def get_refunds(paymentid):
     resp = requests.get(url, auth=(app.config['RAZORPAY_KEY_ID'], app.config['RAZORPAY_KEY_SECRET']))
     return resp.json()
 
+
 def amount_in_paise(amount):
-    return int(amount*100)
+    return int(amount * 100)
+
 
 def amount_in_rupees(amount):
-    return Decimal(amount/100.0)
+    return Decimal(amount / 100.0)
+
 
 def epoch_dt(dt):
     epoch = datetime.datetime.utcfromtimestamp(0)
     return (dt - epoch).total_seconds()
+
 
 def sync_refunds():
     epoch = datetime.datetime.utcfromtimestamp(0)
@@ -72,8 +76,8 @@ def get_duplicate_payments():
                     dupes.append(payment)
     return dupes
 
+
 def import_missing_refunds():
-    epoch = datetime.datetime.utcfromtimestamp(0)
     payments = OnlinePayment.query.all()
     for payment in payments:
         rp_refunds = get_refunds(payment.pg_paymentid)
@@ -90,5 +94,5 @@ def import_missing_refunds():
                         refunded_at=datetime.datetime.utcfromtimestamp(rp_refund['created_at']),
                         transaction_type=TRANSACTION_TYPE.REFUND,
                         currency=CURRENCY.INR
-                    ))
+                        ))
     db.session.commit()

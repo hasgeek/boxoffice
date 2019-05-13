@@ -32,21 +32,21 @@ ASSIGNEE_DETAILS_PLACEHOLDER = {
         "label": "Do you need childcare?",
         "field_type": "checkbox",
         "option": "yes"
-    },
+        },
     "city": {
         "label": "City",
         "field_type": "string"
-    },
+        },
     "food_options": {
         "label": "Food preference",
         "field_type": "select",
         "options": ["Veg", "Non-veg"]
-    },
+        },
     "survey": {
         "label": "How did you hear about this event?",
         "field_type": "textbox",
+        }
     }
-}
 
 
 def validate_json(form, field):

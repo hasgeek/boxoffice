@@ -56,8 +56,8 @@ class Item(BaseScopedNameMixin, db.Model):
     __roles__ = {
         'item_owner': {
             'read': {'id', 'title', 'description_text', 'description_html', 'quantity_total', 'quantity_available', 'active_price', 'assignee_details'}
+            }
         }
-    }
 
     def roles_for(self, actor=None, anchors=()):
         roles = super(Item, self).roles_for(actor, anchors)
@@ -76,14 +76,14 @@ class Item(BaseScopedNameMixin, db.Model):
         Checks if item has a higher price than the given current price
         """
         return Price.query.filter(Price.end_at > current_price.end_at,
-            Price.item == self, Price.discount_policy == None).notempty()
+            Price.item == self, Price.discount_policy == None).notempty()  # NOQA
 
     def discounted_price(self, discount_policy):
         """Return the discounted price for an item."""
         return Price.query.filter(Price.item == self, Price.discount_policy == discount_policy).one_or_none()
 
     def standard_prices(self):
-        return Price.query.filter(Price.item == self, Price.discount_policy == None).order_by('start_at desc')
+        return Price.query.filter(Price.item == self, Price.discount_policy == None).order_by('start_at desc')  # NOQA
 
     def price_at(self, timestamp):
         """Return the price object for an item at a given time."""
@@ -194,8 +194,8 @@ class Price(BaseScopedNameMixin, db.Model):
     __roles__ = {
         'price_owner': {
             'read': {'id', 'item_id', 'start_at', 'end_at', 'amount', 'currency', 'discount_policy_title'}
+            }
         }
-    }
 
     def roles_for(self, actor=None, anchors=()):
         roles = super(Price, self).roles_for(actor, anchors)

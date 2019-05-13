@@ -5,7 +5,7 @@ from sqlalchemy.sql import func
 from decimal import Decimal
 from coaster.utils import LabeledEnum, isoweek_datetime
 from isoweek import Week
-from baseframe import __, localize_timezone
+from baseframe import __
 from boxoffice.models import db, BaseMixin, Order, ORDER_STATUS, MarkdownColumn, ItemCollection
 from ..extapi.razorpay_status import RAZORPAY_PAYMENT_STATUS
 
@@ -81,11 +81,13 @@ class PaymentTransaction(BaseMixin, db.Model):
 def get_refund_transactions(self):
     return self.transactions.filter_by(transaction_type=TRANSACTION_TYPE.REFUND)
 
+
 Order.refund_transactions = property(get_refund_transactions)
 
 
 def get_payment_transactions(self):
     return self.transactions.filter_by(transaction_type=TRANSACTION_TYPE.PAYMENT)
+
 
 Order.payment_transactions = property(get_payment_transactions)
 
@@ -93,17 +95,20 @@ Order.payment_transactions = property(get_payment_transactions)
 def order_paid_amount(self):
     return sum([order_transaction.amount for order_transaction in self.payment_transactions])
 
+
 Order.paid_amount = property(order_paid_amount)
 
 
 def order_refunded_amount(self):
     return sum([order_transaction.amount for order_transaction in self.refund_transactions])
 
+
 Order.refunded_amount = property(order_refunded_amount)
 
 
 def order_net_amount(self):
     return self.paid_amount - self.refunded_amount
+
 
 Order.net_amount = property(order_net_amount)
 
@@ -128,6 +133,7 @@ def item_collection_net_sales(self):
         return total_paid
     else:
         return Decimal('0')
+
 
 ItemCollection.net_sales = property(item_collection_net_sales)
 

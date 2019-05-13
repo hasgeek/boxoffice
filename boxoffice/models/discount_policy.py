@@ -65,8 +65,8 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     __roles__ = {
         'dp_owner': {
             'read': {'id', 'name', 'title', 'is_automatic', 'is_coupon', 'item_quantity_min', 'percentage', 'is_price_based', 'discount_code_base', 'bulk_coupon_usage_limit', 'line_items_count'}
+            }
         }
-    }
 
     def roles_for(self, actor=None, anchors=()):
         roles = super(DiscountPolicy, self).roles_for(actor, anchors)
@@ -230,7 +230,6 @@ class DiscountCoupon(IdMixin, db.Model):
 
 create_title_trgm_trigger = DDL(
     '''
-    CREATE EXTENSION IF NOT EXISTS pg_trgm;
     CREATE INDEX idx_discount_policy_title_trgm on discount_policy USING gin (title gin_trgm_ops);
     ''')
 

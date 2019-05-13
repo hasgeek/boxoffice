@@ -31,7 +31,7 @@ def upgrade():
         sa.Column('id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
         sa.ForeignKeyConstraint(['customer_order_id'], ['customer_order.id'], ),
         sa.PrimaryKeyConstraint('id')
-    )
+        )
     op.create_index(op.f('ix_order_session_customer_order_id'), 'order_session', ['customer_order_id'], unique=False)
     op.create_index(op.f('ix_order_session_gclid'), 'order_session', ['gclid'], unique=False)
     op.create_index(op.f('ix_order_session_utm_campaign'), 'order_session', ['utm_campaign'], unique=False)

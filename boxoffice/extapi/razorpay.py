@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import requests
-from baseframe import __, localize_timezone
+from baseframe import localize_timezone
 from boxoffice import app
 from boxoffice.models import OnlinePayment, PaymentTransaction, TRANSACTION_TYPE
 
@@ -30,12 +30,14 @@ def refund_payment(paymentid, amount):
     resp = requests.post(url, data={'amount': int(amount * 100)}, auth=(app.config['RAZORPAY_KEY_ID'], app.config['RAZORPAY_KEY_SECRET']))
     return resp
 
+
 def get_settlements(date_range):
     url = '{base_url}/settlements/report/combined'.format(base_url=base_url)
     resp = requests.get(url,
         params={'year': date_range['year'], 'month': date_range['month']},
         auth=(app.config['RAZORPAY_KEY_ID'], app.config['RAZORPAY_KEY_SECRET']))
     return resp.json()
+
 
 def get_settled_transactions(date_range, tz=None):
     if not tz:
@@ -52,12 +54,12 @@ def get_settled_transactions(date_range, tz=None):
 
     for settled_transaction in settled_transactions:
         if settled_transaction['type'] == 'settlement':
-          rows.append({
-            'settlement_id': settled_transaction['entity_id'],
-            'settlement_amount': settled_transaction['amount'],
-            'settled_at': settled_transaction['settled_at'],
-            'transaction_type': settled_transaction['type']
-          })
+            rows.append({
+                'settlement_id': settled_transaction['entity_id'],
+                'settlement_amount': settled_transaction['amount'],
+                'settled_at': settled_transaction['settled_at'],
+                'transaction_type': settled_transaction['type']
+                })
         elif settled_transaction['type'] == 'payment':
             payment = OnlinePayment.query.filter_by(pg_paymentid=settled_transaction['entity_id']).one_or_none()
             if payment:
@@ -72,7 +74,7 @@ def get_settled_transactions(date_range, tz=None):
                     'credit': settled_transaction['credit'],
                     'buyer_fullname': order.buyer_fullname,
                     'item_collection': order.item_collection.title
-                })
+                    })
                 for line_item in order.initial_line_items:
                     rows.append({
                         'settlement_id': settled_transaction['settlement_id'],
@@ -83,7 +85,7 @@ def get_settled_transactions(date_range, tz=None):
                         'base_amount': line_item.base_amount,
                         'discounted_amount': line_item.discounted_amount,
                         'final_amount': line_item.final_amount
-                    })
+                        })
             else:
                 # Transaction outside of Boxoffice
                 rows.append({
@@ -91,7 +93,7 @@ def get_settled_transactions(date_range, tz=None):
                     'payment_id': settled_transaction['entity_id'],
                     'credit': settled_transaction['credit'],
                     'description': external_transaction_msg
-                })
+                    })
         elif settled_transaction['type'] == 'refund':
             payment = OnlinePayment.query.filter_by(pg_paymentid=settled_transaction['payment_id']).one()
             refund = PaymentTransaction.query.filter(PaymentTransaction.online_payment == payment,
@@ -111,5 +113,5 @@ def get_settled_transactions(date_range, tz=None):
                 'description': refund.refund_description,
                 'amount': refund.amount,
                 'item_collection': order.item_collection.title
-            })
+                })
     return (headers, rows)

@@ -13,7 +13,6 @@ down_revision = '36f458047cfd'
 from alembic import op
 import sqlalchemy as sa
 import sqlalchemy_utils
-from sqlalchemy.dialects import postgresql
 
 
 def upgrade():
@@ -42,7 +41,7 @@ def upgrade():
         sa.ForeignKeyConstraint(['organization_id'], ['organization.id'], ),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('organization_id', 'invoice_no')
-    )
+        )
     op.create_index(op.f('ix_invoice_customer_order_id'), 'invoice', ['customer_order_id'], unique=False)
     op.add_column(u'item_collection', sa.Column('tax_type', sa.Unicode(length=80), nullable=True))
 

@@ -38,7 +38,7 @@ indian_states = [
     {'short_code': 35, 'name': 'Andaman and Nicobar Islands', 'short_code_text': 'AN'},
     {'short_code': 36, 'name': 'Telangana', 'short_code_text': 'TG'},
     {'short_code': 37, 'name': 'Andhra Pradesh (New)', 'short_code_text': 'AD'}
-]
+    ]
 
 indian_states_dict = dict((d["short_code_text"], d) for d in indian_states)
 

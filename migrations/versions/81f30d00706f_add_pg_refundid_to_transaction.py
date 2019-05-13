@@ -12,7 +12,7 @@ down_revision = '1a22f5035244'
 
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
+
 
 def upgrade():
     op.add_column('payment_transaction', sa.Column('pg_refundid', sa.Unicode(length=80), nullable=True))

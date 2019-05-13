@@ -21,8 +21,8 @@ class Category(BaseScopedNameMixin, db.Model):
     __roles__ = {
         'category_owner': {
             'read': {'id', 'name', 'title', 'item_collection_id'}
+            }
         }
-    }
 
     def roles_for(self, actor=None, anchors=()):
         roles = super(Category, self).roles_for(actor, anchors)

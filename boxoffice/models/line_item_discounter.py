@@ -56,7 +56,7 @@ class LineItemDiscounter():
                 # No discount, base_amount is cheaper
                 return Decimal(0)
             return line_item.base_amount - discounted_price.amount
-        return (discount_policy.percentage * line_item.base_amount/Decimal(100))
+        return (discount_policy.percentage * line_item.base_amount / Decimal(100))
 
     def is_coupon_usable(self, coupon, applied_to_count):
         return (coupon.usage_limit - coupon.used_count) > applied_to_count

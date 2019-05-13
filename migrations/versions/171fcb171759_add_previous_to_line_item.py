@@ -12,8 +12,8 @@ down_revision = '81f30d00706f'
 
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
 import sqlalchemy_utils
+
 
 def upgrade():
     op.add_column('line_item', sa.Column('previous_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=True))

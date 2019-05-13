@@ -86,4 +86,4 @@ def get_fiscal_year(jurisdiction, dt):
         fy_end = datetime(start_year + 1, 4, 1)
         timezone = u'Asia/Kolkata'
         return (naive_to_utc(fy_start, timezone), naive_to_utc(fy_end, timezone))
-    return (naive_to_utc(datetime(dt.year, 1, 1)), naive_to_utc(datetime(dt.year+1, 1, 1)))
+    return (naive_to_utc(datetime(dt.year, 1, 1)), naive_to_utc(datetime(dt.year + 1, 1, 1)))

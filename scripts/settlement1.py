@@ -3,8 +3,7 @@
 from pytz import utc, timezone
 import csv
 from decimal import Decimal
-from boxoffice import *
-from boxoffice.models import *
+from boxoffice.models import OnlinePayment, PaymentTransaction
 from boxoffice.models.payment import TRANSACTION_TYPE
 
 # init_for('dev')
@@ -57,7 +56,7 @@ def get_settlements(filename):
                         'transaction_date': localize(pt.created_at),
                         'receivable_amount': Decimal(pt.amount) - Decimal(trans[6]),
                         'type': 'payment'
-                    })
+                        })
                 else:
                     print trans[0]
             elif trans[1] == 'refund':
@@ -77,7 +76,7 @@ def get_settlements(filename):
                             'transaction_date': localize(rt.created_at),
                             'receivable_amount': Decimal(0) - Decimal(rt.amount),
                             'type': 'refund'
-                        })
+                            })
                 else:
                     print trans[0]
 

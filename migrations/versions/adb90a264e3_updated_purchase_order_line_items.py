@@ -16,13 +16,13 @@ from sqlalchemy.sql import table, column
 import sqlalchemy_utils
 
 order = table('customer_order',
-  column('id', sqlalchemy_utils.types.uuid.UUIDType()),
-  column('status', sa.Integer))
+    column('id', sqlalchemy_utils.types.uuid.UUIDType()),
+    column('status', sa.Integer))
 
 
 line_item = table('line_item',
-  column('customer_order_id', sqlalchemy_utils.types.uuid.UUIDType()),
-  column('status', sa.Integer))
+    column('customer_order_id', sqlalchemy_utils.types.uuid.UUIDType()),
+    column('status', sa.Integer))
 
 
 def upgrade():

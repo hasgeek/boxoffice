@@ -3,12 +3,9 @@
 from pytz import utc, timezone
 import csv
 from decimal import Decimal
-from boxoffice import *
-from boxoffice.models import *
+from boxoffice.models import OnlinePayment, PaymentTransaction, LINE_ITEM_STATUS
 from boxoffice.models.payment import TRANSACTION_TYPE
 from boxoffice.extapi.razorpay import RAZORPAY_PAYMENT_STATUS
-
-init_for('prod')
 
 
 def csv_to_rows(csv_file, skip_header=True, delimiter=','):
@@ -62,7 +59,7 @@ def get_settlements(filename):
                             'transaction_date': localize(pt.created_at),
                             'receivable_amount': Decimal(pt.amount) - Decimal(trans[6]),
                             'type': 'payment'
-                        })
+                            })
                     else:
                         settlements['unsettled'].append({
                             'settlement_amount': None,
@@ -76,7 +73,7 @@ def get_settlements(filename):
                             'transaction_date': localize(pt.created_at),
                             'receivable_amount': Decimal(pt.amount) - Decimal(trans[6]),
                             'type': 'payment'
-                        })
+                            })
                         print "settlement not settled yet {settlement}".format(settlement=trans[11])
                 else:
                     print "payment not found {payment}".format(payment=trans[0])
@@ -99,7 +96,7 @@ def get_settlements(filename):
                                 'transaction_date': localize(rt.created_at),
                                 'receivable_amount': Decimal(0) - Decimal(rt.amount),
                                 'type': 'refund'
-                            })
+                                })
                     else:
                         for rt in refund_transactions:
                             settlements['unsettled'].append({
@@ -113,7 +110,7 @@ def get_settlements(filename):
                                 'transaction_date': localize(rt.created_at),
                                 'receivable_amount': Decimal(0) - Decimal(rt.amount),
                                 'type': 'refund'
-                            })
+                                })
                         print "settlement not settled yet {settlement}".format(settlement=trans[11])
                 else:
                     print "payment not found {payment}".format(payment=trans[0])
@@ -131,7 +128,7 @@ def get_settlements(filename):
                         'transaction_date': None,
                         'receivable_amount': trans[3],
                         'type': 'adjustment'
-                    })
+                        })
                 else:
                     print "settlement not settled yet {settlement}".format(settlement=trans[11])
 
@@ -159,6 +156,7 @@ def get_line_items(filename):
     line_items.insert(0, header)
     return line_items
 
+
 def get_orders(settlement_filename):
     settlement_dicts = []
     # Load input data
@@ -185,7 +183,7 @@ def get_orders(settlement_filename):
                 'settlement_date': settlement_dict['settled_at'],
                 'transaction_amount': payment_transaction.amount,
                 'transaction_date': localize(payment_transaction.created_at)
-            })
+                })
             if Decimal(settlement_dict['credit']) != payment_transaction.amount - Decimal(settlement_dict['fee']):
                 print "Tally failed for " + settlement_dict['entity_id']
         elif settlement_dict['type'] == 'refund' and settlement_dict['entity_id'] not in [pord['entity_id'] for pord in payment_orders]:
@@ -205,10 +203,10 @@ def get_orders(settlement_filename):
                         'settlement_date': settlement_dict['settled_at'],
                         'transaction_amount': Decimal(settlement_dict['debit']),
                         'transaction_date': localize(payment_transaction.created_at)
-                    })
+                        })
                 else:
                     print "no transaction for " + settlement_dict['entity_id']
-            except:
+            except Exception:
                 print "no payment found for " + settlement_dict['payment_id'] + "for entity " + settlement_dict['entity_id']
 
     # check if settlements tally

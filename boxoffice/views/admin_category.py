@@ -32,7 +32,7 @@ def jsonify_new_category(data_dict):
 @load_models(
     (ItemCollection, {'id': 'ic_id'}, 'item_collection'),
     permission='org_admin'
-)
+    )
 def admin_new_category(item_collection):
     return dict(item_collection=item_collection)
 
@@ -55,6 +55,6 @@ def jsonify_edit_category(data_dict):
 @load_models(
     (Category, {'id': 'category_id'}, 'category'),
     permission='org_admin'
-)
+    )
 def admin_edit_category(category):
     return dict(category=category)

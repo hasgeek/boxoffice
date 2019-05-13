@@ -21,4 +21,4 @@ def handle_api_error(error):
         "status": "error",
         "error": "payment_gateway_error",
         "error_description": error.response_message,
-    }), error.status_code)
+        }), error.status_code)

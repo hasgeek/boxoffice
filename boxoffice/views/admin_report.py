@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from flask import jsonify, request, g, abort, url_for
+from flask import jsonify, request, g, url_for
 from .. import app, lastuser
 from coaster.views import load_models, render_with
 from baseframe import localize_timezone, get_locale
-from boxoffice.models import Organization, ItemCollection, LineItem, INVOICE_STATUS
+from boxoffice.models import Organization, ItemCollection, INVOICE_STATUS
 from boxoffice.views.utils import check_api_access, csv_response, api_error
 from babel.dates import format_datetime
 from datetime import datetime, date
@@ -94,7 +94,7 @@ def attendees_report(item_collection):
             # 'assignee_details' is a dict already, so copy and include prefixes
             if idx == attendee_details_index and isinstance(item, dict):
                 for key in item.keys():
-                    dict_row['attendee_details_'+key] = item[key]
+                    dict_row['attendee_details_' + key] = item[key]
             # Item is a datetime object, so format and add to dict
             elif isinstance(item, datetime):
                 dict_row[headers[idx]] = format_datetime(localize_timezone(item), format='long', locale=get_locale())
@@ -143,10 +143,10 @@ def orders_api(organization, item_collection):
             # 'assignee_details' is a dict already, so copy and include prefixs
             if idx == attendee_details_index and isinstance(item, dict):
                 for key in item.keys():
-                    dict_row['attendee_details_'+key] = item[key]
+                    dict_row['attendee_details_' + key] = item[key]
             # Item is a datetime object, so format and add to dict
             elif isinstance(item, datetime):
-                dict_row[headers[idx]] = format_datetime(localize_timezone(item), format='long', locale=get_locale() or 'en') # FIXME: How to handle locale where the accept langauges header isn't specified? Relevant issue in baseframe https://github.com/hasgeek/baseframe/issues/154
+                dict_row[headers[idx]] = format_datetime(localize_timezone(item), format='long', locale=get_locale() or 'en')  # FIXME: How to handle locale where the accept langauges header isn't specified? Relevant issue in baseframe https://github.com/hasgeek/baseframe/issues/154
             # Value is a string, add it to the dict with the corresponding key
             else:
                 dict_row[headers[idx]] = item
@@ -158,6 +158,7 @@ def orders_api(organization, item_collection):
         csv_headers.remove('attendee_details')
 
     return csv_response(csv_headers, rows, row_type='dict', row_handler=row_handler)
+
 
 @app.route('/admin/o/<org_name>/invoices.csv')
 @lastuser.requires_login

@@ -17,10 +17,10 @@ from sqlalchemy.sql import table, column
 
 
 discount_coupon = table('discount_coupon',
-  column('id', sqlalchemy_utils.types.uuid.UUIDType()),
-  column('used', sa.Boolean()),
-  column('used_count', sa.Integer()),
-  column('usage_limit', sa.Integer()))
+    column('id', sqlalchemy_utils.types.uuid.UUIDType()),
+    column('used', sa.Boolean()),
+    column('used_count', sa.Integer()),
+    column('usage_limit', sa.Integer()))
 
 line_item = table('line_item',
   column('discount_coupon_id', sqlalchemy_utils.types.uuid.UUIDType(binary=False)))

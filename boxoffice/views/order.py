@@ -52,7 +52,7 @@ def jsonify_assignee(assignee):
             'email': assignee.email,
             'phone': assignee.phone,
             'details': assignee.details
-        }
+            }
 
 
 def jsonify_order(data):
@@ -70,7 +70,7 @@ def jsonify_order(data):
             'is_confirmed': line_item.is_confirmed,
             'is_cancelled': line_item.is_cancelled,
             'cancelled_at': json_date_format(line_item.cancelled_at) if line_item.cancelled_at else "",
-        })
+            })
     return jsonify(order_id=order.id, access_token=order.access_token,
         item_collection_name=order.item_collection.description_text, buyer_name=order.buyer_fullname,
         buyer_email=order.buyer_email,
@@ -110,7 +110,7 @@ def kharcha():
 @cors
 @load_models(
     (ItemCollection, {'id': 'item_collection'}, 'item_collection')
-)
+    )
 def order(item_collection):
     """
     Accepts JSON containing an array of line_items with the quantity and item_id
@@ -120,16 +120,16 @@ def order(item_collection):
     and the URL to be used to register a payment against the order.
     """
     if not request.json or not request.json.get('line_items'):
-        return api_error(message='Missing line items',
+        return api_error(message="Missing line items",
                     status_code=400)
     line_item_forms = LineItemForm.process_list(request.json.get('line_items'))
     if not line_item_forms:
-        return api_error(message='Invalid line items',
+        return api_error(message="Invalid line items",
                     status_code=400)
     # See comment in LineItemForm about CSRF
     buyer_form = BuyerForm.from_json(request.json.get('buyer'), meta={'csrf': False})
     if not buyer_form.validate():
-        return api_error(message='Invalid buyer details',
+        return api_error(message="Invalid buyer details",
                     status_code=400, errors=buyer_form.errors)
 
     invalid_quantity_error_msg = _(u'Selected quantity for ‘{item}’ is not available. Please edit the order and update the quantity')
@@ -182,15 +182,15 @@ def order(item_collection):
                 coupon = None
 
             line_item = LineItem(order=order, item=item, discount_policy=policy,
-                line_item_seq=idx+1,
+                line_item_seq=idx + 1,
                 discount_coupon=coupon,
                 ordered_at=datetime.utcnow(),
                 base_amount=line_item_tup.base_amount,
                 discounted_amount=line_item_tup.discounted_amount,
-                final_amount=line_item_tup.base_amount-line_item_tup.discounted_amount)
+                final_amount=line_item_tup.base_amount - line_item_tup.discounted_amount)
             db.session.add(line_item)
         else:
-            return api_error(message=_(u'‘{item}’ is no longer available.').format(item=item.title),
+            return api_error(message=_(u"‘{item}’ is no longer available.").format(item=item.title),
                     status_code=400,
                     errors=['order calculation error'])
 
@@ -236,7 +236,7 @@ def free(order):
                 line_item.discount_coupon.update_used_count()
                 db.session.add(line_item.discount_coupon)
         db.session.commit()
-        send_receipt_mail.queue(order.id, subject="{item_collection_title}: Your registration is confirmed!".format(item_collection_title=order.item_collection.title), template='free_order_confirmation_mail.html.jinja2')
+        send_receipt_mail.queue(order.id, subject=u"{item_collection_title}: Your registration is confirmed!".format(item_collection_title=order.item_collection.title), template='free_order_confirmation_mail.html.jinja2')
         return api_success(result={'order_id': order.id},
             doc=_(u"Free order confirmed"), status_code=201)
 
@@ -287,15 +287,20 @@ def payment(order):
                 line_item.discount_coupon.update_used_count()
                 db.session.add(line_item.discount_coupon)
         db.session.commit()
-        send_receipt_mail.queue(order.id, subject="{item_collection_title}: Thank you for your order (#{invoice_no})!".format(item_collection_title=order.item_collection.title, invoice_no=order.invoice_no))
+        send_receipt_mail.queue(order.id, subject=u"{item_collection_title}: Thank you for your order (#{invoice_no})!".format(item_collection_title=order.item_collection.title, invoice_no=order.invoice_no))
         return api_success(result={'invoice_id': invoice.id},
             doc=_(u"Payment verified"), status_code=201)
     else:
         online_payment.fail()
         db.session.add(online_payment)
         db.session.commit()
-        raise PaymentGatewayError("Online payment failed for order - {order} with the following details - {msg}".format(order=order.id,
-            msg=rp_resp.content), 424, 'Your payment failed. Please try again or contact us at {email}.'.format(email=order.organization.contact_email))
+        raise PaymentGatewayError(
+            u"Online payment failed for order - {order} with the following details - {msg}".format(
+                order=order.id,
+                msg=rp_resp.content),
+            424,
+            u"Your payment failed. Please try again or contact us at {email}.".format(
+                email=order.organization.contact_email))
 
 
 @app.route('/order/<access_token>/receipt', methods=['GET'])
@@ -323,7 +328,7 @@ def jsonify_invoice(invoice):
         'country_code': invoice.country_code,
         'state_code': invoice.state_code,
         'state': invoice.state
-    }
+        }
 
 
 @app.route('/order/<access_token>/invoice', methods=['OPTIONS', 'POST'])
@@ -331,7 +336,7 @@ def jsonify_invoice(invoice):
 @cors
 @load_models(
     (Order, {'access_token': 'access_token'}, 'order')
-)
+    )
 def edit_invoice_details(order):
     """
     Update invoice with buyer's address and taxid
@@ -371,7 +376,7 @@ def jsonify_invoices(data_dict):
 @render_with({'text/html': 'invoice_form.html.jinja2', 'application/json': jsonify_invoices})
 @load_models(
     (Order, {'access_token': 'access_token'}, 'order')
-)
+    )
 def invoice_details_form(order):
     """
     View all invoices of an order
@@ -391,7 +396,7 @@ def invoice_details_form(order):
 @render_with({'text/html': 'order.html.jinja2', 'application/json': jsonify_order}, json=True)
 @load_models(
     (Order, {'access_token': 'access_token'}, 'order')
-)
+    )
 def line_items(order):
     return dict(order=order, org=order.organization)
 
@@ -406,7 +411,7 @@ def jsonify_orders(orders):
             'fullname': line_item.current_assignee.fullname,
             'email': line_item.current_assignee.email,
             'phone': line_item.current_assignee.phone
-        }
+            }
 
         for key in line_item.item.assignee_details:
             assignee[key] = line_item.current_assignee.details.get(key)
@@ -421,8 +426,8 @@ def jsonify_orders(orders):
                 'line_item_status': u"confirmed" if line_item.is_confirmed else u"cancelled",
                 'item': {
                     'title': line_item.item.title
-                }
-            })
+                    }
+                })
         api_orders.append(order_dict)
     return api_orders
 
@@ -459,7 +464,7 @@ def regenerate_line_item(order, original_line_item, updated_line_item_tup, line_
         ordered_at=datetime.utcnow(),
         base_amount=updated_line_item_tup.base_amount,
         discounted_amount=updated_line_item_tup.discounted_amount,
-        final_amount=updated_line_item_tup.base_amount-updated_line_item_tup.discounted_amount)
+        final_amount=updated_line_item_tup.base_amount - updated_line_item_tup.discounted_amount)
 
 
 def update_order_on_line_item_cancellation(order, pre_cancellation_line_items, cancelled_line_item):
@@ -471,7 +476,7 @@ def update_order_on_line_item_cancellation(order, pre_cancellation_line_items, c
         coupons=get_coupon_codes_from_line_items(active_line_items))
 
     last_line_item_seq = LineItem.get_max_seq(order)
-    for idx, line_item_tup in enumerate(recalculated_line_item_tups, start=last_line_item_seq+1):
+    for idx, line_item_tup in enumerate(recalculated_line_item_tups, start=last_line_item_seq + 1):
         # Fetch the line item object
         pre_cancellation_line_item = [pre_cancellation_line_item for pre_cancellation_line_item in pre_cancellation_line_items if pre_cancellation_line_item.id == line_item_tup.id][0]
         # Check if the line item's amount has changed post-cancellation
@@ -517,11 +522,16 @@ def process_line_item_cancellation(line_item):
         if rp_resp.status_code == 200:
             db.session.add(PaymentTransaction(order=order, transaction_type=TRANSACTION_TYPE.REFUND,
                 pg_refundid=rp_refund['id'], online_payment=payment, amount=refund_amount, currency=CURRENCY.INR, refunded_at=func.utcnow(),
-                refund_description='Refund: {line_item_title}'.format(line_item_title=line_item.item.title)))
+                refund_description=u"Refund: {line_item_title}".format(line_item_title=line_item.item.title)))
         else:
-            raise PaymentGatewayError("Cancellation failed for order - {order} with the following details - {msg}".format(order=order.id,
-                msg=rp_refund['error']['description']), 424,
-            'Refund failed. {reason}. Please try again or write to us at {email}.'.format(reason=rp_refund['error']['description'], email=line_item.order.organization.contact_email))
+            raise PaymentGatewayError(
+                u"Cancellation failed for order - {order} with the following details - {msg}".format(
+                    order=order.id,
+                    msg=rp_refund['error']['description']),
+                424,
+                u"Refund failed. {reason}. Please try again or write to us at {email}.".format(
+                    reason=rp_refund['error']['description'],
+                    email=line_item.order.organization.contact_email))
     else:
         # no refund applicable, just cancel the line item
         line_item.cancel()
@@ -570,9 +580,14 @@ def process_partial_refund_for_order(data_dict):
             return api_success(result={'order_net_amount': order.net_amount},
                 doc=_(u"Refund processed for order"), status_code=200)
         else:
-            raise PaymentGatewayError("Refund failed for order - {order} with the following details - {msg}".format(order=order.id,
-                msg=rp_refund['error']['description']), 424,
-            "Refund failed. {reason}. Please try again or contact support at {email}.".format(reason=rp_refund['error']['description'], email=order.organization.contact_email))
+            raise PaymentGatewayError(
+                u"Refund failed for order - {order} with the following details - {msg}".format(
+                    order=order.id,
+                    msg=rp_refund['error']['description']),
+                424,
+                u"Refund failed. {reason}. Please try again or contact support at {email}.".format(
+                    reason=rp_refund['error']['description'],
+                    email=order.organization.contact_email))
     else:
         return api_error(message='Invalid input',
             status_code=403,
@@ -585,7 +600,7 @@ def process_partial_refund_for_order(data_dict):
 @load_models(
     (Order, {'id': 'order_id'}, 'order'),
     permission='org_admin'
-)
+    )
 def partial_refund_order(order):
     return dict(order=order, form=OrderRefundForm(parent=order), request_method=request.method)
 
@@ -593,7 +608,7 @@ def partial_refund_order(order):
 @app.route('/api/1/ic/<item_collection>/orders', methods=['GET', 'OPTIONS'])
 @load_models(
     (ItemCollection, {'id': 'item_collection'}, 'item_collection')
-)
+    )
 def item_collection_orders(item_collection):
     organization = item_collection.organization
     # TODO: Replace with a better authentication system

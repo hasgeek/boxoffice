@@ -20,14 +20,14 @@ discount_policy = table('discount_policy',
 
 
 def upgrade():
-    op.execute(discount_policy.update().where(discount_policy.c.is_price_based == None).values({'is_price_based': False}))
+    op.execute(discount_policy.update().where(discount_policy.c.is_price_based == None).values({'is_price_based': False}))  # NOQA
     op.alter_column('discount_policy', 'is_price_based',
-               existing_type=sa.BOOLEAN(),
-               nullable=False)
+        existing_type=sa.BOOLEAN(),
+        nullable=False)
 
 
 def downgrade():
     op.alter_column('discount_policy', 'is_price_based',
-               existing_type=sa.BOOLEAN(),
-               nullable=True)
-    op.execute(discount_policy.update().where(discount_policy.c.is_price_based == False).values({'is_price_based': None}))
+        existing_type=sa.BOOLEAN(),
+        nullable=True)
+    op.execute(discount_policy.update().where(discount_policy.c.is_price_based == False).values({'is_price_based': None}))  # NOQA

@@ -35,7 +35,7 @@ def jsonify_item_collection(item_collection_dict):
 @load_models(
     (ItemCollection, {'id': 'ic_id'}, 'item_collection'),
     permission='org_admin'
-)
+    )
 def admin_item_collection(item_collection):
     item_ids = [str(item.id) for item in item_collection.items]
     date_item_counts = {}
@@ -73,7 +73,7 @@ def jsonify_new_item_collection(item_collection_dict):
 @load_models(
     (Organization, {'name': 'org'}, 'organization'),
     permission='org_admin'
-)
+    )
 def admin_new_ic(organization):
     return dict(organization=organization)
 
@@ -99,6 +99,6 @@ def jsonify_edit_item_collection(item_collection_dict):
 @load_models(
     (ItemCollection, {'id': 'ic_id'}, 'item_collection'),
     permission='org_admin'
-)
+    )
 def admin_edit_ic(item_collection):
     return dict(item_collection=item_collection)

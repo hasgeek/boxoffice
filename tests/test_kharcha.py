@@ -69,9 +69,9 @@ class TestKharchaAPI(unittest.TestCase):
         resp_json = json.loads(resp.get_data())
 
         base_amount = discounted_quantity * first_item.current_price().amount
-        discounted_amount = (first_item.discount_policies[0].percentage * base_amount)/decimal.Decimal(100.0)
+        discounted_amount = (first_item.discount_policies[0].percentage * base_amount) / decimal.Decimal(100.0)
         self.assertEquals(resp_json.get('line_items')[unicode(first_item.id)].get('final_amount'),
-            base_amount-discounted_amount)
+            base_amount - discounted_amount)
 
         expected_discount_policy_ids = [unicode(DiscountPolicy.query.filter_by(title='10% discount on rootconf').first().id)]
         policy_ids = [unicode(policy) for policy in resp_json.get('line_items')[unicode(first_item.id)].get('discount_policy_ids')]
@@ -90,9 +90,9 @@ class TestKharchaAPI(unittest.TestCase):
         resp_json = json.loads(resp.get_data())
 
         base_amount = discounted_quantity * first_item.current_price().amount
-        discounted_amount = (coupon.discount_policy.percentage * base_amount)/decimal.Decimal(100.0)
+        discounted_amount = (coupon.discount_policy.percentage * base_amount) / decimal.Decimal(100.0)
         self.assertEquals(resp_json.get('line_items')[unicode(first_item.id)].get('final_amount'),
-            base_amount-discounted_amount)
+            base_amount - discounted_amount)
 
         expected_discount_policy_ids = [unicode(coupon.discount_policy_id)]
         policy_ids = [unicode(policy) for policy in resp_json.get('line_items')[unicode(first_item.id)].get('discount_policy_ids')]
@@ -112,9 +112,9 @@ class TestKharchaAPI(unittest.TestCase):
         resp_json = json.loads(resp.get_data())
 
         base_amount = discounted_quantity * first_item.current_price().amount
-        discounted_amount = (signed_policy.percentage * base_amount)/decimal.Decimal(100.0)
+        discounted_amount = (signed_policy.percentage * base_amount) / decimal.Decimal(100.0)
         self.assertEquals(resp_json.get('line_items')[unicode(first_item.id)].get('final_amount'),
-            base_amount-discounted_amount)
+            base_amount - discounted_amount)
 
         expected_discount_policy_ids = [unicode(signed_policy.id)]
         policy_ids = [unicode(policy) for policy in resp_json.get('line_items')[unicode(first_item.id)].get('discount_policy_ids')]
@@ -130,7 +130,7 @@ class TestKharchaAPI(unittest.TestCase):
         kharcha_req = {'line_items': [{
             'item_id': unicode(first_item.id),
             'quantity': discounted_quantity
-        }], 'discount_coupons': [coupon_code]}
+            }], 'discount_coupons': [coupon_code]}
 
         resp = self.client.post(url_for('kharcha'), data=json.dumps(kharcha_req), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
         resp_json = json.loads(resp.get_data())
@@ -138,7 +138,7 @@ class TestKharchaAPI(unittest.TestCase):
 
         base_amount = discounted_quantity * first_item.current_price().amount
         discount_policy = DiscountPolicy.query.filter_by(name=make_name('Unlimited Geek')).one()
-        discounted_amount = discounted_quantity * ((discount_policy.percentage/decimal.Decimal('100')) * first_item.current_price().amount)
+        discounted_amount = discounted_quantity * ((discount_policy.percentage / decimal.Decimal('100')) * first_item.current_price().amount)
         self.assertEquals(resp_json.get('line_items')[unicode(first_item.id)].get('final_amount'),
             base_amount - discounted_amount)
 
@@ -158,9 +158,9 @@ class TestKharchaAPI(unittest.TestCase):
         resp_json = json.loads(resp.get_data())
 
         base_amount = discounted_quantity * first_item.current_price().amount
-        discounted_amount = (coupon.discount_policy.percentage * first_item.current_price().amount)/decimal.Decimal(100.0)
+        discounted_amount = (coupon.discount_policy.percentage * first_item.current_price().amount) / decimal.Decimal(100.0)
         self.assertEquals(resp_json.get('line_items')[unicode(first_item.id)].get('final_amount'),
-            base_amount-discounted_amount)
+            base_amount - discounted_amount)
 
         expected_discount_policy_ids = [unicode(coupon.discount_policy_id)]
         policy_ids = [unicode(policy) for policy in resp_json.get('line_items')[unicode(first_item.id)].get('discount_policy_ids')]
@@ -232,9 +232,9 @@ class TestKharchaAPI(unittest.TestCase):
         resp_json = json.loads(resp.get_data())
 
         base_amount = discounted_quantity * first_item.current_price().amount
-        discounted_amount = 2*first_item.current_price().amount
+        discounted_amount = 2 * first_item.current_price().amount
         self.assertEquals(resp_json.get('line_items')[unicode(first_item.id)].get('final_amount'),
-            base_amount-discounted_amount)
+            base_amount - discounted_amount)
 
         expected_discount_policy_ids = [unicode(coupon2.discount_policy_id), unicode(coupon3.discount_policy_id)]
         policy_ids = [unicode(policy) for policy in resp_json.get('line_items')[unicode(first_item.id)].get('discount_policy_ids')]

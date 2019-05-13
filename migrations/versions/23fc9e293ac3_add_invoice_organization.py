@@ -12,7 +12,7 @@ down_revision = '66b67130c901'
 
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
+
 
 def upgrade():
     op.add_column('organization', sa.Column('invoicer_id', sa.Integer(), nullable=True))

@@ -80,7 +80,7 @@ class TestOrder(unittest.TestCase):
                 'utm_content': utm_content,
                 'utm_id': utm_id,
                 'gclid': gclid
-            }
+                }
             }
         ic = ItemCollection.query.first()
         resp = self.client.post('/ic/{ic}/order'.format(ic=ic.id), data=json.dumps(data), content_type='application/json', headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
@@ -167,11 +167,12 @@ class TestOrder(unittest.TestCase):
         discounted_item1 = Item.query.filter_by(name='t-shirt').first()
         discounted_item2 = Item.query.filter_by(name='conference-ticket').first()
         data = {
-            'line_items': [{
+            'line_items': [
+                {
                     'item_id': unicode(discounted_item1.id),
                     'quantity': 5
                     },
-                    {
+                {
                     'item_id': unicode(discounted_item2.id),
                     'quantity': 10
                     }
@@ -199,11 +200,12 @@ class TestOrder(unittest.TestCase):
         coupon2 = DiscountCoupon.query.filter_by(code='coupon2').first()
         coupon3 = DiscountCoupon.query.filter_by(code='coupon3').first()
         data = {
-            'line_items': [{
+            'line_items': [
+                {
                     'item_id': unicode(tshirt.id),
                     'quantity': tshirt_quantity
                     },
-                    {
+                {
                     'item_id': unicode(conf.id),
                     'quantity': conf_quantity
                     }
@@ -293,13 +295,13 @@ class TestOrder(unittest.TestCase):
             'internal_note': 'internal reference',
             'refund_description': 'receipt description',
             'note_to_user': 'price has been halved'
-        }
+            }
         refund_form = OrderRefundForm(data=formdata, parent=order, meta={'csrf': False})
         partial_refund_args = {
             'order': order,
             'form': refund_form,
             'request_method': 'POST'
-        }
+            }
         with app.request_context(self.post_env):
             process_partial_refund_for_order(partial_refund_args)
         self.assertEquals(pre_refund_transactions_count + 1, order.refund_transactions.count())
@@ -371,10 +373,10 @@ class TestOrder(unittest.TestCase):
                         "code": "BAD_REQUEST_ERROR",
                         "description": "The amount is invalid",
                         "field": "amount"
-                    }
-                },
+                        }
+                    },
                 status_code=400
-            ))
+                ))
         self.assertRaises(PaymentGatewayError, lambda: process_line_item_cancellation(third_line_item))
 
         # refund the remaining amount paid, and attempt to cancel a line item
@@ -388,13 +390,13 @@ class TestOrder(unittest.TestCase):
             'internal_note': 'internal reference',
             'refund_description': 'receipt description',
             'note_to_user': 'price has been halved'
-        }
+            }
         refund_form = OrderRefundForm(data=formdata, parent=order, meta={'csrf': False})
         partial_refund_args = {
             'order': order,
             'form': refund_form,
             'request_method': 'POST'
-        }
+            }
         with app.request_context(self.post_env):
             process_partial_refund_for_order(partial_refund_args)
 
@@ -451,13 +453,13 @@ class TestOrder(unittest.TestCase):
             'internal_note': 'internal reference',
             'note_to_user': 'you get a refund!',
             'refund_description': 'test refund'
-        }
+            }
         refund_form = OrderRefundForm(data=formdata, parent=order, meta={'csrf': False})
         partial_refund_args = {
             'order': order,
             'form': refund_form,
             'request_method': 'POST'
-        }
+            }
         with app.request_context(self.post_env):
             process_partial_refund_for_order(partial_refund_args)
 
@@ -471,13 +473,13 @@ class TestOrder(unittest.TestCase):
         invalid_refund_amount = 100000000
         formdata = {
             'amount': invalid_refund_amount,
-        }
+            }
         refund_form = OrderRefundForm(data=formdata, parent=order, meta={'csrf': False})
         partial_refund_args = {
             'order': order,
             'form': refund_form,
             'request_method': 'POST'
-        }
+            }
         with app.request_context(self.post_env):
             resp = process_partial_refund_for_order(partial_refund_args)
 
@@ -493,13 +495,13 @@ class TestOrder(unittest.TestCase):
 
         formdata = {
             'amount': invalid_refund_amount,
-        }
+            }
         refund_form = OrderRefundForm(data=formdata, parent=order, meta={'csrf': False})
         partial_refund_args = {
             'order': order,
             'form': refund_form,
             'request_method': 'POST'
-        }
+            }
         with app.request_context(self.post_env):
             refund_resp = process_partial_refund_for_order(partial_refund_args)
 

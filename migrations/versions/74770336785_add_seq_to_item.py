@@ -18,10 +18,10 @@ import sqlalchemy_utils
 item_collection = table('item_collection', column('id', sqlalchemy_utils.types.uuid.UUIDType()))
 
 item = table('item',
-  column('id', sqlalchemy_utils.types.uuid.UUIDType()),
-  column('item_collection_id', sqlalchemy_utils.types.uuid.UUIDType()),
-  column('seq', sa.Integer()),
-  column('created_at', sa.DateTime()))
+    column('id', sqlalchemy_utils.types.uuid.UUIDType()),
+    column('item_collection_id', sqlalchemy_utils.types.uuid.UUIDType()),
+    column('seq', sa.Integer()),
+    column('created_at', sa.DateTime()))
 
 
 def upgrade():

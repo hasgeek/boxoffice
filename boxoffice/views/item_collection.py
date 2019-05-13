@@ -36,7 +36,7 @@ def jsonify_item(item):
         'has_higher_price': item.has_higher_price(price),
         'discount_policies': [{'id': policy.id, 'title': policy.title, 'is_automatic': policy.is_automatic}
                               for policy in item.discount_policies]
-    }
+        }
 
 
 def jsonify_category(category):
@@ -52,7 +52,7 @@ def jsonify_category(category):
             'name': category.name,
             'item_collection_id': category.item_collection_id,
             'items': category_items
-        }
+            }
 
 
 def render_boxoffice_js():
@@ -62,7 +62,7 @@ def render_boxoffice_js():
         states=[{'name': state['name'], 'code': state['short_code_text']}
             for state in sorted(indian_states, key=lambda k: k['name'])],
         countries=[{'name': name, 'code': code} for code, name in localized_country_list()]
-    )
+        )
 
 
 @app.route('/api/1/boxoffice.js')
@@ -70,7 +70,7 @@ def render_boxoffice_js():
 def boxofficejs():
     return jsonify({
         'script': render_boxoffice_js()
-    })
+        })
 
 
 @app.route('/ic/<item_collection>', methods=['GET', 'OPTIONS'])
@@ -78,7 +78,7 @@ def boxofficejs():
 @cors
 @load_models(
     (ItemCollection, {'id': 'item_collection'}, 'item_collection')
-)
+    )
 def item_collection(item_collection):
     categories_json = []
     for category in item_collection.categories:
@@ -92,7 +92,7 @@ def item_collection(item_collection):
 @load_models(
     (Organization, {'name': 'org_name'}, 'organization'),
     (ItemCollection, {'name': 'item_collection_name', 'organization': 'organization'}, 'item_collection')
-)
+    )
 def item_collection_listing(organization, item_collection):
     show_title = getbool(request.args.get('show_title', True))
     return render_template('item_collection_listing.html.jinja2',

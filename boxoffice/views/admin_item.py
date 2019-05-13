@@ -18,7 +18,7 @@ from utils import xhr_only
 @load_models(
     (Organization, {'name': 'org'}, 'organization'),
     permission='org_admin'
-)
+    )
 @requestargs('search')
 def items(organization, search=None):
     if search:
@@ -32,7 +32,7 @@ def items(organization, search=None):
         return api_success(result={'items': [{
             'id': str(item_tuple[0].id),
             'title': "{ic_title}: {title}".format(ic_title=item_tuple[1].title, title=item_tuple[0].title)
-        } for item_tuple in filtered_items]}, doc="Filtered items", status_code=200)
+            } for item_tuple in filtered_items]}, doc="Filtered items", status_code=200)
     else:
         return api_error(message=_(u"Missing search query"), status_code=400)
 
@@ -52,7 +52,7 @@ def format_demand_curve(item):
         result[str(amount)] = {
             'quantity_demanded': quantity_demanded,
             'demand': demand_counter
-        }
+            }
     return result
 
 
@@ -94,7 +94,7 @@ def jsonify_item(data_dict):
 @load_models(
     (Item, {'id': 'item_id'}, 'item'),
     permission='org_admin'
-)
+    )
 def admin_item(item):
     return dict(item=item)
 
@@ -121,7 +121,7 @@ def jsonify_new_item(data_dict):
 @load_models(
     (ItemCollection, {'id': 'ic_id'}, 'item_collection'),
     permission='org_admin'
-)
+    )
 def admin_new_item(item_collection):
     return dict(item_collection=item_collection)
 
@@ -144,7 +144,7 @@ def jsonify_edit_item(data_dict):
 @load_models(
     (Item, {'id': 'item_id'}, 'item'),
     permission='org_admin'
-)
+    )
 def admin_edit_item(item):
     return dict(item=item)
 
@@ -173,7 +173,7 @@ def jsonify_new_price(data_dict):
 @load_models(
     (Item, {'id': 'item_id'}, 'item'),
     permission='org_admin'
-)
+    )
 def admin_new_price(item):
     return dict(item=item)
 
@@ -196,6 +196,6 @@ def jsonify_edit_price(data_dict):
 @load_models(
     (Price, {'id': 'price_id'}, 'price'),
     permission='org_admin'
-)
+    )
 def admin_edit_price(price):
     return dict(price=price)

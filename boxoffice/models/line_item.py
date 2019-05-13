@@ -23,6 +23,7 @@ class LINE_ITEM_STATUS(LabeledEnum):
     VOID = (3, __("Void"))
     TRANSACTION = {CONFIRMED, VOID, CANCELLED}
 
+
 LineItemTuple = namedtuple('LineItemTuple', ['item_id', 'id', 'base_amount', 'discount_policy_id', 'discount_coupon_id', 'discounted_amount', 'final_amount'])
 
 
@@ -149,7 +150,7 @@ class LineItem(BaseMixin, db.Model):
     # Don't use current_assignee -- we want to imply that there can only be one assignee and the rest are historical (and hence not 'assignees')
     @property
     def current_assignee(self):
-        return self.assignees.filter(Assignee.current == True).one_or_none()
+        return self.assignees.filter(Assignee.current == True).one_or_none()  # NOQA
 
     @property
     def is_confirmed(self):
@@ -203,7 +204,7 @@ Order.initial_line_items = db.relationship(LineItem,
     lazy='dynamic',
     primaryjoin=db.and_(
         LineItem.customer_order_id == Order.id,
-        LineItem.previous_id == None,
+        LineItem.previous_id == None,  # NOQA
         LineItem.status.in_(LINE_ITEM_STATUS.TRANSACTION)
         )
     )
@@ -284,4 +285,4 @@ def sales_delta(user_tz, item_ids):
     yesterday_sales = sales_by_date(yesterday, item_ids, user_tz)
     if not today_sales or not yesterday_sales:
         return 0
-    return round(Decimal('100') * (today_sales - yesterday_sales)/yesterday_sales, 2)
+    return round(Decimal('100') * (today_sales - yesterday_sales) / yesterday_sales, 2)

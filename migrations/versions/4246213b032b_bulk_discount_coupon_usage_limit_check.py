@@ -21,7 +21,7 @@ discount_policy = table('discount_policy',
 
 
 def upgrade():
-    op.execute(discount_policy.update().where(discount_policy.c.discount_type == 1).where(discount_policy.c.bulk_coupon_usage_limit == None).values({'bulk_coupon_usage_limit': 1}))
+    op.execute(discount_policy.update().where(discount_policy.c.discount_type == 1).where(discount_policy.c.bulk_coupon_usage_limit == None).values({'bulk_coupon_usage_limit': 1}))  # NOQA
     op.create_check_constraint('discount_policy_bulk_coupon_usage_limit_check', 'discount_policy', 'discount_type = 0 or (discount_type = 1 and bulk_coupon_usage_limit IS NOT NULL)')
 
 
