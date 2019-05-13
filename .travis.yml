@@ -7,13 +7,13 @@ cache:
 before_script:
   - sudo -- sh -c "echo '127.0.0.1  boxoffice.travis.dev' >> /etc/hosts"
   - psql -c 'create database boxoffice_testing;' -U postgres
+  - ./manage.py dbconfig | sudo -u postgres psql boxoffice_testing
 install:
   - pip install -U pip wheel
   - pip install -r test_requirements.txt
   - pip install -r requirements.txt
   - pip install https://github.com/hasgeek/coaster/archive/master.zip
   - npm install casperjs
-  - ./manage.py dbconfig | sudo -u postgres psql boxoffice_testing
 env:
   - FLASK_ENV=testing
 script:
