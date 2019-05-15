@@ -41,7 +41,7 @@ class Item(BaseScopedNameMixin, db.Model):
 
     discount_policies = db.relationship('DiscountPolicy', secondary=item_discount_policy, lazy='dynamic')
 
-    assignee_details = db.Column(JsonDict, default={}, nullable=False)
+    assignee_details = db.Column(JsonDict, server_default='{}', nullable=False)
 
     event_date = db.Column(db.Date, nullable=True)
 
