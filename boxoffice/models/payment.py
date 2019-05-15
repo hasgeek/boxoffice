@@ -38,8 +38,8 @@ class OnlinePayment(BaseMixin, db.Model):
     pg_paymentid = db.Column(db.Unicode(80), nullable=False, unique=True)
     # Payment status issued by the payment gateway
     pg_payment_status = db.Column(db.Integer, nullable=False)
-    confirmed_at = db.Column(db.DateTime, nullable=True)
-    failed_at = db.Column(db.DateTime, nullable=True)
+    confirmed_at = db.Column(db.TIMESTAMP(timezone=True), nullable=True)
+    failed_at = db.Column(db.TIMESTAMP(timezone=True), nullable=True)
 
     def confirm(self):
         """Confirms a payment, sets confirmed_at and pg_payment_status."""
@@ -70,7 +70,7 @@ class PaymentTransaction(BaseMixin, db.Model):
     transaction_method = db.Column(db.Integer, default=TRANSACTION_METHOD.ONLINE, nullable=False)
     # Eg: reference number for a bank transfer
     transaction_ref = db.Column(db.Unicode(80), nullable=True)
-    refunded_at = db.Column(db.DateTime, nullable=True)
+    refunded_at = db.Column(db.TIMESTAMP(timezone=True), nullable=True)
     internal_note = db.Column(db.Unicode(250), nullable=True)
     refund_description = db.Column(db.Unicode(250), nullable=True)
     note_to_user = MarkdownColumn('note_to_user', nullable=True)

@@ -2,7 +2,6 @@
 
 import string
 import random
-from datetime import datetime
 from werkzeug import cached_property
 from itsdangerous import Signer, BadSignature
 from sqlalchemy import event, DDL
@@ -23,7 +22,7 @@ class DISCOUNT_TYPE(LabeledEnum):
 item_discount_policy = db.Table('item_discount_policy', db.Model.metadata,
     db.Column('item_id', None, db.ForeignKey('item.id'), primary_key=True),
     db.Column('discount_policy_id', None, db.ForeignKey('discount_policy.id'), primary_key=True),
-    db.Column('created_at', db.DateTime, default=datetime.utcnow, nullable=False))
+    db.Column('created_at', db.TIMESTAMP(timezone=True), default=db.func.utcnow(), nullable=False))
 
 
 class DiscountPolicy(BaseScopedNameMixin, db.Model):

@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa
 
-from coaster.sqlalchemy import BaseMixin, BaseNameMixin, BaseScopedNameMixin, BaseScopedIdNameMixin, BaseScopedIdMixin, IdMixin, JsonDict, MarkdownColumn, UuidMixin
+from coaster.sqlalchemy import (TimestampMixin, BaseMixin, BaseNameMixin, BaseScopedNameMixin,
+    BaseScopedIdNameMixin, BaseScopedIdMixin, IdMixin, JsonDict, MarkdownColumn, UuidMixin)
+
+TimestampMixin.__with_timezone__ = True
 
 from coaster.db import db
 

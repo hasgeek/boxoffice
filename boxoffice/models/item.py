@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from datetime import datetime
 from decimal import Decimal
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.orderinglist import ordering_list
 from baseframe import __
-from coaster.utils import LabeledEnum
+from coaster.utils import LabeledEnum, utcnow
 from coaster.sqlalchemy import with_roles
 from . import db, JsonDict, BaseScopedNameMixin, MarkdownColumn
 from . import ItemCollection, Category
@@ -45,7 +44,7 @@ class Item(BaseScopedNameMixin, db.Model):
 
     event_date = db.Column(db.Date, nullable=True)
 
-    cancellable_until = db.Column(db.DateTime, nullable=True)
+    cancellable_until = db.Column(db.TIMESTAMP(timezone=True), nullable=True)
 
     restricted_entry = db.Column(db.Boolean, default=False, nullable=False)
     # ISO 3166-2 code. Eg: KA for Karnataka
@@ -69,7 +68,7 @@ class Item(BaseScopedNameMixin, db.Model):
         """
         Returns the current price object for an item
         """
-        return self.price_at(datetime.utcnow())
+        return self.price_at(utcnow())
 
     def has_higher_price(self, current_price):
         """
@@ -105,7 +104,7 @@ class Item(BaseScopedNameMixin, db.Model):
         return bool(self.current_price() and self.quantity_available > 0)
 
     def is_cancellable(self):
-        return datetime.utcnow() < self.cancellable_until if self.cancellable_until else True
+        return utcnow() < self.cancellable_until if self.cancellable_until else True
 
     @property
     def active_price(self):
@@ -185,8 +184,8 @@ class Price(BaseScopedNameMixin, db.Model):
     discount_policy = db.relationship('DiscountPolicy', backref=db.backref('price', cascade='all, delete-orphan'))
 
     parent = db.synonym('item')
-    start_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    end_at = db.Column(db.DateTime, nullable=False)
+    start_at = db.Column(db.TIMESTAMP(timezone=True), default=db.func.utcnow(), nullable=False)
+    end_at = db.Column(db.TIMESTAMP(timezone=True), nullable=False)
 
     amount = db.Column(db.Numeric, default=Decimal(0), nullable=False)
     currency = db.Column(db.Unicode(3), nullable=False, default=u'INR')
@@ -209,7 +208,7 @@ class Price(BaseScopedNameMixin, db.Model):
 
     @with_roles(call={'price_owner'})
     def tense(self):
-        now = datetime.utcnow()
+        now = utcnow()
         if self.end_at < now:
             return u"past"
         elif self.start_at > now:

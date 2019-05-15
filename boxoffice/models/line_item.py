@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
 from decimal import Decimal
-import datetime
+from datetime import timedelta
 from collections import namedtuple, OrderedDict
 from sqlalchemy.sql import func
 from sqlalchemy.ext.orderinglist import ordering_list
 from isoweek import Week
 from boxoffice.models import db, JsonDict, BaseMixin, Order, Item, LineItemDiscounter
-from coaster.utils import LabeledEnum, isoweek_datetime, midnight_to_utc
+from coaster.utils import LabeledEnum, isoweek_datetime, midnight_to_utc, utcnow
 from baseframe import __
 
 
@@ -97,8 +97,8 @@ class LineItem(BaseMixin, db.Model):
     discounted_amount = db.Column(db.Numeric, default=Decimal(0), nullable=False)
     final_amount = db.Column(db.Numeric, default=Decimal(0), nullable=False)
     status = db.Column(db.Integer, default=LINE_ITEM_STATUS.PURCHASE_ORDER, nullable=False)
-    ordered_at = db.Column(db.DateTime, nullable=True)
-    cancelled_at = db.Column(db.DateTime, nullable=True)
+    ordered_at = db.Column(db.TIMESTAMP(timezone=True), nullable=True)
+    cancelled_at = db.Column(db.TIMESTAMP(timezone=True), nullable=True)
 
     def permissions(self, user, inherited=None):
         perms = super(LineItem, self).permissions(user, inherited)
@@ -174,7 +174,7 @@ class LineItem(BaseMixin, db.Model):
         self.cancelled_at = func.utcnow()
 
     def is_cancellable(self):
-        return self.is_confirmed and (datetime.datetime.utcnow() < self.item.cancellable_until
+        return self.is_confirmed and (utcnow() < self.item.cancellable_until
             if self.item.cancellable_until else True)
 
     @classmethod
@@ -241,7 +241,7 @@ def sales_by_date(sales_datetime, item_ids, user_tz):
         return None
 
     start_at = midnight_to_utc(sales_datetime, timezone=user_tz)
-    end_at = midnight_to_utc(sales_datetime + datetime.timedelta(days=1), timezone=user_tz)
+    end_at = midnight_to_utc(sales_datetime + timedelta(days=1), timezone=user_tz)
     sales_on_date = db.session.query('sum').from_statement(db.text('''SELECT SUM(final_amount) FROM line_item
         WHERE status=:status AND ordered_at >= :start_at AND ordered_at < :end_at
         AND line_item.item_id IN :item_ids
@@ -279,8 +279,8 @@ def calculate_weekly_sales(item_collection_ids, user_tz, year):
 
 def sales_delta(user_tz, item_ids):
     """Calculates the percentage difference in sales between today and yesterday"""
-    today = datetime.datetime.utcnow().date()
-    yesterday = today - datetime.timedelta(days=1)
+    today = utcnow().date()
+    yesterday = today - timedelta(days=1)
     today_sales = sales_by_date(today, item_ids, user_tz)
     yesterday_sales = sales_by_date(yesterday, item_ids, user_tz)
     if not today_sales or not yesterday_sales:
