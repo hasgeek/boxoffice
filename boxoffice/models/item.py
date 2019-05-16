@@ -83,7 +83,7 @@ class Item(BaseScopedNameMixin, db.Model):
         return Price.query.filter(Price.item == self, Price.discount_policy == discount_policy).one_or_none()
 
     def standard_prices(self):
-        return Price.query.filter(Price.item == self, Price.discount_policy == None).order_by('start_at desc')  # NOQA
+        return Price.query.filter(Price.item == self, Price.discount_policy == None).order_by(Price.start_at.desc())  # NOQA
 
     def price_at(self, timestamp):
         """Return the price object for an item at a given time."""
@@ -92,7 +92,7 @@ class Item(BaseScopedNameMixin, db.Model):
 
     @classmethod
     def get_by_category(cls, category):
-        return cls.query.filter(Item.category == category).order_by('seq')
+        return cls.query.filter(Item.category == category).order_by(cls.seq)
 
     @hybrid_property
     def quantity_available(self):
