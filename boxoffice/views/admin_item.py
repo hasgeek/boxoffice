@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from datetime import datetime
 from flask import jsonify, request
 from .. import app, lastuser
+from coaster.utils import utcnow
 from coaster.views import load_models, requestargs, render_with
 from baseframe import _
 from baseframe.forms import render_form
@@ -158,7 +158,7 @@ def jsonify_new_price(data_dict):
         price = Price(item=item)
         price_form.populate_obj(price)
         price.title = u"{item_name}-price-{datetime}".format(item_name=item.name,
-            datetime=json_date_format(datetime.utcnow()))
+            datetime=json_date_format(utcnow()))
         if not price.name:
             price.make_name()
         db.session.add(price)

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from datetime import datetime
-from coaster.utils import LabeledEnum
+from coaster.utils import LabeledEnum, utcnow
 from boxoffice.models import db, BaseMixin, UuidMixin, HeadersAndDataTuple, Organization, Order
 from sqlalchemy.sql import select, func
 from sqlalchemy.orm import validates
@@ -38,9 +37,9 @@ class Invoice(UuidMixin, BaseMixin, db.Model):
     invoicee_company = db.Column(db.Unicode(255), nullable=True)
     invoicee_email = db.Column(db.Unicode(254), nullable=True)
     invoice_no = db.Column(db.Integer(), nullable=True)
-    fy_start_at = db.Column(db.DateTime, nullable=False)
-    fy_end_at = db.Column(db.DateTime, nullable=False)
-    invoiced_at = db.Column(db.DateTime, nullable=True)
+    fy_start_at = db.Column(db.TIMESTAMP(timezone=True), nullable=False)
+    fy_end_at = db.Column(db.TIMESTAMP(timezone=True), nullable=False)
+    invoiced_at = db.Column(db.TIMESTAMP(timezone=True), nullable=True)
     street_address_1 = db.Column(db.Unicode(255), nullable=True)
     street_address_2 = db.Column(db.Unicode(255), nullable=True)
     city = db.Column(db.Unicode(255), nullable=True)
@@ -88,7 +87,7 @@ class Invoice(UuidMixin, BaseMixin, db.Model):
             country_code = u'IN'
         if not organization:
             raise ValueError(u"Invoice MUST be initialized with an organization")
-        self.invoiced_at = datetime.utcnow()
+        self.invoiced_at = utcnow()
         self.fy_start_at, self.fy_end_at = get_fiscal_year(country_code, self.invoiced_at)
         self.invoice_no = gen_invoice_no(organization, country_code, self.invoiced_at)
         super(Invoice, self).__init__(*args, **kwargs)

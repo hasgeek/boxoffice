@@ -2,8 +2,9 @@
 
 from boxoffice.models import (db, Item, ItemCollection, DiscountPolicy, DiscountCoupon,
     Price, User, Organization, Category, DISCOUNT_TYPE)
-from datetime import date, datetime
+from datetime import date
 from dateutil.relativedelta import relativedelta
+from coaster.utils import utcnow
 
 
 def init_data():
@@ -44,7 +45,7 @@ def init_data():
         rc2016.items.append(expired_ticket)
         db.session.commit()
 
-        price = Price(item=conf_ticket, title=u'Super Early Geek', start_at=datetime.utcnow(), end_at=one_month_from_now, amount=3500)
+        price = Price(item=conf_ticket, title=u'Super Early Geek', start_at=utcnow(), end_at=one_month_from_now, amount=3500)
         db.session.add(price)
         db.session.commit()
 
@@ -52,7 +53,7 @@ def init_data():
         rc2016.items.append(single_day_conf_ticket)
         db.session.commit()
 
-        single_day_price = Price(item=single_day_conf_ticket, title=u'Single Day', start_at=datetime.utcnow(), end_at=one_month_from_now, amount=2500)
+        single_day_price = Price(item=single_day_conf_ticket, title=u'Single Day', start_at=utcnow(), end_at=one_month_from_now, amount=2500)
         db.session.add(single_day_price)
         db.session.commit()
 
@@ -60,7 +61,7 @@ def init_data():
         rc2016.items.append(tshirt)
         db.session.commit()
 
-        tshirt_price = Price(item=tshirt, title=u'T-shirt', start_at=datetime.utcnow(), end_at=one_month_from_now, amount=500)
+        tshirt_price = Price(item=tshirt, title=u'T-shirt', start_at=utcnow(), end_at=one_month_from_now, amount=500)
         db.session.add(tshirt_price)
         db.session.commit()
 
@@ -68,7 +69,7 @@ def init_data():
         rc2016.items.append(dns_workshop)
         db.session.commit()
 
-        dns_workshop_price = Price(item=dns_workshop, title=u'DNSSEC workshop early', start_at=datetime.utcnow(), end_at=one_month_from_now, amount=2500)
+        dns_workshop_price = Price(item=dns_workshop, title=u'DNSSEC workshop early', start_at=utcnow(), end_at=one_month_from_now, amount=2500)
         db.session.add(dns_workshop_price)
         db.session.commit()
 
@@ -146,7 +147,7 @@ def init_data():
 
         discount_price = Price(item=conf_ticket,
             discount_policy=forever_early_geek, title=u'Forever Early Geek',
-            start_at=datetime.utcnow(), end_at=one_month_from_now, amount=3400)
+            start_at=utcnow(), end_at=one_month_from_now, amount=3400)
         db.session.add(discount_price)
         db.session.commit()
 
@@ -179,7 +180,7 @@ def init_data():
 
         zero_discount_price = Price(item=conf_ticket,
             discount_policy=zero_discount, title=u'Zero Discount',
-            start_at=datetime.utcnow(), end_at=one_month_from_now, amount=3600)
+            start_at=utcnow(), end_at=one_month_from_now, amount=3600)
         db.session.add(zero_discount_price)
         db.session.commit()
 

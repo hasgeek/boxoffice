@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from datetime import datetime
 from decimal import Decimal
 from sqlalchemy.sql import func
 from flask import url_for, request, jsonify, render_template, abort
+from coaster.utils import utcnow
 from coaster.views import render_with, load_models
 from baseframe import _, localized_country_list
 from baseframe.forms import render_form
@@ -184,7 +184,7 @@ def order(item_collection):
             line_item = LineItem(order=order, item=item, discount_policy=policy,
                 line_item_seq=idx + 1,
                 discount_coupon=coupon,
-                ordered_at=datetime.utcnow(),
+                ordered_at=utcnow(),
                 base_amount=line_item_tup.base_amount,
                 discounted_amount=line_item_tup.discounted_amount,
                 final_amount=line_item_tup.base_amount - line_item_tup.discounted_amount)
@@ -461,7 +461,7 @@ def regenerate_line_item(order, original_line_item, updated_line_item_tup, line_
         status=LINE_ITEM_STATUS.CONFIRMED,
         line_item_seq=line_item_seq,
         discount_coupon=coupon,
-        ordered_at=datetime.utcnow(),
+        ordered_at=utcnow(),
         base_amount=updated_line_item_tup.base_amount,
         discounted_amount=updated_line_item_tup.discounted_amount,
         final_amount=updated_line_item_tup.base_amount - updated_line_item_tup.discounted_amount)

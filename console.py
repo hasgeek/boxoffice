@@ -3,26 +3,19 @@ from collections import OrderedDict
 from decimal import Decimal
 import datetime
 import IPython
-import pytz
 from flask import make_response, jsonify
 from isoweek import Week
+from coaster.utils import isoweek_datetime, midnight_to_utc, utcnow
 from .. import app
 from boxoffice.models import (db, Invoice, Order, OnlinePayment, Organization,
     PaymentTransaction, ItemCollection, CURRENCY, INVOICE_STATUS, LINE_ITEM_STATUS)
 from boxoffice.views.custom_exceptions import PaymentGatewayError
 from boxoffice.mailclient import send_receipt_mail, send_participant_assignment_mail
 from boxoffice.extapi import razorpay
-from coaster.utils import isoweek_datetime, midnight_to_utc
 
 import logging
 logging.basicConfig()
 logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
-
-
-def convert_to_utc(localtime, tz="Asia/Kolkata", is_dst=True):
-    local = pytz.timezone(tz)
-    local_dt = local.localize(localtime, is_dst=is_dst)
-    return local_dt.astimezone(pytz.UTC).replace(tzinfo=None)
 
 
 def sales_by_date(sales_datetime, item_ids, user_tz):
@@ -72,7 +65,7 @@ def calculate_weekly_sales(item_collection_ids, user_tz, year):
 
 def sales_delta(user_tz, item_ids):
     """Calculates the percentage difference in sales between today and yesterday"""
-    today = datetime.datetime.utcnow().date()
+    today = utcnow().date()
     yesterday = today - datetime.timedelta(days=1)
     today_sales = sales_by_date(today, item_ids, user_tz)
     yesterday_sales = sales_by_date(yesterday, item_ids, user_tz)

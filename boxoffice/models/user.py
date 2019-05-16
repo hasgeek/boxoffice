@@ -73,7 +73,7 @@ def get_fiscal_year(jurisdiction, dt):
     financial year for a given jurisdiction and a timestamp. Only supports India as of now.
 
     Example::
-        get_fiscal_year('IN', datetime.datetime.utcnow())
+        get_fiscal_year('IN', utcnow())
     """
     if jurisdiction.lower() == u'in':
         if dt.month < 4:

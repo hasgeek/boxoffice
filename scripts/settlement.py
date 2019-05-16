@@ -25,7 +25,9 @@ def rows_to_csv(rows, filename):
 
 
 def localize(datetime):
-    return utc.localize(datetime).astimezone(timezone('Asia/Calcutta')).strftime('%d %b, %Y')
+    if datetime.tzinfo is None:
+        datetime = utc.localize(datetime)
+    return datetime.astimezone(timezone('Asia/Kolkata')).strftime('%d %b, %Y')
 
 
 def get_settlements(filename):

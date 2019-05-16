@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from decimal import Decimal
-from datetime import datetime
 from collections import namedtuple
 from sqlalchemy.sql import select, func
 from boxoffice.models import db, BaseMixin, User
-from coaster.utils import LabeledEnum, buid
+from coaster.utils import LabeledEnum, buid, utcnow
 from baseframe import __
 
 __all__ = ['Order', 'ORDER_STATUS', 'OrderSession']
@@ -51,10 +50,10 @@ class Order(BaseMixin, db.Model):
 
     status = db.Column(db.Integer, default=ORDER_STATUS.PURCHASE_ORDER, nullable=False)
 
-    initiated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    paid_at = db.Column(db.DateTime, nullable=True)
-    invoiced_at = db.Column(db.DateTime, nullable=True)
-    cancelled_at = db.Column(db.DateTime, nullable=True)
+    initiated_at = db.Column(db.TIMESTAMP(timezone=True), nullable=False, default=db.func.utcnow())
+    paid_at = db.Column(db.TIMESTAMP(timezone=True), nullable=True)
+    invoiced_at = db.Column(db.TIMESTAMP(timezone=True), nullable=True)
+    cancelled_at = db.Column(db.TIMESTAMP(timezone=True), nullable=True)
 
     access_token = db.Column(db.Unicode(22), nullable=False, default=buid)
 
@@ -81,13 +80,13 @@ class Order(BaseMixin, db.Model):
             line_item.confirm()
         self.invoice_no = gen_invoice_no(self.organization)
         self.status = ORDER_STATUS.SALES_ORDER
-        self.paid_at = datetime.utcnow()
+        self.paid_at = utcnow()
 
     def invoice(self):
         """Sets invoiced_at, status"""
         for line_item in self.line_items:
             line_item.confirm()
-        self.invoiced_at = datetime.utcnow()
+        self.invoiced_at = utcnow()
         self.status = ORDER_STATUS.INVOICE
 
     def get_amounts(self, line_item_status):
