@@ -69,10 +69,12 @@ class DiscountPriceForm(forms.Form):
         validators=[forms.validators.DataRequired(__("Please select the currency"))],
         choices=CURRENCY.items(), default=CURRENCY.INR)
     start_at = forms.DateTimeField(__("Price start date"),
-        validators=[forms.validators.DataRequired(__("Please specify a start date and time"))])
+        validators=[forms.validators.DataRequired(__("Please specify a start date and time"))],
+        naive=False)
     end_at = forms.DateTimeField(__("Price end date"),
         validators=[forms.validators.DataRequired(__("Please specify an end date and time")),
-        forms.validators.GreaterThan('start_at', __("Please specify an end date for the price that is greater than the start date"))])
+        forms.validators.GreaterThan('start_at', __("Please specify an end date for the price that is greater than the start date"))],
+        naive=False)
     item = QuerySelectField(__("Item"), get_label='title',
         validators=[forms.validators.DataRequired(__("Please select a item for which the discount is to be applied"))])
 

@@ -75,7 +75,9 @@ class ItemForm(forms.Form):
     event_date = forms.DateField(__("Event date"),
         description=__("The date on which this item will be invoiced"),
         validators=[forms.validators.DataRequired(__("Please specify a date for the event"))])
-    cancellable_until = forms.DateTimeField(__("Cancellable until"), validators=[forms.validators.Optional()])
+    cancellable_until = forms.DateTimeField(__("Cancellable until"),
+        validators=[forms.validators.Optional()],
+        naive=False)
     place_supply_state_code = forms.SelectField(__("State"),
         choices=[('', '')] + [(state['short_code'], state['name']) for state in sorted(indian_states, key=lambda k: k['name'])],
         description=__("Place of supply"), coerce=int, default=indian_states_dict['KA']['short_code'],

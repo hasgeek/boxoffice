@@ -14,9 +14,11 @@ class PriceForm(forms.Form):
             ])
     currency = forms.SelectField(__("Currency"), choices=[('INR', 'INR')], default='INR')
     start_at = forms.DateTimeField(__("Start date & time"),
-        validators=[forms.validators.DataRequired(__("Please specify a start date & time"))])
+        validators=[forms.validators.DataRequired(__("Please specify a start date & time"))],
+        naive=False)
     end_at = forms.DateTimeField(__("End date & time"),
         validators=[
             forms.validators.DataRequired(__("Please specify an end date & time")),
             forms.validators.GreaterThan('start_at', __(u"The price can’t end before it starts"))
-            ])
+            ],
+        naive=False)
