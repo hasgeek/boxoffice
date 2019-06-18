@@ -6,7 +6,7 @@ import IPython
 from flask import make_response, jsonify
 from isoweek import Week
 from coaster.utils import isoweek_datetime, midnight_to_utc, utcnow
-from .. import app
+from boxoffice import app
 from boxoffice.models import (db, Invoice, Order, OnlinePayment, Organization,
     PaymentTransaction, ItemCollection, CURRENCY, INVOICE_STATUS, LINE_ITEM_STATUS)
 from boxoffice.views.custom_exceptions import PaymentGatewayError
