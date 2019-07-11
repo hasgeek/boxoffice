@@ -281,16 +281,6 @@
         <div class="receipt-btn-wrapper">
           <a href="{{ buyer.attendeeAssignmentURL }}" target="_blank" class="boxoffice-button boxoffice-button-action receipt-button" on-click="fire('eventAnalytics','fill attendee details', 'attendee details')">Fill attendee details</a>
         </div>
-        <div class="social-icons">
-          <p>Tell your friends!</p>
-          <span class="tweet-button">
-          <a href="https://twitter.com/share" class="twitter-share-button" data-text="Yay! I'm attending {{eventTitle}}" data-hashtags="HasGeek{{#if eventHashtag}}, {{eventHashtag}}{{/if}}">Tweet</a>
-          </span>
-          <div class="fb-share-button pad-half" data-layout="button"></div>
-          <div id="fb-root"></div>
-          <script>(function(d, s, id) { var js, fjs = d.getElementsByTagName(s)[0]; if (d.getElementById(id)) return; js = d.createElement(s); js.id = id; js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.5"; fjs.parentNode.insertBefore(js, fjs); }(document, 'script', 'facebook-jssdk'));</script>
-          <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
-        </div>
       </div>
     {{/if}}
   {{/}}
@@ -418,7 +408,7 @@
     position: relative;
   }
   .boxoffice-section {
-    padding: 40px 20px;
+    padding: 15px;
     border: 2px solid #ccc;
     border-top-width: 0;
     min-height: 450px;
@@ -430,8 +420,8 @@
     position: relative;
     font-size: 18px;
     width: 100%;
-    margin: 0 0 0 -22px;
-    padding: 10px 20px;
+    margin: 0 0 0 -15px;
+    padding: 10px 15px;
     z-index: 1;
     text-transform: uppercase;
   }
@@ -457,8 +447,8 @@
     }
   }
   .ticket-booking {
-    padding: 20px;
-    margin: 0 -20px;
+    padding: 5px 15px;
+    margin: 0 -15px;
   }
   .ticket-selected {
     background-color: #f7f6ec;
@@ -698,7 +688,7 @@
   }
   .boxoffice-section .separator {
     height: 1px;
-    margin: 0 -20px 20px;
+    margin: 0 -15px 15px;
     border: 0;
     border-top: 1px solid #eee;
   }
@@ -1003,18 +993,7 @@
     border-color: inherit;
     border-bottom: 3px solid;
   }
-  .receipt-btn-wrapper, .social-icons {
+  .receipt-btn-wrapper {
     text-align: center;
-  }
-  .fb-share-button {
-    display: inline-block;
-    line-height: 1;
-    padding: 0px 0px 0px 10px !important;
-    top: -2px;
-  }
-  .tweet-button {
-    line-height: 1;
-    position: relative;
-    top: 2px;
   }
 </style>
