@@ -300,7 +300,6 @@
     border-radius: 5px;
     padding: 6px 12px;
     color: #fff;
-    font-size: 15px;
     display: inline-block;
   }
   .boxoffice-button-action {
@@ -310,12 +309,6 @@
   .boxoffice-button-info {
     background-color: #5BC0DE;
     border-color: #46B8DA;
-  }
-  @media (min-width: 768px) {
-    .box-widget-button,
-    .box-widget-button-info {
-      font-size: 17px;
-    }
   }
 
   .boxoffice-clearfix:after, .boxoffice-clearfix:before {
@@ -342,7 +335,7 @@
       display: flex;
       margin: 0;
       padding: 0;
-      font-size: 80%;
+      font-size: 0.8em;
       text-transform: uppercase
   }
   .progress-indicator>li {
@@ -420,10 +413,11 @@
     border-bottom: 3px solid #aaa;
     color: #333;
     position: relative;
-    font-size: 18px;
-    width: 100%;
+    font-size: 22px;
+    width: auto;
+    display: inline-block;
     margin: 15px 0 0 -15px;
-    padding: 10px 15px;
+    padding:10px 60px 10px 10px;
     z-index: 1;
     text-transform: uppercase;
   }
@@ -431,21 +425,17 @@
     content: "";
     display: block;
     position: absolute;
-    right: 0px;
+    right: 0;
     top: 0px;
     border-style: solid;
-    border-color: #CCC transparent #CCC #CCC;
-    border-width: 19px;
+    border-color: #CCC #FFF #CCC #CCC;
+    border-width: 28px;
     z-index: 2;
-    background-color: transparent;
+    background-color: #FFF;
   }
   @media (min-width: 480px) {
     .category-heading {
-      font-size: 20px;
-      width: 55%;
-    }
-    .category-heading:after {
-      border-width: 21px;
+      font-size: 30px;
     }
   }
   .ticket-booking {
@@ -463,18 +453,11 @@
     width: 100%;
   }
   .ticket-title {
-    font-size: 18px;
+    font-size: 1.4em;
     margin: 10px 0;
-    color: #428bca;
-  }
-  @media (min-width: 768px) {
-    .ticket-title {
-      font-size: 23px;
-      font-weight: 500;
-    }
+    font-weight: bold;
   }
   .discount {
-    font-size: 15px;
     margin: 5px 0;
     font-style: italic;
     color: #e42c42;
@@ -484,13 +467,9 @@
     color: #008000;
   }
   .valid-upto {
-    font-size: 15px;
     font-style: italic;
     margin: 5px 0;
     text-align: right;
-  }
-  .ticket-description {
-    font-size: 15px;
   }
   .ticket-description p {
     margin: 7px 0;
@@ -510,7 +489,7 @@
     top: -30px;
     width: 200px;
     text-align: right;
-    font-size: 13px;
+    font-size: 0.8em;
     font-style: italic;
   }
   .available-count {
@@ -546,9 +525,6 @@
     font-size: 18px;
     margin: 0;
     padding-right: 20px;
-  }
-  .ticket-price .rupee-sign {
-    font-size: 16px;
   }
   .discount-price {
     position: absolute;
@@ -625,7 +601,6 @@
     float: right;
   }
   .sold-out {
-    font-size: 15px;
     color: #fff;
     background: #e42c42;
     width: 100px;
@@ -637,13 +612,6 @@
     font-weight: bold;
   }
   @media (min-width: 600px) and (max-width: 1023px) {
-    .category-heading {
-      font-size: 30px;
-    }
-    .category-heading:after {
-      border-width: 26px;
-    }
-    .ticket-title,
     .ticket-price,
     .multiplier,
     .ticket-qty,
@@ -652,12 +620,8 @@
      font-size: 25px;
     }
     .sold-out {
-      font-size: 18px;
       width: 105px;
       margin-top: 4px;
-    }
-    .ticket-price .rupee-sign {
-      font-size: 22px;
     }
     .ticket-qty-wrapper {
       height: 37px;
@@ -679,13 +643,11 @@
   }
   .item-amount {
     clear: both;
-    font-size: 15px;
     color: #888;
     margin: 10px 0 0;
     text-align: right;
   }
   .item-amount .rupee-sign {
-    font-size: 13px;
     padding-left: 5px;
   }
   .boxoffice-section .separator {
@@ -712,7 +674,6 @@
   .policy {
     clear: both;
     padding-top: 10px;
-    font-size: 18px;
   }
   .policy p {
     margin: 5px 0;
@@ -733,7 +694,7 @@
     left: 48%;
   }
   .stage-error-msg {
-    font-size: 15px;
+    font-size: 0.9em;
     clear: both;
     float: right;
     margin: 0px 0 10px;
@@ -764,7 +725,6 @@
     }
   }
   .boxoffice-form .group-input {
-    font-size: 16px;
     padding: 10px 10px 10px 5px;
     display: block;
     width: 100%;
@@ -778,7 +738,6 @@
   }
   .boxoffice-form .group-label {
     color: #999;
-    font-size: 16px;
     margin: 0;
     font-weight: normal;
     position: absolute;
@@ -826,7 +785,6 @@
     -moz-appearance: none;
     appearance: none;
     width: 100%;
-    font-size: 16px;
     padding: 10px 10px 10px 1px;
     background: transparent;
     border: none;
@@ -860,7 +818,7 @@
     pointer-events: none;
   }
   .boxoffice-form .form-help-text {
-    font-size: 13px;
+    font-size: 0.9em;
     color: #aaa;
     margin: 10px 0;
     position: relative;
@@ -869,7 +827,7 @@
   }
   .boxoffice-form .form-error-msg {
     color: white;
-    font-size: 12px;
+    font-size: 0.9em;
     border-radius: 3px;
     border: 1px solid #b94a48;
     background: #b94a48;
@@ -889,7 +847,7 @@
   }
   .buyer-form-title, .summary {
     text-align: center;
-    font-size: 20px;
+    font-size: 1.2em;
     margin: 20px 0;
   }
   .checkout-confirmation {
@@ -905,19 +863,15 @@
     padding: 5px 0;
   }
   .booked-ticket-title {
-    font-size: 16px;
+    font-size: 1.2em;
   }
   .booked-ticket-title .fa-ticket {
     padding-right: 10px;
   }
   .booked-ticket-qty,  
   .discount-applied {
-    font-size: 13px;
     text-align: right;
     margin-bottom: 5px;
-  }
-  .booked-ticket-qty .rupee-sign {
-    font-size: 11px;
   }
   .discount-applied {
     color: green;
@@ -926,11 +880,7 @@
     float: right;
   }
   .price {
-    font-size: 15px;
     margin: 10px 0;
-  }
-  .price .rupee-sign {
-    font-size: 13px;
   }
   .proceed-button-wrapper {
     clear: both;
