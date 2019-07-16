@@ -20,17 +20,16 @@ def upgrade():
             """
                 CREATE FUNCTION discount_coupon_code_validate() RETURNS TRIGGER AS $$
                 DECLARE
-                    target RECORD;
+                    code_count int;
                 BEGIN
-                    SELECT COUNT(discount_coupon.code) as count INTO target
-                        FROM discount_coupon
-                            JOIN discount_policy ON discount_policy.id = discount_coupon.discount_policy_id
-                            JOIN item_discount_policy AS item_discount_policy_1 ON discount_policy.id = item_discount_policy_1.discount_policy_id
-                            JOIN item ON item.id = item_discount_policy_1.item_id
-                            JOIN item_collection ON item_collection.id = item.item_collection_id
-                        WHERE discount_coupon.code = NEW.code;
-                    IF (target.count > 0) THEN
-                        RAISE foreign_key_violation USING MESSAGE = 'The has already been used in this item collection';
+                    code_count := (SELECT COUNT(*) FROM discount_coupon
+                        JOIN discount_policy ON discount_policy.id = discount_coupon.discount_policy_id
+                        JOIN item_discount_policy AS item_discount_policy_1 ON discount_policy.id = item_discount_policy_1.discount_policy_id
+                        JOIN item ON item.id = item_discount_policy_1.item_id
+                        JOIN item_collection ON item_collection.id = item.item_collection_id
+                        WHERE discount_coupon.code = NEW.code);
+                    IF (code_count > 0) THEN
+                        RAISE EXCEPTION 'The has already been used in this item collection';
                     END IF;
                     RETURN NEW;
                 END;
