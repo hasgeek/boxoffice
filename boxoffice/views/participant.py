@@ -28,16 +28,26 @@ def assign(order):
             'error_description': u"Invalid line item",
         }
     elif line_item.is_cancelled:
-        return {
-            'status': 'error',
-            'error': 'cancelled_ticket',
-            'error_description': u"Ticket has been cancelled",
-        }, 400
+        return (
+            {
+                'status': 'error',
+                'error': 'cancelled_ticket',
+                'error_description': u"Ticket has been cancelled",
+            },
+            400,
+        )
 
     if line_item.current_assignee is not None:
-        assignee_form = AssigneeForm.from_json(request.json.get('attendee'), obj=line_item.current_assignee, parent=line_item, meta={'csrf': False})
+        assignee_form = AssigneeForm.from_json(
+            request.json.get('attendee'),
+            obj=line_item.current_assignee,
+            parent=line_item,
+            meta={'csrf': False},
+        )
     else:
-        assignee_form = AssigneeForm.from_json(request.json.get('attendee'), parent=line_item, meta={'csrf': False})
+        assignee_form = AssigneeForm.from_json(
+            request.json.get('attendee'), parent=line_item, meta={'csrf': False}
+        )
 
     if assignee_form.validate_on_submit():
         item_assignee_details = line_item.item.assignee_details
@@ -71,8 +81,13 @@ def assign(order):
             send_ticket_assignment_mail.queue(line_item.id)
         return {'status': 'ok', 'result': {'message': 'Ticket assigned'}}
     else:
-        return {
+        return (
+            {
                 'status': 'error',
                 'error': 'invalid_assignee_details',
-                'error_description': ", ".join([str(err.pop()) for err in assignee_form.errors.values()]),
-            }, 400
+                'error_description': ", ".join(
+                    [str(err.pop()) for err in assignee_form.errors.values()]
+                ),
+            },
+            400,
+        )
