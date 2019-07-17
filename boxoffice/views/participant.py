@@ -42,11 +42,13 @@ def assign(order):
             request.json.get('attendee'),
             obj=line_item.current_assignee,
             parent=line_item,
-            meta={'csrf': False},
+            csrf_token=request.json.get('csrf_token'),
         )
     else:
         assignee_form = AssigneeForm.from_json(
-            request.json.get('attendee'), parent=line_item, meta={'csrf': False}
+            request.json.get('attendee'),
+            parent=line_item,
+            csrf_token=request.json.get('csrf_token'),
         )
 
     if assignee_form.validate_on_submit():
