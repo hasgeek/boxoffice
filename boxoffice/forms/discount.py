@@ -1,12 +1,24 @@
 # -*- coding: utf-8 -*-
 
-from baseframe import __
 import baseframe.forms as forms
-from baseframe.forms.sqlalchemy import QuerySelectMultipleField, QuerySelectField
-from coaster.utils import getbool
+from baseframe import __
+from baseframe.forms.sqlalchemy import (
+    AvailableAttr,
+    QuerySelectField,
+    QuerySelectMultipleField,
+)
 from baseframe.forms.validators import StopValidation
-from baseframe.forms.sqlalchemy import AvailableAttr
-from ..models import DISCOUNT_TYPE, CURRENCY, Item, ItemCollection, db, DiscountCoupon
+from coaster.utils import getbool
+
+from ..models import (
+    CURRENCY,
+    DISCOUNT_TYPE,
+    DiscountCoupon,
+    DiscountPolicy,
+    Item,
+    ItemCollection,
+    db,
+)
 
 __all__ = ['DiscountPolicyForm', 'PriceBasedDiscountPolicyForm', 'DiscountPriceForm', 'DiscountCouponForm', 'AutomaticDiscountPolicyForm', 'CouponBasedDiscountPolicyForm']
 
@@ -84,7 +96,14 @@ class DiscountPriceForm(forms.Form):
 
 
 def validate_unique_discount_coupon_code(form, field):
-    if DiscountCoupon.query.filter(DiscountCoupon.discount_policy == form.edit_parent, DiscountCoupon.code == field.data).notempty():
+    if (
+        DiscountCoupon.query.join(DiscountPolicy)
+        .filter(
+            DiscountPolicy.organization == form.edit_parent.organization,
+            DiscountCoupon.code == field.data
+        )
+        .notempty()
+    ):
         raise StopValidation(__("This discount coupon code already exists. Please enter a different coupon code"))
 
 
