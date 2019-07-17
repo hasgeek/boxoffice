@@ -26,7 +26,7 @@ def assign(order):
             'status': 'error',
             'error': 'missing_line_item',
             'error_description': u"Invalid line item",
-        }
+        }, 404
     elif line_item.is_cancelled:
         return (
             {

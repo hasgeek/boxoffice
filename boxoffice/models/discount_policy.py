@@ -190,6 +190,7 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
                         .one_or_none()
                     )
                 except MultipleResultsFound as e:
+                    # ref: https://github.com/hasgeek/boxoffice/issues/290
                     policy = None
             if bool(policy) and policy in item.discount_policies:
                 return True
