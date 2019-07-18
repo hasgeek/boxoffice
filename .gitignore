@@ -16,3 +16,5 @@ boxoffice/static/gen/*
 *.sql
 *.sql.gz
 *.sql.bz2
+node_modules
+boxoffice/static/build
