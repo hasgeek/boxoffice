@@ -219,7 +219,7 @@ def counts_per_date_per_item(item_collection, user_tz):
     for item in item_collection.items:
         item_id = unicode(item.id)
         item_results = db.session.query('date', 'count').from_statement(
-            db.text('''SELECT DATE_TRUNC('day', line_item.ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone)::date as date, count(line_item.id) AS count
+            db.text('''SELECT DATE_TRUNC('day', line_item.ordered_at AT TIME ZONE :timezone)::date as date, count(line_item.id) AS count
             FROM line_item WHERE item_id = :item_id AND status = :status
             GROUP BY date ORDER BY date ASC''')).params(timezone=user_tz, status=LINE_ITEM_STATUS.CONFIRMED, item_id=item.id).all()
         for date_count in item_results:
