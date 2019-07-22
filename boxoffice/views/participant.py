@@ -37,19 +37,12 @@ def assign(order):
             400,
         )
 
-    if line_item.current_assignee is not None:
-        assignee_form = AssigneeForm.from_json(
-            request.json.get('attendee'),
-            obj=line_item.current_assignee,
-            parent=line_item,
-            csrf_token=request.json.get('csrf_token'),
-        )
-    else:
-        assignee_form = AssigneeForm.from_json(
-            request.json.get('attendee'),
-            parent=line_item,
-            csrf_token=request.json.get('csrf_token'),
-        )
+    assignee_form = AssigneeForm.from_json(
+        request.json.get('attendee'),
+        obj=line_item.current_assignee,
+        parent=line_item,
+        csrf_token=request.json.get('csrf_token'),
+    )
 
     if assignee_form.validate_on_submit():
         item_assignee_details = line_item.item.assignee_details
@@ -88,7 +81,7 @@ def assign(order):
                 'status': 'error',
                 'error': 'invalid_assignee_details',
                 'error_description': ", ".join(
-                    [str(err.pop()) for err in assignee_form.errors.values()]
+                    [str(err) for err_list in assignee_form.errors.values() for err in err_list]
                 ),
             },
             400,
