@@ -5,6 +5,7 @@ import random
 from werkzeug import cached_property
 from itsdangerous import Signer, BadSignature
 from sqlalchemy import event, DDL
+from sqlalchemy.orm.exc import MultipleResultsFound
 from baseframe import __
 from coaster.utils import LabeledEnum, uuid1mc, buid
 from coaster.sqlalchemy import cached
@@ -179,8 +180,18 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
                 if policy and not DiscountCoupon.is_signed_code_usable(policy, code):
                     break
             else:
-                policy = cls.query.join(DiscountCoupon).filter(
-                    DiscountCoupon.code == code, DiscountCoupon.used_count < DiscountCoupon.usage_limit).one_or_none()
+                try:
+                    policy = (
+                        cls.query.join(DiscountCoupon)
+                        .filter(
+                            DiscountCoupon.code == code,
+                            DiscountCoupon.used_count < DiscountCoupon.usage_limit,
+                        )
+                        .one_or_none()
+                    )
+                except MultipleResultsFound as e:
+                    # ref: https://github.com/hasgeek/boxoffice/issues/290
+                    policy = None
             if bool(policy) and policy in item.discount_policies:
                 return True
         return False

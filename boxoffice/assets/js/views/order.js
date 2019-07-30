@@ -121,7 +121,7 @@ export const Order = {
 
         formValidator.setMessage('required', 'Please fill out the %s field');
         formValidator.setMessage('valid_email', 'Please enter a valid email');
- 
+
         formValidator.registerCallback('validate_phone', function(phone) {
           //Remove all punctations (except +) and letters
           phone = phone.replace(/[^0-9+]/g,'');
@@ -156,11 +156,12 @@ export const Order = {
           contentType: 'application/json',
           data: JSON.stringify({
             attendee: attendeeDetails,
-            line_item_id: line_item_id
+            line_item_id: line_item_id,
+            csrf_token: $('meta[name=csrf-token]').attr('content')
           }),
-          timeout: 5000,
+          timeout: 30000,
           retries: 5,
-          retryInterval: 5000,
+          retryInterval: 30000,
           success: function(data) {
             order.ticketComponent.set(line_item + '.assigningTicket', false);
             order.ticketComponent.set(line_item + '.toAssign', false);
@@ -169,8 +170,14 @@ export const Order = {
           },
           error: function(response) {
             var ajaxLoad = this;
-            var onServerError = function() {
-              order.ticketComponent.set(line_item + '.errorMsg', 'Server error');
+            var onServerError = function () {
+              console.log(response)
+              if (response.responseJSON !== undefined && response.responseJSON.error_description !== undefined) {
+                var errorMsg = response.responseJSON.error_description;
+              } else {
+                var errorMsg = "Server error.";
+              }
+              order.ticketComponent.set(line_item + '.errorMsg', errorMsg);
               order.ticketComponent.set(line_item + '.assigningTicket', false);
             };
             var onNetworkError = function() {
