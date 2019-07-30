@@ -80,9 +80,8 @@ def assign(order):
             {
                 'status': 'error',
                 'error': 'invalid_assignee_details',
-                'error_description': ", ".join(
-                    [str(err) for err_list in assignee_form.errors.values() for err in err_list]
-                ),
+                'error_description': u"Invalid form values. Please resubmit.",
+                'error_details': assignee_form.errors
             },
             400,
         )
