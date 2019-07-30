@@ -19,17 +19,6 @@ class AssigneeForm(forms.Form):
     phone = forms.StringField(
         __("Phone number"), validators=[forms.validators.DataRequired()]
     )
-    city = forms.StringField(__("City"), validators=[forms.validators.DataRequired()])
-    company = forms.StringField(
-        __("Company"), validators=[forms.validators.DataRequired()]
-    )
-    jobtitle = forms.StringField(
-        __("Job Title"), validators=[forms.validators.DataRequired()]
-    )
-    subscribe = forms.BooleanField(
-        __("Sign up to be notified about HasGeek events"),
-        validators=[forms.validators.DataRequired()],
-    )
 
     def validate_email(self, field):
         existing_assignees = (
