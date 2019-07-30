@@ -22,11 +22,14 @@ def assign(order):
     """
     line_item = LineItem.query.get(request.json.get('line_item_id'))
     if line_item is None:
-        return {
-            'status': 'error',
-            'error': 'missing_line_item',
-            'error_description': u"Invalid line item",
-        }, 404
+        return (
+            {
+                'status': 'error',
+                'error': 'missing_line_item',
+                'error_description': u"Invalid line item",
+            },
+            404,
+        )
     elif line_item.is_cancelled:
         return (
             {
@@ -37,8 +40,9 @@ def assign(order):
             400,
         )
 
+    assignee_dict = request.json.get('attendee')
     assignee_form = AssigneeForm.from_json(
-        request.json.get('attendee'),
+        assignee_dict,
         obj=line_item.current_assignee,
         parent=line_item,
         csrf_token=request.json.get('csrf_token'),
@@ -49,14 +53,14 @@ def assign(order):
         assignee_details = {}
         if item_assignee_details:
             for key in item_assignee_details.keys():
-                assignee_details[key] = assignee_form.data.get(key)
+                assignee_details[key] = assignee_dict.get(key)
         if (
             line_item.current_assignee
-            and assignee_form.data['email'] == line_item.current_assignee.email
+            and assignee_dict['email'] == line_item.current_assignee.email
         ):
             # updating details of the current assignee
-            line_item.current_assignee.fullname = assignee_form.data['fullname']
-            line_item.current_assignee.phone = assignee_form.data['phone']
+            line_item.current_assignee.fullname = assignee_dict['fullname']
+            line_item.current_assignee.phone = assignee_dict['phone']
             line_item.current_assignee.details = assignee_details
             db.session.commit()
         else:
@@ -65,9 +69,9 @@ def assign(order):
                 line_item.current_assignee.current = None
             new_assignee = Assignee(
                 current=True,
-                email=assignee_form.data.get('email'),
-                fullname=assignee_form.data.get('fullname'),
-                phone=assignee_form.data.get('phone'),
+                email=assignee_dict.get('email'),
+                fullname=assignee_dict.get('fullname'),
+                phone=assignee_dict.get('phone'),
                 details=assignee_details,
                 line_item=line_item,
             )
@@ -81,7 +85,7 @@ def assign(order):
                 'status': 'error',
                 'error': 'invalid_assignee_details',
                 'error_description': u"Invalid form values. Please resubmit.",
-                'error_details': assignee_form.errors
+                'error_details': assignee_form.errors,
             },
             400,
         )
