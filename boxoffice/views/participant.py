@@ -65,7 +65,9 @@ def assign(order):
             db.session.commit()
         else:
             if line_item.current_assignee:
-                # Archive current assignee
+                # Assignee is being changed. Archive current assignee.
+                # TODO: Send notification to previous assignee.
+                # https://github.com/hasgeek/boxoffice/issues/244
                 line_item.current_assignee.current = None
             new_assignee = Assignee(
                 current=True,
