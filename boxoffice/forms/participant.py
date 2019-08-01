@@ -24,6 +24,7 @@ class AssigneeForm(forms.Form):
         existing_assignees = (
             Assignee.query.join(LineItem)
             .filter(LineItem.item == self.edit_parent.item)
+            .filter(Assignee.current == True)
             .filter(Assignee.email == field.data)
         )
         if self.edit_obj is not None:
