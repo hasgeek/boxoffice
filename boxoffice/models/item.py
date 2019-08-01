@@ -46,6 +46,8 @@ class Item(BaseScopedNameMixin, db.Model):
 
     cancellable_until = db.Column(db.TIMESTAMP(timezone=True), nullable=True)
 
+    transferrable_until = db.Column(db.TIMESTAMP(timezone=True), nullable=True)
+
     restricted_entry = db.Column(db.Boolean, default=False, nullable=False)
     # ISO 3166-2 code. Eg: KA for Karnataka
     place_supply_state_code = db.Column(db.Unicode(3), nullable=True)

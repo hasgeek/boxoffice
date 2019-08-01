@@ -64,6 +64,15 @@ def assign(order):
             line_item.current_assignee.details = assignee_details
             db.session.commit()
         else:
+            if not line_item.is_transferrable:
+                return (
+                    {
+                        'status': 'error',
+                        'error': 'not_transferable',
+                        'error_description': u"Ticket can no longer be transfered",
+                    },
+                    400,
+                )
             if line_item.current_assignee:
                 # Assignee is being changed. Archive current assignee.
                 # TODO: Send notification to previous assignee.

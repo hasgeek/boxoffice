@@ -75,6 +75,9 @@ class ItemForm(forms.Form):
     event_date = forms.DateField(__("Event date"),
         description=__("The date on which this item will be invoiced"),
         validators=[forms.validators.DataRequired(__("Please specify a date for the event"))])
+    transferable_until = forms.DateTimeField(__("Transferable until"),
+        validators=[forms.validators.Optional()],
+        naive=False)
     cancellable_until = forms.DateTimeField(__("Cancellable until"),
         validators=[forms.validators.Optional()],
         naive=False)

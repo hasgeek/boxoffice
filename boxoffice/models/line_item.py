@@ -1,15 +1,19 @@
 # -*- coding: utf-8 -*-
 
-from decimal import Decimal
+from collections import OrderedDict, namedtuple
 from datetime import timedelta
-from collections import namedtuple, OrderedDict
-from sqlalchemy.sql import func
-from sqlalchemy.ext.orderinglist import ordering_list
-from isoweek import Week
-from boxoffice.models import db, JsonDict, BaseMixin, Order, Item, LineItemDiscounter
-from coaster.utils import LabeledEnum, isoweek_datetime, midnight_to_utc, utcnow
-from baseframe import __
+from decimal import Decimal
 
+from sqlalchemy.ext.orderinglist import ordering_list
+from sqlalchemy.sql import func
+
+from flask import current_app
+
+from boxoffice.models import BaseMixin, Item, JsonDict, LineItemDiscounter, Order, db
+from isoweek import Week
+
+from baseframe import __
+from coaster.utils import LabeledEnum, isoweek_datetime, midnight_to_utc, utcnow
 
 __all__ = ['LineItem', 'LINE_ITEM_STATUS', 'Assignee']
 
@@ -151,6 +155,10 @@ class LineItem(BaseMixin, db.Model):
     @property
     def current_assignee(self):
         return self.assignees.filter(Assignee.current == True).one_or_none()  # NOQA
+
+    @property
+    def is_transferrable(self):
+        return self.item.transferrable_until < utcnow() if self.item.transferrable_until is not None else True
 
     @property
     def is_confirmed(self):
