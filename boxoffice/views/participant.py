@@ -2,7 +2,10 @@
 
 from flask import jsonify, make_response, request
 
-from boxoffice.mailclient import send_ticket_assignment_mail
+from boxoffice.mailclient import (
+    send_ticket_assignment_mail,
+    send_ticket_reassignment_mail,
+)
 from utils import xhr_only
 
 from coaster.views import load_models, render_with
@@ -69,7 +72,7 @@ def assign(order):
                     {
                         'status': 'error',
                         'error': 'ticket_not_transferable',
-                        'error_description': u"Ticket can no longer be transfered",
+                        'error_description': u"Ticket transfer deadline is over. It can no longer be transfered",
                     },
                     400,
                 )
@@ -96,7 +99,7 @@ def assign(order):
             if old_assignee is not None:
                 # Send notification to previous assignee
                 send_ticket_reassignment_mail.queue(
-                    line_item, old_assignee, new_assignee
+                    line_item.id, old_assignee.id, new_assignee.id
                 )
         return {'status': 'ok', 'result': {'message': 'Ticket assigned'}}
     else:

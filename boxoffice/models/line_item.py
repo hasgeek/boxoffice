@@ -158,7 +158,7 @@ class LineItem(BaseMixin, db.Model):
 
     @property
     def is_transferable(self):
-        return self.item.transferable_until < utcnow() if self.item.transferable_until is not None else True
+        return utcnow() < self.item.transferable_until if self.item.transferable_until is not None else True
 
     @property
     def is_confirmed(self):
