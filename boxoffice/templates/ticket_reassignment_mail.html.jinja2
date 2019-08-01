@@ -103,27 +103,25 @@
 <body>
   <div>
 
-    <p>Hello {{ line_item.current_assignee.fullname }},</p>
+    <p>Hello {{ old_assignee.fullname }},</p>
 
     <div class="wrapper">
       <table class="ticket-table">
         <tr>
           <td class="ticket-title-wrapper">
             <p class="text-center ticket-title">{{ line_item.item.title }}</p>
-            <p class="receipt-no">Receipt No: {{order.invoice_no}}</p>
+            <p class="receipt-no">Receipt No: {{ order.invoice_no }}</p>
           </td>
 
           <td class="details-wrapper">
-            <p class="text-center fullname">{{ line_item.current_assignee.fullname }}</p>
-            {%- if line_item.current_assignee.details.company -%}<p class="text-center company">{{ line_item.current_assignee.details.company }}</p>{%- endif %}
-            {%- if line_item.current_assignee.details.twitter -%}<p class="text-center twitter-handle">@{{ line_item.current_assignee.details.twitter | replace("@", "") }}</p>{%- endif %}
+            <p>Your ticket has been transfered to {{ new_assignee.fullname }}, by {{ current_auth.user.fullname }}.</p>
+            <p>If you believe this was because of an error, please reach out to us at support@hasgeek.com.</p>
           </td>
         </tr>
       </table>
     </div>
 
-    <p><a class="button" href={{"{base_url}/order/{access_token}/ticket".format(base_url=base_url, access_token=order.access_token)}} target="_blank">Edit details</a></p>
-    <div class="terms-content">{{org.details.get('ticket_faq', '') | safe}}</div>
+    <div class="terms-content">{{ org.details.get('ticket_faq', '') | safe }}</div>
 
     <p>Thank you,</p>
     <p>{{ org.title }}</p>

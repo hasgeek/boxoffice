@@ -87,3 +87,28 @@ def send_ticket_assignment_mail(line_item_id):
         msg.html = html
         msg.body = html2text(html)
         mail.send(msg)
+
+
+@rq.job('boxoffice')
+def send_ticket_reassignment_mail(line_item, old_assignee, new_assignee):
+    """
+    Sends an email to the original assignee once a ticket is reassigned to a new attendee.
+    """
+    with app.test_request_context():
+        order = line_item.order
+        subject = order.item_collection.title + ": Your ticket has been reassigned"
+        msg = Message(subject=subject, recipients=[old_assignee.email], bcc=[order.buyer_email])
+        html = email_transform(
+            render_template(
+                'ticket_reassignment_mail.html.jinja2',
+                old_assignee=old_assignee,
+                new_assignee=new_assignee,
+                order=order,
+                org=order.organization,
+                line_item=line_item,
+                base_url=app.config['BASE_URL']
+            )
+        )
+        msg.html = html
+        msg.body = html2text(html)
+        mail.send(msg)

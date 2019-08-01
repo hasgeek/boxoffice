@@ -73,11 +73,13 @@ def assign(order):
                     },
                     400,
                 )
+
+            old_assignee = None
             if line_item.current_assignee:
                 # Assignee is being changed. Archive current assignee.
-                # TODO: Send notification to previous assignee.
-                # https://github.com/hasgeek/boxoffice/issues/244
+                old_assignee = line_item.current_assignee
                 line_item.current_assignee.current = None
+
             new_assignee = Assignee(
                 current=True,
                 email=assignee_dict.get('email'),
@@ -86,9 +88,16 @@ def assign(order):
                 details=assignee_details,
                 line_item=line_item,
             )
+
             db.session.add(new_assignee)
             db.session.commit()
             send_ticket_assignment_mail.queue(line_item.id)
+
+            if old_assignee is not None:
+                # Send notification to previous assignee
+                send_ticket_reassignment_mail.queue(
+                    line_item, old_assignee, new_assignee
+                )
         return {'status': 'ok', 'result': {'message': 'Ticket assigned'}}
     else:
         return (
