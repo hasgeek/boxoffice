@@ -64,7 +64,7 @@ def assign(order):
             line_item.current_assignee.details = assignee_details
             db.session.commit()
         else:
-            if not line_item.is_transferrable:
+            if not line_item.is_transferable:
                 return (
                     {
                         'status': 'error',
