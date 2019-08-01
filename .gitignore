@@ -8,7 +8,6 @@ instance/testing.py
 .webassets-cache
 baseframe-packed.js
 baseframe-packed.css
-boxoffice/static/js/npm-debug.log
 .vscode
 .coverage
 boxoffice/static/gen/*

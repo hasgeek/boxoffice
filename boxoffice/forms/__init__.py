@@ -8,3 +8,4 @@ from .order import *
 from .order_refund import *
 from .discount import *
 from .category import *
+from .participant import *

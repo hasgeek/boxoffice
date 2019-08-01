@@ -32,7 +32,7 @@ const orgTemplate = `
             <p class="section-title">Item collection id</p>
             <p class="section-content">{{ id }}</p>
             <p class="section-title">Item collection description</p>
-            <div class="section-content">{{{ description }}}</div>
+            <div class="section-content">{{{ description.html }}}</div>
             <div class="btn-wrapper">
               <a class="boxoffice-button boxoffice-button-info" href="/{{ orgName }}/{{ name }}">View listing</a>
               <a class="boxoffice-button boxoffice-button-primary" href="/admin/ic/{{id}}" data-navigate>View dashboard</a>
@@ -48,7 +48,7 @@ export const OrgView = {
   render: function({org_name}={}) {
     fetch({
       url: urlFor('view', {resource: 'o', id: org_name, root: true})
-    }).then(function({id, org_title, item_collections, form}) {
+    }).then(function ({ id, org_title, item_collections, form }) {
       let orgComponent = new Ractive({
         el: '#main-content-area',
         template: orgTemplate,
