@@ -68,7 +68,7 @@ def assign(order):
                 return (
                     {
                         'status': 'error',
-                        'error': 'not_transferable',
+                        'error': 'ticket_not_transferable',
                         'error_description': u"Ticket can no longer be transfered",
                     },
                     400,

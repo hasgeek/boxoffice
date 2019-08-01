@@ -92,11 +92,11 @@ def send_ticket_assignment_mail(line_item_id):
 @rq.job('boxoffice')
 def send_ticket_reassignment_mail(line_item, old_assignee, new_assignee):
     """
-    Sends an email to the original assignee once a ticket is reassigned to a new attendee.
+    Sends an email to the original assignee once a ticket is transfered to a new assignee.
     """
     with app.test_request_context():
         order = line_item.order
-        subject = order.item_collection.title + ": Your ticket has been reassigned"
+        subject = order.item_collection.title + ": Your ticket has been transfered to someone else"
         msg = Message(subject=subject, recipients=[old_assignee.email], bcc=[order.buyer_email])
         html = email_transform(
             render_template(
