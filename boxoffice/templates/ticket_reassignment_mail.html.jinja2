@@ -87,8 +87,8 @@
           </td>
 
           <td class="details-wrapper">
-            <p>Your ticket has been transfered to {{ new_assignee.fullname }}, by {{ current_auth.user.fullname }}.</p>
-            <p>If you believe this was because of an error, please reach out to us at <a href="mail:support@hasgeek.com">support@hasgeek.com</a>.</p>
+            <p>Your ticket has been transfered to {{ new_assignee.fullname }}{% if current_auth.user %}, by {{ current_auth.user.fullname }}{% endif %}.</p>
+            <p>If you believe this was because of an error, please reach out to {% if old_assignee.email != order.buyer_email %}<a href="mail:{{ order.buyer_email }}">{{ order.buyer_fullname }}</a>{% else %}us at <a href="mail:support@hasgeek.com">support@hasgeek.com</a>{% endif %}.</p>
           </td>
         </tr>
       </table>
