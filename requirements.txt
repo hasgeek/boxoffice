@@ -1,4 +1,4 @@
-Flask==1.0.3
+Flask==1.1.1
 Flask-SQLAlchemy==2.4.0
 Flask-Assets==0.12
 Flask-Mail==0.9.1
@@ -8,13 +8,13 @@ git+https://github.com/hasgeek/baseframe
 git+https://github.com/hasgeek/coaster
 git+https://github.com/hasgeek/flask-lastuser
 jsmin==2.2.2
-pytz==2019.1
+pytz==2019.2
 psycopg2==2.8.3
 wtforms_json==0.3.3
-rq==1.0
+rq==1.1.0
 itsdangerous==1.1.0
 html2text==2018.1.9
-premailer==3.4.1
+premailer==3.5.0
 python-dateutil==2.8.0
 tabulate==0.8.3
 Flask-Admin==1.5.3
