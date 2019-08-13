@@ -146,3 +146,29 @@ class TestOrder(unittest.TestCase):
             ],
         )
         self.assertEqual(json.loads(resp.data)['status'], 'error')
+
+        # li_two still doesn't have an assignee
+        self.assertIsNone(li_two.current_assignee)
+
+        # Even though the transfer date is over,
+        # we should allow setting a new assignee
+        data = {
+            'line_item_id': str(li_two.id),
+            'attendee': {
+                'fullname': 'Testing',
+                'phone': '9814141415',
+                'email': 'test234@hasgeek.com',
+            },
+        }
+        resp = self.client.post(
+            '/participant/{access_token}/assign'.format(
+                access_token=order.access_token
+            ),
+            data=json.dumps(data),
+            content_type='application/json',
+            headers=[
+                ('X-Requested-With', 'XMLHttpRequest'),
+                ('Origin', app.config['BASE_URL']),
+            ],
+        )
+        self.assertEqual(json.loads(resp.data)['status'], 'ok')
