@@ -25,9 +25,11 @@ export const TicketAssignmentTemplate = `
               {{/if}}
               <div class="assign-form-wrapper">
                 {{#if assignee.id || isTicketAssigned}}
-                  <div class="text-center continue-btn-wrapper">
-                    <button class="boxoffice-button boxoffice-button-action" on-click="assign(event, event.keypath, true)">{{#if is_transferable}}Transfer/{{/if}}Edit</button>
-                  </div>
+                  {{#if is_transferable}}
+                    <div class="text-center continue-btn-wrapper">
+                      <button class="boxoffice-button boxoffice-button-action" on-click="assign(event, event.keypath, true)">Transfer/Edit</button>
+                    </div>
+                  {{/if}}
                 {{else}}
                   <p class="assign-form-title">Fill attendee details</p>
                   <div class="text-center continue-btn-wrapper">
