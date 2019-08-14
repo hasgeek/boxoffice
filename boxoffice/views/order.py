@@ -70,7 +70,8 @@ def jsonify_order(data):
             'is_confirmed': line_item.is_confirmed,
             'is_cancelled': line_item.is_cancelled,
             'cancelled_at': json_date_format(line_item.cancelled_at) if line_item.cancelled_at else "",
-            })
+            'is_transferable': line_item.is_transferable,
+        })
     return jsonify(order_id=order.id, access_token=order.access_token,
         item_collection_name=order.item_collection.description_text, buyer_name=order.buyer_fullname,
         buyer_email=order.buyer_email,
