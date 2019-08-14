@@ -9,7 +9,7 @@ export const TicketAssignmentTemplate = `
           <div class="ticket-edit">
             {{#if assignee.id || isTicketAssigned}}
               <span><i class="fa fa-user"></i><i class="fa fa-check"></i></span>
-              <span class="edit-btn" on-click="assign(event, event.keypath, true)"><i class="fa fa-edit"></i></span>
+              {{#if is_transferable}}<span class="edit-btn" on-click="assign(event, event.keypath, true)"><i class="fa fa-edit"></i></span>{{/if}}
             {{else}}
               <span><i class="fa fa-user"></i><i class="fa fa-question"></i></span>
             {{/if}}

@@ -142,6 +142,7 @@ def get_order_details(order):
 
     invoices_list = [{
         'status': INVOICE_STATUS[invoice.status],
+        'invoicee_name': invoice.invoicee_name,
         'invoicee_company': invoice.invoicee_company,
         'invoicee_email': invoice.invoicee_email,
         'invoice_no': invoice.invoice_no,

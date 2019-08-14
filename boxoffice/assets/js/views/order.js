@@ -108,6 +108,7 @@ export const Order = {
 
         var formValidator = new FormValidator(attendeeForm, validationConfig, function(errors, event) {
           event.preventDefault();
+          order.ticketComponent.set(line_item + '.errorMsg', '');
           order.ticketComponent.set(line_item +  '.assignee.errormsg', '');
           if (errors.length > 0) {
             order.ticketComponent.set(line_item +  '.assignee.errormsg.'+ errors[0].name, errors[0].message);
@@ -171,11 +172,14 @@ export const Order = {
           error: function(response) {
             var ajaxLoad = this;
             var onServerError = function () {
-              console.log(response)
+              var errorMsg, error;
               if (response.responseJSON !== undefined && response.responseJSON.error_description !== undefined) {
-                var errorMsg = response.responseJSON.error_description;
+                errorMsg = response.responseJSON.error_description;
+                for (error in response.responseJSON.error_details) {
+                  order.ticketComponent.set(line_item +  '.assignee.errormsg.'+ error, response.responseJSON.error_details[error][0]);
+                }
               } else {
-                var errorMsg = "Server error.";
+                errorMsg = "Server error.";
               }
               order.ticketComponent.set(line_item + '.errorMsg', errorMsg);
               order.ticketComponent.set(line_item + '.assigningTicket', false);
