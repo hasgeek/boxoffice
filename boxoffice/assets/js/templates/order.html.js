@@ -26,7 +26,7 @@ export const TicketAssignmentTemplate = `
               <div class="assign-form-wrapper">
                 {{#if assignee.id || isTicketAssigned}}
                   <div class="text-center continue-btn-wrapper">
-                    <button class="boxoffice-button boxoffice-button-action" on-click="assign(event, event.keypath, true)">Transfer/Edit</button>
+w                    <button class="boxoffice-button boxoffice-button-action" on-click="assign(event, event.keypath, true)">{{#if is_transferable}}Transfer/{{/if}}Edit</button>
                   </div>
                 {{else}}
                   <p class="assign-form-title">Fill attendee details</p>
@@ -38,23 +38,23 @@ export const TicketAssignmentTemplate = `
             </div>
           {{else}}
             <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
-              <h4 class="text-center attendee-form-title">Please fill the attendee details</h4>   
-              <form class="attendee-form" role="form" name="attendee-form-{{seq}}" id="attendee-details-{{seq}}"> 
-                  <div class="group">   
+              <h4 class="text-center attendee-form-title">Please fill the attendee details</h4>
+              <form class="attendee-form" role="form" name="attendee-form-{{seq}}" id="attendee-details-{{seq}}">
+                  <div class="group">
                     <input class="group-input {{#filled || assignee.fullname}}filled{{/}}" type="text" name="fullname" value="{{assignee.fullname}}" on-blur="inputFieldEdit(event, event.keypath)">
                     <span class="bar"></span>
                     <label class="group-label">Fullname</label>
                     {{#assignee.errormsg.fullname}}<p class="form-error-msg">{{ assignee.errormsg.fullname }}</p>{{/}}
                   </div>
-                    
-                  <div class="group">  
+
+                  <div class="group">
                     <input class="group-input {{#filled || assignee.email}}filled{{/}}" type="text" name="email" value="{{assignee.email}}" on-blur="inputFieldEdit(event, event.keypath)">
                     <span class="bar"></span>
                     <label class="group-label">Email</label>
                     {{#assignee.errormsg.email}}<p class="form-error-msg">{{ assignee.errormsg.email }}</p>{{/}}
                   </div>
 
-                  <div class="group">      
+                  <div class="group">
                     <input class="group-input {{#filled || assignee.phone}}filled{{/}}" type="text" name="phone" value="{{assignee.phone}}" on-blur="inputFieldEdit(event, event.keypath)">
                     <span class="bar"></span>
                     <label class="group-label">Phone</label>
@@ -63,7 +63,7 @@ export const TicketAssignmentTemplate = `
 
                   {{#assignee_details: field}}
                     {{#if field_type === 'string'}}
-                      <div class="group">  
+                      <div class="group">
                         <input class="group-input {{#filled || assignee.details[field]}}filled{{/}}" type="text" name="{{field}}" value="{{assignee.details[field]}}" on-blur="inputFieldEdit(event, event.keypath)">
                         <span class="bar"></span>
                         <label class="group-label">{{label}}</label>
