@@ -8,6 +8,7 @@ from boxoffice.mailclient import (
 )
 from utils import xhr_only
 
+from baseframe import _
 from coaster.views import load_models, render_with
 
 from .. import app
@@ -51,6 +52,18 @@ def assign(order):
         csrf_token=request.json.get('csrf_token'),
     )
 
+    if not line_item.is_transferable:
+        return (
+            {
+                'status': 'error',
+                'error': 'ticket_not_transferable',
+                'error_description': _(
+                    "Ticket transfer deadline is over. It can no longer be transfered."
+                ),
+            },
+            400,
+        )
+
     if assignee_form.validate_on_submit():
         item_assignee_details = line_item.item.assignee_details
         assignee_details = {}
@@ -67,16 +80,6 @@ def assign(order):
             line_item.current_assignee.details = assignee_details
             db.session.commit()
         else:
-            if not line_item.is_transferable and line_item.current_assignee is not None:
-                return (
-                    {
-                        'status': 'error',
-                        'error': 'ticket_not_transferable',
-                        'error_description': u"Ticket transfer deadline is over. It can no longer be transfered",
-                    },
-                    400,
-                )
-
             old_assignee = None
             if line_item.current_assignee:
                 # Assignee is being changed. Archive current assignee.
@@ -101,7 +104,7 @@ def assign(order):
                 send_ticket_reassignment_mail.queue(
                     line_item.id, old_assignee.id, new_assignee.id
                 )
-        return {'status': 'ok', 'result': {'message': 'Ticket assigned'}}
+        return {'status': 'ok', 'result': {'message': _("Ticket assigned")}}
     else:
         return (
             {

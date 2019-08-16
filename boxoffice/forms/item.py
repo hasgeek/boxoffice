@@ -93,3 +93,7 @@ class ItemForm(forms.Form):
         self.place_supply_country_code.choices = [('', '')] + localized_country_list()
         self.category.query = Category.query.join(ItemCollection).filter(
             Category.item_collection == self.edit_parent).options(db.load_only('id', 'title'))
+
+    def validate_transferable_until(self, field):
+        if field.data and field.data.date() > self.event_date:
+            raise forms.ValidationError("Ticket transfer deadline cannot be after event date")

@@ -24,9 +24,11 @@ class TestOrder(unittest.TestCase):
     def test_assign(self):
         item = Item.query.filter_by(name='conference-ticket').first()
         item.transferable_until = utcnow() + timedelta(days=2)
+        item.event_date = utcnow() + timedelta(days=2)
         db.session.commit()
+
         data = {
-            'line_items': [{'item_id': unicode(item.id), 'quantity': 2}],
+            'line_items': [{'item_id': unicode(item.id), 'quantity': 3}],
             'buyer': {
                 'fullname': 'Testing',
                 'phone': '9814141414',
@@ -48,9 +50,10 @@ class TestOrder(unittest.TestCase):
         order = Order.query.get(resp_data.get('order_id'))
         self.assertEquals(order.status, ORDER_STATUS.PURCHASE_ORDER)
 
-        self.assertEqual(len(order.line_items), 2)
+        self.assertEqual(len(order.line_items), 3)
         li_one = order.line_items[0]
         li_two = order.line_items[1]
+        li_three = order.line_items[2]
 
         # No assingee set yet
         self.assertIsNone(li_one.current_assignee)
@@ -125,7 +128,7 @@ class TestOrder(unittest.TestCase):
         item.transferable_until = utcnow() - timedelta(days=2)
         db.session.commit()
 
-        # now another transfer should fail
+        # now another transfer of li_one should fail
         data = {
             'line_item_id': str(li_one.id),
             'attendee': {
@@ -150,10 +153,43 @@ class TestOrder(unittest.TestCase):
         # li_two still doesn't have an assignee
         self.assertIsNone(li_two.current_assignee)
 
-        # Even though the transfer date is over,
-        # we should allow setting a new assignee
+        # if `item.event_date` is in the past,
+        # ticket assign/transfer should not be allowed
+        item.event_date = utcnow().date() - timedelta(days=2)
+        db.session.commit()
+
         data = {
             'line_item_id': str(li_two.id),
+            'attendee': {
+                'fullname': 'Testing',
+                'phone': '9814141415',
+                'email': 'test234@hasgeek.com',
+            },
+        }
+        resp = self.client.post(
+            '/participant/{access_token}/assign'.format(
+                access_token=order.access_token
+            ),
+            data=json.dumps(data),
+            content_type='application/json',
+            headers=[
+                ('X-Requested-With', 'XMLHttpRequest'),
+                ('Origin', app.config['BASE_URL']),
+            ],
+        )
+        self.assertEqual(json.loads(resp.data)['status'], 'error')
+
+        # but if `item.event_date` is today or in the future,
+        # even if the transfer date is over, we should
+        # allow setting a new assignee
+        self.assertIsNone(li_three.current_assignee)
+
+        item.event_date = utcnow().date()
+        item.transferable_until = utcnow() - timedelta(days=2)
+        db.session.commit()
+
+        data = {
+            'line_item_id': str(li_three.id),
             'attendee': {
                 'fullname': 'Testing',
                 'phone': '9814141415',

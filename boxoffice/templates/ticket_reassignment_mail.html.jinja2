@@ -105,8 +105,8 @@
                 If you believe this was because of an error, please reach out to <a href="mail:{{ buyer_email }}">{{ buyer_fullname }}</a>.
               {% endtrans %}
             {% else %}
-              {% trans %}
-                If you believe this was because of an error, please reach out to <a href="mail:support@hasgeek.com">support@hasgeek.com</a>.
+              {% trans support_email=order.item_collection.organization.support_email %}
+                If you believe this was because of an error, please reach out to <a href="mail:{{ support_email }}">{{ support_email }}</a>.
               {% endtrans %}
             {% endif %}
           </p>

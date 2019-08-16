@@ -157,8 +157,16 @@ class LineItem(BaseMixin, db.Model):
         return self.assignees.filter(Assignee.current == True).one_or_none()  # NOQA
 
     @property
+    def is_assignable(self):
+        return utcnow().date() <= self.item.event_date
+
+    @property
     def is_transferable(self):
-        return self.current_assignee is not None and (utcnow() < self.item.transferable_until if self.item.transferable_until is not None else True)
+        if self.current_assignee is None:
+            return self.is_assignable
+        else:
+            return utcnow() <= self.item.transferable_until if self.item.transferable_until is not None else self.is_assignable
+
 
     @property
     def is_confirmed(self):
