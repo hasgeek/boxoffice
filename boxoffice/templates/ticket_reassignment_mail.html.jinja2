@@ -87,8 +87,29 @@
           </td>
 
           <td class="details-wrapper">
-            <p>Your ticket has been transfered to {{ new_assignee.fullname }}{% if current_auth.user %}, by {{ current_auth.user.fullname }}{% endif %}.</p>
-            <p>If you believe this was because of an error, please reach out to {% if old_assignee.email != order.buyer_email %}<a href="mail:{{ order.buyer_email }}">{{ order.buyer_fullname }}</a>{% else %}us at <a href="mail:support@hasgeek.com">support@hasgeek.com</a>{% endif %}.</p>
+          <p>
+            {% if current_auth.user %}
+              {% trans new_assignee=new_assignee.fullname, current_user=current_auth.user.fullname %}
+                Your ticket has been transfered to {{ new_assignee }}, by {{ current_user }}.
+              {% endtrans %}
+            {% else %}
+              {% trans new_assignee=new_assignee.fullname %}
+                Your ticket has been transfered to {{ new_assignee.fullname }}.
+              {% endtrans %}
+            {% endif %}
+          </p>
+
+          <p>
+            {% if old_assignee.email != order.buyer_email %}
+              {% trans buyer_email=order.buyer_email, buyer_fullname=order.buyer_fullname %}
+                If you believe this was because of an error, please reach out to <a href="mail:{{ buyer_email }}">{{ buyer_fullname }}</a>.
+              {% endtrans %}
+            {% else %}
+              {% trans %}
+                If you believe this was because of an error, please reach out to <a href="mail:support@hasgeek.com">support@hasgeek.com</a>.
+              {% endtrans %}
+            {% endif %}
+          </p>
           </td>
         </tr>
       </table>
@@ -96,7 +117,7 @@
 
     <div class="terms-content">{{ org.details.get('ticket_faq', '') | safe }}</div>
 
-    <p>Thank you,</p>
+    <p>{% trans %}Thank you{% endtrans %},</p>
     <p>{{ org.title }}</p>
 
   </div>
