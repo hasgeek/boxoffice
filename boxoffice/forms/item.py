@@ -95,5 +95,5 @@ class ItemForm(forms.Form):
             Category.item_collection == self.edit_parent).options(db.load_only('id', 'title'))
 
     def validate_transferable_until(self, field):
-        if field.data and field.data.date() > self.event_date:
+        if field.data and field.data.date() > self.event_date.data:
             raise forms.ValidationError("Ticket transfer deadline cannot be after event date")
