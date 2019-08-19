@@ -165,7 +165,7 @@ class LineItem(BaseMixin, db.Model):
         if self.current_assignee is None:
             return self.is_assignable
         else:
-            return utcnow() <= self.item.transferable_until if self.item.transferable_until is not None else self.is_assignable
+            return utcnow() < self.item.transferable_until if self.item.transferable_until is not None else self.is_assignable
 
 
     @property
