@@ -102,11 +102,11 @@
           <p>
             {% if old_assignee.email != order.buyer_email %}
               {% trans buyer_email=order.buyer_email, buyer_fullname=order.buyer_fullname %}
-                If you believe this was because of an error, please reach out to <a href="mail:{{ buyer_email }}">{{ buyer_fullname }}</a>.
+                If you believe this was because of an error, please reach out to <a href="mailto:{{ buyer_email }}">{{ buyer_fullname }}</a>.
               {% endtrans %}
             {% else %}
-              {% trans %}
-                If you believe this was because of an error, please reach out to <a href="mail:support@hasgeek.com">support@hasgeek.com</a>.
+              {% trans support_email = org.details.get('support_email', '') %}
+                If you believe this was because of an error, please reach out to <a href="mailto:{{ support_email }}">{{ support_email }}</a>.
               {% endtrans %}
             {% endif %}
           </p>
