@@ -12,7 +12,7 @@ from boxoffice.models import ORDER_STATUS, Assignee, Item, ItemCollection, Order
 from tests.fixtures import init_data
 
 
-class TestOrder(unittest.TestCase):
+class TestItems(unittest.TestCase):
     def setUp(self):
         self.ctx = app.test_request_context()
         self.ctx.push()
@@ -39,7 +39,7 @@ class TestOrder(unittest.TestCase):
         db.session.commit()
 
         data = {
-            'line_items': [{'item_id': unicode(item.id), 'quantity': 3}],
+            'line_items': [{'item_id': unicode(item.id), 'quantity': 2}],
             'buyer': {
                 'fullname': 'Testing',
                 'phone': '9814141414',
@@ -54,20 +54,18 @@ class TestOrder(unittest.TestCase):
         order = Order.query.get(resp_data.get('order_id'))
         self.assertEquals(order.status, ORDER_STATUS.PURCHASE_ORDER)
 
-        self.assertEqual(len(order.line_items), 3)
+        self.assertEqual(len(order.line_items), 2)
         li_one = order.line_items[0]
         li_two = order.line_items[1]
-        li_three = order.line_items[2]
 
-        # No assingee set yet
+        # li_one has no assingee set yet, so it should be possible to set one
         self.assertIsNone(li_one.current_assignee)
-        # let's assign one
         data = {
             'line_item_id': str(li_one.id),
             'attendee': {
                 'fullname': 'Testing',
                 'phone': '9814141414',
-                'email': 'test@hasgeek.com',
+                'email': 'test11@hasgeek.com',
             },
         }
         resp = self.ajax_post(
@@ -85,7 +83,7 @@ class TestOrder(unittest.TestCase):
             'attendee': {
                 'fullname': 'Testing',
                 'phone': '9814141414',
-                'email': 'test@hasgeek.com',
+                'email': 'test11@hasgeek.com',
             },
         }
         resp = self.ajax_post(
@@ -102,7 +100,7 @@ class TestOrder(unittest.TestCase):
             'attendee': {
                 'fullname': 'Testing',
                 'phone': '9814141414',
-                'email': 'test45@hasgeek.com',
+                'email': 'test12@hasgeek.com',  # email is the measure of uniqueness
             },
         }
         resp = self.ajax_post(
@@ -113,17 +111,17 @@ class TestOrder(unittest.TestCase):
         )
         self.assertEqual(json.loads(resp.data)['status'], 'ok')
 
-        # let's set transferable_until date to a past date
+        # let's set transferable_until date to a past date,
+        # so now another transfer of li_one should fail
         item.transferable_until = utcnow() - timedelta(days=2)
         db.session.commit()
 
-        # now another transfer of li_one should fail
         data = {
             'line_item_id': str(li_one.id),
             'attendee': {
                 'fullname': 'Testing',
                 'phone': '9814141415',
-                'email': 'test2@hasgeek.com',
+                'email': 'test13@hasgeek.com',
             },
         }
         resp = self.ajax_post(
@@ -137,9 +135,12 @@ class TestOrder(unittest.TestCase):
         # li_two still doesn't have an assignee
         self.assertIsNone(li_two.current_assignee)
 
-        # if `item.event_date` is in the past,
-        # ticket assign/transfer should not be allowed
+        # if `item.event_date` is in the past, and
+        # `transferable_until` is not set,
+        # ticket assign should still be allowed.
+        # ticket assign doesn't have a deadline right now.
         item.event_date = utcnow().date() - timedelta(days=2)
+        item.transferable_until = None
         db.session.commit()
 
         data = {
@@ -147,32 +148,7 @@ class TestOrder(unittest.TestCase):
             'attendee': {
                 'fullname': 'Testing',
                 'phone': '9814141415',
-                'email': 'test234@hasgeek.com',
-            },
-        }
-        resp = self.ajax_post(
-            '/participant/{access_token}/assign'.format(
-                access_token=order.access_token
-            ),
-            data,
-        )
-        self.assertEqual(json.loads(resp.data)['status'], 'error')
-
-        # but if `item.event_date` is today or in the future,
-        # even if the transfer date is over, we should
-        # allow setting a new assignee
-        self.assertIsNone(li_three.current_assignee)
-
-        item.event_date = utcnow().date()
-        item.transferable_until = utcnow() - timedelta(days=2)
-        db.session.commit()
-
-        data = {
-            'line_item_id': str(li_three.id),
-            'attendee': {
-                'fullname': 'Testing',
-                'phone': '9814141415',
-                'email': 'test234@hasgeek.com',
+                'email': 'test21@hasgeek.com',
             },
         }
         resp = self.ajax_post(
@@ -182,3 +158,29 @@ class TestOrder(unittest.TestCase):
             data,
         )
         self.assertEqual(json.loads(resp.data)['status'], 'ok')
+
+        # but ticket transfer has a hard deadline in the
+        # absense of  'transferable_until' - `event_date`.
+        # so, if `transferable_until` is not set and `event_date` is in the past,
+        # ticket transfer should fail.
+        self.assertIsNotNone(li_two.current_assignee)
+
+        item.event_date = utcnow().date() - timedelta(days=2)
+        item.transferable_until = None
+        db.session.commit()
+
+        data = {
+            'line_item_id': str(li_two.id),
+            'attendee': {
+                'fullname': 'Testing',
+                'phone': '9814141415',
+                'email': 'test22@hasgeek.com',
+            },
+        }
+        resp = self.ajax_post(
+            '/participant/{access_token}/assign'.format(
+                access_token=order.access_token
+            ),
+            data,
+        )
+        self.assertEqual(json.loads(resp.data)['status'], 'error')
