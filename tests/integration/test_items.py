@@ -21,6 +21,17 @@ class TestOrder(unittest.TestCase):
         builder = EnvironBuilder(method='POST')
         self.post_env = builder.get_environ()
 
+    def ajax_post(self, url, data):
+        return self.client.post(
+            url,
+            data=json.dumps(data),
+            content_type='application/json',
+            headers=[
+                ('X-Requested-With', 'XMLHttpRequest'),
+                ('Origin', app.config['BASE_URL']),
+            ],
+        )
+
     def test_assign(self):
         item = Item.query.filter_by(name='conference-ticket').first()
         item.transferable_until = utcnow() + timedelta(days=2)
@@ -36,15 +47,8 @@ class TestOrder(unittest.TestCase):
             },
         }
         ic = ItemCollection.query.first()
-        resp = self.client.post(
-            '/ic/{ic}/order'.format(ic=ic.id),
-            data=json.dumps(data),
-            content_type='application/json',
-            headers=[
-                ('X-Requested-With', 'XMLHttpRequest'),
-                ('Origin', app.config['BASE_URL']),
-            ],
-        )
+        resp = self.ajax_post('/ic/{ic}/order'.format(ic=ic.id), data)
+
         self.assertEquals(resp.status_code, 201)
         resp_data = json.loads(resp.data)['result']
         order = Order.query.get(resp_data.get('order_id'))
@@ -66,16 +70,11 @@ class TestOrder(unittest.TestCase):
                 'email': 'test@hasgeek.com',
             },
         }
-        resp = self.client.post(
+        resp = self.ajax_post(
             '/participant/{access_token}/assign'.format(
                 access_token=order.access_token
             ),
-            data=json.dumps(data),
-            content_type='application/json',
-            headers=[
-                ('X-Requested-With', 'XMLHttpRequest'),
-                ('Origin', app.config['BASE_URL']),
-            ],
+            data,
         )
         self.assertEqual(json.loads(resp.data)['status'], 'ok')
         self.assertIsNotNone(li_one.current_assignee)
@@ -89,16 +88,11 @@ class TestOrder(unittest.TestCase):
                 'email': 'test@hasgeek.com',
             },
         }
-        resp = self.client.post(
+        resp = self.ajax_post(
             '/participant/{access_token}/assign'.format(
                 access_token=order.access_token
             ),
-            data=json.dumps(data),
-            content_type='application/json',
-            headers=[
-                ('X-Requested-With', 'XMLHttpRequest'),
-                ('Origin', app.config['BASE_URL']),
-            ],
+            data,
         )
         self.assertEqual(json.loads(resp.data)['status'], 'error')
 
@@ -111,16 +105,11 @@ class TestOrder(unittest.TestCase):
                 'email': 'test45@hasgeek.com',
             },
         }
-        resp = self.client.post(
+        resp = self.ajax_post(
             '/participant/{access_token}/assign'.format(
                 access_token=order.access_token
             ),
-            data=json.dumps(data),
-            content_type='application/json',
-            headers=[
-                ('X-Requested-With', 'XMLHttpRequest'),
-                ('Origin', app.config['BASE_URL']),
-            ],
+            data,
         )
         self.assertEqual(json.loads(resp.data)['status'], 'ok')
 
@@ -137,16 +126,11 @@ class TestOrder(unittest.TestCase):
                 'email': 'test2@hasgeek.com',
             },
         }
-        resp = self.client.post(
+        resp = self.ajax_post(
             '/participant/{access_token}/assign'.format(
                 access_token=order.access_token
             ),
-            data=json.dumps(data),
-            content_type='application/json',
-            headers=[
-                ('X-Requested-With', 'XMLHttpRequest'),
-                ('Origin', app.config['BASE_URL']),
-            ],
+            data,
         )
         self.assertEqual(json.loads(resp.data)['status'], 'error')
 
@@ -166,16 +150,11 @@ class TestOrder(unittest.TestCase):
                 'email': 'test234@hasgeek.com',
             },
         }
-        resp = self.client.post(
+        resp = self.ajax_post(
             '/participant/{access_token}/assign'.format(
                 access_token=order.access_token
             ),
-            data=json.dumps(data),
-            content_type='application/json',
-            headers=[
-                ('X-Requested-With', 'XMLHttpRequest'),
-                ('Origin', app.config['BASE_URL']),
-            ],
+            data,
         )
         self.assertEqual(json.loads(resp.data)['status'], 'error')
 
@@ -196,15 +175,10 @@ class TestOrder(unittest.TestCase):
                 'email': 'test234@hasgeek.com',
             },
         }
-        resp = self.client.post(
+        resp = self.ajax_post(
             '/participant/{access_token}/assign'.format(
                 access_token=order.access_token
             ),
-            data=json.dumps(data),
-            content_type='application/json',
-            headers=[
-                ('X-Requested-With', 'XMLHttpRequest'),
-                ('Origin', app.config['BASE_URL']),
-            ],
+            data,
         )
         self.assertEqual(json.loads(resp.data)['status'], 'ok')
