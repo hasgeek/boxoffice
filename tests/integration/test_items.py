@@ -33,7 +33,7 @@ class TestItems(unittest.TestCase):
         )
 
     def test_assign(self):
-        item = Item.query.filter_by(name='conference-ticket').first()
+        item = Item.query.filter_by(name=u"conference-ticket").first()
         item.transferable_until = utcnow() + timedelta(days=2)
         item.event_date = utcnow() + timedelta(days=2)
         db.session.commit()

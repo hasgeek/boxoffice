@@ -12,7 +12,7 @@ from flask import current_app
 from boxoffice.models import BaseMixin, Item, JsonDict, LineItemDiscounter, Order, db
 from isoweek import Week
 
-from baseframe import __
+from baseframe import __, localize_timezone
 from coaster.utils import LabeledEnum, isoweek_datetime, midnight_to_utc, utcnow
 
 __all__ = ['LineItem', 'LINE_ITEM_STATUS', 'Assignee']
@@ -158,13 +158,15 @@ class LineItem(BaseMixin, db.Model):
 
     @property
     def is_transferable(self):
+        tz = current_app.config['tz']
+        now = localize_timezone(utcnow(), tz)
         if self.current_assignee is None:
             return True  # first time assignment has no deadline for now
         else:
             return (
-                utcnow() < self.item.transferable_until
+                now < localize_timezone(self.item.transferable_until, tz)
                 if self.item.transferable_until is not None
-                else utcnow().date() <= self.item.event_date
+                else now.date() <= self.item.event_date
             )
 
     @property
@@ -189,8 +191,13 @@ class LineItem(BaseMixin, db.Model):
         self.cancelled_at = func.utcnow()
 
     def is_cancellable(self):
-        return self.is_confirmed and (utcnow() < self.item.cancellable_until
-            if self.item.cancellable_until else True)
+        tz = current_app.config['tz']
+        now = localize_timezone(utcnow(), tz)
+        return self.is_confirmed and (
+            now < localize_timezone(self.item.cancellable_until, tz)
+            if self.item.cancellable_until
+            else True
+        )
 
     @classmethod
     def get_max_seq(cls, order):
