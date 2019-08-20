@@ -1,15 +1,19 @@
 # -*- coding: utf-8 -*-
 
-from decimal import Decimal
+from collections import OrderedDict, namedtuple
 from datetime import timedelta
-from collections import namedtuple, OrderedDict
-from sqlalchemy.sql import func
-from sqlalchemy.ext.orderinglist import ordering_list
-from isoweek import Week
-from boxoffice.models import db, JsonDict, BaseMixin, Order, Item, LineItemDiscounter
-from coaster.utils import LabeledEnum, isoweek_datetime, midnight_to_utc, utcnow
-from baseframe import __
+from decimal import Decimal
 
+from sqlalchemy.ext.orderinglist import ordering_list
+from sqlalchemy.sql import func
+
+from flask import current_app
+
+from boxoffice.models import BaseMixin, Item, JsonDict, LineItemDiscounter, Order, db
+from isoweek import Week
+
+from baseframe import __, localize_timezone
+from coaster.utils import LabeledEnum, isoweek_datetime, midnight_to_utc, utcnow
 
 __all__ = ['LineItem', 'LINE_ITEM_STATUS', 'Assignee']
 
@@ -153,6 +157,19 @@ class LineItem(BaseMixin, db.Model):
         return self.assignees.filter(Assignee.current == True).one_or_none()  # NOQA
 
     @property
+    def is_transferable(self):
+        tz = current_app.config['tz']
+        now = localize_timezone(utcnow(), tz)
+        if self.current_assignee is None:
+            return True  # first time assignment has no deadline for now
+        else:
+            return (
+                now < localize_timezone(self.item.transferable_until, tz)
+                if self.item.transferable_until is not None
+                else now.date() <= self.item.event_date
+            )
+
+    @property
     def is_confirmed(self):
         return self.status == LINE_ITEM_STATUS.CONFIRMED
 
@@ -174,8 +191,13 @@ class LineItem(BaseMixin, db.Model):
         self.cancelled_at = func.utcnow()
 
     def is_cancellable(self):
-        return self.is_confirmed and (utcnow() < self.item.cancellable_until
-            if self.item.cancellable_until else True)
+        tz = current_app.config['tz']
+        now = localize_timezone(utcnow(), tz)
+        return self.is_confirmed and (
+            now < localize_timezone(self.item.cancellable_until, tz)
+            if self.item.cancellable_until
+            else True
+        )
 
     @classmethod
     def get_max_seq(cls, order):

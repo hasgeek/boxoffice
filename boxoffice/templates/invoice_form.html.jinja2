@@ -18,7 +18,11 @@
   </div>
 
   <div class="row" id="boxoffice-invoice">
-    <p class="text-center" id="notify-msg"><span id="error-description">Loading. </span>If this takes too long, please mail {{order.item_collection.organization.support_email}} with your receipt number.</p>
+    <p class="text-center" id="notify-msg"><span id="error-description">{% trans %}Loading.{% endtrans %} </span>
+      {% trans support_email=org.details.get('support_email', '') %}
+        If this takes too long, please mail {{ support_email }} with your receipt number.
+      {% endtrans %}
+    </p>
   </div>
 {% endblock %}
 

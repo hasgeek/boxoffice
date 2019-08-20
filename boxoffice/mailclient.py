@@ -6,7 +6,7 @@ from flask_mail import Message
 from baseframe import __
 from html2text import html2text
 from premailer import transform as email_transform
-from .models import Order, LineItem, LINE_ITEM_STATUS, CURRENCY_SYMBOL
+from .models import Assignee, Order, LineItem, LINE_ITEM_STATUS, CURRENCY_SYMBOL
 from . import mail, app, rq
 
 
@@ -84,6 +84,35 @@ def send_ticket_assignment_mail(line_item_id):
         subject = order.item_collection.title + ": Here's your ticket"
         msg = Message(subject=subject, recipients=[line_item.current_assignee.email], bcc=[order.buyer_email])
         html = email_transform(render_template('ticket_assignment_mail.html.jinja2', order=order, org=order.organization, line_item=line_item, base_url=app.config['BASE_URL']))
+        msg.html = html
+        msg.body = html2text(html)
+        mail.send(msg)
+
+
+@rq.job('boxoffice')
+def send_ticket_reassignment_mail(line_item_id, old_assignee_id, new_assignee_id):
+    """
+    Sends an email to the original assignee once a ticket is transfered to a new assignee.
+    """
+    with app.test_request_context():
+        line_item = LineItem.query.get(line_item_id)
+        order = line_item.order
+        old_assignee = Assignee.query.get(old_assignee_id)
+        new_assignee = Assignee.query.get(new_assignee_id)
+
+        subject = order.item_collection.title + ": Your ticket has been transfered to someone else"
+        msg = Message(subject=subject, recipients=[old_assignee.email], bcc=[order.buyer_email])
+        html = email_transform(
+            render_template(
+                'ticket_reassignment_mail.html.jinja2',
+                old_assignee=old_assignee,
+                new_assignee=new_assignee,
+                order=order,
+                org=order.organization,
+                line_item=line_item,
+                base_url=app.config['BASE_URL']
+            )
+        )
         msg.html = html
         msg.body = html2text(html)
         mail.send(msg)

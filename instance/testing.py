@@ -17,3 +17,4 @@ CACHE_TYPE = 'redis'
 ASSET_MANIFEST_PATH = "static/build/manifest.json"
 # no trailing slash
 ASSET_BASE_PATH = '/static/build'
+WTF_CSRF_ENABLED = False

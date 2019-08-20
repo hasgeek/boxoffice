@@ -70,62 +70,54 @@
     .details-wrapper {
       padding: 10px;
     }
-
-    .fullname {
-      margin: 5px auto;
-      padding-bottom: 5px;
-    }
-
-    .company {
-      border-top: 2px solid #000;
-      padding-top: 5px;
-    }
-
-    .twitter-handle {
-      color: #1da1f2;
-    }
-
-    .button {
-      border-width: 0px 0px 3px;
-      border-style: solid;
-      border-radius: 5px;
-      padding: 6px 12px;
-      color: #fff;
-      font-size: 15px;
-      display: inline-block;
-      background-color: #5BC0DE;
-      border-color: #46B8DA;
-      margin: 0 0 5px;
-    }
   </style>
 </head>
 
 <body>
   <div>
 
-    <p>Hello {{ line_item.current_assignee.fullname }},</p>
+    <p>Hello {{ old_assignee.fullname }},</p>
 
     <div class="wrapper">
       <table class="ticket-table">
         <tr>
           <td class="ticket-title-wrapper">
             <p class="text-center ticket-title">{{ line_item.item.title }}</p>
-            <p class="receipt-no">Receipt No: {{order.invoice_no}}</p>
+            <p class="receipt-no">Receipt No: {{ order.invoice_no }}</p>
           </td>
 
           <td class="details-wrapper">
-            <p class="text-center fullname">{{ line_item.current_assignee.fullname }}</p>
-            {%- if line_item.current_assignee.details.company -%}<p class="text-center company">{{ line_item.current_assignee.details.company }}</p>{%- endif %}
-            {%- if line_item.current_assignee.details.twitter -%}<p class="text-center twitter-handle">@{{ line_item.current_assignee.details.twitter | replace("@", "") }}</p>{%- endif %}
+          <p>
+            {% if current_auth.user %}
+              {% trans new_assignee=new_assignee.fullname, current_user=current_auth.user.fullname %}
+                Your ticket has been transfered to {{ new_assignee }}, by {{ current_user }}.
+              {% endtrans %}
+            {% else %}
+              {% trans new_assignee=new_assignee.fullname %}
+                Your ticket has been transfered to {{ new_assignee }}.
+              {% endtrans %}
+            {% endif %}
+          </p>
+
+          <p>
+            {% if old_assignee.email != order.buyer_email %}
+              {% trans buyer_fullname=order.buyer_fullname %}
+                If you believe this was because of an error, please reach out to {{ buyer_fullname }}.
+              {% endtrans %}
+            {% else %}
+              {% trans support_email = org.details.get('support_email', '') %}
+                If you believe this was because of an error, please reach out to <a href="mailto:{{ support_email }}">{{ support_email }}</a>.
+              {% endtrans %}
+            {% endif %}
+          </p>
           </td>
         </tr>
       </table>
     </div>
 
-    <p><a class="button" href={{"{base_url}/order/{access_token}/ticket".format(base_url=base_url, access_token=order.access_token)}} target="_blank">Edit details</a></p>
-    <div class="terms-content">{{org.details.get('ticket_faq', '') | safe}}</div>
+    <div class="terms-content">{{ org.details.get('ticket_faq', '') | safe }}</div>
 
-    <p>Thank you,</p>
+    <p>{% trans %}Thank you,{% endtrans %}</p>
     <p>{{ org.title }}</p>
 
   </div>

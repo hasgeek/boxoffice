@@ -75,6 +75,9 @@ class ItemForm(forms.Form):
     event_date = forms.DateField(__("Event date"),
         description=__("The date on which this item will be invoiced"),
         validators=[forms.validators.DataRequired(__("Please specify a date for the event"))])
+    transferable_until = forms.DateTimeField(__("Transferable until"),
+        validators=[forms.validators.Optional()],
+        naive=False)
     cancellable_until = forms.DateTimeField(__("Cancellable until"),
         validators=[forms.validators.Optional()],
         naive=False)
@@ -90,3 +93,7 @@ class ItemForm(forms.Form):
         self.place_supply_country_code.choices = [('', '')] + localized_country_list()
         self.category.query = Category.query.join(ItemCollection).filter(
             Category.item_collection == self.edit_parent).options(db.load_only('id', 'title'))
+
+    def validate_transferable_until(self, field):
+        if field.data and field.data.date() > self.event_date.data:
+            raise forms.ValidationError("Ticket transfer deadline cannot be after event date")

@@ -2,9 +2,13 @@
 
 from flask import jsonify, make_response, request
 
-from boxoffice.mailclient import send_ticket_assignment_mail
+from boxoffice.mailclient import (
+    send_ticket_assignment_mail,
+    send_ticket_reassignment_mail,
+)
 from utils import xhr_only
 
+from baseframe import _
 from coaster.views import load_models, render_with
 
 from .. import app
@@ -48,6 +52,18 @@ def assign(order):
         csrf_token=request.json.get('csrf_token'),
     )
 
+    if not line_item.is_transferable:
+        return (
+            {
+                'status': 'error',
+                'error': 'ticket_not_transferable',
+                'error_description': _(
+                    "Ticket transfer deadline is over. It can no longer be transfered."
+                ),
+            },
+            400,
+        )
+
     if assignee_form.validate_on_submit():
         item_assignee_details = line_item.item.assignee_details
         assignee_details = {}
@@ -64,11 +80,12 @@ def assign(order):
             line_item.current_assignee.details = assignee_details
             db.session.commit()
         else:
+            old_assignee = None
             if line_item.current_assignee:
                 # Assignee is being changed. Archive current assignee.
-                # TODO: Send notification to previous assignee.
-                # https://github.com/hasgeek/boxoffice/issues/244
+                old_assignee = line_item.current_assignee
                 line_item.current_assignee.current = None
+
             new_assignee = Assignee(
                 current=True,
                 email=assignee_dict.get('email'),
@@ -77,10 +94,17 @@ def assign(order):
                 details=assignee_details,
                 line_item=line_item,
             )
+
             db.session.add(new_assignee)
             db.session.commit()
             send_ticket_assignment_mail.queue(line_item.id)
-        return {'status': 'ok', 'result': {'message': 'Ticket assigned'}}
+
+            if old_assignee is not None:
+                # Send notification to previous assignee
+                send_ticket_reassignment_mail.queue(
+                    line_item.id, old_assignee.id, new_assignee.id
+                )
+        return {'status': 'ok', 'result': {'message': _("Ticket assigned")}}
     else:
         return (
             {
