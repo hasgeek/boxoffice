@@ -34,9 +34,6 @@ class TestItems(unittest.TestCase):
 
     def test_assign(self):
         item = Item.query.filter_by(name=u"conference-ticket").first()
-        item.transferable_until = utcnow() + timedelta(days=2)
-        item.event_date = utcnow() + timedelta(days=2)
-        db.session.commit()
 
         data = {
             'line_items': [{'item_id': unicode(item.id), 'quantity': 2}],
@@ -110,6 +107,18 @@ class TestItems(unittest.TestCase):
             data,
         )
         self.assertEqual(json.loads(resp.data)['status'], 'ok')
+
+        # if no transferable_until is set, and no event_date is set,
+        # transfer is allowed indefinitely.
+        item.transferable_until = None
+        item.event_date = None
+        db.session.commit()
+
+        self.assertTrue(li_one.is_transferable)
+
+        item.transferable_until = utcnow() + timedelta(days=2)
+        item.event_date = utcnow() + timedelta(days=2)
+        db.session.commit()
 
         # let's set transferable_until date to a past date,
         # so now another transfer of li_one should fail

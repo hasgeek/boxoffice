@@ -167,6 +167,8 @@ class LineItem(BaseMixin, db.Model):
                 now < localize_timezone(self.item.transferable_until, tz)
                 if self.item.transferable_until is not None
                 else now.date() <= self.item.event_date
+                if self.item.event_date is not None
+                else True
             )
 
     @property
