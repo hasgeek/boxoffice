@@ -141,6 +141,9 @@ def process_payment(order_id, pg_paymentid):
         db.session.add(transaction)
         order.confirm_sale()
         db.session.add(order)
+        invoice_organization = order.organization.invoicer if order.organization.invoicer else order.organization
+        invoice = Invoice(order=order, organization=invoice_organization)
+        db.session.add(invoice)
         db.session.commit()
         for line_item in order.line_items:
             line_item.confirm()
