@@ -3,7 +3,7 @@
 from baseframe import __
 import baseframe.forms as forms
 
-from boxoffice.models import Assignee, Item, LineItem
+from boxoffice.models import Assignee, Item, LineItem, Order, ORDER_STATUS
 
 __all__ = ['AssigneeForm']
 
@@ -22,8 +22,8 @@ class AssigneeForm(forms.Form):
 
     def validate_email(self, field):
         existing_assignees = (
-            Assignee.query.join(LineItem)
-            .filter(LineItem.item == self.edit_parent.item)
+            self.edit_parent.assignees.filter(LineItem.order == self.edit_parent.order)
+            .filter(Order.status != ORDER_STATUS.CANCELLED)
             .filter(Assignee.current == True)
             .filter(Assignee.email == field.data)
         )
