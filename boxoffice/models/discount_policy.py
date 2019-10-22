@@ -5,6 +5,7 @@ import random
 from werkzeug import cached_property
 from itsdangerous import Signer, BadSignature
 from sqlalchemy import event, DDL
+from sqlalchemy.orm import validates
 from sqlalchemy.orm.exc import MultipleResultsFound
 from baseframe import __
 from coaster.utils import LabeledEnum, uuid1mc, buid
@@ -77,6 +78,15 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     def __init__(self, *args, **kwargs):
         self.secret = kwargs.get('secret') if kwargs.get('secret') else buid()
         super(DiscountPolicy, self).__init__(*args, **kwargs)
+
+    @validates('discount_code_base')
+    def validate_discount_code_base(self, key, value):
+        assert not DiscountPolicy.query.filter(
+            DiscountPolicy.id != self.id,
+            DiscountPolicy.organization == self.parent,
+            DiscountPolicy.discount_code_base == value
+        ).notempty()
+        return value
 
     @cached_property
     def is_automatic(self):

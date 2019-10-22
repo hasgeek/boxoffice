@@ -23,6 +23,21 @@ from ..models import (
 __all__ = ['DiscountPolicyForm', 'PriceBasedDiscountPolicyForm', 'DiscountPriceForm', 'DiscountCouponForm', 'AutomaticDiscountPolicyForm', 'CouponBasedDiscountPolicyForm']
 
 
+
+def validate_unique_discount_code_base(form, field):
+    policy = DiscountPolicy.query.filter(
+        DiscountPolicy.organization == form.edit_parent,
+        DiscountPolicy.discount_code_base == field.data
+    )
+    if form.edit_obj is not None:
+        policy = policy.filter(DiscountPolicy.id != form.edit_obj.id)
+
+    if policy.notempty():
+        raise StopValidation(
+            __("This discount coupon base already exists. Please enter a different coupon base")
+        )
+
+
 class DiscountPolicyForm(forms.Form):
     title = forms.StringField(__("Discount title"),
         validators=[forms.validators.DataRequired(__("Please specify a discount title")),
@@ -53,10 +68,19 @@ class CouponBasedDiscountPolicyForm(DiscountPolicyForm):
     percentage = forms.IntegerField(__("Percentage"),
         validators=[forms.validators.DataRequired(__("Please specify a discount percentage")),
             forms.validators.NumberRange(min=1, max=100, message=__("Percentage should be between >= 1 and <= 100"))])
-    discount_code_base = forms.StringField(__("Discount title"),
-        validators=[forms.validators.DataRequired(__("Please specify a discount code base")),
-        forms.validators.Length(max=20), AvailableAttr('discount_code_base', message='This discount code base is already in use. Please pick a different code base.')],
-        filters=[forms.filters.strip(), forms.filters.none_if_empty()])
+    discount_code_base = forms.StringField(
+        __("Discount title"),
+        validators=[
+            forms.validators.DataRequired(__("Please specify a discount code base")),
+            forms.validators.Length(max=20),
+            AvailableAttr(
+                'discount_code_base',
+                message='This discount code base is already in use. Please pick a different code base.'
+            ),
+            validate_unique_discount_code_base
+        ],
+        filters=[forms.filters.strip(), forms.filters.none_if_empty()]
+    )
     bulk_coupon_usage_limit = forms.IntegerField(__("Bulk coupon usage limit"), default=1)
 
     def set_queries(self):
@@ -66,8 +90,15 @@ class CouponBasedDiscountPolicyForm(DiscountPolicyForm):
 
 class PriceBasedDiscountPolicyForm(DiscountPolicyForm):
     discount_code_base = forms.StringField(__("Discount prefix"),
-        validators=[forms.validators.DataRequired(__("Please specify a discount code base")),
-            forms.validators.Length(max=20), AvailableAttr('discount_code_base', message='This discount code base is already in use. Please pick a different code base.')],
+        validators=[
+            forms.validators.DataRequired(__("Please specify a discount code base")),
+            forms.validators.Length(max=20),
+            AvailableAttr(
+                'discount_code_base',
+                message='This discount code base is already in use. Please pick a different code base.'
+            ),
+            validate_unique_discount_code_base
+        ],
         filters=[forms.filters.strip(), forms.filters.none_if_empty()])
 
 
