@@ -79,15 +79,6 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
         self.secret = kwargs.get('secret') if kwargs.get('secret') else buid()
         super(DiscountPolicy, self).__init__(*args, **kwargs)
 
-    @validates('discount_code_base')
-    def validate_discount_code_base(self, key, value):
-        assert not DiscountPolicy.query.filter(
-            DiscountPolicy.id != self.id,
-            DiscountPolicy.organization == self.parent,
-            DiscountPolicy.discount_code_base == value
-        ).notempty()
-        return value
-
     @cached_property
     def is_automatic(self):
         return self.discount_type == DISCOUNT_TYPE.AUTOMATIC
@@ -110,12 +101,15 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
         return len(code.split('.')) == 3 if code else False
 
     @classmethod
-    def get_from_signed_code(cls, code):
+    def get_from_signed_code(cls, code, organization_id):
         """Returns a discount policy given a valid signed code, returns None otherwise"""
         if not cls.is_signed_code_format(code):
             return None
         discount_code_base = code.split('.')[0]
-        policy = cls.query.filter_by(discount_code_base=discount_code_base).one_or_none()
+        policy = cls.query.filter_by(
+            discount_code_base=discount_code_base,
+            organization_id=organization_id
+        ).one_or_none()
         if not policy:
             return None
         signer = Signer(policy.secret)
@@ -149,7 +143,7 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
             for coupon_code in coupon_codes:
                 coupons = []
                 if cls.is_signed_code_format(coupon_code):
-                    policy = cls.get_from_signed_code(coupon_code)
+                    policy = cls.get_from_signed_code(coupon_code, item.item_collection.organization_id)
                     if policy and policy.id in coupon_policy_ids:
                         coupon = DiscountCoupon.query.filter_by(discount_policy=policy, code=coupon_code).one_or_none()
                         if not coupon:
@@ -186,7 +180,7 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
         """
         for code in code_list:
             if cls.is_signed_code_format(code):
-                policy = cls.get_from_signed_code(code)
+                policy = cls.get_from_signed_code(code, item.item_collection.organization_id)
                 if policy and not DiscountCoupon.is_signed_code_usable(policy, code):
                     break
             else:
