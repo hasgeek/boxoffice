@@ -138,7 +138,9 @@ def admin_edit_discount_policy(discount_policy):
         if discount_policy.items and discount_price.item is not discount_policy.items[0]:
             discount_policy.items = [discount_price.item]
     elif discount_policy.is_coupon:
-        discount_policy_form = CouponBasedDiscountPolicyForm(obj=discount_policy, model=DiscountPolicy)
+        discount_policy_form = CouponBasedDiscountPolicyForm(
+            obj=discount_policy, parent=discount_policy.organization, model=DiscountPolicy
+        )
     elif discount_policy.is_automatic:
         discount_policy_form = AutomaticDiscountPolicyForm(obj=discount_policy, model=DiscountPolicy)
     else:
