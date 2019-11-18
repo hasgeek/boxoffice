@@ -82,18 +82,24 @@ class ItemForm(forms.Form):
         validators=[forms.validators.Optional()],
         naive=False)
     place_supply_state_code = forms.SelectField(__("State"),
-        choices=[('', '')] + [(state['short_code'], state['name']) for state in sorted(indian_states, key=lambda k: k['name'])],
-        description=__("Place of supply"), coerce=int, default=indian_states_dict['KA']['short_code'],
+        description=__("State of supply"), coerce=int, default=indian_states_dict['KA']['short_code'],
         validators=[forms.validators.DataRequired(__("Please select a state"))])
     place_supply_country_code = forms.SelectField(__("Country"),
-        description=__("Place of supply"), default='IN',
+        description=__("Country of supply"), default='IN',
         validators=[forms.validators.DataRequired(__("Please select a country"))])
 
     def set_queries(self):
+        self.place_supply_state_code.choices = [(0, '')] + [(state['short_code'], state['name']) for state in sorted(indian_states, key=lambda k: k['name'])]
         self.place_supply_country_code.choices = [('', '')] + localized_country_list()
         self.category.query = Category.query.join(ItemCollection).filter(
             Category.item_collection == self.edit_parent).options(db.load_only('id', 'title'))
 
+    def validate_place_supply_state_code(self, field):
+        if field.data <= 0:
+            # state short codes start from 1,
+            # and 0 means empty value as mentioned above in set_queries
+            raise forms.ValidationError(__("Please select a state"))
+
     def validate_transferable_until(self, field):
         if field.data and field.data.date() > self.event_date.data:
-            raise forms.ValidationError("Ticket transfer deadline cannot be after event date")
+            raise forms.ValidationError(__("Ticket transfer deadline cannot be after event date"))
