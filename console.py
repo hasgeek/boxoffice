@@ -9,7 +9,7 @@ from flask import jsonify, make_response
 
 import IPython
 from boxoffice import app
-from boxoffice.extapi import razorpay, razorpay_status
+from boxoffice.extapi import razorpay
 from boxoffice.mailclient import send_participant_assignment_mail, send_receipt_mail
 from boxoffice.models import (
     CURRENCY,
@@ -126,8 +126,7 @@ def process_payment(order_id, pg_paymentid):
 
     online_payment = OnlinePayment.query.filter_by(
         pg_paymentid=pg_paymentid,
-        order=order,
-        pg_payment_status=razorpay_status.RAZORPAY_PAYMENT_STATUS.FAILED
+        order=order
     ).first()
     if online_payment is None:
         online_payment = OnlinePayment(pg_paymentid=pg_paymentid, order=order)
