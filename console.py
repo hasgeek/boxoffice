@@ -123,7 +123,13 @@ def sales_delta(user_tz, item_ids):
 def process_payment(order_id, pg_paymentid):
     order = Order.query.get(order_id)
     order_amounts = order.get_amounts(LINE_ITEM_STATUS.PURCHASE_ORDER)
-    online_payment = OnlinePayment(pg_paymentid=pg_paymentid, order=order)
+
+    online_payment = OnlinePayment.query.filter_by(
+        pg_paymentid=pg_paymentid,
+        order=order
+    ).first()
+    if online_payment is None:
+        online_payment = OnlinePayment(pg_paymentid=pg_paymentid, order=order)
 
     rp_resp = razorpay.capture_payment(
         online_payment.pg_paymentid, order_amounts.final_amount
