@@ -15,7 +15,7 @@ import sqlalchemy as sa
 
 
 def upgrade():
-    op.add_column('order_session', sa.Column('host', sa.Unicode(length=2083), nullable=True))
+    op.add_column('order_session', sa.Column('host', sa.UnicodeText(), nullable=True))
 
 
 def downgrade():
