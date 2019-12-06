@@ -56,6 +56,7 @@ class OrderSessionForm(forms.Form):
     utm_id = forms.StringField(__("UTM Id"), filters=[trim(250)])
     gclid = forms.StringField(__("Gclid"), filters=[trim(250)])
     referrer = forms.StringField(__("Referrer"), filters=[trim(2083)])
+    host = forms.StringField(__("Host"), filters=[trim(2083)])
 
 
 def validate_state_code(form, field):
