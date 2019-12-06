@@ -83,6 +83,7 @@ class ItemCollection(BaseScopedNameMixin, db.Model):
             OrderSession.utm_id,
             OrderSession.gclid,
             OrderSession.referrer,
+            OrderSession.host,
             Order.paid_at
             ]).select_from(line_item_join).where(
                 LineItem.status == LINE_ITEM_STATUS.CONFIRMED).where(
@@ -94,7 +95,7 @@ class ItemCollection(BaseScopedNameMixin, db.Model):
                 'buyer_fullname', 'buyer_email', 'buyer_phone', 'attendee_fullname',
                 'attendee_email', 'attendee_phone', 'assignee_url', 'attendee_details',
                 'utm_campaign', 'utm_source', 'utm_medium', 'utm_term', 'utm_content', 'utm_id',
-                'gclid', 'referrer', 'date'],
+                'gclid', 'referrer', 'host', 'date'],
             db.session.execute(line_item_query).fetchall()
             )
 

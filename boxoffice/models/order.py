@@ -130,6 +130,7 @@ class OrderSession(BaseMixin, db.Model):
     order = db.relationship(Order, backref=db.backref('session', cascade='all, delete-orphan', uselist=False))
 
     referrer = db.Column(db.Unicode(2083), nullable=True)
+    host = db.Column(db.UnicodeText, nullable=True)
 
     # Google Analytics parameters
     utm_source = db.Column(db.Unicode(250), nullable=False, default=u'', index=True)

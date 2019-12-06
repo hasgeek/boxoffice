@@ -54,7 +54,7 @@ $(function() {
     Checks for utm_* headers and returns a hash with the headers set to values.
     If a header occurs more than once, the values are joined to form a single comma-separated string
     */
-    var utm_headers = ['utm_campaign', 'utm_source', 'utm_medium', 'utm_id', 'utm_content', 'utm_term', 'gclid'];
+    var utm_headers = ['utm_campaign', 'utm_source', 'utm_medium', 'utm_id', 'utm_content', 'utm_term', 'gclid', 'host'];
     var query_params = boxoffice.util.getQueryParams();
     var utm_values = {};
     var param;
@@ -71,6 +71,7 @@ $(function() {
       }
     });
     utm_values['referrer'] = document.referrer;
+    utm_values['host'] = window.location.host;
     return utm_values;
   };
 
