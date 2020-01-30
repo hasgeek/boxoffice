@@ -50,7 +50,7 @@ def get_settled_transactions(date_range, tz=None):
         'receivable_amount', 'settlement_amount', 'buyer_fullname']
     # Nested list of dictionaries consisting of transaction details
     rows = []
-    external_transaction_msg = u"Transaction external to Boxoffice. Credited directly to Razorpay?"
+    external_transaction_msg = "Transaction external to Boxoffice. Credited directly to Razorpay?"
 
     for settled_transaction in settled_transactions:
         if settled_transaction['type'] == 'settlement':

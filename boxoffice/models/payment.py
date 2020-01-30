@@ -139,11 +139,11 @@ ItemCollection.net_sales = property(item_collection_net_sales)
 
 
 class CURRENCY(LabeledEnum):
-    INR = (u"INR", __("INR"))
+    INR = ("INR", __("INR"))
 
 
 class CURRENCY_SYMBOL(LabeledEnum):
-    INR = (u'INR', u'₹')
+    INR = ('INR', '₹')
 
 
 def calculate_weekly_refunds(item_collection_ids, user_tz, year):

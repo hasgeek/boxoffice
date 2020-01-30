@@ -137,9 +137,9 @@ class LineItem(BaseMixin, db.Model):
                 base_amount = item.current_price().amount if item.is_available else None
                 line_item_id = None
 
-            if not item_line_items.get(unicode(item.id)):
-                item_line_items[unicode(item.id)] = []
-            item_line_items[unicode(item.id)].append(make_ntuple(item_id=item.id,
+            if not item_line_items.get(str(item.id)):
+                item_line_items[str(item.id)] = []
+            item_line_items[str(item.id)].append(make_ntuple(item_id=item.id,
                 base_amount=base_amount, line_item_id=line_item_id))
 
         for item_id in item_line_items.keys():
@@ -241,7 +241,7 @@ def counts_per_date_per_item(item_collection, user_tz):
     """
     date_item_counts = {}
     for item in item_collection.items:
-        item_id = unicode(item.id)
+        item_id = str(item.id)
         item_results = db.session.query('date', 'count').from_statement(
             db.text('''SELECT DATE_TRUNC('day', line_item.ordered_at AT TIME ZONE :timezone)::date as date, count(line_item.id) AS count
             FROM line_item WHERE item_id = :item_id AND status = :status

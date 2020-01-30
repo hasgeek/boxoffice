@@ -169,7 +169,7 @@ def invoices_report(organization):
     headers, rows = organization.fetch_invoices()
 
     def row_handler(row):
-        dict_row = dict(zip(headers, row))
+        dict_row = dict(list(zip(headers, row)))
         if dict_row.get('status') in INVOICE_STATUS.keys():
             dict_row['status'] = INVOICE_STATUS.get(dict_row['status'])
         if isinstance(dict_row.get('invoiced_at'), datetime):

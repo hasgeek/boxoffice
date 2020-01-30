@@ -4,7 +4,7 @@ import unittest
 import json
 from boxoffice import app
 from boxoffice.models import (db, ItemCollection)
-from fixtures import init_data
+from .fixtures import init_data
 
 
 class TestItemCollectionAPI(unittest.TestCase):
@@ -57,26 +57,26 @@ class TestItemCollectionAPI(unittest.TestCase):
         self.resp = self.client.get('/ic/{ic}'.format(ic=ic.id), headers=[('X-Requested-With', 'XMLHttpRequest'), ('Origin', app.config['BASE_URL'])])
 
     def test_status(self):
-        self.assertEquals(self.resp.status_code, 200)
+        self.assertEqual(self.resp.status_code, 200)
 
     def test_root_keys(self):
         data = json.loads(self.resp.data)
-        self.assertEquals(sorted(data.keys()), sorted(self.expected_keys))
+        self.assertEqual(sorted(data.keys()), sorted(self.expected_keys))
 
     def test_category_keys(self):
         data = json.loads(self.resp.data)
-        self.assertEquals(sorted([cat['name'] for cat in data['categories']]), sorted(self.expected_categories_names))
+        self.assertEqual(sorted([cat['name'] for cat in data['categories']]), sorted(self.expected_categories_names))
 
         for category in data['categories']:
             expected_items = self.expected_data[category['name']]
-            self.assertEquals(sorted([c['name'] for c in category['items']]), sorted(expected_items.keys()))
+            self.assertEqual(sorted([c['name'] for c in category['items']]), sorted(expected_items.keys()))
 
             for item in category['items']:
                 expected_item_data = expected_items[item['name']]
-                self.assertEquals(item['title'], expected_item_data['title'])
-                self.assertEquals(item['price'], expected_item_data['price'])
-                self.assertEquals(item['description'], expected_item_data['description'])
-                self.assertEquals(item['quantity_total'], expected_item_data['quantity_total'])
+                self.assertEqual(item['title'], expected_item_data['title'])
+                self.assertEqual(item['price'], expected_item_data['price'])
+                self.assertEqual(item['description'], expected_item_data['description'])
+                self.assertEqual(item['quantity_total'], expected_item_data['quantity_total'])
 
     def tearDown(self):
         db.session.rollback()

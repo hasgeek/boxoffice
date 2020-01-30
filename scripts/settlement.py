@@ -76,9 +76,9 @@ def get_settlements(filename):
                             'receivable_amount': Decimal(pt.amount) - Decimal(trans[6]),
                             'type': 'payment'
                             })
-                        print "settlement not settled yet {settlement}".format(settlement=trans[11])
+                        print("settlement not settled yet {settlement}".format(settlement=trans[11]))
                 else:
-                    print "payment not found {payment}".format(payment=trans[0])
+                    print("payment not found {payment}".format(payment=trans[0]))
             elif trans[1] == 'refund':
                 payment = OnlinePayment.query.filter_by(pg_paymentid=trans[14], pg_payment_status=RAZORPAY_PAYMENT_STATUS.CAPTURED).first()
                 if payment:
@@ -113,9 +113,9 @@ def get_settlements(filename):
                                 'receivable_amount': Decimal(0) - Decimal(rt.amount),
                                 'type': 'refund'
                                 })
-                        print "settlement not settled yet {settlement}".format(settlement=trans[11])
+                        print("settlement not settled yet {settlement}".format(settlement=trans[11]))
                 else:
-                    print "payment not found {payment}".format(payment=trans[0])
+                    print("payment not found {payment}".format(payment=trans[0]))
             elif trans[1] == 'adjustment':
                 settlement = [tr for tr in transactions if tr[0] == trans[11]]
                 if settlement:
@@ -132,11 +132,11 @@ def get_settlements(filename):
                         'type': 'adjustment'
                         })
                 else:
-                    print "settlement not settled yet {settlement}".format(settlement=trans[11])
+                    print("settlement not settled yet {settlement}".format(settlement=trans[11]))
 
     rows = []
     header = ['settlement_id', 'settlement_amount', 'settlement_date', 'order_id', 'razorpay_fee', 'razorpay_service_tax', 'order_amount', 'buyer_name', 'transaction_date', 'receivable_amount', 'type']
-    for stmt, stm_transactions in settlements.iteritems():
+    for stmt, stm_transactions in settlements.items():
         for details in stm_transactions:
             rows.append([stmt, details['settlement_amount'], details['settlement_date'], details['order_id'], details['razorpay_fee'], details['razorpay_service_tax'],
             details['order_amount'], details['buyer_name'], details['transaction_date'], details['receivable_amount'], details['type']])
@@ -187,7 +187,7 @@ def get_orders(settlement_filename):
                 'transaction_date': localize(payment_transaction.created_at)
                 })
             if Decimal(settlement_dict['credit']) != payment_transaction.amount - Decimal(settlement_dict['fee']):
-                print "Tally failed for " + settlement_dict['entity_id']
+                print("Tally failed for " + settlement_dict['entity_id'])
         elif settlement_dict['type'] == 'refund' and settlement_dict['entity_id'] not in [pord['entity_id'] for pord in payment_orders]:
             try:
                 payment = OnlinePayment.query.filter_by(pg_paymentid=settlement_dict['payment_id'], pg_payment_status=RAZORPAY_PAYMENT_STATUS.CAPTURED).one()
@@ -207,14 +207,14 @@ def get_orders(settlement_filename):
                         'transaction_date': localize(payment_transaction.created_at)
                         })
                 else:
-                    print "no transaction for " + settlement_dict['entity_id']
+                    print("no transaction for " + settlement_dict['entity_id'])
             except Exception:
-                print "no payment found for " + settlement_dict['payment_id'] + "for entity " + settlement_dict['entity_id']
+                print("no payment found for " + settlement_dict['payment_id'] + "for entity " + settlement_dict['entity_id'])
 
     # check if settlements tally
     for settlement_dict in [settlement_dict for settlement_dict in settlement_dicts if settlement_dict['type'] == 'settlement']:
         if Decimal(settlement_dict['amount']) != sum([payment_order['receivable_amount'] for payment_order in payment_orders if payment_order['settlement_id'] == settlement_dict['entity_id']]):
-            print "Settlement not tallying for " + settlement_dict['entity_id']
+            print("Settlement not tallying for " + settlement_dict['entity_id'])
 
     # write result to csv
     with open('settlement_orders.csv', 'w') as outputcsv:

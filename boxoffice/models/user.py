@@ -75,7 +75,7 @@ def get_fiscal_year(jurisdiction, dt):
     Example::
         get_fiscal_year('IN', utcnow())
     """
-    if jurisdiction.lower() == u'in':
+    if jurisdiction.lower() == 'in':
         if dt.month < 4:
             start_year = dt.year - 1
         else:
@@ -84,6 +84,6 @@ def get_fiscal_year(jurisdiction, dt):
         fy_start = datetime(start_year, 4, 1)
         # ends on April 1 XXXX + 1
         fy_end = datetime(start_year + 1, 4, 1)
-        timezone = u'Asia/Kolkata'
+        timezone = 'Asia/Kolkata'
         return (naive_to_utc(fy_start, timezone), naive_to_utc(fy_end, timezone))
     return (naive_to_utc(datetime(dt.year, 1, 1)), naive_to_utc(datetime(dt.year + 1, 1, 1)))

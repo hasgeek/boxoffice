@@ -61,8 +61,8 @@ def upgrade():
         sa.Column('name', sa.Unicode(length=250), nullable=False),
         sa.Column('title', sa.Unicode(length=250), nullable=False),
         sa.Column('id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
-        sa.CheckConstraint(u'item_quantity_min <= item_quantity_max', name='discount_policy_item_quantity_check'),
-        sa.CheckConstraint(u'percentage > 0 and percentage <= 100', name='discount_policy_percentage_check'),
+        sa.CheckConstraint('item_quantity_min <= item_quantity_max', name='discount_policy_item_quantity_check'),
+        sa.CheckConstraint('percentage > 0 and percentage <= 100', name='discount_policy_percentage_check'),
         sa.ForeignKeyConstraint(['organization_id'], ['organization.id'], ),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('organization_id', 'name')
@@ -123,7 +123,7 @@ def upgrade():
         sa.Column('quantity_total', sa.Integer(), nullable=False),
         sa.Column('used_at', sa.DateTime(), nullable=True),
         sa.Column('id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
-        sa.CheckConstraint(u'quantity_available <= quantity_total', name='discount_coupon_quantity_check'),
+        sa.CheckConstraint('quantity_available <= quantity_total', name='discount_coupon_quantity_check'),
         sa.ForeignKeyConstraint(['discount_policy_id'], ['discount_policy.id'], ),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('discount_policy_id', 'code')
@@ -144,7 +144,7 @@ def upgrade():
         sa.ForeignKeyConstraint(['item_collection_id'], ['item_collection.id'], ),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('item_collection_id', 'name'),
-        sa.CheckConstraint(u'quantity_available <= quantity_total', name='item_quantity_available_lte_quantity_total_check')
+        sa.CheckConstraint('quantity_available <= quantity_total', name='item_quantity_available_lte_quantity_total_check')
         )
     op.create_table('online_payment',
         sa.Column('created_at', sa.DateTime(), nullable=False),
@@ -216,7 +216,7 @@ def upgrade():
         sa.ForeignKeyConstraint(['item_id'], ['item.id'], ),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('item_id', 'name'),
-        sa.CheckConstraint(u'start_at < end_at', name='price_start_at_lt_end_at_check')
+        sa.CheckConstraint('start_at < end_at', name='price_start_at_lt_end_at_check')
         )
 
 

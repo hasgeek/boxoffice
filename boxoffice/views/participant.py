@@ -6,7 +6,7 @@ from boxoffice.mailclient import (
     send_ticket_assignment_mail,
     send_ticket_reassignment_mail,
 )
-from utils import xhr_only
+from .utils import xhr_only
 
 from baseframe import _
 from coaster.views import load_models, render_with
@@ -30,7 +30,7 @@ def assign(order):
             {
                 'status': 'error',
                 'error': 'missing_line_item',
-                'error_description': u"Invalid line item",
+                'error_description': "Invalid line item",
             },
             404,
         )
@@ -39,7 +39,7 @@ def assign(order):
             {
                 'status': 'error',
                 'error': 'cancelled_ticket',
-                'error_description': u"Ticket has been cancelled",
+                'error_description': "Ticket has been cancelled",
             },
             400,
         )
@@ -110,7 +110,7 @@ def assign(order):
             {
                 'status': 'error',
                 'error': 'invalid_assignee_details',
-                'error_description': u"Invalid form values. Please resubmit.",
+                'error_description': "Invalid form values. Please resubmit.",
                 'error_details': assignee_form.errors,
             },
             400,

@@ -60,7 +60,7 @@ def get_settlements(filename):
                         'type': 'payment'
                         })
                 else:
-                    print trans[0]
+                    print(trans[0])
             elif trans[1] == 'refund':
                 payment = OnlinePayment.query.filter_by(pg_paymentid=trans[14]).first()
                 if payment:
@@ -80,11 +80,11 @@ def get_settlements(filename):
                             'type': 'refund'
                             })
                 else:
-                    print trans[0]
+                    print(trans[0])
 
     rows = []
     header = ['settlement_id', 'settlement_amount', 'settlement_date', 'order_id', 'razorpay_fee', 'razorpay_service_tax', 'order_amount', 'buyer_name', 'transaction_date', 'receivable_amount', 'type']
-    for stmt, stm_transactions in settlements.iteritems():
+    for stmt, stm_transactions in settlements.items():
         for details in stm_transactions:
             rows.append([stmt, details['settlement_amount'], details['settlement_date'], details['order_id'], details['razorpay_fee'], details['razorpay_service_tax'],
             details['order_amount'], details['buyer_name'], details['transaction_date'], details['receivable_amount'], details['type']])

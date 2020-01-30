@@ -29,12 +29,12 @@ def upgrade():
     conn = op.get_bind()
     op.add_column('invoice', sa.Column('fy_end_at', sa.DateTime(), nullable=True))
     op.add_column('invoice', sa.Column('fy_start_at', sa.DateTime(), nullable=True))
-    op.drop_constraint(u'invoice_organization_id_invoice_no_key', 'invoice', type_='unique')
+    op.drop_constraint('invoice_organization_id_invoice_no_key', 'invoice', type_='unique')
     op.create_unique_constraint('invoice_organization_id_fy_start_at_fy_end_at_invoice_no_key',
         'invoice', ['organization_id', 'fy_start_at', 'fy_end_at', 'invoice_no'])
     invoices = conn.execute(sa.select([invoice_table.c.id, invoice_table.c.invoiced_at]).select_from(invoice_table))
     for invoice in invoices:
-        fy_start_at, fy_end_at = get_fiscal_year(u'in', invoice.invoiced_at)
+        fy_start_at, fy_end_at = get_fiscal_year('in', invoice.invoiced_at)
         conn.execute(sa.update(invoice_table).where(
             invoice_table.c.id == invoice.id
             ).values(fy_start_at=fy_start_at, fy_end_at=fy_end_at))
@@ -60,6 +60,6 @@ def downgrade():
             invoice_table.c.id == invoice.id
             ).values(fy_start_at=None, fy_end_at=None))
     op.drop_constraint('invoice_organization_id_fy_start_at_fy_end_at_invoice_no_key', 'invoice', type_='unique')
-    op.create_unique_constraint(u'invoice_organization_id_invoice_no_key', 'invoice', ['organization_id', 'invoice_no'])
+    op.create_unique_constraint('invoice_organization_id_invoice_no_key', 'invoice', ['organization_id', 'invoice_no'])
     op.drop_column('invoice', 'fy_start_at')
     op.drop_column('invoice', 'fy_end_at')

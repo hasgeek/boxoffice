@@ -53,7 +53,7 @@ def jsonify_new_item_collection(item_collection_dict):
     ic_form = ItemCollectionForm()
     if request.method == 'GET':
         return jsonify(form_template=render_form(form=ic_form,
-            title=u"New item collection", submit=u"Create", ajax=False, with_chrome=False))
+            title="New item collection", submit="Create", ajax=False, with_chrome=False))
     if ic_form.validate_on_submit():
         ic = ItemCollection(organization=item_collection_dict['organization'])
         ic_form.populate_obj(ic)
@@ -62,8 +62,8 @@ def jsonify_new_item_collection(item_collection_dict):
         db.session.add(ic)
         db.session.commit()
         return api_success(result={'item_collection': dict(ic.current_access())},
-            doc=_(u"New item collection created"), status_code=201)
-    return api_error(message=_(u"There was a problem with creating the item collection"),
+            doc=_("New item collection created"), status_code=201)
+    return api_error(message=_("There was a problem with creating the item collection"),
         errors=ic_form.errors, status_code=400)
 
 
@@ -83,13 +83,13 @@ def jsonify_edit_item_collection(item_collection_dict):
     ic_form = ItemCollectionForm(obj=item_collection)
     if request.method == 'GET':
         return jsonify(form_template=render_form(form=ic_form,
-            title=u"Edit item collection", submit=u"Save", ajax=False, with_chrome=False))
+            title="Edit item collection", submit="Save", ajax=False, with_chrome=False))
     if ic_form.validate_on_submit():
         ic_form.populate_obj(item_collection)
         db.session.commit()
         return api_success(result={'item_collection': dict(item_collection.current_access())},
-            doc=_(u"Edited item collection {title}.".format(title=item_collection.title)), status_code=200)
-    return api_error(message=_(u"There was a problem with editing the item collection"),
+            doc=_("Edited item collection {title}.".format(title=item_collection.title)), status_code=200)
+    return api_error(message=_("There was a problem with editing the item collection"),
         errors=ic_form.errors, status_code=400)
 
 

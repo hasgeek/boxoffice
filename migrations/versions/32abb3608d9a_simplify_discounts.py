@@ -53,5 +53,5 @@ def downgrade():
                existing_type=sa.INTEGER(),
                nullable=False)
     op.drop_column('discount_coupon', 'used')
-    op.create_check_constraint('discount_coupon_quantity_check', 'discount_coupon', u'quantity_available <= quantity_total')
-    op.create_check_constraint('discount_policy_item_quantity_check', 'discount_policy', u'item_quantity_min <= item_quantity_max')
+    op.create_check_constraint('discount_coupon_quantity_check', 'discount_coupon', 'quantity_available <= quantity_total')
+    op.create_check_constraint('discount_policy_item_quantity_check', 'discount_policy', 'item_quantity_min <= item_quantity_max')

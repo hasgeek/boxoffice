@@ -6,7 +6,7 @@ from coaster.views import load_models
 from coaster.utils import getbool
 from boxoffice import app
 from boxoffice.models import Organization, ItemCollection, Item, DiscountPolicy
-from utils import xhr_only, cors, sanitize_coupons
+from .utils import xhr_only, cors, sanitize_coupons
 from boxoffice.data import indian_states
 
 

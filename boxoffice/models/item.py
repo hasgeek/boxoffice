@@ -23,7 +23,7 @@ class Item(BaseScopedNameMixin, db.Model):
     __uuid_primary_key__ = True
     __table_args__ = (db.UniqueConstraint('item_collection_id', 'name'),)
 
-    description = MarkdownColumn('description', default=u'', nullable=False)
+    description = MarkdownColumn('description', default='', nullable=False)
     seq = db.Column(db.Integer, nullable=False)
 
     item_collection_id = db.Column(None, db.ForeignKey('item_collection.id'), nullable=False)
@@ -154,7 +154,7 @@ class Item(BaseScopedNameMixin, db.Model):
         item_tups = db.session.query(cls.id, cls.title, cls.quantity_total, db.func.count(cls.id)).join(LineItem).filter(
             LineItem.item_id.in_(item_ids), LineItem.status == LINE_ITEM_STATUS.CONFIRMED).group_by(cls.id).all()
         for item_tup in item_tups:
-            items_dict[unicode(item_tup[0])] = item_tup[1:]
+            items_dict[item_tup[0]] = item_tup[1:]
         return items_dict
 
     def demand_curve(self):
@@ -190,7 +190,7 @@ class Price(BaseScopedNameMixin, db.Model):
     end_at = db.Column(db.TIMESTAMP(timezone=True), nullable=False)
 
     amount = db.Column(db.Numeric, default=Decimal(0), nullable=False)
-    currency = db.Column(db.Unicode(3), nullable=False, default=u'INR')
+    currency = db.Column(db.Unicode(3), nullable=False, default='INR')
 
     __roles__ = {
         'price_owner': {
@@ -212,8 +212,8 @@ class Price(BaseScopedNameMixin, db.Model):
     def tense(self):
         now = utcnow()
         if self.end_at < now:
-            return u"past"
+            return "past"
         elif self.start_at > now:
-            return u"upcoming"
+            return "upcoming"
         else:
-            return u"current"
+            return "current"

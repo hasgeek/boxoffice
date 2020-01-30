@@ -1,22 +1,22 @@
 # -*- coding: utf-8 -*-
 
-from flask import request, abort, Response, jsonify, make_response
+import csv
 from functools import wraps
-from urlparse import urlparse
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
-import unicodecsv
+from io import StringIO
+from urllib.parse import urlparse
+
+from flask import Response, abort, jsonify, make_response, request
+
 from baseframe import localize_timezone
 from boxoffice import app
+
 
 
 def sanitize_coupons(coupons):
     if not isinstance(coupons, list):
         return []
     # Remove falsy values and coerce the valid values into unicode
-    return [unicode(coupon_code) for coupon_code in coupons if coupon_code]
+    return [str(coupon_code) for coupon_code in coupons if coupon_code]
 
 
 def xhr_only(f):
@@ -57,7 +57,7 @@ def basepath(url):
     parsed_url = urlparse(url)
     if not (parsed_url.scheme or parsed_url.netloc):
         raise ValueError("Invalid URL")
-    return u"{scheme}://{netloc}".format(scheme=parsed_url.scheme, netloc=parsed_url.netloc)
+    return "{scheme}://{netloc}".format(scheme=parsed_url.scheme, netloc=parsed_url.netloc)
 
 
 def cors(f):
@@ -111,16 +111,16 @@ def csv_response(headers, rows, row_type=None, row_handler=None):
     """
     stream = StringIO()
     if row_type == 'dict':
-        csv_writer = unicodecsv.DictWriter(stream, fieldnames=headers, extrasaction='ignore')
+        csv_writer = csv.DictWriter(stream, fieldnames=headers, extrasaction='ignore', quoting=csv.QUOTE_MINIMAL)
         csv_writer.writeheader()
     else:
-        csv_writer = unicodecsv.writer(stream)
+        csv_writer = csv.writer(stream, quoting=csv.QUOTE_MINIMAL)
         csv_writer.writerow(headers)
     if callable(row_handler):
         csv_writer.writerows(row_handler(row) for row in rows)
     else:
         csv_writer.writerows(rows)
-    return Response(unicode(stream.getvalue().decode('utf-8')), mimetype='text/csv')
+    return Response(stream.getvalue(), mimetype='text/csv')
 
 
 def api_error(message, status_code, errors=[]):

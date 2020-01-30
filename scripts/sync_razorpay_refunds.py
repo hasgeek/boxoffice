@@ -45,7 +45,7 @@ def sync_refunds():
                 correspongding_rp_refund = min(possible_rp_refunds,
                     key=lambda rp_refund: abs(rp_refund['created_at'] - refund_epoch_dt))
                 if not correspongding_rp_refund or amount_in_paise(refund.amount) != correspongding_rp_refund['amount']:
-                    raise("Oops! No refund found for {refundid}.".format(refundid=refund.id))
+                    raise "Oops! No refund found for {refundid}."
                 refund.pg_refundid = correspongding_rp_refund['id']
                 used_pg_refundids.append(correspongding_rp_refund['id'])
     db.session.commit()

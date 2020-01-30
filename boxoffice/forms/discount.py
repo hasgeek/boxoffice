@@ -28,7 +28,7 @@ class DiscountPolicyForm(forms.Form):
         validators=[forms.validators.DataRequired(__("Please specify a discount title")),
         forms.validators.Length(max=250)], filters=[forms.filters.strip()])
     discount_type = forms.RadioField(__("Discount type"),
-        choices=DISCOUNT_TYPE.items(), coerce=int, default=DISCOUNT_TYPE.COUPON)
+        choices=list(DISCOUNT_TYPE.items()), coerce=int, default=DISCOUNT_TYPE.COUPON)
     is_price_based = forms.RadioField(__("Price based discount"),
         coerce=getbool, default=1, choices=[
             (1, __("Special price discount")),
@@ -79,7 +79,7 @@ class DiscountPriceForm(forms.Form):
         validators=[forms.validators.DataRequired(__("Please specify an amount"))])
     currency = forms.RadioField(__("Currency"),
         validators=[forms.validators.DataRequired(__("Please select the currency"))],
-        choices=CURRENCY.items(), default=CURRENCY.INR)
+        choices=list(CURRENCY.items()), default=CURRENCY.INR)
     start_at = forms.DateTimeField(__("Price start date"),
         validators=[forms.validators.DataRequired(__("Please specify a start date and time"))],
         naive=False)

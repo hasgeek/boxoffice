@@ -15,10 +15,10 @@ import sqlalchemy as sa  # NOQA
 
 
 def upgrade():
-    op.drop_constraint(u'discount_policy_discount_code_base_key', 'discount_policy', type_='unique')
-    op.create_unique_constraint(u'discount_policy_organization_id_discount_code_base_key', 'discount_policy', ['organization_id', 'discount_code_base'])
+    op.drop_constraint('discount_policy_discount_code_base_key', 'discount_policy', type_='unique')
+    op.create_unique_constraint('discount_policy_organization_id_discount_code_base_key', 'discount_policy', ['organization_id', 'discount_code_base'])
 
 
 def downgrade():
     op.drop_constraint('discount_policy_organization_id_discount_code_base_key', 'discount_policy', type_='unique')
-    op.create_unique_constraint(u'discount_policy_discount_code_base_key', 'discount_policy', ['discount_code_base'])
+    op.create_unique_constraint('discount_policy_discount_code_base_key', 'discount_policy', ['discount_code_base'])

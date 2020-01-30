@@ -33,10 +33,10 @@ class TestItems(unittest.TestCase):
         )
 
     def test_assign(self):
-        item = Item.query.filter_by(name=u"conference-ticket").first()
+        item = Item.query.filter_by(name="conference-ticket").first()
 
         data = {
-            'line_items': [{'item_id': unicode(item.id), 'quantity': 2}],
+            'line_items': [{'item_id': str(item.id), 'quantity': 2}],
             'buyer': {
                 'fullname': 'Testing',
                 'phone': '9814141414',
@@ -46,10 +46,10 @@ class TestItems(unittest.TestCase):
         ic = ItemCollection.query.first()
         resp = self.ajax_post('/ic/{ic}/order'.format(ic=ic.id), data)
 
-        self.assertEquals(resp.status_code, 201)
+        self.assertEqual(resp.status_code, 201)
         resp_data = json.loads(resp.data)['result']
         order = Order.query.get(resp_data.get('order_id'))
-        self.assertEquals(order.status, ORDER_STATUS.PURCHASE_ORDER)
+        self.assertEqual(order.status, ORDER_STATUS.PURCHASE_ORDER)
 
         self.assertEqual(len(order.line_items), 2)
         li_one = order.line_items[0]

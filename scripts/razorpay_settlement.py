@@ -106,7 +106,7 @@ def get_settled_orders(date_ranges=[], filenames=[]):
                     #     settled_orders.append(format_row(format_line_item(settlement_id, settlement_payment_id, line_item, 'refund')))
 
             except Exception as error_msg:
-                print error_msg
+                print(error_msg)
                 pass
 
         settlement_refund_ids = [entity['entity_id'] for entity in entity_dict.values() if entity['type'] == 'refund' and entity['settlement_id'] == settlement_id]
@@ -131,8 +131,8 @@ def get_settled_orders(date_ranges=[], filenames=[]):
                 if cancelled_line_item:
                     settled_orders.append(format_row(format_line_item(settlement_id, settlement_payment_id, cancelled_line_item, 'refund')))
                 else:
-                    print "no line item found"
-                    print payment.pg_paymentid
+                    print("no line item found")
+                    print(payment.pg_paymentid)
 
     return settled_orders
 
@@ -199,7 +199,7 @@ def get_settled_order_transactions(date_ranges=[], filenames=[]):
                     #     settled_orders.append(format_row(format_line_item(settlement_id, settlement_payment_id, line_item, 'refund')))
 
             except Exception as error_msg:
-                print error_msg
+                print(error_msg)
                 pass
 
         settlement_refund_ids = [entity['entity_id'] for entity in entity_dict.values() if entity['type'] == 'refund' and entity['settlement_id'] == settlement_id]

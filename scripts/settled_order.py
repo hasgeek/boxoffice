@@ -90,14 +90,14 @@ def get_settled_orders(settlement_files):
                 cancelled_line_item = LineItem.query.filter(LineItem.order == order, LineItem.final_amount == Decimal(entity_dict[settlement_refund_id]['debit']), LineItem.status == LINE_ITEM_STATUS.CANCELLED).first()
                 settled_orders.append(format_row(format_line_item(settlement_id, settlement_payment_id, cancelled_line_item, 'refund')))
             except Exception:
-                print "Multiple line items found"
-                print payment.pg_paymentid
+                print("Multiple line items found")
+                print(payment.pg_paymentid)
                 cancelled_line_item = LineItem.query.filter(LineItem.order == order, LineItem.final_amount == Decimal(entity_dict[settlement_refund_id]['debit']), LineItem.status == LINE_ITEM_STATUS.CANCELLED).first()
                 if cancelled_line_item:
                     settled_orders.append(format_row(format_line_item(settlement_id, settlement_payment_id, cancelled_line_item, 'refund')))
                 else:
-                    print "no line item found"
-                    print payment.pg_paymentid
+                    print("no line item found")
+                    print(payment.pg_paymentid)
 
     return settled_orders
 
