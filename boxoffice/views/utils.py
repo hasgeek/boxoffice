@@ -8,8 +8,7 @@ from urllib.parse import urlparse
 from flask import Response, abort, jsonify, make_response, request
 
 from baseframe import localize_timezone
-from boxoffice import app
-
+from .. import app
 
 
 def sanitize_coupons(coupons):

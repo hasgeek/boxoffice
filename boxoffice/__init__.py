@@ -28,7 +28,7 @@ assets['boxoffice.js'][version] = 'js/scripts.js'
 
 
 from . import extapi, views  # NOQA
-from boxoffice.models import db, User, Item, Price, DiscountPolicy, DiscountCoupon, ItemCollection, Organization, Category, Invoice  # noqa
+from .models import db, User, Item, Price, DiscountPolicy, DiscountCoupon, ItemCollection, Organization, Category, Invoice  # noqa
 from .siteadmin import OrganizationModelView, DiscountCouponModelView, InvoiceModelView  # noqa
 
 

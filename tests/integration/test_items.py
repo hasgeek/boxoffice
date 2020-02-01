@@ -2,13 +2,13 @@
 
 import json
 import unittest
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from werkzeug.test import EnvironBuilder
 from coaster.utils import utcnow
 
 from boxoffice import app
-from boxoffice.models import ORDER_STATUS, Assignee, Item, ItemCollection, Order, db
+from boxoffice.models import ORDER_STATUS, Item, ItemCollection, Order, db
 from tests.fixtures import init_data
 
 

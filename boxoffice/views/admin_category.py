@@ -5,9 +5,9 @@ from .. import app, lastuser
 from coaster.views import load_models, render_with
 from baseframe import _
 from baseframe.forms import render_form
-from boxoffice.models import db, ItemCollection, Category
-from boxoffice.views.utils import api_error, api_success
-from boxoffice.forms import CategoryForm
+from ..models import db, ItemCollection, Category
+from ..forms import CategoryForm
+from .utils import api_error, api_success
 
 
 def jsonify_new_category(data_dict):

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from flask import jsonify, make_response, request
+from flask import request
 
-from boxoffice.mailclient import (
+from ..mailclient import (
     send_ticket_assignment_mail,
     send_ticket_reassignment_mail,
 )

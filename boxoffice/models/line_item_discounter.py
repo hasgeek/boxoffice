@@ -2,7 +2,7 @@
 
 import itertools
 from decimal import Decimal
-from boxoffice.models import DiscountPolicy, Item
+from ..models import DiscountPolicy, Item
 
 __all__ = ['LineItemDiscounter']
 

@@ -3,7 +3,7 @@
 from decimal import Decimal
 from collections import namedtuple
 from sqlalchemy.sql import select, func
-from boxoffice.models import db, BaseMixin, User
+from ..models import db, BaseMixin, User
 from coaster.utils import LabeledEnum, buid, utcnow
 from baseframe import __
 

@@ -9,7 +9,7 @@ from sqlalchemy.sql import func
 
 from flask import current_app
 
-from boxoffice.models import BaseMixin, Item, JsonDict, LineItemDiscounter, Order, db
+from ..models import BaseMixin, Item, JsonDict, LineItemDiscounter, Order, db
 from isoweek import Week
 
 from baseframe import __, localize_timezone

@@ -2,7 +2,7 @@
 
 from baseframe import __
 import baseframe.forms as forms
-from boxoffice.data import indian_states_dict, short_codes
+from ..data import indian_states_dict, short_codes
 
 __all__ = ['LineItemForm', 'BuyerForm', 'OrderSessionForm', 'InvoiceForm']
 

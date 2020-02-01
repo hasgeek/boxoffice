@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from baseframe import __, forms, localized_country_list
-from boxoffice.data import indian_states, indian_states_dict
+from ..data import indian_states, indian_states_dict
 
 __all__ = ['ItemCollectionForm']
 

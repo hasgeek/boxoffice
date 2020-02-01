@@ -5,7 +5,7 @@ import six
 import pytz
 from flask import g
 from flask_lastuser.sqlalchemy import UserBase2, ProfileBase
-from boxoffice.models import db, JsonDict
+from ..models import db, JsonDict
 
 
 __all__ = ['User', 'Organization']

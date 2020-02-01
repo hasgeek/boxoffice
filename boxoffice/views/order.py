@@ -8,16 +8,13 @@ from coaster.views import render_with, load_models
 from baseframe import _, localized_country_list
 from baseframe.forms import render_form
 from .. import app, lastuser
-from ..models import db
-from ..models import ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy, OrderSession, Assignee, LINE_ITEM_STATUS, Invoice
-from ..models import Order, OnlinePayment, PaymentTransaction, User, CURRENCY, CURRENCY_SYMBOL, ORDER_STATUS
-from ..models.payment import TRANSACTION_TYPE
+from ..models import db, ItemCollection, LineItem, Item, DiscountCoupon, DiscountPolicy, OrderSession, Assignee, LINE_ITEM_STATUS, Invoice, Order, OnlinePayment, PaymentTransaction, User, CURRENCY, CURRENCY_SYMBOL, ORDER_STATUS, TRANSACTION_TYPE
 from ..extapi import razorpay, RAZORPAY_PAYMENT_STATUS
 from ..forms import LineItemForm, BuyerForm, OrderSessionForm, OrderRefundForm, InvoiceForm
 from .custom_exceptions import PaymentGatewayError
-from boxoffice.mailclient import send_receipt_mail, send_line_item_cancellation_mail, send_order_refund_mail
+from ..mailclient import send_receipt_mail, send_line_item_cancellation_mail, send_order_refund_mail
 from .utils import xhr_only, cors, json_date_format, api_error, api_success, sanitize_coupons
-from boxoffice.data import indian_states
+from ..data import indian_states
 
 
 def jsonify_line_items(line_items):

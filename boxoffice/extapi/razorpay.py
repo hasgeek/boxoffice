@@ -3,7 +3,7 @@
 import requests
 from baseframe import localize_timezone
 from boxoffice import app
-from boxoffice.models import OnlinePayment, PaymentTransaction, TRANSACTION_TYPE
+from ..models import OnlinePayment, PaymentTransaction, TRANSACTION_TYPE
 
 # Don't use a trailing slash
 base_url = 'https://api.razorpay.com/v1'

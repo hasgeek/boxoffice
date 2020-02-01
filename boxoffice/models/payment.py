@@ -6,7 +6,7 @@ from decimal import Decimal
 from coaster.utils import LabeledEnum, isoweek_datetime
 from isoweek import Week
 from baseframe import __
-from boxoffice.models import db, BaseMixin, Order, ORDER_STATUS, MarkdownColumn, ItemCollection
+from ..models import db, BaseMixin, Order, ORDER_STATUS, MarkdownColumn, ItemCollection
 from ..extapi.razorpay_status import RAZORPAY_PAYMENT_STATUS
 
 __all__ = ['OnlinePayment', 'PaymentTransaction', 'CURRENCY', 'CURRENCY_SYMBOL', 'TRANSACTION_TYPE']

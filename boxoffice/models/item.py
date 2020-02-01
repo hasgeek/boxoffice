@@ -6,8 +6,7 @@ from sqlalchemy.ext.orderinglist import ordering_list
 from baseframe import __
 from coaster.utils import LabeledEnum, utcnow
 from coaster.sqlalchemy import with_roles
-from . import db, JsonDict, BaseScopedNameMixin, MarkdownColumn
-from . import ItemCollection, Category
+from ..models import db, JsonDict, BaseScopedNameMixin, MarkdownColumn, ItemCollection, Category
 from .discount_policy import item_discount_policy
 
 __all__ = ['Item', 'Price']

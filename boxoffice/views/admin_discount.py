@@ -7,8 +7,7 @@ from baseframe import _
 import baseframe.forms as forms
 from baseframe.forms import render_form
 from coaster.views import load_models, render_with, requestargs
-from ..models import db
-from boxoffice.models import Organization, DiscountPolicy, DiscountCoupon, Price, CURRENCY
+from ..models import db, Organization, DiscountPolicy, DiscountCoupon, Price, CURRENCY
 from ..forms import DiscountPolicyForm, DiscountCouponForm, DiscountPriceForm, CouponBasedDiscountPolicyForm, AutomaticDiscountPolicyForm, PriceBasedDiscountPolicyForm
 from .utils import xhr_only, api_error, api_success
 

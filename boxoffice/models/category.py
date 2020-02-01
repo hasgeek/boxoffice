@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from boxoffice.models import db, BaseScopedNameMixin
-from boxoffice.models import ItemCollection
 from sqlalchemy.ext.orderinglist import ordering_list
+from ..models import db, BaseScopedNameMixin, ItemCollection
 
 __all__ = ['Category']
 

@@ -3,7 +3,7 @@
 from baseframe import __
 import baseframe.forms as forms
 from baseframe.forms.validators import StopValidation
-from boxoffice.models import db, Category
+from ..models import db, Category
 
 __all__ = ['CategoryForm']
 
