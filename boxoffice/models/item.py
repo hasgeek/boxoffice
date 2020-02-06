@@ -153,7 +153,7 @@ class Item(BaseScopedNameMixin, db.Model):
         item_tups = db.session.query(cls.id, cls.title, cls.quantity_total, db.func.count(cls.id)).join(LineItem).filter(
             LineItem.item_id.in_(item_ids), LineItem.status == LINE_ITEM_STATUS.CONFIRMED).group_by(cls.id).all()
         for item_tup in item_tups:
-            items_dict[item_tup[0]] = item_tup[1:]
+            items_dict[str(item_tup[0])] = item_tup[1:]
         return items_dict
 
     def demand_curve(self):
