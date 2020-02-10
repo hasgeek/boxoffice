@@ -1,6 +1,6 @@
 language: python
 python:
-  - 2.7
+  - 3.7
 cache:
   directories:
     - $HOME/.cache/pip
@@ -12,7 +12,6 @@ install:
   - pip install -U pip wheel
   - pip install -r test_requirements.txt
   - pip install -r requirements.txt
-  - pip install https://github.com/hasgeek/coaster/archive/master.zip
   - npm install casperjs
   - make
 env:
@@ -27,6 +26,3 @@ services:
   - redis-server
 notifications:
   email: false
-  slack:
-    - hasgeek:HDCoMDj3T4ICB59qFFVorCG8
-    - friendsofhasgeek:3bLViYSzhfaThJovFYCVD3fX

@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from coaster.utils import LabeledEnum, utcnow
-from boxoffice.models import db, BaseMixin, UuidMixin, HeadersAndDataTuple, Organization, Order
+from ..models import db, BaseMixin, UuidMixin, HeadersAndDataTuple, Organization, Order
 from sqlalchemy.sql import select, func
 from sqlalchemy.orm import validates
 from baseframe import __
-from boxoffice.models.user import get_fiscal_year
+from .user import get_fiscal_year
 
 
 __all__ = ['Invoice', 'INVOICE_STATUS']
@@ -84,9 +84,9 @@ class Invoice(UuidMixin, BaseMixin, db.Model):
         country_code = kwargs.get('country_code')
         if not country_code:
             # Default to India
-            country_code = u'IN'
+            country_code = 'IN'
         if not organization:
-            raise ValueError(u"Invoice MUST be initialized with an organization")
+            raise ValueError("Invoice MUST be initialized with an organization")
         self.invoiced_at = utcnow()
         self.fy_start_at, self.fy_end_at = get_fiscal_year(country_code, self.invoiced_at)
         self.invoice_no = gen_invoice_no(organization, country_code, self.invoiced_at)

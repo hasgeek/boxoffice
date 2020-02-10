@@ -2,7 +2,7 @@
 
 from .. import app
 from flask import jsonify, make_response
-from utils import cors
+from .utils import cors
 
 
 class PaymentGatewayError(Exception):

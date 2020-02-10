@@ -18,7 +18,7 @@ def login():
 @app.route('/logout')
 @lastuser.logout_handler
 def logout():
-    flash(_(u"You are now logged out"), category='success')
+    flash(_("You are now logged out"), category='success')
     return get_next_url()
 
 
@@ -40,12 +40,12 @@ def lastusernotify(user):
 @lastuser.auth_error_handler
 def lastuser_error(error, error_description=None, error_uri=None):
     if error == 'access_denied':
-        flash(_(u"You denied the request to login"), category='error')
+        flash(_("You denied the request to login"), category='error')
         return redirect(get_next_url())
     return render_message(
-        title=_(u"Error: {error}").format(error=error),
+        title=_("Error: {error}").format(error=error),
         message=Markup(
-            u"<p>{desc}</p><p>URI: {uri}</p>".format(
-                desc=escape(error_description or u''), uri=escape(error_uri or _(u'NA')))
+            "<p>{desc}</p><p>URI: {uri}</p>".format(
+                desc=escape(error_description or ''), uri=escape(error_uri or _('NA')))
             )
         )

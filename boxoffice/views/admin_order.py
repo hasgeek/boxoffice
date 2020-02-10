@@ -3,8 +3,8 @@
 from flask import jsonify, url_for
 from .. import app, lastuser
 from coaster.views import load_models, render_with
-from boxoffice.models import ItemCollection, Organization, Order, CURRENCY_SYMBOL, LineItem, LINE_ITEM_STATUS, ORDER_STATUS, INVOICE_STATUS
-from utils import json_date_format, xhr_only, check_api_access
+from ..models import ItemCollection, Organization, Order, CURRENCY_SYMBOL, LineItem, LINE_ITEM_STATUS, ORDER_STATUS, INVOICE_STATUS
+from .utils import json_date_format, xhr_only, check_api_access
 
 
 def format_assignee(assignee):
@@ -54,7 +54,7 @@ def jsonify_admin_orders(data_dict):
                 'buyer_phone': order.buyer_phone,
                 'currency': CURRENCY_SYMBOL['INR'],
                 'amount': order.net_amount,
-                'url': '/ic/' + unicode(item_collection_id) + '/' + unicode(order.id),
+                'url': '/ic/' + str(item_collection_id) + '/' + str(order.id),
                 'receipt_url': url_for('receipt', access_token=order.access_token),
                 'assignee_url': url_for('line_items', access_token=order.access_token)
                 })

@@ -9,8 +9,8 @@ from sqlalchemy.orm.exc import MultipleResultsFound
 from baseframe import __
 from coaster.utils import LabeledEnum, uuid1mc, buid
 from coaster.sqlalchemy import cached
-from boxoffice.models import db, IdMixin, BaseScopedNameMixin
-from boxoffice.models import Organization
+from ..models import db, IdMixin, BaseScopedNameMixin, Organization
+
 
 __all__ = ['DiscountPolicy', 'DiscountCoupon', 'item_discount_policy', 'DISCOUNT_TYPE']
 
@@ -92,7 +92,7 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
             identifier = buid()
         signer = Signer(self.secret)
         key = "{base}.{identifier}".format(base=self.discount_code_base, identifier=identifier)
-        return signer.sign(key)
+        return signer.sign(key).decode('utf-8')
 
     @staticmethod
     def is_signed_code_format(code):

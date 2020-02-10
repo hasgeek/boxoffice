@@ -6,7 +6,7 @@ from decimal import Decimal
 from coaster.utils import LabeledEnum, isoweek_datetime
 from isoweek import Week
 from baseframe import __
-from boxoffice.models import db, BaseMixin, Order, ORDER_STATUS, MarkdownColumn, ItemCollection
+from ..models import db, BaseMixin, Order, ORDER_STATUS, MarkdownColumn, ItemCollection
 from ..extapi.razorpay_status import RAZORPAY_PAYMENT_STATUS
 
 __all__ = ['OnlinePayment', 'PaymentTransaction', 'CURRENCY', 'CURRENCY_SYMBOL', 'TRANSACTION_TYPE']
@@ -139,11 +139,11 @@ ItemCollection.net_sales = property(item_collection_net_sales)
 
 
 class CURRENCY(LabeledEnum):
-    INR = (u"INR", __("INR"))
+    INR = ("INR", __("INR"))
 
 
 class CURRENCY_SYMBOL(LabeledEnum):
-    INR = (u'INR', u'₹')
+    INR = ('INR', '₹')
 
 
 def calculate_weekly_refunds(item_collection_ids, user_tz, year):

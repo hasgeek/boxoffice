@@ -13,12 +13,12 @@ class ItemCollection(BaseScopedNameMixin, db.Model):
     __uuid_primary_key__ = True
     __table_args__ = (db.UniqueConstraint('organization_id', 'name'),)
 
-    description = MarkdownColumn('description', default=u'', nullable=False)
+    description = MarkdownColumn('description', default='', nullable=False)
 
     organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'), nullable=False)
     organization = db.relationship(Organization, backref=db.backref('item_collections', cascade='all, delete-orphan'))
     parent = db.synonym('organization')
-    tax_type = db.Column(db.Unicode(80), nullable=True, default=u'GST')
+    tax_type = db.Column(db.Unicode(80), nullable=True, default='GST')
     # ISO 3166-2 code. Eg: KA for Karnataka
     place_supply_state_code = db.Column(db.Unicode(3), nullable=True)
     # ISO country code

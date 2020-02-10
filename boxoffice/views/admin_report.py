@@ -4,8 +4,8 @@ from flask import jsonify, request, g, url_for
 from .. import app, lastuser
 from coaster.views import load_models, render_with
 from baseframe import localize_timezone, get_locale
-from boxoffice.models import Organization, ItemCollection, INVOICE_STATUS
-from boxoffice.views.utils import check_api_access, csv_response, api_error
+from ..models import Organization, ItemCollection, INVOICE_STATUS
+from .utils import check_api_access, csv_response, api_error
 from babel.dates import format_datetime
 from datetime import datetime, date
 from ..extapi.razorpay import get_settled_transactions
@@ -169,7 +169,7 @@ def invoices_report(organization):
     headers, rows = organization.fetch_invoices()
 
     def row_handler(row):
-        dict_row = dict(zip(headers, row))
+        dict_row = dict(list(zip(headers, row)))
         if dict_row.get('status') in INVOICE_STATUS.keys():
             dict_row['status'] = INVOICE_STATUS.get(dict_row['status'])
         if isinstance(dict_row.get('invoiced_at'), datetime):

@@ -2,7 +2,7 @@
 
 from baseframe import __
 import baseframe.forms as forms
-from boxoffice.data import indian_states_dict, short_codes
+from ..data import indian_states_dict, short_codes
 
 __all__ = ['LineItemForm', 'BuyerForm', 'OrderSessionForm', 'InvoiceForm']
 
@@ -14,7 +14,7 @@ def trim(length):
     field = forms.StringField(__("Some field"), filters=[trim(25)])
     """
     def _inner(data):
-        return unicode(data[0:length])
+        return str(data[0:length])
     return _inner
 
 

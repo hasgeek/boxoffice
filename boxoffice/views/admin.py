@@ -6,10 +6,10 @@ from .. import app, lastuser
 from coaster.views import load_models, render_with
 from coaster.utils import getbool
 from baseframe import _
-from boxoffice.models import Organization, ItemCollection
-from boxoffice.models.line_item import calculate_weekly_sales
-from boxoffice.models.payment import calculate_weekly_refunds
-from boxoffice.views.utils import check_api_access, api_error, api_success
+from ..models import Organization, ItemCollection
+from ..models.line_item import calculate_weekly_sales
+from ..models.payment import calculate_weekly_refunds
+from .utils import check_api_access, api_error, api_success
 
 
 def jsonify_dashboard(data):
@@ -50,23 +50,23 @@ def org_revenue(organization):
     check_api_access(organization.details.get('access_token'))
 
     if not request.args.get('year'):
-        return api_error(message=_(u"Missing year"), status_code=400)
+        return api_error(message=_("Missing year"), status_code=400)
 
     if not request.args.get('timezone'):
-        return api_error(message=_(u"Missing timezone"), status_code=400)
+        return api_error(message=_("Missing timezone"), status_code=400)
 
     if request.args.get('timezone') not in pytz.common_timezones:
-        return api_error(message=_(u"Unknown timezone. Timezone is case-sensitive"), status_code=400)
+        return api_error(message=_("Unknown timezone. Timezone is case-sensitive"), status_code=400)
 
     item_collection_ids = [item_collection.id for item_collection in organization.item_collections]
     year = int(request.args.get('year'))
     user_timezone = request.args.get('timezone')
 
     if getbool(request.args.get('refund')):
-        result = calculate_weekly_refunds(item_collection_ids, user_timezone, year).items()
-        doc = _(u"Refunds per week for {year}".format(year=year))
+        result = list(calculate_weekly_refunds(item_collection_ids, user_timezone, year).items())
+        doc = _("Refunds per week for {year}".format(year=year))
     else:
         # sales includes confirmed and cancelled line items
-        result = calculate_weekly_sales(item_collection_ids, user_timezone, year).items()
-        doc = _(u"Revenue per week for {year}".format(year=year))
+        result = list(calculate_weekly_sales(item_collection_ids, user_timezone, year).items())
+        doc = _("Revenue per week for {year}".format(year=year))
     return api_success(result=result, doc=doc, status_code=200)

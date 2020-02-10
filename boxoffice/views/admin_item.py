@@ -6,10 +6,10 @@ from coaster.utils import utcnow
 from coaster.views import load_models, requestargs, render_with
 from baseframe import _
 from baseframe.forms import render_form
-from boxoffice.models import db, Organization, ItemCollection, Item, Price
-from boxoffice.views.utils import api_error, api_success, json_date_format
-from boxoffice.forms import ItemForm, PriceForm
-from utils import xhr_only
+from ..models import db, Organization, ItemCollection, Item, Price
+from .utils import api_error, api_success, json_date_format
+from ..forms import ItemForm, PriceForm
+from .utils import xhr_only
 
 
 @app.route('/admin/o/<org>/items')
@@ -34,7 +34,7 @@ def items(organization, search=None):
             'title': "{ic_title}: {title}".format(ic_title=item_tuple[1].title, title=item_tuple[0].title)
             } for item_tuple in filtered_items]}, doc="Filtered items", status_code=200)
     else:
-        return api_error(message=_(u"Missing search query"), status_code=400)
+        return api_error(message=_("Missing search query"), status_code=400)
 
 
 def jsonify_price(price):
@@ -103,7 +103,7 @@ def jsonify_new_item(data_dict):
     item_collection = data_dict['item_collection']
     item_form = ItemForm(parent=item_collection)
     if request.method == 'GET':
-        return jsonify(form_template=render_form(form=item_form, title=u"New item", submit=u"Create", with_chrome=False))
+        return jsonify(form_template=render_form(form=item_form, title="New item", submit="Create", with_chrome=False))
     if item_form.validate_on_submit():
         item = Item(item_collection=item_collection)
         item_form.populate_obj(item)
@@ -111,8 +111,8 @@ def jsonify_new_item(data_dict):
             item.make_name()
         db.session.add(item)
         db.session.commit()
-        return api_success(result={'item': dict(item.current_access())}, doc=_(u"New item created"), status_code=201)
-    return api_error(message=_(u"There was a problem with creating the item"), errors=item_form.errors, status_code=400)
+        return api_success(result={'item': dict(item.current_access())}, doc=_("New item created"), status_code=201)
+    return api_error(message=_("There was a problem with creating the item"), errors=item_form.errors, status_code=400)
 
 
 @app.route('/admin/ic/<ic_id>/item/new', methods=['GET', 'POST'])
@@ -130,12 +130,12 @@ def jsonify_edit_item(data_dict):
     item = data_dict['item']
     item_form = ItemForm(obj=item)
     if request.method == 'GET':
-        return jsonify(form_template=render_form(form=item_form, title=u"Update item", submit=u"Update", with_chrome=False))
+        return jsonify(form_template=render_form(form=item_form, title="Update item", submit="Update", with_chrome=False))
     if item_form.validate_on_submit():
         item_form.populate_obj(item)
         db.session.commit()
-        return api_success(result={'item': dict(item.current_access())}, doc=_(u"Item updated"), status_code=200)
-    return api_error(message=_(u"There was a problem with updating the item"), status_code=400, errors=item_form.errors)
+        return api_success(result={'item': dict(item.current_access())}, doc=_("Item updated"), status_code=200)
+    return api_error(message=_("There was a problem with updating the item"), status_code=400, errors=item_form.errors)
 
 
 @app.route('/admin/item/<item_id>/edit', methods=['GET', 'POST'])
@@ -153,18 +153,18 @@ def jsonify_new_price(data_dict):
     item = data_dict['item']
     price_form = PriceForm(parent=item)
     if request.method == 'GET':
-        return jsonify(form_template=render_form(form=price_form, title=u"New price", submit=u"Save", with_chrome=False))
+        return jsonify(form_template=render_form(form=price_form, title="New price", submit="Save", with_chrome=False))
     if price_form.validate_on_submit():
         price = Price(item=item)
         price_form.populate_obj(price)
-        price.title = u"{item_name}-price-{datetime}".format(item_name=item.name,
+        price.title = "{item_name}-price-{datetime}".format(item_name=item.name,
             datetime=json_date_format(utcnow()))
         if not price.name:
             price.make_name()
         db.session.add(price)
         db.session.commit()
-        return api_success(result={'price': dict(price.current_access())}, doc=_(u"New price created"), status_code=201)
-    return api_error(message=_(u"There was a problem with creating the price"), status_code=400, errors=price_form.errors)
+        return api_success(result={'price': dict(price.current_access())}, doc=_("New price created"), status_code=201)
+    return api_error(message=_("There was a problem with creating the price"), status_code=400, errors=price_form.errors)
 
 
 @app.route('/admin/item/<item_id>/price/new', methods=['GET', 'POST'])
@@ -182,12 +182,12 @@ def jsonify_edit_price(data_dict):
     price = data_dict['price']
     price_form = PriceForm(obj=price)
     if request.method == 'GET':
-        return jsonify(form_template=render_form(form=price_form, title=u"Update price", submit=u"Save", with_chrome=False))
+        return jsonify(form_template=render_form(form=price_form, title="Update price", submit="Save", with_chrome=False))
     if price_form.validate_on_submit():
         price_form.populate_obj(price)
         db.session.commit()
-        return api_success(result={'price': dict(price.current_access())}, doc=_(u"Update price {title}.".format(title=price.title)), status_code=200)
-    return api_error(message=_(u"There was a problem with editing the price"), status_code=400, errors=price_form.errors)
+        return api_success(result={'price': dict(price.current_access())}, doc=_("Update price {title}.".format(title=price.title)), status_code=200)
+    return api_error(message=_("There was a problem with editing the price"), status_code=400, errors=price_form.errors)
 
 
 @app.route('/admin/item/<item_id>/price/<price_id>/edit', methods=['GET', 'POST'])

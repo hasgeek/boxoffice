@@ -35,7 +35,7 @@ def set_previous_keys_for_line_items(line_items):
     # Some line items may have been created a few milliseconds later, so the nearest timestamp
     # with a tolerance level of one second is searched for
     for line_item in line_items:
-        ts_key = find_nearest_timestamp(timestamped_line_items.keys(), line_item.created_at) or line_item.created_at
+        ts_key = find_nearest_timestamp(list(timestamped_line_items.keys()), line_item.created_at) or line_item.created_at
         if not timestamped_line_items.get(ts_key):
             timestamped_line_items[ts_key] = []
         timestamped_line_items[ts_key].append({
@@ -55,7 +55,7 @@ def set_previous_keys_for_line_items(line_items):
             # timestamped_line_items.keys()[idx] and not timestamped_line_items.keys()[idx-1]
             # because the timestamped_line_items.items() list is enumerated from index 1
             previous_li_dict = [previous_li_dict
-                for previous_li_dict in timestamped_line_items[timestamped_line_items.keys()[idx]]
+                for previous_li_dict in timestamped_line_items[list(timestamped_line_items.keys())[idx]]
                 if previous_li_dict['item_id'] == li_dict['item_id']
                     and previous_li_dict['id'] not in used_line_item_ids
                     and previous_li_dict['status'] == LINE_ITEM_STATUS.VOID

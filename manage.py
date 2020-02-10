@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
+
 from coaster.manage import manager, init_manager
 
 import boxoffice

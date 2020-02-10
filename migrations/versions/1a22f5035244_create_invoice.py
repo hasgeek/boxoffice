@@ -43,10 +43,10 @@ def upgrade():
         sa.UniqueConstraint('organization_id', 'invoice_no')
         )
     op.create_index(op.f('ix_invoice_customer_order_id'), 'invoice', ['customer_order_id'], unique=False)
-    op.add_column(u'item_collection', sa.Column('tax_type', sa.Unicode(length=80), nullable=True))
+    op.add_column('item_collection', sa.Column('tax_type', sa.Unicode(length=80), nullable=True))
 
 
 def downgrade():
-    op.drop_column(u'item_collection', 'tax_type')
+    op.drop_column('item_collection', 'tax_type')
     op.drop_index(op.f('ix_invoice_customer_order_id'), table_name='invoice')
     op.drop_table('invoice')

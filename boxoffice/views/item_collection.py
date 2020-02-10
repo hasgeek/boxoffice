@@ -4,10 +4,10 @@ from flask import render_template, jsonify, request, Markup
 from baseframe import localized_country_list
 from coaster.views import load_models
 from coaster.utils import getbool
-from boxoffice import app
-from boxoffice.models import Organization, ItemCollection, Item, DiscountPolicy
-from utils import xhr_only, cors, sanitize_coupons
-from boxoffice.data import indian_states
+from .. import app
+from ..models import Organization, ItemCollection, Item, DiscountPolicy
+from .utils import xhr_only, cors, sanitize_coupons
+from ..data import indian_states
 
 
 def jsonify_item(item):

@@ -6,7 +6,7 @@ from html5print import HTMLBeautifier
 from baseframe import __, forms, localized_country_list
 from baseframe.forms.sqlalchemy import QuerySelectField
 from ..models import db, Category, ItemCollection
-from boxoffice.data import indian_states, indian_states_dict
+from ..data import indian_states, indian_states_dict
 
 __all__ = ['ItemForm']
 

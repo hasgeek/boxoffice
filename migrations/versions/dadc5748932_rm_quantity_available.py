@@ -26,7 +26,7 @@ line_item = table('line_item',
 
 
 def upgrade():
-    op.drop_constraint(u'item_quantity_available_lte_quantity_total_check', 'item')
+    op.drop_constraint('item_quantity_available_lte_quantity_total_check', 'item')
     op.drop_column('item', 'quantity_available')
 
 
@@ -34,4 +34,4 @@ def downgrade():
     op.add_column('item', sa.Column('quantity_available', sa.INTEGER(), autoincrement=False, nullable=True))
     op.execute(item.update().values({'quantity_available': item.c.quantity_total - line_item.count().where(line_item.c.item_id == item.c.id).where(line_item.c.status == 0)}))
     op.alter_column('item', 'quantity_available', nullable=False)
-    op.create_check_constraint('item_quantity_available_lte_quantity_total_check', 'item', u"quantity_available <= quantity_total")
+    op.create_check_constraint('item_quantity_available_lte_quantity_total_check', 'item', "quantity_available <= quantity_total")
