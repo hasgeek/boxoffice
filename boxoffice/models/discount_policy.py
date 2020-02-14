@@ -2,7 +2,7 @@
 
 import string
 import random
-from werkzeug import cached_property
+from werkzeug.utils import cached_property
 from itsdangerous import Signer, BadSignature
 from sqlalchemy import event, DDL
 from sqlalchemy.orm.exc import MultipleResultsFound
