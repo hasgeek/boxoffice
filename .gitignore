@@ -16,3 +16,4 @@ boxoffice/static/gen/*
 *.sql.bz2
 node_modules
 boxoffice/static/build
+.pytest_cache

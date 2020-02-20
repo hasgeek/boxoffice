@@ -1,6 +1,6 @@
 language: python
 python:
-  - 3.7
+  - 3.7.6
 cache:
   directories:
     - $HOME/.cache/pip
@@ -10,6 +10,7 @@ before_script:
   - ./manage.py dbconfig | sudo -u postgres psql boxoffice_testing
 install:
   - pip install -U pip wheel
+  - pip install git+https://github.com/hasgeek/flask-babelhg/
   - pip install -r test_requirements.txt
   - pip install -r requirements.txt
   - npm install casperjs
