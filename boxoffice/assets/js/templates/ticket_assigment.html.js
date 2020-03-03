@@ -1,4 +1,10 @@
 export const TicketAssignmentTemplate = `
+  {{#if !allAssigned && count() > 1}}
+    <div class="alert alert-warning">
+      <a href="#" class="close" data-dismiss="alert" aria-label="{% trans %}Close{% endtrans %}">&times;</a>
+      <p class="text-center">Please fill in attendee details for all the tickets</p>
+    </div>
+  {{/if}}
   {{#line_items:line_item}}
     {{#if is_confirmed}}
       <div class="ticket col-sm-6 col-xs-12" id="item-{{ seq }}">
@@ -40,6 +46,12 @@ export const TicketAssignmentTemplate = `
             </div>
           {{else}}
             <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
+              {{#if !isFilled(assignee.details) }}
+                <div class="alert alert-warning">
+                  <a href="#" class="close" data-dismiss="alert" aria-label="{% trans %}Close{% endtrans %}">&times;</a>
+                  <p class="text-center">Please fill in all the details</p>
+                </div>
+              {{/if}}
               <h4 class="text-center attendee-form-title">Please fill the attendee details</h4>
               <form class="attendee-form clearfix" role="form" name="attendee-form-{{seq}}" id="attendee-details-{{seq}}">
                   <div class="group">
@@ -130,4 +142,4 @@ export const TicketAssignmentTemplate = `
       </div>
     {{/if}}
   {{/line_item}}
-`
+`;

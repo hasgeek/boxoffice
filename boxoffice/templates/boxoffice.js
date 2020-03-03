@@ -739,6 +739,7 @@ $(function() {
                 'buyer.cashReceiptURL': boxoffice.config.resources.receipt.urlFor(boxoffice.ractive.get('order.access_token')),
                 'buyer.attendeeAssignmentURL': boxoffice.config.resources.attendeeAssignment.urlFor(boxoffice.ractive.get('order.access_token'))
               });
+              window.open(boxoffice.ractive.get('buyer.attendeeAssignmentURL') + '?assign=true');
               boxoffice.ractive.fire('eventAnalytics', 'booking complete', 'completeFreeOrder success', 0);
             },
             error: function(response) {
@@ -867,6 +868,7 @@ $(function() {
             'tabs.invoice.complete': true,
             'activeTab': boxoffice.ractive.get('tabs.attendeeDetails.id')
           });
+          window.open(boxoffice.ractive.get('buyer.attendeeAssignmentURL') + '?assign=true');
 	      },
         oncomplete: function() {
           boxoffice.ractive.on('eventAnalytics', function(userAction, label, value) {
