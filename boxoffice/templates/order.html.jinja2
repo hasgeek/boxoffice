@@ -17,6 +17,7 @@
       <h1 class="item-collection-title">{{order.item_collection.title}} Ticket Assignment</h1>
       <p class="item-collection-description">{{order.item_collection.description_text}}</p>
       <p class="text-center">Receipt No: {{order.invoice_no}}</p>
+      <p class="text-center"><a class="btn btn-info" href="{{ url_for('invoice_details_form', access_token=order.access_token)}}" target="_blank">Get GST invoice</a></p>
     </div>
 
     <div class="row" id="boxoffice-order">

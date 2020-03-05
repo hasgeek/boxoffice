@@ -1,5 +1,5 @@
 export const TicketAssignmentTemplate = `
-  {{#if !allAssigned && count() > 1}}
+  {{#if !allAssigned}}
     <div class="alert alert-warning">
       <a href="#" class="close" data-dismiss="alert" aria-label="{% trans %}Close{% endtrans %}">&times;</a>
       <p class="text-center">Please fill in attendee details for all the tickets</p>

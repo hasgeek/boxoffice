@@ -67,7 +67,13 @@ export const Order = {
           return this.line_items.length;
         },
         isFilled(details) {
-          return Object.keys(details).length > 0;
+          let key;
+          for (let key in details) {
+            if (!details[key]) {
+              console.log("not filled");
+              return false;
+            }
+          }
         }
       },
       scrollTop: function(line_item_seq) {
@@ -76,26 +82,11 @@ export const Order = {
         $("html,body").animate({ scrollTop: $(domElem).offset().top }, "300");
       },
       allTicketsAssigned: function() {
-        if (order.ticketComponent.get("line_items").length > 1) {
-          order.ticketComponent.get("line_items").forEach(function(line_item) {
-            if (line_item.is_confirmed && !line_item.assignee) {
-              order.ticketComponent.set("allAssigned", false);
-            }
-          });
-        } else {
-          var line_item = order.ticketComponent.get("line_items")[0];
+        order.ticketComponent.get("line_items").forEach(function(line_item) {
           if (line_item.is_confirmed && !line_item.assignee) {
             order.ticketComponent.set("allAssigned", false);
           }
-          if (
-            line_item.is_confirmed &&
-            line_item.assignee &&
-            Object.keys(line_item.assignee.details).length == 0
-          ) {
-            order.ticketComponent.set("allAssigned", false);
-          }
-          console.log("allassigned", order.ticketComponent.get("allAssigned"));
-        }
+        });
       },
       getQueryString(paramName) {
         const urlParams = new URLSearchParams(window.location.search);
@@ -266,10 +257,7 @@ export const Order = {
       oncomplete: function() {
         order.ticketComponent.allTicketsAssigned();
         window.test = order.ticketComponent;
-        if (
-          this.getQueryString("assign") &&
-          !order.ticketComponent.get("allAssigned")
-        ) {
+        if (this.getQueryString("assign")) {
           order.ticketComponent.set("line_items.0.toAssign", true);
         }
       }
