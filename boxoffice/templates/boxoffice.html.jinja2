@@ -6,7 +6,7 @@
   <ul class="progress-indicator">
     {{#tabs:index, tab}}
       <li class="indicator {{#if id === activeTab}}active{{/if}} {{#if complete}}completed{{/if}}">
-        <span class="bubble">{{ tab+1 }}</span>
+        <span class="bubble"></span>
         <span class="stage">{{ label }}</span>
       </li>
     {{/}}
@@ -227,99 +227,88 @@
     border-radius: 15px 15px 0 0;
   }
   .progress-indicator {
-      display: -webkit-flex;
-      display: flex;
-      margin: 0;
-      padding: 0;
-      font-size: 0.8em;
-      text-transform: uppercase
+    display: -webkit-flex;
+    display: flex;
+    margin: 0;
+    padding: 0;
+    font-size: 0.8em;
+    text-transform: uppercase;
   }
   .progress-indicator>li {
-      list-style: none;
-      text-align: center;
-      width: 33.3%;
-      padding: 0;
-      margin: 0;
-      position: relative;
-      text-overflow: ellipsis;
-      color: #333;
-      display: block
+    list-style: none;
+    text-align: center;
+    width: 33.3%;
+    padding: 0;
+    margin: 0;
+    position: relative;
+    text-overflow: ellipsis;
+    color: #333;
+    display: block;
   }
   .progress-indicator>li:before {
-      display: block;
-      position: absolute;
-      top: 18px;
-      left: 50%;
-      z-index: 2;
-      width: 100%;
-      height: 3px;
-      content: '';
-      background-color: #bbb;
+    display: block;
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    z-index: 2;
+    width: 100%;
+    height: 3px;
+    content: '';
+    background-color: #bbb;
   }
   .progress-indicator>li:last-child:before {
     display: none;
   }
   .progress-indicator>li .stage {
     position: relative;
-    top: 15px;
+    top: 0;
     left: 0;
     right: 0;
     color: #333;
     font-size: 12px;
+    line-height: 12px;
+    margin-top: 5px;
     text-align: center;
     width: 100%;
     display: inline-block;
   }
   .progress-indicator>li .bubble {
-      border-radius: 50%;
-      width: 20px;
-      height: 20px;
-      font-size: 12px;
-      line-height: 20px;
-      background-color: #bbb;
-      display: block;
-      margin: 0 auto;
-      border-bottom: 1px solid #888;
-      color: #333;
-      position: relative;
-      z-index: 3;
-      top: 10px;
-  }
-  .progress-indicator>li:after {
-    content: '>';
-    font-size: 25px;
-    line-height: 0;
-    color: #bbb;
-    position: absolute;
-    top: 18px;
-    right: -2px;
-    z-index: 5;
-  }
-  .progress-indicator>li:last-child:after {
-    content: '';
-  }
-  .progress-indicator>li.active:after {
-    color: #337AB7;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+    line-height: 20px;
+    background-color: #bbb;
+    display: block;
+    margin: 0 auto;
+    border: 2px solid #bbb;
+    color: #333;
+    position: relative;
+    z-index: 3;
+    top: 0;
   }
   .progress-indicator>li.active .bubble {
-      color: #fff;
-  }
-  .progress-indicator>li.active .bubble,
-  .progress-indicator>li.active:before {
-      background-color: #337AB7;
-      border-color: #122a3f
+    background-color: #fff;
+    border-color: #5CB85C;
   }
   .progress-indicator>li.completed .bubble,
   .progress-indicator>li.completed:before {
-      background-color: #65d074;
-      border-color: #247830
+    background-color: #5CB85C;
+    border-color: #5CB85C;
   }
-  .progress-indicator>li.completed,
+  .progress-indicator>li.completed {
+    color: #5CB85C;
+  }
   .progress-indicator>li.completed:after {
-      color: #65d074;
-  }
-  .progress-indicator>li.completed .bubble {
-      color: #fff;
+    content: "\2713";
+    font-size: 20px;
+    line-height: 0;
+    color: #fff;
+    position: absolute;
+    top: 12px;
+    left: 0;
+    right: 0;
+    z-index: 5;
   }
   .payment-stages-wrapper {
     overflow: hidden;
