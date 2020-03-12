@@ -22,7 +22,8 @@ class AssigneeForm(forms.Form):
 
     def validate_email(self, field):
         existing_assignees = (
-            Assignee.query.filter(LineItem.order == self.edit_parent.order)
+            Assignee.query.join(LineItem, Item, Order)
+            .filter(LineItem.item_id == self.edit_parent.item_id)
             .filter(Order.status != ORDER_STATUS.CANCELLED)
             .filter(Assignee.current == True)
             .filter(Assignee.email == field.data)
