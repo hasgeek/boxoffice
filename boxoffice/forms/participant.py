@@ -3,7 +3,7 @@
 from baseframe import __
 import baseframe.forms as forms
 
-from ..models import Assignee, LineItem, Order, ORDER_STATUS
+from ..models import Assignee, Item, LineItem, Order, ORDER_STATUS
 
 __all__ = ['AssigneeForm']
 
