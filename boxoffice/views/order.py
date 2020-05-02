@@ -203,6 +203,20 @@ def order(item_collection):
 
     db.session.commit()
 
+    if len(order.line_items) > 0:
+        # Assign first line item to the buyer
+        first_li = order.line_items[0]
+        assignee = Assignee(
+            user=order.user,
+            line_item=first_li,
+            fullname=order.buyer_fullname,
+            email=order.buyer_email,
+            phone=order.buyer_phone,
+            current=True
+        )
+        db.session.add(assignee)
+        db.session.commit()
+
     return api_success(doc=_("New purchase order created"),
         result={'order_id': order.id,
         'order_access_token': order.access_token,

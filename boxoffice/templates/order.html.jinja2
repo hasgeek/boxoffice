@@ -17,6 +17,7 @@
       <h1 class="item-collection-title">{{order.item_collection.title}} Ticket Assignment</h1>
       <p class="item-collection-description">{{order.item_collection.description_text}}</p>
       <p class="text-center">Receipt No: {{order.invoice_no}}</p>
+      <p class="text-center"><a class="btn btn-info" href="{{ url_for('invoice_details_form', access_token=order.access_token)}}" target="_blank">Get GST invoice</a></p>
     </div>
 
     <div class="row" id="boxoffice-order">
@@ -30,5 +31,16 @@
   </div>
 {% endblock %}
 {% block footerscripts %}
+  <script type="text/javascript">
+    if (!('URLSearchParams' in window)) {
+      var polyfill = document.createElement('script');
+      polyfill.setAttribute('type', 'text/javascript');
+      polyfill.setAttribute(
+        'src',
+        'https://cdnjs.cloudflare.com/ajax/libs/url-search-params/1.1.0/url-search-params.js'
+      );
+      document.head.appendChild(polyfill);
+    }
+  </script>
   <script src='{{ asset_path('main_order') | safe }}' type="text/javascript"></script>
 {% endblock %}
