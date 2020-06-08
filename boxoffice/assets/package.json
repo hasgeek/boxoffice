@@ -14,7 +14,7 @@
     "jquery": "^3.5.0",
     "moment": "^2.18.1",
     "nprogress": "^0.2.0",
-    "ractive": "^0.8.0",
+    "ractive": "^0.10.14",
     "ractive-transitions-fly": "^0.3.0",
     "rome": "^2.1.22",
     "select2": "~4.0.8",
