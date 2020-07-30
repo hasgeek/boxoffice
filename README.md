@@ -1,4 +1,4 @@
-### Boxoffice: HasGeek's ticketing system
+### Boxoffice: Hasgeek's ticketing system
 [![Build Status](https://travis-ci.org/hasgeek/boxoffice.svg?branch=v0.2)](https://travis-ci.org/hasgeek/boxoffice)
 
 ## Asset builds
@@ -29,4 +29,4 @@ pip install -r requirements.txt
 # Production: point a WSGI gateway at website.py
 ```
 
-Copyright © 2015-2019 by [HasGeek Learning Private Limited](https://hasgeek.com/about/)
+Copyright © 2015-2020 by [Hasgeek Learning Private Limited](https://hasgeek.com/about)
