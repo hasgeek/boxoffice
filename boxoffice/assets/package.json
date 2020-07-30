@@ -1,7 +1,7 @@
 {
   "name": "hasgeek",
   "version": "1.0.0",
-  "description": "Boxoffice: HasGeek's ticketing system",
+  "description": "Boxoffice: Hasgeek's ticketing system",
   "scripts": {
     "dev": "NODE_ENV=development node_modules/.bin/webpack --progress --profile --colors",
     "build": "NODE_ENV=production node_modules/.bin/webpack --progress --profile --colors"
