@@ -3,7 +3,7 @@ window.Boxoffice = {
   config:{
     baseURL: "{{ base_url }}",
     razorpayKeyId: "{{ razorpay_key_id }}",
-    orgName: 'HasGeek',
+    orgName: 'Hasgeek',
     razorpayBanner: "https://hasgeek.com/static/img/hg-banner.png",
     states: {{ states | tojson }},
     countries: {{ countries | tojson }}

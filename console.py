@@ -253,7 +253,7 @@ def finalize_invoices(org_name, start_at, end_at):
 
 
 def resend_attendee_details_email(
-    item_collection_id, item_collection_title="", sender_team_member_name="Team HasGeek"
+    item_collection_id, item_collection_title="", sender_team_member_name="Team Hasgeek"
 ):
     ic = ItemCollection.query.get(item_collection_id)
     headers, rows = ic.fetch_all_details()
