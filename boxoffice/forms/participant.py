@@ -3,9 +3,9 @@
 from baseframe import __
 import baseframe.forms as forms
 
-from ..models import Assignee, LineItem, Order, ORDER_STATUS
+from ..models import Assignee, Item, LineItem, Order, ORDER_STATUS
 
-__all__ = ['AssigneeForm']
+__all__ = ["AssigneeForm"]
 
 
 class AssigneeForm(forms.Form):
@@ -22,7 +22,10 @@ class AssigneeForm(forms.Form):
 
     def validate_email(self, field):
         existing_assignees = (
-            Assignee.query.filter(LineItem.order == self.edit_parent.order)
+            Assignee.query.join(LineItem)
+            .join(Item)
+            .join(Order)
+            .filter(LineItem.item_id == self.edit_parent.item_id)
             .filter(Order.status != ORDER_STATUS.CANCELLED)
             .filter(Assignee.current == True)
             .filter(Assignee.email == field.data)
