@@ -17,7 +17,7 @@
     "ractive": "^0.8.0",
     "ractive-transitions-fly": "^0.3.0",
     "rome": "^2.1.22",
-    "select2": "~4.0.8",
+    "select2": "~4.0.13",
     "underscore": "~1.8.3",
     "validate-js": "^2.0.1"
   },
