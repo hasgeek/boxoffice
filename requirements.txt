@@ -17,7 +17,7 @@ html2text==2020.1.16
 premailer==3.7.0
 python-dateutil==2.8.1
 tabulate==0.8.7
-Flask-Admin==1.5.6
+Flask-Admin==1.5.7
 isoweek==1.3.3
 Flask-Migrate==2.5.3
 html5print==0.1.2
