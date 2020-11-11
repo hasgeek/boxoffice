@@ -5,7 +5,7 @@ import baseframe.forms as forms
 
 from ..models import Assignee, Item, LineItem, Order, ORDER_STATUS
 
-__all__ = ['AssigneeForm']
+__all__ = ["AssigneeForm"]
 
 
 class AssigneeForm(forms.Form):
@@ -30,7 +30,6 @@ class AssigneeForm(forms.Form):
             .filter(Assignee.current == True)
             .filter(Assignee.email == field.data)
         )
-        print(existing_assignees)
         if self.edit_obj is not None:
             existing_assignees = existing_assignees.filter(
                 Assignee.id != self.edit_obj.id

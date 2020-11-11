@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from flask import jsonify, request, g, url_for
+from flask_babelhg import get_locale
 from .. import app, lastuser
 from coaster.views import load_models, render_with
-from baseframe import localize_timezone, get_locale
+from baseframe import localize_timezone
 from ..models import Organization, ItemCollection, INVOICE_STATUS
 from .utils import check_api_access, csv_response, api_error
 from babel.dates import format_datetime
