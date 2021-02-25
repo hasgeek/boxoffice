@@ -5,7 +5,7 @@ from baseframe import localized_country_list
 from coaster.views import load_models
 from coaster.utils import getbool
 from .. import app
-from ..models import Organization, ItemCollection, Item, DiscountPolicy
+from ..models import Organization, ItemCollection, Item, DiscountPolicy, CURRENCY_SYMBOL
 from .utils import xhr_only, cors, sanitize_coupons
 from ..data import indian_states
 
@@ -85,7 +85,7 @@ def item_collection(item_collection):
         category_json = jsonify_category(category)
         if category_json:
             categories_json.append(category_json)
-    return jsonify(html=render_template('boxoffice.html.jinja2'), categories=categories_json, refund_policy=item_collection.organization.details.get('refund_policy', ''))
+    return jsonify(html=render_template('boxoffice.html.jinja2'), categories=categories_json, refund_policy=item_collection.organization.details.get('refund_policy', ''), currency=CURRENCY_SYMBOL['INR'])
 
 
 @app.route('/<org_name>/<item_collection_name>', methods=['GET', 'OPTIONS'])
