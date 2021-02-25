@@ -884,6 +884,7 @@ $(function() {
             boxoffice.ractive.preApplyDiscount(discount_coupons);
           }
 
+
           var prices = [];
           var quantityAvailable = [];
           lineItems.forEach(function(item) {
@@ -892,7 +893,7 @@ $(function() {
               prices.push(item.base_price);
             }
           });
-          $(document).trigger('boxofficeShowPriceEvents', [prices, currency, quantityAvailable]);
+          $(document).trigger('boxofficeShowPriceEvent', [prices, currency, quantityAvailable]);
         }
       });
     });
