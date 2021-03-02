@@ -164,6 +164,7 @@ $(function() {
       var lineItems = [];
       var item_map = {};
       var categories = data.categories;
+      var currency = data.currency;
 
       /* load inventory from server, initialize lineItems with
       their quantities set to 0 */
@@ -184,7 +185,8 @@ $(function() {
             'has_higher_price': item.has_higher_price,
             'discount_policies': item.discount_policies,
             'quantity_available': item.quantity_available,
-            'is_available': item.is_available
+            'is_available': item.is_available,
+            'currency': currency,
           });
         });
       });
@@ -881,6 +883,17 @@ $(function() {
           if (discount_coupons.length) {
             boxoffice.ractive.preApplyDiscount(discount_coupons);
           }
+
+
+          var prices = [];
+          var quantityAvailable = [];
+          lineItems.forEach(function(item) {
+            quantityAvailable.push(item.quantity_available);
+            if(item.is_available) {
+              prices.push(item.base_price);
+            }
+          });
+          $(document).trigger('boxofficeShowPriceEvent', [prices, currency, quantityAvailable]);
         }
       });
     });
