@@ -11,7 +11,7 @@ jsmin==2.2.2
 pytz==2021.1
 psycopg2==2.8.6
 wtforms_json==0.3.3
-rq==1.7.0
+rq==1.8.0
 itsdangerous==1.1.0
 html2text==2020.1.16
 premailer==3.7.0
