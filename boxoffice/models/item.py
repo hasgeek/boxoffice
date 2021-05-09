@@ -97,7 +97,7 @@ class Item(BaseScopedNameMixin, db.Model):
         return Price.query.filter(
             Price.end_at > current_price.end_at,
             Price.item == self,
-            Price.discount_policy.is_(None),
+            Price.discount_policy_id.is_(None),
         ).notempty()
 
     def discounted_price(self, discount_policy):
@@ -108,7 +108,7 @@ class Item(BaseScopedNameMixin, db.Model):
 
     def standard_prices(self):
         return Price.query.filter(
-            Price.item == self, Price.discount_policy.is_(None)
+            Price.item == self, Price.discount_policy_id.is_(None)
         ).order_by(Price.start_at.desc())
 
     def price_at(self, timestamp):
@@ -118,7 +118,7 @@ class Item(BaseScopedNameMixin, db.Model):
                 Price.item == self,
                 Price.start_at <= timestamp,
                 Price.end_at > timestamp,
-                Price.discount_policy.is_(None),
+                Price.discount_policy_id.is_(None),
             )
             .order_by(Price.created_at.desc())
             .first()
