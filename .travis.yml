@@ -1,6 +1,12 @@
 language: python
 python:
-  - 3.7.6
+  - 3.7
+addons:
+  postgresql: 12
+  apt:
+    packages:
+      - postgresql-12
+      - postgresql-client-12
 cache:
   directories:
     - $HOME/.cache/pip
@@ -21,8 +27,6 @@ script:
   - ./runtests.sh
 after_success:
   - coveralls
-addons:
-  postgresql: '12'
 services:
   - redis-server
 notifications:
