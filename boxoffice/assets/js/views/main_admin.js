@@ -1,31 +1,30 @@
-
-var _ = require("underscore");
+var _ = require('underscore');
 var NProgress = require('nprogress');
-var Backbone = require("backbone");
-import {Router} from './router';
-import {FormView} from './form_view.js';
+var Backbone = require('backbone');
+import { Router } from './router';
+import { FormView } from './form_view.js';
 
 let appRouter = new Router();
-Backbone.history.start({pushState: true, root: appRouter.url_root});
+Backbone.history.start({ pushState: true, root: appRouter.url_root });
 
 export const eventBus = _.clone(Backbone.Events);
 
-export const navigateTo = function(url){
-  NProgress.configure({ showSpinner: false}).start();
+export const navigateTo = function (url) {
+  NProgress.configure({ showSpinner: false }).start();
   //Relative paths(without '/admin') are defined in router.js
   eventBus.trigger('navigate', url.replace('/admin', ''));
   // Scroll to top of the page
   window.scrollTo(0, 0);
-}
+};
 
-function handleNavigation(){
+function handleNavigation() {
   /*
     To trigger page transitions through pushState, add `data-navigate` to
     the anchor tag and specify the URL in the `href` attribute
   */
-  document.addEventListener('click', function(event){
+  document.addEventListener('click', function (event) {
     var ele = event.target;
-    if ('navigate' in ele.dataset){
+    if ('navigate' in ele.dataset) {
       event.preventDefault();
       navigateTo(ele.getAttribute('href'));
     }
@@ -33,14 +32,14 @@ function handleNavigation(){
 
   eventBus.on('navigate', function (msg) {
     // Set `boxofficeFirstLoad` to `false` since this is this isn't the first loaded page anymore
-    if (window.boxofficeFirstLoad){
+    if (window.boxofficeFirstLoad) {
       window.boxofficeFirstLoad = false;
     }
     FormView.hide();
-    appRouter.navigate(msg, {trigger: true});
+    appRouter.navigate(msg, { trigger: true });
   });
 }
 
-$(function(){
-  handleNavigation();  
+$(function () {
+  handleNavigation();
 });

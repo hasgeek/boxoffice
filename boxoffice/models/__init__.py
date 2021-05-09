@@ -1,21 +1,29 @@
-# -*- coding: utf-8 -*-
 # flake8: noqa
 
-from coaster.sqlalchemy import (TimestampMixin, BaseMixin, BaseNameMixin, BaseScopedNameMixin,
-    BaseScopedIdNameMixin, BaseScopedIdMixin, IdMixin, JsonDict, MarkdownColumn, UuidMixin)
+from coaster.db import db
+from coaster.sqlalchemy import (
+    BaseMixin,
+    BaseNameMixin,
+    BaseScopedIdMixin,
+    BaseScopedIdNameMixin,
+    BaseScopedNameMixin,
+    IdMixin,
+    JsonDict,
+    MarkdownColumn,
+    TimestampMixin,
+    UuidMixin,
+)
 
 TimestampMixin.__with_timezone__ = True
 
-from coaster.db import db
-
-from .utils import *
-from .user import *
-from .item_collection import *
-from .category import *
-from .item import *
-from .discount_policy import *
-from .order import *
-from .line_item_discounter import *
-from .line_item import *
-from .payment import *
-from .invoice import *
+from .category import *  # isort:skip
+from .discount_policy import *  # isort:skip
+from .invoice import *  # isort:skip
+from .item import *  # isort:skip
+from .item_collection import *  # isort:skip
+from .line_item import *  # isort:skip
+from .line_item_discounter import *  # isort:skip
+from .order import *  # isort:skip
+from .payment import *  # isort:skip
+from .user import *  # isort:skip
+from .utils import *  # isort:skip

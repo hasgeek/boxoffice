@@ -1,10 +1,9 @@
-
 var Ractive = require('ractive');
-var c3 = require("c3");
-import {eventBus} from './main_admin.js'
+var c3 = require('c3');
+import { eventBus } from './main_admin.js';
 var NProgress = require('nprogress');
-import {Util, fetch, urlFor, setPageTitle} from '../models/util.js';
-import {SideBarView} from './sidebar.js';
+import { Util, fetch, urlFor, setPageTitle } from '../models/util.js';
+import { SideBarView } from './sidebar.js';
 
 const ItemTemplate = `
   <div class="content-wrapper clearfix">
@@ -128,18 +127,18 @@ const ItemTemplate = `
     <div class="col-md-10 col-md-offset-1 no-padding">
     </div>
   </div>
-`
+`;
 
 export const DemandGraphTemplate = `
   <div class="chart-wrapper card">
     <div id="chart" class="sales-chart">
     </div>
   </div>
-`
+`;
 
 let DemandGraph = Ractive.extend({
   template: DemandGraphTemplate,
-  format_columns: function(){
+  format_columns: function () {
     let price_counts = this.parent.get('demand_curve');
     let prices = Object.keys(price_counts);
     let quantity_demanded_counts = ['quantity_demanded'];
@@ -151,44 +150,53 @@ let DemandGraph = Ractive.extend({
     prices.unshift('x');
     return [prices, quantity_demanded_counts, demand_counts];
   },
-  oncomplete: function(){
+  oncomplete: function () {
     this.chart = c3.generate({
       data: {
         x: 'x',
         columns: this.format_columns(),
         types: {
           quantity_demanded: 'area',
-          demand: 'spline'
+          demand: 'spline',
         },
         axes: {
-          demand: 'y2'
-        }
+          demand: 'y2',
+        },
       },
       axis: {
         x: {
-          label: 'Price'
+          label: 'Price',
         },
         y: {
-          label: 'Quantity demanded'
+          label: 'Quantity demanded',
         },
         y2: {
           show: true,
-          label: 'Demand'
-        }
-      }
+          label: 'Demand',
+        },
+      },
     });
-  }
+  },
 });
 
 export const ItemView = {
-  render: function({item_id}={}) {
+  render: function ({ item_id } = {}) {
     fetch({
-      url: urlFor('view', {resource: 'item', id: item_id, root: true})
-    }).then(function({org_name, demand_curve, org_title, ic_id, ic_title, item, prices, discount_policies}) {
+      url: urlFor('view', { resource: 'item', id: item_id, root: true }),
+    }).then(function ({
+      org_name,
+      demand_curve,
+      org_title,
+      ic_id,
+      ic_title,
+      item,
+      prices,
+      discount_policies,
+    }) {
       let itemComponent = new Ractive({
         el: '#main-content-area',
         template: ItemTemplate,
-        components: {DemandGraph: DemandGraph},
+        components: { DemandGraph: DemandGraph },
         data: {
           item: item,
           org_name: org_name,
@@ -199,14 +207,14 @@ export const ItemView = {
             return Util.formatToIndianRupee(amount);
           },
           formatDateTime: function (datetime) {
-            return Util.formatDateTime(datetime, "dddd, MMMM Do YYYY, h:mmA");
+            return Util.formatDateTime(datetime, 'dddd, MMMM Do YYYY, h:mmA');
           },
         },
       });
 
-      SideBarView.render('items', {org_name, org_title, ic_id, ic_title});
-      setPageTitle("Item", item.title);
+      SideBarView.render('items', { org_name, org_title, ic_id, ic_title });
+      setPageTitle('Item', item.title);
       NProgress.done();
     });
-  }
-}
+  },
+};

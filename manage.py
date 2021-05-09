@@ -1,24 +1,25 @@
 #!/usr/bin/env python
 
 
-from coaster.manage import manager, init_manager
-
+from boxoffice import app
+from boxoffice.models import db
+from coaster.manage import init_manager, manager
 import boxoffice
 import boxoffice.models as models
 import boxoffice.views as views
-from boxoffice.models import db
-from boxoffice import app
 
 
 @manager.command
 def dbconfig():
-    """Show required database configuration"""
-    print('''
+    """Show required database configuration."""
+    print(  # NOQA: T001
+        '''
 -- Pipe this into psql as a super user. Example:
 -- ./manage.py dbconfig | sudo -u postgres psql boxoffice
 
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
-''')
+'''
+    )
 
 
 if __name__ == '__main__':

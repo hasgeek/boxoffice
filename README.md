@@ -1,4 +1,5 @@
 ### Boxoffice: Hasgeek's ticketing system
+
 [![Build Status](https://travis-ci.org/hasgeek/boxoffice.svg?branch=v0.2)](https://travis-ci.org/hasgeek/boxoffice)
 
 ## Asset builds

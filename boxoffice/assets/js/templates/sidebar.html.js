@@ -13,4 +13,4 @@ export const SideBarTemplate = `
       </div>
     </div>
   {{/}}
-`
+`;

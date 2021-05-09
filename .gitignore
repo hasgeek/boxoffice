@@ -1,6 +1,7 @@
 *.pyc
 .sass-cache
 error.log
+error.log.*
 instance/settings.py
 instance/production.py
 instance/development.py

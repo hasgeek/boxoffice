@@ -130,4 +130,4 @@ export const TicketAssignmentTemplate = `
       </div>
     {{/if}}
   {{/line_item}}
-`
+`;

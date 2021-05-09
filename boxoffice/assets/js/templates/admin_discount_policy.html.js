@@ -1,4 +1,3 @@
-
 export const DiscountPolicyTemplate = `
   <div class="content-wrapper">
     <h1 class="header">{{ orgTitle }}</h1>
@@ -189,10 +188,10 @@ export const DiscountPolicyTemplate = `
                 </div>
               {{elseif showPolicyForm}}
                 <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
-                  <h4 class="text-center form-title">Edit</h4>   
+                  <h4 class="text-center form-title">Edit</h4>
                   <form role="form" id="policy-form-{{ id }}" name="edit-policy-form-{{ id }}">
                     <input type="hidden" name="discount_policy_id" value="{{ id }}" />
-                    <div class="group">   
+                    <div class="group">
                       <input type="text" name="title" value="{{ title }}" twoway="false" class="group-input {{#title}}filled{{/}}" />
                       <span class="bar"></span>
                       <label class="group-label">Title</label>
@@ -202,7 +201,7 @@ export const DiscountPolicyTemplate = `
                     {{#if is_price_based}}
                       <input type="hidden" name="is_price_based" value=1 />
                       {{#price_details}}
-                        <div class="group">   
+                        <div class="group">
                           <input type="number" name="amount" value="{{ amount }}" min="1" twoway="false" class="group-input {{#if amount != ""}}filled{{/if}}" />
                           <span class="bar"></span>
                           <label class="group-label">Amount</label>
@@ -224,7 +223,7 @@ export const DiscountPolicyTemplate = `
                       {{/}}
                     {{else}}
                       <input type="hidden" name="is_price_based" value=0 />
-                      <div class="group">   
+                      <div class="group">
                         <input type="number" name="percentage" value="{{ percentage }}" min="1" twoway="false" class="group-input {{#if percentage != ""}}filled{{/if}}" />
                         <span class="bar"></span>
                         <label class="group-label">Percentage</label>
@@ -235,7 +234,7 @@ export const DiscountPolicyTemplate = `
 
                     {{#if is_automatic}}
                       <input type="hidden" name="discount_type" value=0 />
-                      <div class="group">   
+                      <div class="group">
                         <input type="number" name="item_quantity_min" value="{{ item_quantity_min }}" min="1" twoway="false" class="group-input {{#if item_quantity_min != ""}}filled{{/if}} longer-labeltxt" />
                         <span class="bar"></span>
                         <label class="group-label">Minimum number of a particular item that needs to be bought for automatic discount to apply</label>
@@ -243,14 +242,14 @@ export const DiscountPolicyTemplate = `
                       </div>
                     {{else}}
                       <input type="hidden" name="discount_type" value=1 />
-                      <div class="group">   
+                      <div class="group">
                         <input type="text" name="discount_code_base" value="{{ discount_code_base }}" twoway="false" class="group-input {{#discount_code_base}}filled{{/}}" />
                         <span class="bar"></span>
                         <label class="group-label">Discount coupon prefix</label>
                         {{#errormsg.discount_code_base}}<p class="form-error-msg">{{ errormsg.discount_code_base }}</p>{{/}}
                       </div>
                       <p class="form-help-text">Discount coupon prefix is for generating bulk coupons<br>Eg:- 'hasgeek-volunteer'</p>
-                      <div class="group">   
+                      <div class="group">
                         <input type="number" name="bulk_coupon_usage_limit" value="{{ bulk_coupon_usage_limit }}" min="1" twoway="false" class="group-input {{#if bulk_coupon_usage_limit != ""}}filled{{/if}} longer-labeltxt" />
                         <span class="bar"></span>
                         <label class="group-label">Number of times each bulk coupon can be used</label>
@@ -260,7 +259,7 @@ export const DiscountPolicyTemplate = `
                     {{/if}}
 
                     <p class="field-title filled">What is the discount for?</p>
-                    <div class="group"> 
+                    <div class="group">
                       <select {{#if is_price_based}}name="item" id="add-item-{{ id }}"{{else}}name="items" id="add-items-{{ id }}" multiple{{/if}} class="items-select2">
                         {{#dp_items:item}}
                           <option value="{{ dp_items[item].id }}" selected title="{{ dp_items[item].title }}">{{ dp_items[item].title }}</option>
@@ -285,7 +284,7 @@ export const DiscountPolicyTemplate = `
                 <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
                   <h4 class="text-center form-title">Generate coupon</h4>
                   <form role="form" id="new-coupon-{{ id }}" name="generate-coupon-form-{{ id }}">
-                    <div class="group">   
+                    <div class="group">
                       <input type="number" name="count" value="{{ .count }}" min="1" class="group-input {{#if count != undefined}}filled{{/if}}" />
                       <span class="bar"></span>
                       <label class="group-label">How many coupons?</label>
@@ -293,7 +292,7 @@ export const DiscountPolicyTemplate = `
                     </div>
 
                     {{#if count == 1}}
-                      <div class="group">   
+                      <div class="group">
                         <input type="text" name="code" value="{{ .coupon_code }}" class="group-input {{#coupon_code}}filled{{/}}" />
                         <span class="bar"></span>
                         <label class="group-label">What is the coupon code?</label>
@@ -443,4 +442,4 @@ export const DiscountPolicyTemplate = `
       <p class="text-center">Currently no discount policies.</p>
     {{/if}}
   </div>
-`
+`;

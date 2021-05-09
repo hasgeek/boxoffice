@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 indian_states = [
     {'short_code': 1, 'name': 'Jammu and Kashmir', 'short_code_text': 'JK'},
     {'short_code': 2, 'name': 'Himachal Pradesh', 'short_code_text': 'HP'},
@@ -37,9 +35,9 @@ indian_states = [
     {'short_code': 34, 'name': 'Puducherry', 'short_code_text': 'PY'},
     {'short_code': 35, 'name': 'Andaman and Nicobar Islands', 'short_code_text': 'AN'},
     {'short_code': 36, 'name': 'Telangana', 'short_code_text': 'TG'},
-    {'short_code': 37, 'name': 'Andhra Pradesh (New)', 'short_code_text': 'AD'}
-    ]
+    {'short_code': 37, 'name': 'Andhra Pradesh (New)', 'short_code_text': 'AD'},
+]
 
-indian_states_dict = dict((d["short_code_text"], d) for d in indian_states)
+indian_states_dict = {d["short_code_text"]: d for d in indian_states}
 
 short_codes = [state['short_code'] for state in indian_states]

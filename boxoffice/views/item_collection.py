@@ -1,18 +1,22 @@
-# -*- coding: utf-8 -*-
+from flask import Markup, jsonify, render_template, request
 
-from flask import render_template, jsonify, request, Markup
 from baseframe import localized_country_list
-from coaster.views import load_models
 from coaster.utils import getbool
+from coaster.views import load_models
+
 from .. import app
-from ..models import Organization, ItemCollection, Item, DiscountPolicy, CURRENCY_SYMBOL
-from .utils import xhr_only, cors, sanitize_coupons
 from ..data import indian_states
+from ..models import CURRENCY_SYMBOL, DiscountPolicy, Item, ItemCollection, Organization
+from .utils import cors, sanitize_coupons, xhr_only
 
 
 def jsonify_item(item):
     if item.restricted_entry:
-        code_list = sanitize_coupons(request.args.getlist('code')) if 'code' in request.args else None
+        code_list = (
+            sanitize_coupons(request.args.getlist('code'))
+            if 'code' in request.args
+            else None
+        )
         if not code_list or not DiscountPolicy.is_valid_access_coupon(item, code_list):
             return None
 
@@ -34,9 +38,15 @@ def jsonify_item(item):
         'price_category': price.title,
         'price_valid_upto': price.end_at,
         'has_higher_price': item.has_higher_price(price),
-        'discount_policies': [{'id': policy.id, 'title': policy.title, 'is_automatic': policy.is_automatic}
-                              for policy in item.discount_policies]
-        }
+        'discount_policies': [
+            {
+                'id': policy.id,
+                'title': policy.title,
+                'is_automatic': policy.is_automatic,
+            }
+            for policy in item.discount_policies
+        ],
+    }
 
 
 def jsonify_category(category):
@@ -51,51 +61,64 @@ def jsonify_category(category):
             'title': category.title,
             'name': category.name,
             'item_collection_id': category.item_collection_id,
-            'items': category_items
-            }
+            'items': category_items,
+        }
 
 
 def render_boxoffice_js():
     return render_template(
-        'boxoffice.js',
-        base_url=request.url_root.rstrip('/'), razorpay_key_id=app.config['RAZORPAY_KEY_ID'],
-        states=[{'name': state['name'], 'code': state['short_code_text']}
-            for state in sorted(indian_states, key=lambda k: k['name'])],
-        countries=[{'name': name, 'code': code} for code, name in localized_country_list()]
-        )
+        'boxoffice.js.jinja2',
+        base_url=request.url_root.rstrip('/'),
+        razorpay_key_id=app.config['RAZORPAY_KEY_ID'],
+        states=[
+            {'name': state['name'], 'code': state['short_code_text']}
+            for state in sorted(indian_states, key=lambda k: k['name'])
+        ],
+        countries=[
+            {'name': name, 'code': code} for code, name in localized_country_list()
+        ],
+    )
 
 
 @app.route('/api/1/boxoffice.js')
 @cors
 def boxofficejs():
-    return jsonify({
-        'script': render_boxoffice_js()
-        })
+    return jsonify({'script': render_boxoffice_js()})
 
 
 @app.route('/ic/<item_collection>', methods=['GET', 'OPTIONS'])
 @xhr_only
 @cors
-@load_models(
-    (ItemCollection, {'id': 'item_collection'}, 'item_collection')
-    )
+@load_models((ItemCollection, {'id': 'item_collection'}, 'item_collection'))
 def item_collection(item_collection):
     categories_json = []
     for category in item_collection.categories:
         category_json = jsonify_category(category)
         if category_json:
             categories_json.append(category_json)
-    return jsonify(html=render_template('boxoffice.html.jinja2'), categories=categories_json, refund_policy=item_collection.organization.details.get('refund_policy', ''), currency=CURRENCY_SYMBOL['INR'])
+    return jsonify(
+        html=render_template('boxoffice.html.jinja2'),
+        categories=categories_json,
+        refund_policy=item_collection.organization.details.get('refund_policy', ''),
+        currency=CURRENCY_SYMBOL['INR'],
+    )
 
 
 @app.route('/<org_name>/<item_collection_name>', methods=['GET', 'OPTIONS'])
 @load_models(
     (Organization, {'name': 'org_name'}, 'organization'),
-    (ItemCollection, {'name': 'item_collection_name', 'organization': 'organization'}, 'item_collection')
-    )
+    (
+        ItemCollection,
+        {'name': 'item_collection_name', 'organization': 'organization'},
+        'item_collection',
+    ),
+)
 def item_collection_listing(organization, item_collection):
     show_title = getbool(request.args.get('show_title', True))
-    return render_template('item_collection_listing.html.jinja2',
+    return render_template(
+        'item_collection_listing.html.jinja2',
         organization=organization,
         item_collection=item_collection,
-        show_title=show_title, boxoffice_js=Markup(render_boxoffice_js()))
+        show_title=show_title,
+        boxoffice_js=Markup(render_boxoffice_js()),
+    )

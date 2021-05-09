@@ -1,4 +1,4 @@
-"""create_invoice
+"""create_invoice.
 
 Revision ID: 1a22f5035244
 Revises: 36f458047cfd
@@ -16,7 +16,8 @@ import sqlalchemy_utils
 
 
 def upgrade():
-    op.create_table('invoice',
+    op.create_table(
+        'invoice',
         sa.Column('created_at', sa.DateTime(), nullable=False),
         sa.Column('updated_at', sa.DateTime(), nullable=False),
         sa.Column('status', sa.SmallInteger(), nullable=False),
@@ -34,16 +35,35 @@ def upgrade():
         sa.Column('postcode', sa.Unicode(length=8), nullable=True),
         sa.Column('buyer_taxid', sa.Unicode(length=255), nullable=True),
         sa.Column('seller_taxid', sa.Unicode(length=255), nullable=True),
-        sa.Column('customer_order_id', sqlalchemy_utils.types.uuid.UUIDType(binary=False), nullable=False),
+        sa.Column(
+            'customer_order_id',
+            sqlalchemy_utils.types.uuid.UUIDType(binary=False),
+            nullable=False,
+        ),
         sa.Column('organization_id', sa.Integer(), nullable=False),
-        sa.Column('id', sqlalchemy_utils.types.uuid.UUIDType(binary=False), nullable=False),
-        sa.ForeignKeyConstraint(['customer_order_id'], ['customer_order.id'], ),
-        sa.ForeignKeyConstraint(['organization_id'], ['organization.id'], ),
+        sa.Column(
+            'id', sqlalchemy_utils.types.uuid.UUIDType(binary=False), nullable=False
+        ),
+        sa.ForeignKeyConstraint(
+            ['customer_order_id'],
+            ['customer_order.id'],
+        ),
+        sa.ForeignKeyConstraint(
+            ['organization_id'],
+            ['organization.id'],
+        ),
         sa.PrimaryKeyConstraint('id'),
-        sa.UniqueConstraint('organization_id', 'invoice_no')
-        )
-    op.create_index(op.f('ix_invoice_customer_order_id'), 'invoice', ['customer_order_id'], unique=False)
-    op.add_column('item_collection', sa.Column('tax_type', sa.Unicode(length=80), nullable=True))
+        sa.UniqueConstraint('organization_id', 'invoice_no'),
+    )
+    op.create_index(
+        op.f('ix_invoice_customer_order_id'),
+        'invoice',
+        ['customer_order_id'],
+        unique=False,
+    )
+    op.add_column(
+        'item_collection', sa.Column('tax_type', sa.Unicode(length=80), nullable=True)
+    )
 
 
 def downgrade():

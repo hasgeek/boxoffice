@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
-
 from baseframe import __
 import baseframe.forms as forms
 
-from ..models import Assignee, Item, LineItem, Order, ORDER_STATUS
+from ..models import ORDER_STATUS, Assignee, Item, LineItem, Order
 
 __all__ = ["AssigneeForm"]
 
@@ -27,7 +25,7 @@ class AssigneeForm(forms.Form):
             .join(Order)
             .filter(LineItem.item_id == self.edit_parent.item_id)
             .filter(Order.status != ORDER_STATUS.CANCELLED)
-            .filter(Assignee.current == True)
+            .filter(Assignee.current.is_(True))
             .filter(Assignee.email == field.data)
         )
         if self.edit_obj is not None:

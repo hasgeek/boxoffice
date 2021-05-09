@@ -1,18 +1,28 @@
-# -*- coding: utf-8 -*-
-
-import datetime
-import requests
-from boxoffice import app, db
-from boxoffice.models import Order, OnlinePayment, PaymentTransaction, TRANSACTION_TYPE, ORDER_STATUS
-from boxoffice.models.payment import CURRENCY
 from decimal import Decimal
+import datetime
+
+import requests
+
+from boxoffice import app, db
+from boxoffice.models import (
+    ORDER_STATUS,
+    TRANSACTION_TYPE,
+    OnlinePayment,
+    Order,
+    PaymentTransaction,
+)
+from boxoffice.models.payment import CURRENCY
 
 base_url = 'https://api.razorpay.com/v1'
 
 
 def get_refunds(paymentid):
-    url = '{base_url}/payments/{paymentid}/refunds'.format(base_url=base_url, paymentid=paymentid)
-    resp = requests.get(url, auth=(app.config['RAZORPAY_KEY_ID'], app.config['RAZORPAY_KEY_SECRET']))
+    url = '{base_url}/payments/{paymentid}/refunds'.format(
+        base_url=base_url, paymentid=paymentid
+    )
+    resp = requests.get(
+        url, auth=(app.config['RAZORPAY_KEY_ID'], app.config['RAZORPAY_KEY_SECRET'])
+    )
     return resp.json()
 
 
@@ -38,14 +48,26 @@ def sync_refunds():
         for refund in payment.order.refund_transactions:
             if not refund.pg_refundid:
                 refund_epoch_dt = (refund.created_at - epoch).total_seconds()
-                possible_rp_refunds = [rp_refund
+                possible_rp_refunds = [
+                    rp_refund
                     for rp_refund in rp_refunds['items']
                     if rp_refund['id'] not in used_pg_refundids
-                    and amount_in_rupees(rp_refund['amount']) == refund.amount]
-                correspongding_rp_refund = min(possible_rp_refunds,
-                    key=lambda rp_refund: abs(rp_refund['created_at'] - refund_epoch_dt))
-                if not correspongding_rp_refund or amount_in_paise(refund.amount) != correspongding_rp_refund['amount']:
-                    raise "Oops! No refund found for {refundid}.".format(refundid=refund.id)
+                    and amount_in_rupees(rp_refund['amount']) == refund.amount
+                ]
+                correspongding_rp_refund = min(
+                    possible_rp_refunds,
+                    key=lambda rp_refund: abs(
+                        rp_refund['created_at'] - refund_epoch_dt
+                    ),
+                )
+                if (
+                    not correspongding_rp_refund
+                    or amount_in_paise(refund.amount)
+                    != correspongding_rp_refund['amount']
+                ):
+                    raise "Oops! No refund found for {refundid}.".format(
+                        refundid=refund.id
+                    )
                 refund.pg_refundid = correspongding_rp_refund['id']
                 used_pg_refundids.append(correspongding_rp_refund['id'])
     db.session.commit()
@@ -83,16 +105,24 @@ def import_missing_refunds():
         rp_refunds = get_refunds(payment.pg_paymentid)
         if rp_refunds.get('items'):
             for rp_refund in rp_refunds['items']:
-                refund = PaymentTransaction.query.filter_by(pg_refundid=rp_refund['id']).one_or_none()
+                refund = PaymentTransaction.query.filter_by(
+                    pg_refundid=rp_refund['id']
+                ).one_or_none()
                 if not refund:
-                    db.session.add(PaymentTransaction(
-                        online_payment=payment,
-                        order=payment.order,
-                        amount=amount_in_rupees(rp_refund['amount']),
-                        pg_refundid=rp_refund['id'],
-                        created_at=datetime.datetime.utcfromtimestamp(rp_refund['created_at']),
-                        refunded_at=datetime.datetime.utcfromtimestamp(rp_refund['created_at']),
-                        transaction_type=TRANSACTION_TYPE.REFUND,
-                        currency=CURRENCY.INR
-                        ))
+                    db.session.add(
+                        PaymentTransaction(
+                            online_payment=payment,
+                            order=payment.order,
+                            amount=amount_in_rupees(rp_refund['amount']),
+                            pg_refundid=rp_refund['id'],
+                            created_at=datetime.datetime.utcfromtimestamp(
+                                rp_refund['created_at']
+                            ),
+                            refunded_at=datetime.datetime.utcfromtimestamp(
+                                rp_refund['created_at']
+                            ),
+                            transaction_type=TRANSACTION_TYPE.REFUND,
+                            currency=CURRENCY.INR,
+                        )
+                    )
     db.session.commit()

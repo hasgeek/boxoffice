@@ -1,4 +1,4 @@
-"""add_notes_and_refund_timestamp_to_transaction
+"""add_notes_and_refund_timestamp_to_transaction.
 
 Revision ID: 18576fdffd86
 Revises: 4246213b032b
@@ -15,11 +15,25 @@ import sqlalchemy as sa
 
 
 def upgrade():
-    op.add_column('payment_transaction', sa.Column('internal_note', sa.Unicode(length=250), nullable=True))
-    op.add_column('payment_transaction', sa.Column('refund_description', sa.Unicode(length=250), nullable=True))
-    op.add_column('payment_transaction', sa.Column('note_to_user_html', sa.UnicodeText(), nullable=True))
-    op.add_column('payment_transaction', sa.Column('note_to_user_text', sa.UnicodeText(), nullable=True))
-    op.add_column('payment_transaction', sa.Column('refunded_at', sa.DateTime(), nullable=True))
+    op.add_column(
+        'payment_transaction',
+        sa.Column('internal_note', sa.Unicode(length=250), nullable=True),
+    )
+    op.add_column(
+        'payment_transaction',
+        sa.Column('refund_description', sa.Unicode(length=250), nullable=True),
+    )
+    op.add_column(
+        'payment_transaction',
+        sa.Column('note_to_user_html', sa.UnicodeText(), nullable=True),
+    )
+    op.add_column(
+        'payment_transaction',
+        sa.Column('note_to_user_text', sa.UnicodeText(), nullable=True),
+    )
+    op.add_column(
+        'payment_transaction', sa.Column('refunded_at', sa.DateTime(), nullable=True)
+    )
 
 
 def downgrade():

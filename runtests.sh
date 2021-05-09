@@ -1,6 +1,11 @@
-#!/bin/sh
+#!/bin/bash
 set -e
-export PYTHONIOENCODING="UTF-8"
 export FLASK_ENV="TESTING"
-coverage run -m pytest "$@"
-coverage report -m
+if [ -f secrets.test ]; then
+	source ./secrets.test
+fi
+if [ $# -eq 0 ]; then
+    pytest --cov=boxoffice
+else
+    pytest "$@"
+fi

@@ -7,7 +7,7 @@ export const OrgReportTemplate = `
       </div>
       <div class="content">
         <div class="content-box">
-          <form role="form" id="report-form"> 
+          <form role="form" id="report-form">
             <div class="group-select">
               <p class="field-title filled">Report type</p>
               <select name="report-type" value="{{ reportType }}">
@@ -22,7 +22,7 @@ export const OrgReportTemplate = `
                 </p>
               {{/if}}
             </div>
-            <div class="btn-wrapper"> 
+            <div class="btn-wrapper">
               <a href="{{ reportsUrl() }}" download="{{ reportsFilename() }}" class="boxoffice-button boxoffice-button-action">Download</a>
             </div>
           </form>
@@ -30,4 +30,4 @@ export const OrgReportTemplate = `
       </div>
     </div>
   </div>
-`
+`;

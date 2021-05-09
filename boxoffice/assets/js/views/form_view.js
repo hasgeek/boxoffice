@@ -1,13 +1,12 @@
-
-var _ = require("underscore");
+var _ = require('underscore');
 var Ractive = require('ractive');
 var NProgress = require('nprogress');
-import {fetch, Util, formErrorHandler} from '../models/util.js';
-import {BaseframeForm} from './baseframe_form.js';
+import { fetch, Util, formErrorHandler } from '../models/util.js';
+import { BaseframeForm } from './baseframe_form.js';
 
 /*
 ** `FormView` provides an interface to show a form to create or edit a resource.
-** 
+**
 ** `FormView` accepts the following parameters:
 ** `url`: The `url` from which a resource's form needs to be loaded
 ** `title`: The title for the view
@@ -42,20 +41,20 @@ let FormViewSliderTemplate = `
 export const FormView = new Ractive({
   el: '#form-view',
   template: FormViewSliderTemplate,
-  components: {BaseframeForm: BaseframeForm},
+  components: { BaseframeForm: BaseframeForm },
   data: {
     shown: false,
     title: '',
     formHTML: '',
     errors: '',
-    onHide: function(){}
+    onHide: function () {},
   },
-  load: function(options){
-    fetch({url: options.url}).then((response) => {
+  load: function (options) {
+    fetch({ url: options.url }).then((response) => {
       this.hide();
       this.set('title', options.title);
       this.set('formHTML', response.form_template);
-      if (options.onHide){
+      if (options.onHide) {
         this.set('onHide', options.onHide);
       }
       this.show();
@@ -64,22 +63,28 @@ export const FormView = new Ractive({
       var onSuccess = (responseData) => {
         this.hide();
         options.onSuccess(responseData);
-      }
+      };
       var onError = (response) => {
         var errors = formErrorHandler(formId, response);
         this.set('errors', errors);
         if (_.isFunction(options.onError)) {
           options.onError(response);
         }
-      }
-      Baseframe.Forms.handleFormSubmit(formId, options.url, onSuccess, onError, {});
+      };
+      Baseframe.Forms.handleFormSubmit(
+        formId,
+        options.url,
+        onSuccess,
+        onError,
+        {}
+      );
       NProgress.done();
     });
   },
-  show: function(){
+  show: function () {
     this.set('shown', true);
   },
-  hide: function(){
+  hide: function () {
     this.set('shown', false);
   },
   oncomplete: function () {
@@ -87,23 +92,27 @@ export const FormView = new Ractive({
       jquery-timepicker adds a div.ui-timepicker-wrapper to the body, don't close the modal
       when user selects time from the timepicker dropdown.
     */
-    $(document).on("click", function(event) {
-      if (!$(event.target).closest('#form-view .content-slider').length && !$(event.target).is('#form-view .content-slider') && !$(event.target).closest('.ui-timepicker-wrapper').length) {
+    $(document).on('click', function (event) {
+      if (
+        !$(event.target).closest('#form-view .content-slider').length &&
+        !$(event.target).is('#form-view .content-slider') &&
+        !$(event.target).closest('.ui-timepicker-wrapper').length
+      ) {
         FormView.fire('hide');
       }
     });
 
     //On pressing ESC, close the modal
-    $(document).keydown(function(event) {
+    $(document).keydown(function (event) {
       if (event.keyCode === 27) {
         event.preventDefault();
         FormView.fire('hide');
       }
     });
-  }
+  },
 });
 
-FormView.on('hide', function(event) {
+FormView.on('hide', function (event) {
   if (this.get('shown')) {
     this.hide();
     this.get('onHide')();

@@ -1,13 +1,14 @@
-# -*- coding: utf-8 -*-
+from collections import OrderedDict
+from decimal import Decimal
 import csv
 import datetime
 import logging
-from collections import OrderedDict
-from decimal import Decimal
 
 from flask import jsonify, make_response
 
+from isoweek import Week
 import IPython
+
 from boxoffice import app
 from boxoffice.extapi import razorpay
 from boxoffice.mailclient import send_participant_assignment_mail, send_receipt_mail
@@ -26,8 +27,6 @@ from boxoffice.models import (
 )
 from boxoffice.views.custom_exceptions import PaymentGatewayError
 from boxoffice.views.order import process_partial_refund_for_order
-from isoweek import Week
-
 from coaster.utils import isoweek_datetime, midnight_to_utc, utcnow
 
 logging.basicConfig()
@@ -35,10 +34,7 @@ logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 
 def sales_by_date(sales_datetime, item_ids, user_tz):
-    """
-    Returns the sales amount accrued during the day for a given date/datetime,
-    list of item_ids and timezone.
-    """
+    """Return the sales amount accrued during the given day for given items."""
     if not item_ids:
         return None
 
@@ -68,10 +64,7 @@ def sales_by_date(sales_datetime, item_ids, user_tz):
 
 
 def calculate_weekly_sales(item_collection_ids, user_tz, year):
-    """
-    Calculates sales per week for items in the given set of item_collection_ids in a given year,
-    in the user's timezone.
-    """
+    """Calculate sales per week for given item_collection_ids in a given year."""
     ordered_week_sales = OrderedDict()
     for year_week in Week.weeks_of_year(year):
         ordered_week_sales[year_week.week] = 0
@@ -95,7 +88,7 @@ def calculate_weekly_sales(item_collection_ids, user_tz, year):
         )
         .params(
             timezone=user_tz,
-            statuses=tuple([LINE_ITEM_STATUS.CONFIRMED, LINE_ITEM_STATUS.CANCELLED]),
+            statuses=(LINE_ITEM_STATUS.CONFIRMED, LINE_ITEM_STATUS.CANCELLED),
             start_at=start_at,
             end_at=end_at,
             item_collection_ids=tuple(item_collection_ids),
@@ -110,7 +103,7 @@ def calculate_weekly_sales(item_collection_ids, user_tz, year):
 
 
 def sales_delta(user_tz, item_ids):
-    """Calculates the percentage difference in sales between today and yesterday"""
+    """Calculate the percentage difference in sales between today and yesterday."""
     today = utcnow().date()
     yesterday = today - datetime.timedelta(days=1)
     today_sales = sales_by_date(today, item_ids, user_tz)
@@ -125,8 +118,7 @@ def process_payment(order_id, pg_paymentid):
     order_amounts = order.get_amounts(LINE_ITEM_STATUS.PURCHASE_ORDER)
 
     online_payment = OnlinePayment.query.filter_by(
-        pg_paymentid=pg_paymentid,
-        order=order
+        pg_paymentid=pg_paymentid, order=order
     ).first()
     if online_payment is None:
         online_payment = OnlinePayment(pg_paymentid=pg_paymentid, order=order)
@@ -147,7 +139,11 @@ def process_payment(order_id, pg_paymentid):
         db.session.add(transaction)
         order.confirm_sale()
         db.session.add(order)
-        invoice_organization = order.organization.invoicer if order.organization.invoicer else order.organization
+        invoice_organization = (
+            order.organization.invoicer
+            if order.organization.invoicer
+            else order.organization
+        )
         invoice = Invoice(order=order, organization=invoice_organization)
         db.session.add(invoice)
         db.session.commit()
@@ -193,7 +189,11 @@ def reprocess_successful_payment(order_id):
         db.session.add(transaction)
         order.confirm_sale()
         db.session.add(order)
-        invoice_organization = order.organization.invoicer if order.organization.invoicer else order.organization
+        invoice_organization = (
+            order.organization.invoicer
+            if order.organization.invoicer
+            else order.organization
+        )
         invoice = Invoice(order=order, organization=invoice_organization)
         db.session.add(invoice)
         db.session.commit()
@@ -225,8 +225,9 @@ def make_invoice_nos():
 
 def partial_refund(**kwargs):
     """
-    Processes a partial refund for an order.
-    Params are order_id, amount, internal_note, refund_description, note_to_user
+    Process a partial refund for an order.
+
+    Params are order_id, amount, internal_note, refund_description, note_to_user.
     """
     form_dict = {
         'amount': kwargs['amount'],

@@ -1,4 +1,4 @@
-"""add_invoice_organization
+"""add_invoice_organization.
 
 Revision ID: 23fc9e293ac3
 Revises: 66b67130c901
@@ -16,9 +16,17 @@ import sqlalchemy as sa
 
 def upgrade():
     op.add_column('organization', sa.Column('invoicer_id', sa.Integer(), nullable=True))
-    op.create_foreign_key('organization_invoicer_id_id_fkey', 'organization', 'organization', ['invoicer_id'], ['id'])
+    op.create_foreign_key(
+        'organization_invoicer_id_id_fkey',
+        'organization',
+        'organization',
+        ['invoicer_id'],
+        ['id'],
+    )
 
 
 def downgrade():
-    op.drop_constraint('organization_invoicer_id_id_fkey', 'organization', type_='foreignkey')
+    op.drop_constraint(
+        'organization_invoicer_id_id_fkey', 'organization', type_='foreignkey'
+    )
     op.drop_column('organization', 'invoicer_id')

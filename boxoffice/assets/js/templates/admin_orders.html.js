@@ -75,4 +75,4 @@ export const OrdersTemplate = `
       <p class="text-center">Currently no orders.</p>
     {{/if}}
   </div>
-`
+`;

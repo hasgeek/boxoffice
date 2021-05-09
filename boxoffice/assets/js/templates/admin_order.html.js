@@ -54,4 +54,4 @@ export const OrderTemplate = `
       {{/}}
     </div>
   </div>
-`
+`;

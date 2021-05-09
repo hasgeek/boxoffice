@@ -1,4 +1,4 @@
-"""add assignee
+"""add assignee.
 
 Revision ID: 1ea1e8070ac8
 Revises: adb90a264e3
@@ -12,11 +12,13 @@ down_revision = 'adb90a264e3'
 
 from alembic import op
 import sqlalchemy as sa
+
 from coaster.sqlalchemy import JsonDict
 
 
 def upgrade():
-    op.create_table('assignee',
+    op.create_table(
+        'assignee',
         sa.Column('created_at', sa.DateTime(), nullable=False),
         sa.Column('updated_at', sa.DateTime(), nullable=False),
         sa.Column('fullname', sa.Unicode(length=80), nullable=False),
@@ -26,14 +28,25 @@ def upgrade():
         sa.Column('previous_id', sa.Integer(), nullable=True),
         sa.Column('user_id', sa.Integer(), nullable=True),
         sa.Column('id', sa.Integer(), nullable=False),
-        sa.ForeignKeyConstraint(['previous_id'], ['assignee.id'], ),
-        sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
+        sa.ForeignKeyConstraint(
+            ['previous_id'],
+            ['assignee.id'],
+        ),
+        sa.ForeignKeyConstraint(
+            ['user_id'],
+            ['user.id'],
+        ),
         sa.PrimaryKeyConstraint('id'),
-        )
+    )
     op.add_column('line_item', sa.Column('assignee_id', sa.Integer(), nullable=True))
-    op.add_column('item', sa.Column('assignee_details', JsonDict(), server_default='{}', nullable=True))
+    op.add_column(
+        'item',
+        sa.Column('assignee_details', JsonDict(), server_default='{}', nullable=True),
+    )
     op.alter_column('item', 'assignee_details', server_default=None)
-    op.create_foreign_key('line_item_assignee_id_fkey', 'line_item', 'assignee', ['assignee_id'], ['id'])
+    op.create_foreign_key(
+        'line_item_assignee_id_fkey', 'line_item', 'assignee', ['assignee_id'], ['id']
+    )
     op.create_index(op.f('assignee_email_key'), 'assignee', ['email'], unique=True)
 
 

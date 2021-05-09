@@ -1,4 +1,4 @@
-"""add place of supply to item collection and item
+"""add place of supply to item collection and item.
 
 Revision ID: f78ca4cad5d6
 Revises: 6c04555d7d94
@@ -15,10 +15,22 @@ import sqlalchemy as sa
 
 
 def upgrade():
-    op.add_column('item', sa.Column('place_supply_country_code', sa.Unicode(length=2), nullable=True))
-    op.add_column('item', sa.Column('place_supply_state_code', sa.Unicode(length=3), nullable=True))
-    op.add_column('item_collection', sa.Column('place_supply_country_code', sa.Unicode(length=2), nullable=True))
-    op.add_column('item_collection', sa.Column('place_supply_state_code', sa.Unicode(length=3), nullable=True))
+    op.add_column(
+        'item',
+        sa.Column('place_supply_country_code', sa.Unicode(length=2), nullable=True),
+    )
+    op.add_column(
+        'item',
+        sa.Column('place_supply_state_code', sa.Unicode(length=3), nullable=True),
+    )
+    op.add_column(
+        'item_collection',
+        sa.Column('place_supply_country_code', sa.Unicode(length=2), nullable=True),
+    )
+    op.add_column(
+        'item_collection',
+        sa.Column('place_supply_state_code', sa.Unicode(length=3), nullable=True),
+    )
     op.add_column('item', sa.Column('event_date', sa.Date(), nullable=True))
 
 
