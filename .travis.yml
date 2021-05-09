@@ -7,6 +7,14 @@ addons:
     packages:
       - postgresql-12
       - postgresql-client-12
+services:
+  - redis-server
+  - postgresql
+env:
+  global:
+    - PGVER=12
+    - PGPORT=5433
+    - FLASK_ENV=testing
 cache:
   directories:
     - $HOME/.cache/pip
@@ -21,13 +29,9 @@ install:
   - pip install -r requirements.txt
   - npm install casperjs
   - make
-env:
-  - FLASK_ENV=testing
 script:
   - ./runtests.sh
 after_success:
   - coveralls
-services:
-  - redis-server
 notifications:
   email: false
