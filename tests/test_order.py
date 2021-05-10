@@ -672,7 +672,9 @@ class TestOrder(unittest.TestCase):
         self.assertEqual(
             refund_transactions[0].internal_note, formdata['internal_note']
         )
-        self.assertEqual(refund_transactions[0].note_to_user, formdata['note_to_user'])
+        self.assertEqual(
+            str(refund_transactions[0].note_to_user), formdata['note_to_user']
+        )
         self.assertEqual(
             refund_transactions[0].refund_description, formdata['refund_description']
         )

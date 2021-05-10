@@ -50,7 +50,9 @@ class Item(BaseScopedNameMixin, db.Model):
     quantity_total = db.Column(db.Integer, default=0, nullable=False)
 
     discount_policies = db.relationship(
-        'DiscountPolicy', secondary=item_discount_policy, lazy='dynamic'
+        'DiscountPolicy',
+        secondary=item_discount_policy,  # type: ignore[has-type]
+        lazy='dynamic',
     )
 
     assignee_details = db.Column(JsonDict, server_default='{}', nullable=False)

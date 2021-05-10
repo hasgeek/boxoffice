@@ -9,7 +9,7 @@ from .fixtures import init_data
 
 class TestItemCollectionAPI(unittest.TestCase):
 
-    expected_keys = ['categories', 'html', 'refund_policy']
+    expected_keys = ['categories', 'currency', 'html', 'refund_policy']
     expected_categories_names = ['conference', 'workshop', 'merchandise']
     expected_data = {
         "conference": {
@@ -49,9 +49,9 @@ class TestItemCollectionAPI(unittest.TestCase):
     }
 
     def setUp(self):
+        init_data()
         self.ctx = app.test_request_context()
         self.ctx.push()
-        init_data()
         self.client = app.test_client()
         ic = ItemCollection.query.first()
         self.resp = self.client.get(
@@ -94,5 +94,5 @@ class TestItemCollectionAPI(unittest.TestCase):
 
     def tearDown(self):
         db.session.rollback()
-        db.drop_all()
         self.ctx.pop()
+        db.drop_all()
