@@ -1,3 +1,3 @@
-#!/bin/bash
+#!/bin/sh
 
-rqworker -c rqinit boxoffice
+flask rq worker boxoffice

@@ -27,7 +27,7 @@ assets['boxoffice.css'][version] = 'css/app.css'
 assets['boxoffice.js'][version] = 'js/scripts.js'
 
 
-from . import extapi, views  # NOQA
+from . import cli, extapi, views  # NOQA
 from .models import db, User, Item, Price, DiscountPolicy, DiscountCoupon, ItemCollection, Organization, Category, Invoice  # noqa
 from .siteadmin import OrganizationModelView, DiscountCouponModelView, InvoiceModelView  # noqa
 

@@ -22,8 +22,8 @@ rm build/*.* && yarn build
 ```
 createdb boxoffice
 pip install -r requirements.txt
-./manage.py dbconfig | sudo -c postgres psql boxoffice
-./manage.py createdb
+flask dbconfig | sudo -c postgres psql boxoffice
+flask createdb
 # Config in instance/settings.py
 # Development server: ./runserver.py
 # Production: point a WSGI gateway at website.py
