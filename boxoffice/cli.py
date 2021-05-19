@@ -1,4 +1,4 @@
-from boxoffice import app
+from . import app
 
 
 @app.cli.command('dbconfig')
