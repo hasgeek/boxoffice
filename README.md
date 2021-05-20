@@ -3,18 +3,10 @@
 
 ## Asset builds
 
-To run webpack in development mode:
+Run
 
 ```
-cd boxoffice/static/
-yarn dev
-```
-
-To build for production:
-
-```
-cd boxoffice/static/
-rm build/*.* && yarn build
+make
 ```
 
 ## Deployment
@@ -22,8 +14,7 @@ rm build/*.* && yarn build
 ```
 createdb boxoffice
 pip install -r requirements.txt
-./manage.py dbconfig | sudo -c postgres psql boxoffice
-./manage.py createdb
+flask dbconfig | sudo -c postgres psql boxoffice
 # Config in instance/settings.py
 # Development server: ./runserver.py
 # Production: point a WSGI gateway at website.py
