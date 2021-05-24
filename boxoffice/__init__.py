@@ -12,9 +12,25 @@ from flask_lastuser import Lastuser
 from flask_lastuser.sqlalchemy import UserManager
 import coaster.app
 
-from . import cli, extapi, views  # NOQA
 from ._version import __version__
-from .models import (  # noqa
+
+app = Flask(__name__, instance_relative_config=True)
+lastuser = Lastuser()
+
+mail = Mail()
+rq = RQ()
+
+
+# --- Assets ---------------------------------------------------------------------------
+
+version = Version(__version__)
+assets['boxoffice.css'][version] = 'css/app.css'
+assets['boxoffice.js'][version] = 'js/scripts.js'
+
+# --- Import rest of the app -----------------------------------------------------------
+
+from . import cli, extapi, views  # NOQA  # isort:skip
+from .models import (  # NOQA  # isort:skip
     Category,
     DiscountCoupon,
     DiscountPolicy,
@@ -26,25 +42,14 @@ from .models import (  # noqa
     User,
     db,
 )
-from .siteadmin import (  # noqa
+from .siteadmin import (  # NOQA  # isort:skip
     DiscountCouponModelView,
     InvoiceModelView,
     OrganizationModelView,
 )
 
-app = Flask(__name__, instance_relative_config=True)
-lastuser = Lastuser()
-
-mail = Mail()
-rq = RQ()
-
-# --- Assets ---------------------------------------------------------------------------
-
-version = Version(__version__)
-assets['boxoffice.css'][version] = 'css/app.css'
-assets['boxoffice.js'][version] = 'js/scripts.js'
-
 # --- Configure ------------------------------------------------------------------------
+
 coaster.app.init_app(app)
 db.init_app(app)
 db.app = app
