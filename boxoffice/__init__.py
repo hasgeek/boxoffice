@@ -12,22 +12,8 @@ from flask_lastuser import Lastuser
 from flask_lastuser.sqlalchemy import UserManager
 import coaster.app
 
+from . import cli, extapi, views  # NOQA
 from ._version import __version__
-
-app = Flask(__name__, instance_relative_config=True)
-lastuser = Lastuser()
-
-mail = Mail()
-rq = RQ()
-
-# --- Assets ------------------------------------------------------------------
-
-version = Version(__version__)
-assets['boxoffice.css'][version] = 'css/app.css'
-assets['boxoffice.js'][version] = 'js/scripts.js'
-
-
-from . import extapi, views  # NOQA
 from .models import (  # noqa
     Category,
     DiscountCoupon,
@@ -46,7 +32,19 @@ from .siteadmin import (  # noqa
     OrganizationModelView,
 )
 
-# Configure the app
+app = Flask(__name__, instance_relative_config=True)
+lastuser = Lastuser()
+
+mail = Mail()
+rq = RQ()
+
+# --- Assets ---------------------------------------------------------------------------
+
+version = Version(__version__)
+assets['boxoffice.css'][version] = 'css/app.css'
+assets['boxoffice.js'][version] = 'js/scripts.js'
+
+# --- Configure ------------------------------------------------------------------------
 coaster.app.init_app(app)
 db.init_app(app)
 db.app = app

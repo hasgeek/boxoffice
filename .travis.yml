@@ -31,7 +31,7 @@ install:
 before_script:
   - sudo -- sh -c "echo '127.0.0.1  boxoffice.travis.dev' >> /etc/hosts"
   - psql -c 'create database boxoffice_testing;' -U postgres
-  - ./manage.py dbconfig | sudo -u postgres psql boxoffice_testing
+  - flask dbconfig | sudo -u postgres psql boxoffice_testing
 script:
   - ./runtests.sh
 after_success:
