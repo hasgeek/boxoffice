@@ -14,7 +14,7 @@ wtforms_json==0.3.3
 rq==1.8.1
 itsdangerous==2.0.1
 html2text==2020.1.16
-premailer==3.8.0
+premailer==3.9.0
 python-dateutil==2.8.1
 tabulate==0.8.9
 Flask-Admin==1.5.8
