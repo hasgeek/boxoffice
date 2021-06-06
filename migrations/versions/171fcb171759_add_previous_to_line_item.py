@@ -1,4 +1,4 @@
-"""add_previous_to_line_item
+"""add_previous_to_line_item.
 
 Revision ID: 171fcb171759
 Revises: 81f30d00706f
@@ -16,9 +16,16 @@ import sqlalchemy_utils
 
 
 def upgrade():
-    op.add_column('line_item', sa.Column('previous_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=True))
-    op.create_index(op.f('ix_line_item_previous_id'), 'line_item', ['previous_id'], unique=True)
-    op.create_foreign_key('line_item_id_fkey', 'line_item', 'line_item', ['previous_id'], ['id'])
+    op.add_column(
+        'line_item',
+        sa.Column('previous_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=True),
+    )
+    op.create_index(
+        op.f('ix_line_item_previous_id'), 'line_item', ['previous_id'], unique=True
+    )
+    op.create_foreign_key(
+        'line_item_id_fkey', 'line_item', 'line_item', ['previous_id'], ['id']
+    )
 
 
 def downgrade():

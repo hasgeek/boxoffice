@@ -1,4 +1,4 @@
-"""add cancellable_until
+"""add cancellable_until.
 
 Revision ID: 11bc47d6d60b
 Revises: dadc5748932

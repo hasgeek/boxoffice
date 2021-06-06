@@ -1,13 +1,12 @@
-# -*- coding: utf-8 -*-
-
-import csv
 from functools import wraps
 from io import StringIO
 from urllib.parse import urlparse
+import csv
 
 from flask import Response, abort, jsonify, make_response, request
 
 from baseframe import localize_timezone, request_is_xhr
+
 from .. import app
 
 
@@ -19,17 +18,19 @@ def sanitize_coupons(coupons):
 
 
 def xhr_only(f):
-    """Aborts if a request does not have the XMLHttpRequest header set"""
+    """Abort if a request does not have the XMLHttpRequest header set."""
+
     @wraps(f)
     def wrapper(*args, **kwargs):
         if request.method != 'OPTIONS' and not request_is_xhr():
             abort(400)
         return f(*args, **kwargs)
+
     return wrapper
 
 
 def check_api_access(api_token):
-    """Aborts if a request does not have the correct api_token"""
+    """Abort if a request does not have the correct api_token."""
     if not request.args.get('api_token') or request.args.get('api_token') != api_token:
         abort(401)
 
@@ -45,7 +46,8 @@ def longdate(date):
 
 def basepath(url):
     """
-    Returns the base path of a given a URL
+    Return the base path of a given URL.
+
     Eg::
 
         basepath("https://hasgeek.com/1")
@@ -56,21 +58,26 @@ def basepath(url):
     parsed_url = urlparse(url)
     if not (parsed_url.scheme or parsed_url.netloc):
         raise ValueError("Invalid URL")
-    return "{scheme}://{netloc}".format(scheme=parsed_url.scheme, netloc=parsed_url.netloc)
+    return "{scheme}://{netloc}".format(
+        scheme=parsed_url.scheme, netloc=parsed_url.netloc
+    )
 
 
 def cors(f):
     """
-    Adds CORS headers to the decorated view function.
+    Add CORS headers to the decorated view function.
 
     Requires `app.config['ALLOWED_ORIGINS']` to be defined with a list
     of permitted domains. Eg: app.config['ALLOWED_ORIGINS'] = ['https://example.com']
     """
+
     def add_headers(resp, origin):
         resp.headers['Access-Control-Allow-Origin'] = origin
         resp.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS, GET'
         # echo the request's headers
-        resp.headers['Access-Control-Allow-Headers'] = request.headers.get('Access-Control-Request-Headers')
+        resp.headers['Access-Control-Allow-Headers'] = request.headers.get(
+            'Access-Control-Request-Headers'
+        )
         # debugging only
         if app.debug:
             resp.headers['Access-Control-Max-Age'] = '1'
@@ -86,7 +93,11 @@ def cors(f):
             if referer:
                 origin = basepath(referer)
 
-        if request.method == 'POST' and not origin or origin not in app.config['ALLOWED_ORIGINS']:
+        if (
+            request.method == 'POST'
+            and not origin
+            or origin not in app.config['ALLOWED_ORIGINS']
+        ):
             abort(401)
 
         if request.method == 'OPTIONS':
@@ -101,16 +112,18 @@ def cors(f):
 
 def csv_response(headers, rows, row_type=None, row_handler=None):
     """
-    Returns a response, with mimetype set to text/csv,
-    given a list of headers and a two-dimensional list of rows
+    Return a CSV response given a list of headers and rows of data.
 
-    The default type of row is a list or a tuple of values. If row is of type dict set the row_type.
+    The default type of row is a list or a tuple of values. If row is of type dict set
+    the `row_type` parameter to 'dict'.
 
     Accepts an optional row_handler function that can be used to transform the row.
     """
     stream = StringIO()
     if row_type == 'dict':
-        csv_writer = csv.DictWriter(stream, fieldnames=headers, extrasaction='ignore', quoting=csv.QUOTE_MINIMAL)
+        csv_writer = csv.DictWriter(
+            stream, fieldnames=headers, extrasaction='ignore', quoting=csv.QUOTE_MINIMAL
+        )
         csv_writer.writeheader()
     else:
         csv_writer = csv.writer(stream, quoting=csv.QUOTE_MINIMAL)
@@ -124,19 +137,22 @@ def csv_response(headers, rows, row_type=None, row_handler=None):
 
 def api_error(message, status_code, errors=[]):
     """
-    Generates a HTTP response as a JSON object for a failure scenario
+    Generate a HTTP response as a JSON object for a failure scenario.
 
-    :param string message: Human readable error message to be included as part of the JSON response
+    :param string message: Human readable error message to be included as part of the
+        JSON response
     :param string message: Error message to be included as part of the JSON response
     :param list errors: Error messages to be included as part of the JSON response
     :param int status_code: HTTP status code to be used for the response
     """
-    return make_response(jsonify(status='error', errors=errors, message=message), status_code)
+    return make_response(
+        jsonify(status='error', errors=errors, message=message), status_code
+    )
 
 
 def api_success(result, doc, status_code):
     """
-    Generates a HTTP response as a JSON object for a successful scenario
+    Generate a HTTP response as a JSON object for a success scenario.
 
     :param any result: Top-level data to be encoded as JSON
     :param string doc: Documentation to be included as part of the JSON response

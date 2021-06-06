@@ -1,4 +1,4 @@
-"""add_host_to_order_session
+"""add_host_to_order_session.
 
 Revision ID: 50b7f36bb7eb
 Revises: ca40e4eda72c

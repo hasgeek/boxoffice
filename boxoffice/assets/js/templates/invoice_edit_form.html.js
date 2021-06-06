@@ -3,7 +3,7 @@ export const InvoiceEditFormTemplate = `
     <div class="ticket col-xs-12 {{#if invoices.length > 1}}col-sm-6{{else}}col-sm-8 col-sm-offset-2 col-md-6 col-md-offset-3{{/if}}">
       <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
         {{#if !hideForm}}
-          <h4 class="text-center attendee-form-title">If you need a GST invoice, please fill in the details below.</h4> 
+          <h4 class="text-center attendee-form-title">If you need a GST invoice, please fill in the details below.</h4>
             <form class="attendee-form clearfix" role="form" name="invoice-details-form-{{ id }}" id="invoice-{{ id }}">
               <div class="group">
                 <input class="group-input {{#buyer_taxid}}filled{{/}}" type="text" name="buyer_taxid" value="{{ buyer_taxid }}">
@@ -97,4 +97,4 @@ export const InvoiceEditFormTemplate = `
       </div>
     </div>
   {{/each}}
-`
+`;

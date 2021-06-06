@@ -1,11 +1,10 @@
-
-window.Ractive = require("ractive");
-window.Ractive.transitions.fly = require( 'ractive-transitions-fly' );
+window.Ractive = require('ractive');
+window.Ractive.transitions.fly = require('ractive-transitions-fly');
 window.FormValidator = require('validate-js');
 
-import {Invoice} from './invoice';
+import { Invoice } from './invoice';
 
-$(function() {
+$(function () {
   Ractive.DEBUG = false;
   Invoice.init();
 });

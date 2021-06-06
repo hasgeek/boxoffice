@@ -1,7 +1,6 @@
-# -*- coding: utf-8 -*-
+from flask import jsonify, make_response
 
 from .. import app
-from flask import jsonify, make_response
 from .utils import cors
 
 
@@ -16,9 +15,14 @@ class PaymentGatewayError(Exception):
 @app.errorhandler(PaymentGatewayError)
 @cors
 def handle_api_error(error):
-    app.logger.warning('Boxoffice Payment Gateway Error: {error}'.format(error=error.message))
-    return make_response(jsonify({
-        "status": "error",
-        "error": "payment_gateway_error",
-        "error_description": error.response_message,
-        }), error.status_code)
+    app.logger.warning('Boxoffice Payment Gateway Error: %s', error.message)
+    return make_response(
+        jsonify(
+            {
+                "status": "error",
+                "error": "payment_gateway_error",
+                "error_description": error.response_message,
+            }
+        ),
+        error.status_code,
+    )

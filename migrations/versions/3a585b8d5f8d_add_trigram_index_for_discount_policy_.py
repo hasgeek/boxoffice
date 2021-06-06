@@ -1,4 +1,4 @@
-"""add_trigram_index_for_discount_policy_title
+"""add_trigram_index_for_discount_policy_title.
 
 Revision ID: 3a585b8d5f8d
 Revises: 4246213b032b
@@ -15,11 +15,14 @@ import sqlalchemy as sa
 
 
 def upgrade():
-    op.execute(sa.DDL(
-        '''
+    op.execute(
+        sa.DDL(
+            '''
         CREATE EXTENSION IF NOT EXISTS pg_trgm;
         CREATE INDEX idx_discount_policy_title_trgm on discount_policy USING gin (title gin_trgm_ops);
-        '''))
+        '''
+        )
+    )
 
 
 def downgrade():

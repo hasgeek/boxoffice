@@ -1,0 +1,88 @@
+# Default tool config file. See also setup.cfg for tools that don't yet
+# support pyproject.toml.
+
+[tool.black]
+line-length = 88
+target_version = ['py37']
+skip-string-normalization = true
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | __pycache__
+  | buck-out
+  | build
+  | dist
+  | node_modules
+  | boxoffice/assets
+)/
+'''
+
+[tool.isort]
+multi_line_output = 3
+include_trailing_comma = true
+line_length = 88
+order_by_type = true
+use_parentheses = true
+from_first = true
+known_future_library = ['__future__', 'six']
+known_first_party = ['baseframe', 'coaster', 'flask_lastuser', 'boxoffice']
+known_sqlalchemy = ['alembic', 'sqlalchemy', 'sqlalchemy_utils', 'flask_sqlalchemy', 'psycopg2']
+known_flask = [
+  'flask',
+  'werkzeug',
+  'itsdangerous',
+  'wtforms',
+  'webassets',
+  'flask_assets',
+  'flask_babelhg',
+  'flask_executor',
+  'flask_flatpages',
+  'flask_mailman',
+  'flask_migrate',
+  'flask_redis',
+  'flask_rq2',
+]
+default_section = 'THIRDPARTY'
+sections = ['FUTURE', 'STDLIB', 'SQLALCHEMY', 'FLASK', 'THIRDPARTY', 'FIRSTPARTY', 'LOCALFOLDER']
+
+[tool.pytest.ini_options]
+addopts = '--cov-report=term-missing'
+filterwarnings = ['ignore::DeprecationWarning', 'ignore::UserWarning']
+mocked-sessions = 'coaster.db.db.session'
+
+[tool.curlylint]
+include = '\.jinja2$'
+exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | __pycache__
+  | buck-out
+  | build
+  | dist
+  | node_modules
+  | funnel/assets
+)/
+'''
+
+[tool.curlylint.rules]
+# Indent 2 spaces
+indent = 2
+# All role attributes must be valid.
+# See https://www.curlylint.org/docs/rules/aria_role.
+aria_role = true
+# The `alt` attribute must be present.
+# See https://www.curlylint.org/docs/rules/image_alt.
+image_alt = true

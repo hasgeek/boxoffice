@@ -1,4 +1,4 @@
-"""add_bulk_coupon_usage_limit
+"""add_bulk_coupon_usage_limit.
 
 Revision ID: 58f4f3c4fb01
 Revises: 48e571c759cb
@@ -15,7 +15,10 @@ import sqlalchemy as sa
 
 
 def upgrade():
-    op.add_column('discount_policy', sa.Column('bulk_coupon_usage_limit', sa.Integer(), nullable=True))
+    op.add_column(
+        'discount_policy',
+        sa.Column('bulk_coupon_usage_limit', sa.Integer(), nullable=True),
+    )
 
 
 def downgrade():

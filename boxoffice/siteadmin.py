@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
-
 from flask_admin.contrib.sqla import ModelView
-from . import lastuser
 from flask_admin.form.fields import JSONField
+
+from . import lastuser
 
 
 class SiteAdminModelView(ModelView):
@@ -15,8 +14,16 @@ class OrganizationModelView(SiteAdminModelView):
     column_display_pk = True
     column_list = ('id', 'title', 'organization_id')
     form_list = ('id', 'userid', 'title')
-    form_excluded_columns = ['userid', 'item_collections', 'discount_policies', 'invoices', 'orders', 'created_at', 'updated_at']
-    form_overrides = dict(details=JSONField)
+    form_excluded_columns = [
+        'userid',
+        'item_collections',
+        'discount_policies',
+        'invoices',
+        'orders',
+        'created_at',
+        'updated_at',
+    ]
+    form_overrides = {'details': JSONField}
 
 
 class DiscountCouponModelView(SiteAdminModelView):
@@ -32,4 +39,9 @@ class InvoiceModelView(SiteAdminModelView):
     column_filters = ['invoice_no']
     column_searchable_list = ['invoicee_email']
     column_list = ('customer_order_id', 'invoice_no', 'invoicee_name', 'invoicee_email')
-    form_excluded_columns = ['customer_order_id', 'organization_id', 'created_at', 'updated_at']
+    form_excluded_columns = [
+        'customer_order_id',
+        'organization_id',
+        'created_at',
+        'updated_at',
+    ]

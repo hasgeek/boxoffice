@@ -1,8 +1,10 @@
 # settlements = {id: [{line_item_id, line_item_title, base_amount, final_amount}]}
 
-from pytz import utc, timezone
-import csv
 from decimal import Decimal
+import csv
+
+from pytz import timezone, utc
+
 from boxoffice.models import OnlinePayment, PaymentTransaction
 from boxoffice.models.payment import TRANSACTION_TYPE
 
@@ -14,12 +16,14 @@ def csv_to_rows(csv_file, skip_header=True, delimiter=','):
         reader = csv.reader(csvfile, delimiter=delimiter)
         if skip_header:
             next(reader)
-        return [row for row in reader]
+        return list(reader)
 
 
 def rows_to_csv(rows, filename):
     with open(filename, 'wb') as csvfile:
-        writer = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        writer = csv.writer(
+            csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL
+        )
         for row in rows:
             writer.writerow(row)
         return True
@@ -43,51 +47,89 @@ def get_settlements(filename):
             if trans[1] == 'payment':
                 payment = OnlinePayment.query.filter_by(pg_paymentid=trans[0]).first()
                 if payment:
-                    pt = PaymentTransaction.query.filter_by(online_payment=payment, transaction_type=TRANSACTION_TYPE.PAYMENT).one_or_none()
+                    pt = PaymentTransaction.query.filter_by(
+                        online_payment=payment,
+                        transaction_type=TRANSACTION_TYPE.PAYMENT,
+                    ).one_or_none()
                     # Get settlement
-                    settlement_amount = [tr for tr in transactions if tr[0] == trans[11]][0][4]
-                    settlements[trans[11]].append({
-                        'settlement_amount': settlement_amount,
-                        'settlement_date': trans[10],
-                        'payment_id': payment.id,
-                        'order_id': payment.customer_order_id,
-                        'razorpay_fee': trans[6],
-                        'razorpay_service_tax': trans[7],
-                        'order_amount': trans[4],
-                        'buyer_name': payment.order.buyer_fullname,
-                        'transaction_date': localize(pt.created_at),
-                        'receivable_amount': Decimal(pt.amount) - Decimal(trans[6]),
-                        'type': 'payment'
-                        })
-                else:
-                    print(trans[0])
-            elif trans[1] == 'refund':
-                payment = OnlinePayment.query.filter_by(pg_paymentid=trans[14]).first()
-                if payment:
-                    refund_transactions = PaymentTransaction.query.filter_by(online_payment=payment, transaction_type=TRANSACTION_TYPE.REFUND).all()
-                    settlement_amount = [tr for tr in transactions if tr[0] == trans[11]][0][4]
-                    for rt in refund_transactions:
-                        settlements[trans[11]].append({
+                    settlement_amount = [
+                        tr for tr in transactions if tr[0] == trans[11]
+                    ][0][4]
+                    settlements[trans[11]].append(
+                        {
                             'settlement_amount': settlement_amount,
                             'settlement_date': trans[10],
+                            'payment_id': payment.id,
                             'order_id': payment.customer_order_id,
                             'razorpay_fee': trans[6],
                             'razorpay_service_tax': trans[7],
                             'order_amount': trans[4],
                             'buyer_name': payment.order.buyer_fullname,
-                            'transaction_date': localize(rt.created_at),
-                            'receivable_amount': Decimal(0) - Decimal(rt.amount),
-                            'type': 'refund'
-                            })
+                            'transaction_date': localize(pt.created_at),
+                            'receivable_amount': Decimal(pt.amount) - Decimal(trans[6]),
+                            'type': 'payment',
+                        }
+                    )
                 else:
-                    print(trans[0])
+                    print(trans[0])  # NOQA: T001
+            elif trans[1] == 'refund':
+                payment = OnlinePayment.query.filter_by(pg_paymentid=trans[14]).first()
+                if payment:
+                    refund_transactions = PaymentTransaction.query.filter_by(
+                        online_payment=payment, transaction_type=TRANSACTION_TYPE.REFUND
+                    ).all()
+                    settlement_amount = [
+                        tr for tr in transactions if tr[0] == trans[11]
+                    ][0][4]
+                    for rt in refund_transactions:
+                        settlements[trans[11]].append(
+                            {
+                                'settlement_amount': settlement_amount,
+                                'settlement_date': trans[10],
+                                'order_id': payment.customer_order_id,
+                                'razorpay_fee': trans[6],
+                                'razorpay_service_tax': trans[7],
+                                'order_amount': trans[4],
+                                'buyer_name': payment.order.buyer_fullname,
+                                'transaction_date': localize(rt.created_at),
+                                'receivable_amount': Decimal(0) - Decimal(rt.amount),
+                                'type': 'refund',
+                            }
+                        )
+                else:
+                    print(trans[0])  # NOQA: T001
 
     rows = []
-    header = ['settlement_id', 'settlement_amount', 'settlement_date', 'order_id', 'razorpay_fee', 'razorpay_service_tax', 'order_amount', 'buyer_name', 'transaction_date', 'receivable_amount', 'type']
+    header = [
+        'settlement_id',
+        'settlement_amount',
+        'settlement_date',
+        'order_id',
+        'razorpay_fee',
+        'razorpay_service_tax',
+        'order_amount',
+        'buyer_name',
+        'transaction_date',
+        'receivable_amount',
+        'type',
+    ]
     for stmt, stm_transactions in settlements.items():
         for details in stm_transactions:
-            rows.append([stmt, details['settlement_amount'], details['settlement_date'], details['order_id'], details['razorpay_fee'], details['razorpay_service_tax'],
-            details['order_amount'], details['buyer_name'], details['transaction_date'], details['receivable_amount'], details['type']])
+            rows.append(
+                [
+                    stmt,
+                    details['settlement_amount'],
+                    details['settlement_date'],
+                    details['order_id'],
+                    details['razorpay_fee'],
+                    details['razorpay_service_tax'],
+                    details['order_amount'],
+                    details['buyer_name'],
+                    details['transaction_date'],
+                    details['receivable_amount'],
+                    details['type'],
+                ]
+            )
     rows.insert(0, header)
     return rows
 

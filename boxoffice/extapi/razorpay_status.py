@@ -1,16 +1,19 @@
-# -*- coding: utf-8 -*-
-
 from baseframe import __
 from coaster.utils import LabeledEnum
 
 __all__ = ['RAZORPAY_PAYMENT_STATUS']
 
 
-class RAZORPAY_PAYMENT_STATUS(LabeledEnum):
+class RAZORPAY_PAYMENT_STATUS(LabeledEnum):  # NOQA: N801
     """
-    Reflects payment statuses as specified in
-    https://docs.razorpay.com/docs/return-objects
+    Reflects payment statuses.
+
+    The list of states is as specifid in Razorpay documentation at
+    https://razorpay.com/docs/payment-gateway/payments/#payment-life-cycle
+
+    The values are ours. Razorpay sends back string values.
     """
+
     CREATED = (0, __("Created"))
     AUTHORIZED = (1, __("Authorized"))
     CAPTURED = (2, __("Captured"))

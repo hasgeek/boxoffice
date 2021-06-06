@@ -1,11 +1,9 @@
-
 var Ractive = require('ractive');
-import {eventBus} from './main_admin.js'
+import { eventBus } from './main_admin.js';
 var NProgress = require('nprogress');
-import {fetch, urlFor, setPageTitle} from '../models/util.js';
-import {SideBarView} from './sidebar.js';
-import {navigateTo} from '../views/main_admin.js';
-
+import { fetch, urlFor, setPageTitle } from '../models/util.js';
+import { SideBarView } from './sidebar.js';
+import { navigateTo } from '../views/main_admin.js';
 
 const orgTemplate = `
   <div class="content-wrapper clearfix">
@@ -42,12 +40,12 @@ const orgTemplate = `
       </div>
     {{/itemCollections}}
   </div>
-`
+`;
 
 export const OrgView = {
-  render: function({org_name}={}) {
+  render: function ({ org_name } = {}) {
     fetch({
-      url: urlFor('view', {resource: 'o', id: org_name, root: true})
+      url: urlFor('view', { resource: 'o', id: org_name, root: true }),
     }).then(function ({ id, org_title, item_collections, form }) {
       let orgComponent = new Ractive({
         el: '#main-content-area',
@@ -55,19 +53,19 @@ export const OrgView = {
         data: {
           orgName: org_name,
           orgTitle: org_title,
-          itemCollections: item_collections
-        }
+          itemCollections: item_collections,
+        },
       });
 
-      $('#order-jump-form').submit(function(submitEvt){
+      $('#order-jump-form').submit(function (submitEvt) {
         submitEvt.preventDefault();
         let order_receipt_no = $('#order-receipt-no-input').val();
         navigateTo(`/admin/o/${org_name}/order/${order_receipt_no}`);
       });
 
-      SideBarView.render('org', {org_name, org_title});
+      SideBarView.render('org', { org_name, org_title });
       setPageTitle(org_title);
       NProgress.done();
     });
-  }
-}
+  },
+};

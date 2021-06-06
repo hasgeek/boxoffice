@@ -1,7 +1,7 @@
 // A collection of utility functions
-var moment = require("moment");
+var moment = require('moment');
 var Ractive = require('ractive');
-import {redirectTo} from '../views/main_admin.js'
+import { redirectTo } from '../views/main_admin.js';
 
 export const Util = {
   formatToIndianRupee: function (value) {
@@ -10,7 +10,7 @@ export const Util = {
     // Taken from https://github.com/hasgeek/hasjob/blob/master/hasjob/static/js/app.js
     if (!value) return value;
     value = value.toString();
-    value = value.replace(/[^0-9.]/g, '');  // Remove non-digits, assume . for decimals
+    value = value.replace(/[^0-9.]/g, ''); // Remove non-digits, assume . for decimals
     var afterPoint = '';
     if (value.indexOf('.') > 0)
       afterPoint = value.substring(value.indexOf('.'), value.length);
@@ -18,29 +18,31 @@ export const Util = {
     value = value.toString();
     var lastThree = value.substring(value.length - 3);
     var otherNumbers = value.substring(0, value.length - 3);
-    if (otherNumbers !== '')
-        lastThree = ',' + lastThree;
-    var res = '₹' + otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + lastThree + afterPoint;
+    if (otherNumbers !== '') lastThree = ',' + lastThree;
+    var res =
+      '₹' +
+      otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ',') +
+      lastThree +
+      afterPoint;
     return res;
   },
-  formatDateTime: function (dateTimeString, formatString="") {
+  formatDateTime: function (dateTimeString, formatString = '') {
     // Takes an date time string and returns a string in the specified format.
     if (formatString) {
       return moment(dateTimeString).format(formatString);
-    }
-    else {
+    } else {
       return moment(dateTimeString).toString();
     }
   },
-  getElementId: function(htmlString) {
+  getElementId: function (htmlString) {
     return htmlString.match(/id="(.*?)"/)[1];
-  }
+  },
 };
 
 export const fetch = function (config) {
   return $.ajax({
     url: config.url,
-    dataType: config.dataType ? config.dataType : 'json'
+    dataType: config.dataType ? config.dataType : 'json',
   });
 };
 
@@ -49,29 +51,34 @@ export const post = function (config) {
     url: config.url,
     type: 'POST',
     data: config.data,
-    contentType : config.contentType ? config.contentType : 'application/x-www-form-urlencoded; charset=UTF-8',
+    contentType: config.contentType
+      ? config.contentType
+      : 'application/x-www-form-urlencoded; charset=UTF-8',
     dataType: config.dataType ? config.dataType : 'json',
-    beforeSend: function() {
+    beforeSend: function () {
       if (config.formId) {
         $(config.formId).find('button[type="submit"]').prop('disabled', true);
-        $(config.formId).find(".loading").removeClass('hidden');
+        $(config.formId).find('.loading').removeClass('hidden');
       }
-    }
+    },
   });
 };
 
-export const xhrRetry = function(ajaxLoad, response, serverErrorCallback, networkErrorCallback) {
+export const xhrRetry = function (
+  ajaxLoad,
+  response,
+  serverErrorCallback,
+  networkErrorCallback
+) {
   if (response.readyState === 4) {
     //Server error
     serverErrorCallback();
-  }
-  else if (response.readyState === 0) {
+  } else if (response.readyState === 0) {
     if (ajaxLoad.retries < 0) {
       //Network error
       networkErrorCallback();
-    }
-    else {
-      setTimeout(function() {
+    } else {
+      setTimeout(function () {
         $.ajax(ajaxLoad);
       }, ajaxLoad.retryInterval);
     }
@@ -84,55 +91,64 @@ export const getFormParameters = function (form) {
 
 export const getFormJSObject = function (form) {
   var formElements = $(form).serializeArray();
-  var formDetails ={};
+  var formDetails = {};
   $.each(formElements, function () {
     if (formDetails[this.name] !== undefined) {
       if (!formDetails[this.name].push) {
         formDetails[this.name] = [formDetails[this.name]];
       }
       formDetails[this.name].push(this.value || '');
-    }
-    else {
+    } else {
       formDetails[this.name] = this.value || '';
     }
   });
   return formDetails;
-}
-
-export const getCsrfToken = function () {
-  return document.head.querySelector("[name=csrf-token]").content;
 };
 
-export const formErrorHandler = function(formId, errorResponse) {
-  let errorMsg = "";
+export const getCsrfToken = function () {
+  return document.head.querySelector('[name=csrf-token]').content;
+};
+
+export const formErrorHandler = function (formId, errorResponse) {
+  let errorMsg = '';
   // xhr readyState '4' indicates server has received the request & response is ready
   if (errorResponse.readyState === 4) {
     if (errorResponse.status === 500) {
-      errorMsg = "Internal Server Error";
+      errorMsg = 'Internal Server Error';
     } else {
-      Baseframe.Forms.showValidationErrors(formId, errorResponse.responseJSON.errors);
-      errorMsg = "Error";
+      Baseframe.Forms.showValidationErrors(
+        formId,
+        errorResponse.responseJSON.errors
+      );
+      errorMsg = 'Error';
     }
   } else {
-    errorMsg = "Unable to connect. Please try again.";
+    errorMsg = 'Unable to connect. Please try again.';
   }
-  $("#" + formId).find('button[type="submit"]').prop('disabled', false);
-  $("#" + formId).find(".loading").addClass('hidden');
+  $('#' + formId)
+    .find('button[type="submit"]')
+    .prop('disabled', false);
+  $('#' + formId)
+    .find('.loading')
+    .addClass('hidden');
   return errorMsg;
 };
 
-export const scrollToElement = function (element, speed=500) {
-  $('html,body').animate({
-    scrollTop: $(element).offset().top
-  }, speed);
+export const scrollToElement = function (element, speed = 500) {
+  $('html,body').animate(
+    {
+      scrollTop: $(element).offset().top,
+    },
+    speed
+  );
 };
 
 export const updateBrowserHistory = function (newUrl) {
-  window.history.replaceState({reloadOnPop: true}, '', window.location.href);
-  window.history.pushState({reloadOnPop: true}, '', newUrl);
-}
+  window.history.replaceState({ reloadOnPop: true }, '', window.location.href);
+  window.history.pushState({ reloadOnPop: true }, '', newUrl);
+};
 
-export const urlFor = function(action, params={}) {
+export const urlFor = function (action, params = {}) {
   /*
   Returns a URL for a given resource and action.
 
@@ -177,10 +193,16 @@ export const urlFor = function(action, params={}) {
 
   switch (action) {
     case 'index':
-      url = params.page ? `${scope}${resource}${ext}?page=${params.page}&size=${params.size}` : params.size ? `${scope}${resource}${ext}?size=${params.size}` : `${scope}${resource}${ext}`;
+      url = params.page
+        ? `${scope}${resource}${ext}?page=${params.page}&size=${params.size}`
+        : params.size
+        ? `${scope}${resource}${ext}?size=${params.size}`
+        : `${scope}${resource}${ext}`;
       break;
     case 'view':
-      url = scope ? `${scope}${resource}/${params.id}${ext}` : `${resource}/${params.id}${ext}`;
+      url = scope
+        ? `${scope}${resource}/${params.id}${ext}`
+        : `${resource}/${params.id}${ext}`;
       break;
     case 'new':
       url = `${scope}${resource}/new`;
@@ -189,10 +211,14 @@ export const urlFor = function(action, params={}) {
       url = `${scope}${resource}/${params.id}/edit`;
       break;
     case 'search':
-      url = params.page ? `${scope}${resource}?search=${params.search}&page=${params.page}&size=${params.size}` : `${scope}${resource}?search=${params.search}`;
+      url = params.page
+        ? `${scope}${resource}?search=${params.search}&page=${params.page}&size=${params.size}`
+        : `${scope}${resource}?search=${params.search}`;
       break;
     default:
-      url = params.id? `${scope}${resource}/${params.id}/${action}` : `${scope}${resource}/${action}`
+      url = params.id
+        ? `${scope}${resource}/${params.id}/${action}`
+        : `${scope}${resource}/${action}`;
   }
 
   if (params.root) {
@@ -200,11 +226,11 @@ export const urlFor = function(action, params={}) {
   }
 
   return url;
-}
+};
 
 export const setPageTitle = function (...subTitles) {
   /* Takes an array of titles and returns a concatenated string separated by " — ".
   Eg:- "Orders — JSFoo 2016 — Boxoffice" */
   subTitles.push(window.boxofficeAdmin.siteTitle);
-  $('title').html(subTitles.join(" — "));
-}
+  $('title').html(subTitles.join(' — '));
+};

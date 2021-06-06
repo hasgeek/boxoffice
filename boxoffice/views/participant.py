@@ -1,19 +1,13 @@
-# -*- coding: utf-8 -*-
-
 from flask import request
-
-from ..mailclient import (
-    send_ticket_assignment_mail,
-    send_ticket_reassignment_mail,
-)
-from .utils import xhr_only
 
 from baseframe import _
 from coaster.views import load_models, render_with
 
 from .. import app
 from ..forms import AssigneeForm
+from ..mailclient import send_ticket_assignment_mail, send_ticket_reassignment_mail
 from ..models import Assignee, LineItem, Order, db
+from .utils import xhr_only
 
 
 @app.route('/participant/<access_token>/assign', methods=['GET', 'OPTIONS', 'POST'])
@@ -21,9 +15,7 @@ from ..models import Assignee, LineItem, Order, db
 @render_with(json=True)
 @load_models((Order, {'access_token': 'access_token'}, 'order'))
 def assign(order):
-    """
-    Assign a line_item to a participant
-    """
+    """Assign a line_item to a participant."""
     line_item = LineItem.query.get(request.json.get('line_item_id'))
     if line_item is None:
         return (

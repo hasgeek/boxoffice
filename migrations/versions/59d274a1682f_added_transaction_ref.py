@@ -1,4 +1,4 @@
-"""added_transaction_ref
+"""added_transaction_ref.
 
 Revision ID: 59d274a1682f
 Revises: 11bc47d6d60b
@@ -15,7 +15,10 @@ import sqlalchemy as sa
 
 
 def upgrade():
-    op.add_column('payment_transaction', sa.Column('transaction_ref', sa.Unicode(length=80), nullable=True))
+    op.add_column(
+        'payment_transaction',
+        sa.Column('transaction_ref', sa.Unicode(length=80), nullable=True),
+    )
 
 
 def downgrade():

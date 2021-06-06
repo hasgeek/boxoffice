@@ -5,9 +5,9 @@
   <meta charset="utf-8" />
   <title>{{order.item_collection.description}}</title>
   <style type="text/css">
-    * { 
-      margin: 0; 
-      padding: 0; 
+    * {
+      margin: 0;
+      padding: 0;
     }
 
     body {
@@ -22,7 +22,7 @@
       text-decoration: none;
     }
 
-    p { 
+    p {
       margin: 5px 0 5px;
       font-size: 15px;
     }
@@ -149,7 +149,7 @@
     .footer-right-content {
       float: right;
     }
-    
+
     .footer-title {
       font-size: 12px;
     }
@@ -205,7 +205,7 @@
             <td valign="middle">{{ line_item.item.title }}</td>
             <td valign="top">{{ line_item.item.description.text|safe }}</td>
             <td class="center" valign="middle">
-              <p>This is a <b>free</b> ticket.</p>   
+              <p>This is a <b>free</b> ticket.</p>
               {% if line_item.discount_policy %}
                 <p class="discount-policy">{{ line_item.discount_policy.title }}</p>
               {% endif %}
@@ -235,8 +235,8 @@
       </div>
       <p class="clear"></p>
     </div>
-    
-  
+
+
   </div>
 </body>
 

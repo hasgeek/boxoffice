@@ -33,4 +33,4 @@ export const IndexTemplate = `
       {{/orgs}}
     </div>
   </div>
-`
+`;
