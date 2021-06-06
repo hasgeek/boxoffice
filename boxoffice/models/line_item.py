@@ -352,7 +352,7 @@ def counts_per_date_per_item(item_collection, user_tz):
     for item in item_collection.items:
         item_id = str(item.id)
         item_results = (
-            db.session.query('date', 'count')
+            db.session.query(db.column('date'), db.column('count'))
             .from_statement(
                 db.text(
                     '''SELECT DATE_TRUNC('day', line_item.ordered_at AT TIME ZONE :timezone)::date as date, count(line_item.id) AS count
@@ -387,7 +387,7 @@ def sales_by_date(sales_datetime, item_ids, user_tz):
     start_at = midnight_to_utc(sales_datetime, timezone=user_tz)
     end_at = midnight_to_utc(sales_datetime + timedelta(days=1), timezone=user_tz)
     sales_on_date = (
-        db.session.query('sum')
+        db.session.query(db.column('sum'))
         .from_statement(
             db.text(
                 '''SELECT SUM(final_amount) FROM line_item
@@ -416,7 +416,7 @@ def calculate_weekly_sales(item_collection_ids, user_tz, year):
     end_at = isoweek_datetime(year + 1, 1, user_tz)
 
     week_sales = (
-        db.session.query('sales_week', 'sum')
+        db.session.query(db.column('sales_week'), db.column('sum'))
         .from_statement(
             db.text(
                 '''

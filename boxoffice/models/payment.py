@@ -149,7 +149,7 @@ Order.net_amount = property(order_net_amount)
 def item_collection_net_sales(self):
     """Return the net revenue for an item collection."""
     total_paid = (
-        db.session.query('sum')
+        db.session.query(db.column('sum'))
         .from_statement(
             db.text(
                 '''SELECT SUM(amount) FROM payment_transaction
@@ -164,7 +164,7 @@ def item_collection_net_sales(self):
     )
 
     total_refunded = (
-        db.session.query('sum')
+        db.session.query(db.column('sum'))
         .from_statement(
             db.text(
                 '''SELECT SUM(amount) FROM payment_transaction
@@ -206,7 +206,7 @@ def calculate_weekly_refunds(item_collection_ids, user_tz, year):
     end_at = isoweek_datetime(year + 1, 1, user_tz)
 
     week_refunds = (
-        db.session.query('sales_week', 'sum')
+        db.session.query(db.column('sales_week'), db.column('sum'))
         .from_statement(
             db.text(
                 '''
