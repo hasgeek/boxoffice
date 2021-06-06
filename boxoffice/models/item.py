@@ -208,7 +208,7 @@ class Item(BaseScopedNameMixin, db.Model):
 
     def demand_curve(self):
         query = (
-            db.session.query('final_amount', 'count')
+            db.session.query(db.column('final_amount'), db.column('count'))
             .from_statement(
                 db.text(
                     '''

@@ -43,7 +43,7 @@ def sales_by_date(sales_datetime, item_ids, user_tz):
         sales_datetime + datetime.timedelta(days=1), timezone=user_tz
     )
     sales_on_date = (
-        db.session.query('sum')
+        db.session.query(db.column('sum'))
         .from_statement(
             db.text(
                 '''SELECT SUM(final_amount) FROM line_item
@@ -72,7 +72,7 @@ def calculate_weekly_sales(item_collection_ids, user_tz, year):
     end_at = isoweek_datetime(year + 1, 1, user_tz)
 
     week_sales = (
-        db.session.query('sales_week', 'sum')
+        db.session.query(db.column('sales_week'), db.column('sum'))
         .from_statement(
             db.text(
                 '''
