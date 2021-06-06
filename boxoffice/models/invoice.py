@@ -24,6 +24,7 @@ def gen_invoice_no(organization, jurisdiction, invoice_dt):
         .where(Invoice.organization == organization)
         .where(Invoice.invoiced_at >= fy_start_at)
         .where(Invoice.invoiced_at < fy_end_at)
+        .scalar_subquery()
     )
 
 
