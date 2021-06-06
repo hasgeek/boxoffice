@@ -525,10 +525,10 @@ def test_cancel_line_item_in_bulk_order(db_session, client, all_data, post_env):
     razorpay.refund_payment = MagicMock(
         return_value=MockResponse(
             response_data={
-                "error": {
-                    "code": "BAD_REQUEST_ERROR",
-                    "description": "The amount is invalid",
-                    "field": "amount",
+                'error': {
+                    'code': 'BAD_REQUEST_ERROR',
+                    'description': "The amount is invalid",
+                    'field': 'amount',
                 }
             },
             status_code=400,

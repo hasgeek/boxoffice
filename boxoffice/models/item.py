@@ -52,6 +52,7 @@ class Item(BaseScopedNameMixin, db.Model):
     discount_policies = db.relationship(
         'DiscountPolicy',
         secondary=item_discount_policy,  # type: ignore[has-type]
+        backref='items',
         lazy='dynamic',
     )
 

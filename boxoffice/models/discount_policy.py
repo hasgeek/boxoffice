@@ -87,7 +87,6 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     discount_code_base = db.Column(db.Unicode(20), nullable=True)
     secret = db.Column(db.Unicode(50), nullable=True)
 
-    items = db.relationship('Item', secondary=item_discount_policy)
     # Coupons generated in bulk are not stored in the database during generation.
     # This field allows specifying the number of times a coupon, generated in bulk, can be used
     # This is particularly useful for generating referral discount coupons. For instance, one could generate

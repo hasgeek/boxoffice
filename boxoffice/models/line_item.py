@@ -315,6 +315,7 @@ Order.confirmed_line_items = db.relationship(
         LineItem.customer_order_id == Order.id,
         LineItem.status == LINE_ITEM_STATUS.CONFIRMED,
     ),
+    viewonly=True,
 )
 
 
@@ -325,6 +326,7 @@ Order.confirmed_and_cancelled_line_items = db.relationship(
         LineItem.customer_order_id == Order.id,
         LineItem.status.in_([LINE_ITEM_STATUS.CONFIRMED, LINE_ITEM_STATUS.CANCELLED]),
     ),
+    viewonly=True,
 )
 
 
@@ -336,6 +338,7 @@ Order.initial_line_items = db.relationship(
         LineItem.previous_id.is_(None),
         LineItem.status.in_(LINE_ITEM_STATUS.TRANSACTION),
     ),
+    viewonly=True,
 )
 
 
