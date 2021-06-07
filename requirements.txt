@@ -1,4 +1,4 @@
-click==7.1.2
+click==8.0.1
 Flask==2.0.1
 Flask-Admin==1.5.8
 Flask-Assets==2.0
@@ -24,4 +24,4 @@ SQLAlchemy==1.4.17
 SQLAlchemy-Utils==0.37.6
 tabulate==0.8.9
 typing-extensions==3.10.0.0
-wtforms_json==0.3.3
+WTForms-JSON==0.3.3
