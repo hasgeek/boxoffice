@@ -6,7 +6,8 @@ window.Boxoffice = {
     orgName: 'Hasgeek',
     razorpayBanner: "https://hasgeek.com/static/img/hg-banner.png",
     states: {{ states | tojson }},
-    countries: {{ countries | tojson }}
+    countries: {{ countries | tojson }},
+    svgIconUrl: {% assets "fa5-sprite" %}"{{ ASSET_URL }}"{% endassets %},
   }
 };
 
@@ -23,6 +24,14 @@ $(function() {
   var boxoffice = {};
   boxoffice.util = {};
   boxoffice.config = window.Boxoffice.config;
+
+  var faicon = Ractive.extend({
+    template:
+      '<svg class="fa5-icon {{#if icon_size }}fa5-icon--{{icon_size}}{{/if}} {{#if baseline }}fa5--align-baseline{{/if}} {{#if css_class }}{{css_class}}{{/if}}" aria-hidden="true" role="img"><use xlink:href="{{ svgIconUrl }}#{{icon}}"></use></svg>',
+    data: {
+      svgIconUrl: window.Boxoffice.config.svgIconUrl,
+    },
+  });
 
   boxoffice.util.getQueryParams = function() {
     // Returns an array of query parameters
@@ -279,6 +288,7 @@ $(function() {
           	countries: boxoffice.config.countries
           }
         },
+        components: { faicon },
         scrollTop: function(){
           //Scroll the page up to top of boxoffice widget.
           $('html,body').animate({
@@ -340,7 +350,7 @@ $(function() {
               }),
               discount_coupons: discount_coupons
             }),
-            timeout: 5000,
+            timeout: 50000,
             retries: 5,
             retryInterval: 5000,
             success: function(data) {
@@ -430,7 +440,7 @@ $(function() {
                 }),
                 discount_coupons: boxoffice.util.getDiscountCodes()
               }),
-              timeout: 5000,
+              timeout: 50000,
               retries: 5,
               retryInterval: 5000,
               success: function(data) {
@@ -589,7 +599,7 @@ $(function() {
               order_session: boxoffice.util.getUtmHeaders(),
               discount_coupons: boxoffice.util.getDiscountCodes()
             }),
-            timeout: 5000,
+            timeout: 50000,
             retries: 5,
             retryInterval: 5000,
             success: function(data) {
@@ -729,7 +739,7 @@ $(function() {
             dataType: 'json',
             headers: {'X-Requested-With': 'XMLHttpRequest'},
             contentType: 'application/json',
-            timeout: 5000,
+            timeout: 50000,
             retries: 5,
             retryInterval: 5000,
             success: function(data) {
@@ -820,7 +830,7 @@ $(function() {
               invoice:invoiceDetails,
               invoice_id: boxoffice.ractive.get('invoice.invoice_id')
             }),
-            timeout: 5000,
+            timeout: 50000,
             retries: 5,
             retryInterval: 5000,
             success: function(data) {
