@@ -7,7 +7,7 @@ window.Boxoffice = {
     razorpayBanner: "https://hasgeek.com/static/img/hg-banner.png",
     states: {{ states | tojson }},
     countries: {{ countries | tojson }},
-    svgIconUrl: {% assets "fa5-sprite" %}"{{ ASSET_URL }}"{% endassets %},
+    svgIconUrl: {% assets "fa5-sprite" %}"{{ ASSET_URL|tojson }}"{% endassets %},
   }
 };
 
