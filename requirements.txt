@@ -23,5 +23,5 @@ rq==1.9.0
 SQLAlchemy==1.4.23
 SQLAlchemy-Utils==0.37.8
 tabulate==0.8.9
-typing-extensions==3.10.0.0
+typing-extensions==3.10.0.2
 WTForms-JSON==0.3.3
