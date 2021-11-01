@@ -20,7 +20,7 @@ psycopg2==2.9.1
 python-dateutil==2.8.2
 pytz==2021.3
 rq==1.10.0
-SQLAlchemy==1.4.25
+SQLAlchemy==1.4.26
 SQLAlchemy-Utils==0.37.8
 tabulate==0.8.9
 typing-extensions==3.10.0.2
