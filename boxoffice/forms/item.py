@@ -5,7 +5,6 @@ from flask import request
 from html5print import HTMLBeautifier
 
 from baseframe import __, forms, localized_country_list
-from baseframe.forms.sqlalchemy import QuerySelectField
 
 from ..data import indian_states, indian_states_dict
 from ..models import Category, ItemCollection, db
@@ -77,7 +76,7 @@ class ItemForm(forms.Form):
             forms.validators.DataRequired(__("Please specify the sequence order"))
         ],
     )
-    category = QuerySelectField(
+    category = forms.QuerySelectField(
         __("Category"),
         get_label='title',
         validators=[forms.validators.DataRequired(__("Please select a category"))],

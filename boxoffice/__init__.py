@@ -5,7 +5,6 @@ from flask_rq2 import RQ
 from flask_admin import Admin
 from flask_mail import Mail
 from pytz import timezone
-import wtforms_json
 
 from baseframe import Version, assets, baseframe
 from flask_lastuser import Lastuser
@@ -72,7 +71,6 @@ baseframe.init_app(
 )
 
 mail.init_app(app)
-wtforms_json.init()
 
 
 # This is a temporary solution for an admin interface, only

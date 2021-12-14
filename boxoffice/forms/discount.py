@@ -1,10 +1,4 @@
 from baseframe import __
-from baseframe.forms.sqlalchemy import (
-    AvailableAttr,
-    QuerySelectField,
-    QuerySelectMultipleField,
-)
-from baseframe.forms.validators import StopValidation
 from coaster.utils import getbool
 import baseframe.forms as forms
 
@@ -62,7 +56,7 @@ class AutomaticDiscountPolicyForm(DiscountPolicyForm):
             forms.validators.DataRequired(__("Please specify a discount percentage"))
         ],
     )
-    items = QuerySelectMultipleField(
+    items = forms.QuerySelectMultipleField(
         __("Items"),
         get_label='title',
         validators=[
@@ -83,7 +77,7 @@ class AutomaticDiscountPolicyForm(DiscountPolicyForm):
 
 
 class CouponBasedDiscountPolicyForm(DiscountPolicyForm):
-    items = QuerySelectMultipleField(
+    items = forms.QuerySelectMultipleField(
         __("Items"),
         get_label='title',
         validators=[
@@ -110,7 +104,7 @@ class CouponBasedDiscountPolicyForm(DiscountPolicyForm):
         validators=[
             forms.validators.DataRequired(__("Please specify a discount code base")),
             forms.validators.Length(max=20),
-            AvailableAttr(
+            forms.AvailableAttr(
                 'discount_code_base',
                 message='This discount code base is already in use. Please pick a different code base.',
             ),
@@ -135,7 +129,7 @@ class PriceBasedDiscountPolicyForm(DiscountPolicyForm):
         validators=[
             forms.validators.DataRequired(__("Please specify a discount code base")),
             forms.validators.Length(max=20),
-            AvailableAttr(
+            forms.AvailableAttr(
                 'discount_code_base',
                 message='This discount code base is already in use. Please pick a different code base.',
             ),
@@ -185,7 +179,7 @@ class DiscountPriceForm(forms.Form):
         ],
         naive=False,
     )
-    item = QuerySelectField(
+    item = forms.QuerySelectField(
         __("Item"),
         get_label='title',
         validators=[
@@ -212,7 +206,7 @@ def validate_unique_discount_coupon_code(form, field):
         )
         .notempty()
     ):
-        raise StopValidation(
+        raise forms.StopValidation(
             __(
                 "This discount coupon code already exists. Please enter a different coupon code"
             )
