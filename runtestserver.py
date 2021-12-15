@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 from boxoffice import app, db
-from tests import init_data
 
 db.drop_all()
 db.create_all()
-init_data()
 
 
 @app.route('/testing')
@@ -34,4 +32,4 @@ def test_page():
 </html>"""
 
 
-app.run('0.0.0.0', 6500, debug=True)
+app.run('0.0.0.0', 6500, debug=True)  # nosec

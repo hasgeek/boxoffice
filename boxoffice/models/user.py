@@ -1,5 +1,3 @@
-import six
-
 from datetime import datetime
 
 from flask import g
@@ -39,7 +37,7 @@ def naive_to_utc(dt, timezone=None):
     Localizes it to the given timezone and converts it into a UTC datetime
     """
     if timezone:
-        if isinstance(timezone, six.string_types):
+        if isinstance(timezone, str):
             tz = pytz.timezone(timezone)
         else:
             tz = timezone
