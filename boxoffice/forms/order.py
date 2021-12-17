@@ -16,7 +16,7 @@ def trim(length):
     """
 
     def _inner(data):
-        return str(data[0:length])
+        return str((data or '')[0:length])
 
     return _inner
 
