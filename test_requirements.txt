@@ -2,5 +2,5 @@ coverage==6.3
 coveralls==3.3.1
 mock==4.0.3
 pytest==6.2.5
-pytest-bdd==4.1.0
+pytest-bdd==5.0.0
 pytest-cov==2.12.1
