@@ -71,7 +71,7 @@ def get_settlements(filename):
                         }
                     )
                 else:
-                    print(trans[0])  # NOQA: T001
+                    print(trans[0])  # noqa: T201
             elif trans[1] == 'refund':
                 payment = OnlinePayment.query.filter_by(pg_paymentid=trans[14]).first()
                 if payment:
@@ -97,7 +97,7 @@ def get_settlements(filename):
                             }
                         )
                 else:
-                    print(trans[0])  # NOQA: T001
+                    print(trans[0])  # noqa: T201
 
     rows = []
     header = [

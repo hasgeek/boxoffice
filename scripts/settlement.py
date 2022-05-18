@@ -92,13 +92,13 @@ def get_settlements(filename):
                                 'type': 'payment',
                             }
                         )
-                        print(  # NOQA: T001
+                        print(  # noqa: T201
                             "settlement not settled yet {settlement}".format(
                                 settlement=trans[11]
                             )
                         )
                 else:
-                    print(  # NOQA: T001
+                    print(  # noqa: T201
                         "payment not found {payment}".format(payment=trans[0])
                     )
             elif trans[1] == 'refund':
@@ -146,13 +146,13 @@ def get_settlements(filename):
                                     'type': 'refund',
                                 }
                             )
-                        print(  # NOQA: T001
+                        print(  # noqa: T201
                             "settlement not settled yet {settlement}".format(
                                 settlement=trans[11]
                             )
                         )
                 else:
-                    print(  # NOQA: T001
+                    print(  # noqa: T201
                         "payment not found {payment}".format(payment=trans[0])
                     )
             elif trans[1] == 'adjustment':
@@ -173,7 +173,7 @@ def get_settlements(filename):
                         }
                     )
                 else:
-                    print(  # NOQA: T001
+                    print(  # noqa: T201
                         "settlement not settled yet {settlement}".format(
                             settlement=trans[11]
                         )
@@ -283,7 +283,7 @@ def get_orders(settlement_filename):
             if Decimal(
                 settlement_dict['credit']
             ) != payment_transaction.amount - Decimal(settlement_dict['fee']):
-                print("Tally failed for " + settlement_dict['entity_id'])  # NOQA: T001
+                print("Tally failed for " + settlement_dict['entity_id'])  # noqa: T201
         elif settlement_dict['type'] == 'refund' and settlement_dict[
             'entity_id'
         ] not in [pord['entity_id'] for pord in payment_orders]:
@@ -317,12 +317,12 @@ def get_orders(settlement_filename):
                         }
                     )
                 else:
-                    print(  # NOQA: T001
+                    print(  # noqa: T201
                         "no transaction for " + settlement_dict['entity_id']
                     )
             except:  # NOQA: E722
                 # FIXME: Trap the correct exception
-                print(  # NOQA: T001
+                print(  # noqa: T201
                     "no payment found for "
                     + settlement_dict['payment_id']
                     + "for entity "
@@ -342,7 +342,7 @@ def get_orders(settlement_filename):
                 if payment_order['settlement_id'] == settlement_dict['entity_id']
             ]
         ):
-            print(  # NOQA: T001
+            print(  # noqa: T201
                 "Settlement not tallying for " + settlement_dict['entity_id']
             )
 

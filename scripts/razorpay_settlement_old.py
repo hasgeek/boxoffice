@@ -147,7 +147,7 @@ def get_settled_orders(date_ranges=[], filenames=[]):
                     #     settled_orders.append(format_row(format_line_item(settlement_id, settlement_payment_id, line_item, 'refund')))
 
             except Exception as error_msg:  # NOQA: B902
-                print(error_msg)  # NOQA: T001
+                print(error_msg)  # noqa: T201
 
         settlement_refund_ids = [
             entity['entity_id']
@@ -215,8 +215,8 @@ def get_settled_orders(date_ranges=[], filenames=[]):
                         )
                     )
                 else:
-                    print("no line item found")  # NOQA: T001
-                    print(payment.pg_paymentid)  # NOQA: T001
+                    print("no line item found")  # noqa: T201
+                    print(payment.pg_paymentid)  # noqa: T201
 
     return settled_orders
 

@@ -169,8 +169,8 @@ def get_settled_orders(settlement_files):
                 )
             except:  # NOQA: E722
                 # FIXME: Add correct exception
-                print("Multiple line items found")  # NOQA: T001
-                print(payment.pg_paymentid)  # NOQA: T001
+                print("Multiple line items found")  # noqa: T201
+                print(payment.pg_paymentid)  # noqa: T201
                 cancelled_line_item = LineItem.query.filter(
                     LineItem.order == order,
                     LineItem.final_amount
@@ -189,8 +189,8 @@ def get_settled_orders(settlement_files):
                         )
                     )
                 else:
-                    print("no line item found")  # NOQA: T001
-                    print(payment.pg_paymentid)  # NOQA: T001
+                    print("no line item found")  # noqa: T201
+                    print(payment.pg_paymentid)  # noqa: T201
 
     return settled_orders
 
