@@ -797,7 +797,7 @@ def process_partial_refund_for_order(data_dict):
         return jsonify(
             form_template=render_form(
                 form=form, title="Partial refund", submit="Refund", with_chrome=False
-            )
+            ).get_data(as_text=True)
         )
     if form.validate_on_submit():
         requested_refund_amount = form.amount.data

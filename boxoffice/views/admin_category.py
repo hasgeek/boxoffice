@@ -17,7 +17,7 @@ def jsonify_new_category(data_dict):
         return jsonify(
             form_template=render_form(
                 form=category_form, title="New item", submit="Create", with_chrome=False
-            )
+            ).get_data(as_text=True)
         )
     if category_form.validate_on_submit():
         category = Category(item_collection=item_collection)
@@ -60,7 +60,7 @@ def jsonify_edit_category(data_dict):
                 title="Edit category",
                 submit="Update",
                 with_chrome=False,
-            )
+            ).get_data(as_text=True)
         )
     if category_form.validate_on_submit():
         category_form.populate_obj(category)
