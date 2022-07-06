@@ -79,7 +79,7 @@ def jsonify_new_item_collection(item_collection_dict):
                 submit="Create",
                 ajax=False,
                 with_chrome=False,
-            )
+            ).get_data(as_text=True)
         )
     if ic_form.validate_on_submit():
         ic = ItemCollection(organization=item_collection_dict['organization'])
@@ -121,7 +121,7 @@ def jsonify_edit_item_collection(item_collection_dict):
                 submit="Save",
                 ajax=False,
                 with_chrome=False,
-            )
+            ).get_data(as_text=True)
         )
     if ic_form.validate_on_submit():
         ic_form.populate_obj(item_collection)

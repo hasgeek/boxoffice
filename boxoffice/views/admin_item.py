@@ -121,7 +121,7 @@ def jsonify_new_item(data_dict):
         return jsonify(
             form_template=render_form(
                 form=item_form, title="New item", submit="Create", with_chrome=False
-            )
+            ).get_data(as_text=True)
         )
     if item_form.validate_on_submit():
         item = Item(item_collection=item_collection)
@@ -159,7 +159,7 @@ def jsonify_edit_item(data_dict):
         return jsonify(
             form_template=render_form(
                 form=item_form, title="Update item", submit="Update", with_chrome=False
-            )
+            ).get_data(as_text=True)
         )
     if item_form.validate_on_submit():
         item_form.populate_obj(item)
@@ -191,7 +191,7 @@ def jsonify_new_price(data_dict):
         return jsonify(
             form_template=render_form(
                 form=price_form, title="New price", submit="Save", with_chrome=False
-            )
+            ).get_data(as_text=True)
         )
     if price_form.validate_on_submit():
         price = Price(item=item)
@@ -230,7 +230,7 @@ def jsonify_edit_price(data_dict):
         return jsonify(
             form_template=render_form(
                 form=price_form, title="Update price", submit="Save", with_chrome=False
-            )
+            ).get_data(as_text=True)
         )
     if price_form.validate_on_submit():
         price_form.populate_obj(price)

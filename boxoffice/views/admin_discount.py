@@ -240,7 +240,7 @@ def admin_delete_discount_policy(discount_policy):
                 title="Delete discount policy",
                 submit="Delete",
                 with_chrome=False,
-            )
+            ).get_data(as_text=True)
         )
 
     if not form.validate_on_submit():
