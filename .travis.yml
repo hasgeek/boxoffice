@@ -23,7 +23,6 @@ before_install:
   - sudo systemctl restart postgresql@12-main
 install:
   - pip install -U pip wheel
-  - pip install git+https://github.com/hasgeek/flask-babelhg/
   - pip install -r test_requirements.txt
   - pip install -r requirements.txt
   - npm install casperjs

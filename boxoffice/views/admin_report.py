@@ -1,7 +1,7 @@
 from datetime import date, datetime
 
 from flask import g, jsonify, request, url_for
-from flask_babelhg import get_locale
+from flask_babel import get_locale
 
 from babel.dates import format_datetime
 

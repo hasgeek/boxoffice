@@ -41,7 +41,7 @@ known_flask = [
   'wtforms',
   'webassets',
   'flask_assets',
-  'flask_babelhg',
+  'flask_babel',
   'flask_executor',
   'flask_flatpages',
   'flask_mailman',
