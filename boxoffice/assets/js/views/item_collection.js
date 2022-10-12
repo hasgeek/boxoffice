@@ -155,11 +155,12 @@ let AggChartComponent = Ractive.extend({
   template: AggChartTemplate,
   format_columns: function () {
     let date_item_counts = this.parent.get('date_item_counts');
-    const allItems = this.parent
-      .get('categories')
-      .reduce(function (allItems, category) {
-        return allItems.concat(category.items);
-      }, []);
+    const allItems = this.parent.get('categories').reduce(function (
+      allItems,
+      category
+    ) {
+      return allItems.concat(category.items);
+    }, []);
     const date_sales = this.parent.get('date_sales');
     let dates = ['x'];
     let item_counts = {};
