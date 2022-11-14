@@ -49,7 +49,7 @@ expected_data = {
 def resp(client, all_data):
     ic = ItemCollection.query.first()
     return client.get(
-        '/ic/{ic}'.format(ic=ic.id),
+        f'/ic/{ic.id}',
         headers=[
             ('X-Requested-With', 'XMLHttpRequest'),
             ('Origin', app.config['BASE_URL']),
