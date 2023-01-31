@@ -40,7 +40,7 @@ def upgrade():
         ['organization_id', 'fy_start_at', 'fy_end_at', 'invoice_no'],
     )
     invoices = conn.execute(
-        sa.select([invoice_table.c.id, invoice_table.c.invoiced_at]).select_from(
+        sa.select(invoice_table.c.id, invoice_table.c.invoiced_at).select_from(
             invoice_table
         )
     )
@@ -63,7 +63,7 @@ def downgrade():
     op.alter_column(
         'invoice', 'fy_start_at', existing_type=sa.DateTime(), nullable=True
     )
-    invoices = conn.execute(sa.select([invoice_table.c.id]).select_from(invoice_table))
+    invoices = conn.execute(sa.select(invoice_table.c.id).select_from(invoice_table))
     for invoice in invoices:
         conn.execute(
             sa.update(invoice_table)

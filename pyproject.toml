@@ -86,3 +86,14 @@ aria_role = true
 # The `alt` attribute must be present.
 # See https://www.curlylint.org/docs/rules/image_alt.
 image_alt = true
+
+[tool.mypy]
+files = '**/*.py'
+exclude = 'node_modules'
+plugins = ['sqlalchemy.ext.mypy.plugin']
+ignore_missing_imports = true
+show_error_codes = true
+warn_unreachable = true
+warn_unused_ignores = true
+warn_redundant_casts = false
+check_untyped_defs = false

@@ -55,11 +55,8 @@ repos:
     hooks:
       - id: mypy
         additional_dependencies:
-          - sqlalchemy-stubs
-          - types-mock
-          - types-python-dateutil
-          - types-pytz
-          - types-requests
+          - sqlalchemy
+          - types-all
   - repo: https://github.com/PyCQA/flake8
     rev: 6.0.0
     hooks:

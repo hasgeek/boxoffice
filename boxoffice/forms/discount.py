@@ -72,7 +72,7 @@ class AutomaticDiscountPolicyForm(DiscountPolicyForm):
         self.items.query = (
             Item.query.join(ItemCollection)
             .filter(ItemCollection.organization == self.edit_parent)
-            .options(db.load_only('id', 'title'))
+            .options(db.load_only(Item.id, Item.title))
         )
 
 
@@ -119,7 +119,7 @@ class CouponBasedDiscountPolicyForm(DiscountPolicyForm):
         self.items.query = (
             Item.query.join(ItemCollection)
             .filter(ItemCollection.organization == self.edit_parent)
-            .options(db.load_only('id', 'title'))
+            .options(db.load_only(Item.id, Item.title))
         )
 
 

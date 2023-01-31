@@ -1,7 +1,8 @@
 from datetime import date
 from types import SimpleNamespace
 
-from sqlalchemy import event
+from sqlalchemy.orm import close_all_sessions
+import sqlalchemy as sa
 
 from werkzeug.test import EnvironBuilder
 
@@ -55,36 +56,37 @@ class RemoveIsRollback:
 
     def __enter__(self):
         """Replace ``session.remove`` during the `with` context."""
-        self.session.remove = self.rollback_provider
 
     def __exit__(self, exc_type, exc_value, traceback):
         """Restore ``session.remove`` after the `with` context."""
         self.session.remove = self.original_remove
 
 
-# This fixture borrowed from
-# https://github.com/jeancochrane/pytest-flask-sqlalchemy/issues/46#issuecomment-829694672
 @pytest.fixture(scope='function')
 def db_session(database, db_connection):
-    """Create a nested transaction for the test and roll it back after."""
+    """Empty the database after each use of the fixture."""
+    with RemoveIsRollback(database.session, lambda: database.session.rollback):
+        yield database.session
+    close_all_sessions()
+
+    # Iterate through all database engines and empty their tables
     with app.app_context():
-        transaction = db_connection.begin()
-        savepoint = database.session.begin_nested()
-
-        # for handling tests that actually call `session.rollback()`
-        # https://docs.sqlalchemy.org/en/13/orm/session_transaction.html#joining-a-session-into-an-external-transaction-such-as-for-test-suites
-        @event.listens_for(database.session, 'after_transaction_end')
-        def restart_savepoint(session, transaction_in):
-            if transaction_in.nested and not transaction_in.parent.nested:
-                session.expire_all()
-                session.begin_nested()
-
-        with RemoveIsRollback(database.session, lambda: savepoint.rollback):
-            yield database.session
-
-        event.remove(database.session, 'after_transaction_end', restart_savepoint)
-        database.session.close()
-        transaction.rollback()
+        for bind in [None] + list(app.config.get('SQLALCHEMY_BINDS') or ()):
+            engine = database.engines[bind]
+            with engine.begin() as connection:
+                connection.execute(
+                    sa.text(
+                        '''
+    DO $$
+    DECLARE tablenames text;
+    BEGIN
+        tablenames := string_agg(
+            quote_ident(schemaname) || '.' || quote_ident(tablename), ', ')
+            FROM pg_tables WHERE schemaname = 'public';
+        EXECUTE 'TRUNCATE TABLE ' || tablenames || ' RESTART IDENTITY';
+    END; $$'''
+                    )
+                )
 
 
 # Enable autouse to guard against tests that have implicit database access, or assume

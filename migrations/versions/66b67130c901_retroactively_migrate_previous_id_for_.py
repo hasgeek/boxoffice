@@ -102,7 +102,7 @@ line_item_table = table(
 def upgrade():
     conn = op.get_bind()
     orders = conn.execute(
-        sa.select([order_table.c.id])
+        sa.select(order_table.c.id)
         .where(order_table.c.status.in_(ORDER_STATUS.TRANSACTION))
         .select_from(order_table)
     )
@@ -133,13 +133,13 @@ def upgrade():
 def downgrade():
     conn = op.get_bind()
     orders = conn.execute(
-        sa.select([order_table.c.id])
+        sa.select(order_table.c.id)
         .where(order_table.c.status.in_(ORDER_STATUS.TRANSACTION))
         .select_from(order_table)
     )
     for order_id in [order.id for order in orders]:
         line_items = conn.execute(
-            sa.select([line_item_table.c.id])
+            sa.select(line_item_table.c.id)
             .where(line_item_table.c.customer_order_id == order_id)
             .order_by(sa.text('created_at'))
             .select_from(line_item_table)

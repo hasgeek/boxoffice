@@ -30,7 +30,7 @@ line_item = table(
 
 
 def upgrade():
-    purchase_order_query = sa.select([order.c.id]).where(order.c.status == 0)
+    purchase_order_query = sa.select(order.c.id).where(order.c.status == 0)
     op.execute(
         line_item.update()
         .where(line_item.c.customer_order_id.in_(purchase_order_query))
