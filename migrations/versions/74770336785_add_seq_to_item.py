@@ -31,11 +31,11 @@ item = table(
 def upgrade():
     op.add_column('item', sa.Column('seq', sa.Integer(), nullable=True))
     connection = op.get_bind()
-    item_collections = connection.execute(sa.select([item_collection.c.id]))
+    item_collections = connection.execute(sa.select(item_collection.c.id))
     item_collection_ids = [ic_tuple[0] for ic_tuple in item_collections]
     for item_collection_id in item_collection_ids:
         items = connection.execute(
-            sa.select([item.c.id])
+            sa.select(item.c.id)
             .where(item.c.item_collection_id == item_collection_id)
             .order_by(sa.text('created_at'))
         )

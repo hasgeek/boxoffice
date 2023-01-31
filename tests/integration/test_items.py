@@ -60,7 +60,7 @@ def test_assign(db_session, client, all_data):
     assert li_one.current_assignee is not None
 
     # Now assigning the other line item to same email address should fail
-    data = {  # type:ignore[unreachable]
+    data = {
         'line_item_id': str(li_two.id),
         'attendee': {
             'fullname': 'Testing',

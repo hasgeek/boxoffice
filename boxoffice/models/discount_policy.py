@@ -311,7 +311,7 @@ class DiscountCoupon(IdMixin, db.Model):
 
     def update_used_count(self):
         self.used_count = (
-            db.select([db.func.count()])
+            db.select(db.func.count())
             .where(LineItem.discount_coupon == self)
             .where(LineItem.status == LINE_ITEM_STATUS.CONFIRMED)
             .as_scalar()
@@ -327,9 +327,7 @@ create_title_trgm_trigger = DDL(
 event.listen(
     DiscountPolicy.__table__,
     'after_create',
-    create_title_trgm_trigger.execute_if(
-        dialect='postgresql'  # type: ignore[arg-type]
-    ),
+    create_title_trgm_trigger.execute_if(dialect='postgresql'),
 )
 
 # Tail imports

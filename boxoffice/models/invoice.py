@@ -20,7 +20,7 @@ def gen_invoice_no(organization, jurisdiction, invoice_dt):
     """Generate a sequential invoice number for the organization and financial year."""
     fy_start_at, fy_end_at = get_fiscal_year(jurisdiction, invoice_dt)
     return (
-        select([func.coalesce(func.max(Invoice.invoice_no + 1), 1)])
+        select(func.coalesce(func.max(Invoice.invoice_no + 1), 1))
         .where(Invoice.organization == organization)
         .where(Invoice.invoiced_at >= fy_start_at)
         .where(Invoice.invoiced_at < fy_end_at)

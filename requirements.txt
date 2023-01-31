@@ -2,7 +2,7 @@ git+https://github.com/hasgeek/baseframe#egg=baseframe
 click==8.1.3
 git+https://github.com/hasgeek/coaster#egg=coaster
 Flask==2.2.2
-Flask-Admin==1.6.0
+git+https://github.com/flask-admin/flask-admin#egg=Flask-Admin
 Flask-Assets==2.0
 git+https://github.com/hasgeek/flask-lastuser#egg=Flask-Lastuser
 Flask-Mail==0.9.1
