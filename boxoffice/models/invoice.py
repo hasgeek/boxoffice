@@ -166,7 +166,7 @@ def fetch_invoices(self):
         "postcode",
         "invoiced_at",
     ]
-    invoices_join = db.join(Invoice, Order)
+    invoices_join = db.join(Invoice).join(Order)
     invoices_query = (
         db.select(
             [
