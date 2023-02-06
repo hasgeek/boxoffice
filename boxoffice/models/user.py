@@ -12,7 +12,6 @@ __all__ = ['User', 'Organization']
 
 
 class User(UserBase2, db.Model):
-
     __tablename__ = 'user'
 
     def __repr__(self):
