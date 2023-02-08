@@ -29,8 +29,10 @@ def items(organization, search=None):
             )
             .join(Item.item_collection)
             .options(
-                db.Load(Item).load_only('id', 'title'),
-                db.Load(ItemCollection).load_only('id', 'title'),
+                db.Load(Item).load_only(Item.id, Item.title),
+                db.Load(ItemCollection).load_only(
+                    ItemCollection.id, ItemCollection.title
+                ),
             )
             .all()
         )
