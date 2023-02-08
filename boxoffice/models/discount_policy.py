@@ -113,14 +113,14 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     }
 
     def roles_for(self, actor=None, anchors=()):
-        roles = super(DiscountPolicy, self).roles_for(actor, anchors)
+        roles = super().roles_for(actor, anchors)
         if self.organization.userid in actor.organizations_owned_ids():
             roles.add('dp_owner')
         return roles
 
     def __init__(self, *args, **kwargs):
         self.secret = kwargs.get('secret') if kwargs.get('secret') else buid()
-        super(DiscountPolicy, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     @cached_property
     def is_automatic(self):
@@ -283,7 +283,7 @@ class DiscountCoupon(IdMixin, db.Model):
 
     def __init__(self, *args, **kwargs):
         self.id = uuid1mc()
-        super(DiscountCoupon, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     code = db.Column(db.Unicode(100), nullable=False, default=generate_coupon_code)
     usage_limit = db.Column(db.Integer, nullable=False, default=1)

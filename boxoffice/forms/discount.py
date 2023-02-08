@@ -193,7 +193,7 @@ class DiscountPriceForm(forms.Form):
         self.item.query = (
             Item.query.join(ItemCollection)
             .filter(ItemCollection.organization == self.edit_parent.organization)
-            .options(db.load_only('id', 'title'))
+            .options(db.load_only(ItemCollection.id, ItemCollection.title))
         )
 
 

@@ -172,7 +172,7 @@ class LineItem(BaseMixin, db.Model):
     cancelled_at = db.Column(db.TIMESTAMP(timezone=True), nullable=True)
 
     def permissions(self, user, inherited=None):
-        perms = super(LineItem, self).permissions(user, inherited)
+        perms = super().permissions(user, inherited)
         if self.order.organization.userid in user.organizations_owned_ids():
             perms.add('org_admin')
         return perms

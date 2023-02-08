@@ -85,7 +85,7 @@ class Order(BaseMixin, db.Model):
     # confirmed_line_items, initial_line_items, confirmed_and_cancelled_line_items
 
     def permissions(self, user, inherited=None):
-        perms = super(Order, self).permissions(user, inherited)
+        perms = super().permissions(user, inherited)
         if self.organization.userid in user.organizations_owned_ids():
             perms.add('org_admin')
         return perms

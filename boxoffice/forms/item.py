@@ -131,7 +131,7 @@ class ItemForm(forms.Form):
         self.category.query = (
             Category.query.join(ItemCollection)
             .filter(Category.item_collection == self.edit_parent)
-            .options(db.load_only('id', 'title'))
+            .options(db.load_only(Category.id, Category.title))
         )
 
     def validate_place_supply_state_code(self, field):

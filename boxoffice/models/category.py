@@ -32,7 +32,7 @@ class Category(BaseScopedNameMixin, db.Model):
     }
 
     def roles_for(self, actor=None, anchors=()):
-        roles = super(Category, self).roles_for(actor, anchors)
+        roles = super().roles_for(actor, anchors)
         if self.item_collection.organization.userid in actor.organizations_owned_ids():
             roles.add('category_owner')
         return roles
