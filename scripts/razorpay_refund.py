@@ -25,6 +25,7 @@ def get_refunds(date_ranges):
             settlements_url,
             params={'year': date_range['year'], 'month': date_range['month']},
             auth=(app.config['RAZORPAY_KEY_ID'], app.config['RAZORPAY_KEY_SECRET']),
+            timeout=30,
         )
         entities = settlement_resp.json()
 

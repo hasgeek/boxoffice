@@ -1,8 +1,8 @@
 import secrets
 import string
 
-from sqlalchemy import DDL, event
 from sqlalchemy.orm.exc import MultipleResultsFound
+import sqlalchemy as sa
 
 from itsdangerous import BadSignature, Signer
 from werkzeug.utils import cached_property
@@ -22,7 +22,7 @@ class DISCOUNT_TYPE(LabeledEnum):  # NOQA: N801
     COUPON = (1, __("Coupon"))
 
 
-item_discount_policy = db.Table(
+item_discount_policy = sa.Table(
     'item_discount_policy',
     db.Model.metadata,
     db.Column('item_id', None, db.ForeignKey('item.id'), primary_key=True),
@@ -139,9 +139,7 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
         if not identifier:
             identifier = buid()
         signer = Signer(self.secret)
-        key = "{base}.{identifier}".format(
-            base=self.discount_code_base, identifier=identifier
-        )
+        key = f'{self.discount_code_base}.{identifier}'
         return signer.sign(key).decode('utf-8')
 
     @staticmethod
@@ -265,8 +263,8 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
         return False
 
 
-@event.listens_for(DiscountPolicy, 'before_update')
-@event.listens_for(DiscountPolicy, 'before_insert')
+@sa.event.listens_for(DiscountPolicy, 'before_update')
+@sa.event.listens_for(DiscountPolicy, 'before_insert')
 def validate_price_based_discount(mapper, connection, target):
     if target.is_price_based and len(target.items) > 1:
         raise ValueError("Price-based discounts MUST have only one associated item")
@@ -318,13 +316,13 @@ class DiscountCoupon(IdMixin, db.Model):
         )
 
 
-create_title_trgm_trigger = DDL(
+create_title_trgm_trigger = sa.DDL(
     '''
     CREATE INDEX idx_discount_policy_title_trgm on discount_policy USING gin (title gin_trgm_ops);
     '''
 )
 
-event.listen(
+sa.event.listen(
     DiscountPolicy.__table__,
     'after_create',
     create_title_trgm_trigger.execute_if(dialect='postgresql'),

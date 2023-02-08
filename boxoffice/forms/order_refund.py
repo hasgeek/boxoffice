@@ -1,4 +1,4 @@
-from baseframe import __
+from baseframe import _, __
 from baseframe.forms.validators import StopValidation
 import baseframe.forms as forms
 
@@ -45,12 +45,11 @@ class OrderRefundForm(forms.Form):
         requested_refund_amount = field.data
         order = self.edit_parent
         if not order.paid_amount:
-            raise StopValidation(__("Refunds can only be issued for paid orders"))
+            raise StopValidation(_("Refunds can only be issued for paid orders"))
         if (order.refunded_amount + requested_refund_amount) > order.paid_amount:
             raise StopValidation(
-                __(
-                    "Invalid refund amount! Must be lesser than {amount}, the net amount paid for the order".format(
-                        amount=order.net_amount
-                    )
-                )
+                _(
+                    "Invalid refund amount! Must be lesser than {amount}, the net"
+                    " amount paid for the order"
+                ).format(amount=order.net_amount)
             )

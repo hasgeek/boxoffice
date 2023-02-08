@@ -58,9 +58,7 @@ def basepath(url):
     parsed_url = urlparse(url)
     if not (parsed_url.scheme or parsed_url.netloc):
         raise ValueError("Invalid URL")
-    return "{scheme}://{netloc}".format(
-        scheme=parsed_url.scheme, netloc=parsed_url.netloc
-    )
+    return f'{parsed_url.scheme}://{parsed_url.netloc}'
 
 
 def cors(f):

@@ -21,7 +21,9 @@ def get_refunds(paymentid):
         base_url=base_url, paymentid=paymentid
     )
     resp = requests.get(
-        url, auth=(app.config['RAZORPAY_KEY_ID'], app.config['RAZORPAY_KEY_SECRET'])
+        url,
+        auth=(app.config['RAZORPAY_KEY_ID'], app.config['RAZORPAY_KEY_SECRET']),
+        timeout=30,
     )
     return resp.json()
 

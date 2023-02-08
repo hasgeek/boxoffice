@@ -83,11 +83,11 @@ def org_revenue(organization):
         result = list(
             calculate_weekly_refunds(item_collection_ids, user_timezone, year).items()
         )
-        doc = _("Refunds per week for {year}".format(year=year))
+        doc = _("Refunds per week for {year}").format(year=year)
     else:
         # sales includes confirmed and cancelled line items
         result = list(
             calculate_weekly_sales(item_collection_ids, user_timezone, year).items()
         )
-        doc = _("Revenue per week for {year}".format(year=year))
+        doc = _("Revenue per week for {year}").format(year=year)
     return api_success(result=result, doc=doc, status_code=200)
