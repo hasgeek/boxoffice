@@ -51,7 +51,7 @@ class Item(BaseScopedNameMixin, db.Model):
 
     discount_policies = db.relationship(
         'DiscountPolicy',
-        secondary=item_discount_policy,  # type: ignore[has-type]
+        secondary=item_discount_policy,
         backref='items',
         lazy='dynamic',
     )
@@ -272,7 +272,7 @@ class Price(BaseScopedNameMixin, db.Model):
     }
 
     def roles_for(self, actor=None, anchors=()):
-        roles = super(Price, self).roles_for(actor, anchors)
+        roles = super().roles_for(actor, anchors)
         if (
             self.item.item_collection.organization.userid
             in actor.organizations_owned_ids()
