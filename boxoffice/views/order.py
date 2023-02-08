@@ -611,7 +611,7 @@ def get_coupon_codes_from_line_items(line_items):
     if coupon_ids:
         coupons = (
             DiscountCoupon.query.filter(DiscountCoupon.id.in_(coupon_ids))
-            .options(db.load_only('code'))
+            .options(db.load_only(DiscountCoupon.code))
             .all()
         )
     else:

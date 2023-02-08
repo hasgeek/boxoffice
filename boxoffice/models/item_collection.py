@@ -31,7 +31,7 @@ class ItemCollection(BaseScopedNameMixin, db.Model):
     __roles__ = {'ic_owner': {'read': {'id', 'name', 'title', 'description'}}}
 
     def roles_for(self, actor=None, anchors=()):
-        roles = super(ItemCollection, self).roles_for(actor, anchors)
+        roles = super().roles_for(actor, anchors)
         if self.organization.userid in actor.organizations_owned_ids():
             roles.add('ic_owner')
         return roles
@@ -61,35 +61,33 @@ class ItemCollection(BaseScopedNameMixin, db.Model):
 
         line_item_query = (
             db.select(
-                [
-                    LineItem.id,
-                    LineItem.customer_order_id,
-                    Order.invoice_no,
-                    Item.title,
-                    LineItem.base_amount,
-                    LineItem.discounted_amount,
-                    LineItem.final_amount,
-                    DiscountPolicy.title,
-                    DiscountCoupon.code,
-                    Order.buyer_fullname,
-                    Order.buyer_email,
-                    Order.buyer_phone,
-                    Assignee.fullname,
-                    Assignee.email,
-                    Assignee.phone,
-                    Order.access_token,
-                    Assignee.details,
-                    OrderSession.utm_campaign,
-                    OrderSession.utm_source,
-                    OrderSession.utm_medium,
-                    OrderSession.utm_term,
-                    OrderSession.utm_content,
-                    OrderSession.utm_id,
-                    OrderSession.gclid,
-                    OrderSession.referrer,
-                    OrderSession.host,
-                    Order.paid_at,
-                ]
+                LineItem.id,
+                LineItem.customer_order_id,
+                Order.invoice_no,
+                Item.title,
+                LineItem.base_amount,
+                LineItem.discounted_amount,
+                LineItem.final_amount,
+                DiscountPolicy.title,
+                DiscountCoupon.code,
+                Order.buyer_fullname,
+                Order.buyer_email,
+                Order.buyer_phone,
+                Assignee.fullname,
+                Assignee.email,
+                Assignee.phone,
+                Order.access_token,
+                Assignee.details,
+                OrderSession.utm_campaign,
+                OrderSession.utm_source,
+                OrderSession.utm_medium,
+                OrderSession.utm_term,
+                OrderSession.utm_content,
+                OrderSession.utm_id,
+                OrderSession.gclid,
+                OrderSession.referrer,
+                OrderSession.host,
+                Order.paid_at,
             )
             .select_from(line_item_join)
             .where(LineItem.status == LINE_ITEM_STATUS.CONFIRMED)
@@ -151,16 +149,14 @@ class ItemCollection(BaseScopedNameMixin, db.Model):
         )
         line_item_query = (
             db.select(
-                [
-                    Order.invoice_no,
-                    LineItem.line_item_seq,
-                    LineItem.id,
-                    Item.title,
-                    Assignee.fullname,
-                    Assignee.email,
-                    Assignee.phone,
-                    Assignee.details,
-                ]
+                Order.invoice_no,
+                LineItem.line_item_seq,
+                LineItem.id,
+                Item.title,
+                Assignee.fullname,
+                Assignee.email,
+                Assignee.phone,
+                Assignee.details,
             )
             .select_from(line_item_join)
             .where(LineItem.status == LINE_ITEM_STATUS.CONFIRMED)

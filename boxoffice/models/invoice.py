@@ -95,7 +95,7 @@ class Invoice(UuidMixin, BaseMixin, db.Model):
     }
 
     def roles_for(self, actor=None, anchors=()):
-        roles = super(Invoice, self).roles_for(actor, anchors)
+        roles = super().roles_for(actor, anchors)
         if self.organization.userid in actor.organizations_owned_ids():
             roles.add('invoicer')
         return roles
@@ -113,7 +113,7 @@ class Invoice(UuidMixin, BaseMixin, db.Model):
             country_code, self.invoiced_at
         )
         self.invoice_no = gen_invoice_no(organization, country_code, self.invoiced_at)
-        super(Invoice, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     @property
     def is_final(self):
@@ -166,31 +166,29 @@ def fetch_invoices(self):
         "postcode",
         "invoiced_at",
     ]
-    invoices_join = db.join(Invoice).join(Order)
     invoices_query = (
         db.select(
-            [
-                Order.id,
-                Order.invoice_no,
-                Invoice.invoice_no,
-                Invoice.status,
-                Invoice.buyer_taxid,
-                Invoice.seller_taxid,
-                Invoice.invoicee_name,
-                Invoice.invoicee_company,
-                Invoice.invoicee_email,
-                Invoice.street_address_1,
-                Invoice.street_address_2,
-                Invoice.city,
-                Invoice.state,
-                Invoice.state_code,
-                Invoice.country_code,
-                Invoice.postcode,
-                Invoice.invoiced_at,
-            ]
+            Order.id,
+            Order.invoice_no,
+            Invoice.invoice_no,
+            Invoice.status,
+            Invoice.buyer_taxid,
+            Invoice.seller_taxid,
+            Invoice.invoicee_name,
+            Invoice.invoicee_company,
+            Invoice.invoicee_email,
+            Invoice.street_address_1,
+            Invoice.street_address_2,
+            Invoice.city,
+            Invoice.state,
+            Invoice.state_code,
+            Invoice.country_code,
+            Invoice.postcode,
+            Invoice.invoiced_at,
         )
         .where(Invoice.organization == self)
-        .select_from(invoices_join)
+        .select_from(Invoice)
+        .join(Order)
         .order_by(Invoice.invoice_no)
     )
     return HeadersAndDataTuple(headers, db.session.execute(invoices_query).fetchall())

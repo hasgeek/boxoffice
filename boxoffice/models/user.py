@@ -69,7 +69,7 @@ class Organization(ProfileBase, db.Model):
     )
 
     def permissions(self, user, inherited=None):
-        perms = super(Organization, self).permissions(user, inherited)
+        perms = super().permissions(user, inherited)
         if self.userid in user.organizations_owned_ids():
             perms.add('org_admin')
         return perms
