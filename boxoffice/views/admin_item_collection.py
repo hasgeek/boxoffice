@@ -128,8 +128,8 @@ def jsonify_edit_item_collection(item_collection_dict):
         db.session.commit()
         return api_success(
             result={'item_collection': dict(item_collection.current_access())},
-            doc=_(
-                "Edited item collection {title}.".format(title=item_collection.title)
+            doc=_("Edited item collection {title}.").format(
+                title=item_collection.title
             ),
             status_code=200,
         )

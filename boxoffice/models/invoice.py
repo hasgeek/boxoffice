@@ -1,7 +1,6 @@
-from sqlalchemy.orm import validates
-from sqlalchemy.sql import func, select
+import sqlalchemy as sa
 
-from baseframe import __
+from baseframe import _, __
 from coaster.utils import LabeledEnum, utcnow
 
 from . import BaseMixin, UuidMixin, db
@@ -20,7 +19,7 @@ def gen_invoice_no(organization, jurisdiction, invoice_dt):
     """Generate a sequential invoice number for the organization and financial year."""
     fy_start_at, fy_end_at = get_fiscal_year(jurisdiction, invoice_dt)
     return (
-        select(func.coalesce(func.max(Invoice.invoice_no + 1), 1))
+        sa.select(sa.func.coalesce(sa.func.max(Invoice.invoice_no + 1), 1))
         .where(Invoice.organization == organization)
         .where(Invoice.invoiced_at >= fy_start_at)
         .where(Invoice.invoiced_at < fy_end_at)
@@ -119,7 +118,7 @@ class Invoice(UuidMixin, BaseMixin, db.Model):
     def is_final(self):
         return self.status == INVOICE_STATUS.FINAL
 
-    @validates(
+    @sa.orm.validates(
         'invoicee_name',
         'invoicee_company',
         'invoicee_email',
@@ -140,7 +139,7 @@ class Invoice(UuidMixin, BaseMixin, db.Model):
     def validate_immutable_final_invoice(self, key, val):
         if self.status == INVOICE_STATUS.FINAL:
             raise ValueError(
-                "`{attr}` cannot be modified in a finalized invoice".format(attr=key)
+                _("`{attr}` cannot be modified in a finalized invoice").format(attr=key)
             )
         return val
 

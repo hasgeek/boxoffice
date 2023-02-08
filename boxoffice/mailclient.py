@@ -6,7 +6,7 @@ from flask_mail import Message
 from html2text import html2text
 from premailer import transform as email_transform
 
-from baseframe import __
+from baseframe import _
 
 from . import app, mail, rq
 from .models import CURRENCY_SYMBOL, LINE_ITEM_STATUS, Assignee, LineItem, Order
@@ -111,11 +111,11 @@ def send_line_item_cancellation_mail(
 def send_order_refund_mail(order_id, refund_amount, note_to_user):
     with app.test_request_context():
         order = Order.query.get(order_id)
-        subject = __(
-            "{item_collection_title}: Refund for receipt no. {invoice_no}".format(
-                item_collection_title=order.item_collection.title,
-                invoice_no=order.invoice_no,
-            )
+        subject = _(
+            "{item_collection_title}: Refund for receipt no. {invoice_no}"
+        ).format(
+            item_collection_title=order.item_collection.title,
+            invoice_no=order.invoice_no,
         )
         msg = Message(
             subject=subject,

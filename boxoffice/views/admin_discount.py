@@ -27,9 +27,7 @@ def jsonify_discount_policy(discount_policy):
     details['dp_items'] = [
         {
             'id': str(item.id),
-            'title': "{ic_title}: {title}".format(
-                ic_title=item.item_collection.title, title=item.title
-            ),
+            'title': f'{item.item_collection.title}: {item.title}',
         }
         for item in discount_policy.items
     ]
@@ -63,8 +61,9 @@ def admin_discount_policies(organization, search=None, page=1, size=None):
 
     discount_policies = organization.discount_policies
     if search:
+        # FIXME: quote search for LIKE format characters, and don't use LIKE at all
         discount_policies = discount_policies.filter(
-            DiscountPolicy.title.ilike('%{query}%'.format(query=search))
+            DiscountPolicy.title.ilike(f'%{search}%')
         )
     paginated_discount_policies = discount_policies.paginate(
         page=page, per_page=results_per_page

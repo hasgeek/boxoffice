@@ -23,8 +23,9 @@ def items(organization, search=None):
             .filter(
                 ItemCollection.organization == organization,
                 db.or_(
-                    Item.title.ilike('%{query}%'.format(query=search)),
-                    ItemCollection.title.ilike('%{query}%'.format(query=search)),
+                    # FIXME: quote search for LIKE markup
+                    Item.title.ilike(f'%{search}%'),
+                    ItemCollection.title.ilike(f'%{search}%'),
                 ),
             )
             .join(Item.item_collection)
@@ -41,9 +42,7 @@ def items(organization, search=None):
                 'items': [
                     {
                         'id': str(item_tuple[0].id),
-                        'title': "{ic_title}: {title}".format(
-                            ic_title=item_tuple[1].title, title=item_tuple[0].title
-                        ),
+                        'title': f'{item_tuple[1].title}: {item_tuple[0].title}',
                     }
                     for item_tuple in filtered_items
                 ]
@@ -198,9 +197,7 @@ def jsonify_new_price(data_dict):
     if price_form.validate_on_submit():
         price = Price(item=item)
         price_form.populate_obj(price)
-        price.title = "{item_name}-price-{datetime}".format(
-            item_name=item.name, datetime=json_date_format(utcnow())
-        )
+        price.title = f'{item.name}-price-{json_date_format(utcnow())}'
         if not price.name:
             price.make_name()
         db.session.add(price)
@@ -239,7 +236,7 @@ def jsonify_edit_price(data_dict):
         db.session.commit()
         return api_success(
             result={'price': dict(price.current_access())},
-            doc=_("Update price {title}.".format(title=price.title)),
+            doc=_("Update price {title}.").format(title=price.title),
             status_code=200,
         )
     return api_error(

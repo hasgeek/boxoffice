@@ -12,39 +12,38 @@ base_url = 'https://api.razorpay.com/v1'
 def capture_payment(paymentid, amount):
     """Attempt to capture the payment from Razorpay."""
     verify_https = False if app.config.get('VERIFY_RAZORPAY_HTTPS') is False else True
-    url = '{base_url}/payments/{paymentid}/capture'.format(
-        base_url=base_url, paymentid=paymentid
-    )
+    url = f'{base_url}/payments/{paymentid}/capture'
     # Razorpay requires the amount to be in paisa and of type integer
     resp = requests.post(
         url,
         data={'amount': int(amount * 100)},
         auth=(app.config['RAZORPAY_KEY_ID'], app.config['RAZORPAY_KEY_SECRET']),
         verify=verify_https,
+        timeout=30,
     )
     return resp
 
 
 def refund_payment(paymentid, amount):
     """Send a POST request to Razorpay to initiate a refund."""
-    url = '{base_url}/payments/{paymentid}/refund'.format(
-        base_url=base_url, paymentid=paymentid
-    )
+    url = f'{base_url}/payments/{paymentid}/refund'
     # Razorpay requires the amount to be in paisa and of type integer
     resp = requests.post(
         url,
         data={'amount': int(amount * 100)},
         auth=(app.config['RAZORPAY_KEY_ID'], app.config['RAZORPAY_KEY_SECRET']),
+        timeout=30,
     )
     return resp
 
 
 def get_settlements(date_range):
-    url = '{base_url}/settlements/report/combined'.format(base_url=base_url)
+    url = f'{base_url}/settlements/recon/combined'
     resp = requests.get(
         url,
         params={'year': date_range['year'], 'month': date_range['month']},
         auth=(app.config['RAZORPAY_KEY_ID'], app.config['RAZORPAY_KEY_SECRET']),
+        timeout=30,
     )
     return resp.json()
 

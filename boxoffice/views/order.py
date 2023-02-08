@@ -224,7 +224,8 @@ def order(item_collection):
         )
 
     invalid_quantity_error_msg = _(
-        'Selected quantity for ‘{item}’ is not available. Please edit the order and update the quantity'
+        "Selected quantity for ‘{item}’ is not available. Please edit the order and"
+        " update the quantity"
     )
     item_dicts = Item.get_availability(
         [line_item_form.data.get('item_id') for line_item_form in line_item_forms]
@@ -359,9 +360,9 @@ def free(order):
         db.session.commit()
         send_receipt_mail.queue(
             order.id,
-            subject="{item_collection_title}: Your registration is confirmed!".format(
-                item_collection_title=order.item_collection.title
-            ),
+            subject=_(
+                "{item_collection_title}: Your registration is confirmed!"
+            ).format(item_collection_title=order.item_collection.title),
             template='free_order_confirmation_mail.html.jinja2',
         )
         return api_success(
@@ -430,7 +431,9 @@ def payment(order):
         db.session.commit()
         send_receipt_mail.queue(
             order.id,
-            subject="{item_collection_title}: Thank you for your order (#{invoice_no})!".format(
+            subject=_(
+                "{item_collection_title}: Thank you for your order (#{invoice_no})!"
+            ).format(
                 item_collection_title=order.item_collection.title,
                 invoice_no=order.invoice_no,
             ),
@@ -445,11 +448,11 @@ def payment(order):
         db.session.add(online_payment)
         db.session.commit()
         raise PaymentGatewayError(
-            "Online payment failed for order - {order} with the following details - {msg}".format(
+            _("Online payment failed for order #{order}: {msg}").format(
                 order=order.id, msg=rp_resp.content
             ),
             424,
-            "Your payment failed. Please try again or contact us at {email}.".format(
+            _("Your payment failed. Try again, or contact us at {email}.").format(
                 email=order.organization.contact_email
             ),
         )
@@ -745,18 +748,21 @@ def process_line_item_cancellation(line_item):
                     amount=refund_amount,
                     currency=CURRENCY.INR,
                     refunded_at=func.utcnow(),
-                    refund_description="Refund: {line_item_title}".format(
+                    refund_description=_("Refund: {line_item_title}").format(
                         line_item_title=line_item.item.title
                     ),
                 )
             )
         else:
             raise PaymentGatewayError(
-                "Cancellation failed for order - {order} with the following details - {msg}".format(
+                _("Cancellation failed for order #{order}: {msg}").format(
                     order=order.id, msg=rp_refund['error']['description']
                 ),
                 424,
-                "Refund failed. {reason}. Please try again or write to us at {email}.".format(
+                _(
+                    "Refund failed with “{reason}”. Try again, or write to us at"
+                    " {email}."
+                ).format(
                     reason=rp_refund['error']['description'],
                     email=line_item.order.organization.contact_email,
                 ),
@@ -828,11 +834,14 @@ def process_partial_refund_for_order(data_dict):
             )
         else:
             raise PaymentGatewayError(
-                "Refund failed for order - {order} with the following details - {msg}".format(
+                _("Refund failed for order #{order}: {msg}").format(
                     order=order.id, msg=rp_refund['error']['description']
                 ),
                 424,
-                "Refund failed. {reason}. Please try again or contact support at {email}.".format(
+                _(
+                    "Refund failed with “{reason}̦”. Try again, or contact support at"
+                    " {email}."
+                ).format(
                     reason=rp_refund['error']['description'],
                     email=order.organization.contact_email,
                 ),
