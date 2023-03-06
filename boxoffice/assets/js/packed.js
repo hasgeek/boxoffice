@@ -9719,7 +9719,7 @@ $('input[type="time"]').timepicker({ scrollDefaultNow: true });
     return parser.parsed;
   };
   this.SelectParser = SelectParser;
-}.call(this));
+}).call(this);
 (function () {
   var AbstractChosen, root;
   root = this;
@@ -9879,7 +9879,7 @@ $('input[type="time"]').timepicker({ scrollDefaultNow: true });
     return AbstractChosen;
   })();
   root.AbstractChosen = AbstractChosen;
-}.call(this));
+}).call(this);
 (function () {
   var $,
     Chosen,
@@ -10650,7 +10650,7 @@ $('input[type="time"]').timepicker({ scrollDefaultNow: true });
     return (side_border_padding = elmt.outerWidth() - elmt.width());
   };
   root.get_side_border_padding = get_side_border_padding;
-}.call(this));
+}).call(this);
 $(function () {
   $('a.hg-submenu').click(function () {
     return false;
