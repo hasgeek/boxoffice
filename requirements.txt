@@ -18,7 +18,7 @@ jsmin==3.0.1
 premailer==3.10.0
 psycopg2==2.9.5
 python-dateutil==2.8.2
-pytz==2022.7.1
+pytz==2023.3
 rq==1.13.0
 SQLAlchemy==2.0.4
 SQLAlchemy-Utils==0.40.0
