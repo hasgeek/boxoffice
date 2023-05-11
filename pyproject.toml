@@ -54,8 +54,21 @@ default_section = 'THIRDPARTY'
 sections = ['FUTURE', 'STDLIB', 'SQLALCHEMY', 'FLASK', 'THIRDPARTY', 'FIRSTPARTY', 'REPO', 'LOCALFOLDER']
 
 [tool.pytest.ini_options]
+minversion = "6.1"
+required_plugins = [
+  'pytest-cov',
+  'pytest-dotenv',
+  'pytest-env',
+  'pytest-remotedata',
+  'pytest-rerunfailures',
+  'requests-mock',
+]
 addopts = '--cov-report=term-missing'
 filterwarnings = ['ignore::DeprecationWarning', 'ignore::UserWarning']
+remote_data_strick = true
+env = ['FLASK_ENV=testing']
+env_override_existing_values = false
+env_files = ['.env', '.env.testing']
 
 [tool.curlylint]
 include = '\.jinja2$'
