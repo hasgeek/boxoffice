@@ -1,10 +1,10 @@
-var Ractive = require('ractive');
-var NProgress = require('nprogress');
-var _ = require('underscore');
-var c3 = require('c3');
-import { eventBus } from './main_admin.js';
-import { Util, fetch, urlFor, setPageTitle } from '../models/util.js';
-import { SideBarView } from './sidebar.js';
+import { Util, fetch, urlFor, setPageTitle } from '../models/util';
+import { SideBarView } from './sidebar';
+
+const Ractive = require('ractive');
+const NProgress = require('nprogress');
+const _ = require('underscore');
+const c3 = require('c3');
 
 export const TableTemplate = `
   <div class="col-xs-12">
@@ -30,7 +30,7 @@ export const TableTemplate = `
                 {{#if !index}}
                   <td class="active" rowspan="{{category.items.length}}">
                     {{ category.title }}<br />
-                    <a href='/admin/ic/{{ic_id}}/category/{{category.id}}/edit' data-navigate>Edit</a>
+                    <a href='/admin/menu/{{menuId}}/category/{{category.id}}/edit' data-navigate>Edit</a>
                   </td>
                 {{/if}}
                 <td>{{ index + 1 }}</td>
@@ -69,18 +69,18 @@ export const AggChartTemplate = `
 
 export const ItemCollectionTemplate = `
   <div class="content-wrapper clearfix">
-    <h1 class="header col-xs-12">{{ icTitle }}</h1>
+    <h1 class="header col-xs-12">{{ menuTitle }}</h1>
     <div class="title-wrapper col-xs-12">
-      <a class="boxoffice-button boxoffice-button-info btn-right" href="/{{ org_name }}/{{ ic_name }}">
+      <a class="boxoffice-button boxoffice-button-info btn-right" href="/{{ accountName }}/{{ menuName }}">
         View listing
       </a>
-      <a class="boxoffice-button boxoffice-button-primary btn-right btn-margin-right" href="/admin/ic/{{ic_id}}/edit" data-navigate>
+      <a class="boxoffice-button boxoffice-button-primary btn-right btn-margin-right" href="/admin/menu/{{menuId}}/edit" data-navigate>
         Edit item collection
       </a>
-      <a class="boxoffice-button boxoffice-button-action btn-right btn-margin-right" href="/admin/ic/{{ic_id}}/item/new" data-navigate>
+      <a class="boxoffice-button boxoffice-button-action btn-right btn-margin-right" href="/admin/menu/{{menuId}}/item/new" data-navigate>
         New item
       </a>
-      <a class="boxoffice-button boxoffice-button-primary btn-right btn-margin-right" href="/admin/ic/{{ic_id}}/category/new" data-navigate>
+      <a class="boxoffice-button boxoffice-button-primary btn-right btn-margin-right" href="/admin/menu/{{menuId}}/category/new" data-navigate>
         New category
       </a>
     </div>
@@ -125,18 +125,18 @@ export const ItemCollectionTemplate = `
         </div>
       </div>
     </div>
-    {{#if date_item_counts}}
+    {{#if dateItemCounts}}
       <AggChartComponent></AggChartComponent>
     {{/if}}
     <TableComponent></TableComponent>
   </div>
 `;
 
-let TableComponent = Ractive.extend({
+const TableComponent = Ractive.extend({
   isolated: false,
   template: TableTemplate,
-  onItemsSelected: function (event, attribute) {
-    let totalSelected = this.parent.get('totalSelected');
+  onItemsSelected(event, attribute) {
+    const totalSelected = this.parent.get('totalSelected');
     if (event.node.checked) {
       this.parent.set(
         'totalSelected',
@@ -151,50 +151,49 @@ let TableComponent = Ractive.extend({
   },
 });
 
-let AggChartComponent = Ractive.extend({
+const AggChartComponent = Ractive.extend({
   template: AggChartTemplate,
-  format_columns: function () {
-    let date_item_counts = this.parent.get('date_item_counts');
-    const allItems = this.parent.get('categories').reduce(function (
-      allItems,
-      category
-    ) {
-      return allItems.concat(category.items);
-    }, []);
-    const date_sales = this.parent.get('date_sales');
-    let dates = ['x'];
-    let item_counts = {};
-    let date_sales_column = ['sales'];
-    for (let item_date in date_item_counts) {
-      dates.push(item_date);
-      date_sales_column.push(date_sales[item_date]);
+  format_columns() {
+    const dateItemCounts = this.parent.get('dateItemCounts');
+    const allItems = this.parent
+      .get('categories')
+      .reduce((givenItems, category) => {
+        return givenItems.concat(category.items);
+      }, []);
+    const dateSales = this.parent.get('dateSales');
+    const dates = ['x'];
+    const itemCounts = {};
+    const dateSalesColumn = ['sales'];
+    for (const itemDate in dateItemCounts) {
+      dates.push(itemDate);
+      dateSalesColumn.push(dateSales[itemDate]);
       allItems.forEach((item) => {
-        if (!item_counts[item.id]) {
-          item_counts[item.id] = [];
+        if (!itemCounts[item.id]) {
+          itemCounts[item.id] = [];
         }
-        if (date_item_counts[item_date].hasOwnProperty(item.id)) {
-          // If an item has been bought on this item_date
-          item_counts[item.id].push(date_item_counts[item_date][item.id]);
+        if (dateItemCounts[itemDate].hasOwnProperty(item.id)) {
+          // If an item has been bought on this itemDate
+          itemCounts[item.id].push(dateItemCounts[itemDate][item.id]);
         } else {
           // Item not bought on this date
-          item_counts[item.id].push(0);
+          itemCounts[item.id].push(0);
         }
       });
     }
 
-    let columns = [dates];
+    const columns = [dates];
     allItems.forEach((item) => {
-      columns.push([item.title].concat(item_counts[item.id]));
+      columns.push([item.title].concat(itemCounts[item.id]));
     });
 
-    // let bar_graph_headers = columns.map((col) => col[0]).filter((header) => header !== 'x');
+    // let barGraphHeaders = columns.map((col) => col[0]).filter((header) => header !== 'x');
 
-    columns.push(date_sales_column);
+    columns.push(dateSalesColumn);
     return columns;
   },
-  oncomplete: function () {
-    let columns = this.format_columns();
-    let bar_graph_headers = _.without(_.map(columns, _.first), 'x', 'sales');
+  oncomplete() {
+    const columns = this.format_columns();
+    const barGraphHeaders = _.without(_.map(columns, _.first), 'x', 'sales');
 
     this.chart = c3.generate({
       data: {
@@ -204,7 +203,7 @@ let AggChartComponent = Ractive.extend({
         types: {
           sales: 'line',
         },
-        groups: [bar_graph_headers],
+        groups: [barGraphHeaders],
         axes: {
           sales: 'y2',
         },
@@ -241,56 +240,54 @@ let AggChartComponent = Ractive.extend({
 });
 
 export const ItemCollectionView = {
-  render: function ({ ic_id } = {}) {
+  render({ menuId } = {}) {
     fetch({
-      url: urlFor('view', { resource: 'ic', id: ic_id, root: true }),
+      url: urlFor('view', { resource: 'menu', id: menuId, root: true }),
     }).done(
       ({
-        org_name,
-        org_title,
-        ic_name,
-        ic_title,
+        account_name: accountName,
+        account_title: accountTitle,
+        menu_name: menuName,
+        menu_title: menuTitle,
         categories,
-        date_item_counts,
-        date_sales,
-        today_sales,
-        net_sales,
-        sales_delta,
+        date_item_counts: dateItemCounts,
+        date_sales: dateSales,
+        today_sales: todaySales,
+        net_sales: netSales,
+        sales_delta: salesDelta,
       }) => {
         // Initial render
-        let icComponent = new Ractive({
+        const icComponent = new Ractive({
           el: '#main-content-area',
           template: ItemCollectionTemplate,
           data: {
-            ic_id: ic_id,
-            icTitle: ic_title,
-            org_name: org_name,
-            ic_name: ic_name,
-            categories: categories,
-            date_item_counts: _.isEmpty(date_item_counts)
-              ? null
-              : date_item_counts,
-            date_sales: date_sales,
-            net_sales: net_sales,
-            sales_delta: sales_delta,
-            today_sales: today_sales,
+            menuId,
+            menuTitle,
+            accountName,
+            menuName,
+            categories,
+            dateItemCounts: _.isEmpty(dateItemCounts) ? null : dateItemCounts,
+            date_sales: dateSales,
+            net_sales: netSales,
+            sales_delta: salesDelta,
+            today_sales: todaySales,
             totalSelected: 0,
-            formatToIndianRupee: function (amount) {
+            formatToIndianRupee(amount) {
               return Util.formatToIndianRupee(amount);
             },
           },
           components: {
-            TableComponent: TableComponent,
-            AggChartComponent: AggChartComponent,
+            TableComponent,
+            AggChartComponent,
           },
         });
         SideBarView.render('dashboard', {
-          org_name,
-          org_title,
-          ic_id,
-          ic_title,
+          accountName,
+          accountTitle,
+          menuId,
+          menuTitle,
         });
-        setPageTitle(ic_title);
+        setPageTitle(menuTitle);
         NProgress.done();
       }
     );

@@ -1,18 +1,24 @@
-import { urlFor } from '../models/util.js';
-import { FormView } from './form_view.js';
-import { navigateTo } from '../views/main_admin.js';
+import { urlFor } from '../models/util';
+import { FormView } from './form_view';
+import { navigateTo } from './navigate';
 
 export const ItemCollectionEditView = {
-  render: function ({ ic_id } = {}) {
+  render({ menuId } = {}) {
     FormView.load({
-      url: urlFor('edit', { resource: 'ic', id: ic_id, root: true }),
+      url: urlFor('edit', { resource: 'menu', id: menuId, root: true }),
       title: 'Edit item collection',
-      onHide: function () {
-        navigateTo(urlFor('view', { resource: 'ic', id: ic_id, root: true }));
+      onHide() {
+        navigateTo(
+          urlFor('view', { resource: 'menu', id: menuId, root: true })
+        );
       },
-      onSuccess: function (responseData) {
-        navigateTo(urlFor('view', { resource: 'ic', id: ic_id, root: true }));
+      onSuccess(responseData) {
+        navigateTo(
+          urlFor('view', { resource: 'menu', id: menuId, root: true })
+        );
       },
     });
   },
 };
+
+export { ItemCollectionEditView as default };

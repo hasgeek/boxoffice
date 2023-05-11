@@ -1,11 +1,12 @@
-var Ractive = require('ractive');
-import { eventBus } from './main_admin.js';
-var NProgress = require('nprogress');
-import { SideBarModel } from '../models/sidebar.js';
-import { SideBarTemplate } from '../templates/sidebar.html.js';
+import { eventBus } from './navigate';
+import { SideBarModel } from '../models/sidebar';
+import { SideBarTemplate } from '../templates/sidebar.html';
+
+const Ractive = require('ractive');
+const NProgress = require('nprogress');
 
 export const SideBarView = {
-  init: function (view, ic_config) {
+  init(view, menuConfig) {
     this.on = true;
 
     this.ractive = new Ractive({
@@ -13,15 +14,15 @@ export const SideBarView = {
       template: SideBarTemplate,
       data: {
         sidebarMobileOn: false,
-        sidebarItems: SideBarModel.getItems(ic_config),
+        sidebarItems: SideBarModel.getItems(menuConfig),
         activeItem: view,
         sidebarHide: false,
       },
-      toggle: function (event) {
+      toggle(event) {
         event.original.preventDefault();
         this.set('sidebarMobileOn', !this.get('sidebarMobileOn'));
       },
-      navigate: function (event) {
+      navigate(event) {
         if (event.context.view !== this.get('activeItem')) {
           NProgress.configure({ showSpinner: false }).start();
           eventBus.trigger('navigate', event.context.url);
@@ -29,21 +30,23 @@ export const SideBarView = {
       },
     });
   },
-  render: function (view, ic_config) {
+  render(view, menuConfig) {
     if (this.on) {
       this.ractive.set({
-        sidebarItems: SideBarModel.getItems(ic_config),
+        sidebarItems: SideBarModel.getItems(menuConfig),
         activeItem: view,
         sidebarHide: false,
         sidebarMobileOn: false,
       });
     } else {
-      this.init(view, ic_config);
+      this.init(view, menuConfig);
     }
   },
-  hide: function () {
+  hide() {
     if (this.on) {
       this.ractive.set('sidebarHide', true);
     }
   },
 };
+
+export { SideBarView as default };

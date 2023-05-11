@@ -1,10 +1,10 @@
-import { urlFor } from './util.js';
+import { urlFor } from './util';
 
 export const SideBarModel = {
-  getItems: function ({ org_name, org_title, ic_id, ic_title } = {}) {
-    let sidebar_items = [];
-    if (org_name) {
-      sidebar_items = [
+  getItems({ accountName, accountTitle, menuId, menuTitle } = {}) {
+    let sidebarItems = [];
+    if (accountName) {
+      sidebarItems = [
         {
           url: '/',
           title: 'Home',
@@ -12,15 +12,15 @@ export const SideBarModel = {
           view: 'home',
         },
         {
-          url: urlFor('view', { resource: 'o', id: org_name }),
-          title: org_title,
+          url: urlFor('view', { resource: 'o', id: accountName }),
+          title: accountTitle,
           icon: 'fa-sitemap',
           view: 'org',
         },
         {
           url: urlFor('index', {
             scope_ns: 'o',
-            scope_id: org_name,
+            scope_id: accountName,
             resource: 'discount_policy',
           }),
           title: 'Discount Policies',
@@ -32,7 +32,7 @@ export const SideBarModel = {
           url: urlFor('index', {
             resource: 'reports',
             scope_ns: 'o',
-            scope_id: org_name,
+            scope_id: accountName,
           }),
           title: 'Reports',
           icon: 'fa-file-excel-o',
@@ -40,17 +40,17 @@ export const SideBarModel = {
           subItem: true,
         },
         {
-          url: ic_id ? urlFor('view', { resource: 'ic', id: ic_id }) : '',
-          title: ic_title,
+          url: menuId ? urlFor('view', { resource: 'menu', id: menuId }) : '',
+          title: menuTitle,
           icon: 'fa-dashboard',
           view: 'dashboard',
         },
         {
-          url: ic_id
+          url: menuId
             ? urlFor('index', {
                 resource: 'orders',
-                scope_ns: 'ic',
-                scope_id: ic_id,
+                scope_ns: 'menu',
+                scope_id: menuId,
               })
             : '',
           title: 'Orders',
@@ -59,11 +59,11 @@ export const SideBarModel = {
           subItem: true,
         },
         {
-          url: ic_id
+          url: menuId
             ? urlFor('index', {
                 resource: 'reports',
-                scope_ns: 'ic',
-                scope_id: ic_id,
+                scope_ns: 'menu',
+                scope_id: menuId,
               })
             : '',
           title: 'Reports',
@@ -73,6 +73,8 @@ export const SideBarModel = {
         },
       ];
     }
-    return sidebar_items;
+    return sidebarItems;
   },
 };
+
+export { SideBarModel as default };

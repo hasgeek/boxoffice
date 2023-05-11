@@ -1,27 +1,29 @@
-import { urlFor } from '../models/util.js';
-import { FormView } from './form_view.js';
-import { navigateTo } from '../views/main_admin.js';
+import { urlFor } from '../models/util';
+import { FormView } from './form_view';
+import { navigateTo } from './navigate';
 
 export const NewPriceView = {
-  render: function ({ item_id } = {}) {
+  render({ ticketId } = {}) {
     FormView.load({
       url: urlFor('new', {
         scope_ns: 'item',
-        scope_id: item_id,
+        scope_id: ticketId,
         resource: 'price',
         root: true,
       }),
       title: 'New price',
-      onHide: function () {
+      onHide() {
         navigateTo(
-          urlFor('view', { resource: 'item', id: item_id, root: true })
+          urlFor('view', { resource: 'item', id: ticketId, root: true })
         );
       },
-      onSuccess: function (responseData) {
+      onSuccess(responseData) {
         navigateTo(
-          urlFor('view', { resource: 'item', id: item_id, root: true })
+          urlFor('view', { resource: 'item', id: ticketId, root: true })
         );
       },
     });
   },
 };
+
+export { NewPriceView as default };

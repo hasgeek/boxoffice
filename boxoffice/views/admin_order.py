@@ -77,7 +77,7 @@ def jsonify_admin_orders(data_dict):
                     'buyer_phone': order.buyer_phone,
                     'currency': CURRENCY_SYMBOL['INR'],
                     'amount': order.net_amount,
-                    'url': '/ic/' + str(item_collection_id) + '/' + str(order.id),
+                    'url': '/menu/' + str(item_collection_id) + '/' + str(order.id),
                     'receipt_url': url_for('receipt', access_token=order.access_token),
                     'assignee_url': url_for(
                         'order_ticket', access_token=order.access_token
@@ -85,20 +85,20 @@ def jsonify_admin_orders(data_dict):
                 }
             )
     return jsonify(
-        org_name=data_dict['item_collection'].organization.name,
-        org_title=data_dict['item_collection'].organization.title,
-        ic_title=data_dict['item_collection'].title,
+        account_name=data_dict['item_collection'].organization.name,
+        account_title=data_dict['item_collection'].organization.title,
+        menu_title=data_dict['item_collection'].title,
         orders=order_dicts,
     )
 
 
-@app.route('/admin/ic/<ic_id>/orders')
+@app.route('/admin/menu/<menu_id>/orders')
 @lastuser.requires_login
 @render_with(
     {'text/html': 'index.html.jinja2', 'application/json': jsonify_admin_orders}
 )
 @load_models(
-    (ItemCollection, {'id': 'ic_id'}, 'item_collection'), permission='org_admin'
+    (ItemCollection, {'id': 'menu_id'}, 'item_collection'), permission='org_admin'
 )
 def admin_orders(item_collection):
     return {
@@ -135,10 +135,10 @@ def jsonify_order(order_dict):
             'order_ticket', access_token=order_dict['order'].access_token
         ),
     }
-    ic = {'id': order_dict['order'].item_collection_id}
+    menu = {'id': order_dict['order'].item_collection_id}
     return jsonify(
         org=org,
-        ic=ic,
+        menu=menu,
         order=order,
         line_items=format_line_items(order_dict['line_items']),
     )

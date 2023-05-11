@@ -16,18 +16,18 @@ from .utils import api_error, check_api_access, csv_response
 
 def jsonify_report(data_dict):
     return jsonify(
-        org_name=data_dict['item_collection'].organization.name,
-        org_title=data_dict['item_collection'].organization.title,
-        ic_name=data_dict['item_collection'].name,
-        ic_title=data_dict['item_collection'].title,
+        account_name=data_dict['item_collection'].organization.name,
+        account_title=data_dict['item_collection'].organization.title,
+        menu_name=data_dict['item_collection'].name,
+        menu_title=data_dict['item_collection'].title,
     )
 
 
-@app.route('/admin/ic/<ic_id>/reports')
+@app.route('/admin/menu/<menu_id>/reports')
 @lastuser.requires_login
 @render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_report})
 @load_models(
-    (ItemCollection, {'id': 'ic_id'}, 'item_collection'), permission='org_admin'
+    (ItemCollection, {'id': 'menu_id'}, 'item_collection'), permission='org_admin'
 )
 def admin_report(item_collection):
     return {'item_collection': item_collection}
@@ -35,7 +35,7 @@ def admin_report(item_collection):
 
 def jsonify_org_report(data_dict):
     return jsonify(
-        org_title=data_dict['organization'].title, siteadmin=data_dict['siteadmin']
+        account_title=data_dict['organization'].title, siteadmin=data_dict['siteadmin']
     )
 
 
@@ -52,10 +52,10 @@ def admin_org_report(organization):
     }
 
 
-@app.route('/admin/ic/<ic_id>/tickets.csv')
+@app.route('/admin/menu/<menu_id>/tickets.csv')
 @lastuser.requires_login
 @load_models(
-    (ItemCollection, {'id': 'ic_id'}, 'item_collection'), permission='org_admin'
+    (ItemCollection, {'id': 'menu_id'}, 'item_collection'), permission='org_admin'
 )
 def tickets_report(item_collection):
     headers, rows = item_collection.fetch_all_details()
@@ -82,10 +82,10 @@ def tickets_report(item_collection):
     return csv_response(headers, rows, row_handler=row_handler)
 
 
-@app.route('/admin/ic/<ic_id>/attendees.csv')
+@app.route('/admin/menu/<menu_id>/attendees.csv')
 @lastuser.requires_login
 @load_models(
-    (ItemCollection, {'id': 'ic_id'}, 'item_collection'), permission='org_admin'
+    (ItemCollection, {'id': 'menu_id'}, 'item_collection'), permission='org_admin'
 )
 def attendees_report(item_collection):
     # Generated a unique list of headers for all 'assignee_details' keys in all items in
@@ -136,12 +136,12 @@ def attendees_report(item_collection):
     return csv_response(csv_headers, rows, row_type='dict', row_handler=row_handler)
 
 
-@app.route('/api/1/organization/<org>/ic/<ic_id>/orders.csv')
+@app.route('/api/1/organization/<org>/menu/<menu_id>/orders.csv')
 @load_models(
     (Organization, {'name': 'org'}, 'organization'),
     (
         ItemCollection,
-        {'id': 'ic_id', 'organization': 'organization'},
+        {'id': 'menu_id', 'organization': 'organization'},
         'item_collection',
     ),
 )

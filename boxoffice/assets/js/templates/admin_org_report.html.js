@@ -1,6 +1,6 @@
 export const OrgReportTemplate = `
   <div class="content-wrapper">
-    <h1 class="header">{{ orgTitle }}</h1>
+    <h1 class="header">{{ accountTitle }}</h1>
     <div class="box col-sm-6 col-sm-offset-3 col-xs-12">
       <div class="heading">
         <p class="heading-title">Download reports</p>
@@ -31,3 +31,5 @@ export const OrgReportTemplate = `
     </div>
   </div>
 `;
+
+export { OrgReportTemplate as default };

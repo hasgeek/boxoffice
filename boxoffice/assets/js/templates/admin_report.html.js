@@ -1,6 +1,6 @@
 export const ReportTemplate = `
   <div class="content-wrapper">
-    <h1 class="header">{{ icTitle }}</h1>
+    <h1 class="header">{{ menuTitle }}</h1>
     <div class="box col-sm-6 col-sm-offset-3 col-xs-12">
       <div class="heading">
         <p class="heading-title">Download reports</p>
@@ -24,3 +24,5 @@ export const ReportTemplate = `
     </div>
   </div>
 `;
+
+export { ReportTemplate as default };

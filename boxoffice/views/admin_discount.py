@@ -38,8 +38,8 @@ def jsonify_discount_policies(data_dict):
     for discount_policy in data_dict['discount_policies']:
         discount_policies_list.append(jsonify_discount_policy(discount_policy))
     return jsonify(
-        org_name=data_dict['org'].name,
-        org_title=data_dict['org'].title,
+        account_name=data_dict['org'].name,
+        account_title=data_dict['org'].title,
         discount_policies=discount_policies_list,
         currency=[currency for currency, label in CURRENCY.items()],
         total_pages=data_dict['total_pages'],

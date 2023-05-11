@@ -1,35 +1,35 @@
-import { urlFor } from '../models/util.js';
-import { FormView } from './form_view.js';
-import { navigateTo } from '../views/main_admin.js';
+import { urlFor } from '../models/util';
+import { FormView } from './form_view';
+import { navigateTo } from './navigate';
 
 export const PartialRefundOrderView = {
-  render: function ({ ic_id, order_id } = {}) {
+  render({ menuId, orderId } = {}) {
     FormView.load({
       url: urlFor('partial_refund', {
-        scope_ns: 'ic',
-        scope_id: ic_id,
+        scope_ns: 'menu',
+        scope_id: menuId,
         resource: 'order',
-        id: order_id,
+        id: orderId,
         root: true,
       }),
       title: 'Partial refund for order',
-      onHide: function () {
+      onHide() {
         // TODO redirect to order
         navigateTo(
           urlFor('index', {
-            scope_ns: 'ic',
-            scope_id: ic_id,
+            scope_ns: 'menu',
+            scope_id: menuId,
             resource: 'orders',
             root: true,
           })
         );
       },
-      onSuccess: function (responseData) {
+      onSuccess(responseData) {
         // TODO redirect to order
         navigateTo(
           urlFor('index', {
-            scope_ns: 'ic',
-            scope_id: ic_id,
+            scope_ns: 'menu',
+            scope_id: menuId,
             resource: 'orders',
             root: true,
           })
@@ -38,3 +38,5 @@ export const PartialRefundOrderView = {
     });
   },
 };
+
+export { PartialRefundOrderView as default };

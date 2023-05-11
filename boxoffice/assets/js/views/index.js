@@ -1,21 +1,21 @@
-import { eventBus } from './main_admin.js';
-var NProgress = require('nprogress');
-var Ractive = require('ractive');
-import { fetch, urlFor, setPageTitle } from '../models/util.js';
-import { IndexModel } from '../models/index.js';
-import { IndexTemplate } from '../templates/index.html.js';
-import { SideBarView } from './sidebar.js';
+import { eventBus } from './navigate';
+import { fetch, urlFor, setPageTitle } from '../models/util';
+import { IndexTemplate } from '../templates/index.html';
+import { SideBarView } from './sidebar';
+
+const NProgress = require('nprogress');
+const Ractive = require('ractive');
 
 export const IndexView = {
-  render: function () {
+  render() {
     fetch({
       url: urlFor('index', { root: true }),
-    }).then(function ({ orgs }) {
-      let indexComponent = new Ractive({
+    }).then(({ orgs }) => {
+      const indexComponent = new Ractive({
         el: '#main-content-area',
         template: IndexTemplate,
         data: {
-          orgs: orgs,
+          orgs,
         },
       });
 
@@ -23,7 +23,7 @@ export const IndexView = {
       setPageTitle('Admin');
       NProgress.done();
 
-      indexComponent.on('navigate', function (event, method) {
+      indexComponent.on('navigate', (event, method) => {
         NProgress.configure({ showSpinner: false }).start();
         eventBus.trigger('navigate', event.context.url);
       });
@@ -34,3 +34,5 @@ export const IndexView = {
     });
   },
 };
+
+export { IndexView as default };

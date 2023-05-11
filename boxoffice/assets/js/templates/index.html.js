@@ -34,3 +34,5 @@ export const IndexTemplate = `
     </div>
   </div>
 `;
+
+export { IndexTemplate as default };

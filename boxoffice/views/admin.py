@@ -44,8 +44,8 @@ def jsonify_org(data):
     )
     return jsonify(
         id=data['org'].id,
-        org_title=data['org'].title,
-        item_collections=[dict(ic.current_access()) for ic in item_collections_list],
+        account_title=data['org'].title,
+        menus=[dict(menu.current_access()) for menu in item_collections_list],
     )
 
 

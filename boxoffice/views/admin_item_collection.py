@@ -17,10 +17,10 @@ from .utils import api_error, api_success
 
 def jsonify_item_collection(item_collection_dict):
     return jsonify(
-        org_name=item_collection_dict['item_collection'].organization.name,
-        org_title=item_collection_dict['item_collection'].organization.title,
-        ic_name=item_collection_dict['item_collection'].name,
-        ic_title=item_collection_dict['item_collection'].title,
+        account_name=item_collection_dict['item_collection'].organization.name,
+        account_title=item_collection_dict['item_collection'].organization.title,
+        menu_name=item_collection_dict['item_collection'].name,
+        menu_title=item_collection_dict['item_collection'].title,
         categories=[
             {
                 'title': category.title,
@@ -37,13 +37,13 @@ def jsonify_item_collection(item_collection_dict):
     )
 
 
-@app.route('/admin/ic/<ic_id>')
+@app.route('/admin/menu/<menu_id>')
 @lastuser.requires_login
 @render_with(
     {'text/html': 'index.html.jinja2', 'application/json': jsonify_item_collection}
 )
 @load_models(
-    (ItemCollection, {'id': 'ic_id'}, 'item_collection'), permission='org_admin'
+    (ItemCollection, {'id': 'menu_id'}, 'item_collection'), permission='org_admin'
 )
 def admin_item_collection(item_collection):
     item_ids = [str(item.id) for item in item_collection.items]
@@ -82,14 +82,14 @@ def jsonify_new_item_collection(item_collection_dict):
             ).get_data(as_text=True)
         )
     if ic_form.validate_on_submit():
-        ic = ItemCollection(organization=item_collection_dict['organization'])
-        ic_form.populate_obj(ic)
-        if not ic.name:
-            ic.make_name()
-        db.session.add(ic)
+        menu = ItemCollection(organization=item_collection_dict['organization'])
+        ic_form.populate_obj(menu)
+        if not menu.name:
+            menu.make_name()
+        db.session.add(menu)
         db.session.commit()
         return api_success(
-            result={'item_collection': dict(ic.current_access())},
+            result={'item_collection': dict(menu.current_access())},
             doc=_("New item collection created"),
             status_code=201,
         )
@@ -100,7 +100,7 @@ def jsonify_new_item_collection(item_collection_dict):
     )
 
 
-@app.route('/admin/o/<org>/ic/new', methods=['GET', 'POST'])
+@app.route('/admin/o/<org>/menu/new', methods=['GET', 'POST'])
 @lastuser.requires_login
 @render_with(
     {'text/html': 'index.html.jinja2', 'application/json': jsonify_new_item_collection}
@@ -140,13 +140,13 @@ def jsonify_edit_item_collection(item_collection_dict):
     )
 
 
-@app.route('/admin/ic/<ic_id>/edit', methods=['POST', 'GET'])
+@app.route('/admin/menu/<menu_id>/edit', methods=['POST', 'GET'])
 @lastuser.requires_login
 @render_with(
     {'text/html': 'index.html.jinja2', 'application/json': jsonify_edit_item_collection}
 )
 @load_models(
-    (ItemCollection, {'id': 'ic_id'}, 'item_collection'), permission='org_admin'
+    (ItemCollection, {'id': 'menu_id'}, 'item_collection'), permission='org_admin'
 )
 def admin_edit_ic(item_collection):
     return {'item_collection': item_collection}

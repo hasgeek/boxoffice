@@ -1,9 +1,10 @@
-var Ractive = require('ractive');
-var c3 = require('c3');
-import { eventBus } from './main_admin.js';
-var NProgress = require('nprogress');
-import { Util, fetch, urlFor, setPageTitle } from '../models/util.js';
-import { SideBarView } from './sidebar.js';
+import { Util, fetch, urlFor, setPageTitle } from '../models/util';
+import { SideBarView } from './sidebar';
+
+const Ractive = require('ractive');
+const c3 = require('c3');
+
+const NProgress = require('nprogress');
 
 const ItemTemplate = `
   <div class="content-wrapper clearfix">
@@ -103,23 +104,23 @@ const ItemTemplate = `
       <h2 class='col-header'>Associated discount policies</h2>
     </div>
     <div class="col-md-5 col-xs-12">
-      {{#if discount_policies}}
-        {{#discount_policies: i}}
+      {{#if discountPolicies}}
+        {{#discountPolicies: i}}
           <div class="col-xs-12">
             <div class="has-box no-padding">
-              <p class="discount-title">{{ discount_policies[i].title }}</p>
-              <p class="discount-ticket-amount">Tickets bought: <span class="pull-right">{{discount_policies[i].line_items_count}}</span></p>
+              <p class="discount-title">{{ discountPolicies[i].title }}</p>
+              <p class="discount-ticket-amount">Tickets bought: <span class="pull-right">{{discountPolicies[i].line_items_count}}</span></p>
               {{#if is_automatic}}
                 <p class="discount-type hg-bb">Discount type: <span class="pull-right">Automatic</span></p>
               {{else}}
                 <p class="discount-type hg-bb">Discount type: <span class="pull-right">Coupon based</span></p>
               {{/if}}
-              <p class="discount-type">Discount rate: <span class="pull-right">{{ discount_policies[i].percentage }}%</span></p>
+              <p class="discount-type">Discount rate: <span class="pull-right">{{ discountPolicies[i].percentage }}%</span></p>
             </div>
           </div>
         {{/}}
       {{else}}
-        <p class='margin-left'>No associated discounts yet. <a href="/admin/o/{{org_name}}/discount_policy" data-navigate>Add</a></p>
+        <p class='margin-left'>No associated discounts yet. <a href="/admin/o/{{accountName}}/discount_policy" data-navigate>Add</a></p>
       {{/if}}
     </div>
     <div class="col-md-10 col-md-offset-1">
@@ -136,21 +137,21 @@ export const DemandGraphTemplate = `
   </div>
 `;
 
-let DemandGraph = Ractive.extend({
+const DemandGraph = Ractive.extend({
   template: DemandGraphTemplate,
-  format_columns: function () {
-    let price_counts = this.parent.get('demand_curve');
-    let prices = Object.keys(price_counts);
-    let quantity_demanded_counts = ['quantity_demanded'];
-    let demand_counts = ['demand'];
+  format_columns() {
+    const priceCounts = this.parent.get('demandCurve');
+    const prices = Object.keys(priceCounts);
+    const quantityDemandedCounts = ['quantity_demanded'];
+    const demandCounts = ['demand'];
     prices.forEach((price) => {
-      quantity_demanded_counts.push(price_counts[price]['quantity_demanded']);
-      demand_counts.push(price_counts[price]['demand']);
+      quantityDemandedCounts.push(priceCounts[price].quantity_demanded);
+      demandCounts.push(priceCounts[price].demand);
     });
     prices.unshift('x');
-    return [prices, quantity_demanded_counts, demand_counts];
+    return [prices, quantityDemandedCounts, demandCounts];
   },
-  oncomplete: function () {
+  oncomplete() {
     this.chart = c3.generate({
       data: {
         x: 'x',
@@ -180,41 +181,48 @@ let DemandGraph = Ractive.extend({
 });
 
 export const ItemView = {
-  render: function ({ item_id } = {}) {
+  render({ ticketId } = {}) {
     fetch({
-      url: urlFor('view', { resource: 'item', id: item_id, root: true }),
-    }).then(function ({
-      org_name,
-      demand_curve,
-      org_title,
-      ic_id,
-      ic_title,
-      item,
-      prices,
-      discount_policies,
-    }) {
-      let itemComponent = new Ractive({
-        el: '#main-content-area',
-        template: ItemTemplate,
-        components: { DemandGraph: DemandGraph },
-        data: {
-          item: item,
-          org_name: org_name,
-          prices: prices,
-          discount_policies: discount_policies,
-          demand_curve: demand_curve,
-          formatToIndianRupee: function (amount) {
-            return Util.formatToIndianRupee(amount);
+      url: urlFor('view', { resource: 'item', id: ticketId, root: true }),
+    }).then(
+      ({
+        account_name: accountName,
+        demand_curve: demandCurve,
+        account_title: accountTitle,
+        menu_id: menuId,
+        menu_title: menuTitle,
+        item,
+        prices,
+        discount_policies: discountPolicies,
+      }) => {
+        const itemComponent = new Ractive({
+          el: '#main-content-area',
+          template: ItemTemplate,
+          components: { DemandGraph },
+          data: {
+            item,
+            accountName,
+            prices,
+            discountPolicies,
+            demandCurve,
+            formatToIndianRupee(amount) {
+              return Util.formatToIndianRupee(amount);
+            },
+            formatDateTime(datetime) {
+              return Util.formatDateTime(datetime, 'dddd, MMMM Do YYYY, h:mmA');
+            },
           },
-          formatDateTime: function (datetime) {
-            return Util.formatDateTime(datetime, 'dddd, MMMM Do YYYY, h:mmA');
-          },
-        },
-      });
+        });
 
-      SideBarView.render('items', { org_name, org_title, ic_id, ic_title });
-      setPageTitle('Item', item.title);
-      NProgress.done();
-    });
+        SideBarView.render('items', {
+          accountName,
+          accountTitle,
+          menuId,
+          menuTitle,
+        });
+        setPageTitle('Item', item.title);
+        NProgress.done();
+      }
+    );
   },
 };

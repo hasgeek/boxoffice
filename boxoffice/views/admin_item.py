@@ -95,13 +95,13 @@ def jsonify_item(data_dict):
         discount_policies_list.append(details)
 
     return jsonify(
-        org_name=data_dict['item'].item_collection.organization.name,
+        account_name=data_dict['item'].item_collection.organization.name,
         demand_curve=format_demand_curve(item),
-        org_title=data_dict['item'].item_collection.organization.title,
-        ic_id=data_dict['item'].item_collection.id,
-        ic_name=data_dict['item'].item_collection.name,
-        ic_title=data_dict['item'].item_collection.title,
-        item=format_item_details(data_dict['item']),
+        account_title=data_dict['item'].item_collection.organization.title,
+        menu_id=data_dict['item'].item_collection.id,
+        menu_name=data_dict['item'].item_collection.name,
+        menu_title=data_dict['item'].item_collection.title,
+        ticket=format_item_details(data_dict['item']),
         prices=[jsonify_price(price) for price in data_dict['item'].standard_prices()],
         discount_policies=discount_policies_list,
     )
@@ -143,11 +143,11 @@ def jsonify_new_item(data_dict):
     )
 
 
-@app.route('/admin/ic/<ic_id>/item/new', methods=['GET', 'POST'])
+@app.route('/admin/menu/<menu_id>/item/new', methods=['GET', 'POST'])
 @lastuser.requires_login
 @render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_new_item})
 @load_models(
-    (ItemCollection, {'id': 'ic_id'}, 'item_collection'), permission='org_admin'
+    (ItemCollection, {'id': 'menu_id'}, 'item_collection'), permission='org_admin'
 )
 def admin_new_item(item_collection):
     return {'item_collection': item_collection}

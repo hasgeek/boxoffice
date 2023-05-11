@@ -30,8 +30,8 @@ def test_assign(db_session, client, all_data):
             'email': 'test@hasgeek.com',
         },
     }
-    ic = ItemCollection.query.first()
-    resp = ajax_post(client, f'/ic/{ic.id}/order', data)
+    menu = ItemCollection.query.first()
+    resp = ajax_post(client, f'/menu/{menu.id}/order', data)
 
     assert resp.status_code == 201
     resp_data = json.loads(resp.data)['result']

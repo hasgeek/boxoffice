@@ -11,10 +11,10 @@ export const OrderTemplate = `
     <p class='content-slider-content'>
       <a class="boxoffice-button boxoffice-button-info btn-inline" href={{ order.receipt_url }} target="_blank" >View receipt</a>
       <a class="boxoffice-button boxoffice-button-primary btn-inline" href={{ order.assignee_url }} target="_blank" >View assignee details</a>
-      <a class="boxoffice-button boxoffice-button-action btn-inline" href="/admin/ic/{{ic.id}}/order/{{order.id}}/partial_refund" data-navigate>Refund</a>
+      <a class="boxoffice-button boxoffice-button-action btn-inline" href="/admin/menu/{{menu.id}}/order/{{order.id}}/partial_refund" data-navigate>Refund</a>
     </p>
     <div class="content-slider-wrapper">
-      {{#line_items:line_item}}
+      {{#lineItems:lineItem}}
         <div class="ticket col-sm-6 col-xs-12" id="item-{{ @index }}">
           <div class="heading">
             <div class="ticket-type">
@@ -55,3 +55,5 @@ export const OrderTemplate = `
     </div>
   </div>
 `;
+
+export { OrderTemplate as default };

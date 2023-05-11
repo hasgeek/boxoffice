@@ -197,7 +197,7 @@ def kharcha():
     return jsonify(line_items=items_json, order={'final_amount': order_final_amount})
 
 
-@app.route('/ic/<item_collection>/order', methods=['GET', 'OPTIONS', 'POST'])
+@app.route('/menu/<item_collection>/order', methods=['GET', 'OPTIONS', 'POST'])
 @xhr_only
 @cors
 @load_models((ItemCollection, {'id': 'item_collection'}, 'item_collection'))
@@ -846,7 +846,9 @@ def process_partial_refund_for_order(data_dict):
     return api_error(message='Invalid input', status_code=403, errors=form.errors)
 
 
-@app.route('/admin/ic/<ic_id>/order/<order_id>/partial_refund', methods=['GET', 'POST'])
+@app.route(
+    '/admin/menu/<menu_id>/order/<order_id>/partial_refund', methods=['GET', 'POST']
+)
 @lastuser.requires_login
 @render_with(
     {
@@ -863,7 +865,7 @@ def partial_refund_order(order):
     }
 
 
-@app.route('/api/1/ic/<item_collection>/orders', methods=['GET', 'OPTIONS'])
+@app.route('/api/1/menu/<item_collection>/orders', methods=['GET', 'OPTIONS'])
 @load_models((ItemCollection, {'id': 'item_collection'}, 'item_collection'))
 def item_collection_orders(item_collection):
     organization = item_collection.organization

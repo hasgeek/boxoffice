@@ -50,9 +50,9 @@ def test_basic(client, all_data):
             'email': 'test@hasgeek.com',
         },
     }
-    ic = ItemCollection.query.first()
+    menu = ItemCollection.query.first()
     resp = client.post(
-        f'/ic/{ic.id}/order',
+        f'/menu/{menu.id}/order',
         data=json.dumps(data),
         content_type='application/json',
         headers=[
@@ -94,9 +94,9 @@ def test_basic_with_utm_headers(client, all_data):
             'gclid': gclid,
         },
     }
-    ic = ItemCollection.query.first()
+    menu = ItemCollection.query.first()
     resp = client.post(
-        f'/ic/{ic.id}/order',
+        f'/menu/{menu.id}/order',
         data=json.dumps(data),
         content_type='application/json',
         headers=[
@@ -127,9 +127,9 @@ def test_order_with_invalid_quantity(client, all_data):
             'email': 'test@hasgeek.com',
         },
     }
-    ic = ItemCollection.query.first()
+    menu = ItemCollection.query.first()
     resp = client.post(
-        f'/ic/{ic.id}/order',
+        f'/menu/{menu.id}/order',
         data=json.dumps(data),
         content_type='application/json',
         headers=[
@@ -150,9 +150,9 @@ def test_simple_discounted_item(client, all_data):
             'email': 'test@hasgeek.com',
         },
     }
-    ic = ItemCollection.query.first()
+    menu = ItemCollection.query.first()
     resp = client.post(
-        f'/ic/{ic.id}/order',
+        f'/menu/{menu.id}/order',
         data=json.dumps(data),
         content_type='application/json',
         headers=[
@@ -176,9 +176,9 @@ def test_expired_item_order(client, all_data):
             'email': 'test@hasgeek.com',
         },
     }
-    ic = ItemCollection.query.first()
+    menu = ItemCollection.query.first()
     resp = client.post(
-        f'/ic/{ic.id}/order',
+        f'/menu/{menu.id}/order',
         data=json.dumps(data),
         content_type='application/json',
         headers=[
@@ -205,9 +205,9 @@ def test_signed_discounted_coupon_order(client, all_data):
             'email': 'test@hasgeek.com',
         },
     }
-    ic = ItemCollection.query.first()
+    menu = ItemCollection.query.first()
     resp = client.post(
-        f'/ic/{ic.id}/order',
+        f'/menu/{menu.id}/order',
         data=json.dumps(data),
         content_type='application/json',
         headers=[
@@ -240,9 +240,9 @@ def test_complex_discounted_item(client, all_data):
             'email': 'test@hasgeek.com',
         },
     }
-    ic = ItemCollection.query.first()
+    menu = ItemCollection.query.first()
     resp = client.post(
-        f'/ic/{ic.id}/order',
+        f'/menu/{menu.id}/order',
         data=json.dumps(data),
         content_type='application/json',
         headers=[
@@ -277,9 +277,9 @@ def test_discounted_complex_order(client, all_data):
             'email': 'test@hasgeek.com',
         },
     }
-    ic = ItemCollection.query.first()
+    menu = ItemCollection.query.first()
     resp = client.post(
-        f'/ic/{ic.id}/order',
+        f'/menu/{menu.id}/order',
         data=json.dumps(data),
         content_type='application/json',
         headers=[
@@ -323,9 +323,9 @@ def make_free_order(client):
         },
         'discount_coupons': ['coupon2'],
     }
-    ic = ItemCollection.query.first()
+    menu = ItemCollection.query.first()
     resp = client.post(
-        f'/ic/{ic.id}/order',
+        f'/menu/{menu.id}/order',
         data=json.dumps(data),
         content_type='application/json',
         headers=[
@@ -371,10 +371,10 @@ def test_cancel_line_item_in_order(db_session, client, all_data, post_env):
             'email': 'test@hasgeek.com',
         },
     }
-    ic = ItemCollection.query.first()
+    menu = ItemCollection.query.first()
     # make a purchase order
     resp = client.post(
-        f'/ic/{ic.id}/order',
+        f'/menu/{menu.id}/order',
         data=json.dumps(data),
         content_type='application/json',
         headers=[
@@ -454,10 +454,10 @@ def test_cancel_line_item_in_bulk_order(db_session, client, all_data, post_env):
             'email': 'test@hasgeek.com',
         },
     }
-    ic = ItemCollection.query.first()
+    menu = ItemCollection.query.first()
     # make a purchase order
     resp = client.post(
-        f'/ic/{ic.id}/order',
+        f'/menu/{menu.id}/order',
         data=json.dumps(data),
         content_type='application/json',
         headers=[
@@ -596,10 +596,10 @@ def test_partial_refund_in_order(db_session, client, all_data, post_env):
             'email': 'test@hasgeek.com',
         },
     }
-    ic = ItemCollection.query.first()
+    menu = ItemCollection.query.first()
     # make a purchase order
     resp = client.post(
-        f'/ic/{ic.id}/order',
+        f'/menu/{menu.id}/order',
         data=json.dumps(data),
         content_type='application/json',
         headers=[

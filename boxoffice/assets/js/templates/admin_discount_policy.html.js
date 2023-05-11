@@ -1,6 +1,6 @@
 export const DiscountPolicyTemplate = `
   <div class="content-wrapper">
-    <h1 class="header">{{ orgTitle }}</h1>
+    <h1 class="header">{{ accountTitle }}</h1>
     <div class="title-wrapper col-sm-4 col-xs-12">
       <input type="text" autofocus class="form-control icon-placeholder" placeholder="&#xF002; Search discount policy" value="{{searchText}}" />
       {{#searchText}}<a on-click="clearSearchField()" class="clear-field"><i class="fa fa-close"></i></a>{{/}}
@@ -182,7 +182,7 @@ export const DiscountPolicyTemplate = `
                     <button class="boxoffice-button boxoffice-button-action btn-right btn-inline" on-click="showCouponForm(event)">Generate coupon</button>
                     <p class="error-msg">{{{ loadingCouponErrorMsg }}}</p>
                   {{/if}}
-                  <a class="boxoffice-button boxoffice-button-danger btn-right" href="/admin/o/{{orgName}}/discount_policy/{{id}}/delete" data-navigate>
+                  <a class="boxoffice-button boxoffice-button-danger btn-right" href="/admin/o/{{accountName}}/discount_policy/{{id}}/delete" data-navigate>
                     Delete discount policy
                   </a>
                 </div>
@@ -443,3 +443,5 @@ export const DiscountPolicyTemplate = `
     {{/if}}
   </div>
 `;
+
+export { DiscountPolicyTemplate as default };

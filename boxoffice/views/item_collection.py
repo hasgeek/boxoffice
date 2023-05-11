@@ -87,7 +87,7 @@ def boxofficejs():
     return jsonify({'script': render_boxoffice_js()})
 
 
-@app.route('/ic/<item_collection>', methods=['GET', 'OPTIONS'])
+@app.route('/menu/<item_collection>', methods=['GET', 'OPTIONS'])
 @xhr_only
 @cors
 @load_models((ItemCollection, {'id': 'item_collection'}, 'item_collection'))

@@ -1,8 +1,10 @@
-var Ractive = require('ractive');
+const Ractive = require('ractive');
 
 export const BaseframeForm = Ractive.extend({
   isolated: false,
-  template: function () {
+  template() {
     return this.get('html');
   },
 });
+
+export { BaseframeForm as default };

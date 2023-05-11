@@ -1,5 +1,3 @@
-var NProgress = require('nprogress');
-var Ractive = require('ractive');
 import {
   Util,
   fetch,
@@ -7,83 +5,102 @@ import {
   scrollToElement,
   urlFor,
   setPageTitle,
-} from '../models/util.js';
-import { OrdersTemplate } from '../templates/admin_orders.html.js';
-import { SideBarView } from './sidebar.js';
+} from '../models/util';
+import { OrdersTemplate } from '../templates/admin_orders.html';
+import { SideBarView } from './sidebar';
+
+const NProgress = require('nprogress');
+const Ractive = require('ractive');
 
 export const OrdersView = {
-  render: function ({ ic_id } = {}) {
+  render({ menuId } = {}) {
     fetch({
       url: urlFor('index', {
-        scope_ns: 'ic',
-        scope_id: ic_id,
+        scope_ns: 'menu',
+        scope_id: menuId,
         resource: 'orders',
         root: true,
       }),
-    }).done(({ org_name, org_title, ic_title, orders }) => {
-      // Initial render
-      let orderComponent = new Ractive({
-        el: '#main-content-area',
-        template: OrdersTemplate,
-        data: {
-          orgName: org_name,
-          icId: ic_id,
-          icTitle: ic_title,
-          orders: orders,
-          formatDateTime: function (dateTimeString) {
-            return Util.formatDateTime(dateTimeString);
+    }).done(
+      ({
+        account_name: accountName,
+        account_title: accountTitle,
+        menu_title: menuTitle,
+        orders,
+      }) => {
+        // Initial render
+        const orderComponent = new Ractive({
+          el: '#main-content-area',
+          template: OrdersTemplate,
+          data: {
+            accountName,
+            menuId,
+            menuTitle,
+            orders,
+            formatDateTime(dateTimeString) {
+              return Util.formatDateTime(dateTimeString);
+            },
+            formatToIndianRupee(amount) {
+              return Util.formatToIndianRupee(amount);
+            },
           },
-          formatToIndianRupee: function (amount) {
-            return Util.formatToIndianRupee(amount);
-          },
-        },
-      });
-
-      SideBarView.render('orders', { org_name, org_title, ic_id, ic_title });
-      setPageTitle('Orders', ic_title);
-      NProgress.done();
-
-      $('#orders-table').footable({
-        breakpoints: {
-          phone: 600,
-          tablet: 768,
-          desktop: 1200,
-          largescreen: 1900,
-        },
-      });
-
-      $('#orders-table').on('footable_filtering', function (e) {
-        let selected = $('#filter-status').find(':selected').val();
-        if (selected && selected.length > 0) {
-          e.filter +=
-            e.filter && e.filter.length > 0 ? ' ' + selected : selected;
-          e.clear = !e.filter;
-        }
-      });
-
-      $('#filter-status').change(function (e) {
-        e.preventDefault();
-        $('#orders-table').trigger('footable_filter', {
-          filter: $('#filter').val(),
         });
-      });
 
-      $('#search-form').on('keypress', function (e) {
-        if (e.which == 13) {
-          return false;
-        }
-      });
+        SideBarView.render('orders', {
+          accountName,
+          accountTitle,
+          menuId,
+          menuTitle,
+        });
+        setPageTitle('Orders', menuTitle);
+        NProgress.done();
 
-      $('#orders-table').on('keydown', function (e) {
-        if (e.which == 27) {
-          orderComponent.set('orders.*.show_order', false);
-          return false;
-        }
-      });
+        $('#orders-table').footable({
+          breakpoints: {
+            phone: 600,
+            tablet: 768,
+            desktop: 1200,
+            largescreen: 1900,
+          },
+        });
 
-      window.addEventListener('popstate', (event) => {
-        NProgress.configure({ showSpinner: false }).start();
-      });
-    });
+        $('#orders-table').on('footable_filtering', (e) => {
+          const selected = $('#filter-status').find(':selected').val();
+          if (selected && selected.length > 0) {
+            e.filter +=
+              e.filter && e.filter.length > 0 ? ` ${selected}` : selected;
+            e.clear = !e.filter;
+          }
+        });
+
+        $('#filter-status').change((e) => {
+          e.preventDefault();
+          $('#orders-table').trigger('footable_filter', {
+            filter: $('#filter').val(),
+          });
+        });
+
+        $('#search-form').on('keydown', (e) => {
+          if (e.key === 'Enter') {
+            return false;
+          }
+          return true;
+        });
+
+        $('#orders-table').on('keydown', (e) => {
+          if (e.key === 'Escape') {
+            orderComponent.set('orders.*.show_order', false);
+            return false;
+          }
+          return true;
+        });
+
+        window.addEventListener('popstate', (event) => {
+          NProgress.configure({ showSpinner: false }).start();
+        });
+      }
+    );
   },
 };
+
+export { OrdersView as default };

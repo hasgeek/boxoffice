@@ -109,9 +109,9 @@ $(function() {
                 codeParams += "&";
               }
             }
-            return boxoffice.config.baseURL + '/ic/' + config.ic + codeParams;
+            return boxoffice.config.baseURL + '/menu/' + config.menu + codeParams;
           }
-          return boxoffice.config.baseURL + '/ic/' + config.ic;
+          return boxoffice.config.baseURL + '/menu/' + config.menu;
         }
       },
       kharcha: {
@@ -123,7 +123,7 @@ $(function() {
       purchaseOrder: {
         method: 'POST',
         urlFor: function(){
-          return boxoffice.config.baseURL + '/ic/' + config.ic + '/order';
+          return boxoffice.config.baseURL + '/menu/' + config.menu + '/order';
         }
       },
       payment: {
@@ -162,7 +162,7 @@ $(function() {
     // Config variables provided by the client embedding the widget
     this.widgetConfig = widgetConfig;
     this.initResources({
-      ic: widgetConfig.itemCollection
+      menu: widgetConfig.itemCollection
     });
     $.ajax({
       url: boxoffice.config.resources.itemCollection.urlFor(boxoffice.util.getDiscountCodes()),

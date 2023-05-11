@@ -57,9 +57,9 @@ expected_data = {
 
 @pytest.fixture()
 def resp(client, all_data):
-    ic = ItemCollection.query.first()
+    menu = ItemCollection.query.first()
     return client.get(
-        f'/ic/{ic.id}',
+        f'/menu/{menu.id}',
         headers=[
             ('X-Requested-With', 'XMLHttpRequest'),
             ('Origin', app.config['BASE_URL']),

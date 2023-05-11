@@ -1,28 +1,30 @@
-import { urlFor } from '../models/util.js';
-import { FormView } from './form_view.js';
-import { navigateTo } from '../views/main_admin.js';
+import { urlFor } from '../models/util';
+import { FormView } from './form_view';
+import { navigateTo } from './navigate';
 
 export const EditPriceView = {
-  render: function ({ item_id, price_id } = {}) {
+  render({ ticketId, priceId } = {}) {
     FormView.load({
       url: urlFor('edit', {
         scope_ns: 'item',
-        scope_id: item_id,
+        scope_id: ticketId,
         resource: 'price',
-        id: price_id,
+        id: priceId,
         root: true,
       }),
       title: 'Edit price',
-      onHide: function () {
+      onHide() {
         navigateTo(
-          urlFor('view', { resource: 'item', id: item_id, root: true })
+          urlFor('view', { resource: 'item', id: ticketId, root: true })
         );
       },
-      onSuccess: function (responseData) {
+      onSuccess(responseData) {
         navigateTo(
-          urlFor('view', { resource: 'item', id: item_id, root: true })
+          urlFor('view', { resource: 'item', id: ticketId, root: true })
         );
       },
     });
   },
 };
+
+export { EditPriceView as default };

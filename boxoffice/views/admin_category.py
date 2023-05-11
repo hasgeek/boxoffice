@@ -38,13 +38,13 @@ def jsonify_new_category(data_dict):
     )
 
 
-@app.route('/admin/ic/<ic_id>/category/new', methods=['GET', 'POST'])
+@app.route('/admin/menu/<menu_id>/category/new', methods=['GET', 'POST'])
 @lastuser.requires_login
 @render_with(
     {'text/html': 'index.html.jinja2', 'application/json': jsonify_new_category}
 )
 @load_models(
-    (ItemCollection, {'id': 'ic_id'}, 'item_collection'), permission='org_admin'
+    (ItemCollection, {'id': 'menu_id'}, 'item_collection'), permission='org_admin'
 )
 def admin_new_category(item_collection):
     return {'item_collection': item_collection}
@@ -77,7 +77,7 @@ def jsonify_edit_category(data_dict):
     )
 
 
-@app.route('/admin/ic/<ic_id>/category/<category_id>/edit', methods=['GET', 'POST'])
+@app.route('/admin/menu/<menu_id>/category/<category_id>/edit', methods=['GET', 'POST'])
 @lastuser.requires_login
 @render_with(
     {'text/html': 'index.html.jinja2', 'application/json': jsonify_edit_category}

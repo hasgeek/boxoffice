@@ -1,87 +1,89 @@
-var NProgress = require('nprogress');
-var Ractive = require('ractive');
-import { Util, fetch, post, urlFor, setPageTitle } from '../models/util.js';
-import { OrderTemplate } from '../templates/admin_order.html.js';
-import { SideBarView } from './sidebar.js';
-import { navigateTo } from '../views/main_admin.js';
+import { Util, fetch, post, urlFor, setPageTitle } from '../models/util';
+import { OrderTemplate } from '../templates/admin_order.html';
+import { navigateTo } from './navigate';
+
+const NProgress = require('nprogress');
+const Ractive = require('ractive');
 
 export const OrderView = {
-  render: function ({ org_name, order_receipt_no } = {}) {
+  render({ accountName, orderReceiptNo } = {}) {
     fetch({
       url: urlFor('view', {
         scope_ns: 'o',
-        scope_id: org_name,
+        scope_id: accountName,
         resource: 'order',
-        id: order_receipt_no,
+        id: orderReceiptNo,
         root: true,
       }),
     })
-      .done(({ org, ic, order, line_items }) => {
+      .done(({ account, menu, order, line_items: lineItems }) => {
         // Initial render
-        let orderComponent = new Ractive({
+        const orderComponent = new Ractive({
           el: '#main-content-area',
           template: OrderTemplate,
           data: {
-            order: order,
-            ic: ic,
-            line_items: line_items,
-            formatDateTime: function (dateTimeString) {
+            order,
+            menu,
+            lineItems,
+            formatDateTime(dateTimeString) {
               return Util.formatDateTime(dateTimeString);
             },
-            formatToIndianRupee: function (amount) {
+            formatToIndianRupee(amount) {
               return Util.formatToIndianRupee(amount);
             },
           },
         });
 
-        orderComponent.on('cancelTicket', function (event, method) {
+        orderComponent.on('cancelTicket', (event, method) => {
           if (window.confirm('Are you sure you want to cancel this ticket?')) {
-            orderComponent.set(event.keypath + '.cancel_error', '');
-            orderComponent.set(event.keypath + '.cancelling', true);
+            orderComponent.set(`${event.keypath}.cancel_error`, '');
+            orderComponent.set(`${event.keypath}.cancelling`, true);
 
             post({
               url: event.context.cancel_ticket_url,
             })
-              .done(function (response) {
+              .done((response) => {
                 orderComponent.set(
-                  event.keypath + '.cancelled_at',
+                  `${event.keypath}.cancelled_at`,
                   response.result.cancelled_at
                 );
-                orderComponent.set(event.keypath + '.cancelling', false);
+                orderComponent.set(`${event.keypath}.cancelling`, false);
               })
-              .fail(function (response) {
-                let error_text;
+              .fail((response) => {
+                let errorText;
                 if (response.readyState === 4) {
                   if (response.status === 500) {
-                    error_text = 'Server Error';
+                    errorText = 'Server Error';
                   } else {
-                    error_text = JSON.parse(
+                    errorText = JSON.parse(
                       response.responseText
                     ).error_description;
                   }
                 } else {
-                  error_text = 'Unable to connect. Please try again later.';
+                  errorText = 'Unable to connect. Please try again later.';
                 }
-                orderComponent.set(event.keypath + '.cancel_error', error_text);
-                orderComponent.set(event.keypath + '.cancelling', false);
+                orderComponent.set(`${event.keypath}.cancel_error`, errorText);
+                orderComponent.set(`${event.keypath}.cancelling`, false);
               });
           }
         });
 
-        orderComponent.on('closeOrder', function (event, method) {
+        orderComponent.on('closeOrder', (event, method) => {
           if (window.history.length <= 2) {
-            navigateTo(`/admin/ic/${ic.id}/orders`);
+            navigateTo(`/admin/menu/${menu.id}/orders`);
           } else {
             window.history.back();
           }
         });
 
         // SideBarView.render('org_reports', {org.name, org.title});
-        setPageTitle('Orders', org.title);
+        setPageTitle('Orders', account.title);
         NProgress.done();
       })
-      .fail(function () {
+      .fail(() => {
         window.history.back();
       });
   },
 };
+
+export { OrderView as default };
