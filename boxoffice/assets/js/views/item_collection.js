@@ -164,14 +164,19 @@ const AggChartComponent = Ractive.extend({
     const dates = ['x'];
     const itemCounts = {};
     const dateSalesColumn = ['sales'];
-    for (const itemDate in dateItemCounts) {
+    dateItemCounts.forEach((itemDate) => {
       dates.push(itemDate);
       dateSalesColumn.push(dateSales[itemDate]);
       allItems.forEach((item) => {
         if (!itemCounts[item.id]) {
           itemCounts[item.id] = [];
         }
-        if (dateItemCounts[itemDate].hasOwnProperty(item.id)) {
+        if (
+          Object.prototype.hasOwnProperty.call(
+            dateItemCounts[itemDate],
+            item.id
+          )
+        ) {
           // If an item has been bought on this itemDate
           itemCounts[item.id].push(dateItemCounts[itemDate][item.id]);
         } else {
@@ -179,7 +184,7 @@ const AggChartComponent = Ractive.extend({
           itemCounts[item.id].push(0);
         }
       });
-    }
+    });
 
     const columns = [dates];
     allItems.forEach((item) => {

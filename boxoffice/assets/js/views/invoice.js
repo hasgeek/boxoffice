@@ -33,14 +33,14 @@ export const Invoice = {
       },
       error(response) {
         const ajaxLoad = this;
-        const onServerError = function () {
+        function onServerError() {
           const errorMsg = 'Server error. ';
           $('#error-description').html(errorMsg);
-        };
-        const onNetworkError = function () {
+        }
+        function onNetworkError() {
           const errorMsg = 'Unable to connect. Please try again later.';
           $('#notify-msg').html(errorMsg);
-        };
+        }
         ajaxLoad.retries -= 1;
         xhrRetry(ajaxLoad, response, onServerError, onNetworkError);
       },
@@ -152,13 +152,13 @@ export const Invoice = {
           },
           error(response) {
             const ajaxLoad = this;
-            const onServerError = function () {
+            function onServerError() {
               let errorTxt = '';
               const { errors } = JSON.parse(response.responseText);
               if (errors && !$.isEmptyObject(errors)) {
-                for (const error in errors) {
+                errors.forEach((error) => {
                   errorTxt += `<p>${errors[error]}</p>`;
-                }
+                });
               } else {
                 errorTxt = `<p>${JSON.parse(response.responseText).message}<p>`;
               }
@@ -167,8 +167,8 @@ export const Invoice = {
                 `${invoiceItem}.submittingInvoiceDetails`,
                 false
               );
-            };
-            const onNetworkError = function () {
+            }
+            function onNetworkError() {
               const errorTxt =
                 '<p>Unable to connect. Please write to us at support@hasgeek.com.<p>';
               invoice.formComponent.set(`${invoiceItem}.errorMsg`, errorTxt);
@@ -176,7 +176,7 @@ export const Invoice = {
                 `${invoiceItem}.submittingInvoiceDetails`,
                 false
               );
-            };
+            }
             ajaxLoad.retries -= 1;
             xhrRetry(ajaxLoad, response, onServerError, onNetworkError);
           },

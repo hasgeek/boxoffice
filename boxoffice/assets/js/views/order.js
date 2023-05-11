@@ -33,14 +33,14 @@ export const Order = {
       },
       error(response) {
         const ajaxLoad = this;
-        const onServerError = function () {
+        function onServerError() {
           const errorMsg = 'Server error. ';
           $('#error-description').html(errorMsg);
-        };
-        const onNetworkError = function () {
+        }
+        function onNetworkError() {
           const errorMsg = 'Unable to connect. Please try again later.';
           $('#notify-msg').html(errorMsg);
-        };
+        }
         ajaxLoad.retries -= 1;
         xhrRetry(ajaxLoad, response, onServerError, onNetworkError);
       },
@@ -193,33 +193,32 @@ export const Order = {
           },
           error(response) {
             const ajaxLoad = this;
-            const onServerError = function () {
+            function onServerError() {
               let errorMsg;
-              let error;
               if (
                 response.responseJSON !== undefined &&
                 response.responseJSON.error_description !== undefined
               ) {
                 errorMsg = response.responseJSON.error_description;
-                for (error in response.responseJSON.error_details) {
+                response.responseJSON.error_details.forEach((error) => {
                   order.ticketComponent.set(
                     `${lineItem}.assignee.errormsg.${error}`,
                     response.responseJSON.error_details[error][0]
                   );
-                }
+                });
               } else {
                 errorMsg = 'Server error.';
               }
               order.ticketComponent.set(`${lineItem}.errorMsg`, errorMsg);
               order.ticketComponent.set(`${lineItem}.assigningTicket`, false);
-            };
-            const onNetworkError = function () {
+            }
+            function onNetworkError() {
               order.ticketComponent.set(
                 `${lineItem}.errorMsg`,
                 'Unable to connect. Please try again later.'
               );
               order.ticketComponent.set(`${lineItem}.assigningTicket`, false);
-            };
+            }
             ajaxLoad.retries -= 1;
             xhrRetry(ajaxLoad, response, onServerError, onNetworkError);
           },

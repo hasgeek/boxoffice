@@ -370,9 +370,9 @@ export const DiscountPolicyView = {
                           errorMsg = 'Internal Server Error';
                         } else {
                           const errorDescription = response.responseJSON.errors;
-                          for (const error in errorDescription) {
+                          errorDescription.forEach((error) => {
                             errorMsg += `<p>${errorDescription[error]}</p>`;
-                          }
+                          });
                         }
                       } else {
                         errorMsg = 'Unable to connect. Please try again.';
@@ -469,9 +469,9 @@ export const DiscountPolicyView = {
                           errorMsg = 'Internal Server Error';
                         } else {
                           const errorDescription = response.responseJSON.errors;
-                          for (const error in errorDescription) {
+                          errorDescription.forEach((error) => {
                             errorMsg += `<p>${errorDescription[error]}</p>`;
-                          }
+                          });
                         }
                       } else {
                         errorMsg = 'Unable to connect. Please try again.';
@@ -576,7 +576,8 @@ export const DiscountPolicyView = {
                       );
                       discountPolicyComponent.set('eventUrl', DEFAULT.empty);
                       $(`#generated-coupons-${dpId}`).modal('show');
-                      new Clipboard('.copy-coupons');
+                      const clipboard = new Clipboard('.copy-coupons');
+                      clipboard.destroy();
                     })
                     .fail((response) => {
                       let errorMsg = DEFAULT.empty;
@@ -585,9 +586,9 @@ export const DiscountPolicyView = {
                           errorMsg = 'Internal Server Error';
                         } else {
                           const errorDescription = response.responseJSON.errors;
-                          for (const error in errorDescription) {
+                          errorDescription.forEach((error) => {
                             errorMsg += `<p>${errorDescription[error]}</p>`;
-                          }
+                          });
                         }
                       } else {
                         errorMsg = 'Unable to connect. Please try again.';
