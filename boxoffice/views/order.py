@@ -197,9 +197,7 @@ def kharcha():
     return jsonify(line_items=items_json, order={'final_amount': order_final_amount})
 
 
-@app.route(
-    '/ic/<item_collection>/order', methods=['GET', 'OPTIONS', 'POST'], endpoint='order'
-)
+@app.route('/ic/<item_collection>/order', methods=['GET', 'OPTIONS', 'POST'])
 @xhr_only
 @cors
 @load_models((ItemCollection, {'id': 'item_collection'}, 'item_collection'))
@@ -563,9 +561,7 @@ def invoice_details_form(order):
     return {'order': order, 'org': order.organization, 'invoices': invoices}
 
 
-@app.route(
-    '/order/<access_token>/ticket', methods=['GET', 'POST'], endpoint='line_items'
-)
+@app.route('/order/<access_token>/ticket', methods=['GET', 'POST'])
 @render_with(
     {'text/html': 'order.html.jinja2', 'application/json': jsonify_order}, json=True
 )
