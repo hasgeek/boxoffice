@@ -372,7 +372,7 @@ def free(order):
             status_code=201,
         )
 
-    return api_error(message="Free order confirmation failed", status_code=402)
+    return api_error(message="Free order confirmation failed", status_code=422)
 
 
 @app.route('/order/<order>/payment', methods=['GET', 'OPTIONS', 'POST'])
