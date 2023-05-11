@@ -40,3 +40,6 @@ CACHE_TYPE = 'redis'
 #: RQ settings
 RQ_REDIS_URL = 'redis://localhost:6379/0'
 RQ_SCHEDULER_INTERVAL = 1
+
+#: Allowed origins
+ALLOWED_ORIGINS = ['http://funnel.test', 'http://funnel.test:3000']
