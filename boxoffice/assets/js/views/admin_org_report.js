@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { fetch, urlFor, setPageTitle } from '../models/util';
 import { OrgReportTemplate } from '../templates/admin_org_report.html';
 import { SideBarView } from './sidebar';

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { urlFor } from '../models/util';
 import { FormView } from './form_view';
 import { navigateTo } from './navigate';

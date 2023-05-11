@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { Util, fetch, post, urlFor, setPageTitle } from '../models/util';
 import { OrderTemplate } from '../templates/admin_order.html';
 import { navigateTo } from './navigate';

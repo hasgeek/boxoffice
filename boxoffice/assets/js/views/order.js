@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { xhrRetry, getFormJSObject } from '../models/util';
 import { TicketAssignmentTemplate } from '../templates/ticket_assigment.html';
 

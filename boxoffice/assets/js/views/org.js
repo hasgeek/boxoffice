@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { navigateTo } from './navigate';
 
 import { fetch, urlFor, setPageTitle } from '../models/util';

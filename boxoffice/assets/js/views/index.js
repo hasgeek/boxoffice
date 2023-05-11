@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { eventBus } from './navigate';
 import { fetch, urlFor, setPageTitle } from '../models/util';
 import { IndexTemplate } from '../templates/index.html';

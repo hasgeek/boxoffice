@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { xhrRetry, getFormJSObject } from '../models/util';
 import { InvoiceEditFormTemplate } from '../templates/invoice_edit_form.html';
 
@@ -61,7 +62,7 @@ export const Invoice = {
       },
       scrollTop() {
         $('html,body').animate(
-          { scrollTop: $(invoiceComponent.el).offset().top },
+          { scrollTop: $(invoice.formComponent.el).offset().top },
           '300'
         );
       },
@@ -125,7 +126,7 @@ export const Invoice = {
         formValidator.setMessage('valid_email', 'Please enter a valid email');
       },
       postInvoiceDetails(invoiceItem, invoiceId) {
-        const invoiceForm = `${'#' + 'invoice-'}${invoiceId}`;
+        const invoiceForm = `#invoice-${invoiceId}`;
         const invoiceDetails = getFormJSObject(invoiceForm);
 
         $.ajax({

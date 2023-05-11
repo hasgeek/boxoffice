@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { Util, fetch, urlFor, setPageTitle } from '../models/util';
 import { SideBarView } from './sidebar';
 

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { fetch, Util, formErrorHandler } from '../models/util';
 
 import { BaseframeForm } from './baseframe_form';
