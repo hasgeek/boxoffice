@@ -25,6 +25,7 @@ def format_assignee(assignee):
             'phone': assignee.phone,
             'details': assignee.details,
         }
+    return None
 
 
 def format_line_items(line_items):
@@ -79,7 +80,7 @@ def jsonify_admin_orders(data_dict):
                     'url': '/ic/' + str(item_collection_id) + '/' + str(order.id),
                     'receipt_url': url_for('receipt', access_token=order.access_token),
                     'assignee_url': url_for(
-                        'line_items', access_token=order.access_token
+                        'order_ticket', access_token=order.access_token
                     ),
                 }
             )
@@ -131,7 +132,7 @@ def jsonify_order(order_dict):
             'receipt', access_token=order_dict['order'].access_token
         ),
         "assignee_url": url_for(
-            'line_items', access_token=order_dict['order'].access_token
+            'order_ticket', access_token=order_dict['order'].access_token
         ),
     }
     ic = {'id': order_dict['order'].item_collection_id}
@@ -228,8 +229,8 @@ def get_order_details(order):
     )
 
 
-# This endpoint has been added to fetch details of an order to generate invoice outside Boxoffice.
-# Not to be used within the app.
+# This endpoint has been added to fetch details of an order to generate invoice outside
+# Boxoffice. Not to be used within the app.
 @app.route('/api/1/organization/<org_name>/order/<int:receipt_no>', methods=['GET'])
 @load_models(
     (Organization, {'name': 'org_name'}, 'org'),
@@ -240,8 +241,8 @@ def order_api(org, order):
     return get_order_details(order)
 
 
-# This endpoint has been added to fetch details of an order to generate invoice outside Boxoffice.
-# Not to be used within the app.
+# This endpoint has been added to fetch details of an order to generate invoice outside
+# Boxoffice. Not to be used within the app.
 @app.route('/api/1/organization/<org_name>/order/<order_id>', methods=['GET'])
 @load_models(
     (Organization, {'name': 'org_name'}, 'org'),

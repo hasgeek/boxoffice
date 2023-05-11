@@ -1,6 +1,5 @@
-from baseframe import __
+from baseframe import __, forms
 from baseframe.forms.validators import StopValidation
-import baseframe.forms as forms
 
 from ..models import Category, db
 
@@ -18,7 +17,8 @@ def available_seq(form, field):
     if basequery.scalar() is not None:
         raise StopValidation(
             __(
-                "This sequence number has already been used. Please pick a different number"
+                "This sequence number has already been used. Please pick a different"
+                " number"
             )
         )
 

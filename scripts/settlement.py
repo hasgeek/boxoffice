@@ -11,7 +11,7 @@ from boxoffice.models.payment import TRANSACTION_TYPE
 
 
 def csv_to_rows(csv_file, skip_header=True, delimiter=','):
-    with open(csv_file, 'rb') as csvfile:
+    with open(csv_file, 'rb', encoding='utf-8') as csvfile:
         reader = csv.reader(csvfile, delimiter=delimiter)
         if skip_header:
             next(reader)
@@ -19,7 +19,7 @@ def csv_to_rows(csv_file, skip_header=True, delimiter=','):
 
 
 def rows_to_csv(rows, filename):
-    with open(filename, 'wb') as csvfile:
+    with open(filename, 'wb', encoding='utf-8') as csvfile:
         writer = csv.writer(
             csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL
         )
@@ -55,8 +55,8 @@ def get_settlements(filename):
                         online_payment=payment,
                         transaction_type=TRANSACTION_TYPE.PAYMENT,
                     ).one_or_none()
-                    # Get settlement
-                    # settlement_amount = [tr for tr in transactions if tr[0] == trans[11]][0][4]
+                    # Get settlement. settlement_amount =
+                    # [tr for tr in transactions if tr[0] == trans[11]][0][4]
                     settlement = [tr for tr in transactions if tr[0] == trans[11]]
                     if settlement:
                         settlements[trans[11]].append(
@@ -92,15 +92,9 @@ def get_settlements(filename):
                                 'type': 'payment',
                             }
                         )
-                        print(  # noqa: T201
-                            "settlement not settled yet {settlement}".format(
-                                settlement=trans[11]
-                            )
-                        )
+                        print(f"settlement not settled yet {trans[11]}")  # noqa: T201
                 else:
-                    print(  # noqa: T201
-                        "payment not found {payment}".format(payment=trans[0])
-                    )
+                    print(f"payment not found {trans[0]}")  # noqa: T201
             elif trans[1] == 'refund':
                 payment = OnlinePayment.query.filter_by(
                     pg_paymentid=trans[14],
@@ -110,7 +104,8 @@ def get_settlements(filename):
                     refund_transactions = PaymentTransaction.query.filter_by(
                         online_payment=payment, transaction_type=TRANSACTION_TYPE.REFUND
                     ).all()
-                    # settlement_amount = [tr for tr in transactions if tr[0] == trans[11]][0][4]
+                    # settlement_amount = [tr for tr in transactions if tr[0] ==
+                    # trans[11]][0][4]
                     settlement = [tr for tr in transactions if tr[0] == trans[11]]
                     if settlement:
                         for rt in refund_transactions:
@@ -146,15 +141,9 @@ def get_settlements(filename):
                                     'type': 'refund',
                                 }
                             )
-                        print(  # noqa: T201
-                            "settlement not settled yet {settlement}".format(
-                                settlement=trans[11]
-                            )
-                        )
+                        print(f"settlement not settled yet {trans[11]}")  # noqa: T201
                 else:
-                    print(  # noqa: T201
-                        "payment not found {payment}".format(payment=trans[0])
-                    )
+                    print(f"payment not found {trans[0]}")  # noqa: T201
             elif trans[1] == 'adjustment':
                 settlement = [tr for tr in transactions if tr[0] == trans[11]]
                 if settlement:
@@ -173,11 +162,7 @@ def get_settlements(filename):
                         }
                     )
                 else:
-                    print(  # noqa: T201
-                        "settlement not settled yet {settlement}".format(
-                            settlement=trans[11]
-                        )
-                    )
+                    print(f"settlement not settled yet {trans[11]}")  # noqa: T201
 
     rows = []
     header = [
@@ -246,7 +231,7 @@ def get_line_items(filename):
 def get_orders(settlement_filename):
     settlement_dicts = []
     # Load input data
-    with open(settlement_filename) as csvfile:
+    with open(settlement_filename, encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
             settlement_dicts.append(row)
@@ -320,7 +305,7 @@ def get_orders(settlement_filename):
                     print(  # noqa: T201
                         "no transaction for " + settlement_dict['entity_id']
                     )
-            except:  # NOQA: E722
+            except:  # noqa: B001, E722  # pylint: disable=bare-except
                 # FIXME: Trap the correct exception
                 print(  # noqa: T201
                     "no payment found for "
@@ -336,18 +321,16 @@ def get_orders(settlement_filename):
         if settlement_dict['type'] == 'settlement'
     ]:
         if Decimal(settlement_dict['amount']) != sum(
-            [
-                payment_order['receivable_amount']
-                for payment_order in payment_orders
-                if payment_order['settlement_id'] == settlement_dict['entity_id']
-            ]
+            payment_order['receivable_amount']
+            for payment_order in payment_orders
+            if payment_order['settlement_id'] == settlement_dict['entity_id']
         ):
             print(  # noqa: T201
                 "Settlement not tallying for " + settlement_dict['entity_id']
             )
 
     # write result to csv
-    with open('settlement_orders.csv', 'w') as outputcsv:
+    with open('settlement_orders.csv', 'w', encoding='utf-8') as outputcsv:
         fieldnames = [
             'entity_id',
             'settlement_id',

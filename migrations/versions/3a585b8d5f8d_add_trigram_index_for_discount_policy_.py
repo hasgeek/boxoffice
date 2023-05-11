@@ -19,7 +19,8 @@ def upgrade():
         sa.DDL(
             '''
         CREATE EXTENSION IF NOT EXISTS pg_trgm;
-        CREATE INDEX idx_discount_policy_title_trgm on discount_policy USING gin (title gin_trgm_ops);
+        CREATE INDEX idx_discount_policy_title_trgm on discount_policy
+        USING gin (title gin_trgm_ops);
         '''
         )
     )

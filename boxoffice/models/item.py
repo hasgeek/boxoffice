@@ -6,7 +6,7 @@ from uuid import UUID
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.orderinglist import ordering_list
 
-from baseframe import __
+from baseframe import _, __
 from coaster.sqlalchemy import with_roles
 from coaster.utils import LabeledEnum, utcnow
 
@@ -297,11 +297,10 @@ class Price(BaseScopedNameMixin, db.Model):  # type: ignore[name-defined]
     def tense(self):
         now = utcnow()
         if self.end_at < now:
-            return "past"
-        elif self.start_at > now:
-            return "upcoming"
-        else:
-            return "current"
+            return _("past")
+        if self.start_at > now:
+            return _("upcoming")
+        return _("current")
 
 
 # Tail imports

@@ -96,7 +96,8 @@ class ItemCollection(BaseScopedNameMixin, db.Model):  # type: ignore[name-define
             .where(Order.item_collection == self)
             .order_by(LineItem.ordered_at)
         )
-        # TODO: Use label() instead of this hack https://github.com/hasgeek/boxoffice/pull/236#discussion_r223341927
+        # TODO: Use label() instead of this hack
+        # https://github.com/hasgeek/boxoffice/pull/236#discussion_r223341927
         return HeadersAndDataTuple(
             [
                 'ticket_id',

@@ -1,8 +1,8 @@
 import requests
 
 from baseframe import localize_timezone
-from boxoffice import app
 
+from .. import app
 from ..models import TRANSACTION_TYPE, OnlinePayment, PaymentTransaction
 
 # Don't use a trailing slash
@@ -11,7 +11,7 @@ base_url = 'https://api.razorpay.com/v1'
 
 def capture_payment(paymentid, amount):
     """Attempt to capture the payment from Razorpay."""
-    verify_https = False if app.config.get('VERIFY_RAZORPAY_HTTPS') is False else True
+    verify_https = app.config.get('VERIFY_RAZORPAY_HTTPS', True)
     url = f'{base_url}/payments/{paymentid}/capture'
     # Razorpay requires the amount to be in paisa and of type integer
     resp = requests.post(

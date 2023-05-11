@@ -4,7 +4,7 @@ from coaster.utils import LabeledEnum
 __all__ = ['RAZORPAY_PAYMENT_STATUS']
 
 
-class RAZORPAY_PAYMENT_STATUS(LabeledEnum):  # NOQA: N801
+class RAZORPAY_PAYMENT_STATUS(LabeledEnum):  # noqa: N801
     """
     Reflects payment statuses.
 

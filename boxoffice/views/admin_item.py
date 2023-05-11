@@ -51,8 +51,7 @@ def items(organization, search=None):
             doc="Filtered items",
             status_code=200,
         )
-    else:
-        return api_error(message=_("Missing search query"), status_code=400)
+    return api_error(message=_("Missing search query"), status_code=400)
 
 
 def jsonify_price(price):

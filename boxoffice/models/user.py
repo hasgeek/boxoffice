@@ -54,15 +54,16 @@ class Organization(ProfileBase, db.Model):  # type: ignore[name-defined]
     __tablename__ = 'organization'
     __table_args__ = (sa.UniqueConstraint('contact_email'),)
 
-    # The currently used fields in details are address(html)
-    # cin (Corporate Identity Number) or llpin (Limited Liability Partnership Identification Number),
-    # pan, service_tax_no, support_email,
-    # logo (image url), refund_policy (html), ticket_faq (html), website (url)
+    # The currently used fields in details are address(html) cin (Corporate Identity
+    # Number) or llpin (Limited Liability Partnership Identification Number), pan,
+    # service_tax_no, support_email, logo (image url), refund_policy (html), ticket_faq
+    # (html), website (url)
     details: Mapped[dict] = sa.orm.mapped_column(
         JsonDict, nullable=False, server_default='{}'
     )
     contact_email = sa.Column(sa.Unicode(254), nullable=False)
-    # This is to allow organizations to have their orders invoiced by the parent organization
+    # This is to allow organizations to have their orders invoiced by the parent
+    # organization
     invoicer_id: Mapped[int] = sa.orm.mapped_column(
         sa.ForeignKey('organization.id'), nullable=True
     )
@@ -74,9 +75,9 @@ class Organization(ProfileBase, db.Model):  # type: ignore[name-defined]
         ),
     )
 
-    def permissions(self, user, inherited=None):
-        perms = super().permissions(user, inherited)
-        if self.userid in user.organizations_owned_ids():
+    def permissions(self, actor, inherited=None):
+        perms = super().permissions(actor, inherited)
+        if self.userid in actor.organizations_owned_ids():
             perms.add('org_admin')
         return perms
 

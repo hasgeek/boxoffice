@@ -1,9 +1,8 @@
 from flask import jsonify, request
 
-from baseframe import _
+from baseframe import _, forms
 from baseframe.forms import render_form
 from coaster.views import load_models, render_with, requestargs
-import baseframe.forms as forms
 
 from .. import app, lastuser
 from ..forms import (
@@ -108,7 +107,8 @@ def admin_new_discount_policy(organization):
             if not discount_price_form.validate_on_submit():
                 return api_error(
                     message=_(
-                        "There was an issue with the price. Please rectify the indicated issues"
+                        "There was an issue with the price. Please rectify the"
+                        " indicated issues"
                     ),
                     status_code=400,
                     errors=discount_price_form.errors,
@@ -180,7 +180,8 @@ def admin_edit_discount_policy(discount_policy):
         if not discount_price_form.validate_on_submit():
             return api_error(
                 message=_(
-                    "There was an issue with the price. Please rectify the indicated issues"
+                    "There was an issue with the price. Please rectify the indicated"
+                    " issues"
                 ),
                 status_code=400,
                 errors=discount_price_form.errors,
@@ -209,15 +210,14 @@ def admin_edit_discount_policy(discount_policy):
         db.session.commit()
         return api_success(
             result={'discount_policy': jsonify_discount_policy(discount_policy)},
-            doc="Discount policy updated.",
+            doc=_("Discount policy updated"),
             status_code=200,
         )
-    else:
-        return api_error(
-            message=discount_policy_error_msg,
-            status_code=400,
-            errors=discount_policy_form.errors,
-        )
+    return api_error(
+        message=discount_policy_error_msg,
+        status_code=400,
+        errors=discount_policy_form.errors,
+    )
 
 
 @app.route(
@@ -263,7 +263,7 @@ def admin_delete_discount_policy(discount_policy):
 )
 def admin_new_coupon(discount_policy):
     coupon_form = DiscountCouponForm(parent=discount_policy)
-    coupons = []
+
     if not coupon_form.validate_on_submit():
         return api_error(
             message=_(
@@ -274,15 +274,16 @@ def admin_new_coupon(discount_policy):
         )
     if coupon_form.count.data > 1:
         # Create a signed discount coupon code
-        for x in range(coupon_form.count.data):
-            # No need to store these coupon codes since they are signed
-            coupons.append(discount_policy.gen_signed_code())
+        # No need to store these coupon codes since they are signed
+        coupons = [
+            discount_policy.gen_signed_code() for _x in range(coupon_form.count.data)
+        ]
     else:
         coupon = DiscountCoupon(discount_policy=discount_policy)
         coupon_form.populate_obj(coupon)
         db.session.add(coupon)
         db.session.commit()
-        coupons.append(coupon.code)
+        coupons = [coupon.code]
     return api_success(
         result={'coupons': coupons}, doc=_("Discount coupon created"), status_code=201
     )

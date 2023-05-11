@@ -26,7 +26,7 @@ def assign(order):
             },
             404,
         )
-    elif line_item.is_cancelled:
+    if line_item.is_cancelled:
         return (
             {
                 'status': 'error',
@@ -97,13 +97,12 @@ def assign(order):
                     line_item.id, old_assignee.id, new_assignee.id
                 )
         return {'status': 'ok', 'result': {'message': _("Ticket assigned")}}
-    else:
-        return (
-            {
-                'status': 'error',
-                'error': 'invalid_assignee_details',
-                'error_description': "Invalid form values. Please resubmit.",
-                'error_details': assignee_form.errors,
-            },
-            400,
-        )
+    return (
+        {
+            'status': 'error',
+            'error': 'invalid_assignee_details',
+            'error_description': "Invalid form values. Please resubmit.",
+            'error_details': assignee_form.errors,
+        },
+        400,
+    )

@@ -4,6 +4,7 @@ import csv
 import requests
 
 from baseframe import localize_timezone
+
 from boxoffice import app
 from boxoffice.extapi.razorpay_status import RAZORPAY_PAYMENT_STATUS
 from boxoffice.models import (
@@ -84,7 +85,7 @@ def format_refund_transaction(settlement_id, payment_id, transaction, payment_st
     }
 
 
-def get_settled_orders(date_ranges=[], filenames=[]):
+def get_settled_orders(date_ranges=(), filenames=()):
     entity_dict = {}
     entities = []
     settlements_url = 'https://api.razorpay.com/v1/settlements/report/combined'
@@ -100,7 +101,7 @@ def get_settled_orders(date_ranges=[], filenames=[]):
             entities = settlement_resp.json()
     elif filenames:
         for filename in filenames:
-            with open(filename) as csvfile:
+            with open(filename, encoding='utf-8') as csvfile:
                 reader = csv.DictReader(csvfile)
                 for row in reader:
                     entities.append(row)
@@ -148,7 +149,8 @@ def get_settled_orders(date_ranges=[], filenames=[]):
                             'buyer_fullname': order.buyer_fullname,
                             'payment_id': payment.pg_paymentid,
                             'razorpay_fees': entity_dict[payment.pg_paymentid]['fee'],
-                            # FIXME: 'credit': Decimal(entity_dict[settlement_refund_id]['credit']),
+                            # FIXME: 'credit':
+                            # Decimal(entity_dict[settlement_refund_id]['credit']),
                             'receivable_amount': order.get_amounts(
                                 LINE_ITEM_STATUS.CONFIRMED
                             ).final_amount
@@ -169,9 +171,18 @@ def get_settled_orders(date_ranges=[], filenames=[]):
                         )
                     )
                     # if line_item_is_cancelled(line_item):
-                    #     settled_orders.append(format_row(format_line_item(settlement_id, settlement_payment_id, line_item, 'refund')))
+                    #     settled_orders.append(
+                    #         format_row(
+                    #             format_line_item(
+                    #                 settlement_id,
+                    #                 settlement_payment_id,
+                    #                 line_item,
+                    #                 'refund',
+                    #             )
+                    #         )
+                    #     )
 
-            except Exception as error_msg:  # NOQA: B902
+            except Exception as error_msg:  # noqa: B902  # pylint: disable=W0718
                 print(error_msg)  # noqa: T201
 
         settlement_refund_ids = [
@@ -214,13 +225,13 @@ def get_settled_orders(date_ranges=[], filenames=[]):
                     format_row(
                         format_line_item(
                             settlement_id,
-                            settlement_payment_id,
+                            settlement_refund_id,
                             cancelled_line_item,
                             'refund',
                         )
                     )
                 )
-            except:  # NOQA: E722
+            except:  # noqa: B001, E722  # pylint: disable=bare-except
                 # FIXME: Add correct exception
                 cancelled_line_item = LineItem.query.filter(
                     LineItem.order == order,
@@ -233,7 +244,7 @@ def get_settled_orders(date_ranges=[], filenames=[]):
                         format_row(
                             format_line_item(
                                 settlement_id,
-                                settlement_payment_id,
+                                settlement_refund_id,
                                 cancelled_line_item,
                                 'refund',
                             )
@@ -247,7 +258,7 @@ def get_settled_orders(date_ranges=[], filenames=[]):
 
 
 def write_settled_orders(filename, rows):
-    with open(filename, 'w') as csvfile:
+    with open(filename, 'w', encoding='utf-8') as csvfile:
         fieldnames = [
             'settlement_id',
             'item_collection',
@@ -273,7 +284,7 @@ def write_settled_orders(filename, rows):
             writer.writerow(row)
 
 
-def get_settled_order_transactions(date_ranges=[], filenames=[]):
+def get_settled_order_transactions(date_ranges=(), filenames=()):
     entity_dict = {}
     entities = []
     settlements_url = 'https://api.razorpay.com/v1/settlements/report/combined'
@@ -289,7 +300,7 @@ def get_settled_order_transactions(date_ranges=[], filenames=[]):
             entities = settlement_resp.json()
     elif filenames:
         for filename in filenames:
-            with open(filename) as csvfile:
+            with open(filename, encoding='utf-8') as csvfile:
                 reader = csv.DictReader(csvfile)
                 for row in reader:
                     entities.append(row)
@@ -361,9 +372,18 @@ def get_settled_order_transactions(date_ranges=[], filenames=[]):
                         )
                     )
                     # if line_item_is_cancelled(line_item):
-                    #     settled_orders.append(format_row(format_line_item(settlement_id, settlement_payment_id, line_item, 'refund')))
+                    #     settled_orders.append(
+                    #         format_row(
+                    #             format_line_item(
+                    #                 settlement_id,
+                    #                 settlement_payment_id,
+                    #                 line_item,
+                    #                 'refund',
+                    #             )
+                    #         )
+                    #     )
 
-            except Exception as error_msg:  # NOQA: B902
+            except Exception as error_msg:  # noqa: B902  # pylint: disable=W0718
                 print(error_msg)  # noqa: T201
 
         settlement_refund_ids = [
@@ -407,14 +427,14 @@ def get_settled_order_transactions(date_ranges=[], filenames=[]):
                     format_row(
                         format_line_item(
                             settlement_id,
-                            settlement_payment_id,
+                            settlement_refund_id,
                             cancelled_line_item,
                             'refund',
                         )
                     )
                 )
                 refunded_line_item_ids.append(cancelled_line_item.id)
-            except:  # NOQA: E722
+            except:  # noqa: B001, E722  # pylint: disable=bare-except
                 # FIXME: Add correct exception
                 cancelled_line_item = LineItem.query.filter(
                     ~LineItem.id.in_(refunded_line_item_ids),
@@ -428,7 +448,7 @@ def get_settled_order_transactions(date_ranges=[], filenames=[]):
                         format_row(
                             format_line_item(
                                 settlement_id,
-                                settlement_payment_id,
+                                settlement_refund_id,
                                 cancelled_line_item,
                                 'refund',
                             )
@@ -448,7 +468,7 @@ def get_settled_order_transactions(date_ranges=[], filenames=[]):
                             format_row(
                                 format_refund_transaction(
                                     settlement_id,
-                                    settlement_payment_id,
+                                    settlement_refund_id,
                                     refund_transaction,
                                     'refund',
                                 )

@@ -67,7 +67,7 @@ def tickets_report(item_collection):
             v
             if not isinstance(v, datetime)
             else format_datetime(
-                localize_timezone(v), format='long', locale=get_locale()
+                localize_timezone(v), format='long', locale=get_locale() or 'en'
             )
             for v in row
         ]
@@ -75,7 +75,7 @@ def tickets_report(item_collection):
         access_token = row_list[assignee_url_index]
         if access_token:
             row_list[assignee_url_index] = url_for(
-                'line_items', access_token=access_token, _external=True
+                'order_ticket', access_token=access_token, _external=True
             )
         return row_list
 
@@ -88,13 +88,17 @@ def tickets_report(item_collection):
     (ItemCollection, {'id': 'ic_id'}, 'item_collection'), permission='org_admin'
 )
 def attendees_report(item_collection):
-    # Generated a unique list of headers for all 'assignee_details' keys in all items in this item collection. This flattens the 'assignee_details' dict. This will need to be updated if we add additional dicts to our csv export.
+    # Generated a unique list of headers for all 'assignee_details' keys in all items in
+    # this item collection. This flattens the 'assignee_details' dict. This will need to
+    # be updated if we add additional dicts to our csv export.
     attendee_details_headers = []
     for item in item_collection.items:
         if item.assignee_details:
             for detail in item.assignee_details.keys():
                 attendee_detail_prefixed = 'attendee_details_' + detail
-                # Eliminate duplicate headers across attendee_details across items. For example, if 't-shirt' and 'hoodie' are two items with a 'size' key, you only want one column in the csv called size.
+                # Eliminate duplicate headers across attendee_details across items. For
+                # example, if 't-shirt' and 'hoodie' are two items with a 'size' key,
+                # you only want one column in the csv called size.
                 if attendee_detail_prefixed not in attendee_details_headers:
                     attendee_details_headers.append(attendee_detail_prefixed)
 
@@ -117,7 +121,7 @@ def attendees_report(item_collection):
             # Item is a datetime object, so format and add to dict
             elif isinstance(item, datetime):
                 dict_row[headers[idx]] = format_datetime(
-                    localize_timezone(item), format='long', locale=get_locale()
+                    localize_timezone(item), format='long', locale=get_locale() or 'en'
                 )
             # Item is a string, add it to the dict with the corresponding key
             else:
@@ -144,13 +148,17 @@ def attendees_report(item_collection):
 def orders_api(organization, item_collection):
     check_api_access(organization.details.get('access_token'))
 
-    # Generated a unique list of headers for all 'assignee_details' keys in all items in this item collection. This flattens the 'assignee_details' dict. This will need to be updated if we add additional dicts to our csv export.
+    # Generated a unique list of headers for all 'assignee_details' keys in all items in
+    # this item collection. This flattens the 'assignee_details' dict. This will need to
+    # be updated if we add additional dicts to our csv export.
     attendee_details_headers = []
     for item in item_collection.items:
         if item.assignee_details:
             for detail in item.assignee_details.keys():
                 attendee_detail_prefixed = 'attendee_details_' + detail
-                # Eliminate duplicate headers across attendee_details across items. For example, if 't-shirt' and 'hoodie' are two items with a 'size' key, you only want one column in the csv called size.
+                # Eliminate duplicate headers across attendee_details across items. For
+                # example, if 't-shirt' and 'hoodie' are two items with a 'size' key,
+                # you only want one column in the csv called size.
                 if attendee_detail_prefixed not in attendee_details_headers:
                     attendee_details_headers.append(attendee_detail_prefixed)
     headers, rows = item_collection.fetch_all_details()
@@ -173,7 +181,7 @@ def orders_api(organization, item_collection):
             elif isinstance(item, datetime):
                 dict_row[headers[idx]] = format_datetime(
                     localize_timezone(item), format='long', locale=get_locale() or 'en'
-                )  # FIXME: How to handle locale where the accept langauges header isn't specified? Relevant issue in baseframe https://github.com/hasgeek/baseframe/issues/154
+                )
             # Value is a string, add it to the dict with the corresponding key
             else:
                 dict_row[headers[idx]] = item

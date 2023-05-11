@@ -66,7 +66,8 @@ def upgrade():
     for table, column in migrate_table_columns:
         op.execute(
             sa.DDL(
-                'ALTER TABLE "%(table)s" ALTER COLUMN "%(column)s" TYPE TIMESTAMP WITH TIME ZONE USING "%(column)s" AT TIME ZONE \'UTC\'',
+                'ALTER TABLE "%(table)s" ALTER COLUMN "%(column)s"'
+                'TYPE TIMESTAMP WITH TIME ZONE USING "%(column)s" AT TIME ZONE \'UTC\'',
                 context={'table': table, 'column': column},
             )
         )
@@ -76,7 +77,8 @@ def downgrade():
     for table, column in reversed(migrate_table_columns):
         op.execute(
             sa.DDL(
-                'ALTER TABLE "%(table)s" ALTER COLUMN "%(column)s" TYPE TIMESTAMP WITHOUT TIME ZONE',
+                'ALTER TABLE "%(table)s" ALTER COLUMN "%(column)s"'
+                ' TYPE TIMESTAMP WITHOUT TIME ZONE',
                 context={'table': table, 'column': column},
             )
         )

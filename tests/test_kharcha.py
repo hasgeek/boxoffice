@@ -3,9 +3,10 @@ import json
 
 from flask import url_for
 
+from coaster.utils import make_name
+
 from boxoffice import app
 from boxoffice.models import DiscountCoupon, DiscountPolicy, Item
-from coaster.utils import make_name
 
 
 def test_undiscounted_kharcha(client, all_data):

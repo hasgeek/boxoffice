@@ -4,8 +4,6 @@ from collections import namedtuple
 from decimal import Decimal
 from uuid import UUID
 
-from sqlalchemy.sql import func, select
-
 from baseframe import __
 from coaster.utils import LabeledEnum, buid, utcnow
 
@@ -33,7 +31,7 @@ class ORDER_STATUS(LabeledEnum):  # noqa: N801
 def gen_invoice_no(organization):
     """Generate a sequential invoice number for an order, given an organization."""
     return (
-        select(func.coalesce(func.max(Order.invoice_no + 1), 1))
+        sa.select(sa.func.coalesce(sa.func.max(Order.invoice_no + 1), 1))
         .where(Order.organization == organization)
         .scalar_subquery()
     )

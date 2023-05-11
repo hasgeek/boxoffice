@@ -1,6 +1,5 @@
-from baseframe import _, __
+from baseframe import _, __, forms
 from baseframe.forms.validators import StopValidation
-import baseframe.forms as forms
 
 __all__ = ['OrderRefundForm']
 

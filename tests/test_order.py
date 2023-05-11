@@ -1,9 +1,11 @@
+from unittest.mock import MagicMock
 import datetime
 import decimal
 import json
 
-from mock import MagicMock
 import pytest
+
+from coaster.utils import buid
 
 from boxoffice import app
 from boxoffice.extapi import razorpay
@@ -27,10 +29,9 @@ from boxoffice.views.order import (
     process_line_item_cancellation,
     process_partial_refund_for_order,
 )
-from coaster.utils import buid
 
 
-class MockResponse(object):
+class MockResponse:
     def __init__(self, response_data, status_code=200):
         self.response_data = response_data
         self.status_code = status_code
@@ -51,7 +52,7 @@ def test_basic(client, all_data):
     }
     ic = ItemCollection.query.first()
     resp = client.post(
-        '/ic/{ic}/order'.format(ic=ic.id),
+        f'/ic/{ic.id}/order',
         data=json.dumps(data),
         content_type='application/json',
         headers=[
@@ -95,7 +96,7 @@ def test_basic_with_utm_headers(client, all_data):
     }
     ic = ItemCollection.query.first()
     resp = client.post(
-        '/ic/{ic}/order'.format(ic=ic.id),
+        f'/ic/{ic.id}/order',
         data=json.dumps(data),
         content_type='application/json',
         headers=[
@@ -128,7 +129,7 @@ def test_order_with_invalid_quantity(client, all_data):
     }
     ic = ItemCollection.query.first()
     resp = client.post(
-        '/ic/{ic}/order'.format(ic=ic.id),
+        f'/ic/{ic.id}/order',
         data=json.dumps(data),
         content_type='application/json',
         headers=[
@@ -151,7 +152,7 @@ def test_simple_discounted_item(client, all_data):
     }
     ic = ItemCollection.query.first()
     resp = client.post(
-        '/ic/{ic}/order'.format(ic=ic.id),
+        f'/ic/{ic.id}/order',
         data=json.dumps(data),
         content_type='application/json',
         headers=[
@@ -177,7 +178,7 @@ def test_expired_item_order(client, all_data):
     }
     ic = ItemCollection.query.first()
     resp = client.post(
-        '/ic/{ic}/order'.format(ic=ic.id),
+        f'/ic/{ic.id}/order',
         data=json.dumps(data),
         content_type='application/json',
         headers=[
@@ -206,7 +207,7 @@ def test_signed_discounted_coupon_order(client, all_data):
     }
     ic = ItemCollection.query.first()
     resp = client.post(
-        '/ic/{ic}/order'.format(ic=ic.id),
+        f'/ic/{ic.id}/order',
         data=json.dumps(data),
         content_type='application/json',
         headers=[
@@ -241,7 +242,7 @@ def test_complex_discounted_item(client, all_data):
     }
     ic = ItemCollection.query.first()
     resp = client.post(
-        '/ic/{ic}/order'.format(ic=ic.id),
+        f'/ic/{ic.id}/order',
         data=json.dumps(data),
         content_type='application/json',
         headers=[
@@ -278,7 +279,7 @@ def test_discounted_complex_order(client, all_data):
     }
     ic = ItemCollection.query.first()
     resp = client.post(
-        '/ic/{ic}/order'.format(ic=ic.id),
+        f'/ic/{ic.id}/order',
         data=json.dumps(data),
         content_type='application/json',
         headers=[
@@ -324,7 +325,7 @@ def make_free_order(client):
     }
     ic = ItemCollection.query.first()
     resp = client.post(
-        '/ic/{ic}/order'.format(ic=ic.id),
+        f'/ic/{ic.id}/order',
         data=json.dumps(data),
         content_type='application/json',
         headers=[
@@ -344,7 +345,7 @@ def test_free_order(client, all_data):
     assert order.line_items[0].status == LINE_ITEM_STATUS.PURCHASE_ORDER
     assert resp_json['final_amount'] == 0
     resp = client.post(
-        '/order/{order_id}/free'.format(order_id=order.id),
+        f'/order/{order.id}/free',
         content_type='application/json',
         headers=[
             ('X-Requested-With', 'XMLHttpRequest'),
@@ -373,7 +374,7 @@ def test_cancel_line_item_in_order(db_session, client, all_data, post_env):
     ic = ItemCollection.query.first()
     # make a purchase order
     resp = client.post(
-        '/ic/{ic}/order'.format(ic=ic.id),
+        f'/ic/{ic.id}/order',
         data=json.dumps(data),
         content_type='application/json',
         headers=[
@@ -456,7 +457,7 @@ def test_cancel_line_item_in_bulk_order(db_session, client, all_data, post_env):
     ic = ItemCollection.query.first()
     # make a purchase order
     resp = client.post(
-        '/ic/{ic}/order'.format(ic=ic.id),
+        f'/ic/{ic.id}/order',
         data=json.dumps(data),
         content_type='application/json',
         headers=[
@@ -598,7 +599,7 @@ def test_partial_refund_in_order(db_session, client, all_data, post_env):
     ic = ItemCollection.query.first()
     # make a purchase order
     resp = client.post(
-        '/ic/{ic}/order'.format(ic=ic.id),
+        f'/ic/{ic.id}/order',
         data=json.dumps(data),
         content_type='application/json',
         headers=[

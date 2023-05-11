@@ -30,9 +30,7 @@ def upgrade():
     for table, oldname, newname in renames:
         op.execute(
             sa.DDL(
-                'ALTER TABLE "{table}" RENAME CONSTRAINT "{oldname}" TO "{newname}";'.format(
-                    table=table, oldname=oldname, newname=newname
-                )
+                f'ALTER TABLE "{table}" RENAME CONSTRAINT "{oldname}" TO "{newname}";'
             )
         )
 
@@ -112,8 +110,6 @@ def downgrade():
     for table, oldname, newname in reversed(renames):
         op.execute(
             sa.DDL(
-                'ALTER TABLE "{table}" RENAME CONSTRAINT "{newname}" TO "{oldname}";'.format(
-                    table=table, oldname=oldname, newname=newname
-                )
+                f'ALTER TABLE "{table}" RENAME CONSTRAINT "{newname}" TO "{oldname}";'
             )
         )

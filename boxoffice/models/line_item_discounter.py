@@ -19,7 +19,7 @@ class LineItemDiscounter:
             # Multiple discounts found, find the combination of discounts that results
             # in the maximum discount and apply those discounts to the line items.
             return self.apply_max_discount(valid_discounts, line_items)
-        elif len(valid_discounts) == 1:
+        if len(valid_discounts) == 1:
             return self.apply_discount(valid_discounts[0], line_items)
         return line_items
 
@@ -74,7 +74,7 @@ class LineItemDiscounter:
                 discount_policy, line_item
             )
             if (
-                (
+                (  # pylint: disable=too-many-boolean-expressions
                     coupon
                     and self.is_coupon_usable(coupon, applied_to_count)
                     or discount_policy.is_automatic
@@ -85,8 +85,8 @@ class LineItemDiscounter:
                     or (combo and line_item.discounted_amount < discounted_amount)
                 )
             ):
-                # if the line item's assigned discount is lesser
-                # than the current discount, assign the current discount to the line item
+                # if the line item's assigned discount is lesser than the current
+                # discount, assign the current discount to the line item
                 discounted_line_items.append(
                     make_ntuple(
                         item_id=line_item.item_id,
@@ -138,7 +138,7 @@ class LineItemDiscounter:
         return max(
             discounted_line_items_list,
             key=lambda line_item_list: sum(
-                [line_item.discounted_amount for line_item in line_item_list]
+                line_item.discounted_amount for line_item in line_item_list
             ),
         )
 
@@ -153,12 +153,9 @@ class LineItemDiscounter:
         for n in range(2, len(discounts) + 1):
             combos = list(itertools.combinations(discounts, n))
             for combo in combos:
-                if (
-                    sum([discount.item_quantity_min for discount, coupon in combo])
-                    <= qty
-                ):
-                    # if number of line items is gte to number of items the discount policies
-                    # as a combo supports, count it as a valid combo
+                if sum(discount.item_quantity_min for discount, coupon in combo) <= qty:
+                    # if number of line items is gte to number of items the discount
+                    # policies as a combo supports, count it as a valid combo
                     valid_combos.append(combo)
         return valid_combos
 

@@ -117,6 +117,7 @@ def jsonify_assignee(assignee):
             'phone': assignee.phone,
             'details': assignee.details,
         }
+    return None
 
 
 def jsonify_order(data):
@@ -189,20 +190,20 @@ def kharcha():
     )
     items_json = jsonify_line_items(line_items)
     order_final_amount = sum(
-        [
-            values['final_amount']
-            for values in items_json.values()
-            if values['final_amount'] is not None
-        ]
+        values['final_amount']
+        for values in items_json.values()
+        if values['final_amount'] is not None
     )
     return jsonify(line_items=items_json, order={'final_amount': order_final_amount})
 
 
-@app.route('/ic/<item_collection>/order', methods=['GET', 'OPTIONS', 'POST'])
+@app.route(
+    '/ic/<item_collection>/order', methods=['GET', 'OPTIONS', 'POST'], endpoint='order'
+)
 @xhr_only
 @cors
 @load_models((ItemCollection, {'id': 'item_collection'}, 'item_collection'))
-def order(item_collection):
+def create_order(item_collection):
     """
     Create an order.
 
@@ -280,7 +281,8 @@ def order(item_collection):
             if not sanitized_coupon_codes or not DiscountPolicy.is_valid_access_coupon(
                 item, sanitized_coupon_codes
             ):
-                # Skip adding a restricted item to the cart without the proper access code
+                # Skip adding a restricted item to the cart without the proper access
+                # code
                 break
 
         if item.is_available:
@@ -331,7 +333,7 @@ def order(item_collection):
         result={
             'order_id': order.id,
             'order_access_token': order.access_token,
-            'payment_url': url_for('payment', order=order.id),
+            'payment_url': url_for('capture_payment', order=order.id),
             'free_order_url': url_for('free', order=order.id),
             'final_amount': order.get_amounts(
                 LINE_ITEM_STATUS.PURCHASE_ORDER
@@ -372,15 +374,14 @@ def free(order):
             status_code=201,
         )
 
-    else:
-        return api_error(message="Free order confirmation failed", status_code=402)
+    return api_error(message="Free order confirmation failed", status_code=402)
 
 
 @app.route('/order/<order>/payment', methods=['GET', 'OPTIONS', 'POST'])
 @xhr_only
 @cors
 @load_models((Order, {'id': 'order'}, 'order'))
-def payment(order):
+def capture_payment(order):
     """
     Capture a payment.
 
@@ -444,19 +445,18 @@ def payment(order):
             doc=_("Payment verified"),
             status_code=201,
         )
-    else:
-        online_payment.fail()
-        db.session.add(online_payment)
-        db.session.commit()
-        raise PaymentGatewayError(
-            _("Online payment failed for order #{order}: {msg}").format(
-                order=order.id, msg=rp_resp.content
-            ),
-            424,
-            _("Your payment failed. Try again, or contact us at {email}.").format(
-                email=order.organization.contact_email
-            ),
-        )
+    online_payment.fail()
+    db.session.add(online_payment)
+    db.session.commit()
+    raise PaymentGatewayError(
+        _("Online payment failed for order #{order}: {msg}").format(
+            order=order.id, msg=rp_resp.content
+        ),
+        424,
+        _("Your payment failed. Try again, or contact us at {email}.").format(
+            email=order.organization.contact_email
+        ),
+    )
 
 
 @app.route('/order/<access_token>/receipt', methods=['GET'])
@@ -519,14 +519,13 @@ def edit_invoice_details(order):
             status_code=400,
             errors=invoice_form.errors,
         )
-    else:
-        invoice_form.populate_obj(invoice)
-        db.session.commit()
-        return api_success(
-            result={'message': 'Invoice updated', 'invoice': jsonify_invoice(invoice)},
-            doc=_("Invoice details added"),
-            status_code=201,
-        )
+    invoice_form.populate_obj(invoice)
+    db.session.commit()
+    return api_success(
+        result={'message': 'Invoice updated', 'invoice': jsonify_invoice(invoice)},
+        doc=_("Invoice details added"),
+        status_code=201,
+    )
 
 
 def jsonify_invoices(data_dict):
@@ -564,12 +563,14 @@ def invoice_details_form(order):
     return {'order': order, 'org': order.organization, 'invoices': invoices}
 
 
-@app.route('/order/<access_token>/ticket', methods=['GET', 'POST'])
+@app.route(
+    '/order/<access_token>/ticket', methods=['GET', 'POST'], endpoint='line_items'
+)
 @render_with(
     {'text/html': 'order.html.jinja2', 'application/json': jsonify_order}, json=True
 )
 @load_models((Order, {'access_token': 'access_token'}, 'order'))
-def line_items(order):
+def order_ticket(order):
     return {'order': order, 'org': order.organization}
 
 
@@ -833,22 +834,20 @@ def process_partial_refund_for_order(data_dict):
                 doc=_("Refund processed for order"),
                 status_code=200,
             )
-        else:
-            raise PaymentGatewayError(
-                _("Refund failed for order #{order}: {msg}").format(
-                    order=order.id, msg=rp_refund['error']['description']
-                ),
-                424,
-                _(
-                    "Refund failed with “{reason}̦”. Try again, or contact support at"
-                    " {email}."
-                ).format(
-                    reason=rp_refund['error']['description'],
-                    email=order.organization.contact_email,
-                ),
-            )
-    else:
-        return api_error(message='Invalid input', status_code=403, errors=form.errors)
+        raise PaymentGatewayError(
+            _("Refund failed for order #{order}: {msg}").format(
+                order=order.id, msg=rp_refund['error']['description']
+            ),
+            424,
+            _(
+                "Refund failed with “{reason}”. Try again, or contact support at"
+                " {email}."
+            ).format(
+                reason=rp_refund['error']['description'],
+                email=order.organization.contact_email,
+            ),
+        )
+    return api_error(message='Invalid input', status_code=403, errors=form.errors)
 
 
 @app.route('/admin/ic/<ic_id>/order/<order_id>/partial_refund', methods=['GET', 'POST'])

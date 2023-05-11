@@ -63,6 +63,7 @@ def jsonify_category(category):
             'item_collection_id': category.item_collection_id,
             'items': category_items,
         }
+    return None
 
 
 def render_boxoffice_js():
@@ -86,11 +87,13 @@ def boxofficejs():
     return jsonify({'script': render_boxoffice_js()})
 
 
-@app.route('/ic/<item_collection>', methods=['GET', 'OPTIONS'])
+@app.route(
+    '/ic/<item_collection>', methods=['GET', 'OPTIONS'], endpoint='item_collection'
+)
 @xhr_only
 @cors
 @load_models((ItemCollection, {'id': 'item_collection'}, 'item_collection'))
-def item_collection(item_collection):
+def view_item_collection(item_collection):
     categories_json = []
     for category in item_collection.categories:
         category_json = jsonify_category(category)

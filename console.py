@@ -9,6 +9,9 @@ from flask import jsonify, make_response
 from isoweek import Week
 import IPython
 
+from baseframe import _
+from coaster.utils import isoweek_datetime, midnight_to_utc, utcnow
+
 from boxoffice import app
 from boxoffice.extapi import razorpay
 from boxoffice.mailclient import send_participant_assignment_mail, send_receipt_mail
@@ -28,7 +31,6 @@ from boxoffice.models import (
 )
 from boxoffice.views.custom_exceptions import PaymentGatewayError
 from boxoffice.views.order import process_partial_refund_for_order
-from coaster.utils import isoweek_datetime, midnight_to_utc, utcnow
 
 logging.basicConfig()
 logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
@@ -163,11 +165,11 @@ def process_payment(order_id, pg_paymentid):
         db.session.add(online_payment)
         db.session.commit()
         raise PaymentGatewayError(
-            "Online payment failed for order - {order} with the following details - {msg}".format(
+            _("Online payment failed for order #{order}: {msg}").format(
                 order=order.id, msg=rp_resp.content
             ),
             424,
-            'Your payment failed. Please try again or contact us at {email}.'.format(
+            _("Your payment failed. Please try again or contact us at {email}").format(
                 email=order.organization.contact_email
             ),
         )
@@ -208,6 +210,7 @@ def reprocess_successful_payment(order_id):
         with app.test_request_context():
             send_receipt_mail.queue(order.id)
             return make_response(jsonify(message="Payment verified"), 201)
+    return make_response(jsonify(message="Order is not confirmed"), 200)
 
 
 def make_invoice_nos():
@@ -239,7 +242,7 @@ def partial_refund(**kwargs):
     order = Order.query.get(kwargs['order_id'])
 
     with app.test_request_context():
-        process_partial_refund_for_order(order, form_dict)
+        process_partial_refund_for_order({'order': order, 'form': form_dict})
 
 
 def finalize_invoices(org_name, start_at, end_at):
@@ -275,7 +278,7 @@ def resend_attendee_details_email(
 def order_report(org_name):
     org = Organization.query.filter_by(name=org_name).first()
 
-    with open('order_report.csv', 'wb') as csvfile:
+    with open('order_report.csv', 'wb', encoding='utf-8') as csvfile:
         order_writer = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
         order_writer.writerow(
             [

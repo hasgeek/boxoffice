@@ -1,5 +1,4 @@
-from baseframe import __
-import baseframe.forms as forms
+from baseframe import __, forms
 
 __all__ = ['PriceForm']
 

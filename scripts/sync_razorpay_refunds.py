@@ -17,9 +17,7 @@ base_url = 'https://api.razorpay.com/v1'
 
 
 def get_refunds(paymentid):
-    url = '{base_url}/payments/{paymentid}/refunds'.format(
-        base_url=base_url, paymentid=paymentid
-    )
+    url = f'{base_url}/payments/{paymentid}/refunds'
     resp = requests.get(
         url,
         auth=(app.config['RAZORPAY_KEY_ID'], app.config['RAZORPAY_KEY_SECRET']),
@@ -42,6 +40,12 @@ def epoch_dt(dt):
 
 
 def sync_refunds():
+    def calc_correspongding_rp_refund(possible_rp_refunds, refund_epoch_dt):
+        return min(
+            possible_rp_refunds,
+            key=lambda rp_refund: abs(rp_refund['created_at'] - refund_epoch_dt),
+        )
+
     epoch = datetime.datetime.utcfromtimestamp(0)
     payments = OnlinePayment.query.all()
     for payment in payments:
@@ -56,20 +60,16 @@ def sync_refunds():
                     if rp_refund['id'] not in used_pg_refundids
                     and amount_in_rupees(rp_refund['amount']) == refund.amount
                 ]
-                correspongding_rp_refund = min(
-                    possible_rp_refunds,
-                    key=lambda rp_refund: abs(
-                        rp_refund['created_at'] - refund_epoch_dt
-                    ),
+
+                correspongding_rp_refund = calc_correspongding_rp_refund(
+                    possible_rp_refunds, refund_epoch_dt
                 )
                 if (
                     not correspongding_rp_refund
                     or amount_in_paise(refund.amount)
                     != correspongding_rp_refund['amount']
                 ):
-                    raise "Oops! No refund found for {refundid}.".format(
-                        refundid=refund.id
-                    )
+                    raise RuntimeError(f"Oops! No refund found for {refund.id}")
                 refund.pg_refundid = correspongding_rp_refund['id']
                 used_pg_refundids.append(correspongding_rp_refund['id'])
     db.session.commit()

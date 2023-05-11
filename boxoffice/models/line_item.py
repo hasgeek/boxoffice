@@ -7,7 +7,6 @@ from typing import List, Optional, overload
 from uuid import UUID
 
 from sqlalchemy.ext.orderinglist import ordering_list
-from sqlalchemy.sql import func
 
 from flask import current_app
 
@@ -27,8 +26,8 @@ class LINE_ITEM_STATUS(LabeledEnum):  # noqa: N801
     CONFIRMED = (0, __("Confirmed"))
     CANCELLED = (1, __("Cancelled"))
     PURCHASE_ORDER = (2, __("Purchase Order"))
-    #: A line item can be made void by the system to invalidate
-    #: a line item. Eg: a discount no longer applicable on a line item as a result of a cancellation
+    # A line item can be made void by the system to invalidate it. Eg: a discount no
+    # longer applicable on a line item as a result of a cancellation
     VOID = (3, __("Void"))
     TRANSACTION = {CONFIRMED, VOID, CANCELLED}
 
@@ -166,9 +165,9 @@ class LineItem(BaseMixin, db.Model):  # type: ignore[name-defined]
     ordered_at = sa.Column(sa.TIMESTAMP(timezone=True), nullable=True)
     cancelled_at = sa.Column(sa.TIMESTAMP(timezone=True), nullable=True)
 
-    def permissions(self, user, inherited=None):
-        perms = super().permissions(user, inherited)
-        if self.order.organization.userid in user.organizations_owned_ids():
+    def permissions(self, actor, inherited=None):
+        perms = super().permissions(actor, inherited)
+        if self.order.organization.userid in actor.organizations_owned_ids():
             perms.add('org_admin')
         return perms
 
@@ -231,11 +230,9 @@ class LineItem(BaseMixin, db.Model):  # type: ignore[name-defined]
                 )
             )
 
-        for item_id in item_line_items.keys():
+        for item_value in item_line_items.values():
             calculated_line_items.extend(
-                discounter.get_discounted_line_items(
-                    item_line_items[item_id], coupon_list
-                )
+                discounter.get_discounted_line_items(item_value, coupon_list)
             )
 
         return calculated_line_items
@@ -243,8 +240,10 @@ class LineItem(BaseMixin, db.Model):  # type: ignore[name-defined]
     def confirm(self):
         self.status = LINE_ITEM_STATUS.CONFIRMED
 
-    # TODO: assignee = sa.orm.relationship(Assignee, primaryjoin=Assignee.line_item == self and Assignee.current.is_(True), uselist=False)
-    # Don't use current_assignee -- we want to imply that there can only be one assignee and the rest are historical (and hence not 'assignees')
+    # TODO: assignee = sa.orm.relationship(Assignee, primaryjoin=Assignee.line_item ==
+    # self and Assignee.current.is_(True), uselist=False) Don't use "current_assignee"
+    # -- we want to imply that there can only be one assignee and the rest are
+    # historical (and hence not 'assignees')
     @property
     def current_assignee(self):
         return self.assignees.filter(Assignee.current.is_(True)).one_or_none()
@@ -255,14 +254,13 @@ class LineItem(BaseMixin, db.Model):  # type: ignore[name-defined]
         now = localize_timezone(utcnow(), tz)
         if self.current_assignee is None:
             return True  # first time assignment has no deadline for now
-        else:
-            return (
-                now < localize_timezone(self.item.transferable_until, tz)
-                if self.item.transferable_until is not None
-                else now.date() <= self.item.event_date
-                if self.item.event_date is not None
-                else True
-            )
+        return (
+            now < localize_timezone(self.item.transferable_until, tz)
+            if self.item.transferable_until is not None
+            else now.date() <= self.item.event_date
+            if self.item.event_date is not None
+            else True
+        )
 
     @property
     def is_confirmed(self):
@@ -279,11 +277,11 @@ class LineItem(BaseMixin, db.Model):  # type: ignore[name-defined]
     def cancel(self):
         """Set status and cancelled_at."""
         self.status = LINE_ITEM_STATUS.CANCELLED
-        self.cancelled_at = func.utcnow()
+        self.cancelled_at = sa.func.utcnow()
 
     def make_void(self):
         self.status = LINE_ITEM_STATUS.VOID
-        self.cancelled_at = func.utcnow()
+        self.cancelled_at = sa.func.utcnow()
 
     def is_cancellable(self):
         tz = current_app.config['tz']
@@ -297,7 +295,7 @@ class LineItem(BaseMixin, db.Model):  # type: ignore[name-defined]
     @classmethod
     def get_max_seq(cls, order):
         return (
-            db.session.query(func.max(LineItem.line_item_seq))
+            db.session.query(sa.func.max(LineItem.line_item_seq))
             .filter(LineItem.order == order)
             .scalar()
         )
@@ -350,9 +348,18 @@ def counts_per_date_per_item(item_collection, user_tz):
             db.session.query(sa.column('date'), sa.column('count'))
             .from_statement(
                 sa.text(
-                    '''SELECT DATE_TRUNC('day', line_item.ordered_at AT TIME ZONE :timezone)::date as date, count(line_item.id) AS count
-            FROM line_item WHERE item_id = :item_id AND status = :status
-            GROUP BY date ORDER BY date ASC'''
+                    '''
+                    SELECT
+                        DATE_TRUNC(
+                            'day',
+                            line_item.ordered_at AT TIME ZONE :timezone
+                        )::date as date,
+                        count(line_item.id) AS count
+                    FROM line_item
+                    WHERE item_id = :item_id AND status = :status
+                    GROUP BY date
+                    ORDER BY date ASC
+                    '''
                 )
             )
             .params(

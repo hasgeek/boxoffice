@@ -32,7 +32,8 @@ def upgrade():
     op.create_check_constraint(
         'discount_policy_bulk_coupon_usage_limit_check',
         'discount_policy',
-        'discount_type = 0 or (discount_type = 1 and bulk_coupon_usage_limit IS NOT NULL)',
+        'discount_type = 0'
+        ' or (discount_type = 1 and bulk_coupon_usage_limit IS NOT NULL)',
     )
 
 

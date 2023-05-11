@@ -1,6 +1,5 @@
-from baseframe import __
+from baseframe import __, forms
 from coaster.utils import getbool
-import baseframe.forms as forms
 
 from ..models import (
     CURRENCY,
@@ -62,7 +61,8 @@ class AutomaticDiscountPolicyForm(DiscountPolicyForm):
         validators=[
             forms.validators.DataRequired(
                 __(
-                    "Please select at least one item for which the discount is applicable"
+                    "Please select at least one item for which the discount is"
+                    " applicable"
                 )
             )
         ],
@@ -83,7 +83,8 @@ class CouponBasedDiscountPolicyForm(DiscountPolicyForm):
         validators=[
             forms.validators.DataRequired(
                 __(
-                    "Please select at least one item for which the discount is applicable"
+                    "Please select at least one item for which the discount is"
+                    " applicable"
                 )
             )
         ],
@@ -106,7 +107,10 @@ class CouponBasedDiscountPolicyForm(DiscountPolicyForm):
             forms.validators.Length(max=20),
             forms.AvailableAttr(
                 'discount_code_base',
-                message='This discount code base is already in use. Please pick a different code base.',
+                message=__(
+                    "This discount code base is already in use. Please pick a different"
+                    " code base"
+                ),
             ),
         ],
         filters=[forms.filters.strip(), forms.filters.none_if_empty()],
@@ -131,7 +135,10 @@ class PriceBasedDiscountPolicyForm(DiscountPolicyForm):
             forms.validators.Length(max=20),
             forms.AvailableAttr(
                 'discount_code_base',
-                message='This discount code base is already in use. Please pick a different code base.',
+                message=__(
+                    "This discount code base is already in use. Please pick a different"
+                    " code base"
+                ),
             ),
         ],
         filters=[forms.filters.strip(), forms.filters.none_if_empty()],
@@ -173,7 +180,8 @@ class DiscountPriceForm(forms.Form):
             forms.validators.GreaterThan(
                 'start_at',
                 __(
-                    "Please specify an end date for the price that is greater than the start date"
+                    "Please specify an end date for the price that is greater than the"
+                    " start date"
                 ),
             ),
         ],
@@ -208,7 +216,8 @@ def validate_unique_discount_coupon_code(form, field):
     ):
         raise forms.StopValidation(
             __(
-                "This discount coupon code already exists. Please enter a different coupon code"
+                "This discount coupon code already exists. Please enter a different"
+                " coupon code"
             )
         )
 

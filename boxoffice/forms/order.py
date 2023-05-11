@@ -1,5 +1,4 @@
-from baseframe import __
-import baseframe.forms as forms
+from baseframe import __, forms
 
 from ..data import indian_states_dict, short_codes
 
@@ -99,7 +98,8 @@ def validate_gstin(form, field):
     Checks if the data is:
     - 15 characters in length
     - First two characters form a valid short code for an Indian state
-    - Contains a PAN (alphanumeric sub-string ranging from the 2nd to the 11th character)
+    - Contains a PAN (alphanumeric sub-string ranging from the 2nd to the 11th
+      character)
     - Last character is an alphanumeric
 
     Reference: https://cleartax.in/s/know-your-gstin

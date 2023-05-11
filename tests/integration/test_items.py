@@ -1,9 +1,10 @@
 from datetime import timedelta
 import json
 
+from coaster.utils import utcnow
+
 from boxoffice import app
 from boxoffice.models import ORDER_STATUS, Item, ItemCollection, Order
-from coaster.utils import utcnow
 
 
 def ajax_post(client, url, data):
@@ -30,7 +31,7 @@ def test_assign(db_session, client, all_data):
         },
     }
     ic = ItemCollection.query.first()
-    resp = ajax_post(client, '/ic/{ic}/order'.format(ic=ic.id), data)
+    resp = ajax_post(client, f'/ic/{ic.id}/order', data)
 
     assert resp.status_code == 201
     resp_data = json.loads(resp.data)['result']
@@ -53,7 +54,7 @@ def test_assign(db_session, client, all_data):
     }
     resp = ajax_post(
         client,
-        '/participant/{access_token}/assign'.format(access_token=order.access_token),
+        f'/participant/{order.access_token}/assign',
         data,
     )
     assert json.loads(resp.data)['status'] == 'ok'
@@ -70,7 +71,7 @@ def test_assign(db_session, client, all_data):
     }
     resp = ajax_post(
         client,
-        '/participant/{access_token}/assign'.format(access_token=order.access_token),
+        f'/participant/{order.access_token}/assign',
         data,
     )
     assert json.loads(resp.data)['status'] == 'error'
@@ -86,7 +87,7 @@ def test_assign(db_session, client, all_data):
     }
     resp = ajax_post(
         client,
-        '/participant/{access_token}/assign'.format(access_token=order.access_token),
+        f'/participant/{order.access_token}/assign',
         data,
     )
     assert json.loads(resp.data)['status'] == 'ok'
@@ -118,7 +119,7 @@ def test_assign(db_session, client, all_data):
     }
     resp = ajax_post(
         client,
-        '/participant/{access_token}/assign'.format(access_token=order.access_token),
+        f'/participant/{order.access_token}/assign',
         data,
     )
     assert json.loads(resp.data)['status'] == 'error'
@@ -144,7 +145,7 @@ def test_assign(db_session, client, all_data):
     }
     resp = ajax_post(
         client,
-        '/participant/{access_token}/assign'.format(access_token=order.access_token),
+        f'/participant/{order.access_token}/assign',
         data,
     )
     assert json.loads(resp.data)['status'] == 'ok'
@@ -169,7 +170,7 @@ def test_assign(db_session, client, all_data):
     }
     resp = ajax_post(
         client,
-        '/participant/{access_token}/assign'.format(access_token=order.access_token),
+        f'/participant/{order.access_token}/assign',
         data,
     )
     assert json.loads(resp.data)['status'] == 'error'

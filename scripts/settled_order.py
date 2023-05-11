@@ -11,11 +11,9 @@ def line_item_is_cancelled(line_item):
 
 def order_net_amount(order):
     return order.get_amounts().final_amount - sum(
-        [
-            line_item.final_amount
-            for line_item in order.line_items
-            if line_item_is_cancelled(line_item)
-        ]
+        line_item.final_amount
+        for line_item in order.line_items
+        if line_item_is_cancelled(line_item)
     )
 
 
@@ -23,7 +21,7 @@ def get_settled_orders(settlement_files):
     entity_dict = {}
     for settlement_filename in settlement_files:
         # Load input data
-        with open(settlement_filename) as csvfile:
+        with open(settlement_filename, encoding='utf-8') as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
                 if not entity_dict.get(row['entity_id']):
@@ -121,7 +119,16 @@ def get_settled_orders(settlement_files):
                     )
                 )
                 # if line_item_is_cancelled(line_item):
-                #     settled_orders.append(format_row(format_line_item(settlement_id, settlement_payment_id, line_item, 'refund')))
+                #     settled_orders.append(
+                #         format_row(
+                #             format_line_item(
+                #                 settlement_id,
+                #                 settlement_payment_id,
+                #                 line_item,
+                #                 'refund',
+                #             )
+                #         )
+                #     )
 
         settlement_refund_ids = [
             entity['entity_id']
@@ -161,13 +168,13 @@ def get_settled_orders(settlement_files):
                     format_row(
                         format_line_item(
                             settlement_id,
-                            settlement_payment_id,
+                            settlement_refund_id,
                             cancelled_line_item,
                             'refund',
                         )
                     )
                 )
-            except:  # NOQA: E722
+            except:  # noqa: B001, E722  # pylint: disable=bare-except
                 # FIXME: Add correct exception
                 print("Multiple line items found")  # noqa: T201
                 print(payment.pg_paymentid)  # noqa: T201
@@ -182,7 +189,7 @@ def get_settled_orders(settlement_files):
                         format_row(
                             format_line_item(
                                 settlement_id,
-                                settlement_payment_id,
+                                settlement_refund_id,
                                 cancelled_line_item,
                                 'refund',
                             )
@@ -196,7 +203,7 @@ def get_settled_orders(settlement_files):
 
 
 def write_settled_orders(filename, rows):
-    with open(filename, 'w') as csvfile:
+    with open(filename, 'w', encoding='utf-8') as csvfile:
         fieldnames = [
             'settlement_id',
             'order_id',

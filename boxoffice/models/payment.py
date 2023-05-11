@@ -127,7 +127,7 @@ Order.payment_transactions = property(get_payment_transactions)
 
 def order_paid_amount(self):
     return sum(
-        [order_transaction.amount for order_transaction in self.payment_transactions]
+        order_transaction.amount for order_transaction in self.payment_transactions
     )
 
 
@@ -136,7 +136,7 @@ Order.paid_amount = property(order_paid_amount)
 
 def order_refunded_amount(self):
     return sum(
-        [order_transaction.amount for order_transaction in self.refund_transactions]
+        order_transaction.amount for order_transaction in self.refund_transactions
     )
 
 
@@ -156,11 +156,13 @@ def item_collection_net_sales(self):
         db.session.query(sa.column('sum'))
         .from_statement(
             sa.text(
-                '''SELECT SUM(amount) FROM payment_transaction
-        INNER JOIN customer_order ON payment_transaction.customer_order_id = customer_order.id
-        WHERE transaction_type=:transaction_type
-        AND customer_order.item_collection_id = :item_collection_id
-        '''
+                '''
+                SELECT SUM(amount) FROM payment_transaction
+                INNER JOIN customer_order
+                    ON payment_transaction.customer_order_id = customer_order.id
+                WHERE transaction_type=:transaction_type
+                    AND customer_order.item_collection_id = :item_collection_id
+                '''
             )
         )
         .params(transaction_type=TRANSACTION_TYPE.PAYMENT, item_collection_id=self.id)
@@ -171,11 +173,13 @@ def item_collection_net_sales(self):
         db.session.query(sa.column('sum'))
         .from_statement(
             sa.text(
-                '''SELECT SUM(amount) FROM payment_transaction
-        INNER JOIN customer_order ON payment_transaction.customer_order_id = customer_order.id
-        WHERE transaction_type=:transaction_type
-        AND customer_order.item_collection_id = :item_collection_id
-        '''
+                '''
+                SELECT SUM(amount) FROM payment_transaction
+                INNER JOIN customer_order
+                    ON payment_transaction.customer_order_id = customer_order.id
+                WHERE transaction_type=:transaction_type
+                    AND customer_order.item_collection_id = :item_collection_id
+                '''
             )
         )
         .params(transaction_type=TRANSACTION_TYPE.REFUND, item_collection_id=self.id)
@@ -184,10 +188,9 @@ def item_collection_net_sales(self):
 
     if total_paid and total_refunded:
         return total_paid - total_refunded
-    elif total_paid:
+    if total_paid:
         return total_paid
-    else:
-        return Decimal('0')
+    return Decimal('0')
 
 
 ItemCollection.net_sales = property(item_collection_net_sales)
@@ -214,17 +217,24 @@ def calculate_weekly_refunds(item_collection_ids, user_tz, year):
         .from_statement(
             sa.text(
                 '''
-        SELECT EXTRACT(WEEK FROM payment_transaction.created_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone)
-        AS sales_week, SUM(payment_transaction.amount) AS sum
-        FROM customer_order INNER JOIN payment_transaction on payment_transaction.customer_order_id = customer_order.id
-        WHERE customer_order.status IN :statuses AND customer_order.item_collection_id IN :item_collection_ids
-        AND payment_transaction.transaction_type = :transaction_type
-        AND payment_transaction.created_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone
-            >= :start_at
-        AND payment_transaction.created_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone
-            < :end_at
-        GROUP BY sales_week ORDER BY sales_week;
-        '''
+                SELECT
+                    EXTRACT(
+                        WEEK FROM payment_transaction.created_at
+                        AT TIME ZONE 'UTC' AT TIME ZONE :timezone
+                        ) AS sales_week,
+                    SUM(payment_transaction.amount) AS sum
+                FROM customer_order
+                INNER JOIN payment_transaction
+                    ON payment_transaction.customer_order_id = customer_order.id
+                WHERE customer_order.status IN :statuses
+                    AND customer_order.item_collection_id IN :item_collection_ids
+                    AND payment_transaction.transaction_type = :transaction_type
+                    AND payment_transaction.created_at
+                        AT TIME ZONE 'UTC' AT TIME ZONE :timezone >= :start_at
+                    AND payment_transaction.created_at
+                        AT TIME ZONE 'UTC' AT TIME ZONE :timezone < :end_at
+                GROUP BY sales_week ORDER BY sales_week;
+                '''
             )
         )
         .params(

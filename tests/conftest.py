@@ -1,3 +1,4 @@
+# pylint: disable=redefined-outer-name
 from datetime import date
 from types import SimpleNamespace
 
@@ -8,6 +9,8 @@ from werkzeug.test import EnvironBuilder
 
 from dateutil.relativedelta import relativedelta
 import pytest
+
+from coaster.utils import utcnow
 
 from boxoffice import app
 from boxoffice.models import (
@@ -22,7 +25,6 @@ from boxoffice.models import (
     User,
     db,
 )
-from coaster.utils import utcnow
 
 
 @pytest.fixture(scope='session')
@@ -62,7 +64,7 @@ class RemoveIsRollback:
         self.session.remove = self.original_remove
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture()
 def db_session(database, db_connection):
     """Empty the database after each use of the fixture."""
     with RemoveIsRollback(database.session, lambda: database.session.rollback):
@@ -97,18 +99,18 @@ def client(request):
     if 'noclient' in request.keywords:
         # To use this, annotate a test with:
         # @pytest.mark.noclient
-        return None
+        yield None
     with app.test_client() as test_client:
         yield test_client
 
 
-@pytest.fixture
+@pytest.fixture()
 def post_env():
     builder = EnvironBuilder(method='POST')
     return builder.get_environ()
 
 
-@pytest.fixture
+@pytest.fixture()
 def all_data(db_session):
     user = User(userid="U3_JesHfQ2OUmdihAXaAGQ", email="test@hasgeek.com")
     db_session.add(user)
@@ -123,13 +125,16 @@ def all_data(db_session):
         contact_email='test@gmail.com',
         details={
             'service_tax_no': 'xx',
-            'address': '<h2 class="company-name">XYZ</h2> <p>Bangalore - 560034</p> <p>India</p>',
+            'address': '<h2 class="company-name">XYZ</h2> <p>Bangalore - 560034</p>'
+            ' <p>India</p>',
             'cin': '1234',
             'pan': 'abc',
             'website': 'https://www.test.com',
             'refund_policy': '<p>We offer full refund.</p>',
             'support_email': 'test@boxoffice.com',
-            'ticket_faq': '<p>To cancel your ticket, please mail <a href="mailto:test@boxoffice.com">test@boxoffice.com</a> with your receipt number.</p>',
+            'ticket_faq': '<p>To cancel your ticket, please mail <a '
+            'href="mailto:test@boxoffice.com">test@boxoffice.com</a> with your receipt'
+            ' number.</p>',
         },
     )
     db_session.add(rootconf)
@@ -150,7 +155,10 @@ def all_data(db_session):
     with db_session.no_autoflush:
         conf_ticket = Item(
             title='Conference ticket',
-            description='<p><i class="fa fa-calendar"></i>14 - 15 April 2016</p><p><i class="fa fa-map-marker ticket-venue"></i>MLR Convention Center, JP Nagar</p><p>This ticket gets you access to rootconf conference on 14th and 15th April 2016.</p>',
+            description='<p><i class="fa fa-calendar"></i>14 - 15 April 2016'
+            '</p><p><i class="fa fa-map-marker ticket-venue"></i>MLR Convention Center,'
+            ' JP Nagar</p><p>This ticket gets you access to rootconf conference on 14th'
+            ' and 15th April 2016.</p>',
             item_collection=rc2016,
             category=Category.query.filter_by(name='conference').first(),
             quantity_total=1000,
@@ -160,7 +168,10 @@ def all_data(db_session):
 
         expired_ticket = Item(
             title='Expired ticket',
-            description='<p><i class="fa fa-calendar"></i>14 - 15 April 2016</p><p><i class="fa fa-map-marker ticket-venue"></i>MLR Convention Center, JP Nagar</p><p>This ticket gets you access to rootconf conference on 14th and 15th April 2016.</p>',
+            description='<p><i class="fa fa-calendar"></i>14 - 15 April 2016'
+            '</p><p><i class="fa fa-map-marker ticket-venue"></i>MLR Convention Center,'
+            ' JP Nagar</p><p>This ticket gets you access to rootconf conference on 14th'
+            ' and 15th April 2016.</p>',
             item_collection=rc2016,
             category=Category.query.filter_by(name='conference').first(),
             quantity_total=1000,
@@ -180,7 +191,10 @@ def all_data(db_session):
 
         single_day_conf_ticket = Item(
             title='Single Day',
-            description='<p><i class="fa fa-calendar"></i>14 April 2016</p><p><i class="fa fa-map-marker ticket-venue"></i>MLR Convention Center, JP Nagar</p><p>This ticket gets you access to rootconf conference on 14th April 2016.</p>',
+            description='<p><i class="fa fa-calendar"></i>14 April 2016'
+            '</p><p><i class="fa fa-map-marker ticket-venue"></i>MLR Convention Center,'
+            ' JP Nagar</p><p>This ticket gets you access to rootconf conference on 14th'
+            ' April 2016.</p>',
             item_collection=rc2016,
             category=Category.query.filter_by(name='conference').first(),
             quantity_total=1000,
@@ -220,7 +234,9 @@ def all_data(db_session):
 
         dns_workshop = Item(
             title='DNSSEC workshop',
-            description='<p><i class="fa fa-calendar"></i>12 April 2016</p><p><i class="fa fa-map-marker ticket-venue"></i>TERI, Domlur</p><p>This ticket gets you access to DNSSEC workshop 12th April 2016.</p>',
+            description='<p><i class="fa fa-calendar"></i>12 April 2016'
+            '</p><p><i class="fa fa-map-marker ticket-venue"></i>TERI, Domlur</p>'
+            '<p>This ticket gets you access to DNSSEC workshop 12th April 2016.</p>',
             item_collection=rc2016,
             category=Category.query.filter_by(name='workshop').first(),
             quantity_total=1000,

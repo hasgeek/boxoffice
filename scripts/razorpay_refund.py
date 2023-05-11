@@ -73,7 +73,7 @@ def get_refunds(date_ranges):
 
 
 def write_refunds(filename, rows):
-    with open(filename, 'w') as csvfile:
+    with open(filename, 'w', encoding='utf-8') as csvfile:
         fieldnames = [
             'transaction_id',
             'refund_description',

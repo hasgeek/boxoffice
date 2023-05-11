@@ -12,7 +12,7 @@ from boxoffice.models.payment import TRANSACTION_TYPE
 
 
 def csv_to_rows(csv_file, skip_header=True, delimiter=','):
-    with open(csv_file, 'rb') as csvfile:
+    with open(csv_file, 'rb', encoding='utf-8') as csvfile:
         reader = csv.reader(csvfile, delimiter=delimiter)
         if skip_header:
             next(reader)
@@ -20,7 +20,7 @@ def csv_to_rows(csv_file, skip_header=True, delimiter=','):
 
 
 def rows_to_csv(rows, filename):
-    with open(filename, 'wb') as csvfile:
+    with open(filename, 'wb', encoding='utf-8') as csvfile:
         writer = csv.writer(
             csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL
         )
@@ -137,24 +137,46 @@ def get_settlements(filename):
 # yoga_pay_orders = []
 # for yt in yoga_trans:
 #     pay = OnlinePayment.query.filter_by(pg_paymentid=yt[0]).first()
-#     yoga_pay_orders.append([yt[0], pay.order.buyer_fullname, float(yt[4]), float(yt[6])])
+#     yoga_pay_orders.append(
+#         [yt[0], pay.order.buyer_fullname, float(yt[4]), float(yt[6])]
+#     )
 
 # yoga_pay_orders = []
 # for yt in yoga_trans:
 #     pay = OnlinePayment.query.filter_by(pg_paymentid=yt[0]).first()
 #     for li in pay.order.line_items:
-#         yoga_pay_orders.append([yt[0], pay.order.buyer_fullname, float(yt[4]), float(yt[6]), li.item.title])
+#         yoga_pay_orders.append(
+#             [
+#                  yt[0],
+#                  pay.order.buyer_fullname,
+#                  float(yt[4]),
+#                  float(yt[6]),
+#                  li.item.title
+#             ]
+#         )
 
 # yoga_pay_orders = []
 # for yt in yoga_trans:
 #     pay = OnlinePayment.query.filter_by(pg_paymentid=yt[0]).first()
 #     for li in pay.order.line_items:
-#         yoga_pay_orders.append([yt[0], pay.order.id, pay.order.buyer_fullname, yt[4], yt[6], yt[7], li.item.title, unicode(li.final_amount), localize(pay.created_at)])
+#         yoga_pay_orders.append(
+#             [
+#                 yt[0],
+#                 pay.order.id,
+#                 pay.order.buyer_fullname,
+#                 yt[4],
+#                 yt[6],
+#                 yt[7],
+#                 li.item.title,
+#                 unicode(li.final_amount),
+#                 localize(pay.created_at),
+#             ]
+#         )
 
 # for oid in oids:
 #     oids_dict[oid] = {
 #         'amount': [yp[3] for yp in yoga_pay_orders if yp[1] == oid][0],
-#         'fee': [yp[4] for yp in yoga_pay_orders if yp[1] == oid][0]
+#         'fee': [yp[4] for yp in yoga_pay_orders if yp[1] == oid][0],
 #     }
 
 # yoga_pay_orders = []
@@ -163,4 +185,16 @@ def get_settlements(filename):
 #     order_id = json.loads(yoga_trans[0][-2])
 #     order = Order.query.get(order_id['order_id'])
 #     for li in order.line_items:
-#         yoga_pay_orders.append([yt[0], order.id, order.buyer_fullname, yt[4], yt[6], yt[7], li.item.title, unicode(li.final_amount), localize(pay.created_at)])
+#         yoga_pay_orders.append(
+#             [
+#                 yt[0],
+#                 order.id,
+#                 order.buyer_fullname,
+#                 yt[4],
+#                 yt[6],
+#                 yt[7],
+#                 li.item.title,
+#                 unicode(li.final_amount),
+#                 localize(pay.created_at),
+#             ]
+#         )

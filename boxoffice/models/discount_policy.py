@@ -61,7 +61,8 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):  # type: ignore[name-define
             'percentage > 0 and percentage <= 100', 'discount_policy_percentage_check'
         ),
         sa.CheckConstraint(
-            'discount_type = 0 or (discount_type = 1 and bulk_coupon_usage_limit IS NOT NULL)',
+            'discount_type = 0 or'
+            ' (discount_type = 1 and bulk_coupon_usage_limit IS NOT NULL)',
             'discount_policy_bulk_coupon_usage_limit_check',
         ),
     )
@@ -84,7 +85,8 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):  # type: ignore[name-define
         sa.Integer, default=DISCOUNT_TYPE.AUTOMATIC, nullable=False
     )
 
-    # Minimum number of a particular item that needs to be bought for this discount to apply
+    # Minimum number of a particular item that needs to be bought for this discount to
+    # apply
     item_quantity_min = sa.Column(sa.Integer, default=1, nullable=False)
     percentage = sa.Column(sa.Integer, nullable=True)
     # price-based discount
@@ -93,11 +95,12 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):  # type: ignore[name-define
     discount_code_base = sa.Column(sa.Unicode(20), nullable=True)
     secret = sa.Column(sa.Unicode(50), nullable=True)
 
-    # Coupons generated in bulk are not stored in the database during generation.
-    # This field allows specifying the number of times a coupon, generated in bulk, can be used
-    # This is particularly useful for generating referral discount coupons. For instance, one could generate
-    # a signed coupon and provide it to a user such that the user can share the coupon `n` times
-    # `n` here is essentially bulk_coupon_usage_limit.
+    # Coupons generated in bulk are not stored in the database during generation. This
+    # field allows specifying the number of times a coupon, generated in bulk, can be
+    # used This is particularly useful for generating referral discount coupons. For
+    # instance, one could generate a signed coupon and provide it to a user such that
+    # the user can share the coupon `n` times `n` here is essentially
+    # bulk_coupon_usage_limit.
     bulk_coupon_usage_limit = sa.Column(sa.Integer, nullable=True, default=1)
 
     __roles__ = {
@@ -194,39 +197,38 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):  # type: ignore[name-define
         policies = [(discount, None) for discount in automatic_discounts]
         if not coupon_codes:
             return policies
-        else:
-            coupon_policies = item.discount_policies.filter(
-                cls.discount_type == DISCOUNT_TYPE.COUPON
-            ).all()
-            coupon_policy_ids = [cp.id for cp in coupon_policies]
-            for coupon_code in coupon_codes:
-                coupons = []
-                if cls.is_signed_code_format(coupon_code):
-                    policy = cls.get_from_signed_code(
-                        coupon_code, item.item_collection.organization_id
-                    )
-                    if policy and policy.id in coupon_policy_ids:
-                        coupon = DiscountCoupon.query.filter_by(
-                            discount_policy=policy, code=coupon_code
-                        ).one_or_none()
-                        if not coupon:
-                            coupon = DiscountCoupon(
-                                discount_policy=policy,
-                                code=coupon_code,
-                                usage_limit=policy.bulk_coupon_usage_limit,
-                                used_count=0,
-                            )
-                            db.session.add(coupon)
-                        coupons.append(coupon)
-                else:
-                    coupons = DiscountCoupon.query.filter(
-                        DiscountCoupon.discount_policy_id.in_(coupon_policy_ids),
-                        DiscountCoupon.code == coupon_code,
-                    ).all()
+        coupon_policies = item.discount_policies.filter(
+            cls.discount_type == DISCOUNT_TYPE.COUPON
+        ).all()
+        coupon_policy_ids = [cp.id for cp in coupon_policies]
+        for coupon_code in coupon_codes:
+            coupons = []
+            if cls.is_signed_code_format(coupon_code):
+                policy = cls.get_from_signed_code(
+                    coupon_code, item.item_collection.organization_id
+                )
+                if policy and policy.id in coupon_policy_ids:
+                    coupon = DiscountCoupon.query.filter_by(
+                        discount_policy=policy, code=coupon_code
+                    ).one_or_none()
+                    if not coupon:
+                        coupon = DiscountCoupon(
+                            discount_policy=policy,
+                            code=coupon_code,
+                            usage_limit=policy.bulk_coupon_usage_limit,
+                            used_count=0,
+                        )
+                        db.session.add(coupon)
+                    coupons.append(coupon)
+            else:
+                coupons = DiscountCoupon.query.filter(
+                    DiscountCoupon.discount_policy_id.in_(coupon_policy_ids),
+                    DiscountCoupon.code == coupon_code,
+                ).all()
 
-                for coupon in coupons:
-                    if coupon.usage_limit > coupon.used_count:
-                        policies.append((coupon.discount_policy, coupon))
+            for coupon in coupons:
+                if coupon.usage_limit > coupon.used_count:
+                    policies.append((coupon.discount_policy, coupon))
         return policies
 
     @property
@@ -323,9 +325,8 @@ class DiscountCoupon(IdMixin, db.Model):  # type: ignore[name-defined]
 
 
 create_title_trgm_trigger = sa.DDL(
-    '''
-    CREATE INDEX idx_discount_policy_title_trgm on discount_policy USING gin (title gin_trgm_ops);
-    '''
+    'CREATE INDEX idx_discount_policy_title_trgm on discount_policy'
+    ' USING gin (title gin_trgm_ops);'
 )
 
 sa.event.listen(
