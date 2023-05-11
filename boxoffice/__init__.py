@@ -88,7 +88,6 @@ baseframe.init_app(
         'baseframe-footable',
         'jquery.tinymce>=4.0.0',
     ],
-    asset_modules=('baseframe_private_assets',),
 )
 app.json_encoder = DecimalJsonEncoder
 
