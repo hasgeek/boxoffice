@@ -12,8 +12,6 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 import sqlalchemy as sa
 
-import coaster
-
 revision = '4ffee334e82e'
 down_revision: Optional[str] = None
 
@@ -40,7 +38,7 @@ def upgrade():
         sa.Column('status', sa.Integer(), nullable=False),
         sa.Column('lastuser_token_scope', sa.Unicode(length=250), nullable=True),
         sa.Column('lastuser_token_type', sa.Unicode(length=250), nullable=True),
-        sa.Column('userinfo', coaster.sqlalchemy.postgresql.JSONB(), nullable=True),
+        sa.Column('userinfo', postgresql.JSONB(), nullable=True),
         sa.Column('email', sa.Unicode(length=80), nullable=True),
         sa.Column('lastuser_token', sa.String(length=22), nullable=True),
         sa.Column('username', sa.Unicode(length=80), nullable=True),
