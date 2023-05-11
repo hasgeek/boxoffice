@@ -1,31 +1,37 @@
+"""Category model."""
+
+from __future__ import annotations
+
+from uuid import UUID
+
 from sqlalchemy.ext.orderinglist import ordering_list
 
-from . import BaseScopedNameMixin, db
+from . import BaseScopedNameMixin, Mapped, db, sa
 
 __all__ = ['Category']
 
 
-class Category(BaseScopedNameMixin, db.Model):
+class Category(BaseScopedNameMixin, db.Model):  # type: ignore[name-defined]
     __tablename__ = 'category'
     __table_args__ = (
-        db.UniqueConstraint('item_collection_id', 'name'),
-        db.UniqueConstraint('item_collection_id', 'seq'),
+        sa.UniqueConstraint('item_collection_id', 'name'),
+        sa.UniqueConstraint('item_collection_id', 'seq'),
     )
 
-    item_collection_id = db.Column(
-        None, db.ForeignKey('item_collection.id'), nullable=False
+    item_collection_id: Mapped[UUID] = sa.orm.mapped_column(
+        sa.ForeignKey('item_collection.id'), nullable=False
     )
-    seq = db.Column(db.Integer, nullable=False)
-    item_collection = db.relationship(
+    seq = sa.Column(sa.Integer, nullable=False)
+    item_collection = sa.orm.relationship(
         'ItemCollection',
-        backref=db.backref(
+        backref=sa.orm.backref(
             'categories',
             cascade='all, delete-orphan',
             order_by=seq,
             collection_class=ordering_list('seq', count_from=1),
         ),
     )
-    parent = db.synonym('item_collection')
+    parent = sa.orm.synonym('item_collection')
 
     __roles__ = {
         'category_owner': {'read': {'id', 'name', 'title', 'item_collection_id'}}

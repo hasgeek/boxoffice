@@ -1,12 +1,15 @@
+from __future__ import annotations
+
 from collections import namedtuple
 from decimal import Decimal
+from uuid import UUID
 
 from sqlalchemy.sql import func, select
 
 from baseframe import __
 from coaster.utils import LabeledEnum, buid, utcnow
 
-from . import BaseMixin, db
+from . import BaseMixin, Mapped, db, sa
 from .user import User
 
 __all__ = ['Order', 'ORDER_STATUS', 'OrderSession']
@@ -17,7 +20,7 @@ OrderAmounts = namedtuple(
 )
 
 
-class ORDER_STATUS(LabeledEnum):  # NOQA: N801
+class ORDER_STATUS(LabeledEnum):  # noqa: N801
     PURCHASE_ORDER = (0, __("Purchase Order"))
     SALES_ORDER = (1, __("Sales Order"))
     INVOICE = (2, __("Invoice"))
@@ -36,57 +39,59 @@ def gen_invoice_no(organization):
     )
 
 
-class Order(BaseMixin, db.Model):
+class Order(BaseMixin, db.Model):  # type: ignore[name-defined]
     __tablename__ = 'customer_order'
     __uuid_primary_key__ = True
     __table_args__ = (
-        db.UniqueConstraint('organization_id', 'invoice_no'),
-        db.UniqueConstraint('access_token'),
+        sa.UniqueConstraint('organization_id', 'invoice_no'),
+        sa.UniqueConstraint('access_token'),
     )
 
-    user_id = db.Column(None, db.ForeignKey('user.id'), nullable=True)
-    user = db.relationship(
-        User, backref=db.backref('orders', cascade='all, delete-orphan')
+    user_id: Mapped[int] = sa.orm.mapped_column(sa.ForeignKey('user.id'), nullable=True)
+    user = sa.orm.relationship(
+        User, backref=sa.orm.backref('orders', cascade='all, delete-orphan')
     )
-    item_collection_id = db.Column(
-        None, db.ForeignKey('item_collection.id'), nullable=False
+    item_collection_id: Mapped[UUID] = sa.orm.mapped_column(
+        sa.ForeignKey('item_collection.id'), nullable=False
     )
-    item_collection = db.relationship(
+    item_collection = sa.orm.relationship(
         'ItemCollection',
-        backref=db.backref('orders', cascade='all, delete-orphan', lazy='dynamic'),
+        backref=sa.orm.backref('orders', cascade='all, delete-orphan', lazy='dynamic'),
     )
 
-    organization_id = db.Column(None, db.ForeignKey('organization.id'), nullable=False)
-    organization = db.relationship(
+    organization_id: Mapped[int] = sa.orm.mapped_column(
+        sa.ForeignKey('organization.id'), nullable=False
+    )
+    organization = sa.orm.relationship(
         'Organization',
-        backref=db.backref('orders', cascade='all, delete-orphan', lazy='dynamic'),
+        backref=sa.orm.backref('orders', cascade='all, delete-orphan', lazy='dynamic'),
     )
 
-    status = db.Column(db.Integer, default=ORDER_STATUS.PURCHASE_ORDER, nullable=False)
+    status = sa.Column(sa.Integer, default=ORDER_STATUS.PURCHASE_ORDER, nullable=False)
 
-    initiated_at = db.Column(
-        db.TIMESTAMP(timezone=True), nullable=False, default=db.func.utcnow()
+    initiated_at = sa.Column(
+        sa.TIMESTAMP(timezone=True), nullable=False, default=sa.func.utcnow()
     )
-    paid_at = db.Column(db.TIMESTAMP(timezone=True), nullable=True)
-    invoiced_at = db.Column(db.TIMESTAMP(timezone=True), nullable=True)
-    cancelled_at = db.Column(db.TIMESTAMP(timezone=True), nullable=True)
+    paid_at = sa.Column(sa.TIMESTAMP(timezone=True), nullable=True)
+    invoiced_at = sa.Column(sa.TIMESTAMP(timezone=True), nullable=True)
+    cancelled_at = sa.Column(sa.TIMESTAMP(timezone=True), nullable=True)
 
-    access_token = db.Column(db.Unicode(22), nullable=False, default=buid)
+    access_token = sa.Column(sa.Unicode(22), nullable=False, default=buid)
 
-    buyer_email = db.Column(db.Unicode(254), nullable=False)
-    buyer_fullname = db.Column(db.Unicode(80), nullable=False)
-    buyer_phone = db.Column(db.Unicode(16), nullable=False)
+    buyer_email = sa.Column(sa.Unicode(254), nullable=False)
+    buyer_fullname = sa.Column(sa.Unicode(80), nullable=False)
+    buyer_phone = sa.Column(sa.Unicode(16), nullable=False)
 
     # TODO: Deprecate invoice_no, rename to receipt_no instead
-    invoice_no = db.Column(db.Integer, nullable=True)
-    receipt_no = db.synonym('invoice_no')
+    invoice_no = sa.Column(sa.Integer, nullable=True)
+    receipt_no = sa.orm.synonym('invoice_no')
 
     # These 3 properties are defined below the LineItem model -
     # confirmed_line_items, initial_line_items, confirmed_and_cancelled_line_items
 
-    def permissions(self, user, inherited=None):
-        perms = super().permissions(user, inherited)
-        if self.organization.userid in user.organizations_owned_ids():
+    def permissions(self, actor, inherited=None):
+        perms = super().permissions(actor, inherited)
+        if self.organization.userid in actor.organizations_owned_ids():
             perms.add('org_admin')
         return perms
 
@@ -134,33 +139,29 @@ class Order(BaseMixin, db.Model):
         return True
 
 
-class OrderSession(BaseMixin, db.Model):
+class OrderSession(BaseMixin, db.Model):  # type: ignore[name-defined]
     """Records the referrer and utm headers for an order."""
 
     __tablename__ = 'order_session'
     __uuid_primary_key__ = True
 
-    customer_order_id = db.Column(
-        None,
-        db.ForeignKey('customer_order.id'),
-        nullable=False,
-        index=True,
-        unique=False,
+    customer_order_id: Mapped[UUID] = sa.orm.mapped_column(
+        sa.ForeignKey('customer_order.id'), nullable=False, index=True, unique=False
     )
-    order = db.relationship(
+    order = sa.orm.relationship(
         Order,
-        backref=db.backref('session', cascade='all, delete-orphan', uselist=False),
+        backref=sa.orm.backref('session', cascade='all, delete-orphan', uselist=False),
     )
 
-    referrer = db.Column(db.Unicode(2083), nullable=True)
-    host = db.Column(db.UnicodeText, nullable=True)
+    referrer = sa.Column(sa.Unicode(2083), nullable=True)
+    host = sa.Column(sa.UnicodeText, nullable=True)
 
     # Google Analytics parameters
-    utm_source = db.Column(db.Unicode(250), nullable=False, default='', index=True)
-    utm_medium = db.Column(db.Unicode(250), nullable=False, default='', index=True)
-    utm_term = db.Column(db.Unicode(250), nullable=False, default='')
-    utm_content = db.Column(db.Unicode(250), nullable=False, default='')
-    utm_id = db.Column(db.Unicode(250), nullable=False, default='', index=True)
-    utm_campaign = db.Column(db.Unicode(250), nullable=False, default='', index=True)
+    utm_source = sa.Column(sa.Unicode(250), nullable=False, default='', index=True)
+    utm_medium = sa.Column(sa.Unicode(250), nullable=False, default='', index=True)
+    utm_term = sa.Column(sa.Unicode(250), nullable=False, default='')
+    utm_content = sa.Column(sa.Unicode(250), nullable=False, default='')
+    utm_id = sa.Column(sa.Unicode(250), nullable=False, default='', index=True)
+    utm_campaign = sa.Column(sa.Unicode(250), nullable=False, default='', index=True)
     # Google click id (for AdWords)
-    gclid = db.Column(db.Unicode(250), nullable=False, default='', index=True)
+    gclid = sa.Column(sa.Unicode(250), nullable=False, default='', index=True)

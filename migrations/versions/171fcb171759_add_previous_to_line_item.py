@@ -6,19 +6,19 @@ Create Date: 2017-10-24 18:40:39.183620
 
 """
 
+from alembic import op
+from sqlalchemy.dialects import postgresql
+import sqlalchemy as sa
+
 # revision identifiers, used by Alembic.
 revision = '171fcb171759'
 down_revision = '81f30d00706f'
-
-from alembic import op
-import sqlalchemy as sa
-import sqlalchemy_utils
 
 
 def upgrade():
     op.add_column(
         'line_item',
-        sa.Column('previous_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=True),
+        sa.Column('previous_id', postgresql.UUID(), nullable=True),
     )
     op.create_index(
         op.f('ix_line_item_previous_id'), 'line_item', ['previous_id'], unique=True

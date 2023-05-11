@@ -1,16 +1,18 @@
-import sqlalchemy as sa
+from __future__ import annotations
+
+from uuid import UUID
 
 from baseframe import _, __
 from coaster.utils import LabeledEnum, utcnow
 
-from . import BaseMixin, UuidMixin, db
+from . import BaseMixin, Mapped, UuidMixin, db, sa
 from .user import Organization, get_fiscal_year
 from .utils import HeadersAndDataTuple
 
 __all__ = ['Invoice', 'INVOICE_STATUS']
 
 
-class INVOICE_STATUS(LabeledEnum):  # NOQA: N801
+class INVOICE_STATUS(LabeledEnum):  # noqa: N801
     DRAFT = (0, __("Draft"))
     FINAL = (1, __("Final"))
 
@@ -27,50 +29,54 @@ def gen_invoice_no(organization, jurisdiction, invoice_dt):
     )
 
 
-class Invoice(UuidMixin, BaseMixin, db.Model):
+class Invoice(UuidMixin, BaseMixin, db.Model):  # type: ignore[name-defined]
     __tablename__ = 'invoice'
     __uuid_primary_key__ = True
     __table_args__ = (
-        db.UniqueConstraint(
+        sa.UniqueConstraint(
             'organization_id', 'fy_start_at', 'fy_end_at', 'invoice_no'
         ),
     )
 
-    status = db.Column(db.SmallInteger, default=INVOICE_STATUS.DRAFT, nullable=False)
-    invoicee_name = db.Column(db.Unicode(255), nullable=True)
-    invoicee_company = db.Column(db.Unicode(255), nullable=True)
-    invoicee_email = db.Column(db.Unicode(254), nullable=True)
-    invoice_no = db.Column(db.Integer(), nullable=True)
-    fy_start_at = db.Column(db.TIMESTAMP(timezone=True), nullable=False)
-    fy_end_at = db.Column(db.TIMESTAMP(timezone=True), nullable=False)
-    invoiced_at = db.Column(db.TIMESTAMP(timezone=True), nullable=True)
-    street_address_1 = db.Column(db.Unicode(255), nullable=True)
-    street_address_2 = db.Column(db.Unicode(255), nullable=True)
-    city = db.Column(db.Unicode(255), nullable=True)
-    state = db.Column(db.Unicode(255), nullable=True)
+    status = sa.Column(sa.SmallInteger, default=INVOICE_STATUS.DRAFT, nullable=False)
+    invoicee_name = sa.Column(sa.Unicode(255), nullable=True)
+    invoicee_company = sa.Column(sa.Unicode(255), nullable=True)
+    invoicee_email = sa.Column(sa.Unicode(254), nullable=True)
+    invoice_no = sa.Column(sa.Integer(), nullable=True)
+    fy_start_at = sa.Column(sa.TIMESTAMP(timezone=True), nullable=False)
+    fy_end_at = sa.Column(sa.TIMESTAMP(timezone=True), nullable=False)
+    invoiced_at = sa.Column(sa.TIMESTAMP(timezone=True), nullable=True)
+    street_address_1 = sa.Column(sa.Unicode(255), nullable=True)
+    street_address_2 = sa.Column(sa.Unicode(255), nullable=True)
+    city = sa.Column(sa.Unicode(255), nullable=True)
+    state = sa.Column(sa.Unicode(255), nullable=True)
     # ISO 3166-2 code. Eg: KA for Karnataka
-    state_code = db.Column(db.Unicode(3), nullable=True)
+    state_code = sa.Column(sa.Unicode(3), nullable=True)
     # ISO country code
-    country_code = db.Column(db.Unicode(2), nullable=True)
-    postcode = db.Column(db.Unicode(8), nullable=True)
+    country_code = sa.Column(sa.Unicode(2), nullable=True)
+    postcode = sa.Column(sa.Unicode(8), nullable=True)
     # GSTIN in the case of India
-    buyer_taxid = db.Column(db.Unicode(255), nullable=True)
-    seller_taxid = db.Column(db.Unicode(255), nullable=True)
+    buyer_taxid = sa.Column(sa.Unicode(255), nullable=True)
+    seller_taxid = sa.Column(sa.Unicode(255), nullable=True)
 
-    customer_order_id = db.Column(
-        None, db.ForeignKey('customer_order.id'), nullable=False, index=True
+    customer_order_id: Mapped[UUID] = sa.orm.mapped_column(
+        None, sa.ForeignKey('customer_order.id'), nullable=False, index=True
     )
-    order = db.relationship(
-        'Order', backref=db.backref('invoices', cascade='all, delete-orphan')
+    order = sa.orm.relationship(
+        'Order', backref=sa.orm.backref('invoices', cascade='all, delete-orphan')
     )
 
     # An invoice may be associated with a different organization as compared to its order
     # to allow for the following use case. An invoice may be issued by a parent entity, while the order is booked through
     # the child entity.
-    organization_id = db.Column(None, db.ForeignKey('organization.id'), nullable=False)
-    organization = db.relationship(
+    organization_id: Mapped[int] = sa.orm.mapped_column(
+        sa.ForeignKey('organization.id'), nullable=False
+    )
+    organization = sa.orm.relationship(
         'Organization',
-        backref=db.backref('invoices', cascade='all, delete-orphan', lazy='dynamic'),
+        backref=sa.orm.backref(
+            'invoices', cascade='all, delete-orphan', lazy='dynamic'
+        ),
     )
 
     __roles__ = {
@@ -166,7 +172,7 @@ def fetch_invoices(self):
         "invoiced_at",
     ]
     invoices_query = (
-        db.select(
+        sa.select(
             Order.id,
             Order.invoice_no,
             Invoice.invoice_no,

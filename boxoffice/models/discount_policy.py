@@ -1,8 +1,12 @@
+"""Discount policy model."""
+
+from __future__ import annotations
+
+from uuid import UUID
 import secrets
 import string
 
 from sqlalchemy.orm.exc import MultipleResultsFound
-import sqlalchemy as sa
 
 from itsdangerous import BadSignature, Signer
 from werkzeug.utils import cached_property
@@ -11,37 +15,37 @@ from baseframe import __
 from coaster.sqlalchemy import cached
 from coaster.utils import LabeledEnum, buid, uuid1mc
 
-from . import BaseScopedNameMixin, IdMixin, db
+from . import BaseScopedNameMixin, IdMixin, Mapped, db, sa
 from .user import Organization
 
 __all__ = ['DiscountPolicy', 'DiscountCoupon', 'item_discount_policy', 'DISCOUNT_TYPE']
 
 
-class DISCOUNT_TYPE(LabeledEnum):  # NOQA: N801
+class DISCOUNT_TYPE(LabeledEnum):  # noqa: N801
     AUTOMATIC = (0, __("Automatic"))
     COUPON = (1, __("Coupon"))
 
 
 item_discount_policy = sa.Table(
     'item_discount_policy',
-    db.Model.metadata,
-    db.Column('item_id', None, db.ForeignKey('item.id'), primary_key=True),
-    db.Column(
+    db.Model.metadata,  # type: ignore[has-type]
+    sa.Column('item_id', None, sa.ForeignKey('item.id'), primary_key=True),
+    sa.Column(
         'discount_policy_id',
         None,
-        db.ForeignKey('discount_policy.id'),
+        sa.ForeignKey('discount_policy.id'),
         primary_key=True,
     ),
-    db.Column(
+    sa.Column(
         'created_at',
-        db.TIMESTAMP(timezone=True),
-        default=db.func.utcnow(),
+        sa.TIMESTAMP(timezone=True),
+        default=sa.func.utcnow(),
         nullable=False,
     ),
 )
 
 
-class DiscountPolicy(BaseScopedNameMixin, db.Model):
+class DiscountPolicy(BaseScopedNameMixin, db.Model):  # type: ignore[name-defined]
     """
     Consists of the discount rules applicable on items.
 
@@ -51,48 +55,50 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
     __tablename__ = 'discount_policy'
     __uuid_primary_key__ = True
     __table_args__ = (
-        db.UniqueConstraint('organization_id', 'name'),
-        db.UniqueConstraint('organization_id', 'discount_code_base'),
-        db.CheckConstraint(
+        sa.UniqueConstraint('organization_id', 'name'),
+        sa.UniqueConstraint('organization_id', 'discount_code_base'),
+        sa.CheckConstraint(
             'percentage > 0 and percentage <= 100', 'discount_policy_percentage_check'
         ),
-        db.CheckConstraint(
+        sa.CheckConstraint(
             'discount_type = 0 or (discount_type = 1 and bulk_coupon_usage_limit IS NOT NULL)',
             'discount_policy_bulk_coupon_usage_limit_check',
         ),
     )
 
-    organization_id = db.Column(None, db.ForeignKey('organization.id'), nullable=False)
-    organization = db.relationship(
+    organization_id: Mapped[int] = sa.orm.mapped_column(
+        sa.ForeignKey('organization.id'), nullable=False
+    )
+    organization = sa.orm.relationship(
         Organization,
-        backref=db.backref(
+        backref=sa.orm.backref(
             'discount_policies',
             order_by='DiscountPolicy.created_at.desc()',
             lazy='dynamic',
             cascade='all, delete-orphan',
         ),
     )
-    parent = db.synonym('organization')
+    parent = sa.orm.synonym('organization')
 
-    discount_type = db.Column(
-        db.Integer, default=DISCOUNT_TYPE.AUTOMATIC, nullable=False
+    discount_type = sa.Column(
+        sa.Integer, default=DISCOUNT_TYPE.AUTOMATIC, nullable=False
     )
 
     # Minimum number of a particular item that needs to be bought for this discount to apply
-    item_quantity_min = db.Column(db.Integer, default=1, nullable=False)
-    percentage = db.Column(db.Integer, nullable=True)
+    item_quantity_min = sa.Column(sa.Integer, default=1, nullable=False)
+    percentage = sa.Column(sa.Integer, nullable=True)
     # price-based discount
-    is_price_based = db.Column(db.Boolean, default=False, nullable=False)
+    is_price_based = sa.Column(sa.Boolean, default=False, nullable=False)
 
-    discount_code_base = db.Column(db.Unicode(20), nullable=True)
-    secret = db.Column(db.Unicode(50), nullable=True)
+    discount_code_base = sa.Column(sa.Unicode(20), nullable=True)
+    secret = sa.Column(sa.Unicode(50), nullable=True)
 
     # Coupons generated in bulk are not stored in the database during generation.
     # This field allows specifying the number of times a coupon, generated in bulk, can be used
     # This is particularly useful for generating referral discount coupons. For instance, one could generate
     # a signed coupon and provide it to a user such that the user can share the coupon `n` times
     # `n` here is essentially bulk_coupon_usage_limit.
-    bulk_coupon_usage_limit = db.Column(db.Integer, nullable=True, default=1)
+    bulk_coupon_usage_limit = sa.Column(sa.Integer, nullable=True, default=1)
 
     __roles__ = {
         'dp_owner': {
@@ -176,7 +182,7 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
         )
 
     @classmethod
-    def get_from_item(cls, item, qty, coupon_codes=[]):
+    def get_from_item(cls, item, qty, coupon_codes=()):
         """
         Return a list of (discount_policy, discount_coupon) tuples.
 
@@ -274,26 +280,26 @@ def generate_coupon_code(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(secrets.choice(chars) for _ in range(size))
 
 
-class DiscountCoupon(IdMixin, db.Model):
+class DiscountCoupon(IdMixin, db.Model):  # type: ignore[name-defined]
     __tablename__ = 'discount_coupon'
     __uuid_primary_key__ = True
-    __table_args__ = (db.UniqueConstraint('discount_policy_id', 'code'),)
+    __table_args__ = (sa.UniqueConstraint('discount_policy_id', 'code'),)
 
     def __init__(self, *args, **kwargs):
         self.id = uuid1mc()
         super().__init__(*args, **kwargs)
 
-    code = db.Column(db.Unicode(100), nullable=False, default=generate_coupon_code)
-    usage_limit = db.Column(db.Integer, nullable=False, default=1)
+    code = sa.Column(sa.Unicode(100), nullable=False, default=generate_coupon_code)
+    usage_limit = sa.Column(sa.Integer, nullable=False, default=1)
 
-    used_count = cached(db.Column(db.Integer, nullable=False, default=0))
+    used_count = cached(sa.Column(sa.Integer, nullable=False, default=0))
 
-    discount_policy_id = db.Column(
-        None, db.ForeignKey('discount_policy.id'), nullable=False
+    discount_policy_id: Mapped[UUID] = sa.orm.mapped_column(
+        sa.ForeignKey('discount_policy.id'), nullable=False
     )
-    discount_policy = db.relationship(
+    discount_policy = sa.orm.relationship(
         DiscountPolicy,
-        backref=db.backref('discount_coupons', cascade='all, delete-orphan'),
+        backref=sa.orm.backref('discount_coupons', cascade='all, delete-orphan'),
     )
 
     @classmethod
@@ -309,7 +315,7 @@ class DiscountCoupon(IdMixin, db.Model):
 
     def update_used_count(self):
         self.used_count = (
-            db.select(db.func.count())
+            sa.select(sa.func.count())
             .where(LineItem.discount_coupon == self)
             .where(LineItem.status == LINE_ITEM_STATUS.CONFIRMED)
             .as_scalar()

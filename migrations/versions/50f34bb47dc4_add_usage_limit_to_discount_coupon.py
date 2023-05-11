@@ -6,18 +6,19 @@ Create Date: 2016-04-05 18:46:20.160324
 
 """
 
+from alembic import op
+from sqlalchemy.dialects import postgresql
+from sqlalchemy.sql import column, table
+import sqlalchemy as sa
+
 # revision identifiers, used by Alembic.
 revision = '50f34bb47dc4'
 down_revision = '35952a56c31b'
 
-from alembic import op
-from sqlalchemy.sql import column, table
-import sqlalchemy as sa
-import sqlalchemy_utils
 
 discount_coupon = table(
     'discount_coupon',
-    column('id', sqlalchemy_utils.types.uuid.UUIDType()),
+    column('id', postgresql.UUID()),
     column('used', sa.Boolean()),
     column('used_count', sa.Integer()),
     column('usage_limit', sa.Integer()),
@@ -25,7 +26,7 @@ discount_coupon = table(
 
 line_item = table(
     'line_item',
-    column('discount_coupon_id', sqlalchemy_utils.types.uuid.UUIDType(binary=False)),
+    column('discount_coupon_id', postgresql.UUID()),
 )
 
 

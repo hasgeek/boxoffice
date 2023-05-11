@@ -6,13 +6,13 @@ Create Date: 2016-09-09 20:43:26.331871
 
 """
 
+from alembic import op
+from sqlalchemy.dialects import postgresql
+import sqlalchemy as sa
+
 # revision identifiers, used by Alembic.
 revision = '48e571c759cb'
 down_revision = '510d2db2b008'
-
-from alembic import op
-import sqlalchemy as sa
-import sqlalchemy_utils
 
 
 def upgrade():
@@ -20,9 +20,7 @@ def upgrade():
         'order_session',
         sa.Column('created_at', sa.DateTime(), nullable=False),
         sa.Column('updated_at', sa.DateTime(), nullable=False),
-        sa.Column(
-            'customer_order_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False
-        ),
+        sa.Column('customer_order_id', postgresql.UUID(), nullable=False),
         sa.Column('referrer', sa.Unicode(length=2083), nullable=True),
         sa.Column('utm_source', sa.Unicode(length=250), nullable=False),
         sa.Column('utm_medium', sa.Unicode(length=250), nullable=False),
@@ -31,7 +29,7 @@ def upgrade():
         sa.Column('utm_id', sa.Unicode(length=250), nullable=False),
         sa.Column('utm_campaign', sa.Unicode(length=250), nullable=False),
         sa.Column('gclid', sa.Unicode(length=250), nullable=False),
-        sa.Column('id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
+        sa.Column('id', postgresql.UUID(), nullable=False),
         sa.ForeignKeyConstraint(
             ['customer_order_id'],
             ['customer_order.id'],

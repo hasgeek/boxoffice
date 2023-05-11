@@ -11,20 +11,20 @@ revision = 'adb90a264e3'
 down_revision = '10ac78260434'
 
 from alembic import op
+from sqlalchemy.dialects import postgresql
 from sqlalchemy.sql import column, table
 import sqlalchemy as sa
-import sqlalchemy_utils
 
 order = table(
     'customer_order',
-    column('id', sqlalchemy_utils.types.uuid.UUIDType()),
+    column('id', postgresql.UUID()),
     column('status', sa.Integer),
 )
 
 
 line_item = table(
     'line_item',
-    column('customer_order_id', sqlalchemy_utils.types.uuid.UUIDType()),
+    column('customer_order_id', postgresql.UUID()),
     column('status', sa.Integer),
 )
 

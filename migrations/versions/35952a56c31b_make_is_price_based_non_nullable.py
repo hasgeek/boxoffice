@@ -6,13 +6,14 @@ Create Date: 2016-04-04 17:00:42.471535
 
 """
 
+from alembic import op
+from sqlalchemy.sql import column, table
+import sqlalchemy as sa
+
 # revision identifiers, used by Alembic.
 revision = '35952a56c31b'
 down_revision = '32abb3608d9a'
 
-from alembic import op
-from sqlalchemy.sql import column, table
-import sqlalchemy as sa
 
 discount_policy = table('discount_policy', column('is_price_based', sa.Boolean()))
 

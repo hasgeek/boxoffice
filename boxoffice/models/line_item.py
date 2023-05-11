@@ -4,6 +4,7 @@ from collections import OrderedDict, namedtuple
 from datetime import timedelta
 from decimal import Decimal
 from typing import List, Optional, overload
+from uuid import UUID
 
 from sqlalchemy.ext.orderinglist import ordering_list
 from sqlalchemy.sql import func
@@ -16,13 +17,13 @@ from typing_extensions import Literal
 from baseframe import __, localize_timezone
 from coaster.utils import LabeledEnum, isoweek_datetime, midnight_to_utc, utcnow
 
-from . import BaseMixin, JsonDict, db
+from . import BaseMixin, JsonDict, Mapped, db, sa
 from .order import Order
 
 __all__ = ['LineItem', 'LINE_ITEM_STATUS', 'Assignee']
 
 
-class LINE_ITEM_STATUS(LabeledEnum):  # NOQA: N801
+class LINE_ITEM_STATUS(LabeledEnum):  # noqa: N801
     CONFIRMED = (0, __("Confirmed"))
     CANCELLED = (1, __("Cancelled"))
     PURCHASE_ORDER = (2, __("Purchase Order"))
@@ -58,35 +59,39 @@ def make_ntuple(item_id, base_amount, **kwargs):
     )
 
 
-class Assignee(BaseMixin, db.Model):
+class Assignee(BaseMixin, db.Model):  # type: ignore[name-defined]
     __tablename__ = 'assignee'
     __table_args__ = (
-        db.UniqueConstraint('line_item_id', 'current'),
-        db.CheckConstraint("current != '0'", 'assignee_current_check'),
+        sa.UniqueConstraint('line_item_id', 'current'),
+        sa.CheckConstraint("current != '0'", 'assignee_current_check'),
     )
 
     # lastuser id
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-    user = db.relationship(
-        'User', backref=db.backref('assignees', cascade='all, delete-orphan')
+    user_id = sa.Column(sa.Integer, sa.ForeignKey('user.id'), nullable=True)
+    user = sa.orm.relationship(
+        'User', backref=sa.orm.backref('assignees', cascade='all, delete-orphan')
     )
 
-    line_item_id = db.Column(None, db.ForeignKey('line_item.id'), nullable=False)
-    line_item = db.relationship(
+    line_item_id: Mapped[UUID] = sa.orm.mapped_column(
+        sa.ForeignKey('line_item.id'), nullable=False
+    )
+    line_item = sa.orm.relationship(
         'LineItem',
-        backref=db.backref('assignees', cascade='all, delete-orphan', lazy='dynamic'),
+        backref=sa.orm.backref(
+            'assignees', cascade='all, delete-orphan', lazy='dynamic'
+        ),
     )
 
-    fullname = db.Column(db.Unicode(80), nullable=False)
+    fullname = sa.Column(sa.Unicode(80), nullable=False)
     #: Unvalidated email address
-    email = db.Column(db.Unicode(254), nullable=False)
+    email = sa.Column(sa.Unicode(254), nullable=False)
     #: Unvalidated phone number
-    phone = db.Column(db.Unicode(16), nullable=True)
-    details = db.Column(JsonDict, nullable=False, default={})
-    current = db.Column(db.Boolean, nullable=True)
+    phone = sa.Column(sa.Unicode(16), nullable=True)
+    details: Mapped[dict] = sa.orm.mapped_column(JsonDict, nullable=False, default={})
+    current = sa.Column(sa.Boolean, nullable=True)
 
 
-class LineItem(BaseMixin, db.Model):
+class LineItem(BaseMixin, db.Model):  # type: ignore[name-defined]
     """
     A line item in a sale receipt.
 
@@ -99,22 +104,18 @@ class LineItem(BaseMixin, db.Model):
     __tablename__ = 'line_item'
     __uuid_primary_key__ = True
     __table_args__ = (
-        db.UniqueConstraint('customer_order_id', 'line_item_seq'),
-        db.UniqueConstraint('previous_id'),
+        sa.UniqueConstraint('customer_order_id', 'line_item_seq'),
+        sa.UniqueConstraint('previous_id'),
     )
 
     # line_item_seq is the relative number of the line item per order.
-    line_item_seq = db.Column(db.Integer, nullable=False)
-    customer_order_id = db.Column(
-        None,
-        db.ForeignKey('customer_order.id'),
-        nullable=False,
-        index=True,
-        unique=False,
+    line_item_seq = sa.Column(sa.Integer, nullable=False)
+    customer_order_id: Mapped[UUID] = sa.orm.mapped_column(
+        sa.ForeignKey('customer_order.id'), nullable=False, index=True, unique=False
     )
-    order = db.relationship(
+    order = sa.orm.relationship(
         Order,
-        backref=db.backref(
+        backref=sa.orm.backref(
             'line_items',
             cascade='all, delete-orphan',
             order_by=line_item_seq,
@@ -122,54 +123,48 @@ class LineItem(BaseMixin, db.Model):
         ),
     )
 
-    item_id = db.Column(
-        None, db.ForeignKey('item.id'), nullable=False, index=True, unique=False
+    item_id: Mapped[UUID] = sa.orm.mapped_column(
+        sa.ForeignKey('item.id'), nullable=False, index=True, unique=False
     )
-    item = db.relationship(
+    item = sa.orm.relationship(
         'Item',
-        backref=db.backref('line_items', cascade='all, delete-orphan', lazy='dynamic'),
+        backref=sa.orm.backref(
+            'line_items', cascade='all, delete-orphan', lazy='dynamic'
+        ),
     )
 
-    previous_id = db.Column(
-        None, db.ForeignKey('line_item.id'), nullable=True, unique=True
+    previous_id: Mapped[UUID] = sa.orm.mapped_column(
+        sa.ForeignKey('line_item.id'), nullable=True, unique=True
     )
-    previous = db.relationship(
+    previous = sa.orm.relationship(
         'LineItem',
         primaryjoin='line_item.c.id==line_item.c.previous_id',
-        backref=db.backref('revision', uselist=False),
+        backref=sa.orm.backref('revision', uselist=False),
         remote_side='LineItem.id',
     )
 
-    discount_policy_id = db.Column(
-        None,
-        db.ForeignKey('discount_policy.id'),
-        nullable=True,
-        index=True,
-        unique=False,
+    discount_policy_id: Mapped[UUID] = sa.orm.mapped_column(
+        sa.ForeignKey('discount_policy.id'), nullable=True, index=True, unique=False
     )
-    discount_policy = db.relationship(
-        'DiscountPolicy', backref=db.backref('line_items', lazy='dynamic')
+    discount_policy = sa.orm.relationship(
+        'DiscountPolicy', backref=sa.orm.backref('line_items', lazy='dynamic')
     )
 
-    discount_coupon_id = db.Column(
-        None,
-        db.ForeignKey('discount_coupon.id'),
-        nullable=True,
-        index=True,
-        unique=False,
+    discount_coupon_id: Mapped[UUID] = sa.orm.mapped_column(
+        sa.ForeignKey('discount_coupon.id'), nullable=True, index=True, unique=False
     )
-    discount_coupon = db.relationship(
-        'DiscountCoupon', backref=db.backref('line_items')
+    discount_coupon = sa.orm.relationship(
+        'DiscountCoupon', backref=sa.orm.backref('line_items')
     )
 
-    base_amount = db.Column(db.Numeric, default=Decimal(0), nullable=False)
-    discounted_amount = db.Column(db.Numeric, default=Decimal(0), nullable=False)
-    final_amount = db.Column(db.Numeric, default=Decimal(0), nullable=False)
-    status = db.Column(
-        db.Integer, default=LINE_ITEM_STATUS.PURCHASE_ORDER, nullable=False
+    base_amount = sa.Column(sa.Numeric, default=Decimal(0), nullable=False)
+    discounted_amount = sa.Column(sa.Numeric, default=Decimal(0), nullable=False)
+    final_amount = sa.Column(sa.Numeric, default=Decimal(0), nullable=False)
+    status = sa.Column(
+        sa.Integer, default=LINE_ITEM_STATUS.PURCHASE_ORDER, nullable=False
     )
-    ordered_at = db.Column(db.TIMESTAMP(timezone=True), nullable=True)
-    cancelled_at = db.Column(db.TIMESTAMP(timezone=True), nullable=True)
+    ordered_at = sa.Column(sa.TIMESTAMP(timezone=True), nullable=True)
+    cancelled_at = sa.Column(sa.TIMESTAMP(timezone=True), nullable=True)
 
     def permissions(self, user, inherited=None):
         perms = super().permissions(user, inherited)
@@ -248,7 +243,7 @@ class LineItem(BaseMixin, db.Model):
     def confirm(self):
         self.status = LINE_ITEM_STATUS.CONFIRMED
 
-    # TODO: assignee = db.relationship(Assignee, primaryjoin=Assignee.line_item == self and Assignee.current.is_(True), uselist=False)
+    # TODO: assignee = sa.orm.relationship(Assignee, primaryjoin=Assignee.line_item == self and Assignee.current.is_(True), uselist=False)
     # Don't use current_assignee -- we want to imply that there can only be one assignee and the rest are historical (and hence not 'assignees')
     @property
     def current_assignee(self):
@@ -308,10 +303,10 @@ class LineItem(BaseMixin, db.Model):
         )
 
 
-Order.confirmed_line_items = db.relationship(
+Order.confirmed_line_items = sa.orm.relationship(
     LineItem,
     lazy='dynamic',
-    primaryjoin=db.and_(
+    primaryjoin=sa.and_(
         LineItem.customer_order_id == Order.id,
         LineItem.status == LINE_ITEM_STATUS.CONFIRMED,
     ),
@@ -319,10 +314,10 @@ Order.confirmed_line_items = db.relationship(
 )
 
 
-Order.confirmed_and_cancelled_line_items = db.relationship(
+Order.confirmed_and_cancelled_line_items = sa.orm.relationship(
     LineItem,
     lazy='dynamic',
-    primaryjoin=db.and_(
+    primaryjoin=sa.and_(
         LineItem.customer_order_id == Order.id,
         LineItem.status.in_([LINE_ITEM_STATUS.CONFIRMED, LINE_ITEM_STATUS.CANCELLED]),
     ),
@@ -330,10 +325,10 @@ Order.confirmed_and_cancelled_line_items = db.relationship(
 )
 
 
-Order.initial_line_items = db.relationship(
+Order.initial_line_items = sa.orm.relationship(
     LineItem,
     lazy='dynamic',
-    primaryjoin=db.and_(
+    primaryjoin=sa.and_(
         LineItem.customer_order_id == Order.id,
         LineItem.previous_id.is_(None),
         LineItem.status.in_(LINE_ITEM_STATUS.TRANSACTION),
@@ -352,9 +347,9 @@ def counts_per_date_per_item(item_collection, user_tz):
     for item in item_collection.items:
         item_id = str(item.id)
         item_results = (
-            db.session.query(db.column('date'), db.column('count'))
+            db.session.query(sa.column('date'), sa.column('count'))
             .from_statement(
-                db.text(
+                sa.text(
                     '''SELECT DATE_TRUNC('day', line_item.ordered_at AT TIME ZONE :timezone)::date as date, count(line_item.id) AS count
             FROM line_item WHERE item_id = :item_id AND status = :status
             GROUP BY date ORDER BY date ASC'''
@@ -387,9 +382,9 @@ def sales_by_date(sales_datetime, item_ids, user_tz):
     start_at = midnight_to_utc(sales_datetime, timezone=user_tz)
     end_at = midnight_to_utc(sales_datetime + timedelta(days=1), timezone=user_tz)
     sales_on_date = (
-        db.session.query(db.column('sum'))
+        db.session.query(sa.column('sum'))
         .from_statement(
-            db.text(
+            sa.text(
                 '''SELECT SUM(final_amount) FROM line_item
         WHERE status=:status AND ordered_at >= :start_at AND ordered_at < :end_at
         AND line_item.item_id IN :item_ids
@@ -416,9 +411,9 @@ def calculate_weekly_sales(item_collection_ids, user_tz, year):
     end_at = isoweek_datetime(year + 1, 1, user_tz)
 
     week_sales = (
-        db.session.query(db.column('sales_week'), db.column('sum'))
+        db.session.query(sa.column('sales_week'), sa.column('sum'))
         .from_statement(
-            db.text(
+            sa.text(
                 '''
         SELECT EXTRACT(WEEK FROM ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone)
         AS sales_week, SUM(final_amount) AS sum

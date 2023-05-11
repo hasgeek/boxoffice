@@ -6,12 +6,12 @@ Create Date: 2018-04-24 15:59:45.233516
 
 """
 
-revision = '6c04555d7d94'
-down_revision = '829f42c03de3'
-
 from alembic import op
 from sqlalchemy.sql import column, table
 import sqlalchemy as sa
+
+revision = '6c04555d7d94'
+down_revision = '829f42c03de3'
 
 
 def upgrade():

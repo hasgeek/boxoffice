@@ -7,7 +7,7 @@ from coaster.views import load_models, render_with, requestargs
 
 from .. import app, lastuser
 from ..forms import ItemForm, PriceForm
-from ..models import Item, ItemCollection, Organization, Price, db
+from ..models import Item, ItemCollection, Organization, Price, db, sa
 from .utils import api_error, api_success, json_date_format, xhr_only
 
 
@@ -22,16 +22,17 @@ def items(organization, search=None):
             db.session.query(Item, ItemCollection)
             .filter(
                 ItemCollection.organization == organization,
-                db.or_(
-                    # FIXME: quote search for LIKE markup
-                    Item.title.ilike(f'%{search}%'),
-                    ItemCollection.title.ilike(f'%{search}%'),
+                sa.or_(
+                    sa.func.lower(Item.title).contains(search.lower(), autoescape=True),
+                    sa.func.lower(ItemCollection.title).contains(
+                        search.lower(), autoescape=True
+                    ),
                 ),
             )
             .join(Item.item_collection)
             .options(
-                db.Load(Item).load_only(Item.id, Item.title),
-                db.Load(ItemCollection).load_only(
+                sa.orm.Load(Item).load_only(Item.id, Item.title),
+                sa.orm.Load(ItemCollection).load_only(
                     ItemCollection.id, ItemCollection.title
                 ),
             )

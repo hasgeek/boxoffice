@@ -11,18 +11,16 @@ revision = '74770336785'
 down_revision = '59d274a1682f'
 
 from alembic import op
+from sqlalchemy.dialects import postgresql
 from sqlalchemy.sql import column, table
 import sqlalchemy as sa
-import sqlalchemy_utils
 
-item_collection = table(
-    'item_collection', column('id', sqlalchemy_utils.types.uuid.UUIDType())
-)
+item_collection = table('item_collection', column('id', postgresql.UUID()))
 
 item = table(
     'item',
-    column('id', sqlalchemy_utils.types.uuid.UUIDType()),
-    column('item_collection_id', sqlalchemy_utils.types.uuid.UUIDType()),
+    column('id', postgresql.UUID()),
+    column('item_collection_id', postgresql.UUID()),
     column('seq', sa.Integer()),
     column('created_at', sa.DateTime()),
 )

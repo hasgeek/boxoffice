@@ -1,6 +1,9 @@
 # flake8: noqa
 
-from coaster.db import db
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import Mapped
+import sqlalchemy as sa
+
 from coaster.sqlalchemy import (
     BaseMixin,
     BaseNameMixin,
@@ -15,6 +18,7 @@ from coaster.sqlalchemy import (
 )
 
 TimestampMixin.__with_timezone__ = True
+db = SQLAlchemy()
 
 from .category import *  # isort:skip
 from .discount_policy import *  # isort:skip

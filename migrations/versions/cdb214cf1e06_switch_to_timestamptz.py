@@ -6,12 +6,13 @@ Create Date: 2019-05-15 20:57:30.620521
 
 """
 
+from alembic import op
+import sqlalchemy as sa
+
 # revision identifiers, used by Alembic.
 revision = 'cdb214cf1e06'
 down_revision = '7d180b95fcbe'
 
-from alembic import op
-import sqlalchemy as sa
 
 migrate_table_columns = [
     ('assignee', 'created_at'),

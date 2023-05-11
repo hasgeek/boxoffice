@@ -43,6 +43,7 @@ from ..models import (
     PaymentTransaction,
     User,
     db,
+    sa,
 )
 from .custom_exceptions import PaymentGatewayError
 from .utils import (
@@ -614,7 +615,7 @@ def get_coupon_codes_from_line_items(line_items):
     if coupon_ids:
         coupons = (
             DiscountCoupon.query.filter(DiscountCoupon.id.in_(coupon_ids))
-            .options(db.load_only(DiscountCoupon.code))
+            .options(sa.orm.load_only(DiscountCoupon.code))
             .all()
         )
     else:

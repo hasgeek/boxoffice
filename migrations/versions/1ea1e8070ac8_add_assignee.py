@@ -6,14 +6,13 @@ Create Date: 2016-04-09 11:53:52.668646
 
 """
 
+from alembic import op
+from sqlalchemy.dialects import postgresql
+import sqlalchemy as sa
+
 # revision identifiers, used by Alembic.
 revision = '1ea1e8070ac8'
 down_revision = 'adb90a264e3'
-
-from alembic import op
-import sqlalchemy as sa
-
-from coaster.sqlalchemy import JsonDict
 
 
 def upgrade():
@@ -24,7 +23,7 @@ def upgrade():
         sa.Column('fullname', sa.Unicode(length=80), nullable=False),
         sa.Column('email', sa.Unicode(length=254), nullable=False),
         sa.Column('phone', sa.Unicode(length=16), nullable=True),
-        sa.Column('details', JsonDict(), nullable=False),
+        sa.Column('details', postgresql.JSONB(), nullable=False),
         sa.Column('previous_id', sa.Integer(), nullable=True),
         sa.Column('user_id', sa.Integer(), nullable=True),
         sa.Column('id', sa.Integer(), nullable=False),
@@ -41,7 +40,9 @@ def upgrade():
     op.add_column('line_item', sa.Column('assignee_id', sa.Integer(), nullable=True))
     op.add_column(
         'item',
-        sa.Column('assignee_details', JsonDict(), server_default='{}', nullable=True),
+        sa.Column(
+            'assignee_details', postgresql.JSONB(), server_default='{}', nullable=True
+        ),
     )
     op.alter_column('item', 'assignee_details', server_default=None)
     op.create_foreign_key(

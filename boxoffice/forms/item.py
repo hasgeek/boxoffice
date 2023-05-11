@@ -2,12 +2,10 @@ import json
 
 from flask import request
 
-from html5print import HTMLBeautifier
-
 from baseframe import __, forms, localized_country_list
 
 from ..data import indian_states, indian_states_dict
-from ..models import Category, ItemCollection, db
+from ..models import Category, ItemCollection, sa
 
 __all__ = ['ItemForm']
 
@@ -19,12 +17,6 @@ def format_json(data):
     # so assign a default value of `{}`
     if not data or data == 'null':
         return json.dumps({})
-    return data
-
-
-def format_description(data):
-    if request.method == 'GET' and data:
-        return HTMLBeautifier.beautify(data.text, 8)
     return data
 
 
@@ -51,7 +43,7 @@ def validate_json(form, field):
     try:
         json.loads(field.data)
     except ValueError:
-        raise forms.validators.StopValidation(__("Invalid JSON"))
+        raise forms.validators.StopValidation(__("Invalid JSON")) from None
 
 
 class ItemForm(forms.Form):
@@ -65,7 +57,6 @@ class ItemForm(forms.Form):
     )
     description = forms.TextAreaField(
         __("Description"),
-        filters=[format_description],
         validators=[forms.validators.DataRequired(__("Please specify a description"))],
     )
     restricted_entry = forms.BooleanField(__("Restrict entry?"))
@@ -131,7 +122,7 @@ class ItemForm(forms.Form):
         self.category.query = (
             Category.query.join(ItemCollection)
             .filter(Category.item_collection == self.edit_parent)
-            .options(db.load_only(Category.id, Category.title))
+            .options(sa.orm.load_only(Category.id, Category.title))
         )
 
     def validate_place_supply_state_code(self, field):

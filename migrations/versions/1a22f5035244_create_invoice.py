@@ -6,13 +6,13 @@ Create Date: 2017-07-05 15:32:02.514565
 
 """
 
+from alembic import op
+from sqlalchemy.dialects import postgresql
+import sqlalchemy as sa
+
 # revision identifiers, used by Alembic.
 revision = '1a22f5035244'
 down_revision = '36f458047cfd'
-
-from alembic import op
-import sqlalchemy as sa
-import sqlalchemy_utils
 
 
 def upgrade():
@@ -37,13 +37,11 @@ def upgrade():
         sa.Column('seller_taxid', sa.Unicode(length=255), nullable=True),
         sa.Column(
             'customer_order_id',
-            sqlalchemy_utils.types.uuid.UUIDType(binary=False),
+            postgresql.UUID(),
             nullable=False,
         ),
         sa.Column('organization_id', sa.Integer(), nullable=False),
-        sa.Column(
-            'id', sqlalchemy_utils.types.uuid.UUIDType(binary=False), nullable=False
-        ),
+        sa.Column('id', postgresql.UUID(), nullable=False),
         sa.ForeignKeyConstraint(
             ['customer_order_id'],
             ['customer_order.id'],

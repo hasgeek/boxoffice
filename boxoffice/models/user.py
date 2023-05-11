@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from datetime import datetime
 
 from flask import g
@@ -6,12 +8,12 @@ import pytz
 
 from flask_lastuser.sqlalchemy import ProfileBase, UserBase2
 
-from . import JsonDict, db
+from . import JsonDict, Mapped, db, sa
 
 __all__ = ['User', 'Organization']
 
 
-class User(UserBase2, db.Model):
+class User(UserBase2, db.Model):  # type: ignore[name-defined]
     __tablename__ = 'user'
 
     def __repr__(self):
@@ -48,22 +50,26 @@ def naive_to_utc(dt, timezone=None):
     return tz.localize(dt).astimezone(tz).astimezone(pytz.UTC)
 
 
-class Organization(ProfileBase, db.Model):
+class Organization(ProfileBase, db.Model):  # type: ignore[name-defined]
     __tablename__ = 'organization'
-    __table_args__ = (db.UniqueConstraint('contact_email'),)
+    __table_args__ = (sa.UniqueConstraint('contact_email'),)
 
     # The currently used fields in details are address(html)
     # cin (Corporate Identity Number) or llpin (Limited Liability Partnership Identification Number),
     # pan, service_tax_no, support_email,
     # logo (image url), refund_policy (html), ticket_faq (html), website (url)
-    details = db.Column(JsonDict, nullable=False, server_default='{}')
-    contact_email = db.Column(db.Unicode(254), nullable=False)
+    details: Mapped[dict] = sa.orm.mapped_column(
+        JsonDict, nullable=False, server_default='{}'
+    )
+    contact_email = sa.Column(sa.Unicode(254), nullable=False)
     # This is to allow organizations to have their orders invoiced by the parent organization
-    invoicer_id = db.Column(None, db.ForeignKey('organization.id'), nullable=True)
-    invoicer = db.relationship(
+    invoicer_id: Mapped[int] = sa.orm.mapped_column(
+        sa.ForeignKey('organization.id'), nullable=True
+    )
+    invoicer = sa.orm.relationship(
         'Organization',
         remote_side='Organization.id',
-        backref=db.backref(
+        backref=sa.orm.backref(
             'subsidiaries', cascade='all, delete-orphan', lazy='dynamic'
         ),
     )

@@ -9,7 +9,7 @@ from ..models import (
     DiscountPolicy,
     Item,
     ItemCollection,
-    db,
+    sa,
 )
 
 __all__ = [
@@ -72,7 +72,7 @@ class AutomaticDiscountPolicyForm(DiscountPolicyForm):
         self.items.query = (
             Item.query.join(ItemCollection)
             .filter(ItemCollection.organization == self.edit_parent)
-            .options(db.load_only(Item.id, Item.title))
+            .options(sa.orm.load_only(Item.id, Item.title))
         )
 
 
@@ -119,7 +119,7 @@ class CouponBasedDiscountPolicyForm(DiscountPolicyForm):
         self.items.query = (
             Item.query.join(ItemCollection)
             .filter(ItemCollection.organization == self.edit_parent)
-            .options(db.load_only(Item.id, Item.title))
+            .options(sa.orm.load_only(Item.id, Item.title))
         )
 
 
@@ -193,7 +193,7 @@ class DiscountPriceForm(forms.Form):
         self.item.query = (
             Item.query.join(ItemCollection)
             .filter(ItemCollection.organization == self.edit_parent.organization)
-            .options(db.load_only(ItemCollection.id, ItemCollection.title))
+            .options(sa.orm.load_only(ItemCollection.id, ItemCollection.title))
         )
 
 

@@ -48,7 +48,7 @@ from .models import (  # NOQA  # isort:skip
     User,
     db,
 )
-from .siteadmin import (  # NOQA  # isort:skip
+from .siteadmin import (  # isort:skip
     DiscountCouponModelView,
     InvoiceModelView,
     OrganizationModelView,
@@ -72,7 +72,6 @@ class DecimalJsonEncoder(JSONEncoder):
 
 coaster.app.init_app(app)
 db.init_app(app)
-db.app = app
 migrate = Migrate(app, db)
 rq.init_app(app)
 

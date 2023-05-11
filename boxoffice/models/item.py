@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 from decimal import Decimal
+from uuid import UUID
 
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.orderinglist import ordering_list
@@ -7,32 +10,32 @@ from baseframe import __
 from coaster.sqlalchemy import with_roles
 from coaster.utils import LabeledEnum, utcnow
 
-from . import BaseScopedNameMixin, JsonDict, MarkdownColumn, db
+from . import BaseScopedNameMixin, JsonDict, Mapped, MarkdownColumn, db, sa
 from .category import Category
 from .discount_policy import item_discount_policy
 
 __all__ = ['Item', 'Price']
 
 
-class GST_TYPE(LabeledEnum):  # NOQA: N801
+class GST_TYPE(LabeledEnum):  # noqa: N801
     GOOD = (0, __("Good"))
     SERVICE = (1, __("Service"))
 
 
-class Item(BaseScopedNameMixin, db.Model):
+class Item(BaseScopedNameMixin, db.Model):  # type: ignore[name-defined]
     __tablename__ = 'item'
     __uuid_primary_key__ = True
-    __table_args__ = (db.UniqueConstraint('item_collection_id', 'name'),)
+    __table_args__ = (sa.UniqueConstraint('item_collection_id', 'name'),)
 
     description = MarkdownColumn('description', default='', nullable=False)
-    seq = db.Column(db.Integer, nullable=False)
+    seq = sa.Column(sa.Integer, nullable=False)
 
-    item_collection_id = db.Column(
-        None, db.ForeignKey('item_collection.id'), nullable=False
+    item_collection_id: Mapped[UUID] = sa.orm.mapped_column(
+        sa.ForeignKey('item_collection.id'), nullable=False
     )
-    item_collection = db.relationship(
+    item_collection = sa.orm.relationship(
         'ItemCollection',
-        backref=db.backref(
+        backref=sa.orm.backref(
             'items',
             cascade='all, delete-orphan',
             order_by=seq,
@@ -40,35 +43,39 @@ class Item(BaseScopedNameMixin, db.Model):
         ),
     )
 
-    parent = db.synonym('item_collection')
+    parent = sa.orm.synonym('item_collection')
 
-    category_id = db.Column(None, db.ForeignKey('category.id'), nullable=False)
-    category = db.relationship(
-        Category, backref=db.backref('items', cascade='all, delete-orphan')
+    category_id: Mapped[int] = sa.orm.mapped_column(
+        sa.ForeignKey('category.id'), nullable=False
+    )
+    category = sa.orm.relationship(
+        Category, backref=sa.orm.backref('items', cascade='all, delete-orphan')
     )
 
-    quantity_total = db.Column(db.Integer, default=0, nullable=False)
+    quantity_total = sa.Column(sa.Integer, default=0, nullable=False)
 
-    discount_policies = db.relationship(
+    discount_policies = sa.orm.relationship(
         'DiscountPolicy',
         secondary=item_discount_policy,  # type: ignore[has-type]
         backref='items',
         lazy='dynamic',
     )
 
-    assignee_details = db.Column(JsonDict, server_default='{}', nullable=False)
+    assignee_details: Mapped[dict] = sa.orm.mapped_column(
+        JsonDict, server_default='{}', nullable=False
+    )
 
-    event_date = db.Column(db.Date, nullable=True)
+    event_date = sa.Column(sa.Date, nullable=True)
 
-    cancellable_until = db.Column(db.TIMESTAMP(timezone=True), nullable=True)
+    cancellable_until = sa.Column(sa.TIMESTAMP(timezone=True), nullable=True)
 
-    transferable_until = db.Column(db.TIMESTAMP(timezone=True), nullable=True)
+    transferable_until = sa.Column(sa.TIMESTAMP(timezone=True), nullable=True)
 
-    restricted_entry = db.Column(db.Boolean, default=False, nullable=False)
+    restricted_entry = sa.Column(sa.Boolean, default=False, nullable=False)
     # ISO 3166-2 code. Eg: KA for Karnataka
-    place_supply_state_code = db.Column(db.Unicode(3), nullable=True)
+    place_supply_state_code = sa.Column(sa.Unicode(3), nullable=True)
     # ISO country code
-    place_supply_country_code = db.Column(db.Unicode(2), nullable=True)
+    place_supply_country_code = sa.Column(sa.Unicode(2), nullable=True)
 
     __roles__ = {
         'item_owner': {
@@ -175,7 +182,7 @@ class Item(BaseScopedNameMixin, db.Model):
     @with_roles(call={'item_owner'})
     def net_sales(self):
         return (
-            db.session.query(db.func.sum(LineItem.final_amount))
+            db.session.query(sa.func.sum(LineItem.final_amount))
             .filter(
                 LineItem.item == self, LineItem.status == LINE_ITEM_STATUS.CONFIRMED
             )
@@ -192,7 +199,7 @@ class Item(BaseScopedNameMixin, db.Model):
         items_dict = {}
         item_tups = (
             db.session.query(
-                cls.id, cls.title, cls.quantity_total, db.func.count(cls.id)
+                cls.id, cls.title, cls.quantity_total, sa.func.count(cls.id)
             )
             .join(LineItem)
             .filter(
@@ -208,9 +215,9 @@ class Item(BaseScopedNameMixin, db.Model):
 
     def demand_curve(self):
         query = (
-            db.session.query(db.column('final_amount'), db.column('count'))
+            db.session.query(sa.column('final_amount'), sa.column('count'))
             .from_statement(
-                db.text(
+                sa.text(
                     '''
             SELECT final_amount, count(*)
             FROM line_item
@@ -227,35 +234,37 @@ class Item(BaseScopedNameMixin, db.Model):
         return db.session.execute(query).fetchall()
 
 
-class Price(BaseScopedNameMixin, db.Model):
+class Price(BaseScopedNameMixin, db.Model):  # type: ignore[name-defined]
     __tablename__ = 'price'
     __uuid_primary_key__ = True
     __table_args__ = (
-        db.UniqueConstraint('item_id', 'name'),
-        db.CheckConstraint('start_at < end_at', 'price_start_at_lt_end_at_check'),
-        db.UniqueConstraint('item_id', 'discount_policy_id'),
+        sa.UniqueConstraint('item_id', 'name'),
+        sa.CheckConstraint('start_at < end_at', 'price_start_at_lt_end_at_check'),
+        sa.UniqueConstraint('item_id', 'discount_policy_id'),
     )
 
-    item_id = db.Column(None, db.ForeignKey('item.id'), nullable=False)
-    item = db.relationship(
-        Item, backref=db.backref('prices', cascade='all, delete-orphan')
+    item_id: Mapped[UUID] = sa.orm.mapped_column(
+        sa.ForeignKey('item.id'), nullable=False
+    )
+    item = sa.orm.relationship(
+        Item, backref=sa.orm.backref('prices', cascade='all, delete-orphan')
     )
 
-    discount_policy_id = db.Column(
-        None, db.ForeignKey('discount_policy.id'), nullable=True
+    discount_policy_id: Mapped[UUID] = sa.orm.mapped_column(
+        sa.ForeignKey('discount_policy.id'), nullable=True
     )
-    discount_policy = db.relationship(
-        'DiscountPolicy', backref=db.backref('price', cascade='all, delete-orphan')
+    discount_policy = sa.orm.relationship(
+        'DiscountPolicy', backref=sa.orm.backref('price', cascade='all, delete-orphan')
     )
 
-    parent = db.synonym('item')
-    start_at = db.Column(
-        db.TIMESTAMP(timezone=True), default=db.func.utcnow(), nullable=False
+    parent = sa.orm.synonym('item')
+    start_at = sa.Column(
+        sa.TIMESTAMP(timezone=True), default=sa.func.utcnow(), nullable=False
     )
-    end_at = db.Column(db.TIMESTAMP(timezone=True), nullable=False)
+    end_at = sa.Column(sa.TIMESTAMP(timezone=True), nullable=False)
 
-    amount = db.Column(db.Numeric, default=Decimal(0), nullable=False)
-    currency = db.Column(db.Unicode(3), nullable=False, default='INR')
+    amount = sa.Column(sa.Numeric, default=Decimal(0), nullable=False)
+    currency = sa.Column(sa.Unicode(3), nullable=False, default='INR')
 
     __roles__ = {
         'price_owner': {

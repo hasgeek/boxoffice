@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from decimal import Decimal
 import itertools
 
@@ -5,7 +7,7 @@ __all__ = ['LineItemDiscounter']
 
 
 class LineItemDiscounter:
-    def get_discounted_line_items(self, line_items, coupons=[]):
+    def get_discounted_line_items(self, line_items, coupons=()):
         """Return line items with the maximum possible discount applied."""
         if not line_items:
             return None

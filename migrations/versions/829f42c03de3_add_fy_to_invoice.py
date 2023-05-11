@@ -6,20 +6,70 @@ Create Date: 2018-04-01 15:44:20.230030
 
 """
 
+from datetime import datetime
+
+from alembic import op
+from sqlalchemy.dialects import postgresql
+from sqlalchemy.sql import column, table
+import sqlalchemy as sa
+
+import pytz
+
 # revision identifiers, used by Alembic.
 revision = '829f42c03de3'
 down_revision = '23fc9e293ac3'
 
-from alembic import op
-from sqlalchemy.sql import column, table
-import sqlalchemy as sa
-import sqlalchemy_utils
 
-from boxoffice.models.user import get_fiscal_year
+def naive_to_utc(dt, timezone=None):
+    """
+    Return a UTC datetime for a given naive datetime or date object.
+
+    Localizes it to the given timezone and converts it into a UTC datetime
+    """
+    if timezone:
+        if isinstance(timezone, str):
+            tz = pytz.timezone(timezone)
+        else:
+            tz = timezone
+    elif isinstance(dt, datetime) and dt.tzinfo:
+        tz = dt.tzinfo
+    else:
+        tz = pytz.UTC
+
+    return tz.localize(dt).astimezone(tz).astimezone(pytz.UTC)
+
+
+def get_fiscal_year(jurisdiction, dt):
+    """
+    Return the financial year for a given jurisdiction and timestamp.
+
+    Returns start and end dates as tuple of timestamps. Recognizes April 1 as the start
+    date for India (jurisfiction code: 'in'), January 1 everywhere else.
+
+    Example::
+
+        get_fiscal_year('IN', utcnow())
+    """
+    if jurisdiction.lower() == 'in':
+        if dt.month < 4:
+            start_year = dt.year - 1
+        else:
+            start_year = dt.year
+        # starts on April 1 XXXX
+        fy_start = datetime(start_year, 4, 1)
+        # ends on April 1 XXXX + 1
+        fy_end = datetime(start_year + 1, 4, 1)
+        timezone = 'Asia/Kolkata'
+        return (naive_to_utc(fy_start, timezone), naive_to_utc(fy_end, timezone))
+    return (
+        naive_to_utc(datetime(dt.year, 1, 1)),
+        naive_to_utc(datetime(dt.year + 1, 1, 1)),
+    )
+
 
 invoice_table = table(
     'invoice',
-    column('id', sqlalchemy_utils.types.uuid.UUIDType()),
+    column('id', postgresql.UUID()),
     column('invoice_no', sa.Integer()),
     column('invoiced_at', sa.DateTime()),
     column('fy_start_at', sa.DateTime()),

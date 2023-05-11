@@ -24,6 +24,7 @@ from boxoffice.models import (
     Organization,
     PaymentTransaction,
     db,
+    sa,
 )
 from boxoffice.views.custom_exceptions import PaymentGatewayError
 from boxoffice.views.order import process_partial_refund_for_order
@@ -43,9 +44,9 @@ def sales_by_date(sales_datetime, item_ids, user_tz):
         sales_datetime + datetime.timedelta(days=1), timezone=user_tz
     )
     sales_on_date = (
-        db.session.query(db.column('sum'))
+        db.session.query(sa.column('sum'))
         .from_statement(
-            db.text(
+            sa.text(
                 '''SELECT SUM(final_amount) FROM line_item
         WHERE status=:status AND ordered_at >= :start_at AND ordered_at < :end_at
         AND line_item.item_id IN :item_ids
@@ -72,9 +73,9 @@ def calculate_weekly_sales(item_collection_ids, user_tz, year):
     end_at = isoweek_datetime(year + 1, 1, user_tz)
 
     week_sales = (
-        db.session.query(db.column('sales_week'), db.column('sum'))
+        db.session.query(sa.column('sales_week'), sa.column('sum'))
         .from_statement(
-            db.text(
+            sa.text(
                 '''
         SELECT EXTRACT(WEEK FROM ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone)
         AS sales_week, SUM(final_amount) AS sum

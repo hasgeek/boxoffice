@@ -1,32 +1,34 @@
-from . import BaseScopedNameMixin, MarkdownColumn, db
+from __future__ import annotations
+
+from . import BaseScopedNameMixin, Mapped, MarkdownColumn, db, sa
 from .user import Organization
 from .utils import HeadersAndDataTuple
 
 __all__ = ['ItemCollection']
 
 
-class ItemCollection(BaseScopedNameMixin, db.Model):
+class ItemCollection(BaseScopedNameMixin, db.Model):  # type: ignore[name-defined]
     """Represent a collection of items or an inventory."""
 
     __tablename__ = 'item_collection'
     __uuid_primary_key__ = True
-    __table_args__ = (db.UniqueConstraint('organization_id', 'name'),)
+    __table_args__ = (sa.UniqueConstraint('organization_id', 'name'),)
 
     description = MarkdownColumn('description', default='', nullable=False)
 
-    organization_id = db.Column(
-        db.Integer, db.ForeignKey('organization.id'), nullable=False
+    organization_id: Mapped[int] = sa.orm.mapped_column(
+        sa.ForeignKey('organization.id'), nullable=False
     )
-    organization = db.relationship(
+    organization = sa.orm.relationship(
         Organization,
-        backref=db.backref('item_collections', cascade='all, delete-orphan'),
+        backref=sa.orm.backref('item_collections', cascade='all, delete-orphan'),
     )
-    parent = db.synonym('organization')
-    tax_type = db.Column(db.Unicode(80), nullable=True, default='GST')
+    parent = sa.orm.synonym('organization')
+    tax_type = sa.Column(sa.Unicode(80), nullable=True, default='GST')
     # ISO 3166-2 code. Eg: KA for Karnataka
-    place_supply_state_code = db.Column(db.Unicode(3), nullable=True)
+    place_supply_state_code = sa.Column(sa.Unicode(3), nullable=True)
     # ISO country code
-    place_supply_country_code = db.Column(db.Unicode(2), nullable=True)
+    place_supply_country_code = sa.Column(sa.Unicode(2), nullable=True)
 
     __roles__ = {'ic_owner': {'read': {'id', 'name', 'title', 'description'}}}
 
@@ -45,10 +47,10 @@ class ItemCollection(BaseScopedNameMixin, db.Model):
         as a tuple of (keys, rows).
         """
         line_item_join = (
-            db.outerjoin(
+            sa.outerjoin(
                 LineItem,
                 Assignee,
-                db.and_(
+                sa.and_(
                     LineItem.id == Assignee.line_item_id, Assignee.current.is_(True)
                 ),
             )
@@ -60,7 +62,7 @@ class ItemCollection(BaseScopedNameMixin, db.Model):
         )
 
         line_item_query = (
-            db.select(
+            sa.select(
                 LineItem.id,
                 LineItem.customer_order_id,
                 Order.invoice_no,
@@ -137,10 +139,10 @@ class ItemCollection(BaseScopedNameMixin, db.Model):
         as a tuple of (keys, rows).
         """
         line_item_join = (
-            db.join(
+            sa.join(
                 LineItem,
                 Assignee,
-                db.and_(
+                sa.and_(
                     LineItem.id == Assignee.line_item_id, Assignee.current.is_(True)
                 ),
             )
@@ -148,7 +150,7 @@ class ItemCollection(BaseScopedNameMixin, db.Model):
             .join(Order)
         )
         line_item_query = (
-            db.select(
+            sa.select(
                 Order.invoice_no,
                 LineItem.line_item_seq,
                 LineItem.id,

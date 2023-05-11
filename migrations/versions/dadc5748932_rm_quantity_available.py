@@ -6,25 +6,26 @@ Create Date: 2016-06-10 17:53:52.113035
 
 """
 
+from alembic import op
+from sqlalchemy.dialects import postgresql
+from sqlalchemy.sql import column, table
+import sqlalchemy as sa
+
 # revision identifiers, used by Alembic.
 revision = 'dadc5748932'
 down_revision = '253e7b76eb8e'
 
-from alembic import op
-from sqlalchemy.sql import column, table
-import sqlalchemy as sa
-import sqlalchemy_utils
 
 item = table(
     'item',
-    column('id', sqlalchemy_utils.types.uuid.UUIDType()),
+    column('id', postgresql.UUID()),
     column('quantity_total', sa.Integer()),
     column('quantity_available', sa.Integer()),
 )
 
 line_item = table(
     'line_item',
-    column('item_id', sqlalchemy_utils.types.uuid.UUIDType()),
+    column('item_id', postgresql.UUID()),
     column('status', sa.Integer()),
 )
 
