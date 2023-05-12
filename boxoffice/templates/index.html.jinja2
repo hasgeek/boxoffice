@@ -20,5 +20,5 @@
     window.boxofficeAdmin.siteTitle = "{{ config['SITE_TITLE'] }}";
     window.boxofficeFirstLoad = true;
   </script>
-  <script src='{{ asset_path('main_admin') | safe }}' type="text/javascript"></script>
+  <script type="text/javascript" src="{{ asset_path('main_admin.js') }}"></script>
 {% endblock %}
