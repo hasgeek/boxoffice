@@ -89,6 +89,7 @@ baseframe.init_app(
     ],
 )
 app.json = DecimalJsonProvider(app)
+app.jinja_env.policies['json.dumps_function'] = app.json.dumps
 
 mail.init_app(app)
 wtforms_json.init()
