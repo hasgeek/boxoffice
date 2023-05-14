@@ -13,7 +13,7 @@ from pytz import timezone
 import wtforms_json
 
 from baseframe import Version, assets, baseframe
-from baseframe.utils import JSONEncoder
+from baseframe.utils import JSONProvider
 from flask_lastuser import Lastuser
 from flask_lastuser.sqlalchemy import UserManager
 import coaster.app
@@ -57,22 +57,21 @@ from .siteadmin import (  # NOQA  # isort:skip
 # --- Handle JSON quirk for Boxoffice --------------------------------------------------
 
 
-class DecimalJsonEncoder(JSONEncoder):
-    """Custom JSON encoder that converts Decimal to float."""
+class DecimalJsonProvider(JSONProvider):
+    """Custom JSON provider that converts Decimal to float."""
 
     # Required until Boxoffice JS recognises currency represented as numeric strings
-
-    def default(self, o: Any) -> Any:
+    @staticmethod
+    def default(o: Any) -> Any:
         if isinstance(o, Decimal):
             return float(o)
-        return super().default(o)
+        return JSONProvider.default(o)
 
 
 # --- Configure ------------------------------------------------------------------------
 
 coaster.app.init_app(app)
 db.init_app(app)
-db.app = app
 migrate = Migrate(app, db)
 rq.init_app(app)
 
@@ -89,7 +88,7 @@ baseframe.init_app(
         'jquery.tinymce>=4.0.0',
     ],
 )
-app.json_encoder = DecimalJsonEncoder
+app.json = DecimalJsonProvider(app)
 
 mail.init_app(app)
 wtforms_json.init()
