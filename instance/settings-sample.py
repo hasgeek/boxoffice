@@ -33,8 +33,6 @@ LASTUSER_CLIENT_ID = ''
 LASTUSER_CLIENT_SECRET = ''  # nosec
 DEBUG = True
 ASSET_MANIFEST_PATH = "static/build/manifest.json"
-# no trailing slash
-ASSET_BASE_PATH = '/static/build'
 #: Cache settings
 CACHE_TYPE = 'redis'
 #: RQ settings
