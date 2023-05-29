@@ -5,6 +5,7 @@ import { navigateTo } from './navigate';
 
 const NProgress = require('nprogress');
 const Ractive = require('ractive');
+const fly = require('ractive-transitions-fly');
 
 export const OrderView = {
   render({ accountName, orderReceiptNo } = {}) {
@@ -22,6 +23,7 @@ export const OrderView = {
         const orderComponent = new Ractive({
           el: '#main-content-area',
           template: OrderTemplate,
+          transitions: { fly },
           data: {
             order,
             menu,

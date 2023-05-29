@@ -5,6 +5,7 @@ import { SideBarView } from './sidebar';
 
 const NProgress = require('nprogress');
 const Ractive = require('ractive');
+const fly = require('ractive-transitions-fly');
 
 export const ReportView = {
   render({ menuId } = {}) {
@@ -26,6 +27,7 @@ export const ReportView = {
         const reportComponent = new Ractive({
           el: '#main-content-area',
           template: ReportTemplate,
+          transitions: { fly },
           data: {
             menuName,
             menuTitle,

@@ -3,6 +3,7 @@ import { Util, fetch, urlFor, setPageTitle } from '../models/util';
 import { SideBarView } from './sidebar';
 
 const Ractive = require('ractive');
+const fly = require('ractive-transitions-fly');
 const c3 = require('c3');
 
 const NProgress = require('nprogress');
@@ -200,6 +201,7 @@ export const ItemView = {
           el: '#main-content-area',
           template: ItemTemplate,
           components: { DemandGraph },
+          transitions: { fly },
           data: {
             item,
             accountName,

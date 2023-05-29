@@ -3,6 +3,7 @@ import { Util, fetch, urlFor, setPageTitle } from '../models/util';
 import { SideBarView } from './sidebar';
 
 const Ractive = require('ractive');
+const fly = require('ractive-transitions-fly');
 const NProgress = require('nprogress');
 const _ = require('underscore');
 const c3 = require('c3');
@@ -266,6 +267,7 @@ export const ItemCollectionView = {
         const icComponent = new Ractive({
           el: '#main-content-area',
           template: ItemCollectionTemplate,
+          transitions: { fly },
           data: {
             menuId,
             menuTitle,
