@@ -30,7 +30,6 @@ rq = RQ()
 # --- Assets ---------------------------------------------------------------------------
 
 version = Version(__version__)
-assets['boxoffice.css'][version] = 'css/app.css'
 assets['boxoffice.js'][version] = 'js/scripts.js'
 
 # --- Import rest of the app -----------------------------------------------------------

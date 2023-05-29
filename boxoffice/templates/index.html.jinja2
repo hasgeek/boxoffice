@@ -1,7 +1,7 @@
 {% extends "layout.html.jinja2" %}
 
 {%- block layoutheaders %}
-  <link rel="stylesheet" href="/static/css/dist/admin_bundle.css">
+  <link rel="stylesheet" type="text/css" href="{{ built_asset('css/admin.scss') }}"/>
 {% endblock %}
 
 {% block title %}{% if title %} {{ title }}{% else %}{% trans %}Admin{% endtrans %}{% endif %}{% endblock %}

@@ -52,6 +52,14 @@ module.exports = {
       __dirname,
       'boxoffice/assets/js/views/main_invoice.js'
     ),
+    app_css: path.resolve(
+      __dirname,
+      'boxoffice/assets/sass/app.scss'
+    ),
+    admin_css: path.resolve(
+      __dirname,
+      'boxoffice/assets/sass/admin.scss'
+    )
   },
   output: {
     path: path.resolve(__dirname, 'boxoffice/static/build'),
