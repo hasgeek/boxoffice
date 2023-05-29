@@ -32,7 +32,7 @@ def jsonify_item_collection(item_collection_dict):
         date_item_counts=item_collection_dict['date_item_counts'],
         date_sales=item_collection_dict['date_sales'],
         today_sales=item_collection_dict['today_sales'],
-        net_sales=item_collection_dict['item_collection'].net_sales,
+        net_sales=item_collection_dict['item_collection'].net_sales(),
         sales_delta=item_collection_dict['sales_delta'],
     )
 

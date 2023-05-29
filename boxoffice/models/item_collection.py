@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List
+from decimal import Decimal
+from typing import TYPE_CHECKING, List, cast
 
 from sqlalchemy.ext.orderinglist import ordering_list
 
@@ -14,7 +15,8 @@ from . import (
     relationship,
     sa,
 )
-from .enums import LINE_ITEM_STATUS
+from .enums import LINE_ITEM_STATUS, TRANSACTION_TYPE
+from .payment import PaymentTransaction
 from .user import Organization
 from .utils import HeadersAndDataTuple
 
@@ -34,12 +36,18 @@ class ItemCollection(BaseScopedNameMixin, Model):
         sa.ForeignKey('organization.id'), nullable=False
     )
     organization: Mapped[Organization] = relationship(back_populates='item_collections')
-    parent = sa.orm.synonym('organization')
-    tax_type = sa.orm.mapped_column(sa.Unicode(80), nullable=True, default='GST')
+    parent: Mapped[Organization] = sa.orm.synonym('organization')
+    tax_type: Mapped[str] = sa.orm.mapped_column(
+        sa.Unicode(80), nullable=True, default='GST'
+    )
     # ISO 3166-2 code. Eg: KA for Karnataka
-    place_supply_state_code = sa.orm.mapped_column(sa.Unicode(3), nullable=True)
+    place_supply_state_code: Mapped[str] = sa.orm.mapped_column(
+        sa.Unicode(3), nullable=True
+    )
     # ISO country code
-    place_supply_country_code = sa.orm.mapped_column(sa.Unicode(2), nullable=True)
+    place_supply_country_code: Mapped[str] = sa.orm.mapped_column(
+        sa.Unicode(2), nullable=True
+    )
 
     categories: Mapped[List[Category]] = relationship(
         cascade='all, delete-orphan',
@@ -65,7 +73,7 @@ class ItemCollection(BaseScopedNameMixin, Model):
             roles.add('ic_owner')
         return roles
 
-    def fetch_all_details(self):
+    def fetch_all_details(self) -> HeadersAndDataTuple:
         """
         Return details for all line items in a given item collection.
 
@@ -120,7 +128,7 @@ class ItemCollection(BaseScopedNameMixin, Model):
             )
             .select_from(line_item_join)
             .where(LineItem.status == LINE_ITEM_STATUS.CONFIRMED)
-            .where(Order.item_collection == self)
+            .where(Order.item_collection_id == self.id)
             .order_by(LineItem.ordered_at)
         )
         # TODO: Use label() instead of this hack
@@ -206,6 +214,39 @@ class ItemCollection(BaseScopedNameMixin, Model):
             ],
             db.session.execute(line_item_query).fetchall(),
         )
+
+    def net_sales(self) -> Decimal:
+        """Return the net revenue for an item collection."""
+        total_paid = cast(
+            Decimal,
+            db.session.scalar(
+                sa.select(sa.func.sum(PaymentTransaction.amount))
+                .select_from(PaymentTransaction)
+                .join(Order, PaymentTransaction.customer_order_id == Order.id)
+                .where(
+                    PaymentTransaction.transaction_type == TRANSACTION_TYPE.PAYMENT,
+                    Order.item_collection_id == self.id,
+                )
+            ),
+        )
+        total_refunded = cast(
+            Decimal,
+            db.session.scalar(
+                sa.select(sa.func.sum(PaymentTransaction.amount))
+                .select_from(PaymentTransaction)
+                .join(Order, PaymentTransaction.customer_order_id == Order.id)
+                .where(
+                    PaymentTransaction.transaction_type == TRANSACTION_TYPE.REFUND,
+                    Order.item_collection_id == self.id,
+                )
+            ),
+        )
+
+        if total_paid and total_refunded:
+            return total_paid - total_refunded
+        if total_paid:
+            return total_paid
+        return Decimal('0')
 
 
 # Tail imports

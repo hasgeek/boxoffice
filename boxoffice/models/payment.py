@@ -12,13 +12,9 @@ from coaster.utils import isoweek_datetime
 
 from . import BaseMixin, Mapped, MarkdownColumn, Model, db, relationship, sa
 from .enums import RAZORPAY_PAYMENT_STATUS, TRANSACTION_METHOD, TRANSACTION_TYPE
-from .item_collection import ItemCollection
 from .order import ORDER_STATUS, Order
 
-__all__ = [
-    'OnlinePayment',
-    'PaymentTransaction',
-]
+__all__ = ['OnlinePayment', 'PaymentTransaction']
 
 
 class OnlinePayment(BaseMixin, Model):
@@ -70,7 +66,7 @@ class PaymentTransaction(BaseMixin, Model):
         sa.ForeignKey('online_payment.id'), nullable=True
     )
     online_payment: Mapped[OnlinePayment] = relationship(back_populates='transactions')
-    amount = sa.orm.mapped_column(sa.Numeric, nullable=False)
+    amount: Mapped[Decimal] = sa.orm.mapped_column(sa.Numeric, nullable=False)
     currency = sa.orm.mapped_column(sa.Unicode(3), nullable=False)
     transaction_type = sa.orm.mapped_column(
         sa.Integer, default=TRANSACTION_TYPE.PAYMENT, nullable=False
@@ -86,52 +82,6 @@ class PaymentTransaction(BaseMixin, Model):
     note_to_user = MarkdownColumn('note_to_user', nullable=True)
     # Refund id issued by the payment gateway
     pg_refundid = sa.orm.mapped_column(sa.Unicode(80), nullable=True, unique=True)
-
-
-def item_collection_net_sales(self):
-    """Return the net revenue for an item collection."""
-    total_paid = (
-        db.session.query(sa.column('sum'))
-        .from_statement(
-            sa.text(
-                '''
-                SELECT SUM(amount) FROM payment_transaction
-                INNER JOIN customer_order
-                    ON payment_transaction.customer_order_id = customer_order.id
-                WHERE transaction_type=:transaction_type
-                    AND customer_order.item_collection_id = :item_collection_id
-                '''
-            )
-        )
-        .params(transaction_type=TRANSACTION_TYPE.PAYMENT, item_collection_id=self.id)
-        .scalar()
-    )
-
-    total_refunded = (
-        db.session.query(sa.column('sum'))
-        .from_statement(
-            sa.text(
-                '''
-                SELECT SUM(amount) FROM payment_transaction
-                INNER JOIN customer_order
-                    ON payment_transaction.customer_order_id = customer_order.id
-                WHERE transaction_type=:transaction_type
-                    AND customer_order.item_collection_id = :item_collection_id
-                '''
-            )
-        )
-        .params(transaction_type=TRANSACTION_TYPE.REFUND, item_collection_id=self.id)
-        .scalar()
-    )
-
-    if total_paid and total_refunded:
-        return total_paid - total_refunded
-    if total_paid:
-        return total_paid
-    return Decimal('0')
-
-
-ItemCollection.net_sales = property(item_collection_net_sales)
 
 
 def calculate_weekly_refunds(item_collection_ids, user_tz, year):
