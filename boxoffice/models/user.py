@@ -8,12 +8,12 @@ import pytz
 
 from flask_lastuser.sqlalchemy import ProfileBase, UserBase2
 
-from . import Mapped, Model, jsonb_dict, relationship, sa
+from . import Mapped, Model, backref, jsonb_dict, relationship, sa
 
 __all__ = ['User', 'Organization']
 
 
-class User(UserBase2, Model):  # type: ignore[name-defined]
+class User(UserBase2, Model):
     __tablename__ = 'user'
 
     def __repr__(self):
@@ -50,7 +50,7 @@ def naive_to_utc(dt, timezone=None):
     return tz.localize(dt).astimezone(tz).astimezone(pytz.UTC)
 
 
-class Organization(ProfileBase, Model):  # type: ignore[name-defined]
+class Organization(ProfileBase, Model):
     __tablename__ = 'organization'
     __table_args__ = (sa.UniqueConstraint('contact_email'),)
 
@@ -68,9 +68,7 @@ class Organization(ProfileBase, Model):  # type: ignore[name-defined]
     invoicer = relationship(
         'Organization',
         remote_side='Organization.id',
-        backref=sa.orm.backref(
-            'subsidiaries', cascade='all, delete-orphan', lazy='dynamic'
-        ),
+        backref=backref('subsidiaries', cascade='all, delete-orphan', lazy='dynamic'),
     )
 
     def permissions(self, actor, inherited=None):

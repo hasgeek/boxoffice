@@ -20,6 +20,7 @@ from coaster.sqlalchemy import (
     Query,
     TimestampMixin,
     UuidMixin,
+    backref,
     relationship,
 )
 

@@ -96,7 +96,7 @@ def cors(f):
             and not origin
             or origin not in app.config['ALLOWED_ORIGINS']
         ):
-            abort(401)
+            abort(403)
 
         if request.method == 'OPTIONS':
             # pre-flight request, check CORS headers directly

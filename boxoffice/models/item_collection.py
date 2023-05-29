@@ -1,13 +1,22 @@
 from __future__ import annotations
 
-from . import BaseScopedNameMixin, Mapped, MarkdownColumn, Model, db, relationship, sa
+from . import (
+    BaseScopedNameMixin,
+    Mapped,
+    MarkdownColumn,
+    Model,
+    backref,
+    db,
+    relationship,
+    sa,
+)
 from .user import Organization
 from .utils import HeadersAndDataTuple
 
 __all__ = ['ItemCollection']
 
 
-class ItemCollection(BaseScopedNameMixin, Model):  # type: ignore[name-defined]
+class ItemCollection(BaseScopedNameMixin, Model):
     """Represent a collection of items or an inventory."""
 
     __tablename__ = 'item_collection'
@@ -21,7 +30,7 @@ class ItemCollection(BaseScopedNameMixin, Model):  # type: ignore[name-defined]
     )
     organization = relationship(
         Organization,
-        backref=sa.orm.backref('item_collections', cascade='all, delete-orphan'),
+        backref=backref('item_collections', cascade='all, delete-orphan'),
     )
     parent = sa.orm.synonym('organization')
     tax_type = sa.Column(sa.Unicode(80), nullable=True, default='GST')
