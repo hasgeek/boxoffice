@@ -3,6 +3,7 @@ import { SideBarModel } from '../models/sidebar';
 import { SideBarTemplate } from '../templates/sidebar.html';
 
 const Ractive = require('ractive');
+const fly = require('ractive-transitions-fly');
 const NProgress = require('nprogress');
 
 export const SideBarView = {
@@ -12,6 +13,7 @@ export const SideBarView = {
     this.ractive = new Ractive({
       el: '#sidebar',
       template: SideBarTemplate,
+      transitions: { fly },
       data: {
         sidebarMobileOn: false,
         sidebarItems: SideBarModel.getItems(menuConfig),

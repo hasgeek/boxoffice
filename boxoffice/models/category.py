@@ -6,12 +6,12 @@ from uuid import UUID
 
 from sqlalchemy.ext.orderinglist import ordering_list
 
-from . import BaseScopedNameMixin, Mapped, db, sa
+from . import BaseScopedNameMixin, Mapped, Model, relationship, sa
 
 __all__ = ['Category']
 
 
-class Category(BaseScopedNameMixin, db.Model):  # type: ignore[name-defined]
+class Category(BaseScopedNameMixin, Model):  # type: ignore[name-defined]
     __tablename__ = 'category'
     __table_args__ = (
         sa.UniqueConstraint('item_collection_id', 'name'),
@@ -22,7 +22,7 @@ class Category(BaseScopedNameMixin, db.Model):  # type: ignore[name-defined]
         sa.ForeignKey('item_collection.id'), nullable=False
     )
     seq = sa.Column(sa.Integer, nullable=False)
-    item_collection = sa.orm.relationship(
+    item_collection = relationship(
         'ItemCollection',
         backref=sa.orm.backref(
             'categories',

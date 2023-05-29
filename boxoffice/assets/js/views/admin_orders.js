@@ -12,6 +12,7 @@ import { SideBarView } from './sidebar';
 
 const NProgress = require('nprogress');
 const Ractive = require('ractive');
+const fly = require('ractive-transitions-fly');
 
 export const OrdersView = {
   render({ menuId } = {}) {
@@ -33,6 +34,7 @@ export const OrdersView = {
         const orderComponent = new Ractive({
           el: '#main-content-area',
           template: OrdersTemplate,
+          transitions: { fly },
           data: {
             accountName,
             menuId,

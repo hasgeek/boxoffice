@@ -10,7 +10,16 @@ from baseframe import _, __
 from coaster.sqlalchemy import with_roles
 from coaster.utils import LabeledEnum, utcnow
 
-from . import BaseScopedNameMixin, JsonDict, Mapped, MarkdownColumn, db, sa
+from . import (
+    BaseScopedNameMixin,
+    Mapped,
+    MarkdownColumn,
+    Model,
+    db,
+    jsonb_dict,
+    relationship,
+    sa,
+)
 from .category import Category
 from .discount_policy import item_discount_policy
 
@@ -22,7 +31,7 @@ class GST_TYPE(LabeledEnum):  # noqa: N801
     SERVICE = (1, __("Service"))
 
 
-class Item(BaseScopedNameMixin, db.Model):  # type: ignore[name-defined]
+class Item(BaseScopedNameMixin, Model):  # type: ignore[name-defined]
     __tablename__ = 'item'
     __uuid_primary_key__ = True
     __table_args__ = (sa.UniqueConstraint('item_collection_id', 'name'),)
@@ -33,7 +42,7 @@ class Item(BaseScopedNameMixin, db.Model):  # type: ignore[name-defined]
     item_collection_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('item_collection.id'), nullable=False
     )
-    item_collection = sa.orm.relationship(
+    item_collection = relationship(
         'ItemCollection',
         backref=sa.orm.backref(
             'items',
@@ -48,22 +57,20 @@ class Item(BaseScopedNameMixin, db.Model):  # type: ignore[name-defined]
     category_id: Mapped[int] = sa.orm.mapped_column(
         sa.ForeignKey('category.id'), nullable=False
     )
-    category = sa.orm.relationship(
+    category = relationship(
         Category, backref=sa.orm.backref('items', cascade='all, delete-orphan')
     )
 
     quantity_total = sa.Column(sa.Integer, default=0, nullable=False)
 
-    discount_policies = sa.orm.relationship(
+    discount_policies = relationship(
         'DiscountPolicy',
         secondary=item_discount_policy,  # type: ignore[has-type]
         backref='items',
         lazy='dynamic',
     )
 
-    assignee_details: Mapped[dict] = sa.orm.mapped_column(
-        JsonDict, server_default='{}', nullable=False
-    )
+    assignee_details: Mapped[jsonb_dict] = sa.orm.mapped_column()
 
     event_date = sa.Column(sa.Date, nullable=True)
 
@@ -234,7 +241,7 @@ class Item(BaseScopedNameMixin, db.Model):  # type: ignore[name-defined]
         return db.session.execute(query).fetchall()
 
 
-class Price(BaseScopedNameMixin, db.Model):  # type: ignore[name-defined]
+class Price(BaseScopedNameMixin, Model):  # type: ignore[name-defined]
     __tablename__ = 'price'
     __uuid_primary_key__ = True
     __table_args__ = (
@@ -246,14 +253,14 @@ class Price(BaseScopedNameMixin, db.Model):  # type: ignore[name-defined]
     item_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('item.id'), nullable=False
     )
-    item = sa.orm.relationship(
+    item = relationship(
         Item, backref=sa.orm.backref('prices', cascade='all, delete-orphan')
     )
 
     discount_policy_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('discount_policy.id'), nullable=True
     )
-    discount_policy = sa.orm.relationship(
+    discount_policy = relationship(
         'DiscountPolicy', backref=sa.orm.backref('price', cascade='all, delete-orphan')
     )
 

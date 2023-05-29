@@ -3,6 +3,7 @@ import { xhrRetry, getFormJSObject } from '../models/util';
 import { TicketAssignmentTemplate } from '../templates/ticket_assigment.html';
 
 const Ractive = require('ractive');
+const fly = require('ractive-transitions-fly');
 const FormValidator = require('validate-js');
 
 export const Order = {
@@ -52,6 +53,7 @@ export const Order = {
     order.ticketComponent = new Ractive({
       el: '#boxoffice-order',
       template: TicketAssignmentTemplate,
+      transitions: { fly },
       data: {
         orderId: data.order_id,
         access_token: data.access_token,

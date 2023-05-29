@@ -8,12 +8,12 @@ import pytz
 
 from flask_lastuser.sqlalchemy import ProfileBase, UserBase2
 
-from . import JsonDict, Mapped, db, sa
+from . import Mapped, Model, jsonb_dict, relationship, sa
 
 __all__ = ['User', 'Organization']
 
 
-class User(UserBase2, db.Model):  # type: ignore[name-defined]
+class User(UserBase2, Model):  # type: ignore[name-defined]
     __tablename__ = 'user'
 
     def __repr__(self):
@@ -50,7 +50,7 @@ def naive_to_utc(dt, timezone=None):
     return tz.localize(dt).astimezone(tz).astimezone(pytz.UTC)
 
 
-class Organization(ProfileBase, db.Model):  # type: ignore[name-defined]
+class Organization(ProfileBase, Model):  # type: ignore[name-defined]
     __tablename__ = 'organization'
     __table_args__ = (sa.UniqueConstraint('contact_email'),)
 
@@ -58,16 +58,14 @@ class Organization(ProfileBase, db.Model):  # type: ignore[name-defined]
     # Number) or llpin (Limited Liability Partnership Identification Number), pan,
     # service_tax_no, support_email, logo (image url), refund_policy (html), ticket_faq
     # (html), website (url)
-    details: Mapped[dict] = sa.orm.mapped_column(
-        JsonDict, nullable=False, server_default='{}'
-    )
+    details: Mapped[jsonb_dict] = sa.orm.mapped_column()
     contact_email = sa.Column(sa.Unicode(254), nullable=False)
     # This is to allow organizations to have their orders invoiced by the parent
     # organization
     invoicer_id: Mapped[int] = sa.orm.mapped_column(
         sa.ForeignKey('organization.id'), nullable=True
     )
-    invoicer = sa.orm.relationship(
+    invoicer = relationship(
         'Organization',
         remote_side='Organization.id',
         backref=sa.orm.backref(

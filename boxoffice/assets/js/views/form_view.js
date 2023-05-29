@@ -5,6 +5,7 @@ import { BaseframeForm } from './baseframe_form';
 
 const _ = require('underscore');
 const Ractive = require('ractive');
+const fly = require('ractive-transitions-fly');
 const NProgress = require('nprogress');
 
 /*
@@ -45,6 +46,7 @@ export const FormView = new Ractive({
   el: '#form-view',
   template: FormViewSliderTemplate,
   components: { BaseframeForm },
+  transitions: { fly },
   data: {
     shown: false,
     title: '',

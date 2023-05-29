@@ -7,7 +7,7 @@ from uuid import UUID
 from baseframe import __
 from coaster.utils import LabeledEnum, buid, utcnow
 
-from . import BaseMixin, Mapped, db, sa
+from . import BaseMixin, Mapped, Model, relationship, sa
 from .user import User
 
 __all__ = ['Order', 'ORDER_STATUS', 'OrderSession']
@@ -37,7 +37,7 @@ def gen_invoice_no(organization):
     )
 
 
-class Order(BaseMixin, db.Model):  # type: ignore[name-defined]
+class Order(BaseMixin, Model):  # type: ignore[name-defined]
     __tablename__ = 'customer_order'
     __uuid_primary_key__ = True
     __table_args__ = (
@@ -46,13 +46,13 @@ class Order(BaseMixin, db.Model):  # type: ignore[name-defined]
     )
 
     user_id: Mapped[int] = sa.orm.mapped_column(sa.ForeignKey('user.id'), nullable=True)
-    user = sa.orm.relationship(
+    user = relationship(
         User, backref=sa.orm.backref('orders', cascade='all, delete-orphan')
     )
     item_collection_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('item_collection.id'), nullable=False
     )
-    item_collection = sa.orm.relationship(
+    item_collection = relationship(
         'ItemCollection',
         backref=sa.orm.backref('orders', cascade='all, delete-orphan', lazy='dynamic'),
     )
@@ -60,7 +60,7 @@ class Order(BaseMixin, db.Model):  # type: ignore[name-defined]
     organization_id: Mapped[int] = sa.orm.mapped_column(
         sa.ForeignKey('organization.id'), nullable=False
     )
-    organization = sa.orm.relationship(
+    organization = relationship(
         'Organization',
         backref=sa.orm.backref('orders', cascade='all, delete-orphan', lazy='dynamic'),
     )
@@ -137,7 +137,7 @@ class Order(BaseMixin, db.Model):  # type: ignore[name-defined]
         return True
 
 
-class OrderSession(BaseMixin, db.Model):  # type: ignore[name-defined]
+class OrderSession(BaseMixin, Model):  # type: ignore[name-defined]
     """Records the referrer and utm headers for an order."""
 
     __tablename__ = 'order_session'
@@ -146,7 +146,7 @@ class OrderSession(BaseMixin, db.Model):  # type: ignore[name-defined]
     customer_order_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('customer_order.id'), nullable=False, index=True, unique=False
     )
-    order = sa.orm.relationship(
+    order = relationship(
         Order,
         backref=sa.orm.backref('session', cascade='all, delete-orphan', uselist=False),
     )

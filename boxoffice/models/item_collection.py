@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from . import BaseScopedNameMixin, Mapped, MarkdownColumn, db, sa
+from . import BaseScopedNameMixin, Mapped, MarkdownColumn, Model, db, relationship, sa
 from .user import Organization
 from .utils import HeadersAndDataTuple
 
 __all__ = ['ItemCollection']
 
 
-class ItemCollection(BaseScopedNameMixin, db.Model):  # type: ignore[name-defined]
+class ItemCollection(BaseScopedNameMixin, Model):  # type: ignore[name-defined]
     """Represent a collection of items or an inventory."""
 
     __tablename__ = 'item_collection'
@@ -19,7 +19,7 @@ class ItemCollection(BaseScopedNameMixin, db.Model):  # type: ignore[name-define
     organization_id: Mapped[int] = sa.orm.mapped_column(
         sa.ForeignKey('organization.id'), nullable=False
     )
-    organization = sa.orm.relationship(
+    organization = relationship(
         Organization,
         backref=sa.orm.backref('item_collections', cascade='all, delete-orphan'),
     )

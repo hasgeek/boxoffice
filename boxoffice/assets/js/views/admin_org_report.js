@@ -5,6 +5,7 @@ import { SideBarView } from './sidebar';
 
 const NProgress = require('nprogress');
 const Ractive = require('ractive');
+const fly = require('ractive-transitions-fly');
 
 export const OrgReportView = {
   render({ accountName } = {}) {
@@ -24,6 +25,7 @@ export const OrgReportView = {
       const reportComponent = new Ractive({
         el: '#main-content-area',
         template: OrgReportTemplate,
+        transitions: { fly },
         data: {
           accountTitle,
           reportType: 'invoices',

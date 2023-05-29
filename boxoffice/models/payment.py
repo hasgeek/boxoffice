@@ -12,7 +12,7 @@ from baseframe import __
 from coaster.utils import LabeledEnum, isoweek_datetime
 
 from ..extapi.razorpay_status import RAZORPAY_PAYMENT_STATUS
-from . import BaseMixin, Mapped, MarkdownColumn, db, sa
+from . import BaseMixin, Mapped, MarkdownColumn, Model, db, relationship, sa
 from .item_collection import ItemCollection
 from .order import ORDER_STATUS, Order
 
@@ -37,7 +37,7 @@ class TRANSACTION_TYPE(LabeledEnum):  # noqa: N801
     # CREDIT = (2, __("Credit"))
 
 
-class OnlinePayment(BaseMixin, db.Model):  # type: ignore[name-defined]
+class OnlinePayment(BaseMixin, Model):  # type: ignore[name-defined]
     """Represents payments made through a payment gateway. Supports Razorpay only."""
 
     __tablename__ = 'online_payment'
@@ -45,7 +45,7 @@ class OnlinePayment(BaseMixin, db.Model):  # type: ignore[name-defined]
     customer_order_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('customer_order.id'), nullable=False
     )
-    order = sa.orm.relationship(
+    order = relationship(
         Order, backref=sa.orm.backref('online_payments', cascade='all, delete-orphan')
     )
 
@@ -67,7 +67,7 @@ class OnlinePayment(BaseMixin, db.Model):  # type: ignore[name-defined]
         self.failed_at = func.utcnow()
 
 
-class PaymentTransaction(BaseMixin, db.Model):  # type: ignore[name-defined]
+class PaymentTransaction(BaseMixin, Model):  # type: ignore[name-defined]
     """
     Models transactions made by a customer.
 
@@ -80,7 +80,7 @@ class PaymentTransaction(BaseMixin, db.Model):  # type: ignore[name-defined]
     customer_order_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('customer_order.id'), nullable=False
     )
-    order = sa.orm.relationship(
+    order = relationship(
         Order,
         backref=sa.orm.backref(
             'transactions', cascade='all, delete-orphan', lazy="dynamic"
@@ -89,7 +89,7 @@ class PaymentTransaction(BaseMixin, db.Model):  # type: ignore[name-defined]
     online_payment_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('online_payment.id'), nullable=True
     )
-    online_payment = sa.orm.relationship(
+    online_payment = relationship(
         OnlinePayment,
         backref=sa.orm.backref('transactions', cascade='all, delete-orphan'),
     )

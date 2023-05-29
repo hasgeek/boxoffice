@@ -15,7 +15,7 @@ import { SideBarView } from './sidebar';
 
 const NProgress = require('nprogress');
 const Ractive = require('ractive');
-Ractive.transitions.fly = require('ractive-transitions-fly');
+const fly = require('ractive-transitions-fly');
 const _ = require('underscore');
 const Clipboard = require('clipboard');
 const FormValidator = require('validate-js');
@@ -71,6 +71,7 @@ export const DiscountPolicyView = {
         const discountPolicyComponent = new Ractive({
           el: '#main-content-area',
           template: DiscountPolicyTemplate,
+          transitions: { fly },
           data: {
             accountName,
             accountTitle,

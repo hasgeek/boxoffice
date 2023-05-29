@@ -3,6 +3,7 @@ import { xhrRetry, getFormJSObject } from '../models/util';
 import { InvoiceEditFormTemplate } from '../templates/invoice_edit_form.html';
 
 const Ractive = require('ractive');
+const fly = require('ractive-transitions-fly');
 const FormValidator = require('validate-js');
 
 export const Invoice = {
@@ -52,6 +53,7 @@ export const Invoice = {
     invoice.formComponent = new Ractive({
       el: '#boxoffice-invoice',
       template: InvoiceEditFormTemplate,
+      transitions: { fly },
       data: {
         invoices: data.invoices,
         accessToken: data.access_token,
