@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Sequence, Tuple
 from uuid import UUID
 
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -210,25 +210,19 @@ class Item(BaseScopedNameMixin, Model):
             items_dict[str(item_tup[0])] = item_tup[1:]
         return items_dict
 
-    def demand_curve(self):
-        query = (
-            db.session.query(sa.column('final_amount'), sa.column('count'))
-            .from_statement(
-                sa.text(
-                    '''
-            SELECT final_amount, count(*)
-            FROM line_item
-            WHERE item_id = :item_id
-            AND final_amount > 0
-            AND status = :status
-            GROUP BY final_amount
-            ORDER BY final_amount;
-        '''
-                )
+    def demand_curve(self) -> Sequence[sa.engine.Row[Tuple[Decimal, int]]]:
+        """Return demand curve data of sale price and number of sales at that price."""
+        return db.session.execute(
+            sa.select(LineItem.final_amount, sa.func.count())
+            .select_from(LineItem)
+            .where(
+                LineItem.item_id == self.id,
+                LineItem.final_amount > 0,
+                LineItem.status == LINE_ITEM_STATUS.CONFIRMED,
             )
-            .params(item_id=self.id, status=LINE_ITEM_STATUS.CONFIRMED)
-        )
-        return db.session.execute(query).fetchall()
+            .group_by(LineItem.final_amount)
+            .order_by(LineItem.final_amount)
+        ).fetchall()
 
 
 class Price(BaseScopedNameMixin, Model):
