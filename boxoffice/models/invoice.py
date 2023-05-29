@@ -5,7 +5,7 @@ from uuid import UUID
 from baseframe import _, __
 from coaster.utils import LabeledEnum, utcnow
 
-from . import BaseMixin, Mapped, UuidMixin, db, sa
+from . import BaseMixin, Mapped, Model, UuidMixin, db, relationship, sa
 from .user import Organization, get_fiscal_year
 from .utils import HeadersAndDataTuple
 
@@ -29,7 +29,7 @@ def gen_invoice_no(organization, jurisdiction, invoice_dt):
     )
 
 
-class Invoice(UuidMixin, BaseMixin, db.Model):  # type: ignore[name-defined]
+class Invoice(UuidMixin, BaseMixin, Model):  # type: ignore[name-defined]
     __tablename__ = 'invoice'
     __uuid_primary_key__ = True
     __table_args__ = (
@@ -62,7 +62,7 @@ class Invoice(UuidMixin, BaseMixin, db.Model):  # type: ignore[name-defined]
     customer_order_id: Mapped[UUID] = sa.orm.mapped_column(
         None, sa.ForeignKey('customer_order.id'), nullable=False, index=True
     )
-    order = sa.orm.relationship(
+    order = relationship(
         'Order', backref=sa.orm.backref('invoices', cascade='all, delete-orphan')
     )
 
@@ -72,7 +72,7 @@ class Invoice(UuidMixin, BaseMixin, db.Model):  # type: ignore[name-defined]
     organization_id: Mapped[int] = sa.orm.mapped_column(
         sa.ForeignKey('organization.id'), nullable=False
     )
-    organization = sa.orm.relationship(
+    organization = relationship(
         'Organization',
         backref=sa.orm.backref(
             'invoices', cascade='all, delete-orphan', lazy='dynamic'

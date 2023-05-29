@@ -16,7 +16,7 @@ from typing_extensions import Literal
 from baseframe import __, localize_timezone
 from coaster.utils import LabeledEnum, isoweek_datetime, midnight_to_utc, utcnow
 
-from . import BaseMixin, JsonDict, Mapped, db, sa
+from . import BaseMixin, Mapped, Model, db, jsonb, relationship, sa
 from .order import Order
 
 __all__ = ['LineItem', 'LINE_ITEM_STATUS', 'Assignee']
@@ -58,7 +58,7 @@ def make_ntuple(item_id, base_amount, **kwargs):
     )
 
 
-class Assignee(BaseMixin, db.Model):  # type: ignore[name-defined]
+class Assignee(BaseMixin, Model):  # type: ignore[name-defined]
     __tablename__ = 'assignee'
     __table_args__ = (
         sa.UniqueConstraint('line_item_id', 'current'),
@@ -67,14 +67,14 @@ class Assignee(BaseMixin, db.Model):  # type: ignore[name-defined]
 
     # lastuser id
     user_id = sa.Column(sa.Integer, sa.ForeignKey('user.id'), nullable=True)
-    user = sa.orm.relationship(
+    user = relationship(
         'User', backref=sa.orm.backref('assignees', cascade='all, delete-orphan')
     )
 
     line_item_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('line_item.id'), nullable=False
     )
-    line_item = sa.orm.relationship(
+    line_item = relationship(
         'LineItem',
         backref=sa.orm.backref(
             'assignees', cascade='all, delete-orphan', lazy='dynamic'
@@ -86,11 +86,11 @@ class Assignee(BaseMixin, db.Model):  # type: ignore[name-defined]
     email = sa.Column(sa.Unicode(254), nullable=False)
     #: Unvalidated phone number
     phone = sa.Column(sa.Unicode(16), nullable=True)
-    details: Mapped[dict] = sa.orm.mapped_column(JsonDict, nullable=False, default={})
+    details: Mapped[jsonb] = sa.orm.mapped_column(nullable=False, default={})
     current = sa.Column(sa.Boolean, nullable=True)
 
 
-class LineItem(BaseMixin, db.Model):  # type: ignore[name-defined]
+class LineItem(BaseMixin, Model):  # type: ignore[name-defined]
     """
     A line item in a sale receipt.
 
@@ -112,7 +112,7 @@ class LineItem(BaseMixin, db.Model):  # type: ignore[name-defined]
     customer_order_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('customer_order.id'), nullable=False, index=True, unique=False
     )
-    order = sa.orm.relationship(
+    order = relationship(
         Order,
         backref=sa.orm.backref(
             'line_items',
@@ -125,7 +125,7 @@ class LineItem(BaseMixin, db.Model):  # type: ignore[name-defined]
     item_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('item.id'), nullable=False, index=True, unique=False
     )
-    item = sa.orm.relationship(
+    item = relationship(
         'Item',
         backref=sa.orm.backref(
             'line_items', cascade='all, delete-orphan', lazy='dynamic'
@@ -135,7 +135,7 @@ class LineItem(BaseMixin, db.Model):  # type: ignore[name-defined]
     previous_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('line_item.id'), nullable=True, unique=True
     )
-    previous = sa.orm.relationship(
+    previous = relationship(
         'LineItem',
         primaryjoin='line_item.c.id==line_item.c.previous_id',
         backref=sa.orm.backref('revision', uselist=False),
@@ -145,14 +145,14 @@ class LineItem(BaseMixin, db.Model):  # type: ignore[name-defined]
     discount_policy_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('discount_policy.id'), nullable=True, index=True, unique=False
     )
-    discount_policy = sa.orm.relationship(
+    discount_policy = relationship(
         'DiscountPolicy', backref=sa.orm.backref('line_items', lazy='dynamic')
     )
 
     discount_coupon_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('discount_coupon.id'), nullable=True, index=True, unique=False
     )
-    discount_coupon = sa.orm.relationship(
+    discount_coupon = relationship(
         'DiscountCoupon', backref=sa.orm.backref('line_items')
     )
 
@@ -240,7 +240,7 @@ class LineItem(BaseMixin, db.Model):  # type: ignore[name-defined]
     def confirm(self):
         self.status = LINE_ITEM_STATUS.CONFIRMED
 
-    # TODO: assignee = sa.orm.relationship(Assignee, primaryjoin=Assignee.line_item ==
+    # TODO: assignee = relationship(Assignee, primaryjoin=Assignee.line_item ==
     # self and Assignee.current.is_(True), uselist=False) Don't use "current_assignee"
     # -- we want to imply that there can only be one assignee and the rest are
     # historical (and hence not 'assignees')
@@ -301,7 +301,7 @@ class LineItem(BaseMixin, db.Model):  # type: ignore[name-defined]
         )
 
 
-Order.confirmed_line_items = sa.orm.relationship(
+Order.confirmed_line_items = relationship(
     LineItem,
     lazy='dynamic',
     primaryjoin=sa.and_(
@@ -312,7 +312,7 @@ Order.confirmed_line_items = sa.orm.relationship(
 )
 
 
-Order.confirmed_and_cancelled_line_items = sa.orm.relationship(
+Order.confirmed_and_cancelled_line_items = relationship(
     LineItem,
     lazy='dynamic',
     primaryjoin=sa.and_(
@@ -323,7 +323,7 @@ Order.confirmed_and_cancelled_line_items = sa.orm.relationship(
 )
 
 
-Order.initial_line_items = sa.orm.relationship(
+Order.initial_line_items = relationship(
     LineItem,
     lazy='dynamic',
     primaryjoin=sa.and_(

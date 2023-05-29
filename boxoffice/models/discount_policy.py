@@ -15,7 +15,7 @@ from baseframe import __
 from coaster.sqlalchemy import cached
 from coaster.utils import LabeledEnum, buid, uuid1mc
 
-from . import BaseScopedNameMixin, IdMixin, Mapped, db, sa
+from . import BaseScopedNameMixin, IdMixin, Mapped, Model, db, relationship, sa
 from .user import Organization
 
 __all__ = ['DiscountPolicy', 'DiscountCoupon', 'item_discount_policy', 'DISCOUNT_TYPE']
@@ -28,7 +28,7 @@ class DISCOUNT_TYPE(LabeledEnum):  # noqa: N801
 
 item_discount_policy = sa.Table(
     'item_discount_policy',
-    db.Model.metadata,  # type: ignore[has-type]
+    Model.metadata,
     sa.Column('item_id', None, sa.ForeignKey('item.id'), primary_key=True),
     sa.Column(
         'discount_policy_id',
@@ -45,7 +45,7 @@ item_discount_policy = sa.Table(
 )
 
 
-class DiscountPolicy(BaseScopedNameMixin, db.Model):  # type: ignore[name-defined]
+class DiscountPolicy(BaseScopedNameMixin, Model):  # type: ignore[name-defined]
     """
     Consists of the discount rules applicable on items.
 
@@ -70,7 +70,7 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):  # type: ignore[name-define
     organization_id: Mapped[int] = sa.orm.mapped_column(
         sa.ForeignKey('organization.id'), nullable=False
     )
-    organization = sa.orm.relationship(
+    organization = relationship(
         Organization,
         backref=sa.orm.backref(
             'discount_policies',
@@ -282,7 +282,7 @@ def generate_coupon_code(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(secrets.choice(chars) for _ in range(size))
 
 
-class DiscountCoupon(IdMixin, db.Model):  # type: ignore[name-defined]
+class DiscountCoupon(IdMixin, Model):  # type: ignore[name-defined]
     __tablename__ = 'discount_coupon'
     __uuid_primary_key__ = True
     __table_args__ = (sa.UniqueConstraint('discount_policy_id', 'code'),)
@@ -299,7 +299,7 @@ class DiscountCoupon(IdMixin, db.Model):  # type: ignore[name-defined]
     discount_policy_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('discount_policy.id'), nullable=False
     )
-    discount_policy = sa.orm.relationship(
+    discount_policy = relationship(
         DiscountPolicy,
         backref=sa.orm.backref('discount_coupons', cascade='all, delete-orphan'),
     )
