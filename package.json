@@ -39,7 +39,7 @@
     "moment": "^2.29.4",
     "nprogress": "^0.2.0",
     "path-browserify": "^1.0.1",
-    "ractive": "^0.10.14",
+    "ractive": "0.8.0",
     "ractive-transitions-fly": "^0.3.0",
     "rome": "^2.1.22",
     "select2": "~4.0.13",
