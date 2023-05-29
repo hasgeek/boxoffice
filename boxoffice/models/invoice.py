@@ -34,26 +34,28 @@ class Invoice(UuidMixin, BaseMixin, Model):
         ),
     )
 
-    status = sa.Column(sa.SmallInteger, default=INVOICE_STATUS.DRAFT, nullable=False)
-    invoicee_name = sa.Column(sa.Unicode(255), nullable=True)
-    invoicee_company = sa.Column(sa.Unicode(255), nullable=True)
-    invoicee_email = sa.Column(sa.Unicode(254), nullable=True)
-    invoice_no = sa.Column(sa.Integer(), nullable=True)
-    fy_start_at = sa.Column(sa.TIMESTAMP(timezone=True), nullable=False)
-    fy_end_at = sa.Column(sa.TIMESTAMP(timezone=True), nullable=False)
-    invoiced_at = sa.Column(sa.TIMESTAMP(timezone=True), nullable=True)
-    street_address_1 = sa.Column(sa.Unicode(255), nullable=True)
-    street_address_2 = sa.Column(sa.Unicode(255), nullable=True)
-    city = sa.Column(sa.Unicode(255), nullable=True)
-    state = sa.Column(sa.Unicode(255), nullable=True)
+    status = sa.orm.mapped_column(
+        sa.SmallInteger, default=INVOICE_STATUS.DRAFT, nullable=False
+    )
+    invoicee_name = sa.orm.mapped_column(sa.Unicode(255), nullable=True)
+    invoicee_company = sa.orm.mapped_column(sa.Unicode(255), nullable=True)
+    invoicee_email = sa.orm.mapped_column(sa.Unicode(254), nullable=True)
+    invoice_no = sa.orm.mapped_column(sa.Integer(), nullable=True)
+    fy_start_at = sa.orm.mapped_column(sa.TIMESTAMP(timezone=True), nullable=False)
+    fy_end_at = sa.orm.mapped_column(sa.TIMESTAMP(timezone=True), nullable=False)
+    invoiced_at = sa.orm.mapped_column(sa.TIMESTAMP(timezone=True), nullable=True)
+    street_address_1 = sa.orm.mapped_column(sa.Unicode(255), nullable=True)
+    street_address_2 = sa.orm.mapped_column(sa.Unicode(255), nullable=True)
+    city = sa.orm.mapped_column(sa.Unicode(255), nullable=True)
+    state = sa.orm.mapped_column(sa.Unicode(255), nullable=True)
     # ISO 3166-2 code. Eg: KA for Karnataka
-    state_code = sa.Column(sa.Unicode(3), nullable=True)
+    state_code = sa.orm.mapped_column(sa.Unicode(3), nullable=True)
     # ISO country code
-    country_code = sa.Column(sa.Unicode(2), nullable=True)
-    postcode = sa.Column(sa.Unicode(8), nullable=True)
+    country_code = sa.orm.mapped_column(sa.Unicode(2), nullable=True)
+    postcode = sa.orm.mapped_column(sa.Unicode(8), nullable=True)
     # GSTIN in the case of India
-    buyer_taxid = sa.Column(sa.Unicode(255), nullable=True)
-    seller_taxid = sa.Column(sa.Unicode(255), nullable=True)
+    buyer_taxid = sa.orm.mapped_column(sa.Unicode(255), nullable=True)
+    seller_taxid = sa.orm.mapped_column(sa.Unicode(255), nullable=True)
 
     customer_order_id: Mapped[UUID] = sa.orm.mapped_column(
         None, sa.ForeignKey('customer_order.id'), nullable=False, index=True

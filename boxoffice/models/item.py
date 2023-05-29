@@ -33,7 +33,7 @@ class Item(BaseScopedNameMixin, Model):
     __table_args__ = (sa.UniqueConstraint('item_collection_id', 'name'),)
 
     description = MarkdownColumn('description', default='', nullable=False)
-    seq = sa.Column(sa.Integer, nullable=False)
+    seq = sa.orm.mapped_column(sa.Integer, nullable=False)
 
     item_collection_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('item_collection.id'), nullable=False
@@ -57,7 +57,7 @@ class Item(BaseScopedNameMixin, Model):
         Category, backref=backref('items', cascade='all, delete-orphan')
     )
 
-    quantity_total = sa.Column(sa.Integer, default=0, nullable=False)
+    quantity_total = sa.orm.mapped_column(sa.Integer, default=0, nullable=False)
 
     discount_policies = relationship(
         'DiscountPolicy',
@@ -68,17 +68,19 @@ class Item(BaseScopedNameMixin, Model):
 
     assignee_details: Mapped[jsonb_dict] = sa.orm.mapped_column()
 
-    event_date = sa.Column(sa.Date, nullable=True)
+    event_date = sa.orm.mapped_column(sa.Date, nullable=True)
 
-    cancellable_until = sa.Column(sa.TIMESTAMP(timezone=True), nullable=True)
+    cancellable_until = sa.orm.mapped_column(sa.TIMESTAMP(timezone=True), nullable=True)
 
-    transferable_until = sa.Column(sa.TIMESTAMP(timezone=True), nullable=True)
+    transferable_until = sa.orm.mapped_column(
+        sa.TIMESTAMP(timezone=True), nullable=True
+    )
 
-    restricted_entry = sa.Column(sa.Boolean, default=False, nullable=False)
+    restricted_entry = sa.orm.mapped_column(sa.Boolean, default=False, nullable=False)
     # ISO 3166-2 code. Eg: KA for Karnataka
-    place_supply_state_code = sa.Column(sa.Unicode(3), nullable=True)
+    place_supply_state_code = sa.orm.mapped_column(sa.Unicode(3), nullable=True)
     # ISO country code
-    place_supply_country_code = sa.Column(sa.Unicode(2), nullable=True)
+    place_supply_country_code = sa.orm.mapped_column(sa.Unicode(2), nullable=True)
 
     __roles__ = {
         'item_owner': {
@@ -259,13 +261,13 @@ class Price(BaseScopedNameMixin, Model):
     )
 
     parent = sa.orm.synonym('item')
-    start_at = sa.Column(
+    start_at = sa.orm.mapped_column(
         sa.TIMESTAMP(timezone=True), default=sa.func.utcnow(), nullable=False
     )
-    end_at = sa.Column(sa.TIMESTAMP(timezone=True), nullable=False)
+    end_at = sa.orm.mapped_column(sa.TIMESTAMP(timezone=True), nullable=False)
 
-    amount = sa.Column(sa.Numeric, default=Decimal(0), nullable=False)
-    currency = sa.Column(sa.Unicode(3), nullable=False, default='INR')
+    amount = sa.orm.mapped_column(sa.Numeric, default=Decimal(0), nullable=False)
+    currency = sa.orm.mapped_column(sa.Unicode(3), nullable=False, default='INR')
 
     __roles__ = {
         'price_owner': {

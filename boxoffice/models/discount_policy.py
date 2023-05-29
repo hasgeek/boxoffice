@@ -76,19 +76,19 @@ class DiscountPolicy(BaseScopedNameMixin, Model):
     )
     parent = sa.orm.synonym('organization')
 
-    discount_type = sa.Column(
+    discount_type = sa.orm.mapped_column(
         sa.Integer, default=DISCOUNT_TYPE.AUTOMATIC, nullable=False
     )
 
     # Minimum number of a particular item that needs to be bought for this discount to
     # apply
-    item_quantity_min = sa.Column(sa.Integer, default=1, nullable=False)
-    percentage = sa.Column(sa.Integer, nullable=True)
+    item_quantity_min = sa.orm.mapped_column(sa.Integer, default=1, nullable=False)
+    percentage = sa.orm.mapped_column(sa.Integer, nullable=True)
     # price-based discount
-    is_price_based = sa.Column(sa.Boolean, default=False, nullable=False)
+    is_price_based = sa.orm.mapped_column(sa.Boolean, default=False, nullable=False)
 
-    discount_code_base = sa.Column(sa.Unicode(20), nullable=True)
-    secret = sa.Column(sa.Unicode(50), nullable=True)
+    discount_code_base = sa.orm.mapped_column(sa.Unicode(20), nullable=True)
+    secret = sa.orm.mapped_column(sa.Unicode(50), nullable=True)
 
     # Coupons generated in bulk are not stored in the database during generation. This
     # field allows specifying the number of times a coupon, generated in bulk, can be
@@ -96,7 +96,7 @@ class DiscountPolicy(BaseScopedNameMixin, Model):
     # instance, one could generate a signed coupon and provide it to a user such that
     # the user can share the coupon `n` times `n` here is essentially
     # bulk_coupon_usage_limit.
-    bulk_coupon_usage_limit = sa.Column(sa.Integer, nullable=True, default=1)
+    bulk_coupon_usage_limit = sa.orm.mapped_column(sa.Integer, nullable=True, default=1)
 
     __roles__ = {
         'dp_owner': {
@@ -286,10 +286,12 @@ class DiscountCoupon(IdMixin, Model):
         self.id = uuid1mc()
         super().__init__(*args, **kwargs)
 
-    code = sa.Column(sa.Unicode(100), nullable=False, default=generate_coupon_code)
-    usage_limit = sa.Column(sa.Integer, nullable=False, default=1)
+    code = sa.orm.mapped_column(
+        sa.Unicode(100), nullable=False, default=generate_coupon_code
+    )
+    usage_limit = sa.orm.mapped_column(sa.Integer, nullable=False, default=1)
 
-    used_count = cached(sa.Column(sa.Integer, nullable=False, default=0))
+    used_count = cached(sa.orm.mapped_column(sa.Integer, nullable=False, default=0))
 
     discount_policy_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('discount_policy.id'), nullable=False

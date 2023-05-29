@@ -63,23 +63,25 @@ class Order(BaseMixin, Model):
         backref=backref('orders', cascade='all, delete-orphan', lazy='dynamic'),
     )
 
-    status = sa.Column(sa.Integer, default=ORDER_STATUS.PURCHASE_ORDER, nullable=False)
+    status = sa.orm.mapped_column(
+        sa.Integer, default=ORDER_STATUS.PURCHASE_ORDER, nullable=False
+    )
 
-    initiated_at = sa.Column(
+    initiated_at = sa.orm.mapped_column(
         sa.TIMESTAMP(timezone=True), nullable=False, default=sa.func.utcnow()
     )
-    paid_at = sa.Column(sa.TIMESTAMP(timezone=True), nullable=True)
-    invoiced_at = sa.Column(sa.TIMESTAMP(timezone=True), nullable=True)
-    cancelled_at = sa.Column(sa.TIMESTAMP(timezone=True), nullable=True)
+    paid_at = sa.orm.mapped_column(sa.TIMESTAMP(timezone=True), nullable=True)
+    invoiced_at = sa.orm.mapped_column(sa.TIMESTAMP(timezone=True), nullable=True)
+    cancelled_at = sa.orm.mapped_column(sa.TIMESTAMP(timezone=True), nullable=True)
 
-    access_token = sa.Column(sa.Unicode(22), nullable=False, default=buid)
+    access_token = sa.orm.mapped_column(sa.Unicode(22), nullable=False, default=buid)
 
-    buyer_email = sa.Column(sa.Unicode(254), nullable=False)
-    buyer_fullname = sa.Column(sa.Unicode(80), nullable=False)
-    buyer_phone = sa.Column(sa.Unicode(16), nullable=False)
+    buyer_email = sa.orm.mapped_column(sa.Unicode(254), nullable=False)
+    buyer_fullname = sa.orm.mapped_column(sa.Unicode(80), nullable=False)
+    buyer_phone = sa.orm.mapped_column(sa.Unicode(16), nullable=False)
 
     # TODO: Deprecate invoice_no, rename to receipt_no instead
-    invoice_no = sa.Column(sa.Integer, nullable=True)
+    invoice_no = sa.orm.mapped_column(sa.Integer, nullable=True)
     receipt_no = sa.orm.synonym('invoice_no')
 
     transactions: DynamicMapped[PaymentTransaction] = relationship(
@@ -177,18 +179,28 @@ class OrderSession(BaseMixin, Model):
         backref=backref('session', cascade='all, delete-orphan', uselist=False),
     )
 
-    referrer = sa.Column(sa.Unicode(2083), nullable=True)
-    host = sa.Column(sa.UnicodeText, nullable=True)
+    referrer = sa.orm.mapped_column(sa.Unicode(2083), nullable=True)
+    host = sa.orm.mapped_column(sa.UnicodeText, nullable=True)
 
     # Google Analytics parameters
-    utm_source = sa.Column(sa.Unicode(250), nullable=False, default='', index=True)
-    utm_medium = sa.Column(sa.Unicode(250), nullable=False, default='', index=True)
-    utm_term = sa.Column(sa.Unicode(250), nullable=False, default='')
-    utm_content = sa.Column(sa.Unicode(250), nullable=False, default='')
-    utm_id = sa.Column(sa.Unicode(250), nullable=False, default='', index=True)
-    utm_campaign = sa.Column(sa.Unicode(250), nullable=False, default='', index=True)
+    utm_source = sa.orm.mapped_column(
+        sa.Unicode(250), nullable=False, default='', index=True
+    )
+    utm_medium = sa.orm.mapped_column(
+        sa.Unicode(250), nullable=False, default='', index=True
+    )
+    utm_term = sa.orm.mapped_column(sa.Unicode(250), nullable=False, default='')
+    utm_content = sa.orm.mapped_column(sa.Unicode(250), nullable=False, default='')
+    utm_id = sa.orm.mapped_column(
+        sa.Unicode(250), nullable=False, default='', index=True
+    )
+    utm_campaign = sa.orm.mapped_column(
+        sa.Unicode(250), nullable=False, default='', index=True
+    )
     # Google click id (for AdWords)
-    gclid = sa.Column(sa.Unicode(250), nullable=False, default='', index=True)
+    gclid = sa.orm.mapped_column(
+        sa.Unicode(250), nullable=False, default='', index=True
+    )
 
 
 # Tail imports

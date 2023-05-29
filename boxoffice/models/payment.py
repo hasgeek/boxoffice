@@ -34,7 +34,7 @@ class OnlinePayment(BaseMixin, Model):
     )
 
     # Payment id issued by the payment gateway
-    pg_paymentid = sa.Column(sa.Unicode(80), nullable=False, unique=True)
+    pg_paymentid = sa.orm.mapped_column(sa.Unicode(80), nullable=False, unique=True)
     # Payment status issued by the payment gateway
     pg_payment_status = sa.orm.mapped_column(sa.Integer, nullable=False)
     confirmed_at = sa.orm.mapped_column(sa.TIMESTAMP(timezone=True), nullable=True)
@@ -72,22 +72,22 @@ class PaymentTransaction(BaseMixin, Model):
         OnlinePayment,
         backref=backref('transactions', cascade='all, delete-orphan'),
     )
-    amount = sa.Column(sa.Numeric, nullable=False)
-    currency = sa.Column(sa.Unicode(3), nullable=False)
-    transaction_type = sa.Column(
+    amount = sa.orm.mapped_column(sa.Numeric, nullable=False)
+    currency = sa.orm.mapped_column(sa.Unicode(3), nullable=False)
+    transaction_type = sa.orm.mapped_column(
         sa.Integer, default=TRANSACTION_TYPE.PAYMENT, nullable=False
     )
-    transaction_method = sa.Column(
+    transaction_method = sa.orm.mapped_column(
         sa.Integer, default=TRANSACTION_METHOD.ONLINE, nullable=False
     )
     # Eg: reference number for a bank transfer
-    transaction_ref = sa.Column(sa.Unicode(80), nullable=True)
-    refunded_at = sa.Column(sa.TIMESTAMP(timezone=True), nullable=True)
-    internal_note = sa.Column(sa.Unicode(250), nullable=True)
-    refund_description = sa.Column(sa.Unicode(250), nullable=True)
+    transaction_ref = sa.orm.mapped_column(sa.Unicode(80), nullable=True)
+    refunded_at = sa.orm.mapped_column(sa.TIMESTAMP(timezone=True), nullable=True)
+    internal_note = sa.orm.mapped_column(sa.Unicode(250), nullable=True)
+    refund_description = sa.orm.mapped_column(sa.Unicode(250), nullable=True)
     note_to_user = MarkdownColumn('note_to_user', nullable=True)
     # Refund id issued by the payment gateway
-    pg_refundid = sa.Column(sa.Unicode(80), nullable=True, unique=True)
+    pg_refundid = sa.orm.mapped_column(sa.Unicode(80), nullable=True, unique=True)
 
 
 def item_collection_net_sales(self):

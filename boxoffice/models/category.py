@@ -21,7 +21,7 @@ class Category(BaseScopedNameMixin, Model):
     item_collection_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('item_collection.id'), nullable=False
     )
-    seq = sa.Column(sa.Integer, nullable=False)
+    seq = sa.orm.mapped_column(sa.Integer, nullable=False)
     item_collection = relationship(
         'ItemCollection',
         backref=backref(

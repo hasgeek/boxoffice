@@ -57,7 +57,7 @@ class Assignee(BaseMixin, Model):
     )
 
     # lastuser id
-    user_id = sa.Column(sa.Integer, sa.ForeignKey('user.id'), nullable=True)
+    user_id = sa.orm.mapped_column(sa.Integer, sa.ForeignKey('user.id'), nullable=True)
     user = relationship(
         'User', backref=backref('assignees', cascade='all, delete-orphan')
     )
@@ -70,13 +70,13 @@ class Assignee(BaseMixin, Model):
         backref=backref('assignees', cascade='all, delete-orphan', lazy='dynamic'),
     )
 
-    fullname = sa.Column(sa.Unicode(80), nullable=False)
+    fullname = sa.orm.mapped_column(sa.Unicode(80), nullable=False)
     #: Unvalidated email address
-    email = sa.Column(sa.Unicode(254), nullable=False)
+    email = sa.orm.mapped_column(sa.Unicode(254), nullable=False)
     #: Unvalidated phone number
-    phone = sa.Column(sa.Unicode(16), nullable=True)
+    phone = sa.orm.mapped_column(sa.Unicode(16), nullable=True)
     details: Mapped[jsonb] = sa.orm.mapped_column(nullable=False, default={})
-    current = sa.Column(sa.Boolean, nullable=True)
+    current = sa.orm.mapped_column(sa.Boolean, nullable=True)
 
 
 class LineItem(BaseMixin, Model):
@@ -97,7 +97,7 @@ class LineItem(BaseMixin, Model):
     )
 
     # line_item_seq is the relative number of the line item per order.
-    line_item_seq = sa.Column(sa.Integer, nullable=False)
+    line_item_seq = sa.orm.mapped_column(sa.Integer, nullable=False)
     customer_order_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('customer_order.id'), nullable=False, index=True, unique=False
     )
@@ -141,14 +141,16 @@ class LineItem(BaseMixin, Model):
     )
     discount_coupon = relationship('DiscountCoupon', backref=backref('line_items'))
 
-    base_amount = sa.Column(sa.Numeric, default=Decimal(0), nullable=False)
-    discounted_amount = sa.Column(sa.Numeric, default=Decimal(0), nullable=False)
-    final_amount = sa.Column(sa.Numeric, default=Decimal(0), nullable=False)
-    status = sa.Column(
+    base_amount = sa.orm.mapped_column(sa.Numeric, default=Decimal(0), nullable=False)
+    discounted_amount = sa.orm.mapped_column(
+        sa.Numeric, default=Decimal(0), nullable=False
+    )
+    final_amount = sa.orm.mapped_column(sa.Numeric, default=Decimal(0), nullable=False)
+    status = sa.orm.mapped_column(
         sa.Integer, default=LINE_ITEM_STATUS.PURCHASE_ORDER, nullable=False
     )
-    ordered_at = sa.Column(sa.TIMESTAMP(timezone=True), nullable=True)
-    cancelled_at = sa.Column(sa.TIMESTAMP(timezone=True), nullable=True)
+    ordered_at = sa.orm.mapped_column(sa.TIMESTAMP(timezone=True), nullable=True)
+    cancelled_at = sa.orm.mapped_column(sa.TIMESTAMP(timezone=True), nullable=True)
 
     def permissions(self, actor, inherited=None):
         perms = super().permissions(actor, inherited)

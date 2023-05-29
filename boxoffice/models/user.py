@@ -59,7 +59,7 @@ class Organization(ProfileBase, Model):
     # service_tax_no, support_email, logo (image url), refund_policy (html), ticket_faq
     # (html), website (url)
     details: Mapped[jsonb_dict] = sa.orm.mapped_column()
-    contact_email = sa.Column(sa.Unicode(254), nullable=False)
+    contact_email = sa.orm.mapped_column(sa.Unicode(254), nullable=False)
     # This is to allow organizations to have their orders invoiced by the parent
     # organization
     invoicer_id: Mapped[int] = sa.orm.mapped_column(

@@ -34,11 +34,11 @@ class ItemCollection(BaseScopedNameMixin, Model):
         backref=backref('item_collections', cascade='all, delete-orphan'),
     )
     parent = sa.orm.synonym('organization')
-    tax_type = sa.Column(sa.Unicode(80), nullable=True, default='GST')
+    tax_type = sa.orm.mapped_column(sa.Unicode(80), nullable=True, default='GST')
     # ISO 3166-2 code. Eg: KA for Karnataka
-    place_supply_state_code = sa.Column(sa.Unicode(3), nullable=True)
+    place_supply_state_code = sa.orm.mapped_column(sa.Unicode(3), nullable=True)
     # ISO country code
-    place_supply_country_code = sa.Column(sa.Unicode(2), nullable=True)
+    place_supply_country_code = sa.orm.mapped_column(sa.Unicode(2), nullable=True)
 
     __roles__ = {'ic_owner': {'read': {'id', 'name', 'title', 'description'}}}
 
