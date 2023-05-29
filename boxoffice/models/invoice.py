@@ -1,14 +1,14 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 from baseframe import _
 from coaster.utils import utcnow
 
-from . import BaseMixin, Mapped, Model, UuidMixin, backref, db, relationship, sa
+from . import BaseMixin, Mapped, Model, UuidMixin, relationship, sa
 from .enums import INVOICE_STATUS
-from .user import Organization, get_fiscal_year
-from .utils import HeadersAndDataTuple
+from .user import get_fiscal_year
 
 __all__ = ['Invoice']
 
@@ -60,9 +60,7 @@ class Invoice(UuidMixin, BaseMixin, Model):
     customer_order_id: Mapped[UUID] = sa.orm.mapped_column(
         None, sa.ForeignKey('customer_order.id'), nullable=False, index=True
     )
-    order = relationship(
-        'Order', backref=backref('invoices', cascade='all, delete-orphan')
-    )
+    order: Mapped[Order] = relationship(back_populates='invoices')
 
     # An invoice may be associated with a different organization as compared to its
     # order to allow for the following use case. An invoice may be issued by a parent
@@ -70,10 +68,7 @@ class Invoice(UuidMixin, BaseMixin, Model):
     organization_id: Mapped[int] = sa.orm.mapped_column(
         sa.ForeignKey('organization.id'), nullable=False
     )
-    organization = relationship(
-        'Organization',
-        backref=backref('invoices', cascade='all, delete-orphan', lazy='dynamic'),
-    )
+    organization: Mapped[Organization] = relationship(back_populates='invoices')
 
     __roles__ = {
         'invoicer': {
@@ -146,56 +141,6 @@ class Invoice(UuidMixin, BaseMixin, Model):
         return val
 
 
-def fetch_invoices(self):
-    """Return invoices for an organization as a tuple of (row_headers, rows)."""
-    headers = [
-        "order_id",
-        "receipt_no",
-        "invoice_no",
-        "status",
-        "buyer_taxid",
-        "seller_taxid",
-        "invoicee_name",
-        "invoicee_company",
-        "invoicee_email",
-        "street_address_1",
-        "street_address_2",
-        "city",
-        "state",
-        "state_code",
-        "country_code",
-        "postcode",
-        "invoiced_at",
-    ]
-    invoices_query = (
-        sa.select(
-            Order.id,
-            Order.invoice_no,
-            Invoice.invoice_no,
-            Invoice.status,
-            Invoice.buyer_taxid,
-            Invoice.seller_taxid,
-            Invoice.invoicee_name,
-            Invoice.invoicee_company,
-            Invoice.invoicee_email,
-            Invoice.street_address_1,
-            Invoice.street_address_2,
-            Invoice.city,
-            Invoice.state,
-            Invoice.state_code,
-            Invoice.country_code,
-            Invoice.postcode,
-            Invoice.invoiced_at,
-        )
-        .where(Invoice.organization == self)
-        .select_from(Invoice)
-        .join(Order)
-        .order_by(Invoice.invoice_no)
-    )
-    return HeadersAndDataTuple(headers, db.session.execute(invoices_query).fetchall())
-
-
-Organization.fetch_invoices = fetch_invoices
-
-# Tail imports
-from .order import Order  # isort:skip
+if TYPE_CHECKING:
+    from .order import Order
+    from .user import Organization

@@ -4,11 +4,10 @@ from decimal import Decimal
 from typing import Any
 
 from flask import Flask
-from flask_migrate import Migrate
-from flask_rq2 import RQ
-
 from flask_admin import Admin
 from flask_mail import Mail
+from flask_migrate import Migrate
+from flask_rq2 import RQ
 from pytz import timezone
 import wtforms_json
 

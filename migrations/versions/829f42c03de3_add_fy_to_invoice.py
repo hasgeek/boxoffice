@@ -11,9 +11,8 @@ from datetime import datetime
 from alembic import op
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.sql import column, table
-import sqlalchemy as sa
-
 import pytz
+import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '829f42c03de3'

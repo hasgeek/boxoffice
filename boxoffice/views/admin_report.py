@@ -1,9 +1,8 @@
 from datetime import date, datetime
 
+from babel.dates import format_datetime
 from flask import g, jsonify, request, url_for
 from flask_babel import get_locale
-
-from babel.dates import format_datetime
 
 from baseframe import localize_timezone
 from coaster.views import load_models, render_with

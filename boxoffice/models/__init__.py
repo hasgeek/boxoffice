@@ -3,10 +3,9 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.orm import DeclarativeBase, DynamicMapped, Mapped
-import sqlalchemy as sa
-
 from sqlalchemy_json import mutable_json_type
 from typing_extensions import Annotated, TypeAlias
+import sqlalchemy as sa
 
 from coaster.sqlalchemy import (
     AppenderQuery,
@@ -21,7 +20,6 @@ from coaster.sqlalchemy import (
     Query,
     TimestampMixin,
     UuidMixin,
-    backref,
     relationship,
 )
 

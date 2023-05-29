@@ -1,20 +1,26 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import TYPE_CHECKING, List
 
 from flask import g
-
 import pytz
 
 from flask_lastuser.sqlalchemy import ProfileBase, UserBase2
 
-from . import Mapped, Model, backref, jsonb_dict, relationship, sa
+from . import DynamicMapped, Mapped, Model, db, jsonb_dict, relationship, sa
+from .utils import HeadersAndDataTuple
 
 __all__ = ['User', 'Organization']
 
 
 class User(UserBase2, Model):
     __tablename__ = 'user'
+
+    assignees: Mapped[List[Assignee]] = relationship(
+        cascade='all, delete-orphan', back_populates='user'
+    )
+    orders: Mapped[List[Order]] = relationship(cascade='all, delete-orphan')
 
     def __repr__(self):
         """Return a representation."""
@@ -65,10 +71,30 @@ class Organization(ProfileBase, Model):
     invoicer_id: Mapped[int] = sa.orm.mapped_column(
         sa.ForeignKey('organization.id'), nullable=True
     )
-    invoicer = relationship(
-        'Organization',
+    invoicer: Mapped[Organization] = relationship(
         remote_side='Organization.id',
-        backref=backref('subsidiaries', cascade='all, delete-orphan', lazy='dynamic'),
+        back_populates='subsidiaries',
+    )
+    subsidiaries: DynamicMapped[Organization] = relationship(
+        lazy='dynamic',
+        cascade='all, delete-orphan',
+        back_populates='invoicer',
+    )
+    item_collections: Mapped[List[ItemCollection]] = relationship(
+        cascade='all, delete-orphan', back_populates='organization'
+    )
+
+    discount_policies: DynamicMapped[DiscountPolicy] = relationship(
+        order_by='DiscountPolicy.created_at.desc()',
+        lazy='dynamic',
+        cascade='all, delete-orphan',
+        back_populates='organization',
+    )
+    invoices: DynamicMapped[Invoice] = relationship(
+        cascade='all, delete-orphan', lazy='dynamic', back_populates='organization'
+    )
+    orders: DynamicMapped[Order] = relationship(
+        cascade='all, delete-orphan', lazy='dynamic', back_populates='organization'
     )
 
     def permissions(self, actor, inherited=None):
@@ -76,6 +102,56 @@ class Organization(ProfileBase, Model):
         if self.userid in actor.organizations_owned_ids():
             perms.add('org_admin')
         return perms
+
+    def fetch_invoices(self):
+        """Return invoices for an organization as a tuple of (row_headers, rows)."""
+        headers = [
+            "order_id",
+            "receipt_no",
+            "invoice_no",
+            "status",
+            "buyer_taxid",
+            "seller_taxid",
+            "invoicee_name",
+            "invoicee_company",
+            "invoicee_email",
+            "street_address_1",
+            "street_address_2",
+            "city",
+            "state",
+            "state_code",
+            "country_code",
+            "postcode",
+            "invoiced_at",
+        ]
+        invoices_query = (
+            sa.select(
+                Order.id,
+                Order.invoice_no,
+                Invoice.invoice_no,
+                Invoice.status,
+                Invoice.buyer_taxid,
+                Invoice.seller_taxid,
+                Invoice.invoicee_name,
+                Invoice.invoicee_company,
+                Invoice.invoicee_email,
+                Invoice.street_address_1,
+                Invoice.street_address_2,
+                Invoice.city,
+                Invoice.state,
+                Invoice.state_code,
+                Invoice.country_code,
+                Invoice.postcode,
+                Invoice.invoiced_at,
+            )
+            .where(Invoice.organization == self)
+            .select_from(Invoice)
+            .join(Order)
+            .order_by(Invoice.invoice_no)
+        )
+        return HeadersAndDataTuple(
+            headers, db.session.execute(invoices_query).fetchall()
+        )
 
 
 def get_fiscal_year(jurisdiction, dt):
@@ -104,3 +180,13 @@ def get_fiscal_year(jurisdiction, dt):
         naive_to_utc(datetime(dt.year, 1, 1)),
         naive_to_utc(datetime(dt.year + 1, 1, 1)),
     )
+
+
+# Tail imports
+from .invoice import Invoice  # isort:skip
+from .order import Order  # isort:skip
+
+if TYPE_CHECKING:
+    from .discount_policy import DiscountPolicy
+    from .item_collection import ItemCollection
+    from .line_item import Assignee

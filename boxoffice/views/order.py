@@ -1,8 +1,7 @@
 from decimal import Decimal
 
-from sqlalchemy.sql import func
-
 from flask import abort, jsonify, render_template, request, url_for
+from sqlalchemy.sql import func
 
 from baseframe import _, localized_country_list
 from baseframe.forms import render_form

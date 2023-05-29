@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from decimal import Decimal
+from typing import TYPE_CHECKING, List
 from uuid import UUID
 
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.ext.orderinglist import ordering_list
 
 from baseframe import _
 from coaster.sqlalchemy import with_roles
@@ -12,10 +12,10 @@ from coaster.utils import utcnow
 
 from . import (
     BaseScopedNameMixin,
+    DynamicMapped,
     Mapped,
     MarkdownColumn,
     Model,
-    backref,
     db,
     jsonb_dict,
     relationship,
@@ -38,32 +38,19 @@ class Item(BaseScopedNameMixin, Model):
     item_collection_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('item_collection.id'), nullable=False
     )
-    item_collection = relationship(
-        'ItemCollection',
-        backref=backref(
-            'items',
-            cascade='all, delete-orphan',
-            order_by=seq,
-            collection_class=ordering_list('seq', count_from=1),
-        ),
-    )
-
+    item_collection: Mapped[ItemCollection] = relationship(back_populates='items')
     parent = sa.orm.synonym('item_collection')
-
     category_id: Mapped[int] = sa.orm.mapped_column(
         sa.ForeignKey('category.id'), nullable=False
     )
-    category = relationship(
-        Category, backref=backref('items', cascade='all, delete-orphan')
-    )
+    category: Mapped[Category] = relationship(back_populates='items')
 
     quantity_total = sa.orm.mapped_column(sa.Integer, default=0, nullable=False)
 
-    discount_policies = relationship(
-        'DiscountPolicy',
+    discount_policies: DynamicMapped[DiscountPolicy] = relationship(
         secondary=item_discount_policy,  # type: ignore[has-type]
-        backref='items',
         lazy='dynamic',
+        back_populates='items',
     )
 
     assignee_details: Mapped[jsonb_dict] = sa.orm.mapped_column()
@@ -81,6 +68,11 @@ class Item(BaseScopedNameMixin, Model):
     place_supply_state_code = sa.orm.mapped_column(sa.Unicode(3), nullable=True)
     # ISO country code
     place_supply_country_code = sa.orm.mapped_column(sa.Unicode(2), nullable=True)
+
+    prices: Mapped[List[Price]] = relationship(cascade='all, delete-orphan')
+    line_items: DynamicMapped[LineItem] = relationship(
+        cascade='all, delete-orphan', lazy='dynamic', back_populates='item'
+    )
 
     __roles__ = {
         'item_owner': {
@@ -251,14 +243,12 @@ class Price(BaseScopedNameMixin, Model):
     item_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('item.id'), nullable=False
     )
-    item = relationship(Item, backref=backref('prices', cascade='all, delete-orphan'))
+    item: Mapped[Item] = relationship(back_populates='prices')
 
     discount_policy_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('discount_policy.id'), nullable=True
     )
-    discount_policy = relationship(
-        'DiscountPolicy', backref=backref('price', cascade='all, delete-orphan')
-    )
+    discount_policy: Mapped[DiscountPolicy] = relationship(back_populates='prices')
 
     parent = sa.orm.synonym('item')
     start_at = sa.orm.mapped_column(
@@ -308,3 +298,7 @@ class Price(BaseScopedNameMixin, Model):
 
 # Tail imports
 from .line_item import LINE_ITEM_STATUS, LineItem  # isort:skip
+
+if TYPE_CHECKING:
+    from .discount_policy import DiscountPolicy
+    from .item_collection import ItemCollection

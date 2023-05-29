@@ -2,15 +2,15 @@ from __future__ import annotations
 
 from collections import OrderedDict
 from decimal import Decimal
+from typing import List
 from uuid import UUID
 
-from sqlalchemy.sql import func
-
 from isoweek import Week
+from sqlalchemy.sql import func
 
 from coaster.utils import isoweek_datetime
 
-from . import BaseMixin, Mapped, MarkdownColumn, Model, backref, db, relationship, sa
+from . import BaseMixin, Mapped, MarkdownColumn, Model, db, relationship, sa
 from .enums import RAZORPAY_PAYMENT_STATUS, TRANSACTION_METHOD, TRANSACTION_TYPE
 from .item_collection import ItemCollection
 from .order import ORDER_STATUS, Order
@@ -29,9 +29,7 @@ class OnlinePayment(BaseMixin, Model):
     customer_order_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('customer_order.id'), nullable=False
     )
-    order = relationship(
-        Order, backref=backref('online_payments', cascade='all, delete-orphan')
-    )
+    order: Mapped[Order] = relationship(back_populates='online_payments')
 
     # Payment id issued by the payment gateway
     pg_paymentid = sa.orm.mapped_column(sa.Unicode(80), nullable=False, unique=True)
@@ -39,6 +37,9 @@ class OnlinePayment(BaseMixin, Model):
     pg_payment_status = sa.orm.mapped_column(sa.Integer, nullable=False)
     confirmed_at = sa.orm.mapped_column(sa.TIMESTAMP(timezone=True), nullable=True)
     failed_at = sa.orm.mapped_column(sa.TIMESTAMP(timezone=True), nullable=True)
+    transactions: Mapped[List[PaymentTransaction]] = relationship(
+        cascade='all, delete-orphan', back_populates='online_payment'
+    )
 
     def confirm(self) -> None:
         """Confirm a payment, sets confirmed_at and pg_payment_status."""
@@ -68,10 +69,7 @@ class PaymentTransaction(BaseMixin, Model):
     online_payment_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('online_payment.id'), nullable=True
     )
-    online_payment = relationship(
-        OnlinePayment,
-        backref=backref('transactions', cascade='all, delete-orphan'),
-    )
+    online_payment: Mapped[OnlinePayment] = relationship(back_populates='transactions')
     amount = sa.orm.mapped_column(sa.Numeric, nullable=False)
     currency = sa.orm.mapped_column(sa.Unicode(3), nullable=False)
     transaction_type = sa.orm.mapped_column(

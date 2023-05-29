@@ -3,20 +3,17 @@ from __future__ import annotations
 from collections import OrderedDict, namedtuple
 from datetime import timedelta
 from decimal import Decimal
-from typing import List, Optional, overload
+from typing import TYPE_CHECKING, List, Optional, overload
 from uuid import UUID
 
-from sqlalchemy.ext.orderinglist import ordering_list
-
 from flask import current_app
-
 from isoweek import Week
 from typing_extensions import Literal
 
 from baseframe import localize_timezone
 from coaster.utils import isoweek_datetime, midnight_to_utc, utcnow
 
-from . import BaseMixin, Mapped, Model, backref, db, jsonb, relationship, sa
+from . import BaseMixin, DynamicMapped, Mapped, Model, db, jsonb, relationship, sa
 from .enums import LINE_ITEM_STATUS
 from .order import Order
 
@@ -57,18 +54,15 @@ class Assignee(BaseMixin, Model):
     )
 
     # lastuser id
-    user_id = sa.orm.mapped_column(sa.Integer, sa.ForeignKey('user.id'), nullable=True)
-    user = relationship(
-        'User', backref=backref('assignees', cascade='all, delete-orphan')
+    user_id: Mapped[Optional[int]] = sa.orm.mapped_column(
+        sa.ForeignKey('user.id'), nullable=True
     )
+    user: Mapped[Optional[User]] = relationship(back_populates='assignees')
 
     line_item_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('line_item.id'), nullable=False
     )
-    line_item = relationship(
-        'LineItem',
-        backref=backref('assignees', cascade='all, delete-orphan', lazy='dynamic'),
-    )
+    line_item: Mapped[LineItem] = relationship(back_populates='assignees')
 
     fullname = sa.orm.mapped_column(sa.Unicode(80), nullable=False)
     #: Unvalidated email address
@@ -101,45 +95,34 @@ class LineItem(BaseMixin, Model):
     customer_order_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('customer_order.id'), nullable=False, index=True, unique=False
     )
-    order = relationship(
-        Order,
-        backref=backref(
-            'line_items',
-            cascade='all, delete-orphan',
-            order_by=line_item_seq,
-            collection_class=ordering_list('line_item_seq', count_from=1),
-        ),
-    )
+    order: Mapped[Order] = relationship(back_populates='line_items')
 
     item_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('item.id'), nullable=False, index=True, unique=False
     )
-    item = relationship(
-        'Item',
-        backref=backref('line_items', cascade='all, delete-orphan', lazy='dynamic'),
-    )
+    item: Mapped[Item] = relationship(back_populates='line_items')
 
     previous_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('line_item.id'), nullable=True, unique=True
     )
-    previous = relationship(
-        'LineItem',
-        primaryjoin='line_item.c.id==line_item.c.previous_id',
-        backref=backref('revision', uselist=False),
+    previous: Mapped[LineItem] = relationship(
+        # primaryjoin='line_item.c.id==line_item.c.previous_id',
+        back_populates='revision',
         remote_side='LineItem.id',
+        # foreign_keys=[previous_id],
+        uselist=False,
     )
+    revision: Mapped[LineItem] = relationship(uselist=False, back_populates='previous')
 
     discount_policy_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('discount_policy.id'), nullable=True, index=True, unique=False
     )
-    discount_policy = relationship(
-        'DiscountPolicy', backref=backref('line_items', lazy='dynamic')
-    )
+    discount_policy: Mapped[DiscountPolicy] = relationship(back_populates='line_items')
 
     discount_coupon_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('discount_coupon.id'), nullable=True, index=True, unique=False
     )
-    discount_coupon = relationship('DiscountCoupon', backref=backref('line_items'))
+    discount_coupon: Mapped[DiscountCoupon] = relationship(back_populates='line_items')
 
     base_amount = sa.orm.mapped_column(sa.Numeric, default=Decimal(0), nullable=False)
     discounted_amount = sa.orm.mapped_column(
@@ -151,6 +134,10 @@ class LineItem(BaseMixin, Model):
     )
     ordered_at = sa.orm.mapped_column(sa.TIMESTAMP(timezone=True), nullable=True)
     cancelled_at = sa.orm.mapped_column(sa.TIMESTAMP(timezone=True), nullable=True)
+
+    assignees: DynamicMapped[Assignee] = relationship(
+        cascade='all, delete-orphan', lazy='dynamic', back_populates='line_item'
+    )
 
     def permissions(self, actor, inherited=None):
         perms = super().permissions(actor, inherited)
@@ -449,3 +436,7 @@ def sales_delta(user_tz, item_ids):
 # Tail import
 from .item import Item  # isort:skip
 from .line_item_discounter import LineItemDiscounter  # isort:skip
+
+if TYPE_CHECKING:
+    from .discount_policy import DiscountCoupon, DiscountPolicy
+    from .user import User

@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, List
 from uuid import UUID
 
-from sqlalchemy.ext.orderinglist import ordering_list
-
-from . import BaseScopedNameMixin, Mapped, Model, backref, relationship, sa
+from . import BaseScopedNameMixin, Mapped, Model, relationship, sa
 
 __all__ = ['Category']
 
@@ -22,14 +21,9 @@ class Category(BaseScopedNameMixin, Model):
         sa.ForeignKey('item_collection.id'), nullable=False
     )
     seq = sa.orm.mapped_column(sa.Integer, nullable=False)
-    item_collection = relationship(
-        'ItemCollection',
-        backref=backref(
-            'categories',
-            cascade='all, delete-orphan',
-            order_by=seq,
-            collection_class=ordering_list('seq', count_from=1),
-        ),
+    item_collection: Mapped[ItemCollection] = relationship(back_populates='categories')
+    items: Mapped[List[Item]] = relationship(
+        cascade='all, delete-orphan', back_populates='category'
     )
     parent = sa.orm.synonym('item_collection')
 
@@ -42,3 +36,8 @@ class Category(BaseScopedNameMixin, Model):
         if self.item_collection.organization.userid in actor.organizations_owned_ids():
             roles.add('category_owner')
         return roles
+
+
+if TYPE_CHECKING:
+    from .item import Item
+    from .item_collection import ItemCollection

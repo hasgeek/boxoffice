@@ -5,7 +5,6 @@ import datetime
 import logging
 
 from flask import jsonify, make_response
-
 from isoweek import Week
 import IPython
 

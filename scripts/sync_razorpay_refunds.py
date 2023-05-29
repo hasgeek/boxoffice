@@ -5,13 +5,13 @@ import requests
 
 from boxoffice import app, db
 from boxoffice.models import (
+    CURRENCY,
     ORDER_STATUS,
     TRANSACTION_TYPE,
     OnlinePayment,
     Order,
     PaymentTransaction,
 )
-from boxoffice.models.payment import CURRENCY
 
 base_url = 'https://api.razorpay.com/v1'
 

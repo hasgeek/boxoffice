@@ -1,5 +1,4 @@
 from flask import g, jsonify, request
-
 import pytz
 
 from baseframe import _

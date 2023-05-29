@@ -2,21 +2,14 @@ from __future__ import annotations
 
 from collections import namedtuple
 from decimal import Decimal
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 from uuid import UUID
+
+from sqlalchemy.ext.orderinglist import ordering_list
 
 from coaster.utils import buid, utcnow
 
-from . import (
-    AppenderQuery,
-    BaseMixin,
-    DynamicMapped,
-    Mapped,
-    Model,
-    backref,
-    relationship,
-    sa,
-)
+from . import AppenderQuery, BaseMixin, DynamicMapped, Mapped, Model, relationship, sa
 from .enums import ORDER_STATUS, TRANSACTION_TYPE
 from .user import User
 
@@ -46,22 +39,16 @@ class Order(BaseMixin, Model):
     )
 
     user_id: Mapped[int] = sa.orm.mapped_column(sa.ForeignKey('user.id'), nullable=True)
-    user = relationship(User, backref=backref('orders', cascade='all, delete-orphan'))
+    user: Mapped[User] = relationship(back_populates='orders')
     item_collection_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('item_collection.id'), nullable=False
     )
-    item_collection = relationship(
-        'ItemCollection',
-        backref=backref('orders', cascade='all, delete-orphan', lazy='dynamic'),
-    )
+    item_collection: Mapped[ItemCollection] = relationship(back_populates='orders')
 
     organization_id: Mapped[int] = sa.orm.mapped_column(
         sa.ForeignKey('organization.id'), nullable=False
     )
-    organization = relationship(
-        'Organization',
-        backref=backref('orders', cascade='all, delete-orphan', lazy='dynamic'),
-    )
+    organization: Mapped[Organization] = relationship(back_populates='orders')
 
     status = sa.orm.mapped_column(
         sa.Integer, default=ORDER_STATUS.PURCHASE_ORDER, nullable=False
@@ -84,8 +71,23 @@ class Order(BaseMixin, Model):
     invoice_no = sa.orm.mapped_column(sa.Integer, nullable=True)
     receipt_no = sa.orm.synonym('invoice_no')
 
+    line_items: Mapped[List[LineItem]] = relationship(
+        cascade='all, delete-orphan',
+        order_by='LineItem.line_item_seq',
+        collection_class=ordering_list('line_item_seq', count_from=1),
+        back_populates='order',
+    )
+    session: Mapped[OrderSession] = relationship(
+        cascade='all, delete-orphan', uselist=False, back_populates='order'
+    )
+    online_payments: Mapped[List[OnlinePayment]] = relationship(
+        cascade='all, delete-orphan'
+    )
     transactions: DynamicMapped[PaymentTransaction] = relationship(
         cascade='all, delete-orphan', lazy='dynamic', back_populates='order'
+    )
+    invoices: Mapped[List[Invoice]] = relationship(
+        cascade='all, delete-orphan', back_populates='order'
     )
 
     # These 3 properties are defined below the LineItem model -
@@ -174,10 +176,7 @@ class OrderSession(BaseMixin, Model):
     customer_order_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('customer_order.id'), nullable=False, index=True, unique=False
     )
-    order = relationship(
-        Order,
-        backref=backref('session', cascade='all, delete-orphan', uselist=False),
-    )
+    order: Mapped[Order] = relationship(back_populates='session')
 
     referrer = sa.orm.mapped_column(sa.Unicode(2083), nullable=True)
     host = sa.orm.mapped_column(sa.UnicodeText, nullable=True)
@@ -203,6 +202,9 @@ class OrderSession(BaseMixin, Model):
     )
 
 
-# Tail imports
 if TYPE_CHECKING:
-    from .payment import PaymentTransaction  # isort:skip
+    from .invoice import Invoice
+    from .item_collection import ItemCollection
+    from .line_item import LineItem
+    from .payment import OnlinePayment, PaymentTransaction
+    from .user import Organization

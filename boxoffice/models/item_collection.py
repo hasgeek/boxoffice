@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, List
+
+from sqlalchemy.ext.orderinglist import ordering_list
+
 from . import (
     BaseScopedNameMixin,
+    DynamicMapped,
     Mapped,
     MarkdownColumn,
     Model,
-    backref,
     db,
     relationship,
     sa,
@@ -29,16 +33,29 @@ class ItemCollection(BaseScopedNameMixin, Model):
     organization_id: Mapped[int] = sa.orm.mapped_column(
         sa.ForeignKey('organization.id'), nullable=False
     )
-    organization = relationship(
-        Organization,
-        backref=backref('item_collections', cascade='all, delete-orphan'),
-    )
+    organization: Mapped[Organization] = relationship(back_populates='item_collections')
     parent = sa.orm.synonym('organization')
     tax_type = sa.orm.mapped_column(sa.Unicode(80), nullable=True, default='GST')
     # ISO 3166-2 code. Eg: KA for Karnataka
     place_supply_state_code = sa.orm.mapped_column(sa.Unicode(3), nullable=True)
     # ISO country code
     place_supply_country_code = sa.orm.mapped_column(sa.Unicode(2), nullable=True)
+
+    categories: Mapped[List[Category]] = relationship(
+        cascade='all, delete-orphan',
+        order_by='Category.seq',
+        collection_class=ordering_list('seq', count_from=1),
+        back_populates='item_collection',
+    )
+    items: Mapped[List[Item]] = relationship(
+        cascade='all, delete-orphan',
+        order_by='Item.seq',
+        collection_class=ordering_list('seq', count_from=1),
+        back_populates='item_collection',
+    )
+    orders: DynamicMapped[Order] = relationship(
+        cascade='all, delete-orphan', lazy='dynamic', back_populates='item_collection'
+    )
 
     __roles__ = {'ic_owner': {'read': {'id', 'name', 'title', 'description'}}}
 
@@ -196,3 +213,6 @@ from .discount_policy import DiscountCoupon, DiscountPolicy  # isort:skip
 from .line_item import Assignee, LineItem  # isort:skip
 from .item import Item  # isort:skip
 from .order import Order, OrderSession  # isort:skip
+
+if TYPE_CHECKING:
+    from .category import Category

@@ -2,13 +2,11 @@
 from datetime import date
 from types import SimpleNamespace
 
-from sqlalchemy.orm import close_all_sessions
-import sqlalchemy as sa
-
-from werkzeug.test import EnvironBuilder
-
 from dateutil.relativedelta import relativedelta
+from sqlalchemy.orm import close_all_sessions
+from werkzeug.test import EnvironBuilder
 import pytest
+import sqlalchemy as sa
 
 from coaster.utils import utcnow
 

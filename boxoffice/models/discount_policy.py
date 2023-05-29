@@ -2,19 +2,28 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, List
 from uuid import UUID
 import secrets
 import string
 
-from sqlalchemy.orm.exc import MultipleResultsFound
-
 from itsdangerous import BadSignature, Signer
+from sqlalchemy.orm.exc import MultipleResultsFound
 from werkzeug.utils import cached_property
 
 from coaster.sqlalchemy import cached
 from coaster.utils import buid, uuid1mc
 
-from . import BaseScopedNameMixin, IdMixin, Mapped, Model, backref, db, relationship, sa
+from . import (
+    BaseScopedNameMixin,
+    DynamicMapped,
+    IdMixin,
+    Mapped,
+    Model,
+    db,
+    relationship,
+    sa,
+)
 from .enums import DISCOUNT_TYPE
 from .user import Organization
 
@@ -24,10 +33,9 @@ __all__ = ['DiscountPolicy', 'DiscountCoupon', 'item_discount_policy']
 item_discount_policy = sa.Table(
     'item_discount_policy',
     Model.metadata,
-    sa.Column('item_id', None, sa.ForeignKey('item.id'), primary_key=True),
+    sa.Column('item_id', sa.ForeignKey('item.id'), primary_key=True),
     sa.Column(
         'discount_policy_id',
-        None,
         sa.ForeignKey('discount_policy.id'),
         primary_key=True,
     ),
@@ -65,14 +73,8 @@ class DiscountPolicy(BaseScopedNameMixin, Model):
     organization_id: Mapped[int] = sa.orm.mapped_column(
         sa.ForeignKey('organization.id'), nullable=False
     )
-    organization = relationship(
-        Organization,
-        backref=backref(
-            'discount_policies',
-            order_by='DiscountPolicy.created_at.desc()',
-            lazy='dynamic',
-            cascade='all, delete-orphan',
-        ),
+    organization: Mapped[Organization] = relationship(
+        back_populates='discount_policies'
     )
     parent = sa.orm.synonym('organization')
 
@@ -97,6 +99,17 @@ class DiscountPolicy(BaseScopedNameMixin, Model):
     # the user can share the coupon `n` times `n` here is essentially
     # bulk_coupon_usage_limit.
     bulk_coupon_usage_limit = sa.orm.mapped_column(sa.Integer, nullable=True, default=1)
+
+    discount_coupons: Mapped[List[DiscountCoupon]] = relationship(
+        cascade='all, delete-orphan', back_populates='discount_policy'
+    )
+    items: Mapped[List[Item]] = relationship(
+        secondary=item_discount_policy, back_populates='discount_policies'
+    )
+    prices: Mapped[List[Price]] = relationship(cascade='all, delete-orphan')
+    line_items: DynamicMapped[LineItem] = relationship(
+        lazy='dynamic', back_populates='discount_policy'
+    )
 
     __roles__ = {
         'dp_owner': {
@@ -296,10 +309,10 @@ class DiscountCoupon(IdMixin, Model):
     discount_policy_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('discount_policy.id'), nullable=False
     )
-    discount_policy = relationship(
-        DiscountPolicy,
-        backref=backref('discount_coupons', cascade='all, delete-orphan'),
+    discount_policy: Mapped[DiscountPolicy] = relationship(
+        back_populates='discount_coupons'
     )
+    line_items: Mapped[List[LineItem]] = relationship(back_populates='discount_coupon')
 
     @classmethod
     def is_signed_code_usable(cls, policy, code):
@@ -334,3 +347,6 @@ sa.event.listen(
 
 # Tail imports
 from .line_item import LINE_ITEM_STATUS, LineItem  # isort:skip
+
+if TYPE_CHECKING:
+    from .item import Item, Price
