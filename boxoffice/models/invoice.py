@@ -2,19 +2,15 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from baseframe import _, __
-from coaster.utils import LabeledEnum, utcnow
+from baseframe import _
+from coaster.utils import utcnow
 
 from . import BaseMixin, Mapped, Model, UuidMixin, backref, db, relationship, sa
+from .enums import INVOICE_STATUS
 from .user import Organization, get_fiscal_year
 from .utils import HeadersAndDataTuple
 
-__all__ = ['Invoice', 'INVOICE_STATUS']
-
-
-class INVOICE_STATUS(LabeledEnum):  # noqa: N801
-    DRAFT = (0, __("Draft"))
-    FINAL = (1, __("Final"))
+__all__ = ['Invoice']
 
 
 def gen_invoice_no(organization, jurisdiction, invoice_dt):

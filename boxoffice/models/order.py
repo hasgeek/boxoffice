@@ -2,30 +2,30 @@ from __future__ import annotations
 
 from collections import namedtuple
 from decimal import Decimal
+from typing import TYPE_CHECKING
 from uuid import UUID
 
-from baseframe import __
-from coaster.utils import LabeledEnum, buid, utcnow
+from coaster.utils import buid, utcnow
 
-from . import BaseMixin, Mapped, Model, backref, relationship, sa
+from . import (
+    AppenderQuery,
+    BaseMixin,
+    DynamicMapped,
+    Mapped,
+    Model,
+    backref,
+    relationship,
+    sa,
+)
+from .enums import ORDER_STATUS, TRANSACTION_TYPE
 from .user import User
 
-__all__ = ['Order', 'ORDER_STATUS', 'OrderSession']
+__all__ = ['Order', 'OrderSession']
 
 OrderAmounts = namedtuple(
     'OrderAmounts',
     ['base_amount', 'discounted_amount', 'final_amount', 'confirmed_amount'],
 )
-
-
-class ORDER_STATUS(LabeledEnum):  # noqa: N801
-    PURCHASE_ORDER = (0, __("Purchase Order"))
-    SALES_ORDER = (1, __("Sales Order"))
-    INVOICE = (2, __("Invoice"))
-    CANCELLED = (3, __("Cancelled Order"))
-
-    CONFIRMED = {SALES_ORDER, INVOICE}
-    TRANSACTION = {SALES_ORDER, INVOICE, CANCELLED}
 
 
 def gen_invoice_no(organization):
@@ -82,6 +82,10 @@ class Order(BaseMixin, Model):
     invoice_no = sa.Column(sa.Integer, nullable=True)
     receipt_no = sa.orm.synonym('invoice_no')
 
+    transactions: DynamicMapped[PaymentTransaction] = relationship(
+        cascade='all, delete-orphan', lazy='dynamic', back_populates='order'
+    )
+
     # These 3 properties are defined below the LineItem model -
     # confirmed_line_items, initial_line_items, confirmed_and_cancelled_line_items
 
@@ -134,6 +138,30 @@ class Order(BaseMixin, Model):
                 return False
         return True
 
+    @property
+    def refund_transactions(self) -> AppenderQuery[Order]:
+        return self.transactions.filter_by(transaction_type=TRANSACTION_TYPE.REFUND)
+
+    @property
+    def payment_transactions(self) -> AppenderQuery[Order]:
+        return self.transactions.filter_by(transaction_type=TRANSACTION_TYPE.PAYMENT)
+
+    @property
+    def paid_amount(self) -> Decimal:
+        return sum(
+            order_transaction.amount for order_transaction in self.payment_transactions
+        )
+
+    @property
+    def refunded_amount(self) -> Decimal:
+        return sum(
+            order_transaction.amount for order_transaction in self.refund_transactions
+        )
+
+    @property
+    def net_amount(self) -> Decimal:
+        return self.paid_amount - self.refunded_amount
+
 
 class OrderSession(BaseMixin, Model):
     """Records the referrer and utm headers for an order."""
@@ -161,3 +189,8 @@ class OrderSession(BaseMixin, Model):
     utm_campaign = sa.Column(sa.Unicode(250), nullable=False, default='', index=True)
     # Google click id (for AdWords)
     gclid = sa.Column(sa.Unicode(250), nullable=False, default='', index=True)
+
+
+# Tail imports
+if TYPE_CHECKING:
+    from .payment import PaymentTransaction  # isort:skip

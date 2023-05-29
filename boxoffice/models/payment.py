@@ -8,33 +8,17 @@ from sqlalchemy.sql import func
 
 from isoweek import Week
 
-from baseframe import __
-from coaster.utils import LabeledEnum, isoweek_datetime
+from coaster.utils import isoweek_datetime
 
-from ..extapi.razorpay_status import RAZORPAY_PAYMENT_STATUS
 from . import BaseMixin, Mapped, MarkdownColumn, Model, backref, db, relationship, sa
+from .enums import RAZORPAY_PAYMENT_STATUS, TRANSACTION_METHOD, TRANSACTION_TYPE
 from .item_collection import ItemCollection
 from .order import ORDER_STATUS, Order
 
 __all__ = [
     'OnlinePayment',
     'PaymentTransaction',
-    'CURRENCY',
-    'CURRENCY_SYMBOL',
-    'TRANSACTION_TYPE',
 ]
-
-
-class TRANSACTION_METHOD(LabeledEnum):  # noqa: N801
-    ONLINE = (0, __("Online"))
-    CASH = (1, __("Cash"))
-    BANK_TRANSFER = (2, __("Bank Transfer"))
-
-
-class TRANSACTION_TYPE(LabeledEnum):  # noqa: N801
-    PAYMENT = (0, __("Payment"))
-    REFUND = (1, __("Refund"))
-    # CREDIT = (2, __("Credit"))
 
 
 class OnlinePayment(BaseMixin, Model):
@@ -52,16 +36,16 @@ class OnlinePayment(BaseMixin, Model):
     # Payment id issued by the payment gateway
     pg_paymentid = sa.Column(sa.Unicode(80), nullable=False, unique=True)
     # Payment status issued by the payment gateway
-    pg_payment_status = sa.Column(sa.Integer, nullable=False)
-    confirmed_at = sa.Column(sa.TIMESTAMP(timezone=True), nullable=True)
-    failed_at = sa.Column(sa.TIMESTAMP(timezone=True), nullable=True)
+    pg_payment_status = sa.orm.mapped_column(sa.Integer, nullable=False)
+    confirmed_at = sa.orm.mapped_column(sa.TIMESTAMP(timezone=True), nullable=True)
+    failed_at = sa.orm.mapped_column(sa.TIMESTAMP(timezone=True), nullable=True)
 
-    def confirm(self):
+    def confirm(self) -> None:
         """Confirm a payment, sets confirmed_at and pg_payment_status."""
         self.confirmed_at = func.utcnow()
         self.pg_payment_status = RAZORPAY_PAYMENT_STATUS.CAPTURED
 
-    def fail(self):
+    def fail(self) -> None:
         """Fails a payment, sets failed_at."""
         self.pg_payment_status = RAZORPAY_PAYMENT_STATUS.FAILED
         self.failed_at = func.utcnow()
@@ -80,10 +64,7 @@ class PaymentTransaction(BaseMixin, Model):
     customer_order_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('customer_order.id'), nullable=False
     )
-    order = relationship(
-        Order,
-        backref=backref('transactions', cascade='all, delete-orphan', lazy="dynamic"),
-    )
+    order = relationship(Order, back_populates='transactions')
     online_payment_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('online_payment.id'), nullable=True
     )
@@ -107,45 +88,6 @@ class PaymentTransaction(BaseMixin, Model):
     note_to_user = MarkdownColumn('note_to_user', nullable=True)
     # Refund id issued by the payment gateway
     pg_refundid = sa.Column(sa.Unicode(80), nullable=True, unique=True)
-
-
-def get_refund_transactions(self):
-    return self.transactions.filter_by(transaction_type=TRANSACTION_TYPE.REFUND)
-
-
-Order.refund_transactions = property(get_refund_transactions)
-
-
-def get_payment_transactions(self):
-    return self.transactions.filter_by(transaction_type=TRANSACTION_TYPE.PAYMENT)
-
-
-Order.payment_transactions = property(get_payment_transactions)
-
-
-def order_paid_amount(self):
-    return sum(
-        order_transaction.amount for order_transaction in self.payment_transactions
-    )
-
-
-Order.paid_amount = property(order_paid_amount)
-
-
-def order_refunded_amount(self):
-    return sum(
-        order_transaction.amount for order_transaction in self.refund_transactions
-    )
-
-
-Order.refunded_amount = property(order_refunded_amount)
-
-
-def order_net_amount(self):
-    return self.paid_amount - self.refunded_amount
-
-
-Order.net_amount = property(order_net_amount)
 
 
 def item_collection_net_sales(self):
@@ -192,14 +134,6 @@ def item_collection_net_sales(self):
 
 
 ItemCollection.net_sales = property(item_collection_net_sales)
-
-
-class CURRENCY(LabeledEnum):
-    INR = ("INR", __("INR"))
-
-
-class CURRENCY_SYMBOL(LabeledEnum):  # noqa: N801
-    INR = ('INR', '₹')
 
 
 def calculate_weekly_refunds(item_collection_ids, user_tz, year):

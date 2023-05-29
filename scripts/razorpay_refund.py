@@ -4,8 +4,7 @@ import pytz
 import requests
 
 from boxoffice import app
-from boxoffice.extapi.razorpay_status import RAZORPAY_PAYMENT_STATUS
-from boxoffice.models import OnlinePayment
+from boxoffice.models import RAZORPAY_PAYMENT_STATUS, OnlinePayment
 
 
 def get_refunds(date_ranges):

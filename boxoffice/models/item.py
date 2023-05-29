@@ -6,9 +6,9 @@ from uuid import UUID
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.orderinglist import ordering_list
 
-from baseframe import _, __
+from baseframe import _
 from coaster.sqlalchemy import with_roles
-from coaster.utils import LabeledEnum, utcnow
+from coaster.utils import utcnow
 
 from . import (
     BaseScopedNameMixin,
@@ -25,11 +25,6 @@ from .category import Category
 from .discount_policy import item_discount_policy
 
 __all__ = ['Item', 'Price']
-
-
-class GST_TYPE(LabeledEnum):  # noqa: N801
-    GOOD = (0, __("Good"))
-    SERVICE = (1, __("Service"))
 
 
 class Item(BaseScopedNameMixin, Model):

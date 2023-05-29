@@ -10,6 +10,7 @@ from . import (
     relationship,
     sa,
 )
+from .enums import LINE_ITEM_STATUS
 from .user import Organization
 from .utils import HeadersAndDataTuple
 
@@ -192,6 +193,6 @@ class ItemCollection(BaseScopedNameMixin, Model):
 
 # Tail imports
 from .discount_policy import DiscountCoupon, DiscountPolicy  # isort:skip
-from .line_item import LINE_ITEM_STATUS, Assignee, LineItem  # isort:skip
+from .line_item import Assignee, LineItem  # isort:skip
 from .item import Item  # isort:skip
 from .order import Order, OrderSession  # isort:skip

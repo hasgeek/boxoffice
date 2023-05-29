@@ -11,19 +11,14 @@ from sqlalchemy.orm.exc import MultipleResultsFound
 from itsdangerous import BadSignature, Signer
 from werkzeug.utils import cached_property
 
-from baseframe import __
 from coaster.sqlalchemy import cached
-from coaster.utils import LabeledEnum, buid, uuid1mc
+from coaster.utils import buid, uuid1mc
 
 from . import BaseScopedNameMixin, IdMixin, Mapped, Model, backref, db, relationship, sa
+from .enums import DISCOUNT_TYPE
 from .user import Organization
 
-__all__ = ['DiscountPolicy', 'DiscountCoupon', 'item_discount_policy', 'DISCOUNT_TYPE']
-
-
-class DISCOUNT_TYPE(LabeledEnum):  # noqa: N801
-    AUTOMATIC = (0, __("Automatic"))
-    COUPON = (1, __("Coupon"))
+__all__ = ['DiscountPolicy', 'DiscountCoupon', 'item_discount_policy']
 
 
 item_discount_policy = sa.Table(

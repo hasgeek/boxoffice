@@ -2,13 +2,14 @@
 
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.dialects import postgresql
-from sqlalchemy.orm import DeclarativeBase, Mapped
+from sqlalchemy.orm import DeclarativeBase, DynamicMapped, Mapped
 import sqlalchemy as sa
 
 from sqlalchemy_json import mutable_json_type
 from typing_extensions import Annotated, TypeAlias
 
 from coaster.sqlalchemy import (
+    AppenderQuery,
     BaseMixin,
     BaseNameMixin,
     BaseScopedIdMixin,
@@ -57,6 +58,7 @@ TimestampMixin.__with_timezone__ = True
 db = SQLAlchemy(metadata=Model.metadata, query_class=Query)  # type: ignore[arg-type]
 Model.init_flask_sqlalchemy(db)
 
+from .enums import *  # isort:skip
 from .category import *  # isort:skip
 from .discount_policy import *  # isort:skip
 from .invoice import *  # isort:skip

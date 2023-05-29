@@ -13,23 +13,14 @@ from flask import current_app
 from isoweek import Week
 from typing_extensions import Literal
 
-from baseframe import __, localize_timezone
-from coaster.utils import LabeledEnum, isoweek_datetime, midnight_to_utc, utcnow
+from baseframe import localize_timezone
+from coaster.utils import isoweek_datetime, midnight_to_utc, utcnow
 
 from . import BaseMixin, Mapped, Model, backref, db, jsonb, relationship, sa
+from .enums import LINE_ITEM_STATUS
 from .order import Order
 
-__all__ = ['LineItem', 'LINE_ITEM_STATUS', 'Assignee']
-
-
-class LINE_ITEM_STATUS(LabeledEnum):  # noqa: N801
-    CONFIRMED = (0, __("Confirmed"))
-    CANCELLED = (1, __("Cancelled"))
-    PURCHASE_ORDER = (2, __("Purchase Order"))
-    # A line item can be made void by the system to invalidate it. Eg: a discount no
-    # longer applicable on a line item as a result of a cancellation
-    VOID = (3, __("Void"))
-    TRANSACTION = {CONFIRMED, VOID, CANCELLED}
+__all__ = ['LineItem', 'Assignee']
 
 
 LineItemTuple = namedtuple(

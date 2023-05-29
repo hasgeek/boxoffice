@@ -11,7 +11,7 @@ from coaster.views import load_models, render_with
 
 from .. import app, lastuser
 from ..data import indian_states
-from ..extapi import RAZORPAY_PAYMENT_STATUS, razorpay
+from ..extapi import razorpay
 from ..forms import (
     BuyerForm,
     InvoiceForm,
@@ -29,6 +29,7 @@ from ..models import (
     CURRENCY_SYMBOL,
     LINE_ITEM_STATUS,
     ORDER_STATUS,
+    RAZORPAY_PAYMENT_STATUS,
     TRANSACTION_TYPE,
     Assignee,
     DiscountCoupon,
