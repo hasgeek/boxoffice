@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from collections import OrderedDict, namedtuple
-from datetime import timedelta
+from datetime import date, datetime, timedelta, tzinfo
 from decimal import Decimal
-from typing import TYPE_CHECKING, List, Optional, overload
+from typing import TYPE_CHECKING, List, Optional, Union, cast, overload
 from uuid import UUID
 
 from flask import current_app
@@ -91,17 +91,15 @@ class LineItem(BaseMixin, Model):
     )
 
     # line_item_seq is the relative number of the line item per order.
-    line_item_seq = sa.orm.mapped_column(sa.Integer, nullable=False)
+    line_item_seq: Mapped[int] = sa.orm.mapped_column(nullable=False)
     customer_order_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('customer_order.id'), nullable=False, index=True, unique=False
     )
     order: Mapped[Order] = relationship(back_populates='line_items')
-
     item_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('item.id'), nullable=False, index=True, unique=False
     )
     item: Mapped[Item] = relationship(back_populates='line_items')
-
     previous_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('line_item.id'), nullable=True, unique=True
     )
@@ -113,7 +111,6 @@ class LineItem(BaseMixin, Model):
         uselist=False,
     )
     revision: Mapped[LineItem] = relationship(uselist=False, back_populates='previous')
-
     discount_policy_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('discount_policy.id'), nullable=True, index=True, unique=False
     )
@@ -124,17 +121,24 @@ class LineItem(BaseMixin, Model):
     )
     discount_coupon: Mapped[DiscountCoupon] = relationship(back_populates='line_items')
 
-    base_amount = sa.orm.mapped_column(sa.Numeric, default=Decimal(0), nullable=False)
-    discounted_amount = sa.orm.mapped_column(
+    base_amount: Mapped[Decimal] = sa.orm.mapped_column(
+        default=Decimal(0), nullable=False
+    )
+    discounted_amount: Mapped[Decimal] = sa.orm.mapped_column(
+        default=Decimal(0), nullable=False
+    )
+    final_amount: Mapped[Decimal] = sa.orm.mapped_column(
         sa.Numeric, default=Decimal(0), nullable=False
     )
-    final_amount = sa.orm.mapped_column(sa.Numeric, default=Decimal(0), nullable=False)
-    status = sa.orm.mapped_column(
-        sa.Integer, default=LINE_ITEM_STATUS.PURCHASE_ORDER, nullable=False
+    status: Mapped[int] = sa.orm.mapped_column(
+        default=LINE_ITEM_STATUS.PURCHASE_ORDER, nullable=False
     )
-    ordered_at = sa.orm.mapped_column(sa.TIMESTAMP(timezone=True), nullable=True)
-    cancelled_at = sa.orm.mapped_column(sa.TIMESTAMP(timezone=True), nullable=True)
-
+    ordered_at: Mapped[datetime] = sa.orm.mapped_column(
+        sa.TIMESTAMP(timezone=True), nullable=True
+    )
+    cancelled_at: Mapped[datetime] = sa.orm.mapped_column(
+        sa.TIMESTAMP(timezone=True), nullable=True
+    )
     assignees: DynamicMapped[Assignee] = relationship(
         cascade='all, delete-orphan', lazy='dynamic', back_populates='line_item'
     )
@@ -351,7 +355,9 @@ def counts_per_date_per_item(item_collection, user_tz):
     return date_item_counts
 
 
-def sales_by_date(sales_datetime, item_ids, user_tz):
+def sales_by_date(
+    sales_datetime: Union[date, datetime], item_ids: List[str], user_tz: tzinfo
+) -> Optional[Decimal]:
     """
     Return the sales amount accrued during the day.
 
@@ -362,28 +368,23 @@ def sales_by_date(sales_datetime, item_ids, user_tz):
 
     start_at = midnight_to_utc(sales_datetime, timezone=user_tz)
     end_at = midnight_to_utc(sales_datetime + timedelta(days=1), timezone=user_tz)
-    sales_on_date = (
-        db.session.query(sa.column('sum'))
-        .from_statement(
-            sa.text(
-                '''SELECT SUM(final_amount) FROM line_item
-        WHERE status=:status AND ordered_at >= :start_at AND ordered_at < :end_at
-        AND line_item.item_id IN :item_ids
-        '''
+    sales_on_date = cast(
+        Decimal,
+        db.session.scalar(
+            sa.select(sa.func.sum(LineItem.final_amount))
+            .select_from(LineItem)
+            .where(
+                LineItem.status == LINE_ITEM_STATUS.CONFIRMED,
+                LineItem.ordered_at >= start_at,
+                LineItem.ordered_at < end_at,
+                LineItem.item_id.in_(item_ids),
             )
-        )
-        .params(
-            status=LINE_ITEM_STATUS.CONFIRMED,
-            start_at=start_at,
-            end_at=end_at,
-            item_ids=tuple(item_ids),
-        )
-        .scalar()
+        ),
     )
     return sales_on_date if sales_on_date else Decimal(0)
 
 
-def calculate_weekly_sales(item_collection_ids, user_tz, year):
+def calculate_weekly_sales(item_collection_ids: List[str], user_tz: tzinfo, year: int):
     """Calculate weekly sales for a year in the given item_collection_ids."""
     ordered_week_sales = OrderedDict()
     for year_week in Week.weeks_of_year(year):
@@ -422,7 +423,7 @@ def calculate_weekly_sales(item_collection_ids, user_tz, year):
     return ordered_week_sales
 
 
-def sales_delta(user_tz, item_ids):
+def sales_delta(user_tz: tzinfo, item_ids: List[str]):
     """Calculate the percentage difference in sales between today and yesterday."""
     today = utcnow().date()
     yesterday = today - timedelta(days=1)
