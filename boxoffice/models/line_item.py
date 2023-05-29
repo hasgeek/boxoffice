@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections import OrderedDict, namedtuple
 from datetime import date, datetime, timedelta, tzinfo
 from decimal import Decimal
-from typing import TYPE_CHECKING, List, Optional, Union, cast, overload
+from typing import TYPE_CHECKING, Dict, List, Optional, Union, cast, overload
 from uuid import UUID
 
 from flask import current_app
@@ -313,38 +313,36 @@ Order.initial_line_items = relationship(
 )
 
 
-def counts_per_date_per_item(item_collection, user_tz):
+def counts_per_date_per_item(
+    item_collection: ItemCollection, user_tz: tzinfo
+) -> Dict[str, Dict[str, int]]:
     """
     Return number of line items sold per date per item.
 
     Eg: {'2016-01-01': {'item-xxx': 20}}
     """
-    date_item_counts = {}
+    date_item_counts: Dict[str, Dict[str, int]] = {}
     for item in item_collection.items:
         item_id = str(item.id)
-        item_results = (
-            db.session.query(sa.column('date'), sa.column('count'))
-            .from_statement(
-                sa.text(
-                    '''
-                    SELECT
-                        DATE_TRUNC(
-                            'day',
-                            line_item.ordered_at AT TIME ZONE :timezone
-                        )::date as date,
-                        count(line_item.id) AS count
-                    FROM line_item
-                    WHERE item_id = :item_id AND status = :status
-                    GROUP BY date
-                    ORDER BY date ASC
-                    '''
-                )
+
+        item_results = db.session.execute(
+            sa.select(
+                sa.cast(
+                    sa.func.date_trunc(
+                        'day', sa.func.timezone(user_tz, LineItem.ordered_at)
+                    ),
+                    sa.Date,
+                ).label('date'),
+                sa.func.count().label('count'),
             )
-            .params(
-                timezone=user_tz, status=LINE_ITEM_STATUS.CONFIRMED, item_id=item.id
+            .select_from(LineItem)
+            .where(
+                LineItem.item_id == item.id,
+                LineItem.status == LINE_ITEM_STATUS.CONFIRMED,
             )
-            .all()
-        )
+            .group_by('date')
+            .order_by('date')
+        ).all()
         for date_count in item_results:
             if not date_item_counts.get(date_count.date):
                 # if this date hasn't been been mapped in date_item_counts yet
@@ -440,4 +438,5 @@ from .line_item_discounter import LineItemDiscounter  # isort:skip
 
 if TYPE_CHECKING:
     from .discount_policy import DiscountCoupon, DiscountPolicy
+    from .item_collection import ItemCollection
     from .user import User
