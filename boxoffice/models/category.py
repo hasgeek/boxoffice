@@ -6,7 +6,7 @@ from uuid import UUID
 
 from sqlalchemy.ext.orderinglist import ordering_list
 
-from . import BaseScopedNameMixin, Mapped, Model, relationship, sa
+from . import BaseScopedNameMixin, Mapped, Model, backref, relationship, sa
 
 __all__ = ['Category']
 
@@ -24,7 +24,7 @@ class Category(BaseScopedNameMixin, Model):
     seq = sa.Column(sa.Integer, nullable=False)
     item_collection = relationship(
         'ItemCollection',
-        backref=sa.orm.backref(
+        backref=backref(
             'categories',
             cascade='all, delete-orphan',
             order_by=seq,

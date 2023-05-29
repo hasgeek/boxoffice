@@ -1,6 +1,15 @@
 from __future__ import annotations
 
-from . import BaseScopedNameMixin, Mapped, MarkdownColumn, Model, db, relationship, sa
+from . import (
+    BaseScopedNameMixin,
+    Mapped,
+    MarkdownColumn,
+    Model,
+    backref,
+    db,
+    relationship,
+    sa,
+)
 from .user import Organization
 from .utils import HeadersAndDataTuple
 
@@ -21,7 +30,7 @@ class ItemCollection(BaseScopedNameMixin, Model):
     )
     organization = relationship(
         Organization,
-        backref=sa.orm.backref('item_collections', cascade='all, delete-orphan'),
+        backref=backref('item_collections', cascade='all, delete-orphan'),
     )
     parent = sa.orm.synonym('organization')
     tax_type = sa.Column(sa.Unicode(80), nullable=True, default='GST')

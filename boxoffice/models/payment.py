@@ -12,7 +12,7 @@ from baseframe import __
 from coaster.utils import LabeledEnum, isoweek_datetime
 
 from ..extapi.razorpay_status import RAZORPAY_PAYMENT_STATUS
-from . import BaseMixin, Mapped, MarkdownColumn, Model, db, relationship, sa
+from . import BaseMixin, Mapped, MarkdownColumn, Model, backref, db, relationship, sa
 from .item_collection import ItemCollection
 from .order import ORDER_STATUS, Order
 
@@ -46,7 +46,7 @@ class OnlinePayment(BaseMixin, Model):
         sa.ForeignKey('customer_order.id'), nullable=False
     )
     order = relationship(
-        Order, backref=sa.orm.backref('online_payments', cascade='all, delete-orphan')
+        Order, backref=backref('online_payments', cascade='all, delete-orphan')
     )
 
     # Payment id issued by the payment gateway
@@ -82,16 +82,14 @@ class PaymentTransaction(BaseMixin, Model):
     )
     order = relationship(
         Order,
-        backref=sa.orm.backref(
-            'transactions', cascade='all, delete-orphan', lazy="dynamic"
-        ),
+        backref=backref('transactions', cascade='all, delete-orphan', lazy="dynamic"),
     )
     online_payment_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('online_payment.id'), nullable=True
     )
     online_payment = relationship(
         OnlinePayment,
-        backref=sa.orm.backref('transactions', cascade='all, delete-orphan'),
+        backref=backref('transactions', cascade='all, delete-orphan'),
     )
     amount = sa.Column(sa.Numeric, nullable=False)
     currency = sa.Column(sa.Unicode(3), nullable=False)

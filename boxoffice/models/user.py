@@ -8,7 +8,7 @@ import pytz
 
 from flask_lastuser.sqlalchemy import ProfileBase, UserBase2
 
-from . import Mapped, Model, jsonb_dict, relationship, sa
+from . import Mapped, Model, backref, jsonb_dict, relationship, sa
 
 __all__ = ['User', 'Organization']
 
@@ -68,9 +68,7 @@ class Organization(ProfileBase, Model):
     invoicer = relationship(
         'Organization',
         remote_side='Organization.id',
-        backref=sa.orm.backref(
-            'subsidiaries', cascade='all, delete-orphan', lazy='dynamic'
-        ),
+        backref=backref('subsidiaries', cascade='all, delete-orphan', lazy='dynamic'),
     )
 
     def permissions(self, actor, inherited=None):

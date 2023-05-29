@@ -16,7 +16,7 @@ from typing_extensions import Literal
 from baseframe import __, localize_timezone
 from coaster.utils import LabeledEnum, isoweek_datetime, midnight_to_utc, utcnow
 
-from . import BaseMixin, Mapped, Model, db, jsonb, relationship, sa
+from . import BaseMixin, Mapped, Model, backref, db, jsonb, relationship, sa
 from .order import Order
 
 __all__ = ['LineItem', 'LINE_ITEM_STATUS', 'Assignee']
@@ -68,7 +68,7 @@ class Assignee(BaseMixin, Model):
     # lastuser id
     user_id = sa.Column(sa.Integer, sa.ForeignKey('user.id'), nullable=True)
     user = relationship(
-        'User', backref=sa.orm.backref('assignees', cascade='all, delete-orphan')
+        'User', backref=backref('assignees', cascade='all, delete-orphan')
     )
 
     line_item_id: Mapped[UUID] = sa.orm.mapped_column(
@@ -76,9 +76,7 @@ class Assignee(BaseMixin, Model):
     )
     line_item = relationship(
         'LineItem',
-        backref=sa.orm.backref(
-            'assignees', cascade='all, delete-orphan', lazy='dynamic'
-        ),
+        backref=backref('assignees', cascade='all, delete-orphan', lazy='dynamic'),
     )
 
     fullname = sa.Column(sa.Unicode(80), nullable=False)
@@ -114,7 +112,7 @@ class LineItem(BaseMixin, Model):
     )
     order = relationship(
         Order,
-        backref=sa.orm.backref(
+        backref=backref(
             'line_items',
             cascade='all, delete-orphan',
             order_by=line_item_seq,
@@ -127,9 +125,7 @@ class LineItem(BaseMixin, Model):
     )
     item = relationship(
         'Item',
-        backref=sa.orm.backref(
-            'line_items', cascade='all, delete-orphan', lazy='dynamic'
-        ),
+        backref=backref('line_items', cascade='all, delete-orphan', lazy='dynamic'),
     )
 
     previous_id: Mapped[UUID] = sa.orm.mapped_column(
@@ -138,7 +134,7 @@ class LineItem(BaseMixin, Model):
     previous = relationship(
         'LineItem',
         primaryjoin='line_item.c.id==line_item.c.previous_id',
-        backref=sa.orm.backref('revision', uselist=False),
+        backref=backref('revision', uselist=False),
         remote_side='LineItem.id',
     )
 
@@ -146,15 +142,13 @@ class LineItem(BaseMixin, Model):
         sa.ForeignKey('discount_policy.id'), nullable=True, index=True, unique=False
     )
     discount_policy = relationship(
-        'DiscountPolicy', backref=sa.orm.backref('line_items', lazy='dynamic')
+        'DiscountPolicy', backref=backref('line_items', lazy='dynamic')
     )
 
     discount_coupon_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('discount_coupon.id'), nullable=True, index=True, unique=False
     )
-    discount_coupon = relationship(
-        'DiscountCoupon', backref=sa.orm.backref('line_items')
-    )
+    discount_coupon = relationship('DiscountCoupon', backref=backref('line_items'))
 
     base_amount = sa.Column(sa.Numeric, default=Decimal(0), nullable=False)
     discounted_amount = sa.Column(sa.Numeric, default=Decimal(0), nullable=False)

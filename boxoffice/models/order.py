@@ -7,7 +7,7 @@ from uuid import UUID
 from baseframe import __
 from coaster.utils import LabeledEnum, buid, utcnow
 
-from . import BaseMixin, Mapped, Model, relationship, sa
+from . import BaseMixin, Mapped, Model, backref, relationship, sa
 from .user import User
 
 __all__ = ['Order', 'ORDER_STATUS', 'OrderSession']
@@ -46,15 +46,13 @@ class Order(BaseMixin, Model):
     )
 
     user_id: Mapped[int] = sa.orm.mapped_column(sa.ForeignKey('user.id'), nullable=True)
-    user = relationship(
-        User, backref=sa.orm.backref('orders', cascade='all, delete-orphan')
-    )
+    user = relationship(User, backref=backref('orders', cascade='all, delete-orphan'))
     item_collection_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('item_collection.id'), nullable=False
     )
     item_collection = relationship(
         'ItemCollection',
-        backref=sa.orm.backref('orders', cascade='all, delete-orphan', lazy='dynamic'),
+        backref=backref('orders', cascade='all, delete-orphan', lazy='dynamic'),
     )
 
     organization_id: Mapped[int] = sa.orm.mapped_column(
@@ -62,7 +60,7 @@ class Order(BaseMixin, Model):
     )
     organization = relationship(
         'Organization',
-        backref=sa.orm.backref('orders', cascade='all, delete-orphan', lazy='dynamic'),
+        backref=backref('orders', cascade='all, delete-orphan', lazy='dynamic'),
     )
 
     status = sa.Column(sa.Integer, default=ORDER_STATUS.PURCHASE_ORDER, nullable=False)
@@ -148,7 +146,7 @@ class OrderSession(BaseMixin, Model):
     )
     order = relationship(
         Order,
-        backref=sa.orm.backref('session', cascade='all, delete-orphan', uselist=False),
+        backref=backref('session', cascade='all, delete-orphan', uselist=False),
     )
 
     referrer = sa.Column(sa.Unicode(2083), nullable=True)

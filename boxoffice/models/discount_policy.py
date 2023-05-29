@@ -15,7 +15,7 @@ from baseframe import __
 from coaster.sqlalchemy import cached
 from coaster.utils import LabeledEnum, buid, uuid1mc
 
-from . import BaseScopedNameMixin, IdMixin, Mapped, Model, db, relationship, sa
+from . import BaseScopedNameMixin, IdMixin, Mapped, Model, backref, db, relationship, sa
 from .user import Organization
 
 __all__ = ['DiscountPolicy', 'DiscountCoupon', 'item_discount_policy', 'DISCOUNT_TYPE']
@@ -72,7 +72,7 @@ class DiscountPolicy(BaseScopedNameMixin, Model):
     )
     organization = relationship(
         Organization,
-        backref=sa.orm.backref(
+        backref=backref(
             'discount_policies',
             order_by='DiscountPolicy.created_at.desc()',
             lazy='dynamic',
@@ -301,7 +301,7 @@ class DiscountCoupon(IdMixin, Model):
     )
     discount_policy = relationship(
         DiscountPolicy,
-        backref=sa.orm.backref('discount_coupons', cascade='all, delete-orphan'),
+        backref=backref('discount_coupons', cascade='all, delete-orphan'),
     )
 
     @classmethod

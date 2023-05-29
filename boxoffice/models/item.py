@@ -15,6 +15,7 @@ from . import (
     Mapped,
     MarkdownColumn,
     Model,
+    backref,
     db,
     jsonb_dict,
     relationship,
@@ -44,7 +45,7 @@ class Item(BaseScopedNameMixin, Model):
     )
     item_collection = relationship(
         'ItemCollection',
-        backref=sa.orm.backref(
+        backref=backref(
             'items',
             cascade='all, delete-orphan',
             order_by=seq,
@@ -58,7 +59,7 @@ class Item(BaseScopedNameMixin, Model):
         sa.ForeignKey('category.id'), nullable=False
     )
     category = relationship(
-        Category, backref=sa.orm.backref('items', cascade='all, delete-orphan')
+        Category, backref=backref('items', cascade='all, delete-orphan')
     )
 
     quantity_total = sa.Column(sa.Integer, default=0, nullable=False)
@@ -253,15 +254,13 @@ class Price(BaseScopedNameMixin, Model):
     item_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('item.id'), nullable=False
     )
-    item = relationship(
-        Item, backref=sa.orm.backref('prices', cascade='all, delete-orphan')
-    )
+    item = relationship(Item, backref=backref('prices', cascade='all, delete-orphan'))
 
     discount_policy_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('discount_policy.id'), nullable=True
     )
     discount_policy = relationship(
-        'DiscountPolicy', backref=sa.orm.backref('price', cascade='all, delete-orphan')
+        'DiscountPolicy', backref=backref('price', cascade='all, delete-orphan')
     )
 
     parent = sa.orm.synonym('item')
