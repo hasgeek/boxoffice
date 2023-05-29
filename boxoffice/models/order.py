@@ -37,7 +37,7 @@ def gen_invoice_no(organization):
     )
 
 
-class Order(BaseMixin, Model):  # type: ignore[name-defined]
+class Order(BaseMixin, Model):
     __tablename__ = 'customer_order'
     __uuid_primary_key__ = True
     __table_args__ = (
@@ -137,7 +137,7 @@ class Order(BaseMixin, Model):  # type: ignore[name-defined]
         return True
 
 
-class OrderSession(BaseMixin, Model):  # type: ignore[name-defined]
+class OrderSession(BaseMixin, Model):
     """Records the referrer and utm headers for an order."""
 
     __tablename__ = 'order_session'

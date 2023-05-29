@@ -58,7 +58,7 @@ def make_ntuple(item_id, base_amount, **kwargs):
     )
 
 
-class Assignee(BaseMixin, Model):  # type: ignore[name-defined]
+class Assignee(BaseMixin, Model):
     __tablename__ = 'assignee'
     __table_args__ = (
         sa.UniqueConstraint('line_item_id', 'current'),
@@ -90,7 +90,7 @@ class Assignee(BaseMixin, Model):  # type: ignore[name-defined]
     current = sa.Column(sa.Boolean, nullable=True)
 
 
-class LineItem(BaseMixin, Model):  # type: ignore[name-defined]
+class LineItem(BaseMixin, Model):
     """
     A line item in a sale receipt.
 

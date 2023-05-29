@@ -31,7 +31,7 @@ class GST_TYPE(LabeledEnum):  # noqa: N801
     SERVICE = (1, __("Service"))
 
 
-class Item(BaseScopedNameMixin, Model):  # type: ignore[name-defined]
+class Item(BaseScopedNameMixin, Model):
     __tablename__ = 'item'
     __uuid_primary_key__ = True
     __table_args__ = (sa.UniqueConstraint('item_collection_id', 'name'),)
@@ -241,7 +241,7 @@ class Item(BaseScopedNameMixin, Model):  # type: ignore[name-defined]
         return db.session.execute(query).fetchall()
 
 
-class Price(BaseScopedNameMixin, Model):  # type: ignore[name-defined]
+class Price(BaseScopedNameMixin, Model):
     __tablename__ = 'price'
     __uuid_primary_key__ = True
     __table_args__ = (

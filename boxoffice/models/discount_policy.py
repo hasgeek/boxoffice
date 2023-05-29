@@ -45,7 +45,7 @@ item_discount_policy = sa.Table(
 )
 
 
-class DiscountPolicy(BaseScopedNameMixin, Model):  # type: ignore[name-defined]
+class DiscountPolicy(BaseScopedNameMixin, Model):
     """
     Consists of the discount rules applicable on items.
 
@@ -282,7 +282,7 @@ def generate_coupon_code(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(secrets.choice(chars) for _ in range(size))
 
 
-class DiscountCoupon(IdMixin, Model):  # type: ignore[name-defined]
+class DiscountCoupon(IdMixin, Model):
     __tablename__ = 'discount_coupon'
     __uuid_primary_key__ = True
     __table_args__ = (sa.UniqueConstraint('discount_policy_id', 'code'),)

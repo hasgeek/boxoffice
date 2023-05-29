@@ -11,7 +11,7 @@ from . import BaseScopedNameMixin, Mapped, Model, relationship, sa
 __all__ = ['Category']
 
 
-class Category(BaseScopedNameMixin, Model):  # type: ignore[name-defined]
+class Category(BaseScopedNameMixin, Model):
     __tablename__ = 'category'
     __table_args__ = (
         sa.UniqueConstraint('item_collection_id', 'name'),

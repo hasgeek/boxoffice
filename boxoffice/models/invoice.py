@@ -29,7 +29,7 @@ def gen_invoice_no(organization, jurisdiction, invoice_dt):
     )
 
 
-class Invoice(UuidMixin, BaseMixin, Model):  # type: ignore[name-defined]
+class Invoice(UuidMixin, BaseMixin, Model):
     __tablename__ = 'invoice'
     __uuid_primary_key__ = True
     __table_args__ = (

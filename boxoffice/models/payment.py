@@ -37,7 +37,7 @@ class TRANSACTION_TYPE(LabeledEnum):  # noqa: N801
     # CREDIT = (2, __("Credit"))
 
 
-class OnlinePayment(BaseMixin, Model):  # type: ignore[name-defined]
+class OnlinePayment(BaseMixin, Model):
     """Represents payments made through a payment gateway. Supports Razorpay only."""
 
     __tablename__ = 'online_payment'
@@ -67,7 +67,7 @@ class OnlinePayment(BaseMixin, Model):  # type: ignore[name-defined]
         self.failed_at = func.utcnow()
 
 
-class PaymentTransaction(BaseMixin, Model):  # type: ignore[name-defined]
+class PaymentTransaction(BaseMixin, Model):
     """
     Models transactions made by a customer.
 

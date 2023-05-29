@@ -7,7 +7,7 @@ from .utils import HeadersAndDataTuple
 __all__ = ['ItemCollection']
 
 
-class ItemCollection(BaseScopedNameMixin, Model):  # type: ignore[name-defined]
+class ItemCollection(BaseScopedNameMixin, Model):
     """Represent a collection of items or an inventory."""
 
     __tablename__ = 'item_collection'
