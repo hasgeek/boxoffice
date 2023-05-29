@@ -25,7 +25,6 @@ from . import (
     sa,
 )
 from .enums import DISCOUNT_TYPE
-from .user import Organization
 
 __all__ = ['DiscountPolicy', 'DiscountCoupon', 'item_discount_policy']
 
@@ -350,3 +349,4 @@ from .line_item import LINE_ITEM_STATUS, LineItem  # isort:skip
 
 if TYPE_CHECKING:
     from .item import Item, Price
+    from .user import Organization

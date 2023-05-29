@@ -3,15 +3,15 @@ from __future__ import annotations
 from collections import namedtuple
 from decimal import Decimal
 from typing import TYPE_CHECKING, List
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from sqlalchemy.ext.orderinglist import ordering_list
 
 from coaster.utils import buid, utcnow
 
 from . import AppenderQuery, BaseMixin, DynamicMapped, Mapped, Model, relationship, sa
-from .enums import ORDER_STATUS, TRANSACTION_TYPE
-from .user import User
+from .enums import LINE_ITEM_STATUS, ORDER_STATUS, TRANSACTION_TYPE
+from .line_item import LineItem
 
 __all__ = ['Order', 'OrderSession']
 
@@ -38,6 +38,9 @@ class Order(BaseMixin, Model):
         sa.UniqueConstraint('access_token'),
     )
 
+    id: Mapped[UUID] = sa.orm.mapped_column(  # type: ignore[assignment]  # noqa: A003
+        primary_key=True, default=uuid4
+    )
     user_id: Mapped[int] = sa.orm.mapped_column(sa.ForeignKey('user.id'), nullable=True)
     user: Mapped[User] = relationship(back_populates='orders')
     item_collection_id: Mapped[UUID] = sa.orm.mapped_column(
@@ -88,6 +91,36 @@ class Order(BaseMixin, Model):
     )
     invoices: Mapped[List[Invoice]] = relationship(
         cascade='all, delete-orphan', back_populates='order'
+    )
+
+    confirmed_line_items: DynamicMapped[LineItem] = relationship(
+        lazy='dynamic',
+        primaryjoin=sa.and_(
+            LineItem.customer_order_id == id,
+            LineItem.status == LINE_ITEM_STATUS.CONFIRMED,
+        ),
+        viewonly=True,
+    )
+
+    confirmed_and_cancelled_line_items: DynamicMapped[LineItem] = relationship(
+        lazy='dynamic',
+        primaryjoin=sa.and_(
+            LineItem.customer_order_id == id,
+            LineItem.status.in_(
+                [LINE_ITEM_STATUS.CONFIRMED, LINE_ITEM_STATUS.CANCELLED]
+            ),
+        ),
+        viewonly=True,
+    )
+
+    initial_line_items: DynamicMapped[LineItem] = relationship(
+        lazy='dynamic',
+        primaryjoin=sa.and_(
+            LineItem.customer_order_id == id,
+            LineItem.previous_id.is_(None),
+            LineItem.status.in_(LINE_ITEM_STATUS.TRANSACTION),
+        ),
+        viewonly=True,
     )
 
     # These 3 properties are defined below the LineItem model -
@@ -205,6 +238,5 @@ class OrderSession(BaseMixin, Model):
 if TYPE_CHECKING:
     from .invoice import Invoice
     from .item_collection import ItemCollection
-    from .line_item import LineItem
     from .payment import OnlinePayment, PaymentTransaction
-    from .user import Organization
+    from .user import Organization, User

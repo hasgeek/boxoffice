@@ -1,4 +1,5 @@
 from unittest.mock import MagicMock
+from uuid import UUID
 import datetime
 import decimal
 import json
@@ -221,7 +222,7 @@ def test_signed_discounted_coupon_order(client, all_data):
         signed_policy.percentage * first_item.current_price().amount
     ) / decimal.Decimal(100.0)
     line_item = LineItem.query.filter_by(
-        customer_order_id=resp_data['order_id']
+        customer_order_id=UUID(hex=resp_data['order_id'])
     ).first()
     assert line_item.discount_coupon.code == signed_code
 

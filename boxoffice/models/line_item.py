@@ -15,7 +15,6 @@ from coaster.utils import isoweek_datetime, midnight_to_utc, utcnow
 
 from . import BaseMixin, DynamicMapped, Mapped, Model, db, jsonb, relationship, sa
 from .enums import LINE_ITEM_STATUS
-from .order import Order
 
 __all__ = ['LineItem', 'Assignee']
 
@@ -271,46 +270,12 @@ class LineItem(BaseMixin, Model):
         )
 
     @classmethod
-    def get_max_seq(cls, order):
+    def get_max_seq(cls, order: Order) -> int:
         return (
             db.session.query(sa.func.max(LineItem.line_item_seq))
             .filter(LineItem.order == order)
             .scalar()
         )
-
-
-Order.confirmed_line_items = relationship(
-    LineItem,
-    lazy='dynamic',
-    primaryjoin=sa.and_(
-        LineItem.customer_order_id == Order.id,
-        LineItem.status == LINE_ITEM_STATUS.CONFIRMED,
-    ),
-    viewonly=True,
-)
-
-
-Order.confirmed_and_cancelled_line_items = relationship(
-    LineItem,
-    lazy='dynamic',
-    primaryjoin=sa.and_(
-        LineItem.customer_order_id == Order.id,
-        LineItem.status.in_([LINE_ITEM_STATUS.CONFIRMED, LINE_ITEM_STATUS.CANCELLED]),
-    ),
-    viewonly=True,
-)
-
-
-Order.initial_line_items = relationship(
-    LineItem,
-    lazy='dynamic',
-    primaryjoin=sa.and_(
-        LineItem.customer_order_id == Order.id,
-        LineItem.previous_id.is_(None),
-        LineItem.status.in_(LINE_ITEM_STATUS.TRANSACTION),
-    ),
-    viewonly=True,
-)
 
 
 def counts_per_date_per_item(
@@ -439,4 +404,5 @@ from .line_item_discounter import LineItemDiscounter  # isort:skip
 if TYPE_CHECKING:
     from .discount_policy import DiscountCoupon, DiscountPolicy
     from .item_collection import ItemCollection
+    from .order import Order
     from .user import User

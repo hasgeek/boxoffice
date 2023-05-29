@@ -8,7 +8,7 @@ from coaster.utils import utcnow
 
 from . import BaseMixin, Mapped, Model, UuidMixin, relationship, sa
 from .enums import INVOICE_STATUS
-from .user import get_fiscal_year
+from .utils import get_fiscal_year
 
 __all__ = ['Invoice']
 
