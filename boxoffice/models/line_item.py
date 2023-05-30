@@ -280,13 +280,13 @@ class LineItem(BaseMixin, Model):
 
 def counts_per_date_per_item(
     item_collection: ItemCollection, user_tz: tzinfo
-) -> Dict[str, Dict[str, int]]:
+) -> Dict[date, Dict[str, int]]:
     """
     Return number of line items sold per date per item.
 
     Eg: {'2016-01-01': {'item-xxx': 20}}
     """
-    date_item_counts: Dict[str, Dict[str, int]] = {}
+    date_item_counts: Dict[date, Dict[str, int]] = {}
     for item in item_collection.items:
         item_id = str(item.id)
 
@@ -311,10 +311,12 @@ def counts_per_date_per_item(
         for date_count in item_results:
             if not date_item_counts.get(date_count.date):
                 # if this date hasn't been been mapped in date_item_counts yet
-                date_item_counts[date_count.date] = {item_id: date_count.count}
+                date_item_counts[date_count.date] = {
+                    item_id: cast(int, date_count.count)
+                }
             else:
                 # if it has been mapped, assign the count
-                date_item_counts[date_count.date][item_id] = date_count.count
+                date_item_counts[date_count.date][item_id] = cast(int, date_count.count)
     return date_item_counts
 
 
@@ -355,30 +357,29 @@ def calculate_weekly_sales(item_collection_ids: List[str], user_tz: tzinfo, year
     start_at = isoweek_datetime(year, 1, user_tz)
     end_at = isoweek_datetime(year + 1, 1, user_tz)
 
-    week_sales = (
-        db.session.query(sa.column('sales_week'), sa.column('sum'))
-        .from_statement(
-            sa.text(
-                '''
-        SELECT EXTRACT(WEEK FROM ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone)
-        AS sales_week, SUM(final_amount) AS sum
-        FROM line_item INNER JOIN item on line_item.item_id = item.id
-        WHERE status IN :statuses AND item_collection_id IN :item_collection_ids
-        AND ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone >= :start_at
-        AND ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone < :end_at
-        GROUP BY sales_week ORDER BY sales_week;
-        '''
-            )
+    week_sales = db.session.execute(
+        sa.select(
+            sa.func.extract(
+                'WEEK',
+                sa.func.timezone(user_tz, sa.func.timezone('UTC', LineItem.ordered_at)),
+            ).label('sales_week'),
+            sa.func.sum(LineItem.final_amount).label('sum'),
         )
-        .params(
-            timezone=user_tz,
-            statuses=(LINE_ITEM_STATUS.CONFIRMED, LINE_ITEM_STATUS.CANCELLED),
-            start_at=start_at,
-            end_at=end_at,
-            item_collection_ids=tuple(item_collection_ids),
+        .select_from(LineItem)
+        .join(Item, LineItem.item_id == Item.id)
+        .where(
+            LineItem.status.in_(
+                [LINE_ITEM_STATUS.CONFIRMED, LINE_ITEM_STATUS.CANCELLED]
+            ),
+            Item.item_collection_id.in_(item_collection_ids),
+            sa.func.timezone(user_tz, sa.func.timezone('UTC', LineItem.ordered_at))
+            >= start_at,
+            sa.func.timezone(user_tz, sa.func.timezone('UTC', LineItem.ordered_at))
+            < end_at,
         )
-        .all()
-    )
+        .group_by('sales_week')
+        .order_by('sales_week')
+    ).all()
 
     for week_sale in week_sales:
         ordered_week_sales[int(week_sale.sales_week)] = week_sale.sum

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections import OrderedDict
 from decimal import Decimal
-from typing import List
+from typing import TYPE_CHECKING, List
 from uuid import UUID
 
 from isoweek import Week
@@ -11,8 +11,12 @@ from sqlalchemy.sql import func
 from coaster.utils import isoweek_datetime
 
 from . import BaseMixin, Mapped, MarkdownColumn, Model, db, relationship, sa
-from .enums import RAZORPAY_PAYMENT_STATUS, TRANSACTION_METHOD, TRANSACTION_TYPE
-from .order import ORDER_STATUS, Order
+from .enums import (
+    ORDER_STATUS,
+    RAZORPAY_PAYMENT_STATUS,
+    TRANSACTION_METHOD,
+    TRANSACTION_TYPE,
+)
 
 __all__ = ['OnlinePayment', 'PaymentTransaction']
 
@@ -61,7 +65,7 @@ class PaymentTransaction(BaseMixin, Model):
     customer_order_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('customer_order.id'), nullable=False
     )
-    order = relationship(Order, back_populates='transactions')
+    order: Mapped[Order] = relationship(back_populates='transactions')
     online_payment_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('online_payment.id'), nullable=True
     )
@@ -132,3 +136,7 @@ def calculate_weekly_refunds(item_collection_ids, user_tz, year):
         ordered_week_refunds[int(week_refund.sales_week)] = week_refund.sum
 
     return ordered_week_refunds
+
+
+if TYPE_CHECKING:
+    from .order import Order
