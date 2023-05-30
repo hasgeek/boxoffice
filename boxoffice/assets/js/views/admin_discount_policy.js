@@ -61,7 +61,7 @@ export const DiscountPolicyView = {
     }).done(
       ({
         account_title: accountTitle,
-        discount_polcies: discountPolicies,
+        discount_policies: discountPolicies,
         currency_symbol: currencySymbol,
         total_pages: totalPages,
         paginated,
