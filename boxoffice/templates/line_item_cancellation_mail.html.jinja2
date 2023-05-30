@@ -3,7 +3,7 @@
 
 <head>
   <meta charset='UTF-8'>
-  <title>Ticket Cancellation</title>
+  <title>{% trans %}Ticket Cancellation{% endtrans %}</title>
   <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400italic,600italic,400,600" />
   <style type="text/css">
     * {
@@ -36,14 +36,14 @@
 <body>
   <div>
 
-    <p>Hello {{ order.buyer_fullname }},</p>
+    <p>{% trans buyer=order.buyer_fullname %}Hello {{ buyer }},{% endtrans %}</p>
 
-    <p>With reference to your order (Receipt No: {{ order.invoice_no }}), "{{ item_title }}" has been cancelled.</p>
+    <p>{% trans number=order.invoice_no %}With reference to your order (Receipt No: {{ number }}), "{{ item_title }}" has been cancelled.{% endtrans %}</p>
     {%- if is_paid %}
-      <p>A refund of {{ currency_symbol }} {{ refund_amount }} has been initiated. You should receive the refund in 2-5 days.</p>
+      <p>{% trans %}A refund of {{ currency_symbol }} {{ refund_amount }} has been initiated. You should receive the refund in 2-5 days.{% endtrans %}</p>
     {%- endif %}
 
-    <p class="footer">Thank you,</p>
+    <p class="footer">{% trans %}Thank you,{% endtrans %}</p>
     <p>{{ org.title }}</p>
 
   </div>

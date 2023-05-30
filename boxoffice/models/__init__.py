@@ -2,13 +2,12 @@
 
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.dialects import postgresql
-from sqlalchemy.orm import DeclarativeBase, DynamicMapped, Mapped
+from sqlalchemy.orm import AppenderQuery, DeclarativeBase, DynamicMapped, Mapped
 from sqlalchemy_json import mutable_json_type
 from typing_extensions import Annotated, TypeAlias
 import sqlalchemy as sa
 
 from coaster.sqlalchemy import (
-    AppenderQuery,
     BaseMixin,
     BaseNameMixin,
     BaseScopedIdMixin,

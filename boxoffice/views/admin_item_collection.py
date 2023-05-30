@@ -1,5 +1,3 @@
-from decimal import Decimal
-
 from flask import g, jsonify, request
 
 from baseframe import _, localize_timezone
@@ -45,7 +43,7 @@ def jsonify_item_collection(item_collection_dict):
 @load_models(
     (ItemCollection, {'id': 'menu_id'}, 'item_collection'), permission='org_admin'
 )
-def admin_item_collection(item_collection):
+def admin_item_collection(item_collection: ItemCollection):
     item_ids = [str(item.id) for item in item_collection.items]
     date_item_counts = {}
     date_sales = {}
@@ -57,7 +55,7 @@ def admin_item_collection(item_collection):
         )
         date_item_counts[sales_date.isoformat()] = sales_count
     today_sales = date_sales.get(
-        localize_timezone(utcnow(), g.user.timezone).date().isoformat(), Decimal(0)
+        localize_timezone(utcnow(), g.user.timezone).date().isoformat(), 0
     )
     return {
         'title': item_collection.title,

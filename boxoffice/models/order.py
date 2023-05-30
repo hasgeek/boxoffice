@@ -165,34 +165,42 @@ class Order(BaseMixin, Model):
         )
 
     @property
-    def is_confirmed(self):
+    def is_confirmed(self) -> bool:
         return self.status in ORDER_STATUS.CONFIRMED
 
-    def is_fully_assigned(self):
+    def is_fully_assigned(self) -> bool:
         """Check if all the line items in an order have an assignee."""
-        for line_item in self.get_confirmed_line_items:
+        for line_item in self.confirmed_line_items:
             if not line_item.current_assignee:
                 return False
         return True
 
     @property
-    def refund_transactions(self) -> AppenderQuery[Order]:
+    def refund_transactions(self) -> AppenderQuery[PaymentTransaction]:
         return self.transactions.filter_by(transaction_type=TRANSACTION_TYPE.REFUND)
 
     @property
-    def payment_transactions(self) -> AppenderQuery[Order]:
+    def payment_transactions(self) -> AppenderQuery[PaymentTransaction]:
         return self.transactions.filter_by(transaction_type=TRANSACTION_TYPE.PAYMENT)
 
     @property
     def paid_amount(self) -> Decimal:
         return sum(
-            order_transaction.amount for order_transaction in self.payment_transactions
+            (
+                order_transaction.amount
+                for order_transaction in self.payment_transactions
+            ),
+            Decimal(),
         )
 
     @property
     def refunded_amount(self) -> Decimal:
         return sum(
-            order_transaction.amount for order_transaction in self.refund_transactions
+            (
+                order_transaction.amount
+                for order_transaction in self.refund_transactions
+            ),
+            Decimal(),
         )
 
     @property

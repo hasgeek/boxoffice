@@ -1,10 +1,10 @@
 {% extends "layout.html.jinja2" %}
-{% block title %}{{ org.title }}{% endblock %}
+{% block title %}{{ org.title }}{% endblock title %}
 {% block headerbox %}
-{% endblock %}
+{% endblock headerbox %}
 
 {% block headline %}
-{% endblock %}
+{% endblock headline %}
 
 {% block content %}
   <div class="org-header">
@@ -14,18 +14,18 @@
       </div>
     {%- endif %}
     <h1 class="item-collection-title">{{ order.item_collection.title }}</h1>
-    <p class="text-center">Receipt No: {{ order.invoice_no }}</p>
+    <p class="text-center">{% trans number=order.invoice_no %}Receipt No: {{ number }}{% endtrans %}</p>
   </div>
 
   <div class="row" id="boxoffice-invoice">
-    <p class="text-center" id="notify-msg"><span id="error-description">{% trans %}Loading.{% endtrans %} </span>
-      {% trans support_email=org.details.get('support_email', '') %}
+    <p class="text-center" id="notify-msg"><span id="error-description">{% trans %}Loading…{% endtrans %} </span>
+      {% trans support_email=org.details.get('support_email', '') -%}
         If this takes too long, please mail {{ support_email }} with your receipt number.
-      {% endtrans %}
+      {%- endtrans %}
     </p>
   </div>
-{% endblock %}
+{% endblock content %}
 
 {% block footerscripts %}
   <script type="text/javascript" src="{{ asset_path('main_invoice.js') }}"></script>
-{% endblock %}
+{% endblock footerscripts %}

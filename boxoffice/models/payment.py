@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections import OrderedDict
 from decimal import Decimal
-from typing import List
+from typing import TYPE_CHECKING, List
 from uuid import UUID
 
 from isoweek import Week
@@ -11,8 +11,12 @@ from sqlalchemy.sql import func
 from coaster.utils import isoweek_datetime
 
 from . import BaseMixin, Mapped, MarkdownColumn, Model, db, relationship, sa
-from .enums import RAZORPAY_PAYMENT_STATUS, TRANSACTION_METHOD, TRANSACTION_TYPE
-from .order import ORDER_STATUS, Order
+from .enums import (
+    ORDER_STATUS,
+    RAZORPAY_PAYMENT_STATUS,
+    TRANSACTION_METHOD,
+    TRANSACTION_TYPE,
+)
 
 __all__ = ['OnlinePayment', 'PaymentTransaction']
 
@@ -61,7 +65,7 @@ class PaymentTransaction(BaseMixin, Model):
     customer_order_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('customer_order.id'), nullable=False
     )
-    order = relationship(Order, back_populates='transactions')
+    order: Mapped[Order] = relationship(back_populates='transactions')
     online_payment_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('online_payment.id'), nullable=True
     )
@@ -92,43 +96,40 @@ def calculate_weekly_refunds(item_collection_ids, user_tz, year):
     start_at = isoweek_datetime(year, 1, user_tz)
     end_at = isoweek_datetime(year + 1, 1, user_tz)
 
-    week_refunds = (
-        db.session.query(sa.column('sales_week'), sa.column('sum'))
-        .from_statement(
-            sa.text(
-                '''
-                SELECT
-                    EXTRACT(
-                        WEEK FROM payment_transaction.created_at
-                        AT TIME ZONE 'UTC' AT TIME ZONE :timezone
-                        ) AS sales_week,
-                    SUM(payment_transaction.amount) AS sum
-                FROM customer_order
-                INNER JOIN payment_transaction
-                    ON payment_transaction.customer_order_id = customer_order.id
-                WHERE customer_order.status IN :statuses
-                    AND customer_order.item_collection_id IN :item_collection_ids
-                    AND payment_transaction.transaction_type = :transaction_type
-                    AND payment_transaction.created_at
-                        AT TIME ZONE 'UTC' AT TIME ZONE :timezone >= :start_at
-                    AND payment_transaction.created_at
-                        AT TIME ZONE 'UTC' AT TIME ZONE :timezone < :end_at
-                GROUP BY sales_week ORDER BY sales_week;
-                '''
+    week_refunds = db.session.execute(
+        sa.select(
+            sa.func.extract(
+                'WEEK',
+                sa.func.timezone(
+                    user_tz, sa.func.timezone('UTC', PaymentTransaction.created_at)
+                ),
+            ).label('sales_week'),
+            sa.func.sum(PaymentTransaction.amount).label('sum'),
+        )
+        .select_from(PaymentTransaction, Order)
+        .where(
+            PaymentTransaction.customer_order_id == Order.id,
+            Order.status.in_(tuple(ORDER_STATUS.TRANSACTION)),
+            Order.item_collection_id.in_(item_collection_ids),
+            PaymentTransaction.transaction_type == TRANSACTION_TYPE.REFUND,
+            sa.func.timezone(
+                user_tz, sa.func.timezone('UTC', PaymentTransaction.created_at)
             )
+            >= start_at,
+            sa.func.timezone(
+                user_tz, sa.func.timezone('UTC', PaymentTransaction.created_at)
+            )
+            < end_at,
         )
-        .params(
-            timezone=user_tz,
-            statuses=tuple(ORDER_STATUS.TRANSACTION),
-            transaction_type=TRANSACTION_TYPE.REFUND,
-            start_at=start_at,
-            end_at=end_at,
-            item_collection_ids=tuple(item_collection_ids),
-        )
-        .all()
-    )
+        .group_by('sales_week')
+        .order_by('sales_week')
+    ).all()
 
     for week_refund in week_refunds:
         ordered_week_refunds[int(week_refund.sales_week)] = week_refund.sum
 
     return ordered_week_refunds
+
+
+if TYPE_CHECKING:
+    from .order import Order
