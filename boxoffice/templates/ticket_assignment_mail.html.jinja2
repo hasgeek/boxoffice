@@ -103,20 +103,20 @@
 <body>
   <div>
 
-    <p>Hello {{ line_item.current_assignee.fullname }},</p>
+    <p>{% trans assignee=line_item.current_assignee.fullname %}Hello {{ assignee }},{% endtrans %}</p>
 
-    <p>
-      Here is your ticket. To access the event, you must have a
+    <p>{% trans -%}
+      Here is your ticket. To use it, you must have a
       <a href="https://hasgeek.com/account">Hasgeek account</a>
-      with a verified email address matching this ticket.
-    </p>
+      with the same email address.
+    {%- endtrans %}</p>
 
     <div class="wrapper">
       <table class="ticket-table">
         <tr>
           <td class="ticket-title-wrapper">
             <p class="text-center ticket-title">{{ line_item.item.title }}</p>
-            <p class="receipt-no">Receipt No: {{order.invoice_no}}</p>
+            <p class="receipt-no">{% trans number=order.invoice_no %}Receipt No: {{ number }}{% endtrans %}</p>
           </td>
 
           <td class="details-wrapper">
@@ -128,10 +128,10 @@
       </table>
     </div>
 
-    <p><a class="button" href={{"{base_url}/order/{access_token}/ticket".format(base_url=base_url, access_token=order.access_token)}} target="_blank">Edit details</a></p>
-    <div class="terms-content">{{org.details.get('ticket_faq', '') | safe}}</div>
+    <p><a class="button" href="{{ '{base_url}/order/{access_token}/ticket'.format(base_url=base_url, access_token=order.access_token) }}" target="_blank">{% trans %}Edit details{% endtrans %}</a></p>
+    <div class="terms-content">{{ org.details.get('ticket_faq', '')|safe }}</div>
 
-    <p>Thank you,</p>
+    <p>{% trans %}Thank you,{% endtrans %}</p>
     <p>{{ org.title }}</p>
 
   </div>

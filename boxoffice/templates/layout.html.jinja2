@@ -2,35 +2,35 @@
 
 {%- block layoutheaders %}
   <link rel="stylesheet" type="text/css" href="{{ asset_path('css/app.scss') }}"/>
-{% endblock %}
+{% endblock layoutheaders %}
 
 {% block headerbox %}
   {% block hgnav %}
     {% macro site_title() %}
       <div class="page-header">
-        <h1><a href="{{ url_for('index') }}">{{ config['SITE_TITLE'] }}</a></h1>
+        <h1><a href="{{ url_for('index') }}">{% trans %}Boxoffice{% endtrans %}</a></h1>
       </div>
     {% endmacro %}
     {% from "baseframe/components.html.jinja2" import hgnav with context %}
     {{ hgnav(site_title=site_title()) }}
-  {% endblock %}
-{% endblock %}
+  {% endblock hgnav %}
+{% endblock headerbox %}
 
 {% block baseheadline -%}
   {% block headline -%}
     <div class="page-header">
-      {% block top_title %}<h1>{{ config['SITE_TITLE'] }}</h1>{% endblock %}
+      {% block top_title %}<h1>{% trans %}Boxoffice{% endtrans %}</h1>{% endblock top_title %}
     </div>
-  {%- endblock %}
-{%- endblock %}
+  {%- endblock headline %}
+{%- endblock baseheadline %}
 
 {% block main -%}
 {% block basecontent -%}
   <div class="container" id="main-content">
-  {% block content %}{% endblock %}
+  {% block content %}{% endblock content %}
   </div>
-{%- endblock %}
-{%- endblock %}
+{%- endblock basecontent %}
+{%- endblock main %}
 
 {% block jquery -%}
 <script src="//ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
@@ -38,4 +38,4 @@
   if (typeof jQuery === 'undefined')
     document.write('<script type="text/javascript" src="{{ url_for('baseframe.static', filename='js/jquery-2.2.4.min.js') }}"><\/script>');
 </script>
-{%- endblock %}
+{%- endblock jquery %}

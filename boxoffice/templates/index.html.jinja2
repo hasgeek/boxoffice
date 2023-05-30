@@ -3,23 +3,23 @@
 {%- block layoutheaders %}
   <link rel="stylesheet" type="text/css" href="{{ asset_path('css/app.scss') }}"/>
   <link rel="stylesheet" type="text/css" href="{{ asset_path('css/admin.scss') }}"/>
-{% endblock %}
+{% endblock layoutheaders %}
 
-{% block title %}{% if title %} {{ title }}{% else %}{% trans %}Admin{% endtrans %}{% endif %}{% endblock %}
+{% block title %}{% if title %} {{ title }}{% else %}{% trans %}Admin{% endtrans %}{% endif %}{% endblock title %}
 
 {% block headline %}
-{% endblock %}
+{% endblock headline %}
 
 {% block main -%}
   <div id="sidebar"></div>
   <div id="main-content-area"></div>
   <div id='form-view'></div>
-{% endblock %}
+{% endblock main %}
 {% block footerscripts %}
   <script type="text/javascript">
     window.boxofficeAdmin = {};
-    window.boxofficeAdmin.siteTitle = "{{ config['SITE_TITLE'] }}";
+    window.boxofficeAdmin.siteTitle = "{% trans %}Boxoffice{% endtrans %}";
     window.boxofficeFirstLoad = true;
   </script>
   <script type="text/javascript" src="{{ asset_path('main_admin.js') }}"></script>
-{% endblock %}
+{% endblock footerscripts %}
