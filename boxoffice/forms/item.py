@@ -1,23 +1,11 @@
 import json
 
-from flask import request
-
 from baseframe import __, forms, localized_country_list
 
 from ..data import indian_states, indian_states_dict
 from ..models import Category, ItemCollection, sa
 
 __all__ = ['ItemForm']
-
-
-def format_json(data):
-    if request.method == 'GET':
-        return json.dumps(data, indent=4, sort_keys=True)
-    # `json.loads` doesn't raise an exception for "null"
-    # so assign a default value of `{}`
-    if not data or data == 'null':
-        return json.dumps({})
-    return data
 
 
 ASSIGNEE_DETAILS_PLACEHOLDER = {
@@ -39,9 +27,9 @@ ASSIGNEE_DETAILS_PLACEHOLDER = {
 }
 
 
-def validate_json(form, field):
+def validate_and_save_json(form, field):
     try:
-        json.loads(field.data)
+        field.data = json.loads(field.data)
     except ValueError:
         raise forms.validators.StopValidation(__("Invalid JSON")) from None
 
@@ -82,8 +70,7 @@ class ItemForm(forms.Form):
     )
     assignee_details = forms.TextAreaField(
         __("Assignee details"),
-        filters=[format_json],
-        validators=[validate_json],
+        validators=[validate_and_save_json],
         default=ASSIGNEE_DETAILS_PLACEHOLDER,
     )
     event_date = forms.DateField(

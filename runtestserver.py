@@ -6,7 +6,7 @@ db.create_all()
 
 
 @app.route('/testing')
-def test_page():
+def test_page() -> str:
     return """
 <!DOCTYPE html>
 <html>
