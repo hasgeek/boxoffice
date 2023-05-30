@@ -20,7 +20,9 @@ from boxoffice.models import (
     LINE_ITEM_STATUS,
     ORDER_STATUS,
     Invoice,
+    Item,
     ItemCollection,
+    LineItem,
     OnlinePayment,
     Order,
     Organization,
@@ -44,23 +46,15 @@ def sales_by_date(sales_datetime, item_ids, user_tz):
     end_at = midnight_to_utc(
         sales_datetime + datetime.timedelta(days=1), timezone=user_tz
     )
-    sales_on_date = (
-        db.session.query(sa.column('sum'))
-        .from_statement(
-            sa.text(
-                '''SELECT SUM(final_amount) FROM line_item
-        WHERE status=:status AND ordered_at >= :start_at AND ordered_at < :end_at
-        AND line_item.item_id IN :item_ids
-        '''
-            )
+    sales_on_date = db.session.scalar(
+        sa.select(sa.func.sum(LineItem.final_amount))
+        .select_from(LineItem)
+        .where(
+            LineItem.status == LINE_ITEM_STATUS.CONFIRMED,
+            LineItem.ordered_at >= start_at,
+            LineItem.ordered_at < end_at,
+            LineItem.item_id.in_(item_ids),
         )
-        .params(
-            status=LINE_ITEM_STATUS.CONFIRMED,
-            start_at=start_at,
-            end_at=end_at,
-            item_ids=tuple(item_ids),
-        )
-        .scalar()
     )
     return sales_on_date if sales_on_date else Decimal(0)
 
@@ -73,30 +67,29 @@ def calculate_weekly_sales(item_collection_ids, user_tz, year):
     start_at = isoweek_datetime(year, 1, user_tz)
     end_at = isoweek_datetime(year + 1, 1, user_tz)
 
-    week_sales = (
-        db.session.query(sa.column('sales_week'), sa.column('sum'))
-        .from_statement(
-            sa.text(
-                '''
-        SELECT EXTRACT(WEEK FROM ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone)
-        AS sales_week, SUM(final_amount) AS sum
-        FROM line_item INNER JOIN item on line_item.item_id = item.id
-        WHERE status IN :statuses AND item_collection_id IN :item_collection_ids
-        AND ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone >= :start_at
-        AND ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone < :end_at
-        GROUP BY sales_week ORDER BY sales_week;
-        '''
-            )
+    week_sales = db.session.execute(
+        sa.select(
+            sa.func.extract(
+                'WEEK',
+                sa.func.timezone(user_tz, sa.func.timezone('UTC', LineItem.ordered_at)),
+            ).label('sales_week'),
+            sa.func.sum(LineItem.final_amount).label('sum'),
         )
-        .params(
-            timezone=user_tz,
-            statuses=(LINE_ITEM_STATUS.CONFIRMED, LINE_ITEM_STATUS.CANCELLED),
-            start_at=start_at,
-            end_at=end_at,
-            item_collection_ids=tuple(item_collection_ids),
+        .select_from(LineItem)
+        .join(Item, LineItem.item_id == Item.id)
+        .where(
+            LineItem.status.in_(
+                [LINE_ITEM_STATUS.CONFIRMED, LINE_ITEM_STATUS.CANCELLED]
+            ),
+            Item.item_collection_id.in_(item_collection_ids),
+            sa.func.timezone(user_tz, sa.func.timezone('UTC', LineItem.ordered_at))
+            >= start_at,
+            sa.func.timezone(user_tz, sa.func.timezone('UTC', LineItem.ordered_at))
+            < end_at,
         )
-        .all()
-    )
+        .group_by('sales_week')
+        .order_by('sales_week')
+    ).all()
 
     for week_sale in week_sales:
         ordered_week_sales[int(week_sale.sales_week)] = week_sale.sum

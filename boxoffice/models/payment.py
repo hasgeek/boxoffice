@@ -96,41 +96,34 @@ def calculate_weekly_refunds(item_collection_ids, user_tz, year):
     start_at = isoweek_datetime(year, 1, user_tz)
     end_at = isoweek_datetime(year + 1, 1, user_tz)
 
-    week_refunds = (
-        db.session.query(sa.column('sales_week'), sa.column('sum'))
-        .from_statement(
-            sa.text(
-                '''
-                SELECT
-                    EXTRACT(
-                        WEEK FROM payment_transaction.created_at
-                        AT TIME ZONE 'UTC' AT TIME ZONE :timezone
-                        ) AS sales_week,
-                    SUM(payment_transaction.amount) AS sum
-                FROM customer_order
-                INNER JOIN payment_transaction
-                    ON payment_transaction.customer_order_id = customer_order.id
-                WHERE customer_order.status IN :statuses
-                    AND customer_order.item_collection_id IN :item_collection_ids
-                    AND payment_transaction.transaction_type = :transaction_type
-                    AND payment_transaction.created_at
-                        AT TIME ZONE 'UTC' AT TIME ZONE :timezone >= :start_at
-                    AND payment_transaction.created_at
-                        AT TIME ZONE 'UTC' AT TIME ZONE :timezone < :end_at
-                GROUP BY sales_week ORDER BY sales_week;
-                '''
+    week_refunds = db.session.execute(
+        sa.select(
+            sa.func.extract(
+                'WEEK',
+                sa.func.timezone(
+                    user_tz, sa.func.timezone('UTC', PaymentTransaction.created_at)
+                ),
+            ).label('sales_week'),
+            sa.func.sum(PaymentTransaction.amount).label('sum'),
+        )
+        .select_from(PaymentTransaction, Order)
+        .where(
+            PaymentTransaction.customer_order_id == Order.id,
+            Order.status.in_(tuple(ORDER_STATUS.TRANSACTION)),
+            Order.item_collection_id.in_(item_collection_ids),
+            PaymentTransaction.transaction_type == TRANSACTION_TYPE.REFUND,
+            sa.func.timezone(
+                user_tz, sa.func.timezone('UTC', PaymentTransaction.created_at)
             )
+            >= start_at,
+            sa.func.timezone(
+                user_tz, sa.func.timezone('UTC', PaymentTransaction.created_at)
+            )
+            < end_at,
         )
-        .params(
-            timezone=user_tz,
-            statuses=tuple(ORDER_STATUS.TRANSACTION),
-            transaction_type=TRANSACTION_TYPE.REFUND,
-            start_at=start_at,
-            end_at=end_at,
-            item_collection_ids=tuple(item_collection_ids),
-        )
-        .all()
-    )
+        .group_by('sales_week')
+        .order_by('sales_week')
+    ).all()
 
     for week_refund in week_refunds:
         ordered_week_refunds[int(week_refund.sales_week)] = week_refund.sum
