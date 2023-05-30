@@ -128,7 +128,8 @@ export const Router = Backbone.Router.extend({
     }
     PartialRefundOrderView.render({ menuId, orderId });
   },
-  extractParameters(route, fragment) {
+  // eslint-disable-next-line no-underscore-dangle
+  _extractParameters(route, fragment) {
     const result = route.exec(fragment).slice(1);
     if (result[result.length - 1]) {
       const paramString = result[result.length - 1].split('&');
