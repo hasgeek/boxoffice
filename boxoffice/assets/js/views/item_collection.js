@@ -46,7 +46,7 @@ export const TableTemplate = `
                 {{else}}
                   <td>No active price</td>
                 {{/if}}
-                <td>{{ formatToIndianRupee(net_sales) }}</td>
+                <td>{{ formatToIndianRupee(netSales) }}</td>
               </tr>
             {{/category.items}}
           {{/}}{{/categories}}
@@ -94,7 +94,7 @@ export const ItemCollectionTemplate = `
           </div>
           <div class="card-right">
             <h3 class="card-right-content">Net sales</h3>
-            <p class="card-right-content">{{ formatToIndianRupee(net_sales) }}</p>
+            <p class="card-right-content">{{ formatToIndianRupee(netSales) }}</p>
           </div>
         </div>
       </div>
@@ -105,16 +105,16 @@ export const ItemCollectionTemplate = `
           </div>
           <div class="card-right">
             <h3 class="card-right-content">Today's sales</h3>
-            <p class="card-right-content">{{ formatToIndianRupee(today_sales) }}</p>
+            <p class="card-right-content">{{ formatToIndianRupee(todaySales) }}</p>
           </div>
         </div>
       </div>
       <div class="col-md-4 col-sm-6 col-xs-12">
         <div class="card clearfix">
           <div class="card-left">
-            {{#if sales_delta > 0 }}
+            {{#if salesDelta > 0 }}
               <p class="card-left-content"><i class="fa fa-arrow-up"></i></p>
-            {{elseif sales_delta < 0 }}
+            {{elseif salesDelta < 0 }}
               <p class="card-left-content"><i class="fa fa-arrow-down"></i></p>
             {{else}}
               <p class="card-left-content"><i class="fa fa-minus"></i></p>
@@ -122,7 +122,7 @@ export const ItemCollectionTemplate = `
           </div>
           <div class="card-right">
             <h3 class="card-right-content">Sales since yesterday</h3>
-            <p class="card-right-content">{{ sales_delta }}%</p>
+            <p class="card-right-content">{{ salesDelta }}%</p>
           </div>
         </div>
       </div>
@@ -166,7 +166,7 @@ const AggChartComponent = Ractive.extend({
     const dates = ['x'];
     const itemCounts = {};
     const dateSalesColumn = ['sales'];
-    dateItemCounts.forEach((itemDate) => {
+    Object.keys(dateItemCounts).forEach((itemDate) => {
       dates.push(itemDate);
       dateSalesColumn.push(dateSales[itemDate]);
       allItems.forEach((item) => {
@@ -275,10 +275,10 @@ export const ItemCollectionView = {
             menuName,
             categories,
             dateItemCounts: _.isEmpty(dateItemCounts) ? null : dateItemCounts,
-            date_sales: dateSales,
-            net_sales: netSales,
-            sales_delta: salesDelta,
-            today_sales: todaySales,
+            dateSales,
+            netSales,
+            salesDelta,
+            todaySales,
             totalSelected: 0,
             formatToIndianRupee(amount) {
               return Util.formatToIndianRupee(amount);
