@@ -29,7 +29,8 @@ ASSIGNEE_DETAILS_PLACEHOLDER = {
 
 def validate_and_save_json(form, field):
     try:
-        field.data = json.loads(field.data)
+        if isinstance(field.data, str):
+            field.data = json.loads(field.data)
     except ValueError:
         raise forms.validators.StopValidation(__("Invalid JSON")) from None
 

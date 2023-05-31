@@ -193,7 +193,7 @@ export const ItemView = {
         account_title: accountTitle,
         menu_id: menuId,
         menu_title: menuTitle,
-        item,
+        ticket: item,
         prices,
         discount_policies: discountPolicies,
       }) => {
