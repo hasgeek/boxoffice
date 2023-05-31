@@ -1,11 +1,15 @@
-from collections import OrderedDict
+"""Console script."""
+
 from decimal import Decimal
+from typing import Dict, Iterable, Optional, Union
+from uuid import UUID
 import csv
 import datetime
 import logging
 
-from flask import jsonify, make_response
+from flask.typing import ResponseReturnValue
 from isoweek import Week
+from typing_extensions import TypeAlias
 import IPython
 
 from baseframe import _
@@ -36,8 +40,14 @@ from boxoffice.views.order import process_partial_refund_for_order
 logging.basicConfig()
 logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
+Timezone: TypeAlias = Union[str, datetime.tzinfo]
 
-def sales_by_date(sales_datetime, item_ids, user_tz):
+
+def sales_by_date(
+    sales_datetime: Union[datetime.date, datetime.datetime],
+    item_ids: Iterable[UUID],
+    user_tz: Timezone,
+) -> Optional[Decimal]:
     """Return the sales amount accrued during the given day for given items."""
     if not item_ids:
         return None
@@ -59,11 +69,13 @@ def sales_by_date(sales_datetime, item_ids, user_tz):
     return sales_on_date if sales_on_date else Decimal(0)
 
 
-def calculate_weekly_sales(item_collection_ids, user_tz, year):
+def calculate_weekly_sales(
+    item_collection_ids: Iterable[UUID], user_tz: Timezone, year: int
+) -> Dict[int, Decimal]:
     """Calculate sales per week for given item_collection_ids in a given year."""
-    ordered_week_sales = OrderedDict()
+    ordered_week_sales: Dict[int, Decimal] = {}
     for year_week in Week.weeks_of_year(year):
-        ordered_week_sales[year_week.week] = 0
+        ordered_week_sales[int(year_week.week)] = Decimal(0)
     start_at = isoweek_datetime(year, 1, user_tz)
     end_at = isoweek_datetime(year + 1, 1, user_tz)
 
@@ -97,19 +109,21 @@ def calculate_weekly_sales(item_collection_ids, user_tz, year):
     return ordered_week_sales
 
 
-def sales_delta(user_tz, item_ids):
+def sales_delta(user_tz: Timezone, item_ids: Iterable[UUID]) -> Decimal:
     """Calculate the percentage difference in sales between today and yesterday."""
     today = utcnow().date()
     yesterday = today - datetime.timedelta(days=1)
     today_sales = sales_by_date(today, item_ids, user_tz)
     yesterday_sales = sales_by_date(yesterday, item_ids, user_tz)
     if not today_sales or not yesterday_sales:
-        return 0
+        return Decimal(0)
     return round(Decimal('100') * (today_sales - yesterday_sales) / yesterday_sales, 2)
 
 
-def process_payment(order_id, pg_paymentid):
+def process_payment(order_id: UUID, pg_paymentid: str) -> ResponseReturnValue:
     order = Order.query.get(order_id)
+    if order is None:
+        return {'message': "Unknown order"}, 404
     order_amounts = order.get_amounts(LINE_ITEM_STATUS.PURCHASE_ORDER)
 
     online_payment = OnlinePayment.query.filter_by(
@@ -151,7 +165,7 @@ def process_payment(order_id, pg_paymentid):
         db.session.commit()
         with app.test_request_context():
             send_receipt_mail.queue(order.id)
-            return make_response(jsonify(message="Payment verified"), 201)
+            return {'message': "Payment verified"}, 201
     else:
         online_payment.fail()
         db.session.add(online_payment)
@@ -167,8 +181,10 @@ def process_payment(order_id, pg_paymentid):
         )
 
 
-def reprocess_successful_payment(order_id):
+def reprocess_successful_payment(order_id: UUID) -> ResponseReturnValue:
     order = Order.query.get(order_id)
+    if order is None:
+        return {'error': '404', 'message': "Unknown order"}, 404
     if not order.is_confirmed:
         order_amounts = order.get_amounts(LINE_ITEM_STATUS.PURCHASE_ORDER)
         online_payment = order.online_payments[0]
@@ -201,15 +217,16 @@ def reprocess_successful_payment(order_id):
         db.session.commit()
         with app.test_request_context():
             send_receipt_mail.queue(order.id)
-            return make_response(jsonify(message="Payment verified"), 201)
-    return make_response(jsonify(message="Order is not confirmed"), 200)
+            return {'message': "Payment verified"}, 201
+
+    return {'message': "Order is not confirmed"}, 200
 
 
-def make_invoice_nos():
+def make_invoice_nos() -> None:
     orgs = Organization.query.all()
     for org in orgs:
         for order in Order.query.filter(
-            Order.organization == org, Order.paid_at >= '2017-06-30 18:30'
+            Order.organization_id == org.id, Order.paid_at >= '2017-06-30 18:30'
         ).all():
             if (
                 order.get_amounts(LINE_ITEM_STATUS.CONFIRMED).final_amount
@@ -219,28 +236,38 @@ def make_invoice_nos():
     db.session.commit()
 
 
-def partial_refund(**kwargs):
+def partial_refund(
+    order_id: UUID,
+    amount: Decimal,
+    internal_note: str,
+    refund_description: str,
+    note_to_user: str,
+) -> None:
     """
     Process a partial refund for an order.
 
     Params are order_id, amount, internal_note, refund_description, note_to_user.
     """
     form_dict = {
-        'amount': kwargs['amount'],
-        'internal_note': kwargs['internal_note'],
-        'refund_description': kwargs['refund_description'],
-        'note_to_user': kwargs['note_to_user'],
+        'amount': amount,
+        'internal_note': internal_note,
+        'refund_description': refund_description,
+        'note_to_user': note_to_user,
     }
-    order = Order.query.get(kwargs['order_id'])
+    order = Order.query.get(order_id)
+    if order is None:
+        raise ValueError("Unknown order")
 
     with app.test_request_context():
         process_partial_refund_for_order({'order': order, 'form': form_dict})
 
 
-def finalize_invoices(org_name, start_at, end_at):
+def finalize_invoices(
+    org_name: str, start_at: datetime.datetime, end_at: datetime.datetime
+) -> None:
     org = Organization.query.filter_by(name=org_name).one()
     invoices = Invoice.query.filter(
-        Invoice.organization == org,
+        Invoice.organization_id == org.id,
         Invoice.created_at >= start_at,
         Invoice.created_at < end_at,
     ).all()
@@ -250,9 +277,13 @@ def finalize_invoices(org_name, start_at, end_at):
 
 
 def resend_attendee_details_email(
-    item_collection_id, item_collection_title="", sender_team_member_name="Team Hasgeek"
-):
+    item_collection_id: UUID,
+    item_collection_title: str = "",
+    sender_team_member_name: str = "Team Hasgeek",
+) -> None:
     menu = ItemCollection.query.get(item_collection_id)
+    if menu is None:
+        raise ValueError("Unknown item collection")
     headers, rows = menu.fetch_all_details()
     attendee_name_index = headers.index('attendee_fullname')
     order_id_index = headers.index('order_id')
@@ -267,8 +298,10 @@ def resend_attendee_details_email(
         )
 
 
-def order_report(org_name):
+def order_report(org_name: str) -> None:
     org = Organization.query.filter_by(name=org_name).first()
+    if org is None:
+        raise ValueError("Unknown organization")
 
     with open('order_report.csv', 'wb', encoding='utf-8') as csvfile:
         order_writer = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
@@ -293,7 +326,7 @@ def order_report(org_name):
                         order.access_token,
                         order.paid_at,
                         order.invoiced_at,
-                        ORDER_STATUS[order.status],
+                        ORDER_STATUS[order.status],  # type: ignore[misc]
                         order.buyer_email,
                         order.buyer_fullname.encode('utf-8'),
                         order.buyer_phone,
