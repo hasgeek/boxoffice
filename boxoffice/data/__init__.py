@@ -1,4 +1,15 @@
-indian_states = [
+from typing import List
+
+from typing_extensions import TypedDict
+
+
+class StateList(TypedDict):
+    name: str
+    short_code: int
+    short_code_text: str
+
+
+indian_states: List[StateList] = [
     {'short_code': 1, 'name': 'Jammu and Kashmir', 'short_code_text': 'JK'},
     {'short_code': 2, 'name': 'Himachal Pradesh', 'short_code_text': 'HP'},
     {'short_code': 3, 'name': 'Punjab', 'short_code_text': 'PB'},
@@ -26,7 +37,7 @@ indian_states = [
     {'short_code': 25, 'name': 'Daman and Diu', 'short_code_text': 'DD'},
     {'short_code': 26, 'name': 'Dadra and Nagar Haveli', 'short_code_text': 'DN'},
     {'short_code': 27, 'name': 'Maharashtra', 'short_code_text': 'MH'},
-    {'short_code': 28, 'name': 'Andhra Pradesh', 'short_code_text': 'AP'},
+    {'short_code': 28, 'name': 'Andhra Pradesh (old)', 'short_code_text': 'AP'},
     {'short_code': 29, 'name': 'Karnataka', 'short_code_text': 'KA'},
     {'short_code': 30, 'name': 'Goa', 'short_code_text': 'GA'},
     {'short_code': 31, 'name': 'Lakshadweep', 'short_code_text': 'LD'},
@@ -35,7 +46,7 @@ indian_states = [
     {'short_code': 34, 'name': 'Puducherry', 'short_code_text': 'PY'},
     {'short_code': 35, 'name': 'Andaman and Nicobar Islands', 'short_code_text': 'AN'},
     {'short_code': 36, 'name': 'Telangana', 'short_code_text': 'TG'},
-    {'short_code': 37, 'name': 'Andhra Pradesh (New)', 'short_code_text': 'AD'},
+    {'short_code': 37, 'name': 'Andhra Pradesh', 'short_code_text': 'AD'},
 ]
 
 indian_states_dict = {d["short_code_text"]: d for d in indian_states}

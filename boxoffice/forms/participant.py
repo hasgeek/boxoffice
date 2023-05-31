@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from baseframe import __, forms
 
 from ..models import ORDER_STATUS, Assignee, Item, LineItem, Order
@@ -6,6 +8,9 @@ __all__ = ["AssigneeForm"]
 
 
 class AssigneeForm(forms.Form):
+    edit_obj: Assignee
+    edit_parent: LineItem
+
     email = forms.EmailField(
         __("Email"),
         validators=[forms.validators.DataRequired(), forms.validators.Length(max=254)],
@@ -17,7 +22,7 @@ class AssigneeForm(forms.Form):
         __("Phone number"), validators=[forms.validators.DataRequired()]
     )
 
-    def validate_email(self, field):
+    def validate_email(self, field: forms.Field) -> None:
         existing_assignees = (
             Assignee.query.join(LineItem)
             .join(Item)

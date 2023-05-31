@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from baseframe import __, forms
 from coaster.utils import getbool
 
@@ -68,7 +70,7 @@ class AutomaticDiscountPolicyForm(DiscountPolicyForm):
         ],
     )
 
-    def set_queries(self):
+    def set_queries(self) -> None:
         self.items.query = (
             Item.query.join(ItemCollection)
             .filter(ItemCollection.organization == self.edit_parent)
@@ -119,7 +121,7 @@ class CouponBasedDiscountPolicyForm(DiscountPolicyForm):
         __("Bulk coupon usage limit"), default=1
     )
 
-    def set_queries(self):
+    def set_queries(self) -> None:
         self.items.query = (
             Item.query.join(ItemCollection)
             .filter(ItemCollection.organization == self.edit_parent)
@@ -146,6 +148,8 @@ class PriceBasedDiscountPolicyForm(DiscountPolicyForm):
 
 
 class DiscountPriceForm(forms.Form):
+    edit_parent: DiscountPolicy
+
     title = forms.StringField(
         __("Discount price title"),
         validators=[
@@ -197,19 +201,21 @@ class DiscountPriceForm(forms.Form):
         ],
     )
 
-    def set_queries(self):
+    def set_queries(self) -> None:
         self.item.query = (
             Item.query.join(ItemCollection)
-            .filter(ItemCollection.organization == self.edit_parent.organization)
+            .filter(ItemCollection.organization_id == self.edit_parent.organization_id)
             .options(sa.orm.load_only(ItemCollection.id, ItemCollection.title))
         )
 
 
-def validate_unique_discount_coupon_code(form, field):
+def validate_unique_discount_coupon_code(
+    form: DiscountCouponForm, field: forms.Field
+) -> None:
     if (
         DiscountCoupon.query.join(DiscountPolicy)
         .filter(
-            DiscountPolicy.organization == form.edit_parent.organization,
+            DiscountPolicy.organization_id == form.edit_parent.organization_id,
             DiscountCoupon.code == field.data,
         )
         .notempty()
@@ -223,6 +229,8 @@ def validate_unique_discount_coupon_code(form, field):
 
 
 class DiscountCouponForm(forms.Form):
+    edit_parent: DiscountPolicy
+
     count = forms.IntegerField(__("Number of coupons to be generated"), default=1)
     usage_limit = forms.IntegerField(
         __("Number of times each coupon can be used"), default=1

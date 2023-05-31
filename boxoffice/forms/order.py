@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Callable, Iterable, Optional
+
 from baseframe import __, forms
 
 from ..data import indian_states_dict, short_codes
@@ -5,7 +9,7 @@ from ..data import indian_states_dict, short_codes
 __all__ = ['LineItemForm', 'BuyerForm', 'OrderSessionForm', 'InvoiceForm']
 
 
-def trim(length):
+def trim(length: int) -> Callable[[Optional[str]], str]:
     """
     Return data trimmed to the given length.
 
@@ -14,7 +18,7 @@ def trim(length):
         field = forms.StringField(__("Some field"), filters=[trim(25)])
     """
 
-    def _inner(data):
+    def _inner(data: Optional[str]) -> str:
         return str((data or '')[0:length])
 
     return _inner
@@ -29,7 +33,7 @@ class LineItemForm(forms.Form):
     )
 
     @classmethod
-    def process_list(cls, line_items_json):
+    def process_list(cls, line_items_json: Iterable[str]):
         """
         Return a list of LineItemForm objects.
 
@@ -84,14 +88,14 @@ class OrderSessionForm(forms.Form):
     host = forms.StringField(__("Host"), filters=[trim(2083)])
 
 
-def validate_state_code(form, field):
+def validate_state_code(form, field: forms.Field) -> None:
     # Note: state_code is only a required field if the chosen country is India
     if form.country_code.data == "IN":
         if field.data.upper() not in indian_states_dict:
             raise forms.validators.StopValidation(__("Please select a state"))
 
 
-def validate_gstin(form, field):
+def validate_gstin(_form, field: forms.Field) -> None:
     """
     Raise a StopValidation exception if the supplied field's data is not a valid GSTIN.
 

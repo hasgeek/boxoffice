@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Optional
+
 from baseframe import __, forms
 from baseframe.forms.validators import StopValidation
 
@@ -7,7 +11,7 @@ __all__ = ['CategoryForm']
 
 
 # TODO: Add to baseframe.forms.validators.AvailableAttr?
-def available_seq(form, field):
+def available_seq(form: CategoryForm, field: forms.Field) -> None:
     basequery = db.session.query(Category.id).filter(
         Category.item_collection == form.edit_parent, Category.seq == field.data
     )
@@ -24,6 +28,8 @@ def available_seq(form, field):
 
 
 class CategoryForm(forms.Form):
+    edit_obj: Optional[Category]
+
     title = forms.StringField(
         __("Category title"),
         validators=[

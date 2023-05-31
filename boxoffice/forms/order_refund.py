@@ -1,10 +1,16 @@
+from __future__ import annotations
+
 from baseframe import _, __, forms
 from baseframe.forms.validators import StopValidation
+
+from ..models import Order
 
 __all__ = ['OrderRefundForm']
 
 
 class OrderRefundForm(forms.Form):
+    edit_parent: Order
+
     amount = forms.IntegerField(
         __("Amount"),
         validators=[forms.validators.DataRequired(__("Please specify an amount"))],
@@ -40,7 +46,7 @@ class OrderRefundForm(forms.Form):
         filters=[forms.filters.none_if_empty()],
     )
 
-    def validate_amount(self, field):
+    def validate_amount(self, field: forms.Field) -> None:
         requested_refund_amount = field.data
         order = self.edit_parent
         if not order.paid_amount:

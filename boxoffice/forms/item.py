@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 
 from baseframe import __, forms, localized_country_list
@@ -27,7 +29,7 @@ ASSIGNEE_DETAILS_PLACEHOLDER = {
 }
 
 
-def validate_and_save_json(form, field):
+def validate_and_save_json(_form: forms.Form, field: forms.Field) -> None:
     try:
         if isinstance(field.data, str):
             field.data = json.loads(field.data)
@@ -101,7 +103,7 @@ class ItemForm(forms.Form):
         validators=[forms.validators.DataRequired(__("Please select a country"))],
     )
 
-    def set_queries(self):
+    def set_queries(self) -> None:
         self.place_supply_state_code.choices = [(0, '')] + [
             (state['short_code'], state['name'])
             for state in sorted(indian_states, key=lambda k: k['name'])
@@ -113,13 +115,13 @@ class ItemForm(forms.Form):
             .options(sa.orm.load_only(Category.id, Category.title))
         )
 
-    def validate_place_supply_state_code(self, field):
+    def validate_place_supply_state_code(self, field: forms.Field) -> None:
         if field.data <= 0:
             # state short codes start from 1,
             # and 0 means empty value as mentioned above in set_queries
             raise forms.ValidationError(__("Please select a state"))
 
-    def validate_transferable_until(self, field):
+    def validate_transferable_until(self, field: forms.Field) -> None:
         if field.data and field.data.date() > self.event_date.data:
             raise forms.ValidationError(
                 __("Ticket transfer deadline cannot be after event date")
