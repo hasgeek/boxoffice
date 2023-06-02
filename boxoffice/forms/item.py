@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import json
-
 from baseframe import __, forms, localized_country_list
 
 from ..data import indian_states, indian_states_dict
@@ -27,14 +25,6 @@ ASSIGNEE_DETAILS_PLACEHOLDER = {
         "field_type": "textbox",
     },
 }
-
-
-def validate_and_save_json(_form: forms.Form, field: forms.Field) -> None:
-    try:
-        if isinstance(field.data, str):
-            field.data = json.loads(field.data)
-    except ValueError:
-        raise forms.validators.StopValidation(__("Invalid JSON")) from None
 
 
 class ItemForm(forms.Form):
@@ -71,10 +61,8 @@ class ItemForm(forms.Form):
             )
         ],
     )
-    assignee_details = forms.TextAreaField(
-        __("Assignee details"),
-        validators=[validate_and_save_json],
-        default=ASSIGNEE_DETAILS_PLACEHOLDER,
+    assignee_details = forms.JsonField(
+        __("Assignee details"), default=ASSIGNEE_DETAILS_PLACEHOLDER
     )
     event_date = forms.DateField(
         __("Event date"),

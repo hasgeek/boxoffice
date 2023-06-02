@@ -1,4 +1,5 @@
 from flask import request
+from werkzeug.datastructures import ImmutableMultiDict
 
 from baseframe import _
 from coaster.views import load_models, render_with
@@ -37,8 +38,8 @@ def assign(order):
         )
 
     assignee_dict = request.json.get('attendee')
-    assignee_form = AssigneeForm.from_json(
-        assignee_dict,
+    assignee_form = AssigneeForm(
+        formdata=ImmutableMultiDict(assignee_dict),
         obj=line_item.current_assignee,
         parent=line_item,
         csrf_token=request.json.get('csrf_token'),

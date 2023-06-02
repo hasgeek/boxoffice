@@ -9,7 +9,6 @@ from flask_mail import Mail
 from flask_migrate import Migrate
 from flask_rq2 import RQ
 from pytz import timezone
-import wtforms_json
 
 from baseframe import Version, assets, baseframe
 from baseframe.utils import JSONProvider
@@ -84,13 +83,13 @@ baseframe.init_app(
         'fontawesome>=4.0.0',
         'baseframe-footable',
         'jquery.tinymce>=4.0.0',
+        'codemirror-json',
     ],
 )
 app.json = DecimalJsonProvider(app)
 app.jinja_env.policies['json.dumps_function'] = app.json.dumps
 
 mail.init_app(app)
-wtforms_json.init()
 
 
 # This is a temporary solution for an admin interface, only

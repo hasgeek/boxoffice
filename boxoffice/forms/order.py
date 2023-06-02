@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from typing import Callable, Iterable, Optional
+from typing import Any, Callable, List, Optional
+
+from werkzeug.datastructures import ImmutableMultiDict
 
 from baseframe import __, forms
 
@@ -33,7 +35,7 @@ class LineItemForm(forms.Form):
     )
 
     @classmethod
-    def process_list(cls, line_items_json: Iterable[str]):
+    def process_list(cls, line_items_json: List[Any]):
         """
         Return a list of LineItemForm objects.
 
@@ -45,7 +47,9 @@ class LineItemForm(forms.Form):
             # Since some requests are cross-domain, other checks
             # have been introduced to ensure against CSRF, such as
             # a white-list of allowed origins and XHR only requests
-            line_item_form = cls.from_json(line_item_dict, meta={'csrf': False})
+            line_item_form = cls(
+                formdata=ImmutableMultiDict(line_item_dict), meta={'csrf': False}
+            )
             if not line_item_form.validate():
                 return []
             line_item_forms.append(line_item_form)

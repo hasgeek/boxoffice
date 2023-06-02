@@ -2,6 +2,7 @@ from decimal import Decimal
 
 from flask import abort, jsonify, render_template, request, url_for
 from sqlalchemy.sql import func
+from werkzeug.datastructures import ImmutableMultiDict
 
 from baseframe import _, localized_country_list
 from baseframe.forms import render_form
@@ -175,7 +176,7 @@ def kharcha():
     """
     if not request.json or not request.json.get('line_items'):
         return api_error(message='Missing line items', status_code=400)
-    line_item_forms = LineItemForm.process_list(request.json.get('line_items'))
+    line_item_forms = LineItemForm.process_list(request.json.get('line_items', []))
     if not line_item_forms:
         return api_error(message='Missing line items', status_code=400)
 
@@ -213,11 +214,13 @@ def create_order(item_collection):
     """
     if not request.json or not request.json.get('line_items'):
         return api_error(message="Missing line items", status_code=400)
-    line_item_forms = LineItemForm.process_list(request.json.get('line_items'))
+    line_item_forms = LineItemForm.process_list(request.json.get('line_items', []))
     if not line_item_forms:
         return api_error(message="Invalid line items", status_code=400)
     # See comment in LineItemForm about CSRF
-    buyer_form = BuyerForm.from_json(request.json.get('buyer'), meta={'csrf': False})
+    buyer_form = BuyerForm(
+        formdata=ImmutableMultiDict(request.json.get('buyer')), meta={'csrf': False}
+    )
     if not buyer_form.validate():
         return api_error(
             message="Invalid buyer details", status_code=400, errors=buyer_form.errors
@@ -316,8 +319,9 @@ def create_order(item_collection):
     db.session.add(order)
 
     if request.json.get('order_session'):
-        order_session_form = OrderSessionForm.from_json(
-            request.json.get('order_session'), meta={'csrf': False}
+        order_session_form = OrderSessionForm(
+            formdata=ImmutableMultiDict(request.json.get('order_session')),
+            meta={'csrf': False},
         )
         if order_session_form.validate():
             order_session = OrderSession(order=order)
@@ -510,7 +514,9 @@ def edit_invoice_details(order):
             status_code=400,
         )
 
-    invoice_form = InvoiceForm.from_json(invoice_dict, meta={'csrf': False})
+    invoice_form = InvoiceForm(
+        formdata=ImmutableMultiDict(invoice_dict), meta={'csrf': False}
+    )
     if not invoice_form.validate():
         return api_error(
             message=_("Incorrect invoice details"),
