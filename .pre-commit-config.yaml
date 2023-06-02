@@ -91,10 +91,13 @@ repos:
         # https://github.com/python/mypy/issues/2960
         args: ['--no-warn-unused-ignores', '--ignore-missing-imports']
         additional_dependencies:
+          - flask
           - sqlalchemy
           - toml
           - tomli
-          - types-all
+          - types-python-dateutil
+          - types-pytz
+          - types-requests
           - typing-extensions
   - repo: https://github.com/PyCQA/flake8
     rev: 6.0.0
