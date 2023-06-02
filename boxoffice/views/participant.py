@@ -15,7 +15,7 @@ from .utils import xhr_only
 @xhr_only
 @render_with(json=True)
 @load_models((Order, {'access_token': 'access_token'}, 'order'))
-def assign(order):
+def assign(order: Order):
     """Assign a line_item to a participant."""
     line_item = LineItem.query.get(request.json.get('line_item_id'))
     if line_item is None:
@@ -58,10 +58,10 @@ def assign(order):
         )
 
     if assignee_form.validate_on_submit():
-        item_assignee_details = line_item.item.assignee_details
+        ticket_assignee_details = line_item.ticket.assignee_details
         assignee_details = {}
-        if item_assignee_details:
-            for key in item_assignee_details.keys():
+        if ticket_assignee_details:
+            for key in ticket_assignee_details.keys():
                 assignee_details[key] = assignee_dict.get(key)
         if (
             line_item.current_assignee

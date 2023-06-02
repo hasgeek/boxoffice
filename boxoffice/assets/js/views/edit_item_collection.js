@@ -3,11 +3,11 @@ import { urlFor } from '../models/util';
 import { FormView } from './form_view';
 import { navigateTo } from './navigate';
 
-export const ItemCollectionEditView = {
+export const MenuEditView = {
   render({ menuId } = {}) {
     FormView.load({
       url: urlFor('edit', { resource: 'menu', id: menuId, root: true }),
-      title: 'Edit item collection',
+      title: 'Edit menu',
       onHide() {
         navigateTo(
           urlFor('view', { resource: 'menu', id: menuId, root: true })
@@ -22,4 +22,4 @@ export const ItemCollectionEditView = {
   },
 };
 
-export { ItemCollectionEditView as default };
+export { MenuEditView as default };

@@ -15,21 +15,19 @@ from .utils import api_error, check_api_access, csv_response
 
 def jsonify_report(data_dict):
     return jsonify(
-        account_name=data_dict['item_collection'].organization.name,
-        account_title=data_dict['item_collection'].organization.title,
-        menu_name=data_dict['item_collection'].name,
-        menu_title=data_dict['item_collection'].title,
+        account_name=data_dict['menu'].organization.name,
+        account_title=data_dict['menu'].organization.title,
+        menu_name=data_dict['menu'].name,
+        menu_title=data_dict['menu'].title,
     )
 
 
 @app.route('/admin/menu/<menu_id>/reports')
 @lastuser.requires_login
 @render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_report})
-@load_models(
-    (ItemCollection, {'id': 'menu_id'}, 'item_collection'), permission='org_admin'
-)
-def admin_report(item_collection):
-    return {'item_collection': item_collection}
+@load_models((ItemCollection, {'id': 'menu_id'}, 'menu'), permission='org_admin')
+def admin_report(menu: ItemCollection):
+    return {'menu': menu}
 
 
 def jsonify_org_report(data_dict):
@@ -44,7 +42,7 @@ def jsonify_org_report(data_dict):
 @load_models(
     (Organization, {'name': 'org_name'}, 'organization'), permission='org_admin'
 )
-def admin_org_report(organization):
+def admin_org_report(organization: Organization):
     return {
         'organization': organization,
         'siteadmin': lastuser.has_permission('siteadmin'),
@@ -53,11 +51,9 @@ def admin_org_report(organization):
 
 @app.route('/admin/menu/<menu_id>/tickets.csv')
 @lastuser.requires_login
-@load_models(
-    (ItemCollection, {'id': 'menu_id'}, 'item_collection'), permission='org_admin'
-)
-def tickets_report(item_collection):
-    headers, rows = item_collection.fetch_all_details()
+@load_models((ItemCollection, {'id': 'menu_id'}, 'menu'), permission='org_admin')
+def tickets_report(menu: ItemCollection):
+    headers, rows = menu.fetch_all_details()
     assignee_url_index = headers.index('assignee_url')
 
     def row_handler(row):
@@ -83,17 +79,15 @@ def tickets_report(item_collection):
 
 @app.route('/admin/menu/<menu_id>/attendees.csv')
 @lastuser.requires_login
-@load_models(
-    (ItemCollection, {'id': 'menu_id'}, 'item_collection'), permission='org_admin'
-)
-def attendees_report(item_collection):
+@load_models((ItemCollection, {'id': 'menu_id'}, 'menu'), permission='org_admin')
+def attendees_report(menu: ItemCollection):
     # Generated a unique list of headers for all 'assignee_details' keys in all items in
-    # this item collection. This flattens the 'assignee_details' dict. This will need to
+    # this menu. This flattens the 'assignee_details' dict. This will need to
     # be updated if we add additional dicts to our csv export.
     attendee_details_headers = []
-    for item in item_collection.items:
-        if item.assignee_details:
-            for detail in item.assignee_details.keys():
+    for ticket in menu.tickets:
+        if ticket.assignee_details:
+            for detail in ticket.assignee_details.keys():
                 attendee_detail_prefixed = 'attendee_details_' + detail
                 # Eliminate duplicate headers across attendee_details across items. For
                 # example, if 't-shirt' and 'hoodie' are two items with a 'size' key,
@@ -101,7 +95,7 @@ def attendees_report(item_collection):
                 if attendee_detail_prefixed not in attendee_details_headers:
                     attendee_details_headers.append(attendee_detail_prefixed)
 
-    headers, rows = item_collection.fetch_assignee_details()
+    headers, rows = menu.fetch_assignee_details()
     headers.extend(attendee_details_headers)
 
     if 'attendee_details' in headers:
@@ -141,26 +135,26 @@ def attendees_report(item_collection):
     (
         ItemCollection,
         {'id': 'menu_id', 'organization': 'organization'},
-        'item_collection',
+        'menu',
     ),
 )
-def orders_api(organization, item_collection):
+def orders_api(organization: Organization, menu: ItemCollection):
     check_api_access(organization.details.get('access_token'))
 
     # Generated a unique list of headers for all 'assignee_details' keys in all items in
-    # this item collection. This flattens the 'assignee_details' dict. This will need to
+    # this menu. This flattens the 'assignee_details' dict. This will need to
     # be updated if we add additional dicts to our csv export.
     attendee_details_headers = []
-    for item in item_collection.items:
-        if item.assignee_details:
-            for detail in item.assignee_details.keys():
+    for ticket in menu.tickets:
+        if ticket.assignee_details:
+            for detail in ticket.assignee_details.keys():
                 attendee_detail_prefixed = 'attendee_details_' + detail
-                # Eliminate duplicate headers across attendee_details across items. For
-                # example, if 't-shirt' and 'hoodie' are two items with a 'size' key,
-                # you only want one column in the csv called size.
+                # Eliminate duplicate headers across attendee_details across tickets.
+                # For example, if 't-shirt' and 'hoodie' are two tickets with a 'size'
+                # key, you only want one column in the csv called size.
                 if attendee_detail_prefixed not in attendee_details_headers:
                     attendee_details_headers.append(attendee_detail_prefixed)
-    headers, rows = item_collection.fetch_all_details()
+    headers, rows = menu.fetch_all_details()
     headers.extend(attendee_details_headers)
 
     if 'attendee_details' in headers:
@@ -199,7 +193,7 @@ def orders_api(organization, item_collection):
 @load_models(
     (Organization, {'name': 'org_name'}, 'organization'), permission='org_admin'
 )
-def invoices_report(organization):
+def invoices_report(organization: Organization):
     headers, rows = organization.fetch_invoices()
 
     def row_handler(row):
@@ -220,9 +214,10 @@ def invoices_report(organization):
 @app.route('/admin/o/<org_name>/settlements.csv')
 @lastuser.requires_permission('siteadmin')
 @load_models((Organization, {'name': 'org_name'}, 'organization'))
-def settled_transactions(organization):
-    year = int(request.args.get('year'))
-    month = int(request.args.get('month'))
+def settled_transactions(organization: Organization):
+    today = date.today()
+    year = int(request.args.get('year', today.year))
+    month = int(request.args.get('month', today.month))
     try:
         date(year, month, 1)
     except (ValueError, TypeError):

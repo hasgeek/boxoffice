@@ -127,12 +127,12 @@ export const DiscountPolicyView = {
                 rules: 'required|numeric',
               },
               {
-                name: 'items',
+                name: 'tickets',
                 rules: 'required',
               },
             ],
             getDiscountedItems(dpItems) {
-              return dpItems.map((item) => item.id).join(',');
+              return dpItems.map((ticket) => ticket.id).join(',');
             },
             getCsrfToken() {
               // Defined as a function so that it is called every time the form is opened
@@ -221,7 +221,7 @@ export const DiscountPolicyView = {
                   url: urlFor('index', {
                     scope_ns: 'o',
                     scope_id: accountName,
-                    resource: 'items',
+                    resource: 'tickets',
                     root: true,
                   }),
                   dataType: 'json',
@@ -232,7 +232,7 @@ export const DiscountPolicyView = {
                   },
                   processResults(data) {
                     return {
-                      results: data.result.items,
+                      results: data.result.tickets,
                     };
                   },
                 },
@@ -240,11 +240,11 @@ export const DiscountPolicyView = {
                 escapeMarkup(markup) {
                   return markup;
                 },
-                templateResult(item) {
-                  return `<p>${item.title}</p>`;
+                templateResult(ticket) {
+                  return `<p>${ticket.title}</p>`;
                 },
-                templateSelection(item) {
-                  return item.title;
+                templateSelection(ticket) {
+                  return ticket.title;
                 },
               });
 
@@ -270,7 +270,7 @@ export const DiscountPolicyView = {
                   url: urlFor('index', {
                     scope_ns: 'o',
                     scope_id: accountName,
-                    resource: 'items',
+                    resource: 'tickets',
                     root: true,
                   }),
                   dataType: 'json',
@@ -281,18 +281,18 @@ export const DiscountPolicyView = {
                   },
                   processResults(data) {
                     return {
-                      results: data.result.items,
+                      results: data.result.tickets,
                     };
                   },
                 },
                 escapeMarkup(markup) {
                   return markup;
                 },
-                templateResult(item) {
-                  return `<p>${item.title}</p>`;
+                templateResult(ticket) {
+                  return `<p>${ticket.title}</p>`;
                 },
-                templateSelection(item) {
-                  return item.title;
+                templateSelection(ticket) {
+                  return ticket.title;
                 },
               });
             }

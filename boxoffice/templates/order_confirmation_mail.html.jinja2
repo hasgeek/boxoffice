@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8" />
-  <title>{{ order.item_collection.description }}</title>
+  <title>{{ order.menu.title }}</title>
   <style type="text/css">
     * {
       margin: 0;
@@ -148,7 +148,7 @@
 
     <p>{% trans buyer=order.buyer_fullname %}Hello {{ buyer }},{% endtrans %}</p>
 
-    <p class="content">{% trans title=order.item_collection.title -%}
+    <p class="content">{% trans title=order.menu.title -%}
       Thanks for your interest in {{ title }}.
       Here is your order. To access the event, you must have a
       <a href="https://hasgeek.com/account">Hasgeek account</a>
@@ -236,8 +236,8 @@
         <tr>
           <td class="center" rowspan="2" valign="top">{{ line_item.line_item_seq }}</td>
           <td colspan="3">
-            <span class="item-title">{{ line_item.item.title }}</span><br/>
-            <span class="item-description">{{ line_item.item.description.text|safe }}</span>
+            <span class="item-title">{{ line_item.ticket.title }}</span><br/>
+            <span class="item-description">{{ line_item.ticket.description }}</span>
           </td>
         </tr>
         <tr>
@@ -258,7 +258,7 @@
           <tr>
             <td class="center" rowspan="2" valign="top"></td>
             <td colspan="3">
-               <span class="item-title">{% trans Refund:{% endtrans %} {{ line_item.item.title }}</span>
+               <span class="item-title">{% trans Refund:{% endtrans %} {{ line_item.ticket.title }}</span>
             </td>
           </tr>
           <tr>

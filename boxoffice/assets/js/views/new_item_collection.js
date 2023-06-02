@@ -2,7 +2,7 @@ import { urlFor } from '../models/util';
 import { FormView } from './form_view';
 import { navigateTo } from './navigate';
 
-export const ItemCollectionNewView = {
+export const MenuNewView = {
   render({ accountName } = {}) {
     FormView.load({
       url: urlFor('new', {
@@ -11,7 +11,7 @@ export const ItemCollectionNewView = {
         resource: 'menu',
         root: true,
       }),
-      title: 'New item collection',
+      title: 'New menu',
       onHide() {
         navigateTo(
           urlFor('view', { resource: 'o', id: accountName, root: true })
@@ -21,7 +21,7 @@ export const ItemCollectionNewView = {
         navigateTo(
           urlFor('view', {
             resource: 'menu',
-            id: responseData.result.item_collection.id,
+            id: responseData.result.menu.id,
             root: true,
           })
         );
@@ -30,4 +30,4 @@ export const ItemCollectionNewView = {
   },
 };
 
-export { ItemCollectionNewView as default };
+export { MenuNewView as default };

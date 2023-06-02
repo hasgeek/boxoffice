@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8" />
-  <title>{{order.item_collection.description}}</title>
+  <title>{{order.menu.title}}</title>
   <style type="text/css">
     * {
       margin: 0;
@@ -178,7 +178,7 @@
          <img src="{{ org.details.get('logo') }}" class="logo"/>
         </div>
       {%- endif %}
-      <h1 class="menu-title">{{ order.item_collection.title }}
+      <h1 class="menu-title">{{ order.menu.title }}
     </div>
 
     <div class="content-wrapper">
@@ -202,8 +202,8 @@
         {% for line_item in line_items -%}
           <tr>
             <td class="center" valign="middle">{{ line_item.line_item_seq }}</td>
-            <td valign="middle">{{ line_item.item.title }}</td>
-            <td valign="top">{{ line_item.item.description.text|safe }}</td>
+            <td valign="middle">{{ line_item.ticket.title }}</td>
+            <td valign="top">{{ line_item.ticket.description }}</td>
             <td class="center" valign="middle">
               <p>{% trans %}This is a <b>free</b> ticket.{% endtrans %}</p>
               {% if line_item.discount_policy %}

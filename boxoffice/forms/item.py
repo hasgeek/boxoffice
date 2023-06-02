@@ -66,7 +66,7 @@ class ItemForm(forms.Form):
     )
     event_date = forms.DateField(
         __("Event date"),
-        description=__("The date on which this item will be invoiced"),
+        description=__("The date on which this ticket will be invoiced"),
         validators=[
             forms.validators.DataRequired(__("Please specify a date for the event"))
         ],
@@ -99,7 +99,7 @@ class ItemForm(forms.Form):
         self.place_supply_country_code.choices = [('', '')] + localized_country_list()
         self.category.query = (
             Category.query.join(ItemCollection)
-            .filter(Category.item_collection == self.edit_parent)
+            .filter(Category.menu == self.edit_parent)
             .options(sa.orm.load_only(Category.id, Category.title))
         )
 

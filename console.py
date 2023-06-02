@@ -13,6 +13,7 @@ from typing_extensions import TypeAlias
 import IPython
 
 from baseframe import _
+from coaster.sqlalchemy import MarkdownComposite
 from coaster.utils import isoweek_datetime, midnight_to_utc, utcnow
 
 from boxoffice import app
@@ -63,16 +64,16 @@ def sales_by_date(
             LineItem.status == LINE_ITEM_STATUS.CONFIRMED,
             LineItem.ordered_at >= start_at,
             LineItem.ordered_at < end_at,
-            LineItem.item_id.in_(item_ids),
+            LineItem.ticket_id.in_(item_ids),
         )
     )
     return sales_on_date if sales_on_date else Decimal(0)
 
 
 def calculate_weekly_sales(
-    item_collection_ids: Iterable[UUID], user_tz: Timezone, year: int
+    menu_ids: Iterable[UUID], user_tz: Timezone, year: int
 ) -> Dict[int, Decimal]:
-    """Calculate sales per week for given item_collection_ids in a given year."""
+    """Calculate sales per week for given menu_ids in a given year."""
     ordered_week_sales: Dict[int, Decimal] = {}
     for year_week in Week.weeks_of_year(year):
         ordered_week_sales[int(year_week.week)] = Decimal(0)
@@ -88,12 +89,12 @@ def calculate_weekly_sales(
             sa.func.sum(LineItem.final_amount).label('sum'),
         )
         .select_from(LineItem)
-        .join(Item, LineItem.item_id == Item.id)
+        .join(Item, LineItem.ticket_id == Item.id)
         .where(
             LineItem.status.in_(
                 [LINE_ITEM_STATUS.CONFIRMED, LINE_ITEM_STATUS.CANCELLED]
             ),
-            Item.item_collection_id.in_(item_collection_ids),
+            Item.menu_id.in_(menu_ids),
             sa.func.timezone(user_tz, sa.func.timezone('UTC', LineItem.ordered_at))
             >= start_at,
             sa.func.timezone(user_tz, sa.func.timezone('UTC', LineItem.ordered_at))
@@ -241,7 +242,7 @@ def partial_refund(
     amount: Decimal,
     internal_note: str,
     refund_description: str,
-    note_to_user: str,
+    note_to_user: MarkdownComposite,
 ) -> None:
     """
     Process a partial refund for an order.
@@ -277,11 +278,11 @@ def finalize_invoices(
 
 
 def resend_attendee_details_email(
-    item_collection_id: UUID,
-    item_collection_title: str = "",
+    menu_id: UUID,
+    menu_title: str = "",
     sender_team_member_name: str = "Team Hasgeek",
 ) -> None:
-    menu = ItemCollection.query.get(item_collection_id)
+    menu = ItemCollection.query.get(menu_id)
     if menu is None:
         raise ValueError("Unknown item collection")
     headers, rows = menu.fetch_all_details()
@@ -294,7 +295,7 @@ def resend_attendee_details_email(
 
     for order_id in unfilled_orders:
         send_participant_assignment_mail(
-            str(order_id), item_collection_title or menu.title, sender_team_member_name
+            str(order_id), menu_title or menu.title, sender_team_member_name
         )
 
 

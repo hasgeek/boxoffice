@@ -36,7 +36,7 @@ def index():
 
 
 def jsonify_org(data):
-    item_collections_list = (
+    menu_list = (
         ItemCollection.query.filter(ItemCollection.organization == data['org'])
         .order_by(ItemCollection.created_at.desc())
         .all()
@@ -44,7 +44,7 @@ def jsonify_org(data):
     return jsonify(
         id=data['org'].id,
         account_title=data['org'].title,
-        menus=[dict(menu.current_access()) for menu in item_collections_list],
+        menus=[dict(menu.current_access()) for menu in menu_list],
     )
 
 
@@ -52,13 +52,13 @@ def jsonify_org(data):
 @lastuser.requires_login
 @render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_org})
 @load_models((Organization, {'name': 'org'}, 'organization'), permission='org_admin')
-def org(organization):
+def org(organization: Organization):
     return {'org': organization, 'title': organization.title}
 
 
 @app.route('/api/1/organization/<org>/weekly_revenue', methods=['GET', 'OPTIONS'])
 @load_models((Organization, {'name': 'org'}, 'organization'))
-def org_revenue(organization):
+def org_revenue(organization: Organization):
     check_api_access(organization.details.get('access_token'))
 
     if not request.args.get('year'):
@@ -72,21 +72,15 @@ def org_revenue(organization):
             message=_("Unknown timezone. Timezone is case-sensitive"), status_code=400
         )
 
-    item_collection_ids = [
-        item_collection.id for item_collection in organization.item_collections
-    ]
+    menu_ids = [menu.id for menu in organization.menus]
     year = int(request.args.get('year'))
     user_timezone = request.args.get('timezone')
 
     if getbool(request.args.get('refund')):
-        result = list(
-            calculate_weekly_refunds(item_collection_ids, user_timezone, year).items()
-        )
+        result = list(calculate_weekly_refunds(menu_ids, user_timezone, year).items())
         doc = _("Refunds per week for {year}").format(year=year)
     else:
         # sales includes confirmed and cancelled line items
-        result = list(
-            calculate_weekly_sales(item_collection_ids, user_timezone, year).items()
-        )
+        result = list(calculate_weekly_sales(menu_ids, user_timezone, year).items())
         doc = _("Revenue per week for {year}").format(year=year)
     return api_success(result=result, doc=doc, status_code=200)

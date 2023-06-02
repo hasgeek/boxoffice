@@ -19,11 +19,11 @@ def ajax_post(client, url, data):
     )
 
 
-def test_assign(db_session, client, all_data):
-    item = Item.query.filter_by(name="conference-ticket").first()
+def test_assign(db_session, client, all_data) -> None:
+    ticket = Item.query.filter_by(name="conference-ticket").first()
 
     data = {
-        'line_items': [{'item_id': str(item.id), 'quantity': 2}],
+        'line_items': [{'ticket_id': str(ticket.id), 'quantity': 2}],
         'buyer': {
             'fullname': 'Testing',
             'phone': '9814141414',
@@ -36,6 +36,7 @@ def test_assign(db_session, client, all_data):
     assert resp.status_code == 201
     resp_data = json.loads(resp.data)['result']
     order = Order.query.get(resp_data.get('order_id'))
+    assert isinstance(order, Order)
     assert order.status == ORDER_STATUS.PURCHASE_ORDER
 
     assert len(order.line_items) == 2
@@ -94,19 +95,19 @@ def test_assign(db_session, client, all_data):
 
     # if no transferable_until is set, and no event_date is set,
     # transfer is allowed indefinitely.
-    item.transferable_until = None
-    item.event_date = None
+    ticket.transferable_until = None
+    ticket.event_date = None
     db_session.commit()
 
     assert li_one.is_transferable is True
 
-    item.transferable_until = utcnow() + timedelta(days=2)
-    item.event_date = utcnow() + timedelta(days=2)
+    ticket.transferable_until = utcnow() + timedelta(days=2)
+    ticket.event_date = utcnow() + timedelta(days=2)
     db_session.commit()
 
     # let's set transferable_until date to a past date,
     # so now another transfer of li_one should fail
-    item.transferable_until = utcnow() - timedelta(days=2)
+    ticket.transferable_until = utcnow() - timedelta(days=2)
     db_session.commit()
 
     data = {
@@ -127,12 +128,12 @@ def test_assign(db_session, client, all_data):
     # li_two still doesn't have an assignee
     assert li_two.current_assignee is None
 
-    # if `item.event_date` is in the past, and
+    # if `ticket.event_date` is in the past, and
     # `transferable_until` is not set,
     # ticket assign should still be allowed.
     # ticket assign doesn't have a deadline right now.
-    item.event_date = utcnow().date() - timedelta(days=2)
-    item.transferable_until = None
+    ticket.event_date = utcnow().date() - timedelta(days=2)
+    ticket.transferable_until = None
     db_session.commit()
 
     data = {
@@ -156,8 +157,8 @@ def test_assign(db_session, client, all_data):
     # ticket transfer should fail.
     assert li_two.current_assignee is not None
 
-    item.event_date = utcnow().date() - timedelta(days=2)
-    item.transferable_until = None
+    ticket.event_date = utcnow().date() - timedelta(days=2)
+    ticket.transferable_until = None
     db_session.commit()
 
     data = {

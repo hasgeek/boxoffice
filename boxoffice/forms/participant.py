@@ -27,7 +27,7 @@ class AssigneeForm(forms.Form):
             Assignee.query.join(LineItem)
             .join(Item)
             .join(Order)
-            .filter(LineItem.item_id == self.edit_parent.item_id)
+            .filter(LineItem.ticket_id == self.edit_parent.ticket_id)
             .filter(Order.status != ORDER_STATUS.CANCELLED)
             .filter(Assignee.current.is_(True))
             .filter(Assignee.email == field.data)

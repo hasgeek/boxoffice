@@ -8,17 +8,17 @@ const c3 = require('c3');
 
 const NProgress = require('nprogress');
 
-const ItemTemplate = `
+const TicketTemplate = `
   <div class="content-wrapper clearfix">
     <div class="col-md-8 col-md-offset-1 col-xs-12">
-      <h4>{{ item.title }}</h4>
+      <h4>{{ ticket.title }}</h4>
     </div>
     <div class="col-md-2 col-xs-12">
-      <a class="boxoffice-button boxoffice-button-action align-right-btn" href="/admin/item/{{item.id}}/edit" data-navigate>Edit item</a>
+      <a class="boxoffice-button boxoffice-button-action align-right-btn" href="/admin/ticket/{{ticket.id}}/edit" data-navigate>Edit ticket</a>
     </div>
     <div class="col-md-8 col-md-offset-1 col-xs-12">
-      {{#if item.description_html}}
-        <!--<div class="has-box">{{{ item.description_html }}}</div>-->
+      {{#if ticket.description_html}}
+        <!--<div class="has-box">{{{ ticket.description_html }}}</div>-->
       {{/if}}
     </div>
     <div class="col-md-10 col-md-offset-1 col-xs-12">
@@ -26,14 +26,14 @@ const ItemTemplate = `
         <div class="row">
           <div class="col-md-3 col-xs-6">
             <div class="">
-              <h4 class="digits">{{ item.sold_count }}/{{ item.quantity_available }}</h4>
+              <h4 class="digits">{{ ticket.sold_count }}/{{ ticket.quantity_available }}</h4>
               <p class="text-uppercase callout-text">Tickets sold/available</p>
             </div>
           </div>
           <div class="col-md-3 col-xs-6">
             <div>
-              {{#if item.net_sales}}
-                <h4 class="digits">{{ formatToIndianRupee(item.net_sales) }}</h4>
+              {{#if ticket.net_sales}}
+                <h4 class="digits">{{ formatToIndianRupee(ticket.net_sales) }}</h4>
               {{else}}
                 <h4 class="digits">0</h4>
               {{/if}}
@@ -42,8 +42,8 @@ const ItemTemplate = `
           </div>
           <div class="col-md-3 col-xs-6">
             <div class="">
-              {{#if item.active_price}}
-                <h4 class="digits">{{ formatToIndianRupee(item.active_price) }}</h4>
+              {{#if ticket.active_price}}
+                <h4 class="digits">{{ formatToIndianRupee(ticket.active_price) }}</h4>
               {{else}}
                 <h4 class="digits">N/A</h4>
               {{/if}}
@@ -52,8 +52,8 @@ const ItemTemplate = `
           </div>
           <div class="col-md-3 col-xs-6">
             <div class="">
-              {{#if item.free_count}}
-                <h4 class="digits">{{ item.free_count }}</h4>
+              {{#if ticket.free_count}}
+                <h4 class="digits">{{ ticket.free_count }}</h4>
               {{else}}
                 <h4 class="digits">0</h4>
               {{/if}}
@@ -71,7 +71,7 @@ const ItemTemplate = `
         <h2 class='col-header'>Ticket prices</h2>
       </div>
       <div class="col-md-6 col-xs-12">
-        <a href="/admin/item/{{item.id}}/price/new" data-navigate class="boxoffice-button boxoffice-button-action align-right-btn">New price</a>
+        <a href="/admin/ticket/{{ticket.id}}/price/new" data-navigate class="boxoffice-button boxoffice-button-action align-right-btn">New price</a>
       </div>
       <div class="col-xs-12">
         <div class="row">
@@ -93,7 +93,7 @@ const ItemTemplate = `
                     <p class="price-digits">{{ formatToIndianRupee(prices[i].amount) }}</p>
                   </div>
                   <div class="col-md-2 col-xs-1 text-right">
-                    <a class="edit-btn" href="/admin/item/{{item.id}}/price/{{prices[i].id}}/edit" data-navigate>Edit</a>
+                    <a class="edit-btn" href="/admin/ticket/{{ticket.id}}/price/{{prices[i].id}}/edit" data-navigate>Edit</a>
                   </div>
                 </div>
               </div>
@@ -182,10 +182,14 @@ const DemandGraph = Ractive.extend({
   },
 });
 
-export const ItemView = {
+export const TicketView = {
   render({ ticketId } = {}) {
     fetch({
-      url: urlFor('view', { resource: 'item', id: ticketId, root: true }),
+      url: urlFor('view', {
+        resource: 'ticket',
+        id: ticketId,
+        root: true,
+      }),
     }).then(
       ({
         account_name: accountName,
@@ -193,17 +197,17 @@ export const ItemView = {
         account_title: accountTitle,
         menu_id: menuId,
         menu_title: menuTitle,
-        ticket: item,
+        ticket,
         prices,
         discount_policies: discountPolicies,
       }) => {
         const itemComponent = new Ractive({
           el: '#main-content-area',
-          template: ItemTemplate,
+          template: TicketTemplate,
           components: { DemandGraph },
           transitions: { fly },
           data: {
-            item,
+            ticket,
             accountName,
             prices,
             discountPolicies,
@@ -217,13 +221,13 @@ export const ItemView = {
           },
         });
 
-        SideBarView.render('items', {
+        SideBarView.render('tickets', {
           accountName,
           accountTitle,
           menuId,
           menuTitle,
         });
-        setPageTitle('Item', item.title);
+        setPageTitle('Ticket', ticket.title);
         NProgress.done();
       }
     );

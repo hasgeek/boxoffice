@@ -35,22 +35,22 @@ class Item(BaseScopedNameMixin, Model):
     description = MarkdownColumn('description', default='', nullable=False)
     seq = sa.orm.mapped_column(sa.Integer, nullable=False)
 
-    item_collection_id: Mapped[UUID] = sa.orm.mapped_column(
-        sa.ForeignKey('item_collection.id'), nullable=False
+    menu_id: Mapped[UUID] = sa.orm.mapped_column(
+        'item_collection_id', sa.ForeignKey('item_collection.id'), nullable=False
     )
-    item_collection: Mapped[ItemCollection] = relationship(back_populates='items')
-    parent = sa.orm.synonym('item_collection')
+    menu: Mapped[ItemCollection] = relationship(back_populates='tickets')
+    parent: Mapped[ItemCollection] = sa.orm.synonym('menu')
     category_id: Mapped[int] = sa.orm.mapped_column(
         sa.ForeignKey('category.id'), nullable=False
     )
-    category: Mapped[Category] = relationship(back_populates='items')
+    category: Mapped[Category] = relationship(back_populates='tickets')
 
     quantity_total = sa.orm.mapped_column(sa.Integer, default=0, nullable=False)
 
     discount_policies: DynamicMapped[DiscountPolicy] = relationship(
         secondary=item_discount_policy,  # type: ignore[has-type]
         lazy='dynamic',
-        back_populates='items',
+        back_populates='tickets',
     )
 
     assignee_details: Mapped[jsonb_dict] = sa.orm.mapped_column()
@@ -71,7 +71,7 @@ class Item(BaseScopedNameMixin, Model):
 
     prices: Mapped[List[Price]] = relationship(cascade='all, delete-orphan')
     line_items: DynamicMapped[LineItem] = relationship(
-        cascade='all, delete-orphan', lazy='dynamic', back_populates='item'
+        cascade='all, delete-orphan', lazy='dynamic', back_populates='ticket'
     )
 
     __roles__ = {
@@ -91,38 +91,38 @@ class Item(BaseScopedNameMixin, Model):
 
     def roles_for(self, actor=None, anchors=()):
         roles = super().roles_for(actor, anchors)
-        if self.item_collection.organization.userid in actor.organizations_owned_ids():
+        if self.menu.organization.userid in actor.organizations_owned_ids():
             roles.add('item_owner')
         return roles
 
     def current_price(self):
-        """Return the current price object for an item."""
+        """Return the current price object for a ticket."""
         return self.price_at(utcnow())
 
     def has_higher_price(self, current_price):
-        """Check if item has a higher price than the given current price."""
+        """Check if ticket has a higher price than the given current price."""
         return Price.query.filter(
             Price.end_at > current_price.end_at,
-            Price.item == self,
+            Price.ticket == self,
             Price.discount_policy_id.is_(None),
         ).notempty()
 
     def discounted_price(self, discount_policy):
-        """Return the discounted price for an item."""
+        """Return the discounted price for a ticket."""
         return Price.query.filter(
-            Price.item == self, Price.discount_policy == discount_policy
+            Price.ticket == self, Price.discount_policy == discount_policy
         ).one_or_none()
 
     def standard_prices(self):
         return Price.query.filter(
-            Price.item == self, Price.discount_policy_id.is_(None)
+            Price.ticket == self, Price.discount_policy_id.is_(None)
         ).order_by(Price.start_at.desc())
 
     def price_at(self, timestamp):
-        """Return the price object for an item at a given time."""
+        """Return the price object for a ticket at a given time."""
         return (
             Price.query.filter(
-                Price.item == self,
+                Price.ticket == self,
                 Price.start_at <= timestamp,
                 Price.end_at > timestamp,
                 Price.discount_policy_id.is_(None),
@@ -143,7 +143,7 @@ class Item(BaseScopedNameMixin, Model):
     @property
     def is_available(self):
         """
-        Check if an item is available.
+        Check if a ticket is available.
 
         Test: has a current price object and has a positive quantity_available
         """
@@ -159,7 +159,7 @@ class Item(BaseScopedNameMixin, Model):
 
     @property
     def confirmed_line_items(self):
-        """Return a query object preset with an item's confirmed line items."""
+        """Return a query object preset with a ticket's confirmed line items."""
         return self.line_items.filter(LineItem.status == LINE_ITEM_STATUS.CONFIRMED)
 
     @with_roles(call={'item_owner'})
@@ -177,11 +177,12 @@ class Item(BaseScopedNameMixin, Model):
         ).count()
 
     @with_roles(call={'item_owner'})
-    def net_sales(self):
+    def net_sales(self) -> Decimal:
         return (
             db.session.query(sa.func.sum(LineItem.final_amount))
             .filter(
-                LineItem.item == self, LineItem.status == LINE_ITEM_STATUS.CONFIRMED
+                LineItem.ticket_id == self.id,
+                LineItem.status == LINE_ITEM_STATUS.CONFIRMED,
             )
             .first()[0]
         )
@@ -191,7 +192,7 @@ class Item(BaseScopedNameMixin, Model):
         """
         Return an availability dict.
 
-        {'item_id': ('item title', 'quantity_total', 'line_item_count')}
+        {'ticket_id': ('ticket)title', 'quantity_total', 'line_item_count')}
         """
         items_dict = {}
         item_tups = (
@@ -200,7 +201,7 @@ class Item(BaseScopedNameMixin, Model):
             )
             .join(LineItem)
             .filter(
-                LineItem.item_id.in_(item_ids),
+                LineItem.ticket_id.in_(item_ids),
                 LineItem.status == LINE_ITEM_STATUS.CONFIRMED,
             )
             .group_by(cls.id)
@@ -216,7 +217,7 @@ class Item(BaseScopedNameMixin, Model):
             sa.select(LineItem.final_amount, sa.func.count())
             .select_from(LineItem)
             .where(
-                LineItem.item_id == self.id,
+                LineItem.ticket_id == self.id,
                 LineItem.final_amount > 0,
                 LineItem.status == LINE_ITEM_STATUS.CONFIRMED,
             )
@@ -234,17 +235,17 @@ class Price(BaseScopedNameMixin, Model):
         sa.UniqueConstraint('item_id', 'discount_policy_id'),
     )
 
-    item_id: Mapped[UUID] = sa.orm.mapped_column(
-        sa.ForeignKey('item.id'), nullable=False
+    ticket_id: Mapped[UUID] = sa.orm.mapped_column(
+        'item_id', sa.ForeignKey('item.id'), nullable=False
     )
-    item: Mapped[Item] = relationship(back_populates='prices')
+    ticket: Mapped[Item] = relationship(back_populates='prices')
 
     discount_policy_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('discount_policy.id'), nullable=True
     )
     discount_policy: Mapped[DiscountPolicy] = relationship(back_populates='prices')
 
-    parent = sa.orm.synonym('item')
+    parent: Mapped[Item] = sa.orm.synonym('ticket')
     start_at = sa.orm.mapped_column(
         sa.TIMESTAMP(timezone=True), default=sa.func.utcnow(), nullable=False
     )
@@ -257,7 +258,7 @@ class Price(BaseScopedNameMixin, Model):
         'price_owner': {
             'read': {
                 'id',
-                'item_id',
+                'ticket_id',
                 'start_at',
                 'end_at',
                 'amount',
@@ -269,10 +270,7 @@ class Price(BaseScopedNameMixin, Model):
 
     def roles_for(self, actor=None, anchors=()):
         roles = super().roles_for(actor, anchors)
-        if (
-            self.item.item_collection.organization.userid
-            in actor.organizations_owned_ids()
-        ):
+        if self.ticket.menu.organization.userid in actor.organizations_owned_ids():
             roles.add('price_owner')
         return roles
 

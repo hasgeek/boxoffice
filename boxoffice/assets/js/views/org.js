@@ -18,7 +18,7 @@ const orgTemplate = `
     </div>
     <div class="title-wrapper col-xs-12 col-md-8">
       <a class="boxoffice-button boxoffice-button-action btn-right" href="/admin/o/{{accountName}}/menu/new" data-navigate>
-        New item collection
+        New menu
       </a>
     </div>
     {{#menus:menu}}
@@ -30,9 +30,9 @@ const orgTemplate = `
         </div>
         <div class="content">
           <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
-            <p class="section-title">Item collection id</p>
+            <p class="section-title">Menu id</p>
             <p class="section-content">{{ id }}</p>
-            <p class="section-title">Item collection description</p>
+            <p class="section-title">Menu description</p>
             <div class="section-content">{{{ description.html }}}</div>
             <div class="btn-wrapper">
               <a class="boxoffice-button boxoffice-button-info" href="/{{ accountName }}/{{ name }}">View listing</a>

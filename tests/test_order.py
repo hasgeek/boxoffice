@@ -41,10 +41,10 @@ class MockResponse:
         return self.response_data
 
 
-def test_basic(client, all_data):
-    item = Item.query.filter_by(name='conference-ticket').first()
+def test_basic(client, all_data) -> None:
+    ticket = Item.query.filter_by(name='conference-ticket').first()
     data = {
-        'line_items': [{'item_id': str(item.id), 'quantity': 2}],
+        'line_items': [{'ticket_id': str(ticket.id), 'quantity': 2}],
         'buyer': {
             'fullname': 'Testing',
             'phone': '9814141414',
@@ -64,13 +64,14 @@ def test_basic(client, all_data):
     assert resp.status_code == 201
     resp_data = json.loads(resp.data)['result']
     order = Order.query.get(resp_data.get('order_id'))
+    assert isinstance(order, Order)
     assert order.status == ORDER_STATUS.PURCHASE_ORDER
     # 3500*2 = 7000
     assert resp_data['final_amount'] == 7000
 
 
-def test_basic_with_utm_headers(client, all_data):
-    item = Item.query.filter_by(name='conference-ticket').first()
+def test_basic_with_utm_headers(client, all_data) -> None:
+    ticket = Item.query.filter_by(name='conference-ticket').first()
     utm_campaign = 'campaign'
     utm_medium = 'medium'
     utm_source = 'source'
@@ -79,7 +80,7 @@ def test_basic_with_utm_headers(client, all_data):
     utm_id = 'id'
     gclid = 'gclid'
     data = {
-        'line_items': [{'item_id': str(item.id), 'quantity': 2}],
+        'line_items': [{'ticket_id': str(ticket.id), 'quantity': 2}],
         'buyer': {
             'fullname': 'Testing',
             'phone': '9814141414',
@@ -108,6 +109,7 @@ def test_basic_with_utm_headers(client, all_data):
     assert resp.status_code == 201
     resp_data = json.loads(resp.data)['result']
     order = Order.query.get(resp_data.get('order_id'))
+    assert isinstance(order, Order)
     order_session = order.session
     assert order_session.utm_campaign == utm_campaign
     assert order_session.utm_medium == utm_medium
@@ -118,10 +120,10 @@ def test_basic_with_utm_headers(client, all_data):
     assert order_session.gclid == gclid
 
 
-def test_order_with_invalid_quantity(client, all_data):
-    item = Item.query.filter_by(name='conference-ticket').first()
+def test_order_with_invalid_quantity(client, all_data) -> None:
+    ticket = Item.query.filter_by(name='conference-ticket').first()
     data = {
-        'line_items': [{'item_id': str(item.id), 'quantity': 1001}],
+        'line_items': [{'ticket_id': str(ticket.id), 'quantity': 1001}],
         'buyer': {
             'fullname': 'Testing',
             'phone': '9814141414',
@@ -141,10 +143,10 @@ def test_order_with_invalid_quantity(client, all_data):
     assert resp.status_code == 400
 
 
-def test_simple_discounted_item(client, all_data):
+def test_simple_discounted_item(client, all_data) -> None:
     discounted_item = Item.query.filter_by(name='t-shirt').first()
     data = {
-        'line_items': [{'item_id': str(discounted_item.id), 'quantity': 5}],
+        'line_items': [{'ticket_id': str(discounted_item.id), 'quantity': 5}],
         'buyer': {
             'fullname': 'Testing',
             'phone': '9814141414',
@@ -166,11 +168,11 @@ def test_simple_discounted_item(client, all_data):
     assert resp_data['final_amount'] == 2375
 
 
-def test_expired_item_order(client, all_data):
+def test_expired_ticket_order(client, all_data) -> None:
     expired_ticket = Item.query.filter_by(name='expired-ticket').first()
     quantity = 2
     data = {
-        'line_items': [{'item_id': str(expired_ticket.id), 'quantity': quantity}],
+        'line_items': [{'ticket_id': str(expired_ticket.id), 'quantity': quantity}],
         'buyer': {
             'fullname': 'Testing',
             'phone': '9814141414',
@@ -190,14 +192,14 @@ def test_expired_item_order(client, all_data):
     assert resp.status_code == 400
 
 
-def test_signed_discounted_coupon_order(client, all_data):
+def test_signed_discounted_coupon_order(client, all_data) -> None:
     first_item = Item.query.filter_by(name='conference-ticket').first()
     signed_policy = DiscountPolicy.query.filter_by(name='signed').first()
     signed_code = signed_policy.gen_signed_code()
     discounted_quantity = 1
     data = {
         'line_items': [
-            {'item_id': str(first_item.id), 'quantity': discounted_quantity}
+            {'ticket_id': str(first_item.id), 'quantity': discounted_quantity}
         ],
         'discount_coupons': [signed_code],
         'buyer': {
@@ -227,13 +229,13 @@ def test_signed_discounted_coupon_order(client, all_data):
     assert line_item.discount_coupon.code == signed_code
 
 
-def test_complex_discounted_item(client, all_data):
+def test_complex_discounted_item(client, all_data) -> None:
     discounted_item1 = Item.query.filter_by(name='t-shirt').first()
     discounted_item2 = Item.query.filter_by(name='conference-ticket').first()
     data = {
         'line_items': [
-            {'item_id': str(discounted_item1.id), 'quantity': 5},
-            {'item_id': str(discounted_item2.id), 'quantity': 10},
+            {'ticket_id': str(discounted_item1.id), 'quantity': 5},
+            {'ticket_id': str(discounted_item2.id), 'quantity': 10},
         ],
         'buyer': {
             'fullname': 'Testing',
@@ -257,7 +259,7 @@ def test_complex_discounted_item(client, all_data):
     assert resp_data['final_amount'] == 33875
 
 
-def test_discounted_complex_order(client, all_data):
+def test_discounted_complex_order(client, all_data) -> None:
     conf = Item.query.filter_by(name='conference-ticket').first()
     tshirt = Item.query.filter_by(name='t-shirt').first()
     conf_price = conf.current_price().amount
@@ -268,8 +270,8 @@ def test_discounted_complex_order(client, all_data):
     coupon3 = DiscountCoupon.query.filter_by(code='coupon3').first()
     data = {
         'line_items': [
-            {'item_id': str(tshirt.id), 'quantity': tshirt_quantity},
-            {'item_id': str(conf.id), 'quantity': conf_quantity},
+            {'ticket_id': str(tshirt.id), 'quantity': tshirt_quantity},
+            {'ticket_id': str(conf.id), 'quantity': conf_quantity},
         ],
         'discount_coupons': [coupon2.code, coupon3.code],
         'buyer': {
@@ -291,6 +293,7 @@ def test_discounted_complex_order(client, all_data):
     assert resp.status_code == 201
     resp_json = json.loads(resp.data)['result']
     order = Order.query.get(resp_json.get('order_id'))
+    assert isinstance(order, Order)
     tshirt_policy = DiscountPolicy.query.filter_by(
         title='5% discount on 5 t-shirts'
     ).first()
@@ -314,9 +317,9 @@ def test_discounted_complex_order(client, all_data):
 
 
 def make_free_order(client):
-    item = Item.query.filter_by(name='conference-ticket').first()
+    ticket = Item.query.filter_by(name='conference-ticket').first()
     data = {
-        'line_items': [{'item_id': str(item.id), 'quantity': 1}],
+        'line_items': [{'ticket_id': str(ticket.id), 'quantity': 1}],
         'buyer': {
             'fullname': 'Testing',
             'phone': '9814141414',
@@ -337,11 +340,12 @@ def make_free_order(client):
     return resp
 
 
-def test_free_order(client, all_data):
+def test_free_order(client, all_data) -> None:
     resp = make_free_order(client)
     assert resp.status_code == 201
     resp_json = json.loads(resp.data)['result']
     order = Order.query.get(resp_json.get('order_id'))
+    assert isinstance(order, Order)
     assert order.status == ORDER_STATUS.PURCHASE_ORDER
     assert order.line_items[0].status == LINE_ITEM_STATUS.PURCHASE_ORDER
     assert resp_json['final_amount'] == 0
@@ -360,12 +364,14 @@ def test_free_order(client, all_data):
     assert order.line_items[0].status == LINE_ITEM_STATUS.CONFIRMED
 
 
-def test_cancel_line_item_in_order(db_session, client, all_data, post_env):
+def test_cancel_line_item_in_order(db_session, client, all_data, post_env) -> None:
     original_quantity = 2
     order_item = Item.query.filter_by(name='t-shirt').first()
     total_amount = order_item.current_price().amount * original_quantity
     data = {
-        'line_items': [{'item_id': str(order_item.id), 'quantity': original_quantity}],
+        'line_items': [
+            {'ticket_id': str(order_item.id), 'quantity': original_quantity}
+        ],
         'buyer': {
             'fullname': 'Testing',
             'phone': '9814141414',
@@ -388,6 +394,7 @@ def test_cancel_line_item_in_order(db_session, client, all_data, post_env):
     assert resp_json['final_amount'] == total_amount
 
     order = Order.query.get(resp_json['order_id'])
+    assert isinstance(order, Order)
     # Create fake payment and transaction objects
     online_payment = OnlinePayment(pg_paymentid='pg_testpayment', order=order)
     online_payment.confirm()
@@ -441,13 +448,13 @@ def test_cancel_line_item_in_order(db_session, client, all_data, post_env):
     assert refund_transaction1.amount == expected_refund_amount
 
 
-def test_cancel_line_item_in_bulk_order(db_session, client, all_data, post_env):
+def test_cancel_line_item_in_bulk_order(db_session, client, all_data, post_env) -> None:
     original_quantity = 5
     discounted_item = Item.query.filter_by(name='t-shirt').first()
     total_amount = discounted_item.current_price().amount * original_quantity
     data = {
         'line_items': [
-            {'item_id': str(discounted_item.id), 'quantity': original_quantity}
+            {'ticket_id': str(discounted_item.id), 'quantity': original_quantity}
         ],
         'buyer': {
             'fullname': 'Testing',
@@ -473,6 +480,7 @@ def test_cancel_line_item_in_bulk_order(db_session, client, all_data, post_env):
     )
 
     order = Order.query.get(resp_json['order_id'])
+    assert isinstance(order, Order)
     # Create fake payment and transaction objects
     online_payment = OnlinePayment(pg_paymentid='pg_testpayment', order=order)
     online_payment.confirm()
@@ -577,19 +585,20 @@ def test_cancel_line_item_in_bulk_order(db_session, client, all_data, post_env):
     free_order_resp = make_free_order(client)
     free_order_resp_data = json.loads(free_order_resp.data)['result']
     free_order = Order.query.get(free_order_resp_data.get('order_id'))
+    assert free_order is not None
     free_line_item = free_order.line_items[0]
     process_line_item_cancellation(free_line_item)
     assert free_line_item.status == LINE_ITEM_STATUS.CANCELLED
     assert free_order.transactions.count() == 0
 
 
-def test_partial_refund_in_order(db_session, client, all_data, post_env):
+def test_partial_refund_in_order(db_session, client, all_data, post_env) -> None:
     original_quantity = 5
     discounted_item = Item.query.filter_by(name='t-shirt').first()
     total_amount = discounted_item.current_price().amount * original_quantity
     data = {
         'line_items': [
-            {'item_id': str(discounted_item.id), 'quantity': original_quantity}
+            {'ticket_id': str(discounted_item.id), 'quantity': original_quantity}
         ],
         'buyer': {
             'fullname': 'Testing',
@@ -615,6 +624,7 @@ def test_partial_refund_in_order(db_session, client, all_data, post_env):
     )
 
     order = Order.query.get(resp_data['order_id'])
+    assert isinstance(order, Order)
     # Create fake payment and transaction objects
     online_payment = OnlinePayment(pg_paymentid='pg_testpayment', order=order)
     online_payment.confirm()
@@ -682,6 +692,7 @@ def test_partial_refund_in_order(db_session, client, all_data, post_env):
     assert resp.status_code == 201
     resp_data = json.loads(resp.data)['result']
     order = Order.query.get(resp_data.get('order_id'))
+    assert isinstance(order, Order)
     invalid_refund_amount = 100000000
 
     formdata = {

@@ -6,62 +6,72 @@ from coaster.views import load_models
 
 from .. import app
 from ..data import indian_states
-from ..models import CURRENCY_SYMBOL, DiscountPolicy, Item, ItemCollection, Organization
+from ..models import (
+    CURRENCY_SYMBOL,
+    Category,
+    DiscountPolicy,
+    Item,
+    ItemCollection,
+    Organization,
+)
 from .utils import cors, sanitize_coupons, xhr_only
 
 
-def jsonify_item(item):
-    if item.restricted_entry:
+def jsonify_ticket(ticket: Item):
+    if ticket.restricted_entry:
         code_list = (
             sanitize_coupons(request.args.getlist('code'))
             if 'code' in request.args
             else None
         )
-        if not code_list or not DiscountPolicy.is_valid_access_coupon(item, code_list):
+        if not code_list or not DiscountPolicy.is_valid_access_coupon(
+            ticket, code_list
+        ):
             return None
 
-    price = item.current_price()
+    price = ticket.current_price()
     if not price:
         return None
 
     return {
-        'name': item.name,
-        'title': item.title,
-        'id': item.id,
-        'description': item.description.text,
-        'quantity_available': item.quantity_available,
-        'is_available': item.is_available,
-        'quantity_total': item.quantity_total,
-        'category_id': item.category_id,
-        'item_collection_id': item.item_collection_id,
+        'name': ticket.name,
+        'title': ticket.title,
+        'id': ticket.id,
+        'description': ticket.description.text,
+        'description_html': ticket.description.html,
+        'quantity_available': ticket.quantity_available,
+        'is_available': ticket.is_available,
+        'quantity_total': ticket.quantity_total,
+        'category_id': ticket.category_id,
+        'menu_id': ticket.menu_id,
         'price': price.amount,
         'price_category': price.title,
         'price_valid_upto': price.end_at,
-        'has_higher_price': item.has_higher_price(price),
+        'has_higher_price': ticket.has_higher_price(price),
         'discount_policies': [
             {
                 'id': policy.id,
                 'title': policy.title,
                 'is_automatic': policy.is_automatic,
             }
-            for policy in item.discount_policies
+            for policy in ticket.discount_policies
         ],
     }
 
 
-def jsonify_category(category):
+def jsonify_category(category: Category):
     category_items = []
-    for item in Item.get_by_category(category):
-        item_json = jsonify_item(item)
-        if item_json:
-            category_items.append(item_json)
+    for ticket in Item.get_by_category(category):
+        ticket_json = jsonify_ticket(ticket)
+        if ticket_json:
+            category_items.append(ticket_json)
     if category_items:
         return {
             'id': category.id,
             'title': category.title,
             'name': category.name,
-            'item_collection_id': category.item_collection_id,
-            'items': category_items,
+            'menu_id': category.menu_id,
+            'tickets': category_items,
         }
     return None
 
@@ -87,39 +97,39 @@ def boxofficejs():
     return jsonify({'script': render_boxoffice_js()})
 
 
-@app.route('/menu/<item_collection>', methods=['GET', 'OPTIONS'])
+@app.route('/menu/<menu_id>', methods=['GET', 'OPTIONS'])
 @xhr_only
 @cors
-@load_models((ItemCollection, {'id': 'item_collection'}, 'item_collection'))
-def view_item_collection(item_collection):
+@load_models((ItemCollection, {'id': 'menu_id'}, 'menu'))
+def view_menu(menu: ItemCollection):
     categories_json = []
-    for category in item_collection.categories:
+    for category in menu.categories:
         category_json = jsonify_category(category)
         if category_json:
             categories_json.append(category_json)
     return jsonify(
         html=render_template('boxoffice.html.jinja2'),
         categories=categories_json,
-        refund_policy=item_collection.organization.details.get('refund_policy', ''),
+        refund_policy=menu.organization.details.get('refund_policy', ''),
         currency=CURRENCY_SYMBOL['INR'],
     )
 
 
-@app.route('/<org_name>/<item_collection_name>', methods=['GET', 'OPTIONS'])
+@app.route('/<org>/<menu_name>', methods=['GET', 'OPTIONS'])
 @load_models(
-    (Organization, {'name': 'org_name'}, 'organization'),
+    (Organization, {'name': 'org'}, 'organization'),
     (
         ItemCollection,
-        {'name': 'item_collection_name', 'organization': 'organization'},
-        'item_collection',
+        {'name': 'menu_name', 'organization': 'organization'},
+        'menu',
     ),
 )
-def item_collection_listing(organization, item_collection):
+def menu_listing(organization: Organization, menu: ItemCollection):
     show_title = getbool(request.args.get('show_title', True))
     return render_template(
         'item_collection_listing.html.jinja2',
         organization=organization,
-        item_collection=item_collection,
+        menu=menu,
         show_title=show_title,
         boxoffice_js=Markup(render_boxoffice_js()),
     )

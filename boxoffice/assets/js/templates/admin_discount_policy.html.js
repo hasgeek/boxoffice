@@ -72,7 +72,7 @@ export const DiscountPolicyTemplate = `
                 <p class="field-title filled clearfix">What is the discount for?</p>
                 <select name="item" id="add-item" class="items-select2">
                 </select>
-                {{#newDiscountPolicy.errormsg.items}}<p class="form-error-msg">{{ newDiscountPolicy.errormsg.items }}</p>{{/}}
+                {{#newDiscountPolicy.errormsg.tickets}}<p class="form-error-msg">{{ newDiscountPolicy.errormsg.tickets }}</p>{{/}}
               </div>
             {{else}}
               <div class="group">
@@ -85,7 +85,7 @@ export const DiscountPolicyTemplate = `
               <div class="group">
                 <select name="items" id="add-items" multiple class="items-select2">
                 </select>
-                {{#newDiscountPolicy.errormsg.items}}<p class="form-error-msg">{{ newDiscountPolicy.errormsg.items }}</p>{{/}}
+                {{#newDiscountPolicy.errormsg.tickets}}<p class="form-error-msg">{{ newDiscountPolicy.errormsg.tickets }}</p>{{/}}
               </div>
             {{/if}}
 
@@ -169,8 +169,8 @@ export const DiscountPolicyTemplate = `
                   {{#if dp_items}}
                     <p class="content-details"><b>This discount policy applies to:</b></p>
                     <ol class="content-list">
-                      {{#dp_items:item}}
-                        <li class="content-details">{{ dp_items[item].title }}</li>
+                      {{#dp_items:ticket}}
+                        <li class="content-details">{{ dp_items[ticket].title }}</li>
                       {{/}}
                     </ol>
                   {{/if}}
@@ -260,12 +260,12 @@ export const DiscountPolicyTemplate = `
 
                     <p class="field-title filled">What is the discount for?</p>
                     <div class="group">
-                      <select {{#if is_price_based}}name="item" id="add-item-{{ id }}"{{else}}name="items" id="add-items-{{ id }}" multiple{{/if}} class="items-select2">
-                        {{#dp_items:item}}
-                          <option value="{{ dp_items[item].id }}" selected title="{{ dp_items[item].title }}">{{ dp_items[item].title }}</option>
+                      <select {{#if is_price_based}}name="ticket" id="add-item-{{ id }}"{{else}}name="items" id="add-items-{{ id }}" multiple{{/if}} class="items-select2">
+                        {{#dp_items:ticket}}
+                          <option value="{{ dp_items[ticket].id }}" selected title="{{ dp_items[ticket].title }}">{{ dp_items[ticket].title }}</option>
                         {{/}}
                       </select>
-                      {{#errormsg.items}}<p class="form-error-msg">{{ errormsg.items }}</p>{{/}}
+                      {{#errormsg.tickets}}<p class="form-error-msg">{{ errormsg.tickets }}</p>{{/}}
                     </div>
 
                     <input type="hidden" name="csrf_token" value="{{ getCsrfToken() }}" />

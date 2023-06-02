@@ -14,8 +14,8 @@
          <img src="{{ org.details.get('logo') }}" />
         </div>
       {%- endif %}
-      <h1 class="item-collection-title">{{ order.item_collection.title }} Ticket Assignment</h1>
-      <p class="item-collection-description">{{ order.item_collection.description_text }}</p>
+      <h1 class="item-collection-title">{{ order.menu.title }} Ticket Assignment</h1>
+      <p class="item-collection-description">{{ order.menu.description }}</p>
       <p class="text-center">{% trans number=order.invoice_no %}Receipt No: {{ number }}{% endtrans %}</p>
     </div>
 

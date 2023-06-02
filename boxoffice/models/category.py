@@ -17,23 +17,21 @@ class Category(BaseScopedNameMixin, Model):
         sa.UniqueConstraint('item_collection_id', 'seq'),
     )
 
-    item_collection_id: Mapped[UUID] = sa.orm.mapped_column(
-        sa.ForeignKey('item_collection.id'), nullable=False
+    menu_id: Mapped[UUID] = sa.orm.mapped_column(
+        'item_collection_id', sa.ForeignKey('item_collection.id'), nullable=False
     )
+    menu: Mapped[ItemCollection] = relationship(back_populates='categories')
     seq = sa.orm.mapped_column(sa.Integer, nullable=False)
-    item_collection: Mapped[ItemCollection] = relationship(back_populates='categories')
-    items: Mapped[List[Item]] = relationship(
+    tickets: Mapped[List[Item]] = relationship(
         cascade='all, delete-orphan', back_populates='category'
     )
-    parent = sa.orm.synonym('item_collection')
+    parent: Mapped[ItemCollection] = sa.orm.synonym('menu')
 
-    __roles__ = {
-        'category_owner': {'read': {'id', 'name', 'title', 'item_collection_id'}}
-    }
+    __roles__ = {'category_owner': {'read': {'id', 'name', 'title', 'menu_id'}}}
 
     def roles_for(self, actor=None, anchors=()):
         roles = super().roles_for(actor, anchors)
-        if self.item_collection.organization.userid in actor.organizations_owned_ids():
+        if self.menu.organization.userid in actor.organizations_owned_ids():
             roles.add('category_owner')
         return roles
 

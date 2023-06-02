@@ -30,7 +30,7 @@ class LineItemForm(forms.Form):
     quantity = forms.IntegerField(
         __("Quantity"), validators=[forms.validators.DataRequired()]
     )
-    item_id = forms.StringField(
+    ticket_id = forms.StringField(
         __("Item Id"), validators=[forms.validators.DataRequired()]
     )
 

@@ -11,8 +11,8 @@ class LineItemDiscounter:
         """Return line items with the maximum possible discount applied."""
         if not line_items:
             return None
-        if len({line_item.item_id for line_item in line_items}) > 1:
-            raise ValueError("line_items must be of the same item_id")
+        if len({line_item.ticket_id for line_item in line_items}) > 1:
+            raise ValueError("line_items must be of the same ticket_id")
 
         valid_discounts = self.get_valid_discounts(line_items, coupons)
         if len(valid_discounts) > 1:
@@ -28,21 +28,23 @@ class LineItemDiscounter:
         if not line_items:
             return []
 
-        item = Item.query.get(line_items[0].item_id)
-        if not item.is_available and not item.is_cancellable():
-            # item unavailable, no discounts
+        ticket = Item.query.get(line_items[0].ticket_id)
+        if ticket is None or not ticket.is_available and not ticket.is_cancellable():
+            # Ticket unavailable, no discounts
             return []
 
-        return DiscountPolicy.get_from_item(item, len(line_items), coupons)
+        return DiscountPolicy.get_from_ticket(ticket, len(line_items), coupons)
 
-    def calculate_discounted_amount(self, discount_policy, line_item):
-        if line_item.base_amount is None:
-            # item has expired, no discount
+    def calculate_discounted_amount(
+        self, discount_policy: DiscountPolicy, line_item: LineItem
+    ):
+        if line_item.base_amount is None or line_item.base_amount == Decimal(0):
+            # Ticket has expired, no discount
             return Decimal(0)
 
         if discount_policy.is_price_based:
-            item = Item.query.get(line_item.item_id)
-            discounted_price = item.discounted_price(discount_policy)
+            ticket = Item.query.get(line_item.ticket_id)
+            discounted_price = ticket.discounted_price(discount_policy)
             if discounted_price is None:
                 # no discounted price
                 return Decimal(0)
@@ -89,7 +91,7 @@ class LineItemDiscounter:
                 # discount, assign the current discount to the line item
                 discounted_line_items.append(
                     make_ntuple(
-                        item_id=line_item.item_id,
+                        ticket_id=line_item.ticket_id,
                         base_amount=line_item.base_amount,
                         line_item_id=line_item.id if line_item.id else None,
                         discount_policy_id=discount_policy.id,
@@ -163,4 +165,4 @@ class LineItemDiscounter:
 # Tail imports
 from .discount_policy import DiscountPolicy  # isort:skip
 from .item import Item  # isort:skip
-from .line_item import make_ntuple  # isort:skip
+from .line_item import LineItem, make_ntuple  # isort:skip

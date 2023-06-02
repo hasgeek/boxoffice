@@ -57,7 +57,7 @@ export const Order = {
       data: {
         orderId: data.order_id,
         access_token: data.access_token,
-        eventName: data.item_collection_name,
+        eventName: data.menu_name,
         lineItems: data.line_items,
         buyer_name: data.buyer_name,
         buyer_email: data.buyer_email,

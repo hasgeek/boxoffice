@@ -16,7 +16,7 @@ class OrganizationModelView(SiteAdminModelView):
     form_list = ('id', 'userid', 'title')
     form_excluded_columns = [
         'userid',
-        'item_collections',
+        'menus',
         'discount_policies',
         'invoices',
         'orders',

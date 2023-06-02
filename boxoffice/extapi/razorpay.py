@@ -58,7 +58,7 @@ def get_settled_transactions(date_range, tz=None):
         'order_id',
         'payment_id',
         'refund_id',
-        'item_collection',
+        'menu',
         'description',
         'base_amount',
         'discounted_amount',
@@ -80,7 +80,7 @@ def get_settled_transactions(date_range, tz=None):
         "Transaction external to Boxoffice. Credited directly to Razorpay?"
     )
 
-    for settled_transaction in settled_transactions['items']:
+    for settled_transaction in settled_transactions['tickets']:
         if settled_transaction['type'] == 'settlement':
             rows.append(
                 {
@@ -106,7 +106,7 @@ def get_settled_transactions(date_range, tz=None):
                         'transaction_date': localize_timezone(order.paid_at, tz),
                         'credit': settled_transaction['credit'],
                         'buyer_fullname': order.buyer_fullname,
-                        'item_collection': order.item_collection.title,
+                        'menu': order.menu.title,
                     }
                 )
                 for line_item in order.initial_line_items:
@@ -115,8 +115,8 @@ def get_settled_transactions(date_range, tz=None):
                             'settlement_id': settled_transaction['settlement_id'],
                             'payment_id': settled_transaction['entity_id'],
                             'order_id': order.id,
-                            'item_collection': order.item_collection.title,
-                            'description': line_item.item.title,
+                            'menu': order.menu.title,
+                            'description': line_item.ticket.title,
                             'base_amount': line_item.base_amount,
                             'discounted_amount': line_item.discounted_amount,
                             'final_amount': line_item.final_amount,
@@ -154,7 +154,7 @@ def get_settled_transactions(date_range, tz=None):
                     'buyer_fullname': order.buyer_fullname,
                     'description': refund.refund_description,
                     'amount': refund.amount,
-                    'item_collection': order.item_collection.title,
+                    'menu': order.menu.title,
                 }
             )
     return (headers, rows)

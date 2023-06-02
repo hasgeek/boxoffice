@@ -64,7 +64,7 @@ def jsonify_line_items(line_items):
     Format::
 
         {
-            item_id: {
+            ticket_id: {
                 'quantity': Y,
                 'final_amount': Z,
                 'discounted_amount': Z,
@@ -74,36 +74,36 @@ def jsonify_line_items(line_items):
     """
     items_json = {}
     for line_item in line_items:
-        item = Item.query.get(line_item.item_id)
-        if not items_json.get(str(line_item.item_id)):
-            items_json[str(line_item.item_id)] = {
-                'is_available': item.is_available,
+        ticket = Item.query.get_or_404(line_item.ticket_id)
+        if not items_json.get(str(line_item.ticket_id)):
+            items_json[str(line_item.ticket_id)] = {
+                'is_available': ticket.is_available,
                 'quantity': 0,
                 'final_amount': Decimal(0),
                 'discounted_amount': Decimal(0),
                 'discount_policy_ids': [],
             }
         if line_item.base_amount is not None:
-            items_json[str(line_item.item_id)]['base_amount'] = line_item.base_amount
-            items_json[str(line_item.item_id)]['final_amount'] += (
+            items_json[str(line_item.ticket_id)]['base_amount'] = line_item.base_amount
+            items_json[str(line_item.ticket_id)]['final_amount'] += (
                 line_item.base_amount - line_item.discounted_amount
             )
-            items_json[str(line_item.item_id)][
+            items_json[str(line_item.ticket_id)][
                 'discounted_amount'
             ] += line_item.discounted_amount
         else:
-            items_json[str(line_item.item_id)]['final_amount'] = None
-            items_json[str(line_item.item_id)]['discounted_amount'] = None
-        items_json[str(line_item.item_id)]['quantity'] += 1
-        items_json[str(line_item.item_id)][
+            items_json[str(line_item.ticket_id)]['final_amount'] = None
+            items_json[str(line_item.ticket_id)]['discounted_amount'] = None
+        items_json[str(line_item.ticket_id)]['quantity'] += 1
+        items_json[str(line_item.ticket_id)][
             'quantity_available'
-        ] = item.quantity_available
+        ] = ticket.quantity_available
         if (
             line_item.discount_policy_id
             and line_item.discount_policy_id
-            not in items_json[str(line_item.item_id)]['discount_policy_ids']
+            not in items_json[str(line_item.ticket_id)]['discount_policy_ids']
         ):
-            items_json[str(line_item.item_id)]['discount_policy_ids'].append(
+            items_json[str(line_item.ticket_id)]['discount_policy_ids'].append(
                 line_item.discount_policy_id
             )
     return items_json
@@ -129,10 +129,11 @@ def jsonify_order(data):
             {
                 'seq': line_item.line_item_seq,
                 'id': line_item.id,
-                'title': line_item.item.title,
-                'description': line_item.item.description.text,
+                'title': line_item.ticket.title,
+                'description': line_item.ticket.description.text,
+                'description_html': line_item.ticket.description.html,
                 'final_amount': line_item.final_amount,
-                'assignee_details': line_item.item.assignee_details,
+                'assignee_details': line_item.ticket.assignee_details,
                 'assignee': jsonify_assignee(line_item.current_assignee),
                 'is_confirmed': line_item.is_confirmed,
                 'is_cancelled': line_item.is_cancelled,
@@ -145,7 +146,8 @@ def jsonify_order(data):
     return jsonify(
         order_id=order.id,
         access_token=order.access_token,
-        item_collection_name=order.item_collection.description_text,
+        menu_name=order.menu.name,
+        menu_title=order.menu.title,
         buyer_name=order.buyer_fullname,
         buyer_email=order.buyer_email,
         buyer_phone=order.buyer_phone,
@@ -160,13 +162,13 @@ def kharcha():
     """
     Calculate rates for an order of items and quantities.
 
-    Accepts JSON containing an array of line_items, with the quantity and item_id set
+    Accepts JSON containing an array of line_items, with the quantity and ticket_id set
     for each line_item.
 
     Returns JSON of line items in the format::
 
         {
-            item_id: {
+            ticket_id: {
                 "quantity": Y,
                 "final_amount": Z,
                 "discounted_amount": Z,
@@ -183,7 +185,7 @@ def kharcha():
     # Make line item splits and compute amounts and discounts
     line_items = LineItem.calculate(
         [
-            {'item_id': li_form.data.get('item_id')}
+            {'ticket_id': li_form.data.get('ticket_id')}
             for li_form in line_item_forms
             for x in range(li_form.data.get('quantity'))
         ],
@@ -198,16 +200,16 @@ def kharcha():
     return jsonify(line_items=items_json, order={'final_amount': order_final_amount})
 
 
-@app.route('/menu/<item_collection>/order', methods=['GET', 'OPTIONS', 'POST'])
+@app.route('/menu/<menu_id>/order', methods=['GET', 'OPTIONS', 'POST'])
 @xhr_only
 @cors
-@load_models((ItemCollection, {'id': 'item_collection'}, 'item_collection'))
-def create_order(item_collection):
+@load_models((ItemCollection, {'id': 'menu_id'}, 'menu'))
+def create_order(menu: ItemCollection):
     """
     Create an order.
 
-    Accepts JSON containing an array of line_items with the quantity and item_id
-    set for each item, and a buyer hash containing `email`, `fullname` and `phone`.
+    Accepts JSON containing an array of line_items with the quantity and ticket_id
+    set for each ticket, and a buyer hash containing `email`, `fullname` and `phone`.
 
     Creates a purchase order, and returns a JSON containing the final_amount, order id
     and the URL to be used to register a payment against the order.
@@ -227,30 +229,30 @@ def create_order(item_collection):
         )
 
     invalid_quantity_error_msg = _(
-        "Selected quantity for ‘{item}’ is not available. Please edit the order and"
+        "Selected quantity for ‘{ticket}’ is not available. Please edit the order and"
         " update the quantity"
     )
-    item_dicts = Item.get_availability(
-        [line_item_form.data.get('item_id') for line_item_form in line_item_forms]
+    ticket_dicts = Item.get_availability(
+        [line_item_form.data.get('ticket_id') for line_item_form in line_item_forms]
     )
 
     for line_item_form in line_item_forms:
-        title_quantity_count = item_dicts.get(line_item_form.data.get('item_id'))
+        title_quantity_count = ticket_dicts.get(line_item_form.data.get('ticket_id'))
         if title_quantity_count:
-            item_title, item_quantity_total, line_item_count = title_quantity_count
+            ticket_title, ticket_quantity_total, line_item_count = title_quantity_count
             if (
                 line_item_count + line_item_form.data.get('quantity')
-            ) > item_quantity_total:
+            ) > ticket_quantity_total:
                 return api_error(
-                    message=invalid_quantity_error_msg.format(item=item_title),
+                    message=invalid_quantity_error_msg.format(ticket=ticket_title),
                     status_code=400,
                     errors=['order calculation error'],
                 )
         else:
-            item = Item.query.get(line_item_form.data.get('item_id'))
-            if line_item_form.data.get('quantity') > item.quantity_total:
+            ticket = Item.query.get_or_404(line_item_form.data.get('ticket_id'))
+            if line_item_form.data.get('quantity') > ticket.quantity_total:
                 return api_error(
-                    message=invalid_quantity_error_msg.format(item=item.title),
+                    message=invalid_quantity_error_msg.format(ticket=ticket.title),
                     status_code=400,
                     errors=['order calculation error'],
                 )
@@ -258,8 +260,8 @@ def create_order(item_collection):
     user = User.query.filter_by(email=buyer_form.email.data).first()
     order = Order(
         user=user,
-        organization=item_collection.organization,
-        item_collection=item_collection,
+        organization=menu.organization,
+        menu=menu,
         buyer_email=buyer_form.email.data,
         buyer_fullname=buyer_form.fullname.data,
         buyer_phone=buyer_form.phone.data,
@@ -268,7 +270,7 @@ def create_order(item_collection):
     sanitized_coupon_codes = sanitize_coupons(request.json.get('discount_coupons'))
     line_item_tups = LineItem.calculate(
         [
-            {'item_id': li_form.data.get('item_id')}
+            {'ticket_id': li_form.data.get('ticket_id')}
             for li_form in line_item_forms
             for x in range(li_form.data.get('quantity'))
         ],
@@ -276,29 +278,33 @@ def create_order(item_collection):
     )
 
     for idx, line_item_tup in enumerate(line_item_tups):
-        item = Item.query.get(line_item_tup.item_id)
+        ticket = Item.query.get_or_404(line_item_tup.ticket_id)
 
-        if item.restricted_entry:
+        if ticket.restricted_entry:
             if not sanitized_coupon_codes or not DiscountPolicy.is_valid_access_coupon(
-                item, sanitized_coupon_codes
+                ticket, sanitized_coupon_codes
             ):
-                # Skip adding a restricted item to the cart without the proper access
+                # Skip adding a restricted ticket to the cart without the proper access
                 # code
                 break
 
-        if item.is_available:
+        if ticket.is_available:
             if line_item_tup.discount_policy_id:
-                policy = DiscountPolicy.query.get(line_item_tup.discount_policy_id)
+                policy = DiscountPolicy.query.get_or_404(
+                    line_item_tup.discount_policy_id
+                )
             else:
                 policy = None
             if line_item_tup.discount_coupon_id:
-                coupon = DiscountCoupon.query.get(line_item_tup.discount_coupon_id)
+                coupon = DiscountCoupon.query.get_or_404(
+                    line_item_tup.discount_coupon_id
+                )
             else:
                 coupon = None
 
             line_item = LineItem(
                 order=order,
-                item=item,
+                ticket=ticket,
                 discount_policy=policy,
                 line_item_seq=idx + 1,
                 discount_coupon=coupon,
@@ -311,7 +317,9 @@ def create_order(item_collection):
             db.session.add(line_item)
         else:
             return api_error(
-                message=_("‘{item}’ is no longer available.").format(item=item.title),
+                message=_("‘{ticket}’ is no longer available.").format(
+                    ticket=ticket.title
+                ),
                 status_code=400,
                 errors=['order calculation error'],
             )
@@ -349,7 +357,7 @@ def create_order(item_collection):
 @xhr_only
 @cors
 @load_models((Order, {'id': 'order'}, 'order'))
-def free(order):
+def free(order: Order):
     """Complete a order which has a final_amount of 0."""
     order_amounts = order.get_amounts(LINE_ITEM_STATUS.PURCHASE_ORDER)
     if order_amounts.final_amount == 0:
@@ -365,9 +373,9 @@ def free(order):
         db.session.commit()
         send_receipt_mail.queue(
             order.id,
-            subject=_(
-                "{item_collection_title}: Your registration is confirmed!"
-            ).format(item_collection_title=order.item_collection.title),
+            subject=_("{menu_title}: Your registration is confirmed!").format(
+                menu_title=order.menu.title
+            ),
             template='free_order_confirmation_mail.html.jinja2',
         )
         return api_success(
@@ -383,7 +391,7 @@ def free(order):
 @xhr_only
 @cors
 @load_models((Order, {'id': 'order'}, 'order'))
-def capture_payment(order):
+def capture_payment(order: Order):
     """
     Capture a payment.
 
@@ -435,10 +443,8 @@ def capture_payment(order):
         db.session.commit()
         send_receipt_mail.queue(
             order.id,
-            subject=_(
-                "{item_collection_title}: Thank you for your order (#{invoice_no})!"
-            ).format(
-                item_collection_title=order.item_collection.title,
+            subject=_("{menu_title}: Thank you for your order (#{invoice_no})!").format(
+                menu_title=order.menu.title,
                 invoice_no=order.invoice_no,
             ),
         )
@@ -463,7 +469,7 @@ def capture_payment(order):
 
 @app.route('/order/<access_token>/receipt', methods=['GET'])
 @load_models((Order, {'access_token': 'access_token'}, 'order'))
-def receipt(order):
+def receipt(order: Order):
     if not order.is_confirmed:
         abort(404)
     line_items = LineItem.query.filter(
@@ -499,15 +505,15 @@ def jsonify_invoice(invoice):
 @xhr_only
 @cors
 @load_models((Order, {'access_token': 'access_token'}, 'order'))
-def edit_invoice_details(order):
+def edit_invoice_details(order: Order):
     """Update invoice with buyer's address and taxid."""
     if not order.is_confirmed:
         abort(404)
-    invoice_dict = request.json.get('invoice')
+    invoice_dict = request.json.get('invoice', {})
     if not request.json or not invoice_dict:
         return api_error(message=_("Missing invoice details"), status_code=400)
 
-    invoice = Invoice.query.get(request.json.get('invoice_id'))
+    invoice = Invoice.query.get_or_404(request.json.get('invoice_id'))
     if invoice.is_final:
         return api_error(
             message=_("This invoice has been finalised and hence cannot be modified"),
@@ -554,7 +560,7 @@ def jsonify_invoices(data_dict):
     {'text/html': 'invoice_form.html.jinja2', 'application/json': jsonify_invoices}
 )
 @load_models((Order, {'access_token': 'access_token'}, 'order'))
-def invoice_details_form(order):
+def invoice_details_form(order: Order):
     """View all invoices of an order."""
     if not order.is_confirmed:
         abort(404)
@@ -572,7 +578,7 @@ def invoice_details_form(order):
     {'text/html': 'order.html.jinja2', 'application/json': jsonify_order}, json=True
 )
 @load_models((Order, {'access_token': 'access_token'}, 'order'))
-def order_ticket(order):
+def order_ticket(order: Order):
     return {'order': order, 'org': order.organization}
 
 
@@ -588,7 +594,7 @@ def jsonify_orders(orders):
             'phone': line_item.current_assignee.phone,
         }
 
-        for key in line_item.item.assignee_details:
+        for key in line_item.ticket.assignee_details:
             assignee[key] = line_item.current_assignee.details.get(key)
         return assignee
 
@@ -602,7 +608,7 @@ def jsonify_orders(orders):
                     'line_item_status': "confirmed"
                     if line_item.is_confirmed
                     else "cancelled",
-                    'item': {'title': line_item.item.title},
+                    'ticket': {'title': line_item.ticket.title},
                 }
             )
         api_orders.append(order_dict)
@@ -627,23 +633,27 @@ def get_coupon_codes_from_line_items(line_items):
 
 
 def regenerate_line_item(
-    order, original_line_item, updated_line_item_tup, line_item_seq
+    order: Order, original_line_item: LineItem, updated_line_item_tup, line_item_seq
 ):
     """Update a line item by marking the original as void and creating a replacement."""
     original_line_item.make_void()
-    item = Item.query.get(updated_line_item_tup.item_id)
+    ticket = Item.query.get_or_404(updated_line_item_tup.ticket_id)
     if updated_line_item_tup.discount_policy_id:
-        policy = DiscountPolicy.query.get(updated_line_item_tup.discount_policy_id)
+        policy = DiscountPolicy.query.get_or_404(
+            updated_line_item_tup.discount_policy_id
+        )
     else:
         policy = None
     if updated_line_item_tup.discount_coupon_id:
-        coupon = DiscountCoupon.query.get(updated_line_item_tup.discount_coupon_id)
+        coupon = DiscountCoupon.query.get_or_404(
+            updated_line_item_tup.discount_coupon_id
+        )
     else:
         coupon = None
 
     return LineItem(
         order=order,
-        item=item,
+        ticket=ticket,
         discount_policy=policy,
         previous=original_line_item,
         status=LINE_ITEM_STATUS.CONFIRMED,
@@ -753,7 +763,7 @@ def process_line_item_cancellation(line_item):
                     currency=CURRENCY.INR,
                     refunded_at=func.utcnow(),
                     refund_description=_("Refund: {line_item_title}").format(
-                        line_item_title=line_item.item.title
+                        line_item_title=line_item.ticket.title
                     ),
                 )
             )
@@ -781,7 +791,7 @@ def process_line_item_cancellation(line_item):
 @app.route('/line_item/<line_item_id>/cancel', methods=['POST'])
 @lastuser.requires_login
 @load_models((LineItem, {'id': 'line_item_id'}, 'line_item'), permission='org_admin')
-def cancel_line_item(line_item):
+def cancel_line_item(line_item: LineItem):
     if not line_item.is_cancellable():
         return api_error(
             message='This ticket is not cancellable',
@@ -863,7 +873,7 @@ def process_partial_refund_for_order(data_dict):
     }
 )
 @load_models((Order, {'id': 'order_id'}, 'order'), permission='org_admin')
-def partial_refund_order(order):
+def partial_refund_order(order: Order):
     return {
         'order': order,
         'form': OrderRefundForm(parent=order),
@@ -871,16 +881,16 @@ def partial_refund_order(order):
     }
 
 
-@app.route('/api/1/menu/<item_collection>/orders', methods=['GET', 'OPTIONS'])
-@load_models((ItemCollection, {'id': 'item_collection'}, 'item_collection'))
-def item_collection_orders(item_collection):
-    organization = item_collection.organization
+@app.route('/api/1/menu/<menu_id>/orders', methods=['GET', 'OPTIONS'])
+@load_models((ItemCollection, {'id': 'menu_id'}, 'menu'))
+def menu_orders(menu: ItemCollection):
+    organization = menu.organization
     # TODO: Replace with a better authentication system
     if not request.args.get('access_token') or request.args.get(
         'access_token'
     ) != organization.details.get("access_token"):
         abort(401)
-    orders = item_collection.orders.filter(
+    orders = menu.orders.filter(
         Order.status.in_([ORDER_STATUS.SALES_ORDER, ORDER_STATUS.INVOICE])
     ).all()
     return jsonify(orders=jsonify_orders(orders))

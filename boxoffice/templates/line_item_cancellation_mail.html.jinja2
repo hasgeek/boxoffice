@@ -38,7 +38,7 @@
 
     <p>{% trans buyer=order.buyer_fullname %}Hello {{ buyer }},{% endtrans %}</p>
 
-    <p>{% trans number=order.invoice_no %}With reference to your order (Receipt No: {{ number }}), "{{ item_title }}" has been cancelled.{% endtrans %}</p>
+    <p>{% trans number=order.invoice_no %}With reference to your order (Receipt No: {{ number }}), "{{ ticket_title }}" has been cancelled.{% endtrans %}</p>
     {%- if is_paid %}
       <p>{% trans %}A refund of {{ currency_symbol }} {{ refund_amount }} has been initiated. You should receive the refund in 2-5 days.{% endtrans %}</p>
     {%- endif %}

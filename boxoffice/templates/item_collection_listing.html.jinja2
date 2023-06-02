@@ -19,7 +19,7 @@
         <div class="row">
           <div class="col-xs-12">
             <h1 class="boxoffice-listing">
-              {{ organization.title }}: {{ item_collection.title }}
+              {{ organization.title }}: {{ menu.title }}
             </h1>
           </div>
         </div>
@@ -32,12 +32,12 @@
   <script>
     {{ boxoffice_js }}
     var organization_title = {{ organization.title|tojson }};
-    var item_collection_id = {{ item_collection.id|tojson }};
+    var menu_id = {{ menu.id|tojson }};
 
     $(document).ready(function() {
       window.Boxoffice.init({
         org: organization_title, // Organisation to show
-        itemCollection: item_collection_id, // ItemCollection ID to show
+        menu: menu_id, // Menu ID to show
         paymentDesc: organization_title // Description for payments widget
       });
     });

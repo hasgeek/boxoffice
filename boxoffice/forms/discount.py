@@ -57,13 +57,13 @@ class AutomaticDiscountPolicyForm(DiscountPolicyForm):
             forms.validators.DataRequired(__("Please specify a discount percentage"))
         ],
     )
-    items = forms.QuerySelectMultipleField(
-        __("Items"),
+    tickets = forms.QuerySelectMultipleField(
+        __("Tickets"),
         get_label='title',
         validators=[
             forms.validators.DataRequired(
                 __(
-                    "Please select at least one item for which the discount is"
+                    "Please select at least one ticket for which the discount is"
                     " applicable"
                 )
             )
@@ -71,7 +71,7 @@ class AutomaticDiscountPolicyForm(DiscountPolicyForm):
     )
 
     def set_queries(self) -> None:
-        self.items.query = (
+        self.tickets.query = (
             Item.query.join(ItemCollection)
             .filter(ItemCollection.organization == self.edit_parent)
             .options(sa.orm.load_only(Item.id, Item.title))
@@ -79,13 +79,13 @@ class AutomaticDiscountPolicyForm(DiscountPolicyForm):
 
 
 class CouponBasedDiscountPolicyForm(DiscountPolicyForm):
-    items = forms.QuerySelectMultipleField(
-        __("Items"),
+    tickets = forms.QuerySelectMultipleField(
+        __("Tickets"),
         get_label='title',
         validators=[
             forms.validators.DataRequired(
                 __(
-                    "Please select at least one item for which the discount is"
+                    "Please select at least one ticket for which the discount is"
                     " applicable"
                 )
             )
@@ -122,7 +122,7 @@ class CouponBasedDiscountPolicyForm(DiscountPolicyForm):
     )
 
     def set_queries(self) -> None:
-        self.items.query = (
+        self.tickets.query = (
             Item.query.join(ItemCollection)
             .filter(ItemCollection.organization == self.edit_parent)
             .options(sa.orm.load_only(Item.id, Item.title))
@@ -191,18 +191,18 @@ class DiscountPriceForm(forms.Form):
         ],
         naive=False,
     )
-    item = forms.QuerySelectField(
-        __("Item"),
+    ticket = forms.QuerySelectField(
+        __("Ticket"),
         get_label='title',
         validators=[
             forms.validators.DataRequired(
-                __("Please select a item for which the discount is to be applied")
+                __("Please select a ticket for which the discount is to be applied")
             )
         ],
     )
 
     def set_queries(self) -> None:
-        self.item.query = (
+        self.ticket.query = (
             Item.query.join(ItemCollection)
             .filter(ItemCollection.organization_id == self.edit_parent.organization_id)
             .options(sa.orm.load_only(ItemCollection.id, ItemCollection.title))

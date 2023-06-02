@@ -27,11 +27,11 @@ def order_net_amount(order):
 def format_row(row):
     fields = [
         'settlement_id',
-        'item_collection',
+        'menu',
         'order_id',
         'payment_id',
         'line_item_id',
-        'item_title',
+        'ticket_title',
         'base_amount',
         'discounted_amount',
         'final_amount',
@@ -52,17 +52,17 @@ def format_row(row):
     return row
 
 
-def format_line_item(settlement_id, payment_id, line_item, payment_status):
+def format_line_item(settlement_id, payment_id, line_item: LineItem, payment_status):
     transaction_date = (
         line_item.ordered_at if line_item.is_confirmed else line_item.cancelled_at
     )
     return {
         'settlement_id': settlement_id,
         'order_id': line_item.order.id,
-        'item_collection': line_item.item.item_collection.title,
+        'menu': line_item.ticket.menu.title,
         'payment_id': payment_id,
         'line_item_id': line_item.id,
-        'item_title': line_item.item.title,
+        'ticket_title': line_item.ticket.title,
         'base_amount': line_item.base_amount,
         'discounted_amount': line_item.discounted_amount,
         'final_amount': line_item.final_amount,
@@ -71,14 +71,16 @@ def format_line_item(settlement_id, payment_id, line_item, payment_status):
     }
 
 
-def format_refund_transaction(settlement_id, payment_id, transaction, payment_status):
+def format_refund_transaction(
+    settlement_id, payment_id, transaction: PaymentTransaction, payment_status
+):
     transaction_date = transaction.created_at
     return {
         'settlement_id': settlement_id,
         'order_id': transaction.order.id,
-        'item_collection': transaction.order.item_collection.title,
+        'menu': transaction.order.menu.title,
         'payment_id': payment_id,
-        'item_title': transaction.refund_description,
+        'ticket_title': transaction.refund_description,
         'final_amount': transaction.amount,
         'payment_status': payment_status,
         'transaction_date': localize_timezone(transaction_date, 'Asia/Kolkata'),
@@ -261,11 +263,11 @@ def write_settled_orders(filename, rows):
     with open(filename, 'w', encoding='utf-8') as csvfile:
         fieldnames = [
             'settlement_id',
-            'item_collection',
+            'menu',
             'order_id',
             'payment_id',
             'line_item_id',
-            'item_title',
+            'ticket_title',
             'base_amount',
             'discounted_amount',
             'final_amount',

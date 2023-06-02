@@ -33,11 +33,12 @@ def format_line_items(line_items):
     for line_item in line_items:
         line_item_dicts.append(
             {
-                'title': line_item.item.title,
+                'title': line_item.ticket.title,
                 'seq': line_item.line_item_seq,
                 'id': line_item.id,
-                'category': line_item.item.category.title,
-                'description': line_item.item.description.text,
+                'category': line_item.ticket.category.title,
+                'description': line_item.ticket.description.text,
+                'description_html': line_item.ticket.description.html,
                 'currency': CURRENCY_SYMBOL['INR'],
                 'base_amount': line_item.base_amount,
                 'discounted_amount': line_item.discounted_amount,
@@ -63,7 +64,7 @@ def format_line_items(line_items):
 
 
 def jsonify_admin_orders(data_dict):
-    item_collection_id = data_dict['item_collection'].id
+    menu_id = data_dict['menu'].id
     order_dicts = []
     for order in data_dict['orders']:
         if order.is_confirmed:
@@ -77,7 +78,7 @@ def jsonify_admin_orders(data_dict):
                     'buyer_phone': order.buyer_phone,
                     'currency': CURRENCY_SYMBOL['INR'],
                     'amount': order.net_amount,
-                    'url': '/menu/' + str(item_collection_id) + '/' + str(order.id),
+                    'url': '/menu/' + str(menu_id) + '/' + str(order.id),
                     'receipt_url': url_for('receipt', access_token=order.access_token),
                     'assignee_url': url_for(
                         'order_ticket', access_token=order.access_token
@@ -85,9 +86,9 @@ def jsonify_admin_orders(data_dict):
                 }
             )
     return jsonify(
-        account_name=data_dict['item_collection'].organization.name,
-        account_title=data_dict['item_collection'].organization.title,
-        menu_title=data_dict['item_collection'].title,
+        account_name=data_dict['menu'].organization.name,
+        account_title=data_dict['menu'].organization.title,
+        menu_title=data_dict['menu'].title,
         orders=order_dicts,
     )
 
@@ -97,14 +98,12 @@ def jsonify_admin_orders(data_dict):
 @render_with(
     {'text/html': 'index.html.jinja2', 'application/json': jsonify_admin_orders}
 )
-@load_models(
-    (ItemCollection, {'id': 'menu_id'}, 'item_collection'), permission='org_admin'
-)
-def admin_orders(item_collection):
+@load_models((ItemCollection, {'id': 'menu_id'}, 'menu'), permission='org_admin')
+def admin_orders(menu: ItemCollection):
     return {
-        'title': item_collection.title,
-        'item_collection': item_collection,
-        'orders': item_collection.orders,
+        'title': menu.title,
+        'menu': menu,
+        'orders': menu.orders,
     }
 
 
@@ -112,7 +111,7 @@ def admin_orders(item_collection):
 @lastuser.requires_login
 @xhr_only
 @load_models((Order, {'id': 'order_id'}, 'order'), permission='org_admin')
-def admin_order(order):
+def admin_order(order: Order):
     line_items = LineItem.query.filter(
         LineItem.order == order,
         LineItem.status.in_([LINE_ITEM_STATUS.CONFIRMED, LINE_ITEM_STATUS.CANCELLED]),
@@ -135,7 +134,7 @@ def jsonify_order(order_dict):
             'order_ticket', access_token=order_dict['order'].access_token
         ),
     }
-    menu = {'id': order_dict['order'].item_collection_id}
+    menu = {'id': order_dict['order'].menu_id}
     return jsonify(
         org=org,
         menu=menu,
@@ -152,7 +151,7 @@ def jsonify_order(order_dict):
     permission='org_admin',
 )
 @render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_order})
-def admin_org_order(org, order):
+def admin_org_order(org: Organization, order: Order):
     line_items = LineItem.query.filter(
         LineItem.order == order,
         LineItem.status.in_([LINE_ITEM_STATUS.CONFIRMED, LINE_ITEM_STATUS.CANCELLED]),
@@ -163,23 +162,23 @@ def admin_org_order(org, order):
 def get_order_details(order):
     line_items_list = [
         {
-            'title': li.item.title,
-            'category': li.item.category.title,
-            'event_date': li.item.event_date.isoformat()
-            if li.item.event_date
+            'title': li.ticket.title,
+            'category': li.ticket.category.title,
+            'event_date': li.ticket.event_date.isoformat()
+            if li.ticket.event_date
             else None,
             'status': LINE_ITEM_STATUS[li.status],
             'base_amount': li.base_amount,
             'discounted_amount': li.discounted_amount,
             'final_amount': li.final_amount,
             'assignee': format_assignee(li.current_assignee),
-            'place_of_supply_city': li.item.place_supply_state_code
-            if li.item.place_supply_state_code
-            else li.item.item_collection.place_supply_state_code,
-            'place_of_supply_country': li.item.place_supply_country_code
-            if li.item.place_supply_country_code
-            else li.item.item_collection.place_supply_country_code,
-            'tax_type': li.item.item_collection.tax_type,
+            'place_of_supply_city': li.ticket.place_supply_state_code
+            if li.ticket.place_supply_state_code
+            else li.ticket.menu.place_supply_state_code,
+            'place_of_supply_country': li.ticket.place_supply_country_code
+            if li.ticket.place_supply_country_code
+            else li.ticket.menu.place_supply_country_code,
+            'tax_type': li.ticket.menu.tax_type,
         }
         for li in order.confirmed_and_cancelled_line_items
     ]
@@ -220,7 +219,7 @@ def get_order_details(order):
         status=ORDER_STATUS[order.status],
         final_amount=order.net_amount,
         line_items=line_items_list,
-        title=order.item_collection.title,
+        title=order.menu.title,
         invoices=invoices_list,
         refunds=refunds_list,
         buyer_name=order.buyer_fullname,
@@ -236,7 +235,7 @@ def get_order_details(order):
     (Organization, {'name': 'org_name'}, 'org'),
     (Order, {'organization': 'org', 'receipt_no': 'receipt_no'}, 'order'),
 )
-def order_api(org, order):
+def order_api(org: Organization, order: Order):
     check_api_access(org.details.get('access_token'))
     return get_order_details(order)
 
@@ -248,6 +247,6 @@ def order_api(org, order):
     (Organization, {'name': 'org_name'}, 'org'),
     (Order, {'organization': 'org', 'id': 'order_id'}, 'order'),
 )
-def order_id_api(org, order):
+def order_id_api(org: Organization, order: Order):
     check_api_access(org.details.get('access_token'))
     return get_order_details(order)

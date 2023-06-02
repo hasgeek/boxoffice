@@ -1,11 +1,13 @@
 from decimal import Decimal
+from uuid import UUID
 
 from flask import render_template
 from flask_mail import Message
 from html2text import html2text
 from premailer import transform as email_transform
 
-from baseframe import _
+from baseframe import _, __
+from coaster.sqlalchemy import MarkdownComposite
 
 from . import app, mail, rq
 from .models import CURRENCY_SYMBOL, LINE_ITEM_STATUS, Assignee, LineItem, Order
@@ -13,9 +15,9 @@ from .models import CURRENCY_SYMBOL, LINE_ITEM_STATUS, Assignee, LineItem, Order
 
 @rq.job('boxoffice')
 def send_receipt_mail(
-    order_id,
-    subject="Thank you for your order!",
-    template='order_confirmation_mail.html.jinja2',
+    order_id: UUID,
+    subject: str = __("Thank you for your order!"),
+    template: str = 'order_confirmation_mail.html.jinja2',
 ):
     """Send buyer a link to fill attendee details and get cash receipt."""
     with app.test_request_context():
@@ -49,7 +51,10 @@ def send_receipt_mail(
 
 @rq.job('boxoffice')
 def send_participant_assignment_mail(
-    order_id, item_collection_title, team_member, subject="Please tell us who's coming!"
+    order_id: UUID,
+    menu_title: str,
+    team_member: str,
+    subject=__("Please tell us who's coming!"),
 ):
     with app.test_request_context():
         order = Order.query.get(order_id)
@@ -64,7 +69,7 @@ def send_participant_assignment_mail(
                 base_url=app.config['BASE_URL'],
                 order=order,
                 org=order.organization,
-                item_collection_title=item_collection_title,
+                menu_title=menu_title,
                 team_member=team_member,
             )
         )
@@ -75,11 +80,11 @@ def send_participant_assignment_mail(
 
 @rq.job('boxoffice')
 def send_line_item_cancellation_mail(
-    line_item_id, refund_amount, subject="Ticket Cancellation"
+    line_item_id: UUID, refund_amount: Decimal, subject=__("Ticket Cancellation")
 ):
     with app.test_request_context():
         line_item = LineItem.query.get(line_item_id)
-        item_title = line_item.item.title
+        ticket_title = line_item.ticket.title
         order = line_item.order
         is_paid = line_item.final_amount > Decimal('0')
         msg = Message(
@@ -94,7 +99,7 @@ def send_line_item_cancellation_mail(
                 base_url=app.config['BASE_URL'],
                 order=order,
                 line_item=line_item,
-                item_title=item_title,
+                ticket_title=ticket_title,
                 org=order.organization,
                 is_paid=is_paid,
                 refund_amount=refund_amount,
@@ -107,13 +112,13 @@ def send_line_item_cancellation_mail(
 
 
 @rq.job('boxoffice')
-def send_order_refund_mail(order_id, refund_amount, note_to_user):
+def send_order_refund_mail(
+    order_id: UUID, refund_amount: Decimal, note_to_user: MarkdownComposite
+):
     with app.test_request_context():
         order = Order.query.get(order_id)
-        subject = _(
-            "{item_collection_title}: Refund for receipt no. {invoice_no}"
-        ).format(
-            item_collection_title=order.item_collection.title,
+        subject = _("{menu_title}: Refund for receipt no. {invoice_no}").format(
+            menu_title=order.menu.title,
             invoice_no=order.invoice_no,
         )
         msg = Message(
@@ -139,12 +144,12 @@ def send_order_refund_mail(order_id, refund_amount, note_to_user):
 
 
 @rq.job('boxoffice')
-def send_ticket_assignment_mail(line_item_id):
+def send_ticket_assignment_mail(line_item_id: UUID):
     """Send a confirmation email when ticket has been assigned."""
     with app.test_request_context():
         line_item = LineItem.query.get(line_item_id)
         order = line_item.order
-        subject = order.item_collection.title + ": Here's your ticket"
+        subject = _("{title}: Here's your ticket").format(title=order.menu.title)
         msg = Message(
             subject=subject,
             recipients=[line_item.current_assignee.email],
@@ -165,7 +170,9 @@ def send_ticket_assignment_mail(line_item_id):
 
 
 @rq.job('boxoffice')
-def send_ticket_reassignment_mail(line_item_id, old_assignee_id, new_assignee_id):
+def send_ticket_reassignment_mail(
+    line_item_id: UUID, old_assignee_id: UUID, new_assignee_id: UUID
+):
     """Send notice of reassignment of ticket."""
     with app.test_request_context():
         line_item = LineItem.query.get(line_item_id)
@@ -173,9 +180,8 @@ def send_ticket_reassignment_mail(line_item_id, old_assignee_id, new_assignee_id
         old_assignee = Assignee.query.get(old_assignee_id)
         new_assignee = Assignee.query.get(new_assignee_id)
 
-        subject = (
-            order.item_collection.title
-            + ": Your ticket has been transfered to someone else"
+        subject = _("{title}: Your ticket has been transfered to someone else").format(
+            title=order.menu.title
         )
         msg = Message(
             subject=subject, recipients=[old_assignee.email], bcc=[order.buyer_email]

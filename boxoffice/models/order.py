@@ -43,10 +43,10 @@ class Order(BaseMixin, Model):
     )
     user_id: Mapped[int] = sa.orm.mapped_column(sa.ForeignKey('user.id'), nullable=True)
     user: Mapped[User] = relationship(back_populates='orders')
-    item_collection_id: Mapped[UUID] = sa.orm.mapped_column(
-        sa.ForeignKey('item_collection.id'), nullable=False
+    menu_id: Mapped[UUID] = sa.orm.mapped_column(
+        'item_collection_id', sa.ForeignKey('item_collection.id'), nullable=False
     )
-    item_collection: Mapped[ItemCollection] = relationship(back_populates='orders')
+    menu: Mapped[ItemCollection] = relationship(back_populates='orders')
 
     organization_id: Mapped[int] = sa.orm.mapped_column(
         sa.ForeignKey('organization.id'), nullable=False

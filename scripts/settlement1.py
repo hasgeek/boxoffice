@@ -151,7 +151,7 @@ def get_settlements(filename):
 #                  pay.order.buyer_fullname,
 #                  float(yt[4]),
 #                  float(yt[6]),
-#                  li.item.title
+#                  li.ticket.title
 #             ]
 #         )
 
@@ -167,7 +167,7 @@ def get_settlements(filename):
 #                 yt[4],
 #                 yt[6],
 #                 yt[7],
-#                 li.item.title,
+#                 li.ticket.title,
 #                 unicode(li.final_amount),
 #                 localize(pay.created_at),
 #             ]
@@ -193,7 +193,7 @@ def get_settlements(filename):
 #                 yt[4],
 #                 yt[6],
 #                 yt[7],
-#                 li.item.title,
+#                 li.ticket.title,
 #                 unicode(li.final_amount),
 #                 localize(pay.created_at),
 #             ]

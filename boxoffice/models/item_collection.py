@@ -24,7 +24,7 @@ __all__ = ['ItemCollection']
 
 
 class ItemCollection(BaseScopedNameMixin, Model):
-    """Represent a collection of items or an inventory."""
+    """Represent a collection of tickets."""
 
     __tablename__ = 'item_collection'
     __uuid_primary_key__ = True
@@ -35,7 +35,7 @@ class ItemCollection(BaseScopedNameMixin, Model):
     organization_id: Mapped[int] = sa.orm.mapped_column(
         sa.ForeignKey('organization.id'), nullable=False
     )
-    organization: Mapped[Organization] = relationship(back_populates='item_collections')
+    organization: Mapped[Organization] = relationship(back_populates='menus')
     parent: Mapped[Organization] = sa.orm.synonym('organization')
     tax_type: Mapped[str] = sa.orm.mapped_column(
         sa.Unicode(80), nullable=True, default='GST'
@@ -53,16 +53,16 @@ class ItemCollection(BaseScopedNameMixin, Model):
         cascade='all, delete-orphan',
         order_by='Category.seq',
         collection_class=ordering_list('seq', count_from=1),
-        back_populates='item_collection',
+        back_populates='menu',
     )
-    items: Mapped[List[Item]] = relationship(
+    tickets: Mapped[List[Item]] = relationship(
         cascade='all, delete-orphan',
         order_by='Item.seq',
         collection_class=ordering_list('seq', count_from=1),
-        back_populates='item_collection',
+        back_populates='menu',
     )
     orders: DynamicMapped[Order] = relationship(
-        cascade='all, delete-orphan', lazy='dynamic', back_populates='item_collection'
+        cascade='all, delete-orphan', lazy='dynamic', back_populates='menu'
     )
 
     __roles__ = {'ic_owner': {'read': {'id', 'name', 'title', 'description'}}}
@@ -75,10 +75,10 @@ class ItemCollection(BaseScopedNameMixin, Model):
 
     def fetch_all_details(self) -> HeadersAndDataTuple:
         """
-        Return details for all line items in a given item collection.
+        Return details for all order lineitems in a given menu.
 
         Also return the associated assignee (if any), discount policy (if any),
-        discount coupon (if any), item, order and order session (if any)
+        discount coupon (if any), ticket, order and order session (if any)
         as a tuple of (keys, rows).
         """
         line_item_join = (
@@ -128,7 +128,7 @@ class ItemCollection(BaseScopedNameMixin, Model):
             )
             .select_from(line_item_join)
             .where(LineItem.status == LINE_ITEM_STATUS.CONFIRMED)
-            .where(Order.item_collection_id == self.id)
+            .where(Order.menu_id == self.id)
             .order_by(LineItem.ordered_at)
         )
         # TODO: Use label() instead of this hack
@@ -168,11 +168,11 @@ class ItemCollection(BaseScopedNameMixin, Model):
 
     def fetch_assignee_details(self):
         """
-        Return assignee details for all items in the item collection.
+        Return assignee details for all ordered tickets in the menu.
 
         Includes invoice_no, ticket title, assignee fullname, assignee email, assignee
-        phone and assignee details for all the line items in a given item collection
-        as a tuple of (keys, rows).
+        phone and assignee details for all the ordered lineitem in a given menu as a
+        tuple of (keys, rows).
         """
         line_item_join = (
             sa.join(
@@ -198,7 +198,7 @@ class ItemCollection(BaseScopedNameMixin, Model):
             )
             .select_from(line_item_join)
             .where(LineItem.status == LINE_ITEM_STATUS.CONFIRMED)
-            .where(Order.item_collection == self)
+            .where(Order.menu == self)
             .order_by(LineItem.ordered_at)
         )
         return HeadersAndDataTuple(
@@ -216,7 +216,7 @@ class ItemCollection(BaseScopedNameMixin, Model):
         )
 
     def net_sales(self) -> Decimal:
-        """Return the net revenue for an item collection."""
+        """Return the net revenue for a menu."""
         total_paid = cast(
             Decimal,
             db.session.scalar(
@@ -225,7 +225,7 @@ class ItemCollection(BaseScopedNameMixin, Model):
                 .join(Order, PaymentTransaction.customer_order_id == Order.id)
                 .where(
                     PaymentTransaction.transaction_type == TRANSACTION_TYPE.PAYMENT,
-                    Order.item_collection_id == self.id,
+                    Order.menu_id == self.id,
                 )
             ),
         )
@@ -237,7 +237,7 @@ class ItemCollection(BaseScopedNameMixin, Model):
                 .join(Order, PaymentTransaction.customer_order_id == Order.id)
                 .where(
                     PaymentTransaction.transaction_type == TRANSACTION_TYPE.REFUND,
-                    Order.item_collection_id == self.id,
+                    Order.menu_id == self.id,
                 )
             ),
         )

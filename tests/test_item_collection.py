@@ -67,16 +67,16 @@ def resp(client, all_data):
     )
 
 
-def test_status(resp):
+def test_status(resp) -> None:
     assert resp.status_code == 200
 
 
-def test_root_keys(resp):
+def test_root_keys(resp) -> None:
     data = json.loads(resp.data)
     assert sorted(data.keys()) == sorted(expected_keys)
 
 
-def test_category_keys(resp):
+def test_category_keys(resp) -> None:
     data = json.loads(resp.data)
     assert sorted([cat['name'] for cat in data['categories']]) == sorted(
         expected_categories_names
@@ -84,13 +84,13 @@ def test_category_keys(resp):
 
     for category in data['categories']:
         expected_items = expected_data[category['name']]
-        assert sorted([c['name'] for c in category['items']]) == sorted(
+        assert sorted([c['name'] for c in category['tickets']]) == sorted(
             expected_items.keys()
         )
 
-        for item in category['items']:
-            expected_item_data = expected_items[item['name']]
-            assert item['title'] == expected_item_data['title']
-            assert item['price'] == expected_item_data['price']
-            assert item['description'] == expected_item_data['description']
-            assert item['quantity_total'] == expected_item_data['quantity_total']
+        for ticket in category['tickets']:
+            expected_ticket_data = expected_items[ticket['name']]
+            assert ticket['title'] == expected_ticket_data['title']
+            assert ticket['price'] == expected_ticket_data['price']
+            assert ticket['description'] == expected_ticket_data['description']
+            assert ticket['quantity_total'] == expected_ticket_data['quantity_total']

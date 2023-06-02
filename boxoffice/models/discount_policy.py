@@ -49,7 +49,7 @@ item_discount_policy = sa.Table(
 
 class DiscountPolicy(BaseScopedNameMixin, Model):
     """
-    Consists of the discount rules applicable on items.
+    Consists of the discount rules applicable on tickets.
 
     `title` has a GIN index to enable trigram matching.
     """
@@ -75,13 +75,13 @@ class DiscountPolicy(BaseScopedNameMixin, Model):
     organization: Mapped[Organization] = relationship(
         back_populates='discount_policies'
     )
-    parent = sa.orm.synonym('organization')
+    parent: Mapped[Organization] = sa.orm.synonym('organization')
 
     discount_type = sa.orm.mapped_column(
         sa.Integer, default=DISCOUNT_TYPE.AUTOMATIC, nullable=False
     )
 
-    # Minimum number of a particular item that needs to be bought for this discount to
+    # Minimum number of a particular ticket that needs to be bought for this discount to
     # apply
     item_quantity_min = sa.orm.mapped_column(sa.Integer, default=1, nullable=False)
     percentage = sa.orm.mapped_column(sa.Integer, nullable=True)
@@ -102,7 +102,7 @@ class DiscountPolicy(BaseScopedNameMixin, Model):
     discount_coupons: Mapped[List[DiscountCoupon]] = relationship(
         cascade='all, delete-orphan', back_populates='discount_policy'
     )
-    items: Mapped[List[Item]] = relationship(
+    tickets: Mapped[List[Item]] = relationship(
         secondary=item_discount_policy, back_populates='discount_policies'
     )
     prices: Mapped[List[Price]] = relationship(cascade='all, delete-orphan')
@@ -192,19 +192,19 @@ class DiscountPolicy(BaseScopedNameMixin, Model):
         )
 
     @classmethod
-    def get_from_item(cls, item, qty, coupon_codes=()):
+    def get_from_ticket(cls, ticket: Item, qty, coupon_codes=()):
         """
         Return a list of (discount_policy, discount_coupon) tuples.
 
-        Applicable for an item, given the quantity of line items and coupons if any.
+        Applicable for a ticket, given the quantity of line items and coupons if any.
         """
-        automatic_discounts = item.discount_policies.filter(
+        automatic_discounts = ticket.discount_policies.filter(
             cls.discount_type == DISCOUNT_TYPE.AUTOMATIC, cls.item_quantity_min <= qty
         ).all()
         policies = [(discount, None) for discount in automatic_discounts]
         if not coupon_codes:
             return policies
-        coupon_policies = item.discount_policies.filter(
+        coupon_policies = ticket.discount_policies.filter(
             cls.discount_type == DISCOUNT_TYPE.COUPON
         ).all()
         coupon_policy_ids = [cp.id for cp in coupon_policies]
@@ -212,7 +212,7 @@ class DiscountPolicy(BaseScopedNameMixin, Model):
             coupons = []
             if cls.is_signed_code_format(coupon_code):
                 policy = cls.get_from_signed_code(
-                    coupon_code, item.item_collection.organization_id
+                    coupon_code, ticket.menu.organization_id
                 )
                 if policy and policy.id in coupon_policy_ids:
                     coupon = DiscountCoupon.query.filter_by(
@@ -245,9 +245,9 @@ class DiscountPolicy(BaseScopedNameMixin, Model):
         ).count()
 
     @classmethod
-    def is_valid_access_coupon(cls, item, code_list):
+    def is_valid_access_coupon(cls, ticket: Item, code_list):
         """
-        Check if any of code_list is a valid access code for the specified item.
+        Check if any of code_list is a valid access code for the specified ticket.
 
         A supplied coupon code can be either a signed coupon code or a custom code.
         Both cases are checked for. Used signed coupon codes are stored and rejected for
@@ -255,9 +255,7 @@ class DiscountPolicy(BaseScopedNameMixin, Model):
         """
         for code in code_list:
             if cls.is_signed_code_format(code):
-                policy = cls.get_from_signed_code(
-                    code, item.item_collection.organization_id
-                )
+                policy = cls.get_from_signed_code(code, ticket.menu.organization_id)
                 if policy and not DiscountCoupon.is_signed_code_usable(policy, code):
                     break
             else:
@@ -273,16 +271,16 @@ class DiscountPolicy(BaseScopedNameMixin, Model):
                 except MultipleResultsFound:
                     # ref: https://github.com/hasgeek/boxoffice/issues/290
                     policy = None
-            if bool(policy) and policy in item.discount_policies:
+            if bool(policy) and policy in ticket.discount_policies:
                 return True
         return False
 
 
 @sa.event.listens_for(DiscountPolicy, 'before_update')
 @sa.event.listens_for(DiscountPolicy, 'before_insert')
-def validate_price_based_discount(mapper, connection, target):
-    if target.is_price_based and len(target.items) > 1:
-        raise ValueError("Price-based discounts MUST have only one associated item")
+def validate_price_based_discount(mapper, connection, target: DiscountPolicy):
+    if target.is_price_based and len(target.tickets) > 1:
+        raise ValueError("Price-based discounts MUST have only one associated ticket")
 
 
 def generate_coupon_code(size=6, chars=string.ascii_uppercase + string.digits):

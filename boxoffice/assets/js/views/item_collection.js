@@ -27,16 +27,16 @@ export const TableTemplate = `
         </thead>
         <tbody>
           {{#categories}}{{# { category: . } }}
-            {{#category.items:index}}
+            {{#category.tickets:index}}
               <tr>
                 {{#if !index}}
-                  <td class="active" rowspan="{{category.items.length}}">
+                  <td class="active" rowspan="{{category.tickets.length}}">
                     {{ category.title }}<br />
                     <a href='/admin/menu/{{menuId}}/category/{{category.id}}/edit' data-navigate>Edit</a>
                   </td>
                 {{/if}}
                 <td>{{ index + 1 }}</td>
-                <td><a class="" href="/admin/item/{{id}}" data-navigate>{{ title }}</a></td>
+                <td><a class="" href="/admin/ticket/{{id}}" data-navigate>{{ title }}</a></td>
                 <td>{{ quantity_available }}</td>
                 <td>{{ sold_count }} <input type="checkbox" name="sold" on-click="onItemsSelected(event, 'sold_count')" /></td>
                 <td>{{ free_count }} <input type="checkbox" name="free" on-click="onItemsSelected(event, 'free_count')" /></td>
@@ -48,7 +48,7 @@ export const TableTemplate = `
                 {{/if}}
                 <td>{{ formatToIndianRupee(netSales) }}</td>
               </tr>
-            {{/category.items}}
+            {{/category.tickets}}
           {{/}}{{/categories}}
           <tr>
             <td></td>
@@ -69,7 +69,7 @@ export const AggChartTemplate = `
   </div>
 `;
 
-export const ItemCollectionTemplate = `
+export const MenuTemplate = `
   <div class="content-wrapper clearfix">
     <h1 class="header col-xs-12">{{ menuTitle }}</h1>
     <div class="title-wrapper col-xs-12">
@@ -77,10 +77,10 @@ export const ItemCollectionTemplate = `
         View listing
       </a>
       <a class="boxoffice-button boxoffice-button-primary btn-right btn-margin-right" href="/admin/menu/{{menuId}}/edit" data-navigate>
-        Edit item collection
+        Edit menu
       </a>
-      <a class="boxoffice-button boxoffice-button-action btn-right btn-margin-right" href="/admin/menu/{{menuId}}/item/new" data-navigate>
-        New item
+      <a class="boxoffice-button boxoffice-button-action btn-right btn-margin-right" href="/admin/menu/{{menuId}}/ticket/new" data-navigate>
+        New ticket
       </a>
       <a class="boxoffice-button boxoffice-button-primary btn-right btn-margin-right" href="/admin/menu/{{menuId}}/category/new" data-navigate>
         New category
@@ -160,7 +160,7 @@ const AggChartComponent = Ractive.extend({
     const allItems = this.parent
       .get('categories')
       .reduce((givenItems, category) => {
-        return givenItems.concat(category.items);
+        return givenItems.concat(category.tickets);
       }, []);
     const dateSales = this.parent.get('dateSales');
     const dates = ['x'];
@@ -169,28 +169,28 @@ const AggChartComponent = Ractive.extend({
     Object.keys(dateItemCounts).forEach((itemDate) => {
       dates.push(itemDate);
       dateSalesColumn.push(dateSales[itemDate]);
-      allItems.forEach((item) => {
-        if (!itemCounts[item.id]) {
-          itemCounts[item.id] = [];
+      allItems.forEach((ticket) => {
+        if (!itemCounts[ticket.id]) {
+          itemCounts[ticket.id] = [];
         }
         if (
           Object.prototype.hasOwnProperty.call(
             dateItemCounts[itemDate],
-            item.id
+            ticket.id
           )
         ) {
           // If an item has been bought on this itemDate
-          itemCounts[item.id].push(dateItemCounts[itemDate][item.id]);
+          itemCounts[ticket.id].push(dateItemCounts[itemDate][ticket.id]);
         } else {
           // Item not bought on this date
-          itemCounts[item.id].push(0);
+          itemCounts[ticket.id].push(0);
         }
       });
     });
 
     const columns = [dates];
-    allItems.forEach((item) => {
-      columns.push([item.title].concat(itemCounts[item.id]));
+    allItems.forEach((ticket) => {
+      columns.push([ticket.title].concat(itemCounts[ticket.id]));
     });
 
     // let barGraphHeaders = columns.map((col) => col[0]).filter((header) => header !== 'x');
@@ -246,7 +246,7 @@ const AggChartComponent = Ractive.extend({
   },
 });
 
-export const ItemCollectionView = {
+export const MenuView = {
   render({ menuId } = {}) {
     fetch({
       url: urlFor('view', { resource: 'menu', id: menuId, root: true }),
@@ -266,7 +266,7 @@ export const ItemCollectionView = {
         // Initial render
         const icComponent = new Ractive({
           el: '#main-content-area',
-          template: ItemCollectionTemplate,
+          template: MenuTemplate,
           transitions: { fly },
           data: {
             menuId,

@@ -2,16 +2,16 @@ import { urlFor } from '../models/util';
 import { FormView } from './form_view';
 import { navigateTo } from './navigate';
 
-export const NewItemView = {
+export const NewTicketView = {
   render({ menuId } = {}) {
     FormView.load({
       url: urlFor('new', {
         scope_ns: 'menu',
         scope_id: menuId,
-        resource: 'item',
+        resource: 'ticket',
         root: true,
       }),
-      title: 'New item',
+      title: 'New ticket',
       onHide() {
         navigateTo(
           urlFor('view', { resource: 'menu', id: menuId, root: true })
@@ -20,8 +20,8 @@ export const NewItemView = {
       onSuccess(responseData) {
         navigateTo(
           urlFor('view', {
-            resource: 'item',
-            id: responseData.result.item.id,
+            resource: 'ticket',
+            id: responseData.result.ticket.id,
             root: true,
           })
         );
@@ -30,4 +30,4 @@ export const NewItemView = {
   },
 };
 
-export { NewItemView as default };
+export { NewTicketView as default };

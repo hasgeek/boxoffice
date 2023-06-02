@@ -204,7 +204,7 @@ def get_settlements(filename):
 
 
 def get_line_items(filename):
-    # line_item_id, order_id, settlement_id, item_title
+    # line_item_id, order_id, settlement_id, line_item_title
     transactions = csv_to_rows(filename)
     line_items = []
     header = [
@@ -223,7 +223,7 @@ def get_line_items(filename):
                         line_item.id,
                         line_item.order.id,
                         trans[11],
-                        line_item.item.title,
+                        line_item.ticket.title,
                         line_item.status == LINE_ITEM_STATUS.CANCELLED,
                     ]
                 )

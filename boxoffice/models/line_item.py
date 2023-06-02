@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections import OrderedDict, namedtuple
 from datetime import date, datetime, timedelta, tzinfo
 from decimal import Decimal
-from typing import TYPE_CHECKING, Dict, List, Optional, Union, cast, overload
+from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Union, cast, overload
 from uuid import UUID
 
 from flask import current_app
@@ -22,7 +22,7 @@ __all__ = ['LineItem', 'Assignee']
 LineItemTuple = namedtuple(
     'LineItemTuple',
     [
-        'item_id',
+        'ticket_id',
         'id',
         'base_amount',
         'discount_policy_id',
@@ -33,9 +33,9 @@ LineItemTuple = namedtuple(
 )
 
 
-def make_ntuple(item_id, base_amount, **kwargs):
+def make_ntuple(ticket_id, base_amount, **kwargs):
     return LineItemTuple(
-        item_id,
+        ticket_id,
         kwargs.get('line_item_id', None),
         base_amount,
         kwargs.get('discount_policy_id', None),
@@ -78,8 +78,6 @@ class LineItem(BaseMixin, Model):
 
     As financial records, line items cannot ever be deleted. They must only be marked
     as cancelled.
-
-    TODO: Rename this model to `Ticket`
     """
 
     __tablename__ = 'line_item'
@@ -95,10 +93,10 @@ class LineItem(BaseMixin, Model):
         sa.ForeignKey('customer_order.id'), nullable=False, index=True, unique=False
     )
     order: Mapped[Order] = relationship(back_populates='line_items')
-    item_id: Mapped[UUID] = sa.orm.mapped_column(
-        sa.ForeignKey('item.id'), nullable=False, index=True, unique=False
+    ticket_id: Mapped[UUID] = sa.orm.mapped_column(
+        'item_id', sa.ForeignKey('item.id'), nullable=False, index=True, unique=False
     )
-    item: Mapped[Item] = relationship(back_populates='line_items')
+    ticket: Mapped[Item] = relationship(back_populates='line_items')
     previous_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('line_item.id'), nullable=True, unique=True
     )
@@ -170,7 +168,12 @@ class LineItem(BaseMixin, Model):
 
     # TODO: Fix this classmethod's typing
     @classmethod
-    def calculate(cls, line_items, recalculate=False, coupons=None):
+    def calculate(
+        cls,
+        line_items: Iterable[Union[LineItem, dict]],  # FIXME
+        recalculate=False,
+        coupons=None,
+    ):
         """
         Return line item data tuples.
 
@@ -186,24 +189,28 @@ class LineItem(BaseMixin, Model):
         discounter = LineItemDiscounter()
 
         # make named tuples for line items,
-        # assign the base_amount for each of them, None if an item is unavailable
+        # assign the base_amount for each of them, None if a ticket is unavailable
         for line_item in line_items:
             if recalculate:
-                item = line_item.item
+                ticket = line_item.ticket
                 # existing line item, use the original base amount
                 base_amount = line_item.base_amount
                 line_item_id = line_item.id
             else:
-                item = Item.query.get(line_item['item_id'])
+                ticket = Item.query.get(line_item['ticket_id'])
                 # new line item, use the current price
-                base_amount = item.current_price().amount if item.is_available else None
+                base_amount = (
+                    ticket.current_price().amount if ticket.is_available else None
+                )
                 line_item_id = None
 
-            if not item_line_items.get(str(item.id)):
-                item_line_items[str(item.id)] = []
-            item_line_items[str(item.id)].append(
+            if not item_line_items.get(str(ticket.id)):
+                item_line_items[str(ticket.id)] = []
+            item_line_items[str(ticket.id)].append(
                 make_ntuple(
-                    item_id=item.id, base_amount=base_amount, line_item_id=line_item_id
+                    ticket_id=ticket.id,
+                    base_amount=base_amount,
+                    line_item_id=line_item_id,
                 )
             )
 
@@ -232,10 +239,10 @@ class LineItem(BaseMixin, Model):
         if self.current_assignee is None:
             return True  # first time assignment has no deadline for now
         return (
-            now < localize_timezone(self.item.transferable_until, tz)
-            if self.item.transferable_until is not None
-            else now.date() <= self.item.event_date
-            if self.item.event_date is not None
+            now < localize_timezone(self.ticket.transferable_until, tz)
+            if self.ticket.transferable_until is not None
+            else now.date() <= self.ticket.event_date
+            if self.ticket.event_date is not None
             else True
         )
 
@@ -264,8 +271,8 @@ class LineItem(BaseMixin, Model):
         tz = current_app.config['tz']
         now = localize_timezone(utcnow(), tz)
         return self.is_confirmed and (
-            now < localize_timezone(self.item.cancellable_until, tz)
-            if self.item.cancellable_until
+            now < localize_timezone(self.ticket.cancellable_until, tz)
+            if self.ticket.cancellable_until
             else True
         )
 
@@ -279,18 +286,18 @@ class LineItem(BaseMixin, Model):
 
 
 def counts_per_date_per_item(
-    item_collection: ItemCollection, user_tz: tzinfo
+    menu: ItemCollection, user_tz: tzinfo
 ) -> Dict[date, Dict[str, int]]:
     """
-    Return number of line items sold per date per item.
+    Return number of line items sold per date per ticket.
 
     Eg: {'2016-01-01': {'item-xxx': 20}}
     """
-    date_item_counts: Dict[date, Dict[str, int]] = {}
-    for item in item_collection.items:
-        item_id = str(item.id)
+    date_ticket_counts: Dict[date, Dict[str, int]] = {}
+    for ticket in menu.tickets:
+        ticket_id = str(ticket.id)
 
-        item_results = db.session.execute(
+        lineitem_results = db.session.execute(
             sa.select(
                 sa.cast(
                     sa.func.date_trunc(
@@ -302,33 +309,35 @@ def counts_per_date_per_item(
             )
             .select_from(LineItem)
             .where(
-                LineItem.item_id == item.id,
+                LineItem.ticket_id == ticket.id,
                 LineItem.status == LINE_ITEM_STATUS.CONFIRMED,
             )
             .group_by('date')
             .order_by('date')
         ).all()
-        for date_count in item_results:
-            if not date_item_counts.get(date_count.date):
+        for date_count in lineitem_results:
+            if not date_ticket_counts.get(date_count.date):
                 # if this date hasn't been been mapped in date_item_counts yet
-                date_item_counts[date_count.date] = {
-                    item_id: cast(int, date_count.count)
+                date_ticket_counts[date_count.date] = {
+                    ticket_id: cast(int, date_count.count)
                 }
             else:
                 # if it has been mapped, assign the count
-                date_item_counts[date_count.date][item_id] = cast(int, date_count.count)
-    return date_item_counts
+                date_ticket_counts[date_count.date][ticket_id] = cast(
+                    int, date_count.count
+                )
+    return date_ticket_counts
 
 
 def sales_by_date(
-    sales_datetime: Union[date, datetime], item_ids: List[str], user_tz: tzinfo
+    sales_datetime: Union[date, datetime], ticket_ids: List[str], user_tz: tzinfo
 ) -> Optional[Decimal]:
     """
     Return the sales amount accrued during the day.
 
-    Requires a date or datetime, list of item_ids and timezone.
+    Requires a date or datetime, list of ticket_ids and timezone.
     """
-    if not item_ids:
+    if not ticket_ids:
         return None
 
     start_at = midnight_to_utc(sales_datetime, timezone=user_tz)
@@ -342,15 +351,17 @@ def sales_by_date(
                 LineItem.status == LINE_ITEM_STATUS.CONFIRMED,
                 LineItem.ordered_at >= start_at,
                 LineItem.ordered_at < end_at,
-                LineItem.item_id.in_(item_ids),
+                LineItem.ticket_id.in_(ticket_ids),
             )
         ),
     )
     return sales_on_date if sales_on_date else Decimal(0)
 
 
-def calculate_weekly_sales(item_collection_ids: List[str], user_tz: tzinfo, year: int):
-    """Calculate weekly sales for a year in the given item_collection_ids."""
+def calculate_weekly_sales(
+    menu_ids: List[Union[str, UUID]], user_tz: tzinfo, year: int
+):
+    """Calculate weekly sales for a year in the given menu_ids."""
     ordered_week_sales = OrderedDict()
     for year_week in Week.weeks_of_year(year):
         ordered_week_sales[year_week.week] = 0
@@ -366,12 +377,12 @@ def calculate_weekly_sales(item_collection_ids: List[str], user_tz: tzinfo, year
             sa.func.sum(LineItem.final_amount).label('sum'),
         )
         .select_from(LineItem)
-        .join(Item, LineItem.item_id == Item.id)
+        .join(Item, LineItem.ticket_id == Item.id)
         .where(
             LineItem.status.in_(
                 [LINE_ITEM_STATUS.CONFIRMED, LINE_ITEM_STATUS.CANCELLED]
             ),
-            Item.item_collection_id.in_(item_collection_ids),
+            Item.menu_id.in_(menu_ids),
             sa.func.timezone(user_tz, sa.func.timezone('UTC', LineItem.ordered_at))
             >= start_at,
             sa.func.timezone(user_tz, sa.func.timezone('UTC', LineItem.ordered_at))
@@ -387,12 +398,12 @@ def calculate_weekly_sales(item_collection_ids: List[str], user_tz: tzinfo, year
     return ordered_week_sales
 
 
-def sales_delta(user_tz: tzinfo, item_ids: List[str]):
+def sales_delta(user_tz: tzinfo, ticket_ids: List[str]):
     """Calculate the percentage difference in sales between today and yesterday."""
     today = utcnow().date()
     yesterday = today - timedelta(days=1)
-    today_sales = sales_by_date(today, item_ids, user_tz)
-    yesterday_sales = sales_by_date(yesterday, item_ids, user_tz)
+    today_sales = sales_by_date(today, ticket_ids, user_tz)
+    yesterday_sales = sales_by_date(yesterday, ticket_ids, user_tz)
     if not today_sales or not yesterday_sales:
         return 0
     return round(Decimal('100') * (today_sales - yesterday_sales) / yesterday_sales, 2)

@@ -13,7 +13,7 @@
        <img src="{{org.details.get('logo')}}" />
       </div>
     {%- endif %}
-    <h1 class="item-collection-title">{{ order.item_collection.title }}</h1>
+    <h1 class="item-collection-title">{{ order.menu.title }}</h1>
     <p class="text-center">{% trans number=order.invoice_no %}Receipt No: {{ number }}{% endtrans %}</p>
   </div>
 

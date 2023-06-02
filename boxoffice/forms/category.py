@@ -13,7 +13,7 @@ __all__ = ['CategoryForm']
 # TODO: Add to baseframe.forms.validators.AvailableAttr?
 def available_seq(form: CategoryForm, field: forms.Field) -> None:
     basequery = db.session.query(Category.id).filter(
-        Category.item_collection == form.edit_parent, Category.seq == field.data
+        Category.menu == form.edit_parent, Category.seq == field.data
     )
     if form.edit_obj:
         basequery = basequery.filter(Category.id != form.edit_obj.id)

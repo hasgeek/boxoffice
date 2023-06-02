@@ -27,7 +27,7 @@ def test_page() -> str:
     $.getScript("http://boxoffice.travis.dev:6500/boxoffice.js").done(function(){
       window.Boxoffice.init({
         org: 'rootconf',
-        itemCollection: '2016'
+        menu: '2016'
       });
     });
 </script>

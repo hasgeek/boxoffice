@@ -88,8 +88,8 @@ class PaymentTransaction(BaseMixin, Model):
     pg_refundid = sa.orm.mapped_column(sa.Unicode(80), nullable=True, unique=True)
 
 
-def calculate_weekly_refunds(item_collection_ids, user_tz, year):
-    """Calculate refunds per week of the year for given item_collection_ids."""
+def calculate_weekly_refunds(menu_ids, user_tz, year):
+    """Calculate refunds per week of the year for given menu_ids."""
     ordered_week_refunds = OrderedDict()
     for year_week in Week.weeks_of_year(year):
         ordered_week_refunds[year_week.week] = 0
@@ -110,7 +110,7 @@ def calculate_weekly_refunds(item_collection_ids, user_tz, year):
         .where(
             PaymentTransaction.customer_order_id == Order.id,
             Order.status.in_(tuple(ORDER_STATUS.TRANSACTION)),
-            Order.item_collection_id.in_(item_collection_ids),
+            Order.menu_id.in_(menu_ids),
             PaymentTransaction.transaction_type == TRANSACTION_TYPE.REFUND,
             sa.func.timezone(
                 user_tz, sa.func.timezone('UTC', PaymentTransaction.created_at)

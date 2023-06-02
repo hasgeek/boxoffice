@@ -59,7 +59,7 @@ class Organization(ProfileBase, Model):
         cascade='all, delete-orphan',
         back_populates='invoicer',
     )
-    item_collections: Mapped[List[ItemCollection]] = relationship(
+    menus: Mapped[List[ItemCollection]] = relationship(
         cascade='all, delete-orphan', back_populates='organization'
     )
 

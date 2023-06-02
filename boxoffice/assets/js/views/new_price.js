@@ -7,7 +7,7 @@ export const NewPriceView = {
   render({ ticketId } = {}) {
     FormView.load({
       url: urlFor('new', {
-        scope_ns: 'item',
+        scope_ns: 'ticket',
         scope_id: ticketId,
         resource: 'price',
         root: true,
@@ -15,12 +15,12 @@ export const NewPriceView = {
       title: 'New price',
       onHide() {
         navigateTo(
-          urlFor('view', { resource: 'item', id: ticketId, root: true })
+          urlFor('view', { resource: 'ticket', id: ticketId, root: true })
         );
       },
       onSuccess(responseData) {
         navigateTo(
-          urlFor('view', { resource: 'item', id: ticketId, root: true })
+          urlFor('view', { resource: 'ticket', id: ticketId, root: true })
         );
       },
     });
