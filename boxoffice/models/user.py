@@ -22,7 +22,7 @@ class User(UserBase2, Model):
 
     def __repr__(self):
         """Return a representation."""
-        return self.fullname
+        return str(self.fullname)
 
     @property
     def orgs(self):

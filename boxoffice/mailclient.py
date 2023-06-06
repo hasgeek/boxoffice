@@ -1,4 +1,5 @@
 from decimal import Decimal
+from typing import Optional
 from uuid import UUID
 
 from flask import render_template
@@ -6,7 +7,7 @@ from flask_mail import Message
 from html2text import html2text
 from premailer import transform as email_transform
 
-from baseframe import _, __
+from baseframe import _
 from coaster.sqlalchemy import MarkdownComposite
 
 from . import app, mail, rq
@@ -16,11 +17,13 @@ from .models import CURRENCY_SYMBOL, LINE_ITEM_STATUS, Assignee, LineItem, Order
 @rq.job('boxoffice')
 def send_receipt_mail(
     order_id: UUID,
-    subject: str = __("Thank you for your order!"),
+    subject: Optional[str] = None,
     template: str = 'order_confirmation_mail.html.jinja2',
 ):
     """Send buyer a link to fill attendee details and get cash receipt."""
     with app.test_request_context():
+        if subject is None:
+            subject = _("Thank you for your order!")
         order = Order.query.get(order_id)
         msg = Message(
             subject=subject,
@@ -54,9 +57,11 @@ def send_participant_assignment_mail(
     order_id: UUID,
     menu_title: str,
     team_member: str,
-    subject=__("Please tell us who's coming!"),
+    subject: Optional[str] = None,
 ):
     with app.test_request_context():
+        if subject is None:
+            subject = _("Please tell us who's coming!")
         order = Order.query.get(order_id)
         msg = Message(
             subject=subject,
@@ -80,9 +85,11 @@ def send_participant_assignment_mail(
 
 @rq.job('boxoffice')
 def send_line_item_cancellation_mail(
-    line_item_id: UUID, refund_amount: Decimal, subject=__("Ticket Cancellation")
+    line_item_id: UUID, refund_amount: Decimal, subject: Optional[str] = None
 ):
     with app.test_request_context():
+        if subject is None:
+            subject = _("Ticket Cancellation")
         line_item = LineItem.query.get(line_item_id)
         ticket_title = line_item.ticket.title
         order = line_item.order
