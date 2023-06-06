@@ -38,7 +38,7 @@
 
     <p>{% trans buyer=order.buyer_fullname %}Hello {{ buyer }},{% endtrans %}</p>
 
-    <p>{% trans number=order.invoice_no -%}
+    <p>{% trans number=order.receipt_no -%}
       A refund of {{ currency_symbol }} {{ refund_amount }} has been initiated against your order (Receipt No: {{ number }}). You should receive the refund in 2-5 days.
     {%- endtrans %}</p>
     {{ note_to_user|safe }}

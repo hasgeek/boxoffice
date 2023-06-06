@@ -183,7 +183,7 @@
 
     <div class="content-wrapper">
 
-      <p class="receipt-no">{% trans number=order.invoice_no %}Order no: {{ number }}{% endtrans %}</p>
+      <p class="receipt-no">{% trans number=order.receipt_no %}Order no: {{ number }}{% endtrans %}</p>
 
       <p class="content name">{% trans buyer=order.buyer_fullname %}Hello {{ buyer }},{% endtrans %}</p>
       <p class="content">{% trans %}Here is your purchase receipt.{% endtrans %}</p>

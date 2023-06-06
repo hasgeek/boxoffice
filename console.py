@@ -315,7 +315,7 @@ def order_report(org_name: str) -> None:
                 "buyer_email",
                 "buyer_fullname",
                 "buyer_phone",
-                "invoice_no",
+                "receipt_no",
                 "net_amount",
             ]
         )
@@ -331,7 +331,7 @@ def order_report(org_name: str) -> None:
                         order.buyer_email,
                         order.buyer_fullname.encode('utf-8'),
                         order.buyer_phone,
-                        order.invoice_no,
+                        order.receipt_no,
                         order.net_amount,
                     ]
                 )

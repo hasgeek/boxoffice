@@ -18,10 +18,10 @@ class Category(BaseScopedNameMixin, Model):
     )
 
     menu_id: Mapped[UUID] = sa.orm.mapped_column(
-        'item_collection_id', sa.ForeignKey('item_collection.id'), nullable=False
+        'item_collection_id', sa.ForeignKey('item_collection.id')
     )
     menu: Mapped[ItemCollection] = relationship(back_populates='categories')
-    seq = sa.orm.mapped_column(sa.Integer, nullable=False)
+    seq: Mapped[int]
     tickets: Mapped[List[Item]] = relationship(
         cascade='all, delete-orphan', back_populates='category'
     )

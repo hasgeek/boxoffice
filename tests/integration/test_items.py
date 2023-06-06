@@ -44,6 +44,7 @@ def test_assign(db_session, client, all_data) -> None:
     li_two = order.line_items[1]
 
     # li_one has no assingee set yet, so it should be possible to set one
+    assert li_one.assignee is None
     assert li_one.current_assignee is None
     data = {
         'line_item_id': str(li_one.id),
@@ -59,6 +60,7 @@ def test_assign(db_session, client, all_data) -> None:
         data,
     )
     assert json.loads(resp.data)['status'] == 'ok'
+    assert li_one.assignee is not None
     assert li_one.current_assignee is not None
 
     # Now assigning the other line item to same email address should fail
@@ -126,6 +128,7 @@ def test_assign(db_session, client, all_data) -> None:
     assert json.loads(resp.data)['status'] == 'error'
 
     # li_two still doesn't have an assignee
+    assert li_two.assignee is None
     assert li_two.current_assignee is None
 
     # if `ticket.event_date` is in the past, and
@@ -155,6 +158,7 @@ def test_assign(db_session, client, all_data) -> None:
     # absense of  'transferable_until' - `event_date`.
     # so, if `transferable_until` is not set and `event_date` is in the past,
     # ticket transfer should fail.
+    assert li_two.assignee is not None
     assert li_two.current_assignee is not None
 
     ticket.event_date = utcnow().date() - timedelta(days=2)

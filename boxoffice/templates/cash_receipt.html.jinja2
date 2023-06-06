@@ -209,7 +209,7 @@
       <table class="details">
         <tr>
           <td class="gray">{% trans %}Receipt#{% endtrans %}</td>
-          <td>{{ order.invoice_no }}</td>
+          <td>{{ order.receipt_no }}</td>
         </tr>
         <tr>
           <td class="gray">{% trans %}Date{% endtrans %}</td>
@@ -276,7 +276,7 @@
       {% for transaction in order.refund_transactions -%}
         <tr>
           <td class="center">{{ loop.index }}</td>
-          <td class="center">{{ order.invoice_no }}</td>
+          <td class="center">{{ order.receipt_no }}</td>
           <td class="center">
             {% if transaction.refunded_at %}
               {{ transaction.refunded_at | longdate }}

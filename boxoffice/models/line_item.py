@@ -13,7 +13,17 @@ from typing_extensions import Literal
 from baseframe import localize_timezone
 from coaster.utils import isoweek_datetime, midnight_to_utc, utcnow
 
-from . import BaseMixin, DynamicMapped, Mapped, Model, db, jsonb, relationship, sa
+from . import (
+    BaseMixin,
+    DynamicMapped,
+    Mapped,
+    Model,
+    db,
+    jsonb,
+    relationship,
+    sa,
+    timestamptz,
+)
 from .enums import LINE_ITEM_STATUS
 
 __all__ = ['LineItem', 'Assignee']
@@ -49,27 +59,21 @@ class Assignee(BaseMixin, Model):
     __tablename__ = 'assignee'
     __table_args__ = (
         sa.UniqueConstraint('line_item_id', 'current'),
-        sa.CheckConstraint("current != '0'", 'assignee_current_check'),
+        sa.CheckConstraint('current <> false', 'assignee_current_check'),
     )
 
     # lastuser id
-    user_id: Mapped[Optional[int]] = sa.orm.mapped_column(
-        sa.ForeignKey('user.id'), nullable=True
-    )
+    user_id: Mapped[Optional[int]] = sa.orm.mapped_column(sa.ForeignKey('user.id'))
     user: Mapped[Optional[User]] = relationship(back_populates='assignees')
-
-    line_item_id: Mapped[UUID] = sa.orm.mapped_column(
-        sa.ForeignKey('line_item.id'), nullable=False
-    )
+    line_item_id: Mapped[UUID] = sa.orm.mapped_column(sa.ForeignKey('line_item.id'))
     line_item: Mapped[LineItem] = relationship(back_populates='assignees')
-
-    fullname = sa.orm.mapped_column(sa.Unicode(80), nullable=False)
+    fullname: Mapped[str] = sa.orm.mapped_column(sa.Unicode(80))
     #: Unvalidated email address
-    email = sa.orm.mapped_column(sa.Unicode(254), nullable=False)
+    email: Mapped[str] = sa.orm.mapped_column(sa.Unicode(254))
     #: Unvalidated phone number
-    phone = sa.orm.mapped_column(sa.Unicode(16), nullable=True)
-    details: Mapped[jsonb] = sa.orm.mapped_column(nullable=False, default={})
-    current = sa.orm.mapped_column(sa.Boolean, nullable=True)
+    phone: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(16))
+    details: Mapped[jsonb] = sa.orm.mapped_column(default={})
+    current: Mapped[Optional[bool]] = sa.orm.mapped_column()
 
 
 class LineItem(BaseMixin, Model):
@@ -88,17 +92,17 @@ class LineItem(BaseMixin, Model):
     )
 
     # line_item_seq is the relative number of the line item per order.
-    line_item_seq: Mapped[int] = sa.orm.mapped_column(nullable=False)
+    line_item_seq: Mapped[int]
     customer_order_id: Mapped[UUID] = sa.orm.mapped_column(
-        sa.ForeignKey('customer_order.id'), nullable=False, index=True, unique=False
+        sa.ForeignKey('customer_order.id'), index=True, unique=False
     )
     order: Mapped[Order] = relationship(back_populates='line_items')
     ticket_id: Mapped[UUID] = sa.orm.mapped_column(
-        'item_id', sa.ForeignKey('item.id'), nullable=False, index=True, unique=False
+        'item_id', sa.ForeignKey('item.id'), index=True, unique=False
     )
     ticket: Mapped[Item] = relationship(back_populates='line_items')
-    previous_id: Mapped[UUID] = sa.orm.mapped_column(
-        sa.ForeignKey('line_item.id'), nullable=True, unique=True
+    previous_id: Mapped[Optional[UUID]] = sa.orm.mapped_column(
+        sa.ForeignKey('line_item.id'), unique=True
     )
     previous: Mapped[LineItem] = relationship(
         # primaryjoin='line_item.c.id==line_item.c.previous_id',
@@ -108,34 +112,26 @@ class LineItem(BaseMixin, Model):
         uselist=False,
     )
     revision: Mapped[LineItem] = relationship(uselist=False, back_populates='previous')
-    discount_policy_id: Mapped[UUID] = sa.orm.mapped_column(
-        sa.ForeignKey('discount_policy.id'), nullable=True, index=True, unique=False
+    discount_policy_id: Mapped[Optional[UUID]] = sa.orm.mapped_column(
+        sa.ForeignKey('discount_policy.id'), index=True, unique=False
     )
-    discount_policy: Mapped[DiscountPolicy] = relationship(back_populates='line_items')
+    discount_policy: Mapped[Optional[DiscountPolicy]] = relationship(
+        back_populates='line_items'
+    )
 
-    discount_coupon_id: Mapped[UUID] = sa.orm.mapped_column(
-        sa.ForeignKey('discount_coupon.id'), nullable=True, index=True, unique=False
+    discount_coupon_id: Mapped[Optional[UUID]] = sa.orm.mapped_column(
+        sa.ForeignKey('discount_coupon.id'), index=True, unique=False
     )
-    discount_coupon: Mapped[DiscountCoupon] = relationship(back_populates='line_items')
+    discount_coupon: Mapped[Optional[DiscountCoupon]] = relationship(
+        back_populates='line_items'
+    )
 
-    base_amount: Mapped[Decimal] = sa.orm.mapped_column(
-        default=Decimal(0), nullable=False
-    )
-    discounted_amount: Mapped[Decimal] = sa.orm.mapped_column(
-        default=Decimal(0), nullable=False
-    )
-    final_amount: Mapped[Decimal] = sa.orm.mapped_column(
-        sa.Numeric, default=Decimal(0), nullable=False
-    )
-    status: Mapped[int] = sa.orm.mapped_column(
-        default=LINE_ITEM_STATUS.PURCHASE_ORDER, nullable=False
-    )
-    ordered_at: Mapped[datetime] = sa.orm.mapped_column(
-        sa.TIMESTAMP(timezone=True), nullable=True
-    )
-    cancelled_at: Mapped[datetime] = sa.orm.mapped_column(
-        sa.TIMESTAMP(timezone=True), nullable=True
-    )
+    base_amount: Mapped[Decimal] = sa.orm.mapped_column(default=Decimal(0))
+    discounted_amount: Mapped[Decimal] = sa.orm.mapped_column(default=Decimal(0))
+    final_amount: Mapped[Decimal] = sa.orm.mapped_column(sa.Numeric, default=Decimal(0))
+    status: Mapped[int] = sa.orm.mapped_column(default=LINE_ITEM_STATUS.PURCHASE_ORDER)
+    ordered_at: Mapped[Optional[timestamptz]]
+    cancelled_at: Mapped[Optional[timestamptz]]
     assignees: DynamicMapped[Assignee] = relationship(
         cascade='all, delete-orphan', lazy='dynamic', back_populates='line_item'
     )
@@ -224,19 +220,27 @@ class LineItem(BaseMixin, Model):
     def confirm(self):
         self.status = LINE_ITEM_STATUS.CONFIRMED
 
+    assignee: Mapped[Optional[Assignee]] = relationship(
+        Assignee,
+        primaryjoin='and_'
+        '(Assignee.line_item_id == LineItem.id,'
+        ' Assignee.current.is_(True))',
+        uselist=False,
+    )
+
     # TODO: assignee = relationship(Assignee, primaryjoin=Assignee.line_item ==
     # self and Assignee.current.is_(True), uselist=False) Don't use "current_assignee"
     # -- we want to imply that there can only be one assignee and the rest are
     # historical (and hence not 'assignees')
     @property
-    def current_assignee(self):
+    def current_assignee(self) -> Optional[Assignee]:
         return self.assignees.filter(Assignee.current.is_(True)).one_or_none()
 
     @property
     def is_transferable(self):
         tz = current_app.config['tz']
         now = localize_timezone(utcnow(), tz)
-        if self.current_assignee is None:
+        if self.assignee is None:
             return True  # first time assignment has no deadline for now
         return (
             now < localize_timezone(self.ticket.transferable_until, tz)

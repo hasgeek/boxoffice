@@ -70,7 +70,7 @@ def jsonify_admin_orders(data_dict):
         if order.is_confirmed:
             order_dicts.append(
                 {
-                    'invoice_no': order.invoice_no,
+                    'receipt_no': order.receipt_no,
                     'id': order.id,
                     'order_date': json_date_format(order.paid_at),
                     'buyer_fullname': order.buyer_fullname,
@@ -122,15 +122,15 @@ def admin_order(order: Order):
 def jsonify_order(order_dict):
     org = {"title": order_dict['org'].title, "name": order_dict['org'].name}
     order = {
-        "id": order_dict['order'].id,
-        "buyer_fullname": order_dict['order'].buyer_fullname,
-        "buyer_email": order_dict['order'].buyer_email,
-        "buyer_phone": order_dict['order'].buyer_phone,
-        "invoice_no": order_dict['order'].invoice_no,
-        "receipt_url": url_for(
+        'id': order_dict['order'].id,
+        'buyer_fullname': order_dict['order'].buyer_fullname,
+        'buyer_email': order_dict['order'].buyer_email,
+        'buyer_phone': order_dict['order'].buyer_phone,
+        'receipt_no': order_dict['order'].receipt_no,
+        'receipt_url': url_for(
             'receipt', access_token=order_dict['order'].access_token
         ),
-        "assignee_url": url_for(
+        'assignee_url': url_for(
             'order_ticket', access_token=order_dict['order'].access_token
         ),
     }

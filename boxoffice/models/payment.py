@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections import OrderedDict
 from decimal import Decimal
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional
 from uuid import UUID
 
 from isoweek import Week
@@ -10,7 +10,16 @@ from sqlalchemy.sql import func
 
 from coaster.utils import isoweek_datetime
 
-from . import BaseMixin, Mapped, MarkdownColumn, Model, db, relationship, sa
+from . import (
+    BaseMixin,
+    Mapped,
+    MarkdownColumn,
+    Model,
+    db,
+    relationship,
+    sa,
+    timestamptz,
+)
 from .enums import (
     ORDER_STATUS,
     RAZORPAY_PAYMENT_STATUS,
@@ -27,16 +36,16 @@ class OnlinePayment(BaseMixin, Model):
     __tablename__ = 'online_payment'
     __uuid_primary_key__ = True
     customer_order_id: Mapped[UUID] = sa.orm.mapped_column(
-        sa.ForeignKey('customer_order.id'), nullable=False
+        sa.ForeignKey('customer_order.id')
     )
     order: Mapped[Order] = relationship(back_populates='online_payments')
 
     # Payment id issued by the payment gateway
-    pg_paymentid = sa.orm.mapped_column(sa.Unicode(80), nullable=False, unique=True)
+    pg_paymentid: Mapped[str] = sa.orm.mapped_column(sa.Unicode(80), unique=True)
     # Payment status issued by the payment gateway
-    pg_payment_status = sa.orm.mapped_column(sa.Integer, nullable=False)
-    confirmed_at = sa.orm.mapped_column(sa.TIMESTAMP(timezone=True), nullable=True)
-    failed_at = sa.orm.mapped_column(sa.TIMESTAMP(timezone=True), nullable=True)
+    pg_payment_status: Mapped[int]
+    confirmed_at: Mapped[Optional[timestamptz]]
+    failed_at: Mapped[Optional[timestamptz]]
     transactions: Mapped[List[PaymentTransaction]] = relationship(
         cascade='all, delete-orphan', back_populates='online_payment'
     )
@@ -63,29 +72,33 @@ class PaymentTransaction(BaseMixin, Model):
     __uuid_primary_key__ = True
 
     customer_order_id: Mapped[UUID] = sa.orm.mapped_column(
-        sa.ForeignKey('customer_order.id'), nullable=False
+        sa.ForeignKey('customer_order.id')
     )
     order: Mapped[Order] = relationship(back_populates='transactions')
-    online_payment_id: Mapped[UUID] = sa.orm.mapped_column(
-        sa.ForeignKey('online_payment.id'), nullable=True
+    online_payment_id: Mapped[Optional[UUID]] = sa.orm.mapped_column(
+        sa.ForeignKey('online_payment.id')
     )
-    online_payment: Mapped[OnlinePayment] = relationship(back_populates='transactions')
-    amount: Mapped[Decimal] = sa.orm.mapped_column(sa.Numeric, nullable=False)
-    currency = sa.orm.mapped_column(sa.Unicode(3), nullable=False)
-    transaction_type = sa.orm.mapped_column(
-        sa.Integer, default=TRANSACTION_TYPE.PAYMENT, nullable=False
+    online_payment: Mapped[Optional[OnlinePayment]] = relationship(
+        back_populates='transactions'
     )
-    transaction_method = sa.orm.mapped_column(
-        sa.Integer, default=TRANSACTION_METHOD.ONLINE, nullable=False
+    amount: Mapped[Decimal]
+    currency: Mapped[str] = sa.orm.mapped_column(sa.Unicode(3))
+    transaction_type: Mapped[int] = sa.orm.mapped_column(
+        default=TRANSACTION_TYPE.PAYMENT
+    )
+    transaction_method: Mapped[int] = sa.orm.mapped_column(
+        default=TRANSACTION_METHOD.ONLINE
     )
     # Eg: reference number for a bank transfer
-    transaction_ref = sa.orm.mapped_column(sa.Unicode(80), nullable=True)
-    refunded_at = sa.orm.mapped_column(sa.TIMESTAMP(timezone=True), nullable=True)
-    internal_note = sa.orm.mapped_column(sa.Unicode(250), nullable=True)
-    refund_description = sa.orm.mapped_column(sa.Unicode(250), nullable=True)
+    transaction_ref: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(80))
+    refunded_at: Mapped[Optional[timestamptz]]
+    internal_note: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(250))
+    refund_description: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(250))
     note_to_user = MarkdownColumn('note_to_user', nullable=True)
     # Refund id issued by the payment gateway
-    pg_refundid = sa.orm.mapped_column(sa.Unicode(80), nullable=True, unique=True)
+    pg_refundid: Mapped[Optional[str]] = sa.orm.mapped_column(
+        sa.Unicode(80), unique=True
+    )
 
 
 def calculate_weekly_refunds(menu_ids, user_tz, year):

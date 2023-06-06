@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import TYPE_CHECKING, List, cast
+from typing import TYPE_CHECKING, List, Optional, cast
 
 from sqlalchemy.ext.orderinglist import ordering_list
 
@@ -33,20 +33,18 @@ class ItemCollection(BaseScopedNameMixin, Model):
     description = MarkdownColumn('description', default='', nullable=False)
 
     organization_id: Mapped[int] = sa.orm.mapped_column(
-        sa.ForeignKey('organization.id'), nullable=False
+        sa.ForeignKey('organization.id')
     )
     organization: Mapped[Organization] = relationship(back_populates='menus')
     parent: Mapped[Organization] = sa.orm.synonym('organization')
-    tax_type: Mapped[str] = sa.orm.mapped_column(
-        sa.Unicode(80), nullable=True, default='GST'
+    tax_type: Mapped[Optional[str]] = sa.orm.mapped_column(
+        sa.Unicode(80), default='GST'
     )
     # ISO 3166-2 code. Eg: KA for Karnataka
-    place_supply_state_code: Mapped[str] = sa.orm.mapped_column(
-        sa.Unicode(3), nullable=True
-    )
+    place_supply_state_code: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(3))
     # ISO country code
-    place_supply_country_code: Mapped[str] = sa.orm.mapped_column(
-        sa.Unicode(2), nullable=True
+    place_supply_country_code: Mapped[Optional[str]] = sa.orm.mapped_column(
+        sa.Unicode(2)
     )
 
     categories: Mapped[List[Category]] = relationship(
@@ -100,7 +98,7 @@ class ItemCollection(BaseScopedNameMixin, Model):
             sa.select(
                 LineItem.id,
                 LineItem.customer_order_id,
-                Order.invoice_no,
+                Order.receipt_no,
                 Item.title,
                 LineItem.base_amount,
                 LineItem.discounted_amount,
@@ -170,7 +168,7 @@ class ItemCollection(BaseScopedNameMixin, Model):
         """
         Return assignee details for all ordered tickets in the menu.
 
-        Includes invoice_no, ticket title, assignee fullname, assignee email, assignee
+        Includes receipt_no, ticket title, assignee fullname, assignee email, assignee
         phone and assignee details for all the ordered lineitem in a given menu as a
         tuple of (keys, rows).
         """
@@ -187,7 +185,7 @@ class ItemCollection(BaseScopedNameMixin, Model):
         )
         line_item_query = (
             sa.select(
-                Order.invoice_no,
+                Order.receipt_no,
                 LineItem.line_item_seq,
                 LineItem.id,
                 Item.title,

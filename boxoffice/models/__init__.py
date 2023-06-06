@@ -1,5 +1,7 @@
 # flake8: noqa
 
+from datetime import datetime
+
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.orm import AppenderQuery, DeclarativeBase, DynamicMapped, Mapped
@@ -29,6 +31,9 @@ class Model(ModelBase, DeclarativeBase):
     __with_timezone__ = True
 
 
+timestamptz: TypeAlias = Annotated[
+    datetime, sa.orm.mapped_column(sa.TIMESTAMP(timezone=True))
+]
 jsonb: TypeAlias = Annotated[
     dict,
     sa.orm.mapped_column(

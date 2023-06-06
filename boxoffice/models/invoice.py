@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 from uuid import UUID
 
 from baseframe import _
 from coaster.utils import utcnow
 
-from . import BaseMixin, Mapped, Model, UuidMixin, relationship, sa
+from . import BaseMixin, Mapped, Model, UuidMixin, relationship, sa, timestamptz
 from .enums import INVOICE_STATUS
 from .utils import get_fiscal_year
 
@@ -34,31 +34,31 @@ class Invoice(UuidMixin, BaseMixin, Model):
         ),
     )
 
-    status = sa.orm.mapped_column(
-        sa.SmallInteger, default=INVOICE_STATUS.DRAFT, nullable=False
+    status: Mapped[int] = sa.orm.mapped_column(
+        sa.SmallInteger, default=INVOICE_STATUS.DRAFT
     )
-    invoicee_name = sa.orm.mapped_column(sa.Unicode(255), nullable=True)
-    invoicee_company = sa.orm.mapped_column(sa.Unicode(255), nullable=True)
-    invoicee_email = sa.orm.mapped_column(sa.Unicode(254), nullable=True)
-    invoice_no = sa.orm.mapped_column(sa.Integer(), nullable=True)
-    fy_start_at = sa.orm.mapped_column(sa.TIMESTAMP(timezone=True), nullable=False)
-    fy_end_at = sa.orm.mapped_column(sa.TIMESTAMP(timezone=True), nullable=False)
-    invoiced_at = sa.orm.mapped_column(sa.TIMESTAMP(timezone=True), nullable=True)
-    street_address_1 = sa.orm.mapped_column(sa.Unicode(255), nullable=True)
-    street_address_2 = sa.orm.mapped_column(sa.Unicode(255), nullable=True)
-    city = sa.orm.mapped_column(sa.Unicode(255), nullable=True)
-    state = sa.orm.mapped_column(sa.Unicode(255), nullable=True)
+    invoicee_name: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(255))
+    invoicee_company: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(255))
+    invoicee_email: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(254))
+    invoice_no: Mapped[Optional[int]]
+    fy_start_at: Mapped[timestamptz]
+    fy_end_at: Mapped[timestamptz]
+    invoiced_at: Mapped[Optional[timestamptz]]
+    street_address_1: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(255))
+    street_address_2: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(255))
+    city: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(255))
+    state: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(255))
     # ISO 3166-2 code. Eg: KA for Karnataka
-    state_code = sa.orm.mapped_column(sa.Unicode(3), nullable=True)
+    state_code: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(3))
     # ISO country code
-    country_code = sa.orm.mapped_column(sa.Unicode(2), nullable=True)
-    postcode = sa.orm.mapped_column(sa.Unicode(8), nullable=True)
+    country_code: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(2))
+    postcode: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(8))
     # GSTIN in the case of India
-    buyer_taxid = sa.orm.mapped_column(sa.Unicode(255), nullable=True)
-    seller_taxid = sa.orm.mapped_column(sa.Unicode(255), nullable=True)
+    buyer_taxid: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(255))
+    seller_taxid: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(255))
 
     customer_order_id: Mapped[UUID] = sa.orm.mapped_column(
-        None, sa.ForeignKey('customer_order.id'), nullable=False, index=True
+        sa.ForeignKey('customer_order.id'), index=True
     )
     order: Mapped[Order] = relationship(back_populates='invoices')
 
@@ -66,7 +66,7 @@ class Invoice(UuidMixin, BaseMixin, Model):
     # order to allow for the following use case. An invoice may be issued by a parent
     # entity, while the order is booked through the child entity.
     organization_id: Mapped[int] = sa.orm.mapped_column(
-        sa.ForeignKey('organization.id'), nullable=False
+        sa.ForeignKey('organization.id')
     )
     organization: Mapped[Organization] = relationship(back_populates='invoices')
 

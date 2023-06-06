@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional
 from uuid import UUID
 import secrets
 import string
@@ -11,7 +11,6 @@ from itsdangerous import BadSignature, Signer
 from sqlalchemy.orm.exc import MultipleResultsFound
 from werkzeug.utils import cached_property
 
-from coaster.sqlalchemy import cached
 from coaster.utils import buid, uuid1mc
 
 from . import (
@@ -70,26 +69,24 @@ class DiscountPolicy(BaseScopedNameMixin, Model):
     )
 
     organization_id: Mapped[int] = sa.orm.mapped_column(
-        sa.ForeignKey('organization.id'), nullable=False
+        sa.ForeignKey('organization.id')
     )
     organization: Mapped[Organization] = relationship(
         back_populates='discount_policies'
     )
     parent: Mapped[Organization] = sa.orm.synonym('organization')
 
-    discount_type = sa.orm.mapped_column(
-        sa.Integer, default=DISCOUNT_TYPE.AUTOMATIC, nullable=False
-    )
+    discount_type: Mapped[int] = sa.orm.mapped_column(default=DISCOUNT_TYPE.AUTOMATIC)
 
     # Minimum number of a particular ticket that needs to be bought for this discount to
     # apply
-    item_quantity_min = sa.orm.mapped_column(sa.Integer, default=1, nullable=False)
-    percentage = sa.orm.mapped_column(sa.Integer, nullable=True)
+    item_quantity_min: Mapped[int] = sa.orm.mapped_column(default=1)
+    percentage: Mapped[Optional[int]]
     # price-based discount
-    is_price_based = sa.orm.mapped_column(sa.Boolean, default=False, nullable=False)
+    is_price_based: Mapped[bool] = sa.orm.mapped_column(default=False)
 
-    discount_code_base = sa.orm.mapped_column(sa.Unicode(20), nullable=True)
-    secret = sa.orm.mapped_column(sa.Unicode(50), nullable=True)
+    discount_code_base: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(20))
+    secret: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(50))
 
     # Coupons generated in bulk are not stored in the database during generation. This
     # field allows specifying the number of times a coupon, generated in bulk, can be
@@ -97,7 +94,7 @@ class DiscountPolicy(BaseScopedNameMixin, Model):
     # instance, one could generate a signed coupon and provide it to a user such that
     # the user can share the coupon `n` times `n` here is essentially
     # bulk_coupon_usage_limit.
-    bulk_coupon_usage_limit = sa.orm.mapped_column(sa.Integer, nullable=True, default=1)
+    bulk_coupon_usage_limit: Mapped[Optional[int]] = sa.orm.mapped_column(default=1)
 
     discount_coupons: Mapped[List[DiscountCoupon]] = relationship(
         cascade='all, delete-orphan', back_populates='discount_policy'
@@ -296,15 +293,14 @@ class DiscountCoupon(IdMixin, Model):
         self.id = uuid1mc()
         super().__init__(*args, **kwargs)
 
-    code = sa.orm.mapped_column(
-        sa.Unicode(100), nullable=False, default=generate_coupon_code
+    code: Mapped[str] = sa.orm.mapped_column(
+        sa.Unicode(100), default=generate_coupon_code
     )
-    usage_limit = sa.orm.mapped_column(sa.Integer, nullable=False, default=1)
-
-    used_count = cached(sa.orm.mapped_column(sa.Integer, nullable=False, default=0))
+    usage_limit: Mapped[int] = sa.orm.mapped_column(default=1)
+    used_count: Mapped[int] = sa.orm.mapped_column(default=0)
 
     discount_policy_id: Mapped[UUID] = sa.orm.mapped_column(
-        sa.ForeignKey('discount_policy.id'), nullable=False
+        sa.ForeignKey('discount_policy.id')
     )
     discount_policy: Mapped[DiscountPolicy] = relationship(
         back_populates='discount_coupons'

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional
 
 from flask import g
 
@@ -43,14 +43,14 @@ class Organization(ProfileBase, Model):
     # Number) or llpin (Limited Liability Partnership Identification Number), pan,
     # service_tax_no, support_email, logo (image url), refund_policy (html), ticket_faq
     # (html), website (url)
-    details: Mapped[jsonb_dict] = sa.orm.mapped_column()
-    contact_email = sa.orm.mapped_column(sa.Unicode(254), nullable=False)
+    details: Mapped[jsonb_dict]
+    contact_email: Mapped[str] = sa.orm.mapped_column(sa.Unicode(254))
     # This is to allow organizations to have their orders invoiced by the parent
     # organization
-    invoicer_id: Mapped[int] = sa.orm.mapped_column(
-        sa.ForeignKey('organization.id'), nullable=True
+    invoicer_id: Mapped[Optional[int]] = sa.orm.mapped_column(
+        sa.ForeignKey('organization.id')
     )
-    invoicer: Mapped[Organization] = relationship(
+    invoicer: Mapped[Optional[Organization]] = relationship(
         remote_side='Organization.id',
         back_populates='subsidiaries',
     )
@@ -85,28 +85,28 @@ class Organization(ProfileBase, Model):
     def fetch_invoices(self):
         """Return invoices for an organization as a tuple of (row_headers, rows)."""
         headers = [
-            "order_id",
-            "receipt_no",
-            "invoice_no",
-            "status",
-            "buyer_taxid",
-            "seller_taxid",
-            "invoicee_name",
-            "invoicee_company",
-            "invoicee_email",
-            "street_address_1",
-            "street_address_2",
-            "city",
-            "state",
-            "state_code",
-            "country_code",
-            "postcode",
-            "invoiced_at",
+            'order_id',
+            'receipt_no',
+            'invoice_no',
+            'status',
+            'buyer_taxid',
+            'seller_taxid',
+            'invoicee_name',
+            'invoicee_company',
+            'invoicee_email',
+            'street_address_1',
+            'street_address_2',
+            'city',
+            'state',
+            'state_code',
+            'country_code',
+            'postcode',
+            'invoiced_at',
         ]
         invoices_query = (
             sa.select(
                 Order.id,
-                Order.invoice_no,
+                Order.receipt_no,
                 Invoice.invoice_no,
                 Invoice.status,
                 Invoice.buyer_taxid,

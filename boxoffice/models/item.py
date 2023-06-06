@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from datetime import date
 from decimal import Decimal
-from typing import TYPE_CHECKING, List, Sequence, Tuple
+from typing import TYPE_CHECKING, List, Optional, Sequence, Tuple
 from uuid import UUID
 
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -20,6 +21,7 @@ from . import (
     jsonb_dict,
     relationship,
     sa,
+    timestamptz,
 )
 from .category import Category
 from .discount_policy import item_discount_policy
@@ -33,42 +35,29 @@ class Item(BaseScopedNameMixin, Model):
     __table_args__ = (sa.UniqueConstraint('item_collection_id', 'name'),)
 
     description = MarkdownColumn('description', default='', nullable=False)
-    seq = sa.orm.mapped_column(sa.Integer, nullable=False)
-
+    seq: Mapped[int]
     menu_id: Mapped[UUID] = sa.orm.mapped_column(
-        'item_collection_id', sa.ForeignKey('item_collection.id'), nullable=False
+        'item_collection_id', sa.ForeignKey('item_collection.id')
     )
     menu: Mapped[ItemCollection] = relationship(back_populates='tickets')
     parent: Mapped[ItemCollection] = sa.orm.synonym('menu')
-    category_id: Mapped[int] = sa.orm.mapped_column(
-        sa.ForeignKey('category.id'), nullable=False
-    )
+    category_id: Mapped[int] = sa.orm.mapped_column(sa.ForeignKey('category.id'))
     category: Mapped[Category] = relationship(back_populates='tickets')
-
-    quantity_total = sa.orm.mapped_column(sa.Integer, default=0, nullable=False)
-
+    quantity_total: Mapped[int] = sa.orm.mapped_column(default=0)
     discount_policies: DynamicMapped[DiscountPolicy] = relationship(
-        secondary=item_discount_policy,  # type: ignore[has-type]
-        lazy='dynamic',
-        back_populates='tickets',
+        secondary=item_discount_policy, lazy='dynamic', back_populates='tickets'
     )
-
-    assignee_details: Mapped[jsonb_dict] = sa.orm.mapped_column()
-
-    event_date = sa.orm.mapped_column(sa.Date, nullable=True)
-
-    cancellable_until = sa.orm.mapped_column(sa.TIMESTAMP(timezone=True), nullable=True)
-
-    transferable_until = sa.orm.mapped_column(
-        sa.TIMESTAMP(timezone=True), nullable=True
-    )
-
-    restricted_entry = sa.orm.mapped_column(sa.Boolean, default=False, nullable=False)
+    assignee_details: Mapped[jsonb_dict]
+    event_date: Mapped[Optional[date]]
+    cancellable_until: Mapped[Optional[timestamptz]]
+    transferable_until: Mapped[Optional[timestamptz]]
+    restricted_entry: Mapped[bool] = sa.orm.mapped_column(default=False)
     # ISO 3166-2 code. Eg: KA for Karnataka
-    place_supply_state_code = sa.orm.mapped_column(sa.Unicode(3), nullable=True)
+    place_supply_state_code: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(3))
     # ISO country code
-    place_supply_country_code = sa.orm.mapped_column(sa.Unicode(2), nullable=True)
-
+    place_supply_country_code: Mapped[Optional[str]] = sa.orm.mapped_column(
+        sa.Unicode(2)
+    )
     prices: Mapped[List[Price]] = relationship(cascade='all, delete-orphan')
     line_items: DynamicMapped[LineItem] = relationship(
         cascade='all, delete-orphan', lazy='dynamic', back_populates='ticket'
@@ -235,24 +224,21 @@ class Price(BaseScopedNameMixin, Model):
         sa.UniqueConstraint('item_id', 'discount_policy_id'),
     )
 
-    ticket_id: Mapped[UUID] = sa.orm.mapped_column(
-        'item_id', sa.ForeignKey('item.id'), nullable=False
-    )
+    ticket_id: Mapped[UUID] = sa.orm.mapped_column('item_id', sa.ForeignKey('item.id'))
     ticket: Mapped[Item] = relationship(back_populates='prices')
 
-    discount_policy_id: Mapped[UUID] = sa.orm.mapped_column(
-        sa.ForeignKey('discount_policy.id'), nullable=True
+    discount_policy_id: Mapped[Optional[UUID]] = sa.orm.mapped_column(
+        sa.ForeignKey('discount_policy.id')
     )
-    discount_policy: Mapped[DiscountPolicy] = relationship(back_populates='prices')
+    discount_policy: Mapped[Optional[DiscountPolicy]] = relationship(
+        back_populates='prices'
+    )
 
     parent: Mapped[Item] = sa.orm.synonym('ticket')
-    start_at = sa.orm.mapped_column(
-        sa.TIMESTAMP(timezone=True), default=sa.func.utcnow(), nullable=False
-    )
-    end_at = sa.orm.mapped_column(sa.TIMESTAMP(timezone=True), nullable=False)
-
-    amount = sa.orm.mapped_column(sa.Numeric, default=Decimal(0), nullable=False)
-    currency = sa.orm.mapped_column(sa.Unicode(3), nullable=False, default='INR')
+    start_at: Mapped[timestamptz] = sa.orm.mapped_column(default=sa.func.utcnow())
+    end_at: Mapped[timestamptz]
+    amount: Mapped[Decimal] = sa.orm.mapped_column(default=Decimal(0))
+    currency: Mapped[str] = sa.orm.mapped_column(sa.Unicode(3), default='INR')
 
     __roles__ = {
         'price_owner': {

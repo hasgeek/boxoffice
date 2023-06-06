@@ -2,14 +2,25 @@ from __future__ import annotations
 
 from collections import namedtuple
 from decimal import Decimal
-from typing import TYPE_CHECKING, List
+from functools import partial
+from typing import TYPE_CHECKING, List, Optional
 from uuid import UUID, uuid4
+import secrets
 
 from sqlalchemy.ext.orderinglist import ordering_list
 
-from coaster.utils import buid, utcnow
+from coaster.utils import utcnow
 
-from . import AppenderQuery, BaseMixin, DynamicMapped, Mapped, Model, relationship, sa
+from . import (
+    AppenderQuery,
+    BaseMixin,
+    DynamicMapped,
+    Mapped,
+    Model,
+    relationship,
+    sa,
+    timestamptz,
+)
 from .enums import LINE_ITEM_STATUS, ORDER_STATUS, TRANSACTION_TYPE
 from .line_item import LineItem
 
@@ -21,10 +32,10 @@ OrderAmounts = namedtuple(
 )
 
 
-def gen_invoice_no(organization):
+def gen_receipt_no(organization):
     """Generate a sequential invoice number for an order, given an organization."""
     return (
-        sa.select(sa.func.coalesce(sa.func.max(Order.invoice_no + 1), 1))
+        sa.select(sa.func.coalesce(sa.func.max(Order.receipt_no + 1), 1))
         .where(Order.organization == organization)
         .scalar_subquery()
     )
@@ -41,38 +52,30 @@ class Order(BaseMixin, Model):
     id: Mapped[UUID] = sa.orm.mapped_column(  # type: ignore[assignment]  # noqa: A003
         primary_key=True, default=uuid4
     )
-    user_id: Mapped[int] = sa.orm.mapped_column(sa.ForeignKey('user.id'), nullable=True)
-    user: Mapped[User] = relationship(back_populates='orders')
+    user_id: Mapped[Optional[int]] = sa.orm.mapped_column(sa.ForeignKey('user.id'))
+    user: Mapped[Optional[User]] = relationship(back_populates='orders')
     menu_id: Mapped[UUID] = sa.orm.mapped_column(
-        'item_collection_id', sa.ForeignKey('item_collection.id'), nullable=False
+        'item_collection_id', sa.ForeignKey('item_collection.id')
     )
     menu: Mapped[ItemCollection] = relationship(back_populates='orders')
-
     organization_id: Mapped[int] = sa.orm.mapped_column(
-        sa.ForeignKey('organization.id'), nullable=False
+        sa.ForeignKey('organization.id')
     )
     organization: Mapped[Organization] = relationship(back_populates='orders')
-
-    status = sa.orm.mapped_column(
-        sa.Integer, default=ORDER_STATUS.PURCHASE_ORDER, nullable=False
+    status: Mapped[int] = sa.orm.mapped_column(default=ORDER_STATUS.PURCHASE_ORDER)
+    initiated_at: Mapped[timestamptz] = sa.orm.mapped_column(default=sa.func.utcnow())
+    paid_at: Mapped[Optional[timestamptz]]
+    invoiced_at: Mapped[Optional[timestamptz]]
+    cancelled_at: Mapped[Optional[timestamptz]]
+    access_token: Mapped[str] = sa.orm.mapped_column(
+        sa.Unicode(22), default=partial(secrets.token_urlsafe, 16)
     )
+    buyer_email: Mapped[str] = sa.orm.mapped_column(sa.Unicode(254))
+    buyer_fullname: Mapped[str] = sa.orm.mapped_column(sa.Unicode(80))
+    buyer_phone: Mapped[str] = sa.orm.mapped_column(sa.Unicode(16))
 
-    initiated_at = sa.orm.mapped_column(
-        sa.TIMESTAMP(timezone=True), nullable=False, default=sa.func.utcnow()
-    )
-    paid_at = sa.orm.mapped_column(sa.TIMESTAMP(timezone=True), nullable=True)
-    invoiced_at = sa.orm.mapped_column(sa.TIMESTAMP(timezone=True), nullable=True)
-    cancelled_at = sa.orm.mapped_column(sa.TIMESTAMP(timezone=True), nullable=True)
-
-    access_token = sa.orm.mapped_column(sa.Unicode(22), nullable=False, default=buid)
-
-    buyer_email = sa.orm.mapped_column(sa.Unicode(254), nullable=False)
-    buyer_fullname = sa.orm.mapped_column(sa.Unicode(80), nullable=False)
-    buyer_phone = sa.orm.mapped_column(sa.Unicode(16), nullable=False)
-
-    # TODO: Deprecate invoice_no, rename to receipt_no instead
-    invoice_no = sa.orm.mapped_column(sa.Integer, nullable=True)
-    receipt_no = sa.orm.synonym('invoice_no')
+    # TODO: Rename column
+    receipt_no: Mapped[Optional[int]] = sa.orm.mapped_column('invoice_no')
 
     line_items: Mapped[List[LineItem]] = relationship(
         cascade='all, delete-orphan',
@@ -126,28 +129,28 @@ class Order(BaseMixin, Model):
     # These 3 properties are defined below the LineItem model -
     # confirmed_line_items, initial_line_items, confirmed_and_cancelled_line_items
 
-    def permissions(self, actor, inherited=None):
+    def permissions(self, actor, inherited=None) -> set:
         perms = super().permissions(actor, inherited)
         if self.organization.userid in actor.organizations_owned_ids():
             perms.add('org_admin')
         return perms
 
-    def confirm_sale(self):
+    def confirm_sale(self) -> None:
         """Update the status to ORDER_STATUS.SALES_ORDER."""
         for line_item in self.line_items:
             line_item.confirm()
-        self.invoice_no = gen_invoice_no(self.organization)
+        self.receipt_no = gen_receipt_no(self.organization)
         self.status = ORDER_STATUS.SALES_ORDER
         self.paid_at = utcnow()
 
-    def invoice(self):
+    def invoice(self) -> None:
         """Set invoiced_at and status."""
         for line_item in self.line_items:
             line_item.confirm()
         self.invoiced_at = utcnow()
         self.status = ORDER_STATUS.INVOICE
 
-    def get_amounts(self, line_item_status):
+    def get_amounts(self, line_item_status) -> OrderAmounts:
         """Calculate and return the order's amounts as an OrderAmounts tuple."""
         base_amount = Decimal(0)
         discounted_amount = Decimal(0)
@@ -215,32 +218,28 @@ class OrderSession(BaseMixin, Model):
     __uuid_primary_key__ = True
 
     customer_order_id: Mapped[UUID] = sa.orm.mapped_column(
-        sa.ForeignKey('customer_order.id'), nullable=False, index=True, unique=False
+        sa.ForeignKey('customer_order.id'), index=True, unique=False
     )
     order: Mapped[Order] = relationship(back_populates='session')
 
-    referrer = sa.orm.mapped_column(sa.Unicode(2083), nullable=True)
-    host = sa.orm.mapped_column(sa.UnicodeText, nullable=True)
+    referrer: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(2083))
+    host: Mapped[Optional[str]] = sa.orm.mapped_column(sa.UnicodeText)
 
     # Google Analytics parameters
-    utm_source = sa.orm.mapped_column(
-        sa.Unicode(250), nullable=False, default='', index=True
+    utm_source: Mapped[str] = sa.orm.mapped_column(
+        sa.Unicode(250), default='', index=True
     )
-    utm_medium = sa.orm.mapped_column(
-        sa.Unicode(250), nullable=False, default='', index=True
+    utm_medium: Mapped[str] = sa.orm.mapped_column(
+        sa.Unicode(250), default='', index=True
     )
-    utm_term = sa.orm.mapped_column(sa.Unicode(250), nullable=False, default='')
-    utm_content = sa.orm.mapped_column(sa.Unicode(250), nullable=False, default='')
-    utm_id = sa.orm.mapped_column(
-        sa.Unicode(250), nullable=False, default='', index=True
-    )
-    utm_campaign = sa.orm.mapped_column(
-        sa.Unicode(250), nullable=False, default='', index=True
+    utm_term: Mapped[str] = sa.orm.mapped_column(sa.Unicode(250), default='')
+    utm_content: Mapped[str] = sa.orm.mapped_column(sa.Unicode(250), default='')
+    utm_id: Mapped[str] = sa.orm.mapped_column(sa.Unicode(250), default='', index=True)
+    utm_campaign: Mapped[str] = sa.orm.mapped_column(
+        sa.Unicode(250), default='', index=True
     )
     # Google click id (for AdWords)
-    gclid = sa.orm.mapped_column(
-        sa.Unicode(250), nullable=False, default='', index=True
-    )
+    gclid: Mapped[str] = sa.orm.mapped_column(sa.Unicode(250), default='', index=True)
 
 
 if TYPE_CHECKING:

@@ -14,7 +14,7 @@
       </div>
     {%- endif %}
     <h1 class="item-collection-title">{{ order.menu.title }}</h1>
-    <p class="text-center">{% trans number=order.invoice_no %}Receipt No: {{ number }}{% endtrans %}</p>
+    <p class="text-center">{% trans number=order.receipt_no %}Receipt No: {{ number }}{% endtrans %}</p>
   </div>
 
   <div class="row" id="boxoffice-invoice">

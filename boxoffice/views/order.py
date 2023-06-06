@@ -443,9 +443,9 @@ def capture_payment(order: Order):
         db.session.commit()
         send_receipt_mail.queue(
             order.id,
-            subject=_("{menu_title}: Thank you for your order (#{invoice_no})!").format(
+            subject=_("{menu_title}: Thank you for your order (#{receipt_no})!").format(
                 menu_title=order.menu.title,
-                invoice_no=order.invoice_no,
+                receipt_no=order.receipt_no,
             ),
         )
         return api_success(
@@ -599,7 +599,7 @@ def jsonify_orders(orders):
         return assignee
 
     for order in orders:
-        order_dict = {'invoice_no': order.invoice_no, 'line_items': []}
+        order_dict = {'receipt_no': order.receipt_no, 'line_items': []}
         for line_item in order.line_items:
             order_dict['line_items'].append(
                 {

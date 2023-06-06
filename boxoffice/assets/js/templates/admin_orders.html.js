@@ -34,7 +34,7 @@ export const OrdersTemplate = `
           {{#orders:order}}
             <tr id="order-{{ id }}">
               <td></td>
-              <td><p class="table-content">{{ invoice_no }}</p></td>
+              <td><p class="table-content">{{ receipt_no }}</p></td>
               <td><p class="table-content">{{ buyer_fullname }}</p></td>
               <td><p class="table-content">{{ buyer_email }}</p></td>
               <td><p class="table-content">{{ buyer_phone }}</p></td>
@@ -52,7 +52,7 @@ export const OrdersTemplate = `
               </td>
               <td>
                 <p class="table-content">
-                  <a class="boxoffice-button boxoffice-button-info" href="/admin/o/{{accountName}}/order/{{invoice_no}}" data-navigate>
+                  <a class="boxoffice-button boxoffice-button-info" href="/admin/o/{{accountName}}/order/{{receipt_no}}" data-navigate>
                     Line Items {{#if loading}}<i class="fa fa-spinner fa-spin"></i>{{/if}}
                   </a>
                 </p>

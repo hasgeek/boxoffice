@@ -124,9 +124,9 @@ def send_order_refund_mail(
 ):
     with app.test_request_context():
         order = Order.query.get(order_id)
-        subject = _("{menu_title}: Refund for receipt no. {invoice_no}").format(
+        subject = _("{menu_title}: Refund for receipt no. {receipt_no}").format(
             menu_title=order.menu.title,
-            invoice_no=order.invoice_no,
+            receipt_no=order.receipt_no,
         )
         msg = Message(
             subject=subject,
@@ -159,7 +159,7 @@ def send_ticket_assignment_mail(line_item_id: UUID):
         subject = _("{title}: Here's your ticket").format(title=order.menu.title)
         msg = Message(
             subject=subject,
-            recipients=[line_item.current_assignee.email],
+            recipients=[line_item.assignee.email],
             bcc=[order.buyer_email],
         )
         html = email_transform(
