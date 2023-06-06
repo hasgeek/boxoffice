@@ -23,7 +23,7 @@ from . import (
     relationship,
     sa,
 )
-from .enums import DISCOUNT_TYPE
+from .enums import DiscountTypeEnum, LineItemStatus
 
 __all__ = ['DiscountPolicy', 'DiscountCoupon', 'item_discount_policy']
 
@@ -76,7 +76,9 @@ class DiscountPolicy(BaseScopedNameMixin, Model):
     )
     parent: Mapped[Organization] = sa.orm.synonym('organization')
 
-    discount_type: Mapped[int] = sa.orm.mapped_column(default=DISCOUNT_TYPE.AUTOMATIC)
+    discount_type: Mapped[int] = sa.orm.mapped_column(
+        default=DiscountTypeEnum.AUTOMATIC
+    )
 
     # Minimum number of a particular ticket that needs to be bought for this discount to
     # apply
@@ -137,11 +139,11 @@ class DiscountPolicy(BaseScopedNameMixin, Model):
 
     @cached_property
     def is_automatic(self):
-        return self.discount_type == DISCOUNT_TYPE.AUTOMATIC
+        return self.discount_type == DiscountTypeEnum.AUTOMATIC
 
     @cached_property
     def is_coupon(self):
-        return self.discount_type == DISCOUNT_TYPE.COUPON
+        return self.discount_type == DiscountTypeEnum.COUPON
 
     def gen_signed_code(self, identifier=None):
         """
@@ -182,7 +184,7 @@ class DiscountPolicy(BaseScopedNameMixin, Model):
     def make_bulk(cls, discount_code_base, **kwargs):
         """Return a discount policy for bulk discount coupons."""
         return cls(
-            discount_type=DISCOUNT_TYPE.COUPON,
+            discount_type=DiscountTypeEnum.COUPON,
             discount_code_base=discount_code_base,
             secret=buid(),
             **kwargs,
@@ -196,13 +198,14 @@ class DiscountPolicy(BaseScopedNameMixin, Model):
         Applicable for a ticket, given the quantity of line items and coupons if any.
         """
         automatic_discounts = ticket.discount_policies.filter(
-            cls.discount_type == DISCOUNT_TYPE.AUTOMATIC, cls.item_quantity_min <= qty
+            cls.discount_type == DiscountTypeEnum.AUTOMATIC,
+            cls.item_quantity_min <= qty,
         ).all()
         policies = [(discount, None) for discount in automatic_discounts]
         if not coupon_codes:
             return policies
         coupon_policies = ticket.discount_policies.filter(
-            cls.discount_type == DISCOUNT_TYPE.COUPON
+            cls.discount_type == DiscountTypeEnum.COUPON
         ).all()
         coupon_policy_ids = [cp.id for cp in coupon_policies]
         for coupon_code in coupon_codes:
@@ -238,7 +241,7 @@ class DiscountPolicy(BaseScopedNameMixin, Model):
     @property
     def line_items_count(self):
         return self.line_items.filter(
-            LineItem.status == LINE_ITEM_STATUS.CONFIRMED
+            LineItem.status == LineItemStatus.CONFIRMED
         ).count()
 
     @classmethod
@@ -322,7 +325,7 @@ class DiscountCoupon(IdMixin, Model):
         self.used_count = (
             sa.select(sa.func.count())
             .where(LineItem.discount_coupon == self)
-            .where(LineItem.status == LINE_ITEM_STATUS.CONFIRMED)
+            .where(LineItem.status == LineItemStatus.CONFIRMED)
             .as_scalar()
         )
 
@@ -339,7 +342,7 @@ sa.event.listen(
 )
 
 # Tail imports
-from .line_item import LINE_ITEM_STATUS, LineItem  # isort:skip
+from .line_item import LineItem  # isort:skip
 
 if TYPE_CHECKING:
     from .item import Item, Price

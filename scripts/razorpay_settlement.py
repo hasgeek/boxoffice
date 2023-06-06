@@ -7,21 +7,21 @@ from baseframe import localize_timezone
 
 from boxoffice import app
 from boxoffice.models import (
-    LINE_ITEM_STATUS,
-    RAZORPAY_PAYMENT_STATUS,
-    TRANSACTION_TYPE,
     LineItem,
+    LineItemStatus,
     OnlinePayment,
     PaymentTransaction,
+    RazorpayPaymentStatus,
+    TransactionTypeEnum,
 )
 
 
 def line_item_is_cancelled(line_item):
-    return line_item.status == LINE_ITEM_STATUS.CANCELLED
+    return line_item.status == LineItemStatus.CANCELLED
 
 
 def order_net_amount(order):
-    return order.get_amounts(LINE_ITEM_STATUS.CONFIRMED).final_amount
+    return order.get_amounts(LineItemStatus.CONFIRMED).final_amount
 
 
 def format_row(row):
@@ -137,7 +137,7 @@ def get_settled_orders(date_ranges=(), filenames=()):
             try:
                 payment = OnlinePayment.query.filter(
                     OnlinePayment.pg_paymentid == settlement_payment_id,
-                    OnlinePayment.pg_payment_status == RAZORPAY_PAYMENT_STATUS.CAPTURED,
+                    OnlinePayment.pg_payment_status == RazorpayPaymentStatus.CAPTURED,
                 ).one()
                 order = payment.order
                 settled_orders.append(
@@ -146,7 +146,7 @@ def get_settled_orders(date_ranges=(), filenames=()):
                             'settlement_id': settlement_id,
                             'order_id': order.id,
                             'order_amount': order.get_amounts(
-                                LINE_ITEM_STATUS.CONFIRMED
+                                LineItemStatus.CONFIRMED
                             ).final_amount,
                             'buyer_fullname': order.buyer_fullname,
                             'payment_id': payment.pg_paymentid,
@@ -154,7 +154,7 @@ def get_settled_orders(date_ranges=(), filenames=()):
                             # FIXME: 'credit':
                             # Decimal(entity_dict[settlement_refund_id]['credit']),
                             'receivable_amount': order.get_amounts(
-                                LINE_ITEM_STATUS.CONFIRMED
+                                LineItemStatus.CONFIRMED
                             ).final_amount
                             - Decimal(entity_dict[payment.pg_paymentid]['fee']),
                         }
@@ -196,7 +196,7 @@ def get_settled_orders(date_ranges=(), filenames=()):
             payment = OnlinePayment.query.filter(
                 OnlinePayment.pg_paymentid
                 == entity_dict[settlement_refund_id]['payment_id'],
-                OnlinePayment.pg_payment_status == RAZORPAY_PAYMENT_STATUS.CAPTURED,
+                OnlinePayment.pg_payment_status == RazorpayPaymentStatus.CAPTURED,
             ).one()
             order = payment.order
             settled_orders.append(
@@ -205,7 +205,7 @@ def get_settled_orders(date_ranges=(), filenames=()):
                         'settlement_id': settlement_id,
                         'order_id': order.id,
                         'order_amount': order.get_amounts(
-                            LINE_ITEM_STATUS.CONFIRMED
+                            LineItemStatus.CONFIRMED
                         ).final_amount,
                         'buyer_fullname': order.buyer_fullname,
                         'payment_id': payment.pg_paymentid,
@@ -221,7 +221,7 @@ def get_settled_orders(date_ranges=(), filenames=()):
                     LineItem.order == order,
                     LineItem.final_amount
                     == Decimal(entity_dict[settlement_refund_id]['debit']),
-                    LineItem.status == LINE_ITEM_STATUS.CANCELLED,
+                    LineItem.status == LineItemStatus.CANCELLED,
                 ).first()
                 settled_orders.append(
                     format_row(
@@ -239,7 +239,7 @@ def get_settled_orders(date_ranges=(), filenames=()):
                     LineItem.order == order,
                     LineItem.final_amount
                     == Decimal(entity_dict[settlement_refund_id]['debit']),
-                    LineItem.status == LINE_ITEM_STATUS.CANCELLED,
+                    LineItem.status == LineItemStatus.CANCELLED,
                 ).first()
                 if cancelled_line_item:
                     settled_orders.append(
@@ -340,7 +340,7 @@ def get_settled_order_transactions(date_ranges=(), filenames=()):
             try:
                 payment = OnlinePayment.query.filter(
                     OnlinePayment.pg_paymentid == settlement_payment_id,
-                    OnlinePayment.pg_payment_status == RAZORPAY_PAYMENT_STATUS.CAPTURED,
+                    OnlinePayment.pg_payment_status == RazorpayPaymentStatus.CAPTURED,
                 ).one()
                 order = payment.order
                 settled_orders.append(
@@ -349,13 +349,13 @@ def get_settled_order_transactions(date_ranges=(), filenames=()):
                             'settlement_id': settlement_id,
                             'order_id': order.id,
                             'order_amount': order.get_amounts(
-                                LINE_ITEM_STATUS.CONFIRMED
+                                LineItemStatus.CONFIRMED
                             ).final_amount,
                             'buyer_fullname': order.buyer_fullname,
                             'payment_id': payment.pg_paymentid,
                             'razorpay_fees': entity_dict[payment.pg_paymentid]['fee'],
                             'receivable_amount': order.get_amounts(
-                                LINE_ITEM_STATUS.CONFIRMED
+                                LineItemStatus.CONFIRMED
                             ).final_amount
                             - Decimal(entity_dict[payment.pg_paymentid]['fee']),
                         }
@@ -397,7 +397,7 @@ def get_settled_order_transactions(date_ranges=(), filenames=()):
             payment = OnlinePayment.query.filter(
                 OnlinePayment.pg_paymentid
                 == entity_dict[settlement_refund_id]['payment_id'],
-                OnlinePayment.pg_payment_status == RAZORPAY_PAYMENT_STATUS.CAPTURED,
+                OnlinePayment.pg_payment_status == RazorpayPaymentStatus.CAPTURED,
             ).one()
             order = payment.order
             settled_orders.append(
@@ -406,7 +406,7 @@ def get_settled_order_transactions(date_ranges=(), filenames=()):
                         'settlement_id': settlement_id,
                         'order_id': order.id,
                         'order_amount': order.get_amounts(
-                            LINE_ITEM_STATUS.CONFIRMED
+                            LineItemStatus.CONFIRMED
                         ).final_amount,
                         'buyer_fullname': order.buyer_fullname,
                         'payment_id': payment.pg_paymentid,
@@ -423,7 +423,7 @@ def get_settled_order_transactions(date_ranges=(), filenames=()):
                     LineItem.order == order,
                     LineItem.final_amount
                     == Decimal(entity_dict[settlement_refund_id]['debit']),
-                    LineItem.status == LINE_ITEM_STATUS.CANCELLED,
+                    LineItem.status == LineItemStatus.CANCELLED,
                 ).first()
                 settled_orders.append(
                     format_row(
@@ -443,7 +443,7 @@ def get_settled_order_transactions(date_ranges=(), filenames=()):
                     LineItem.order == order,
                     LineItem.final_amount
                     == Decimal(entity_dict[settlement_refund_id]['debit']),
-                    LineItem.status == LINE_ITEM_STATUS.CANCELLED,
+                    LineItem.status == LineItemStatus.CANCELLED,
                 ).first()
                 if cancelled_line_item:
                     settled_orders.append(
@@ -463,7 +463,8 @@ def get_settled_order_transactions(date_ranges=(), filenames=()):
                         PaymentTransaction.online_payment == payment,
                         PaymentTransaction.amount
                         == Decimal(entity_dict[settlement_refund_id]['debit']),
-                        PaymentTransaction.transaction_type == TRANSACTION_TYPE.REFUND,
+                        PaymentTransaction.transaction_type
+                        == TransactionTypeEnum.REFUND,
                     ).first()
                     if refund_transaction:
                         settled_orders.append(

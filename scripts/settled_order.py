@@ -2,15 +2,15 @@ from decimal import Decimal
 import csv
 
 from boxoffice.models import (
-    LINE_ITEM_STATUS,
-    RAZORPAY_PAYMENT_STATUS,
     LineItem,
+    LineItemStatus,
     OnlinePayment,
+    RazorpayPaymentStatus,
 )
 
 
 def line_item_is_cancelled(line_item):
-    return line_item.status == LINE_ITEM_STATUS.CANCELLED
+    return line_item.status == LineItemStatus.CANCELLED
 
 
 def order_net_amount(order):
@@ -96,7 +96,7 @@ def get_settled_orders(settlement_files):
         for settlement_payment_id in settlement_payment_ids:
             payment = OnlinePayment.query.filter(
                 OnlinePayment.pg_paymentid == settlement_payment_id,
-                OnlinePayment.pg_payment_status == RAZORPAY_PAYMENT_STATUS.CAPTURED,
+                OnlinePayment.pg_payment_status == RazorpayPaymentStatus.CAPTURED,
             ).one()
             order = payment.order
             settled_orders.append(
@@ -143,7 +143,7 @@ def get_settled_orders(settlement_files):
             payment = OnlinePayment.query.filter(
                 OnlinePayment.pg_paymentid
                 == entity_dict[settlement_refund_id]['payment_id'],
-                OnlinePayment.pg_payment_status == RAZORPAY_PAYMENT_STATUS.CAPTURED,
+                OnlinePayment.pg_payment_status == RazorpayPaymentStatus.CAPTURED,
             ).one()
             order = payment.order
             settled_orders.append(
@@ -166,7 +166,7 @@ def get_settled_orders(settlement_files):
                     LineItem.order == order,
                     LineItem.final_amount
                     == Decimal(entity_dict[settlement_refund_id]['debit']),
-                    LineItem.status == LINE_ITEM_STATUS.CANCELLED,
+                    LineItem.status == LineItemStatus.CANCELLED,
                 ).first()
                 settled_orders.append(
                     format_row(
@@ -186,7 +186,7 @@ def get_settled_orders(settlement_files):
                     LineItem.order == order,
                     LineItem.final_amount
                     == Decimal(entity_dict[settlement_refund_id]['debit']),
-                    LineItem.status == LINE_ITEM_STATUS.CANCELLED,
+                    LineItem.status == LineItemStatus.CANCELLED,
                 ).first()
                 if cancelled_line_item:
                     settled_orders.append(

@@ -15,7 +15,14 @@ from ..forms import (
     DiscountPriceForm,
     PriceBasedDiscountPolicyForm,
 )
-from ..models import CURRENCY, DiscountCoupon, DiscountPolicy, Organization, Price, db
+from ..models import (
+    CurrencyEnum,
+    DiscountCoupon,
+    DiscountPolicy,
+    Organization,
+    Price,
+    db,
+)
 from .utils import api_error, api_success, xhr_only
 
 
@@ -43,7 +50,7 @@ def jsonify_discount_policies(data_dict):
         account_name=data_dict['org'].name,
         account_title=data_dict['org'].title,
         discount_policies=discount_policies_list,
-        currency=[currency for currency, label in CURRENCY.items()],
+        currency=[e.value for e in CurrencyEnum],
         total_pages=data_dict['total_pages'],
         paginated=data_dict['total_pages'] > 1,
         current_page=data_dict['current_page'],

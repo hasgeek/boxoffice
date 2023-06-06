@@ -3,7 +3,7 @@ import requests
 from baseframe import localize_timezone
 
 from .. import app
-from ..models import TRANSACTION_TYPE, OnlinePayment, PaymentTransaction
+from ..models import OnlinePayment, PaymentTransaction, TransactionTypeEnum
 
 # Don't use a trailing slash
 base_url = 'https://api.razorpay.com/v1'
@@ -138,7 +138,7 @@ def get_settled_transactions(date_range, tz=None):
             ).one()
             refund = PaymentTransaction.query.filter(
                 PaymentTransaction.online_payment == payment,
-                PaymentTransaction.transaction_type == TRANSACTION_TYPE.REFUND,
+                PaymentTransaction.transaction_type == TransactionTypeEnum.REFUND,
                 PaymentTransaction.pg_refundid == settled_transaction['entity_id'],
             ).one()
             order = refund.order

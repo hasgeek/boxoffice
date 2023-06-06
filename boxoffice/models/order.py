@@ -22,7 +22,7 @@ from . import (
     timestamptz,
     timestamptz_now,
 )
-from .enums import LINE_ITEM_STATUS, ORDER_STATUS, TRANSACTION_TYPE
+from .enums import LineItemStatus, OrderStatus, TransactionTypeEnum
 from .line_item import LineItem
 
 __all__ = ['Order', 'OrderSession']
@@ -63,7 +63,7 @@ class Order(BaseMixin, Model):
         sa.ForeignKey('organization.id')
     )
     organization: Mapped[Organization] = relationship(back_populates='orders')
-    status: Mapped[int] = sa.orm.mapped_column(default=ORDER_STATUS.PURCHASE_ORDER)
+    status: Mapped[int] = sa.orm.mapped_column(default=OrderStatus.PURCHASE_ORDER)
     initiated_at: Mapped[timestamptz_now]
     paid_at: Mapped[Optional[timestamptz]]
     invoiced_at: Mapped[Optional[timestamptz]]
@@ -101,7 +101,7 @@ class Order(BaseMixin, Model):
         lazy='dynamic',
         primaryjoin=sa.and_(
             LineItem.customer_order_id == id,
-            LineItem.status == LINE_ITEM_STATUS.CONFIRMED,
+            LineItem.status == LineItemStatus.CONFIRMED,
         ),
         viewonly=True,
     )
@@ -111,7 +111,7 @@ class Order(BaseMixin, Model):
         primaryjoin=sa.and_(
             LineItem.customer_order_id == id,
             LineItem.status.in_(
-                [LINE_ITEM_STATUS.CONFIRMED, LINE_ITEM_STATUS.CANCELLED]
+                [LineItemStatus.CONFIRMED.value, LineItemStatus.CANCELLED.value]
             ),
         ),
         viewonly=True,
@@ -122,7 +122,13 @@ class Order(BaseMixin, Model):
         primaryjoin=sa.and_(
             LineItem.customer_order_id == id,
             LineItem.previous_id.is_(None),
-            LineItem.status.in_(LINE_ITEM_STATUS.TRANSACTION),
+            LineItem.status.in_(
+                [
+                    LineItemStatus.CONFIRMED.value,
+                    LineItemStatus.VOID.value,
+                    LineItemStatus.CANCELLED.value,
+                ]
+            ),
         ),
         viewonly=True,
     )
@@ -137,11 +143,11 @@ class Order(BaseMixin, Model):
         return perms
 
     def confirm_sale(self) -> None:
-        """Update the status to ORDER_STATUS.SALES_ORDER."""
+        """Update the status to OrderStatus.SALES_ORDER."""
         for line_item in self.line_items:
             line_item.confirm()
         self.receipt_no = gen_receipt_no(self.organization)
-        self.status = ORDER_STATUS.SALES_ORDER
+        self.status = OrderStatus.SALES_ORDER
         self.paid_at = utcnow()
 
     def invoice(self) -> None:
@@ -149,7 +155,7 @@ class Order(BaseMixin, Model):
         for line_item in self.line_items:
             line_item.confirm()
         self.invoiced_at = utcnow()
-        self.status = ORDER_STATUS.INVOICE
+        self.status = OrderStatus.INVOICE
 
     def get_amounts(self, line_item_status) -> OrderAmounts:
         """Calculate and return the order's amounts as an OrderAmounts tuple."""
@@ -170,7 +176,10 @@ class Order(BaseMixin, Model):
 
     @property
     def is_confirmed(self) -> bool:
-        return self.status in ORDER_STATUS.CONFIRMED
+        return self.status in [
+            OrderStatus.SALES_ORDER.value,
+            OrderStatus.INVOICE.value,
+        ]
 
     def is_fully_assigned(self) -> bool:
         """Check if all the line items in an order have an assignee."""
@@ -181,11 +190,11 @@ class Order(BaseMixin, Model):
 
     @property
     def refund_transactions(self) -> AppenderQuery[PaymentTransaction]:
-        return self.transactions.filter_by(transaction_type=TRANSACTION_TYPE.REFUND)
+        return self.transactions.filter_by(transaction_type=TransactionTypeEnum.REFUND)
 
     @property
     def payment_transactions(self) -> AppenderQuery[PaymentTransaction]:
-        return self.transactions.filter_by(transaction_type=TRANSACTION_TYPE.PAYMENT)
+        return self.transactions.filter_by(transaction_type=TransactionTypeEnum.PAYMENT)
 
     @property
     def paid_amount(self) -> Decimal:

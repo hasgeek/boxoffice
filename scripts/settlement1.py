@@ -6,7 +6,7 @@ import csv
 from pytz import timezone, utc
 
 from boxoffice.models import OnlinePayment, PaymentTransaction
-from boxoffice.models.payment import TRANSACTION_TYPE
+from boxoffice.models.payment import TransactionTypeEnum
 
 # init_for('dev')
 
@@ -49,7 +49,7 @@ def get_settlements(filename):
                 if payment:
                     pt = PaymentTransaction.query.filter_by(
                         online_payment=payment,
-                        transaction_type=TRANSACTION_TYPE.PAYMENT,
+                        transaction_type=TransactionTypeEnum.PAYMENT,
                     ).one_or_none()
                     # Get settlement
                     settlement_amount = [
@@ -76,7 +76,8 @@ def get_settlements(filename):
                 payment = OnlinePayment.query.filter_by(pg_paymentid=trans[14]).first()
                 if payment:
                     refund_transactions = PaymentTransaction.query.filter_by(
-                        online_payment=payment, transaction_type=TRANSACTION_TYPE.REFUND
+                        online_payment=payment,
+                        transaction_type=TransactionTypeEnum.REFUND,
                     ).all()
                     settlement_amount = [
                         tr for tr in transactions if tr[0] == trans[11]

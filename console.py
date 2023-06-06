@@ -20,16 +20,16 @@ from boxoffice import app
 from boxoffice.extapi import razorpay
 from boxoffice.mailclient import send_participant_assignment_mail, send_receipt_mail
 from boxoffice.models import (
-    CURRENCY,
-    INVOICE_STATUS,
-    LINE_ITEM_STATUS,
-    ORDER_STATUS,
+    CurrencyEnum,
     Invoice,
+    InvoiceStatus,
     Item,
     ItemCollection,
     LineItem,
+    LineItemStatus,
     OnlinePayment,
     Order,
+    OrderStatus,
     Organization,
     PaymentTransaction,
     db,
@@ -61,7 +61,7 @@ def sales_by_date(
         sa.select(sa.func.sum(LineItem.final_amount))
         .select_from(LineItem)
         .where(
-            LineItem.status == LINE_ITEM_STATUS.CONFIRMED,
+            LineItem.status == LineItemStatus.CONFIRMED,
             LineItem.ordered_at >= start_at,
             LineItem.ordered_at < end_at,
             LineItem.ticket_id.in_(item_ids),
@@ -92,7 +92,7 @@ def calculate_weekly_sales(
         .join(Item, LineItem.ticket_id == Item.id)
         .where(
             LineItem.status.in_(
-                [LINE_ITEM_STATUS.CONFIRMED, LINE_ITEM_STATUS.CANCELLED]
+                [LineItemStatus.CONFIRMED.value, LineItemStatus.CANCELLED.value]
             ),
             Item.menu_id.in_(menu_ids),
             sa.func.timezone(user_tz, sa.func.timezone('UTC', LineItem.ordered_at))
@@ -125,7 +125,7 @@ def process_payment(order_id: UUID, pg_paymentid: str) -> ResponseReturnValue:
     order = Order.query.get(order_id)
     if order is None:
         return {'message': "Unknown order"}, 404
-    order_amounts = order.get_amounts(LINE_ITEM_STATUS.PURCHASE_ORDER)
+    order_amounts = order.get_amounts(LineItemStatus.PURCHASE_ORDER)
 
     online_payment = OnlinePayment.query.filter_by(
         pg_paymentid=pg_paymentid, order=order
@@ -144,7 +144,7 @@ def process_payment(order_id: UUID, pg_paymentid: str) -> ResponseReturnValue:
             order=order,
             online_payment=online_payment,
             amount=order_amounts.final_amount,
-            currency=CURRENCY.INR,
+            currency=CurrencyEnum.INR,
         )
         db.session.add(transaction)
         order.confirm_sale()
@@ -187,7 +187,7 @@ def reprocess_successful_payment(order_id: UUID) -> ResponseReturnValue:
     if order is None:
         return {'error': '404', 'message': "Unknown order"}, 404
     if not order.is_confirmed:
-        order_amounts = order.get_amounts(LINE_ITEM_STATUS.PURCHASE_ORDER)
+        order_amounts = order.get_amounts(LineItemStatus.PURCHASE_ORDER)
         online_payment = order.online_payments[0]
         online_payment.confirm()
         db.session.add(online_payment)
@@ -196,7 +196,7 @@ def reprocess_successful_payment(order_id: UUID) -> ResponseReturnValue:
             order=order,
             online_payment=online_payment,
             amount=order_amounts.final_amount,
-            currency=CURRENCY.INR,
+            currency=CurrencyEnum.INR,
         )
         db.session.add(transaction)
         order.confirm_sale()
@@ -230,8 +230,8 @@ def make_invoice_nos() -> None:
             Order.organization_id == org.id, Order.paid_at >= '2017-06-30 18:30'
         ).all():
             if (
-                order.get_amounts(LINE_ITEM_STATUS.CONFIRMED).final_amount
-                or order.get_amounts(LINE_ITEM_STATUS.CANCELLED).final_amount
+                order.get_amounts(LineItemStatus.CONFIRMED).final_amount
+                or order.get_amounts(LineItemStatus.CANCELLED).final_amount
             ):
                 db.session.add(Invoice(order=order, organization=org))
     db.session.commit()
@@ -273,7 +273,7 @@ def finalize_invoices(
         Invoice.created_at < end_at,
     ).all()
     for inv in invoices:
-        inv.status = INVOICE_STATUS.FINAL
+        inv.status = InvoiceStatus.FINAL
     db.session.commit()
 
 
@@ -327,7 +327,7 @@ def order_report(org_name: str) -> None:
                         order.access_token,
                         order.paid_at,
                         order.invoiced_at,
-                        ORDER_STATUS[order.status],  # type: ignore[misc]
+                        OrderStatus(order.status).name,
                         order.buyer_email,
                         order.buyer_fullname.encode('utf-8'),
                         order.buyer_phone,

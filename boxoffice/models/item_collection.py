@@ -15,7 +15,7 @@ from . import (
     relationship,
     sa,
 )
-from .enums import LINE_ITEM_STATUS, TRANSACTION_TYPE
+from .enums import LineItemStatus, TransactionTypeEnum
 from .payment import PaymentTransaction
 from .user import Organization
 from .utils import HeadersAndDataTuple
@@ -125,7 +125,7 @@ class ItemCollection(BaseScopedNameMixin, Model):
                 Order.paid_at,
             )
             .select_from(line_item_join)
-            .where(LineItem.status == LINE_ITEM_STATUS.CONFIRMED)
+            .where(LineItem.status == LineItemStatus.CONFIRMED)
             .where(Order.menu_id == self.id)
             .order_by(LineItem.ordered_at)
         )
@@ -195,7 +195,7 @@ class ItemCollection(BaseScopedNameMixin, Model):
                 Assignee.details,
             )
             .select_from(line_item_join)
-            .where(LineItem.status == LINE_ITEM_STATUS.CONFIRMED)
+            .where(LineItem.status == LineItemStatus.CONFIRMED)
             .where(Order.menu == self)
             .order_by(LineItem.ordered_at)
         )
@@ -222,7 +222,7 @@ class ItemCollection(BaseScopedNameMixin, Model):
                 .select_from(PaymentTransaction)
                 .join(Order, PaymentTransaction.customer_order_id == Order.id)
                 .where(
-                    PaymentTransaction.transaction_type == TRANSACTION_TYPE.PAYMENT,
+                    PaymentTransaction.transaction_type == TransactionTypeEnum.PAYMENT,
                     Order.menu_id == self.id,
                 )
             ),
@@ -234,7 +234,7 @@ class ItemCollection(BaseScopedNameMixin, Model):
                 .select_from(PaymentTransaction)
                 .join(Order, PaymentTransaction.customer_order_id == Order.id)
                 .where(
-                    PaymentTransaction.transaction_type == TRANSACTION_TYPE.REFUND,
+                    PaymentTransaction.transaction_type == TransactionTypeEnum.REFUND,
                     Order.menu_id == self.id,
                 )
             ),

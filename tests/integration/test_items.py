@@ -4,7 +4,7 @@ import json
 from coaster.utils import utcnow
 
 from boxoffice import app
-from boxoffice.models import ORDER_STATUS, Item, ItemCollection, Order
+from boxoffice.models import Item, ItemCollection, Order, OrderStatus
 
 
 def ajax_post(client, url, data):
@@ -37,7 +37,7 @@ def test_assign(db_session, client, all_data) -> None:
     resp_data = json.loads(resp.data)['result']
     order = Order.query.get(resp_data.get('order_id'))
     assert isinstance(order, Order)
-    assert order.status == ORDER_STATUS.PURCHASE_ORDER
+    assert order.status == OrderStatus.PURCHASE_ORDER
 
     assert len(order.line_items) == 2
     li_one = order.line_items[0]

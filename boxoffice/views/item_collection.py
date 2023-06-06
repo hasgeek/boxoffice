@@ -7,8 +7,8 @@ from coaster.views import load_models
 from .. import app
 from ..data import indian_states
 from ..models import (
-    CURRENCY_SYMBOL,
     Category,
+    CurrencySymbol,
     DiscountPolicy,
     Item,
     ItemCollection,
@@ -111,7 +111,7 @@ def view_menu(menu: ItemCollection):
         html=render_template('boxoffice.html.jinja2'),
         categories=categories_json,
         refund_policy=menu.organization.details.get('refund_policy', ''),
-        currency=CURRENCY_SYMBOL['INR'],
+        currency=CurrencySymbol.INR,
     )
 
 

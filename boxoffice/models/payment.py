@@ -21,10 +21,10 @@ from . import (
     timestamptz,
 )
 from .enums import (
-    ORDER_STATUS,
-    RAZORPAY_PAYMENT_STATUS,
-    TRANSACTION_METHOD,
-    TRANSACTION_TYPE,
+    OrderStatus,
+    RazorpayPaymentStatus,
+    TransactionMethodEnum,
+    TransactionTypeEnum,
 )
 
 __all__ = ['OnlinePayment', 'PaymentTransaction']
@@ -53,11 +53,11 @@ class OnlinePayment(BaseMixin, Model):
     def confirm(self) -> None:
         """Confirm a payment, sets confirmed_at and pg_payment_status."""
         self.confirmed_at = func.utcnow()
-        self.pg_payment_status = RAZORPAY_PAYMENT_STATUS.CAPTURED
+        self.pg_payment_status = RazorpayPaymentStatus.CAPTURED
 
     def fail(self) -> None:
         """Fails a payment, sets failed_at."""
-        self.pg_payment_status = RAZORPAY_PAYMENT_STATUS.FAILED
+        self.pg_payment_status = RazorpayPaymentStatus.FAILED
         self.failed_at = func.utcnow()
 
 
@@ -84,10 +84,10 @@ class PaymentTransaction(BaseMixin, Model):
     amount: Mapped[Decimal]
     currency: Mapped[str] = sa.orm.mapped_column(sa.Unicode(3))
     transaction_type: Mapped[int] = sa.orm.mapped_column(
-        default=TRANSACTION_TYPE.PAYMENT
+        default=TransactionTypeEnum.PAYMENT
     )
     transaction_method: Mapped[int] = sa.orm.mapped_column(
-        default=TRANSACTION_METHOD.ONLINE
+        default=TransactionMethodEnum.ONLINE
     )
     # Eg: reference number for a bank transfer
     transaction_ref: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(80))
@@ -122,9 +122,15 @@ def calculate_weekly_refunds(menu_ids, user_tz, year):
         .select_from(PaymentTransaction, Order)
         .where(
             PaymentTransaction.customer_order_id == Order.id,
-            Order.status.in_(tuple(ORDER_STATUS.TRANSACTION)),
+            Order.status.in_(
+                [
+                    OrderStatus.SALES_ORDER.value,
+                    OrderStatus.INVOICE.value,
+                    OrderStatus.CANCELLED.value,
+                ]
+            ),
             Order.menu_id.in_(menu_ids),
-            PaymentTransaction.transaction_type == TRANSACTION_TYPE.REFUND,
+            PaymentTransaction.transaction_type == TransactionTypeEnum.REFUND,
             sa.func.timezone(
                 user_tz, sa.func.timezone('UTC', PaymentTransaction.created_at)
             )

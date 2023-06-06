@@ -12,10 +12,10 @@ from coaster.utils import utcnow
 
 from boxoffice import app
 from boxoffice.models import (
-    DISCOUNT_TYPE,
     Category,
     DiscountCoupon,
     DiscountPolicy,
+    DiscountTypeEnum,
     Item,
     ItemCollection,
     Organization,
@@ -277,7 +277,7 @@ def all_data(db_session):
             item_quantity_min=1,
             percentage=15,
             organization=rootconf,
-            discount_type=DISCOUNT_TYPE.COUPON,
+            discount_type=DiscountTypeEnum.COUPON,
         )
         discount_coupon1.tickets.append(conf_ticket)
         db_session.add(discount_coupon1)
@@ -292,7 +292,7 @@ def all_data(db_session):
             item_quantity_min=1,
             percentage=15,
             organization=rootconf,
-            discount_type=DISCOUNT_TYPE.COUPON,
+            discount_type=DiscountTypeEnum.COUPON,
         )
         discount_coupon_expired_ticket.tickets.append(expired_ticket)
         db_session.add(discount_coupon_expired_ticket)
@@ -309,7 +309,7 @@ def all_data(db_session):
             item_quantity_min=1,
             percentage=100,
             organization=rootconf,
-            discount_type=DISCOUNT_TYPE.COUPON,
+            discount_type=DiscountTypeEnum.COUPON,
         )
         discount_coupon2.tickets.append(conf_ticket)
         db_session.add(discount_coupon1)
@@ -327,7 +327,7 @@ def all_data(db_session):
             title='Forever Early Geek',
             item_quantity_min=1,
             is_price_based=True,
-            discount_type=DISCOUNT_TYPE.COUPON,
+            discount_type=DiscountTypeEnum.COUPON,
             organization=rootconf,
         )
         forever_early_geek.tickets.append(conf_ticket)
@@ -344,7 +344,7 @@ def all_data(db_session):
             title='noprice',
             item_quantity_min=1,
             is_price_based=True,
-            discount_type=DISCOUNT_TYPE.COUPON,
+            discount_type=DiscountTypeEnum.COUPON,
             organization=rootconf,
         )
         noprice_discount.tickets.append(conf_ticket)
@@ -377,7 +377,7 @@ def all_data(db_session):
         unlimited_geek = DiscountPolicy(
             title='Unlimited Geek',
             item_quantity_min=1,
-            discount_type=DISCOUNT_TYPE.COUPON,
+            discount_type=DiscountTypeEnum.COUPON,
             percentage=10,
             organization=rootconf,
         )
@@ -395,7 +395,7 @@ def all_data(db_session):
             title='Zero Discount',
             item_quantity_min=1,
             is_price_based=True,
-            discount_type=DISCOUNT_TYPE.COUPON,
+            discount_type=DiscountTypeEnum.COUPON,
             organization=rootconf,
         )
         zero_discount.tickets.append(conf_ticket)

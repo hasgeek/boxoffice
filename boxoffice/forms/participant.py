@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from baseframe import __, forms
 
-from ..models import ORDER_STATUS, Assignee, Item, LineItem, Order
+from ..models import Assignee, Item, LineItem, Order, OrderStatus
 
 __all__ = ["AssigneeForm"]
 
@@ -28,7 +28,7 @@ class AssigneeForm(forms.Form):
             .join(Item)
             .join(Order)
             .filter(LineItem.ticket_id == self.edit_parent.ticket_id)
-            .filter(Order.status != ORDER_STATUS.CANCELLED)
+            .filter(Order.status != OrderStatus.CANCELLED)
             .filter(Assignee.current.is_(True))
             .filter(Assignee.email == field.data)
         )

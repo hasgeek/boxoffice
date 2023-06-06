@@ -25,23 +25,23 @@ from ..mailclient import (
     send_receipt_mail,
 )
 from ..models import (
-    CURRENCY,
-    CURRENCY_SYMBOL,
-    LINE_ITEM_STATUS,
-    ORDER_STATUS,
-    RAZORPAY_PAYMENT_STATUS,
-    TRANSACTION_TYPE,
     Assignee,
+    CurrencyEnum,
+    CurrencySymbol,
     DiscountCoupon,
     DiscountPolicy,
     Invoice,
     Item,
     ItemCollection,
     LineItem,
+    LineItemStatus,
     OnlinePayment,
     Order,
     OrderSession,
+    OrderStatus,
     PaymentTransaction,
+    RazorpayPaymentStatus,
+    TransactionTypeEnum,
     User,
     db,
     sa,
@@ -346,7 +346,7 @@ def create_order(menu: ItemCollection):
             'payment_url': url_for('capture_payment', order=order.id),
             'free_order_url': url_for('free', order=order.id),
             'final_amount': order.get_amounts(
-                LINE_ITEM_STATUS.PURCHASE_ORDER
+                LineItemStatus.PURCHASE_ORDER
             ).final_amount,
         },
         status_code=201,
@@ -359,7 +359,7 @@ def create_order(menu: ItemCollection):
 @load_models((Order, {'id': 'order'}, 'order'))
 def free(order: Order):
     """Complete a order which has a final_amount of 0."""
-    order_amounts = order.get_amounts(LINE_ITEM_STATUS.PURCHASE_ORDER)
+    order_amounts = order.get_amounts(LineItemStatus.PURCHASE_ORDER)
     if order_amounts.final_amount == 0:
         order.confirm_sale()
         db.session.add(order)
@@ -405,7 +405,7 @@ def capture_payment(order: Order):
     if not request.json.get('pg_paymentid'):
         return api_error(message="Missing payment id", status_code=400)
 
-    order_amounts = order.get_amounts(LINE_ITEM_STATUS.PURCHASE_ORDER)
+    order_amounts = order.get_amounts(LineItemStatus.PURCHASE_ORDER)
     online_payment = OnlinePayment(
         pg_paymentid=request.json.get('pg_paymentid'), order=order
     )
@@ -421,7 +421,7 @@ def capture_payment(order: Order):
             order=order,
             online_payment=online_payment,
             amount=order_amounts.final_amount,
-            currency=CURRENCY.INR,
+            currency=CurrencyEnum.INR,
         )
         db.session.add(transaction)
         order.confirm_sale()
@@ -473,14 +473,14 @@ def receipt(order: Order):
     if not order.is_confirmed:
         abort(404)
     line_items = LineItem.query.filter(
-        LineItem.order == order, LineItem.status.in_([LINE_ITEM_STATUS.CONFIRMED])
+        LineItem.order == order, LineItem.status == LineItemStatus.CONFIRMED
     ).all()
     return render_template(
         'cash_receipt.html.jinja2',
         order=order,
         org=order.organization,
         line_items=line_items,
-        currency_symbol=CURRENCY_SYMBOL['INR'],
+        currency_symbol=CurrencySymbol.INR,
     )
 
 
@@ -656,7 +656,7 @@ def regenerate_line_item(
         ticket=ticket,
         discount_policy=policy,
         previous=original_line_item,
-        status=LINE_ITEM_STATUS.CONFIRMED,
+        status=LineItemStatus.CONFIRMED,
         line_item_seq=line_item_seq,
         discount_coupon=coupon,
         ordered_at=utcnow(),
@@ -722,7 +722,7 @@ def process_line_item_cancellation(line_item):
     if (not line_item.is_free) and order.net_amount > Decimal('0'):
         if line_item.discount_policy:
             pre_cancellation_order_amount = (
-                order.get_amounts(LINE_ITEM_STATUS.CONFIRMED).confirmed_amount
+                order.get_amounts(LineItemStatus.CONFIRMED).confirmed_amount
                 - order.refunded_amount
             )
             pre_cancellation_line_items = order.confirmed_line_items
@@ -731,7 +731,7 @@ def process_line_item_cancellation(line_item):
                 order, pre_cancellation_line_items, line_item
             )
             post_cancellation_order_amount = (
-                updated_order.get_amounts(LINE_ITEM_STATUS.CONFIRMED).confirmed_amount
+                updated_order.get_amounts(LineItemStatus.CONFIRMED).confirmed_amount
                 - order.refunded_amount
             )
             refund_amount = (
@@ -748,7 +748,7 @@ def process_line_item_cancellation(line_item):
 
     if refund_amount > Decimal('0'):
         payment = OnlinePayment.query.filter_by(
-            order=line_item.order, pg_payment_status=RAZORPAY_PAYMENT_STATUS.CAPTURED
+            order=line_item.order, pg_payment_status=RazorpayPaymentStatus.CAPTURED
         ).one()
         rp_resp = razorpay.refund_payment(payment.pg_paymentid, refund_amount)
         rp_refund = rp_resp.json()
@@ -756,11 +756,11 @@ def process_line_item_cancellation(line_item):
             db.session.add(
                 PaymentTransaction(
                     order=order,
-                    transaction_type=TRANSACTION_TYPE.REFUND,
+                    transaction_type=TransactionTypeEnum.REFUND,
                     pg_refundid=rp_refund['id'],
                     online_payment=payment,
                     amount=refund_amount,
-                    currency=CURRENCY.INR,
+                    currency=CurrencyEnum.INR,
                     refunded_at=func.utcnow(),
                     refund_description=_("Refund: {line_item_title}").format(
                         line_item_title=line_item.ticket.title
@@ -822,16 +822,16 @@ def process_partial_refund_for_order(data_dict):
     if form.validate_on_submit():
         requested_refund_amount = form.amount.data
         payment = OnlinePayment.query.filter_by(
-            order=order, pg_payment_status=RAZORPAY_PAYMENT_STATUS.CAPTURED
+            order=order, pg_payment_status=RazorpayPaymentStatus.CAPTURED
         ).one()
         rp_resp = razorpay.refund_payment(payment.pg_paymentid, requested_refund_amount)
         rp_refund = rp_resp.json()
         if rp_resp.status_code == 200:
             transaction = PaymentTransaction(
                 order=order,
-                transaction_type=TRANSACTION_TYPE.REFUND,
+                transaction_type=TransactionTypeEnum.REFUND,
                 online_payment=payment,
-                currency=CURRENCY.INR,
+                currency=CurrencyEnum.INR,
                 pg_refundid=rp_refund['id'],
                 refunded_at=func.utcnow(),
             )
@@ -891,6 +891,6 @@ def menu_orders(menu: ItemCollection):
     ) != organization.details.get("access_token"):
         abort(401)
     orders = menu.orders.filter(
-        Order.status.in_([ORDER_STATUS.SALES_ORDER, ORDER_STATUS.INVOICE])
+        Order.status.in_([OrderStatus.SALES_ORDER.value, OrderStatus.INVOICE.value])
     ).all()
     return jsonify(orders=jsonify_orders(orders))

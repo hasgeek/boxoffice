@@ -5,12 +5,12 @@ import requests
 
 from boxoffice import app, db
 from boxoffice.models import (
-    CURRENCY,
-    ORDER_STATUS,
-    TRANSACTION_TYPE,
+    CurrencyEnum,
     OnlinePayment,
     Order,
+    OrderStatus,
     PaymentTransaction,
+    TransactionTypeEnum,
 )
 
 base_url = 'https://api.razorpay.com/v1'
@@ -90,7 +90,15 @@ def remove_duplicate_payments():
 
 
 def get_duplicate_payments():
-    orders = Order.query.filter(Order.status.in_(ORDER_STATUS.TRANSACTION)).all()
+    orders = Order.query.filter(
+        Order.status.in_(
+            [
+                OrderStatus.SALES_ORDER.value,
+                OrderStatus.INVOICE.value,
+                OrderStatus.CANCELLED.value,
+            ]
+        )
+    ).all()
     dupes = []
     for order in orders:
         payments = OnlinePayment.query.filter(OnlinePayment.order == order).all()
@@ -123,8 +131,8 @@ def import_missing_refunds():
                             refunded_at=datetime.datetime.utcfromtimestamp(
                                 rp_refund['created_at']
                             ),
-                            transaction_type=TRANSACTION_TYPE.REFUND,
-                            currency=CURRENCY.INR,
+                            transaction_type=TransactionTypeEnum.REFUND,
+                            currency=CurrencyEnum.INR,
                         )
                     )
     db.session.commit()

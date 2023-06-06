@@ -7,7 +7,7 @@ from baseframe import _
 from coaster.utils import utcnow
 
 from . import BaseMixin, Mapped, Model, UuidMixin, relationship, sa, timestamptz
-from .enums import INVOICE_STATUS
+from .enums import InvoiceStatus
 from .utils import get_fiscal_year
 
 __all__ = ['Invoice']
@@ -35,7 +35,7 @@ class Invoice(UuidMixin, BaseMixin, Model):
     )
 
     status: Mapped[int] = sa.orm.mapped_column(
-        sa.SmallInteger, default=INVOICE_STATUS.DRAFT
+        sa.SmallInteger, default=InvoiceStatus.DRAFT
     )
     invoicee_name: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(255))
     invoicee_company: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(255))
@@ -113,7 +113,7 @@ class Invoice(UuidMixin, BaseMixin, Model):
 
     @property
     def is_final(self):
-        return self.status == INVOICE_STATUS.FINAL
+        return self.status == InvoiceStatus.FINAL
 
     @sa.orm.validates(
         'invoicee_name',
@@ -134,7 +134,7 @@ class Invoice(UuidMixin, BaseMixin, Model):
         'organization_id',
     )
     def validate_immutable_final_invoice(self, key, val):
-        if self.status == INVOICE_STATUS.FINAL:
+        if self.status == InvoiceStatus.FINAL:
             raise ValueError(
                 _("`{attr}` cannot be modified in a finalized invoice").format(attr=key)
             )

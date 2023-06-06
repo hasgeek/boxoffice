@@ -9,7 +9,7 @@ from coaster.views import load_models, render_with
 
 from .. import app, lastuser
 from ..extapi.razorpay import get_settled_transactions
-from ..models import INVOICE_STATUS, ItemCollection, Organization
+from ..models import InvoiceStatus, ItemCollection, Organization
 from .utils import api_error, check_api_access, csv_response
 
 
@@ -198,8 +198,10 @@ def invoices_report(organization: Organization):
 
     def row_handler(row):
         dict_row = dict(list(zip(headers, row)))
-        if dict_row.get('status') in INVOICE_STATUS.keys():
-            dict_row['status'] = INVOICE_STATUS.get(dict_row['status'])
+        for enum_member in InvoiceStatus:
+            if dict_row.get('status') == enum_member.value:
+                dict_row['status'] = enum_member.name
+                break
         if isinstance(dict_row.get('invoiced_at'), datetime):
             dict_row['invoiced_at'] = format_datetime(
                 localize_timezone(dict_row['invoiced_at']),

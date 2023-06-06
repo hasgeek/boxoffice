@@ -4,13 +4,13 @@ from coaster.views import load_models, render_with
 
 from .. import app, lastuser
 from ..models import (
-    CURRENCY_SYMBOL,
-    INVOICE_STATUS,
-    LINE_ITEM_STATUS,
-    ORDER_STATUS,
+    CurrencySymbol,
+    InvoiceStatus,
     ItemCollection,
     LineItem,
+    LineItemStatus,
     Order,
+    OrderStatus,
     Organization,
 )
 from .utils import check_api_access, json_date_format, xhr_only
@@ -39,7 +39,7 @@ def format_line_items(line_items):
                 'category': line_item.ticket.category.title,
                 'description': line_item.ticket.description.text,
                 'description_html': line_item.ticket.description.html,
-                'currency': CURRENCY_SYMBOL['INR'],
+                'currency': CurrencySymbol.INR,
                 'base_amount': line_item.base_amount,
                 'discounted_amount': line_item.discounted_amount,
                 'final_amount': line_item.final_amount,
@@ -76,7 +76,7 @@ def jsonify_admin_orders(data_dict):
                     'buyer_fullname': order.buyer_fullname,
                     'buyer_email': order.buyer_email,
                     'buyer_phone': order.buyer_phone,
-                    'currency': CURRENCY_SYMBOL['INR'],
+                    'currency': CurrencySymbol.INR,
                     'amount': order.net_amount,
                     'url': '/menu/' + str(menu_id) + '/' + str(order.id),
                     'receipt_url': url_for('receipt', access_token=order.access_token),
@@ -114,7 +114,9 @@ def admin_orders(menu: ItemCollection):
 def admin_order(order: Order):
     line_items = LineItem.query.filter(
         LineItem.order == order,
-        LineItem.status.in_([LINE_ITEM_STATUS.CONFIRMED, LINE_ITEM_STATUS.CANCELLED]),
+        LineItem.status.in_(
+            [LineItemStatus.CONFIRMED.value, LineItemStatus.CANCELLED.value]
+        ),
     ).all()
     return jsonify(line_items=format_line_items(line_items))
 
@@ -154,7 +156,9 @@ def jsonify_order(order_dict):
 def admin_org_order(org: Organization, order: Order):
     line_items = LineItem.query.filter(
         LineItem.order == order,
-        LineItem.status.in_([LINE_ITEM_STATUS.CONFIRMED, LINE_ITEM_STATUS.CANCELLED]),
+        LineItem.status.in_(
+            [LineItemStatus.CONFIRMED.value, LineItemStatus.CANCELLED.value]
+        ),
     ).all()
     return {'org': org, 'order': order, 'line_items': line_items}
 
@@ -167,7 +171,7 @@ def get_order_details(order):
             'event_date': li.ticket.event_date.isoformat()
             if li.ticket.event_date
             else None,
-            'status': LINE_ITEM_STATUS[li.status],
+            'status': LineItemStatus(li.status).name,
             'base_amount': li.base_amount,
             'discounted_amount': li.discounted_amount,
             'final_amount': li.final_amount,
@@ -185,7 +189,7 @@ def get_order_details(order):
 
     invoices_list = [
         {
-            'status': INVOICE_STATUS[invoice.status],
+            'status': InvoiceStatus(invoice.status).name,
             'invoicee_name': invoice.invoicee_name,
             'invoicee_company': invoice.invoicee_company,
             'invoicee_email': invoice.invoicee_email,
@@ -216,7 +220,7 @@ def get_order_details(order):
     return jsonify(
         order_id=order.id,
         receipt_no=order.receipt_no,
-        status=ORDER_STATUS[order.status],
+        status=OrderStatus(order.status).name,
         final_amount=order.net_amount,
         line_items=line_items_list,
         title=order.menu.title,

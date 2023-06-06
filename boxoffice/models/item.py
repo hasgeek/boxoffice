@@ -26,6 +26,7 @@ from . import (
 )
 from .category import Category
 from .discount_policy import item_discount_policy
+from .enums import LineItemStatus
 
 __all__ = ['Item', 'Price']
 
@@ -150,7 +151,7 @@ class Item(BaseScopedNameMixin, Model):
     @property
     def confirmed_line_items(self):
         """Return a query object preset with a ticket's confirmed line items."""
-        return self.line_items.filter(LineItem.status == LINE_ITEM_STATUS.CONFIRMED)
+        return self.line_items.filter(LineItem.status == LineItemStatus.CONFIRMED)
 
     @with_roles(call={'item_owner'})
     def sold_count(self):
@@ -163,7 +164,7 @@ class Item(BaseScopedNameMixin, Model):
     @with_roles(call={'item_owner'})
     def cancelled_count(self):
         return self.line_items.filter(
-            LineItem.status == LINE_ITEM_STATUS.CANCELLED
+            LineItem.status == LineItemStatus.CANCELLED
         ).count()
 
     @with_roles(call={'item_owner'})
@@ -172,7 +173,7 @@ class Item(BaseScopedNameMixin, Model):
             db.session.query(sa.func.sum(LineItem.final_amount))
             .filter(
                 LineItem.ticket_id == self.id,
-                LineItem.status == LINE_ITEM_STATUS.CONFIRMED,
+                LineItem.status == LineItemStatus.CONFIRMED,
             )
             .first()[0]
         )
@@ -192,7 +193,7 @@ class Item(BaseScopedNameMixin, Model):
             .join(LineItem)
             .filter(
                 LineItem.ticket_id.in_(item_ids),
-                LineItem.status == LINE_ITEM_STATUS.CONFIRMED,
+                LineItem.status == LineItemStatus.CONFIRMED,
             )
             .group_by(cls.id)
             .all()
@@ -209,7 +210,7 @@ class Item(BaseScopedNameMixin, Model):
             .where(
                 LineItem.ticket_id == self.id,
                 LineItem.final_amount > 0,
-                LineItem.status == LINE_ITEM_STATUS.CONFIRMED,
+                LineItem.status == LineItemStatus.CONFIRMED,
             )
             .group_by(LineItem.final_amount)
             .order_by(LineItem.final_amount)
@@ -276,7 +277,7 @@ class Price(BaseScopedNameMixin, Model):
 
 
 # Tail imports
-from .line_item import LINE_ITEM_STATUS, LineItem  # isort:skip
+from .line_item import LineItem  # isort:skip
 
 if TYPE_CHECKING:
     from .discount_policy import DiscountPolicy

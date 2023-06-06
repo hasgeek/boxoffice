@@ -4,10 +4,10 @@ from baseframe import __, forms
 from coaster.utils import getbool
 
 from ..models import (
-    CURRENCY,
-    DISCOUNT_TYPE,
+    CurrencyEnum,
     DiscountCoupon,
     DiscountPolicy,
+    DiscountTypeEnum,
     Item,
     ItemCollection,
     sa,
@@ -34,9 +34,9 @@ class DiscountPolicyForm(forms.Form):
     )
     discount_type = forms.RadioField(
         __("Discount type"),
-        choices=list(DISCOUNT_TYPE.items()),
+        choices=[(e.value, e.title) for e in DiscountTypeEnum],
         coerce=int,
-        default=DISCOUNT_TYPE.COUPON,
+        default=DiscountTypeEnum.COUPON,
     )
     is_price_based = forms.RadioField(
         __("Price based discount"),
@@ -167,8 +167,8 @@ class DiscountPriceForm(forms.Form):
     currency = forms.RadioField(
         __("Currency"),
         validators=[forms.validators.DataRequired(__("Please select the currency"))],
-        choices=list(CURRENCY.items()),
-        default=CURRENCY.INR,
+        choices=[(e.value, e.name) for e in CurrencyEnum],
+        default=CurrencyEnum.INR,
     )
     start_at = forms.DateTimeField(
         __("Price start date"),

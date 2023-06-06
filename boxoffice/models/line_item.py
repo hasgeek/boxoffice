@@ -24,7 +24,7 @@ from . import (
     sa,
     timestamptz,
 )
-from .enums import LINE_ITEM_STATUS
+from .enums import LineItemStatus
 
 __all__ = ['LineItem', 'Assignee']
 
@@ -129,7 +129,7 @@ class LineItem(BaseMixin, Model):
     base_amount: Mapped[Decimal] = sa.orm.mapped_column(default=Decimal(0))
     discounted_amount: Mapped[Decimal] = sa.orm.mapped_column(default=Decimal(0))
     final_amount: Mapped[Decimal] = sa.orm.mapped_column(sa.Numeric, default=Decimal(0))
-    status: Mapped[int] = sa.orm.mapped_column(default=LINE_ITEM_STATUS.PURCHASE_ORDER)
+    status: Mapped[int] = sa.orm.mapped_column(default=LineItemStatus.PURCHASE_ORDER)
     ordered_at: Mapped[Optional[timestamptz]]
     cancelled_at: Mapped[Optional[timestamptz]]
     assignees: DynamicMapped[Assignee] = relationship(
@@ -218,7 +218,7 @@ class LineItem(BaseMixin, Model):
         return calculated_line_items
 
     def confirm(self):
-        self.status = LINE_ITEM_STATUS.CONFIRMED
+        self.status = LineItemStatus.CONFIRMED
 
     assignee: Mapped[Optional[Assignee]] = relationship(
         Assignee,
@@ -252,11 +252,11 @@ class LineItem(BaseMixin, Model):
 
     @property
     def is_confirmed(self):
-        return self.status == LINE_ITEM_STATUS.CONFIRMED
+        return self.status == LineItemStatus.CONFIRMED
 
     @property
     def is_cancelled(self):
-        return self.status == LINE_ITEM_STATUS.CANCELLED
+        return self.status == LineItemStatus.CANCELLED
 
     @property
     def is_free(self):
@@ -264,11 +264,11 @@ class LineItem(BaseMixin, Model):
 
     def cancel(self):
         """Set status and cancelled_at."""
-        self.status = LINE_ITEM_STATUS.CANCELLED
+        self.status = LineItemStatus.CANCELLED
         self.cancelled_at = sa.func.utcnow()
 
     def make_void(self):
-        self.status = LINE_ITEM_STATUS.VOID
+        self.status = LineItemStatus.VOID
         self.cancelled_at = sa.func.utcnow()
 
     def is_cancellable(self):
@@ -314,7 +314,7 @@ def counts_per_date_per_item(
             .select_from(LineItem)
             .where(
                 LineItem.ticket_id == ticket.id,
-                LineItem.status == LINE_ITEM_STATUS.CONFIRMED,
+                LineItem.status == LineItemStatus.CONFIRMED,
             )
             .group_by('date')
             .order_by('date')
@@ -352,7 +352,7 @@ def sales_by_date(
             sa.select(sa.func.sum(LineItem.final_amount))
             .select_from(LineItem)
             .where(
-                LineItem.status == LINE_ITEM_STATUS.CONFIRMED,
+                LineItem.status == LineItemStatus.CONFIRMED,
                 LineItem.ordered_at >= start_at,
                 LineItem.ordered_at < end_at,
                 LineItem.ticket_id.in_(ticket_ids),
@@ -384,7 +384,7 @@ def calculate_weekly_sales(
         .join(Item, LineItem.ticket_id == Item.id)
         .where(
             LineItem.status.in_(
-                [LINE_ITEM_STATUS.CONFIRMED, LINE_ITEM_STATUS.CANCELLED]
+                [LineItemStatus.CONFIRMED.value, LineItemStatus.CANCELLED.value]
             ),
             Item.menu_id.in_(menu_ids),
             sa.func.timezone(user_tz, sa.func.timezone('UTC', LineItem.ordered_at))

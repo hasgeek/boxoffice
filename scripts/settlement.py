@@ -6,11 +6,11 @@ import csv
 from pytz import timezone, utc
 
 from boxoffice.models import (
-    LINE_ITEM_STATUS,
-    RAZORPAY_PAYMENT_STATUS,
-    TRANSACTION_TYPE,
+    LineItemStatus,
     OnlinePayment,
     PaymentTransaction,
+    RazorpayPaymentStatus,
+    TransactionTypeEnum,
 )
 
 
@@ -52,12 +52,12 @@ def get_settlements(filename):
             if trans[1] == 'payment':
                 payment = OnlinePayment.query.filter_by(
                     pg_paymentid=trans[0],
-                    pg_payment_status=RAZORPAY_PAYMENT_STATUS.CAPTURED,
+                    pg_payment_status=RazorpayPaymentStatus.CAPTURED,
                 ).first()
                 if payment:
                     pt = PaymentTransaction.query.filter_by(
                         online_payment=payment,
-                        transaction_type=TRANSACTION_TYPE.PAYMENT,
+                        transaction_type=TransactionTypeEnum.PAYMENT,
                     ).one_or_none()
                     # Get settlement. settlement_amount =
                     # [tr for tr in transactions if tr[0] == trans[11]][0][4]
@@ -102,11 +102,12 @@ def get_settlements(filename):
             elif trans[1] == 'refund':
                 payment = OnlinePayment.query.filter_by(
                     pg_paymentid=trans[14],
-                    pg_payment_status=RAZORPAY_PAYMENT_STATUS.CAPTURED,
+                    pg_payment_status=RazorpayPaymentStatus.CAPTURED,
                 ).first()
                 if payment:
                     refund_transactions = PaymentTransaction.query.filter_by(
-                        online_payment=payment, transaction_type=TRANSACTION_TYPE.REFUND
+                        online_payment=payment,
+                        transaction_type=TransactionTypeEnum.REFUND,
                     ).all()
                     # settlement_amount = [tr for tr in transactions if tr[0] ==
                     # trans[11]][0][4]
@@ -224,7 +225,7 @@ def get_line_items(filename):
                         line_item.order.id,
                         trans[11],
                         line_item.ticket.title,
-                        line_item.status == LINE_ITEM_STATUS.CANCELLED,
+                        line_item.status == LineItemStatus.CANCELLED,
                     ]
                 )
 
@@ -248,10 +249,10 @@ def get_orders(settlement_filename):
         ] not in [pord['entity_id'] for pord in payment_orders]:
             payment = OnlinePayment.query.filter_by(
                 pg_paymentid=settlement_dict['entity_id'],
-                pg_payment_status=RAZORPAY_PAYMENT_STATUS.CAPTURED,
+                pg_payment_status=RazorpayPaymentStatus.CAPTURED,
             ).one()
             payment_transaction = PaymentTransaction.query.filter_by(
-                online_payment=payment, transaction_type=TRANSACTION_TYPE.PAYMENT
+                online_payment=payment, transaction_type=TransactionTypeEnum.PAYMENT
             ).one()
             payment_orders.append(
                 {
@@ -279,12 +280,12 @@ def get_orders(settlement_filename):
             try:
                 payment = OnlinePayment.query.filter_by(
                     pg_paymentid=settlement_dict['payment_id'],
-                    pg_payment_status=RAZORPAY_PAYMENT_STATUS.CAPTURED,
+                    pg_payment_status=RazorpayPaymentStatus.CAPTURED,
                 ).one()
                 payment_transaction = PaymentTransaction.query.filter_by(
                     amount=Decimal(settlement_dict['debit']),
                     online_payment=payment,
-                    transaction_type=TRANSACTION_TYPE.REFUND,
+                    transaction_type=TransactionTypeEnum.REFUND,
                 ).first()
                 if payment_transaction:
                     payment_orders.append(

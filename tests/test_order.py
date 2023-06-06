@@ -12,19 +12,19 @@ from boxoffice import app
 from boxoffice.extapi import razorpay
 from boxoffice.forms import OrderRefundForm
 from boxoffice.models import (
-    CURRENCY,
-    LINE_ITEM_STATUS,
-    ORDER_STATUS,
+    CurrencyEnum,
     DiscountCoupon,
     DiscountPolicy,
     Item,
     ItemCollection,
     LineItem,
+    LineItemStatus,
     OnlinePayment,
     Order,
+    OrderStatus,
     PaymentTransaction,
 )
-from boxoffice.models.payment import TRANSACTION_TYPE
+from boxoffice.models.payment import TransactionTypeEnum
 from boxoffice.views.custom_exceptions import PaymentGatewayError
 from boxoffice.views.order import (
     process_line_item_cancellation,
@@ -65,7 +65,7 @@ def test_basic(client, all_data) -> None:
     resp_data = json.loads(resp.data)['result']
     order = Order.query.get(resp_data.get('order_id'))
     assert isinstance(order, Order)
-    assert order.status == ORDER_STATUS.PURCHASE_ORDER
+    assert order.status == OrderStatus.PURCHASE_ORDER
     # 3500*2 = 7000
     assert resp_data['final_amount'] == 7000
 
@@ -312,7 +312,7 @@ def test_discounted_complex_order(client, all_data) -> None:
     )
     assert (
         tshirt_final_amount + conf_final_amount
-        == order.get_amounts(LINE_ITEM_STATUS.PURCHASE_ORDER).final_amount
+        == order.get_amounts(LineItemStatus.PURCHASE_ORDER).final_amount
     )
 
 
@@ -346,8 +346,8 @@ def test_free_order(client, all_data) -> None:
     resp_json = json.loads(resp.data)['result']
     order = Order.query.get(resp_json.get('order_id'))
     assert isinstance(order, Order)
-    assert order.status == ORDER_STATUS.PURCHASE_ORDER
-    assert order.line_items[0].status == LINE_ITEM_STATUS.PURCHASE_ORDER
+    assert order.status == OrderStatus.PURCHASE_ORDER
+    assert order.line_items[0].status == LineItemStatus.PURCHASE_ORDER
     assert resp_json['final_amount'] == 0
     resp = client.post(
         f'/order/{order.id}/free',
@@ -360,8 +360,8 @@ def test_free_order(client, all_data) -> None:
     assert resp.status_code == 201
     coupon = DiscountCoupon.query.filter_by(code='coupon2').first()
     assert coupon.used_count == 1
-    assert order.status == ORDER_STATUS.SALES_ORDER
-    assert order.line_items[0].status == LINE_ITEM_STATUS.CONFIRMED
+    assert order.status == OrderStatus.SALES_ORDER
+    assert order.line_items[0].status == LineItemStatus.CONFIRMED
 
 
 def test_cancel_line_item_in_order(db_session, client, all_data, post_env) -> None:
@@ -398,12 +398,12 @@ def test_cancel_line_item_in_order(db_session, client, all_data, post_env) -> No
     # Create fake payment and transaction objects
     online_payment = OnlinePayment(pg_paymentid='pg_testpayment', order=order)
     online_payment.confirm()
-    order_amounts = order.get_amounts(LINE_ITEM_STATUS.PURCHASE_ORDER)
+    order_amounts = order.get_amounts(LineItemStatus.PURCHASE_ORDER)
     transaction = PaymentTransaction(
         order=order,
         online_payment=online_payment,
         amount=order_amounts.final_amount,
-        currency=CURRENCY.INR,
+        currency=CurrencyEnum.INR,
     )
     db_session.add(transaction)
     order.confirm_sale()
@@ -436,11 +436,11 @@ def test_cancel_line_item_in_order(db_session, client, all_data, post_env) -> No
         return_value=MockResponse(response_data={'id': buid()})
     )
     process_line_item_cancellation(first_line_item)
-    assert first_line_item.status == LINE_ITEM_STATUS.CANCELLED
+    assert first_line_item.status == LineItemStatus.CANCELLED
     expected_refund_amount = total_amount - refund_amount
     refund_transaction1 = (
         PaymentTransaction.query.filter_by(
-            order=order, transaction_type=TRANSACTION_TYPE.REFUND
+            order=order, transaction_type=TransactionTypeEnum.REFUND
         )
         .order_by(PaymentTransaction.created_at.desc())
         .first()
@@ -484,12 +484,12 @@ def test_cancel_line_item_in_bulk_order(db_session, client, all_data, post_env) 
     # Create fake payment and transaction objects
     online_payment = OnlinePayment(pg_paymentid='pg_testpayment', order=order)
     online_payment.confirm()
-    order_amounts = order.get_amounts(LINE_ITEM_STATUS.PURCHASE_ORDER)
+    order_amounts = order.get_amounts(LineItemStatus.PURCHASE_ORDER)
     transaction = PaymentTransaction(
         order=order,
         online_payment=online_payment,
         amount=order_amounts.final_amount,
-        currency=CURRENCY.INR,
+        currency=CurrencyEnum.INR,
     )
     db_session.add(transaction)
     order.confirm_sale()
@@ -503,15 +503,15 @@ def test_cancel_line_item_in_bulk_order(db_session, client, all_data, post_env) 
         return_value=MockResponse(response_data={'id': buid()})
     )
     process_line_item_cancellation(first_line_item)
-    assert first_line_item.status == LINE_ITEM_STATUS.CANCELLED
+    assert first_line_item.status == LineItemStatus.CANCELLED
     for void_line_item in to_be_void_line_items:
-        assert void_line_item.status == LINE_ITEM_STATUS.VOID
+        assert void_line_item.status == LineItemStatus.VOID
     expected_refund_amount = (
         precancellation_order_amount
-        - order.get_amounts(LINE_ITEM_STATUS.CONFIRMED).final_amount
+        - order.get_amounts(LineItemStatus.CONFIRMED).final_amount
     )
     refund_transaction1 = PaymentTransaction.query.filter_by(
-        order=order, transaction_type=TRANSACTION_TYPE.REFUND
+        order=order, transaction_type=TransactionTypeEnum.REFUND
     ).first()
     assert refund_transaction1.amount == expected_refund_amount
 
@@ -520,10 +520,10 @@ def test_cancel_line_item_in_bulk_order(db_session, client, all_data, post_env) 
         return_value=MockResponse(response_data={'id': buid()})
     )
     process_line_item_cancellation(second_line_item)
-    assert second_line_item.status == LINE_ITEM_STATUS.CANCELLED
+    assert second_line_item.status == LineItemStatus.CANCELLED
     refund_transaction2 = (
         PaymentTransaction.query.filter_by(
-            order=order, transaction_type=TRANSACTION_TYPE.REFUND
+            order=order, transaction_type=TransactionTypeEnum.REFUND
         )
         .order_by(PaymentTransaction.created_at.desc())
         .first()
@@ -588,7 +588,7 @@ def test_cancel_line_item_in_bulk_order(db_session, client, all_data, post_env) 
     assert free_order is not None
     free_line_item = free_order.line_items[0]
     process_line_item_cancellation(free_line_item)
-    assert free_line_item.status == LINE_ITEM_STATUS.CANCELLED
+    assert free_line_item.status == LineItemStatus.CANCELLED
     assert free_order.transactions.count() == 0
 
 
@@ -628,12 +628,12 @@ def test_partial_refund_in_order(db_session, client, all_data, post_env) -> None
     # Create fake payment and transaction objects
     online_payment = OnlinePayment(pg_paymentid='pg_testpayment', order=order)
     online_payment.confirm()
-    order_amounts = order.get_amounts(LINE_ITEM_STATUS.PURCHASE_ORDER)
+    order_amounts = order.get_amounts(LineItemStatus.PURCHASE_ORDER)
     transaction = PaymentTransaction(
         order=order,
         online_payment=online_payment,
         amount=order_amounts.final_amount,
-        currency=CURRENCY.INR,
+        currency=CurrencyEnum.INR,
     )
     db_session.add(transaction)
     order.confirm_sale()
@@ -661,7 +661,7 @@ def test_partial_refund_in_order(db_session, client, all_data, post_env) -> None
         process_partial_refund_for_order(partial_refund_args)
 
     refund_transactions = order.transactions.filter_by(
-        transaction_type=TRANSACTION_TYPE.REFUND
+        transaction_type=TransactionTypeEnum.REFUND
     ).all()
     assert isinstance(refund_transactions[0].refunded_at, datetime.datetime)
     assert refund_transactions[0].amount == decimal.Decimal(valid_refund_amount)
@@ -684,7 +684,7 @@ def test_partial_refund_in_order(db_session, client, all_data, post_env) -> None
 
     assert resp.status_code == 403
     refund_transactions = order.transactions.filter_by(
-        transaction_type=TRANSACTION_TYPE.REFUND
+        transaction_type=TransactionTypeEnum.REFUND
     ).all()
     assert refund_transactions[0].amount == decimal.Decimal(valid_refund_amount)
 

@@ -11,7 +11,7 @@ from baseframe import _
 from coaster.sqlalchemy import MarkdownComposite
 
 from . import app, mail, rq
-from .models import CURRENCY_SYMBOL, LINE_ITEM_STATUS, Assignee, LineItem, Order
+from .models import Assignee, CurrencySymbol, LineItem, LineItemStatus, Order
 
 
 @rq.job('boxoffice')
@@ -32,7 +32,7 @@ def send_receipt_mail(
         )
         line_items = (
             LineItem.query.filter(
-                LineItem.order == order, LineItem.status == LINE_ITEM_STATUS.CONFIRMED
+                LineItem.order == order, LineItem.status == LineItemStatus.CONFIRMED
             )
             .order_by(LineItem.line_item_seq.asc())
             .all()
@@ -44,7 +44,7 @@ def send_receipt_mail(
                 org=order.organization,
                 line_items=line_items,
                 base_url=app.config['BASE_URL'],
-                currency_symbol=CURRENCY_SYMBOL['INR'],
+                currency_symbol=CurrencySymbol.INR,
             )
         )
         msg.html = html
@@ -110,7 +110,7 @@ def send_line_item_cancellation_mail(
                 org=order.organization,
                 is_paid=is_paid,
                 refund_amount=refund_amount,
-                currency_symbol=CURRENCY_SYMBOL['INR'],
+                currency_symbol=CurrencySymbol.INR,
             )
         )
         msg.html = html
@@ -142,7 +142,7 @@ def send_order_refund_mail(
                 org=order.organization,
                 note_to_user=note_to_user.html,
                 refund_amount=refund_amount,
-                currency_symbol=CURRENCY_SYMBOL['INR'],
+                currency_symbol=CurrencySymbol.INR,
             )
         )
         msg.html = html
