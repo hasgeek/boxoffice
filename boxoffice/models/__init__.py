@@ -34,6 +34,10 @@ class Model(ModelBase, DeclarativeBase):
 timestamptz: TypeAlias = Annotated[
     datetime, sa.orm.mapped_column(sa.TIMESTAMP(timezone=True))
 ]
+timestamptz_now: TypeAlias = Annotated[
+    datetime,
+    sa.orm.mapped_column(sa.TIMESTAMP(timezone=True), default=sa.func.utcnow()),
+]
 jsonb: TypeAlias = Annotated[
     dict,
     sa.orm.mapped_column(

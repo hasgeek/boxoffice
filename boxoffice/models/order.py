@@ -20,6 +20,7 @@ from . import (
     relationship,
     sa,
     timestamptz,
+    timestamptz_now,
 )
 from .enums import LINE_ITEM_STATUS, ORDER_STATUS, TRANSACTION_TYPE
 from .line_item import LineItem
@@ -63,7 +64,7 @@ class Order(BaseMixin, Model):
     )
     organization: Mapped[Organization] = relationship(back_populates='orders')
     status: Mapped[int] = sa.orm.mapped_column(default=ORDER_STATUS.PURCHASE_ORDER)
-    initiated_at: Mapped[timestamptz] = sa.orm.mapped_column(default=sa.func.utcnow())
+    initiated_at: Mapped[timestamptz_now]
     paid_at: Mapped[Optional[timestamptz]]
     invoiced_at: Mapped[Optional[timestamptz]]
     cancelled_at: Mapped[Optional[timestamptz]]

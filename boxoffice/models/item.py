@@ -22,6 +22,7 @@ from . import (
     relationship,
     sa,
     timestamptz,
+    timestamptz_now,
 )
 from .category import Category
 from .discount_policy import item_discount_policy
@@ -235,7 +236,7 @@ class Price(BaseScopedNameMixin, Model):
     )
 
     parent: Mapped[Item] = sa.orm.synonym('ticket')
-    start_at: Mapped[timestamptz] = sa.orm.mapped_column(default=sa.func.utcnow())
+    start_at: Mapped[timestamptz_now]
     end_at: Mapped[timestamptz]
     amount: Mapped[Decimal] = sa.orm.mapped_column(default=Decimal(0))
     currency: Mapped[str] = sa.orm.mapped_column(sa.Unicode(3), default='INR')
