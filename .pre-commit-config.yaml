@@ -98,6 +98,7 @@ repos:
           - types-python-dateutil
           - types-pytz
           - types-requests
+          - types-setuptools
           - typing-extensions
   - repo: https://github.com/PyCQA/flake8
     rev: 6.0.0
