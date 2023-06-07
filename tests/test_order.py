@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock
+from unittest.mock import patch
 from uuid import UUID
 import datetime
 import decimal
@@ -9,7 +9,6 @@ import pytest
 from coaster.utils import buid
 
 from boxoffice import app
-from boxoffice.extapi import razorpay
 from boxoffice.forms import OrderRefundForm
 from boxoffice.models import (
     CurrencyEnum,
@@ -408,9 +407,6 @@ def test_cancel_line_item_in_order(db_session, client, all_data, post_env) -> No
     db_session.commit()
 
     refund_amount = total_amount - 1
-    razorpay.refund_payment = MagicMock(
-        return_value=MockResponse(response_data={'id': buid()})
-    )
     pre_refund_transactions_count = order.refund_transactions.count()
     formdata = {
         'amount': refund_amount,
@@ -424,16 +420,16 @@ def test_cancel_line_item_in_order(db_session, client, all_data, post_env) -> No
         'form': refund_form,
         'request_method': 'POST',
     }
-    with app.request_context(post_env):
-        process_partial_refund_for_order(partial_refund_args)
+    with patch('boxoffice.extapi.razorpay.refund_payment') as mock:
+        mock.return_value = MockResponse(response_data={'id': buid()})
+        with app.request_context(post_env):
+            process_partial_refund_for_order(partial_refund_args)
     assert pre_refund_transactions_count + 1 == order.refund_transactions.count()
 
     first_line_item = order.line_items[0]
-    # Mock Razorpay's API
-    razorpay.refund_payment = MagicMock(
-        return_value=MockResponse(response_data={'id': buid()})
-    )
-    process_line_item_cancellation(first_line_item)
+    with patch('boxoffice.extapi.razorpay.refund_payment') as mock:
+        mock.return_value = MockResponse(response_data={'id': buid()})
+        process_line_item_cancellation(first_line_item)
     assert first_line_item.status == LineItemStatus.CANCELLED
     expected_refund_amount = total_amount - refund_amount
     refund_transaction1 = (
@@ -496,11 +492,10 @@ def test_cancel_line_item_in_bulk_order(db_session, client, all_data, post_env) 
     first_line_item = order.line_items[0]
     to_be_void_line_items = order.line_items[1:]
     precancellation_order_amount = order.net_amount
-    # Mock Razorpay's API
-    razorpay.refund_payment = MagicMock(
-        return_value=MockResponse(response_data={'id': buid()})
-    )
-    process_line_item_cancellation(first_line_item)
+
+    with patch('boxoffice.extapi.razorpay.refund_payment') as mock:
+        mock.return_value = MockResponse(response_data={'id': buid()})
+        process_line_item_cancellation(first_line_item)
     assert first_line_item.status == LineItemStatus.CANCELLED
     for void_line_item in to_be_void_line_items:
         assert void_line_item.status == LineItemStatus.VOID
@@ -514,10 +509,9 @@ def test_cancel_line_item_in_bulk_order(db_session, client, all_data, post_env) 
     assert refund_transaction1.amount == expected_refund_amount
 
     second_line_item = order.confirmed_line_items[0]
-    razorpay.refund_payment = MagicMock(
-        return_value=MockResponse(response_data={'id': buid()})
-    )
-    process_line_item_cancellation(second_line_item)
+    with patch('boxoffice.extapi.razorpay.refund_payment') as mock:
+        mock.return_value = MockResponse(response_data={'id': buid()})
+        process_line_item_cancellation(second_line_item)
     assert second_line_item.status == LineItemStatus.CANCELLED
     refund_transaction2 = (
         PaymentTransaction.query.filter_by(
@@ -530,8 +524,8 @@ def test_cancel_line_item_in_bulk_order(db_session, client, all_data, post_env) 
 
     # test failed cancellation
     third_line_item = order.confirmed_line_items[0]
-    razorpay.refund_payment = MagicMock(
-        return_value=MockResponse(
+    with patch('boxoffice.extapi.razorpay.refund_payment') as mock:
+        mock.return_value = MockResponse(
             response_data={
                 'error': {
                     'code': 'BAD_REQUEST_ERROR',
@@ -541,9 +535,8 @@ def test_cancel_line_item_in_bulk_order(db_session, client, all_data, post_env) 
             },
             status_code=400,
         )
-    )
-    with pytest.raises(PaymentGatewayError):
-        process_line_item_cancellation(third_line_item)
+        with pytest.raises(PaymentGatewayError):
+            process_line_item_cancellation(third_line_item)
 
     # refund the remaining amount paid, and attempt to cancel a line item
     # this should cancel the line item without resulting in a new refund transaction
@@ -554,10 +547,6 @@ def test_cancel_line_item_in_bulk_order(db_session, client, all_data, post_env) 
         'internal_note': 'internal reference',
         'note_to_user': 'you get a refund!',
     }
-    razorpay.refund_payment = MagicMock(
-        return_value=MockResponse(response_data=refund_dict)
-    )
-
     formdata = {
         'amount': refund_amount,
         'internal_note': 'internal reference',
@@ -570,8 +559,10 @@ def test_cancel_line_item_in_bulk_order(db_session, client, all_data, post_env) 
         'form': refund_form,
         'request_method': 'POST',
     }
-    with app.request_context(post_env):
-        process_partial_refund_for_order(partial_refund_args)
+    with patch('boxoffice.extapi.razorpay.refund_payment') as mock:
+        mock.return_value = MockResponse(response_data=refund_dict)
+        with app.request_context(post_env):
+            process_partial_refund_for_order(partial_refund_args)
 
     third_line_item = order.confirmed_line_items[0]
     pre_cancellation_transactions_count = order.refund_transactions.count()
@@ -637,10 +628,6 @@ def test_partial_refund_in_order(db_session, client, all_data, post_env) -> None
     order.confirm_sale()
     db_session.commit()
 
-    # Mock Razorpay's API
-    razorpay.refund_payment = MagicMock(
-        return_value=MockResponse(response_data={'id': buid()})
-    )
     valid_refund_amount = 500
 
     formdata = {
@@ -655,8 +642,10 @@ def test_partial_refund_in_order(db_session, client, all_data, post_env) -> None
         'form': refund_form,
         'request_method': 'POST',
     }
-    with app.request_context(post_env):
-        process_partial_refund_for_order(partial_refund_args)
+    with patch('boxoffice.extapi.razorpay.refund_payment') as mock:
+        mock.return_value = MockResponse(response_data={'id': buid()})
+        with app.request_context(post_env):
+            process_partial_refund_for_order(partial_refund_args)
 
     refund_transactions = order.transactions.filter_by(
         transaction_type=TransactionTypeEnum.REFUND
