@@ -226,6 +226,7 @@ class LineItem(BaseMixin, Model):
         '(Assignee.line_item_id == LineItem.id,'
         ' Assignee.current.is_(True))',
         uselist=False,
+        viewonly=True,
     )
 
     # TODO: assignee = relationship(Assignee, primaryjoin=Assignee.line_item ==

@@ -158,7 +158,7 @@ def all_data(db_session):
             ' JP Nagar</p><p>This ticket gets you access to rootconf conference on 14th'
             ' and 15th April 2016.</p>',
             menu=rc2016,
-            category=Category.query.filter_by(name='conference').first(),
+            category=Category.query.filter_by(name='conference').one(),
             quantity_total=1000,
         )
         rc2016.tickets.append(conf_ticket)
@@ -171,7 +171,7 @@ def all_data(db_session):
             ' JP Nagar</p><p>This ticket gets you access to rootconf conference on 14th'
             ' and 15th April 2016.</p>',
             menu=rc2016,
-            category=Category.query.filter_by(name='conference').first(),
+            category=Category.query.filter_by(name='conference').one(),
             quantity_total=1000,
         )
         rc2016.tickets.append(expired_ticket)
@@ -194,7 +194,7 @@ def all_data(db_session):
             ' JP Nagar</p><p>This ticket gets you access to rootconf conference on 14th'
             ' April 2016.</p>',
             menu=rc2016,
-            category=Category.query.filter_by(name='conference').first(),
+            category=Category.query.filter_by(name='conference').one(),
             quantity_total=1000,
         )
         rc2016.tickets.append(single_day_conf_ticket)
@@ -214,7 +214,7 @@ def all_data(db_session):
             title='T-shirt',
             description='Rootconf',
             menu=rc2016,
-            category=Category.query.filter_by(name='merchandise').first(),
+            category=Category.query.filter_by(name='merchandise').one(),
             quantity_total=1000,
         )
         rc2016.tickets.append(tshirt)
@@ -236,7 +236,7 @@ def all_data(db_session):
             '</p><p><i class="fa fa-map-marker ticket-venue"></i>TERI, Domlur</p>'
             '<p>This ticket gets you access to DNSSEC workshop 12th April 2016.</p>',
             menu=rc2016,
-            category=Category.query.filter_by(name='workshop').first(),
+            category=Category.query.filter_by(name='workshop').one(),
             quantity_total=1000,
         )
         rc2016.tickets.append(dns_workshop)

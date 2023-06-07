@@ -30,7 +30,7 @@ def jsonify_discount_policy(discount_policy: DiscountPolicy):
     details = dict(discount_policy.current_access())
     details['price_details'] = {}
     if discount_policy.is_price_based:
-        price = Price.query.filter(Price.discount_policy == discount_policy).first()
+        price = Price.query.filter(Price.discount_policy == discount_policy).one()
         details['price_details'] = dict(price.current_access())
     details['dp_items'] = [
         {

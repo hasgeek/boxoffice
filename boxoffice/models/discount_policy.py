@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Any, List, Optional, Sequence, Tuple
 from uuid import UUID
 import secrets
 import string
@@ -11,6 +11,7 @@ from itsdangerous import BadSignature, Signer
 from sqlalchemy.orm.exc import MultipleResultsFound
 from werkzeug.utils import cached_property
 
+from coaster.sqlalchemy import LazyRoleSet
 from coaster.utils import buid, uuid1mc
 
 from . import (
@@ -83,6 +84,8 @@ class DiscountPolicy(BaseScopedNameMixin, Model):
     # Minimum number of a particular ticket that needs to be bought for this discount to
     # apply
     item_quantity_min: Mapped[int] = sa.orm.mapped_column(default=1)
+
+    # TODO: Add check constraint requiring percentage if is_price_based is false
     percentage: Mapped[Optional[int]]
     # price-based discount
     is_price_based: Mapped[bool] = sa.orm.mapped_column(default=False)
@@ -127,43 +130,48 @@ class DiscountPolicy(BaseScopedNameMixin, Model):
         }
     }
 
-    def roles_for(self, actor=None, anchors=()):
+    def roles_for(
+        self, actor: Optional[User] = None, anchors: Sequence[Any] = ()
+    ) -> LazyRoleSet:
         roles = super().roles_for(actor, anchors)
         if self.organization.userid in actor.organizations_owned_ids():
             roles.add('dp_owner')
         return roles
 
-    def __init__(self, *args, **kwargs):
-        self.secret = kwargs.get('secret') if kwargs.get('secret') else buid()
+    def __init__(self, *args, **kwargs) -> None:
+        secret = kwargs.pop('secret', None)
         super().__init__(*args, **kwargs)
+        self.secret = secret or secrets.token_urlsafe(16)
 
     @cached_property
-    def is_automatic(self):
+    def is_automatic(self) -> bool:
         return self.discount_type == DiscountTypeEnum.AUTOMATIC
 
     @cached_property
-    def is_coupon(self):
+    def is_coupon(self) -> bool:
         return self.discount_type == DiscountTypeEnum.COUPON
 
-    def gen_signed_code(self, identifier=None):
+    def gen_signed_code(self, identifier: Optional[str] = None) -> str:
         """
         Generate a signed code.
 
         Format: ``discount_code_base.randint.signature``
         """
+        if not self.secret:
+            raise TypeError("DiscountPolicy.secret is unset")
         if not identifier:
-            identifier = buid()
+            identifier = secrets.token_urlsafe(16)
         signer = Signer(self.secret)
         key = f'{self.discount_code_base}.{identifier}'
         return signer.sign(key).decode('utf-8')
 
     @staticmethod
-    def is_signed_code_format(code):
+    def is_signed_code_format(code) -> bool:
         """Check if the code is in the {x.y.z} format."""
         return len(code.split('.')) == 3 if code else False
 
     @classmethod
-    def get_from_signed_code(cls, code, organization_id):
+    def get_from_signed_code(cls, code, organization_id) -> Optional[DiscountPolicy]:
         """Return a discount policy given a valid signed code, None otherwise."""
         if not cls.is_signed_code_format(code):
             return None
@@ -171,7 +179,7 @@ class DiscountPolicy(BaseScopedNameMixin, Model):
         policy = cls.query.filter_by(
             discount_code_base=discount_code_base, organization_id=organization_id
         ).one_or_none()
-        if not policy:
+        if not policy or not policy.secret:
             return None
         signer = Signer(policy.secret)
         try:
@@ -181,7 +189,7 @@ class DiscountPolicy(BaseScopedNameMixin, Model):
             return None
 
     @classmethod
-    def make_bulk(cls, discount_code_base, **kwargs):
+    def make_bulk(cls, discount_code_base, **kwargs) -> DiscountPolicy:
         """Return a discount policy for bulk discount coupons."""
         return cls(
             discount_type=DiscountTypeEnum.COUPON,
@@ -191,7 +199,9 @@ class DiscountPolicy(BaseScopedNameMixin, Model):
         )
 
     @classmethod
-    def get_from_ticket(cls, ticket: Item, qty, coupon_codes=()):
+    def get_from_ticket(
+        cls, ticket: Item, qty, coupon_codes=()
+    ) -> List[Tuple[DiscountPolicy, Optional[DiscountCoupon]]]:
         """
         Return a list of (discount_policy, discount_coupon) tuples.
 
@@ -201,7 +211,9 @@ class DiscountPolicy(BaseScopedNameMixin, Model):
             cls.discount_type == DiscountTypeEnum.AUTOMATIC,
             cls.item_quantity_min <= qty,
         ).all()
-        policies = [(discount, None) for discount in automatic_discounts]
+        policies: List[Tuple[DiscountPolicy, Optional[DiscountCoupon]]] = [
+            (discount, None) for discount in automatic_discounts
+        ]
         if not coupon_codes:
             return policies
         coupon_policies = ticket.discount_policies.filter(
@@ -346,4 +358,4 @@ from .line_item import LineItem  # isort:skip
 
 if TYPE_CHECKING:
     from .item import Item, Price
-    from .user import Organization
+    from .user import Organization, User

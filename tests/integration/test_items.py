@@ -20,8 +20,7 @@ def ajax_post(client, url, data):
 
 
 def test_assign(db_session, client, all_data) -> None:
-    ticket = Item.query.filter_by(name="conference-ticket").first()
-
+    ticket = Item.query.filter_by(name="conference-ticket").one()
     data = {
         'line_items': [{'ticket_id': str(ticket.id), 'quantity': 2}],
         'buyer': {
@@ -30,7 +29,7 @@ def test_assign(db_session, client, all_data) -> None:
             'email': 'test@hasgeek.com',
         },
     }
-    menu = ItemCollection.query.first()
+    menu = ItemCollection.query.one()
     resp = ajax_post(client, f'/menu/{menu.id}/order', data)
 
     assert resp.status_code == 201
@@ -61,7 +60,7 @@ def test_assign(db_session, client, all_data) -> None:
     )
     assert json.loads(resp.data)['status'] == 'ok'
     assert li_one.assignee is not None
-    assert li_one.current_assignee is not None
+    assert li_one.current_assignee is not None  # type: ignore[unreachable]
 
     # Now assigning the other line item to same email address should fail
     data = {

@@ -198,7 +198,7 @@ def get_settled_orders(date_ranges=(), filenames=()):
                     LineItem.final_amount
                     == Decimal(entity_dict[settlement_refund_id]['debit']),
                     LineItem.status == LineItemStatus.CANCELLED,
-                ).first()
+                ).one()
                 settled_orders.append(
                     format_row(
                         format_line_item(
@@ -216,8 +216,8 @@ def get_settled_orders(date_ranges=(), filenames=()):
                     LineItem.final_amount
                     == Decimal(entity_dict[settlement_refund_id]['debit']),
                     LineItem.status == LineItemStatus.CANCELLED,
-                ).first()
-                if cancelled_line_item:
+                ).one_or_none()
+                if cancelled_line_item is not None:
                     settled_orders.append(
                         format_row(
                             format_line_item(

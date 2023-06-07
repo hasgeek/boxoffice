@@ -129,7 +129,7 @@ def process_payment(order_id: UUID, pg_paymentid: str) -> ResponseReturnValue:
 
     online_payment = OnlinePayment.query.filter_by(
         pg_paymentid=pg_paymentid, order=order
-    ).first()
+    ).one_or_none()
     if online_payment is None:
         online_payment = OnlinePayment(pg_paymentid=pg_paymentid, order=order)
 
@@ -300,7 +300,7 @@ def resend_attendee_details_email(
 
 
 def order_report(org_name: str) -> None:
-    org = Organization.query.filter_by(name=org_name).first()
+    org = Organization.query.filter_by(name=org_name).one_or_none()
     if org is None:
         raise ValueError("Unknown organization")
 

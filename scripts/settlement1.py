@@ -45,7 +45,9 @@ def get_settlements(filename):
             if not settlements.get(trans[11]):
                 settlements[trans[11]] = []
             if trans[1] == 'payment':
-                payment = OnlinePayment.query.filter_by(pg_paymentid=trans[0]).first()
+                payment = OnlinePayment.query.filter_by(
+                    pg_paymentid=trans[0]
+                ).one_or_none()
                 if payment:
                     pt = PaymentTransaction.query.filter_by(
                         online_payment=payment,
@@ -73,7 +75,9 @@ def get_settlements(filename):
                 else:
                     print(trans[0])  # noqa: T201
             elif trans[1] == 'refund':
-                payment = OnlinePayment.query.filter_by(pg_paymentid=trans[14]).first()
+                payment = OnlinePayment.query.filter_by(
+                    pg_paymentid=trans[14]
+                ).one_or_none()
                 if payment:
                     refund_transactions = PaymentTransaction.query.filter_by(
                         online_payment=payment,
@@ -137,14 +141,14 @@ def get_settlements(filename):
 
 # yoga_pay_orders = []
 # for yt in yoga_trans:
-#     pay = OnlinePayment.query.filter_by(pg_paymentid=yt[0]).first()
+#     pay = OnlinePayment.query.filter_by(pg_paymentid=yt[0]).one()
 #     yoga_pay_orders.append(
 #         [yt[0], pay.order.buyer_fullname, float(yt[4]), float(yt[6])]
 #     )
 
 # yoga_pay_orders = []
 # for yt in yoga_trans:
-#     pay = OnlinePayment.query.filter_by(pg_paymentid=yt[0]).first()
+#     pay = OnlinePayment.query.filter_by(pg_paymentid=yt[0]).one()
 #     for li in pay.order.line_items:
 #         yoga_pay_orders.append(
 #             [
@@ -158,7 +162,7 @@ def get_settlements(filename):
 
 # yoga_pay_orders = []
 # for yt in yoga_trans:
-#     pay = OnlinePayment.query.filter_by(pg_paymentid=yt[0]).first()
+#     pay = OnlinePayment.query.filter_by(pg_paymentid=yt[0]).one()
 #     for li in pay.order.line_items:
 #         yoga_pay_orders.append(
 #             [
@@ -182,7 +186,7 @@ def get_settlements(filename):
 
 # yoga_pay_orders = []
 # for yt in yoga_trans:
-#     pay = OnlinePayment.query.filter_by(pg_paymentid=yt[0]).first()
+#     pay = OnlinePayment.query.filter_by(pg_paymentid=yt[0]).one()
 #     order_id = json.loads(yoga_trans[0][-2])
 #     order = Order.query.get(order_id['order_id'])
 #     for li in order.line_items:

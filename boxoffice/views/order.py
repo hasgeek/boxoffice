@@ -257,7 +257,7 @@ def create_order(menu: ItemCollection):
                     errors=['order calculation error'],
                 )
 
-    user = User.query.filter_by(email=buyer_form.email.data).first()
+    user = User.query.filter_by(email=buyer_form.email.data).one_or_none()
     order = Order(
         user=user,
         organization=menu.organization,

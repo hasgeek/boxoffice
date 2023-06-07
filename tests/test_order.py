@@ -42,7 +42,7 @@ class MockResponse:
 
 
 def test_basic(client, all_data) -> None:
-    ticket = Item.query.filter_by(name='conference-ticket').first()
+    ticket = Item.query.filter_by(name='conference-ticket').one()
     data = {
         'line_items': [{'ticket_id': str(ticket.id), 'quantity': 2}],
         'buyer': {
@@ -51,7 +51,7 @@ def test_basic(client, all_data) -> None:
             'email': 'test@hasgeek.com',
         },
     }
-    menu = ItemCollection.query.first()
+    menu = ItemCollection.query.one()
     resp = client.post(
         f'/menu/{menu.id}/order',
         data=json.dumps(data),
@@ -71,7 +71,7 @@ def test_basic(client, all_data) -> None:
 
 
 def test_basic_with_utm_headers(client, all_data) -> None:
-    ticket = Item.query.filter_by(name='conference-ticket').first()
+    ticket = Item.query.filter_by(name='conference-ticket').one()
     utm_campaign = 'campaign'
     utm_medium = 'medium'
     utm_source = 'source'
@@ -96,7 +96,7 @@ def test_basic_with_utm_headers(client, all_data) -> None:
             'gclid': gclid,
         },
     }
-    menu = ItemCollection.query.first()
+    menu = ItemCollection.query.one()
     resp = client.post(
         f'/menu/{menu.id}/order',
         data=json.dumps(data),
@@ -121,7 +121,7 @@ def test_basic_with_utm_headers(client, all_data) -> None:
 
 
 def test_order_with_invalid_quantity(client, all_data) -> None:
-    ticket = Item.query.filter_by(name='conference-ticket').first()
+    ticket = Item.query.filter_by(name='conference-ticket').one()
     data = {
         'line_items': [{'ticket_id': str(ticket.id), 'quantity': 1001}],
         'buyer': {
@@ -130,7 +130,7 @@ def test_order_with_invalid_quantity(client, all_data) -> None:
             'email': 'test@hasgeek.com',
         },
     }
-    menu = ItemCollection.query.first()
+    menu = ItemCollection.query.one()
     resp = client.post(
         f'/menu/{menu.id}/order',
         data=json.dumps(data),
@@ -144,7 +144,7 @@ def test_order_with_invalid_quantity(client, all_data) -> None:
 
 
 def test_simple_discounted_item(client, all_data) -> None:
-    discounted_item = Item.query.filter_by(name='t-shirt').first()
+    discounted_item = Item.query.filter_by(name='t-shirt').one()
     data = {
         'line_items': [{'ticket_id': str(discounted_item.id), 'quantity': 5}],
         'buyer': {
@@ -153,7 +153,7 @@ def test_simple_discounted_item(client, all_data) -> None:
             'email': 'test@hasgeek.com',
         },
     }
-    menu = ItemCollection.query.first()
+    menu = ItemCollection.query.one()
     resp = client.post(
         f'/menu/{menu.id}/order',
         data=json.dumps(data),
@@ -169,7 +169,7 @@ def test_simple_discounted_item(client, all_data) -> None:
 
 
 def test_expired_ticket_order(client, all_data) -> None:
-    expired_ticket = Item.query.filter_by(name='expired-ticket').first()
+    expired_ticket = Item.query.filter_by(name='expired-ticket').one()
     quantity = 2
     data = {
         'line_items': [{'ticket_id': str(expired_ticket.id), 'quantity': quantity}],
@@ -179,7 +179,7 @@ def test_expired_ticket_order(client, all_data) -> None:
             'email': 'test@hasgeek.com',
         },
     }
-    menu = ItemCollection.query.first()
+    menu = ItemCollection.query.one()
     resp = client.post(
         f'/menu/{menu.id}/order',
         data=json.dumps(data),
@@ -193,8 +193,8 @@ def test_expired_ticket_order(client, all_data) -> None:
 
 
 def test_signed_discounted_coupon_order(client, all_data) -> None:
-    first_item = Item.query.filter_by(name='conference-ticket').first()
-    signed_policy = DiscountPolicy.query.filter_by(name='signed').first()
+    first_item = Item.query.filter_by(name='conference-ticket').one()
+    signed_policy = DiscountPolicy.query.filter_by(name='signed').one()
     signed_code = signed_policy.gen_signed_code()
     discounted_quantity = 1
     data = {
@@ -208,7 +208,7 @@ def test_signed_discounted_coupon_order(client, all_data) -> None:
             'email': 'test@hasgeek.com',
         },
     }
-    menu = ItemCollection.query.first()
+    menu = ItemCollection.query.one()
     resp = client.post(
         f'/menu/{menu.id}/order',
         data=json.dumps(data),
@@ -225,13 +225,13 @@ def test_signed_discounted_coupon_order(client, all_data) -> None:
     ) / decimal.Decimal(100.0)
     line_item = LineItem.query.filter_by(
         customer_order_id=UUID(hex=resp_data['order_id'])
-    ).first()
+    ).one()
     assert line_item.discount_coupon.code == signed_code
 
 
 def test_complex_discounted_item(client, all_data) -> None:
-    discounted_item1 = Item.query.filter_by(name='t-shirt').first()
-    discounted_item2 = Item.query.filter_by(name='conference-ticket').first()
+    discounted_item1 = Item.query.filter_by(name='t-shirt').one()
+    discounted_item2 = Item.query.filter_by(name='conference-ticket').one()
     data = {
         'line_items': [
             {'ticket_id': str(discounted_item1.id), 'quantity': 5},
@@ -243,7 +243,7 @@ def test_complex_discounted_item(client, all_data) -> None:
             'email': 'test@hasgeek.com',
         },
     }
-    menu = ItemCollection.query.first()
+    menu = ItemCollection.query.one()
     resp = client.post(
         f'/menu/{menu.id}/order',
         data=json.dumps(data),
@@ -260,14 +260,14 @@ def test_complex_discounted_item(client, all_data) -> None:
 
 
 def test_discounted_complex_order(client, all_data) -> None:
-    conf = Item.query.filter_by(name='conference-ticket').first()
-    tshirt = Item.query.filter_by(name='t-shirt').first()
+    conf = Item.query.filter_by(name='conference-ticket').one()
+    tshirt = Item.query.filter_by(name='t-shirt').one()
     conf_price = conf.current_price().amount
     tshirt_price = tshirt.current_price().amount
     conf_quantity = 12
     tshirt_quantity = 5
-    coupon2 = DiscountCoupon.query.filter_by(code='coupon2').first()
-    coupon3 = DiscountCoupon.query.filter_by(code='coupon3').first()
+    coupon2 = DiscountCoupon.query.filter_by(code='coupon2').one()
+    coupon3 = DiscountCoupon.query.filter_by(code='coupon3').one()
     data = {
         'line_items': [
             {'ticket_id': str(tshirt.id), 'quantity': tshirt_quantity},
@@ -280,7 +280,7 @@ def test_discounted_complex_order(client, all_data) -> None:
             'email': 'test@hasgeek.com',
         },
     }
-    menu = ItemCollection.query.first()
+    menu = ItemCollection.query.one()
     resp = client.post(
         f'/menu/{menu.id}/order',
         data=json.dumps(data),
@@ -296,15 +296,13 @@ def test_discounted_complex_order(client, all_data) -> None:
     assert isinstance(order, Order)
     tshirt_policy = DiscountPolicy.query.filter_by(
         title='5% discount on 5 t-shirts'
-    ).first()
+    ).one()
     tshirt_final_amount = (tshirt_price * tshirt_quantity) - (
         tshirt_quantity
         * (tshirt_policy.percentage * tshirt_price)
         / decimal.Decimal(100)
     )
-    conf_policy = DiscountPolicy.query.filter_by(
-        title='10% discount on rootconf'
-    ).first()
+    conf_policy = DiscountPolicy.query.filter_by(title='10% discount on rootconf').one()
     conf_final_amount = (conf_price * (conf_quantity - 2)) - (
         (conf_quantity - 2)
         * (conf_policy.percentage * conf_price)
@@ -317,7 +315,7 @@ def test_discounted_complex_order(client, all_data) -> None:
 
 
 def make_free_order(client):
-    ticket = Item.query.filter_by(name='conference-ticket').first()
+    ticket = Item.query.filter_by(name='conference-ticket').one()
     data = {
         'line_items': [{'ticket_id': str(ticket.id), 'quantity': 1}],
         'buyer': {
@@ -327,7 +325,7 @@ def make_free_order(client):
         },
         'discount_coupons': ['coupon2'],
     }
-    menu = ItemCollection.query.first()
+    menu = ItemCollection.query.one()
     resp = client.post(
         f'/menu/{menu.id}/order',
         data=json.dumps(data),
@@ -358,7 +356,7 @@ def test_free_order(client, all_data) -> None:
         ],
     )
     assert resp.status_code == 201
-    coupon = DiscountCoupon.query.filter_by(code='coupon2').first()
+    coupon = DiscountCoupon.query.filter_by(code='coupon2').one()
     assert coupon.used_count == 1
     assert order.status == OrderStatus.SALES_ORDER
     assert order.line_items[0].status == LineItemStatus.CONFIRMED
@@ -366,7 +364,7 @@ def test_free_order(client, all_data) -> None:
 
 def test_cancel_line_item_in_order(db_session, client, all_data, post_env) -> None:
     original_quantity = 2
-    order_item = Item.query.filter_by(name='t-shirt').first()
+    order_item = Item.query.filter_by(name='t-shirt').one()
     total_amount = order_item.current_price().amount * original_quantity
     data = {
         'line_items': [
@@ -378,7 +376,7 @@ def test_cancel_line_item_in_order(db_session, client, all_data, post_env) -> No
             'email': 'test@hasgeek.com',
         },
     }
-    menu = ItemCollection.query.first()
+    menu = ItemCollection.query.one()
     # make a purchase order
     resp = client.post(
         f'/menu/{menu.id}/order',
@@ -443,14 +441,14 @@ def test_cancel_line_item_in_order(db_session, client, all_data, post_env) -> No
             order=order, transaction_type=TransactionTypeEnum.REFUND
         )
         .order_by(PaymentTransaction.created_at.desc())
-        .first()
+        .one()
     )
     assert refund_transaction1.amount == expected_refund_amount
 
 
 def test_cancel_line_item_in_bulk_order(db_session, client, all_data, post_env) -> None:
     original_quantity = 5
-    discounted_item = Item.query.filter_by(name='t-shirt').first()
+    discounted_item = Item.query.filter_by(name='t-shirt').one()
     total_amount = discounted_item.current_price().amount * original_quantity
     data = {
         'line_items': [
@@ -462,7 +460,7 @@ def test_cancel_line_item_in_bulk_order(db_session, client, all_data, post_env) 
             'email': 'test@hasgeek.com',
         },
     }
-    menu = ItemCollection.query.first()
+    menu = ItemCollection.query.one()
     # make a purchase order
     resp = client.post(
         f'/menu/{menu.id}/order',
@@ -512,7 +510,7 @@ def test_cancel_line_item_in_bulk_order(db_session, client, all_data, post_env) 
     )
     refund_transaction1 = PaymentTransaction.query.filter_by(
         order=order, transaction_type=TransactionTypeEnum.REFUND
-    ).first()
+    ).one()
     assert refund_transaction1.amount == expected_refund_amount
 
     second_line_item = order.confirmed_line_items[0]
@@ -526,7 +524,7 @@ def test_cancel_line_item_in_bulk_order(db_session, client, all_data, post_env) 
             order=order, transaction_type=TransactionTypeEnum.REFUND
         )
         .order_by(PaymentTransaction.created_at.desc())
-        .first()
+        .one()
     )
     assert refund_transaction2.amount == second_line_item.final_amount
 
@@ -594,7 +592,7 @@ def test_cancel_line_item_in_bulk_order(db_session, client, all_data, post_env) 
 
 def test_partial_refund_in_order(db_session, client, all_data, post_env) -> None:
     original_quantity = 5
-    discounted_item = Item.query.filter_by(name='t-shirt').first()
+    discounted_item = Item.query.filter_by(name='t-shirt').one()
     total_amount = discounted_item.current_price().amount * original_quantity
     data = {
         'line_items': [
@@ -606,7 +604,7 @@ def test_partial_refund_in_order(db_session, client, all_data, post_env) -> None
             'email': 'test@hasgeek.com',
         },
     }
-    menu = ItemCollection.query.first()
+    menu = ItemCollection.query.one()
     # make a purchase order
     resp = client.post(
         f'/menu/{menu.id}/order',

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
+from typing import List, Optional, Tuple
 import itertools
 
 __all__ = ['LineItemDiscounter']
@@ -23,7 +24,9 @@ class LineItemDiscounter:
             return self.apply_discount(valid_discounts[0], line_items)
         return line_items
 
-    def get_valid_discounts(self, line_items, coupons):
+    def get_valid_discounts(
+        self, line_items, coupons
+    ) -> List[Tuple[DiscountPolicy, Optional[DiscountCoupon]]]:
         """Return available discounts given line items and coupon codes."""
         if not line_items:
             return []
@@ -36,7 +39,7 @@ class LineItemDiscounter:
         return DiscountPolicy.get_from_ticket(ticket, len(line_items), coupons)
 
     def calculate_discounted_amount(
-        self, discount_policy: DiscountPolicy, line_item: LineItem
+        self, discount_policy: DiscountPolicy, line_item: LineItemTuple
     ):
         if line_item.base_amount is None or line_item.base_amount == Decimal(0):
             # Ticket has expired, no discount
@@ -44,6 +47,8 @@ class LineItemDiscounter:
 
         if discount_policy.is_price_based:
             ticket = Item.query.get(line_item.ticket_id)
+            if ticket is None:  # Failsafe flagged by static type checker
+                return Decimal(0)
             discounted_price = ticket.discounted_price(discount_policy)
             if discounted_price is None:
                 # no discounted price
@@ -52,7 +57,7 @@ class LineItemDiscounter:
                 # No discount, base_amount is cheaper
                 return Decimal(0)
             return line_item.base_amount - discounted_price.amount
-        return discount_policy.percentage * line_item.base_amount / Decimal(100)
+        return (discount_policy.percentage or 0) * line_item.base_amount / Decimal(100)
 
     def is_coupon_usable(self, coupon, applied_to_count):
         return (coupon.usage_limit - coupon.used_count) > applied_to_count
@@ -163,6 +168,6 @@ class LineItemDiscounter:
 
 
 # Tail imports
-from .discount_policy import DiscountPolicy  # isort:skip
+from .discount_policy import DiscountPolicy, DiscountCoupon  # isort:skip
 from .item import Item  # isort:skip
-from .line_item import LineItem, make_ntuple  # isort:skip
+from .line_item import LineItemTuple, make_ntuple  # isort:skip

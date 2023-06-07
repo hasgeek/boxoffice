@@ -53,7 +53,7 @@ def get_settlements(filename):
                 payment = OnlinePayment.query.filter_by(
                     pg_paymentid=trans[0],
                     pg_payment_status=RazorpayPaymentStatus.CAPTURED,
-                ).first()
+                ).one_or_none()
                 if payment:
                     pt = PaymentTransaction.query.filter_by(
                         online_payment=payment,
@@ -103,7 +103,7 @@ def get_settlements(filename):
                 payment = OnlinePayment.query.filter_by(
                     pg_paymentid=trans[14],
                     pg_payment_status=RazorpayPaymentStatus.CAPTURED,
-                ).first()
+                ).one_or_none()
                 if payment:
                     refund_transactions = PaymentTransaction.query.filter_by(
                         online_payment=payment,
@@ -217,7 +217,7 @@ def get_line_items(filename):
     ]
     for trans in transactions:
         if trans[1] == 'payment':
-            payment = OnlinePayment.query.filter_by(pg_paymentid=trans[0]).first()
+            payment = OnlinePayment.query.filter_by(pg_paymentid=trans[0]).one()
             for line_item in payment.order.line_items:
                 line_items.append(
                     [
@@ -286,7 +286,7 @@ def get_orders(settlement_filename):
                     amount=Decimal(settlement_dict['debit']),
                     online_payment=payment,
                     transaction_type=TransactionTypeEnum.REFUND,
-                ).first()
+                ).one_or_none()
                 if payment_transaction:
                     payment_orders.append(
                         {

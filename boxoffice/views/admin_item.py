@@ -92,7 +92,7 @@ def jsonify_item(data_dict):
     for policy in ticket.discount_policies:
         details = dict(policy.current_access())
         if policy.is_price_based:
-            dp_price = Price.query.filter(Price.discount_policy == policy).first()
+            dp_price = Price.query.filter(Price.discount_policy == policy).one()
             details['price_details'] = {'amount': dp_price.amount}
         discount_policies_list.append(details)
 

@@ -2,16 +2,17 @@ from __future__ import annotations
 
 from datetime import date
 from decimal import Decimal
-from typing import TYPE_CHECKING, List, Optional, Sequence, Tuple
+from typing import TYPE_CHECKING, Any, List, Optional, Sequence, Tuple
 from uuid import UUID
 
 from sqlalchemy.ext.hybrid import hybrid_property
 
 from baseframe import _
-from coaster.sqlalchemy import with_roles
+from coaster.sqlalchemy import LazyRoleSet, Query, with_roles
 from coaster.utils import utcnow
 
 from . import (
+    AppenderQuery,
     BaseScopedNameMixin,
     DynamicMapped,
     Mapped,
@@ -47,7 +48,9 @@ class Item(BaseScopedNameMixin, Model):
     category: Mapped[Category] = relationship(back_populates='tickets')
     quantity_total: Mapped[int] = sa.orm.mapped_column(default=0)
     discount_policies: DynamicMapped[DiscountPolicy] = relationship(
-        secondary=item_discount_policy, lazy='dynamic', back_populates='tickets'
+        secondary=item_discount_policy,  # type: ignore[has-type]
+        lazy='dynamic',
+        back_populates='tickets',
     )
     assignee_details: Mapped[jsonb_dict]
     event_date: Mapped[Optional[date]]
@@ -80,17 +83,17 @@ class Item(BaseScopedNameMixin, Model):
         }
     }
 
-    def roles_for(self, actor=None, anchors=()):
+    def roles_for(self, actor=None, anchors: Sequence[Any] = ()) -> LazyRoleSet:
         roles = super().roles_for(actor, anchors)
         if self.menu.organization.userid in actor.organizations_owned_ids():
             roles.add('item_owner')
         return roles
 
-    def current_price(self):
+    def current_price(self) -> Optional[Price]:
         """Return the current price object for a ticket."""
         return self.price_at(utcnow())
 
-    def has_higher_price(self, current_price):
+    def has_higher_price(self, current_price) -> bool:
         """Check if ticket has a higher price than the given current price."""
         return Price.query.filter(
             Price.end_at > current_price.end_at,
@@ -98,18 +101,18 @@ class Item(BaseScopedNameMixin, Model):
             Price.discount_policy_id.is_(None),
         ).notempty()
 
-    def discounted_price(self, discount_policy):
+    def discounted_price(self, discount_policy) -> Optional[Price]:
         """Return the discounted price for a ticket."""
         return Price.query.filter(
             Price.ticket == self, Price.discount_policy == discount_policy
         ).one_or_none()
 
-    def standard_prices(self):
+    def standard_prices(self) -> Query[Price]:
         return Price.query.filter(
             Price.ticket == self, Price.discount_policy_id.is_(None)
         ).order_by(Price.start_at.desc())
 
-    def price_at(self, timestamp):
+    def price_at(self, timestamp) -> Optional[Price]:
         """Return the price object for a ticket at a given time."""
         return (
             Price.query.filter(
@@ -123,16 +126,16 @@ class Item(BaseScopedNameMixin, Model):
         )
 
     @classmethod
-    def get_by_category(cls, category):
+    def get_by_category(cls, category) -> Query[Item]:
         return cls.query.filter(Item.category == category).order_by(cls.seq)
 
     @hybrid_property
-    def quantity_available(self):
+    def quantity_available(self) -> int:
         available_count = self.quantity_total - self.confirmed_line_items.count()
         return available_count if available_count > 0 else 0
 
     @property
-    def is_available(self):
+    def is_available(self) -> bool:
         """
         Check if a ticket is available.
 
@@ -140,16 +143,16 @@ class Item(BaseScopedNameMixin, Model):
         """
         return bool(self.current_price() and self.quantity_available > 0)
 
-    def is_cancellable(self):
+    def is_cancellable(self) -> bool:
         return utcnow() < self.cancellable_until if self.cancellable_until else True
 
     @property
-    def active_price(self):
+    def active_price(self) -> Optional[Decimal]:
         current_price = self.current_price()
         return current_price.amount if current_price else None
 
     @property
-    def confirmed_line_items(self):
+    def confirmed_line_items(self) -> AppenderQuery[LineItem]:
         """Return a query object preset with a ticket's confirmed line items."""
         return self.line_items.filter(LineItem.status == LineItemStatus.CONFIRMED)
 
@@ -175,7 +178,7 @@ class Item(BaseScopedNameMixin, Model):
                 LineItem.ticket_id == self.id,
                 LineItem.status == LineItemStatus.CONFIRMED,
             )
-            .first()[0]
+            .scalar()
         )
 
     @classmethod
@@ -256,7 +259,9 @@ class Price(BaseScopedNameMixin, Model):
         }
     }
 
-    def roles_for(self, actor=None, anchors=()):
+    def roles_for(
+        self, actor: Optional[User] = None, anchors: Sequence[Any] = ()
+    ) -> LazyRoleSet:
         roles = super().roles_for(actor, anchors)
         if self.ticket.menu.organization.userid in actor.organizations_owned_ids():
             roles.add('price_owner')
@@ -282,3 +287,4 @@ from .line_item import LineItem  # isort:skip
 if TYPE_CHECKING:
     from .discount_policy import DiscountPolicy
     from .item_collection import ItemCollection
+    from .user import User

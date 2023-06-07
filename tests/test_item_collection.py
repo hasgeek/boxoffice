@@ -57,7 +57,7 @@ expected_data = {
 
 @pytest.fixture()
 def resp(client, all_data):
-    menu = ItemCollection.query.first()
+    menu = ItemCollection.query.one()
     return client.get(
         f'/menu/{menu.id}',
         headers=[
