@@ -3,7 +3,7 @@ from flask import g, jsonify, request
 from baseframe import _, localize_timezone
 from baseframe.forms import render_form
 from coaster.utils import utcnow
-from coaster.views import load_models, render_with
+from coaster.views import ReturnRenderWith, load_models, render_with
 
 from .. import app, lastuser
 from ..forms import ItemCollectionForm
@@ -41,7 +41,7 @@ def jsonify_menu(menu_dict):
 @lastuser.requires_login
 @render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_menu})
 @load_models((ItemCollection, {'id': 'menu_id'}, 'menu'), permission='org_admin')
-def admin_menu(menu: ItemCollection):
+def admin_menu(menu: ItemCollection) -> ReturnRenderWith:
     ticket_ids = [str(ticket.id) for ticket in menu.tickets]
     date_ticket_counts = {}
     date_sales = {}
@@ -100,7 +100,7 @@ def jsonify_new_menu(menu_dict):
 @lastuser.requires_login
 @render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_new_menu})
 @load_models((Organization, {'name': 'org'}, 'organization'), permission='org_admin')
-def admin_new_ic(organization: Organization):
+def admin_new_ic(organization: Organization) -> ReturnRenderWith:
     return {'organization': organization}
 
 
@@ -136,5 +136,5 @@ def jsonify_edit_menu(menu_dict):
 @lastuser.requires_login
 @render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_edit_menu})
 @load_models((ItemCollection, {'id': 'menu_id'}, 'menu'), permission='org_admin')
-def admin_edit_ic(menu: ItemCollection):
+def admin_edit_ic(menu: ItemCollection) -> ReturnRenderWith:
     return {'menu': menu}

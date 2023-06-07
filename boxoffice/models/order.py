@@ -183,10 +183,10 @@ class Order(BaseMixin, Model):
 
     def is_fully_assigned(self) -> bool:
         """Check if all the line items in an order have an assignee."""
-        for line_item in self.confirmed_line_items:
-            if not line_item.current_assignee:
-                return False
-        return True
+        return all(
+            line_item.current_assignee is not None
+            for line_item in self.confirmed_line_items
+        )
 
     @property
     def refund_transactions(self) -> AppenderQuery[PaymentTransaction]:

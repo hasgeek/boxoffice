@@ -7,7 +7,7 @@ from werkzeug.datastructures import ImmutableMultiDict
 from baseframe import _, localized_country_list
 from baseframe.forms import render_form
 from coaster.utils import utcnow
-from coaster.views import load_models, render_with
+from coaster.views import ReturnRenderWith, load_models, render_with
 
 from .. import app, lastuser
 from ..data import indian_states
@@ -560,7 +560,7 @@ def jsonify_invoices(data_dict):
     {'text/html': 'invoice_form.html.jinja2', 'application/json': jsonify_invoices}
 )
 @load_models((Order, {'access_token': 'access_token'}, 'order'))
-def invoice_details_form(order: Order):
+def invoice_details_form(order: Order) -> ReturnRenderWith:
     """View all invoices of an order."""
     if not order.is_confirmed:
         abort(404)
@@ -578,7 +578,7 @@ def invoice_details_form(order: Order):
     {'text/html': 'order.html.jinja2', 'application/json': jsonify_order}, json=True
 )
 @load_models((Order, {'access_token': 'access_token'}, 'order'))
-def order_ticket(order: Order):
+def order_ticket(order: Order) -> ReturnRenderWith:
     return {'order': order, 'org': order.organization}
 
 
@@ -873,7 +873,7 @@ def process_partial_refund_for_order(data_dict):
     }
 )
 @load_models((Order, {'id': 'order_id'}, 'order'), permission='org_admin')
-def partial_refund_order(order: Order):
+def partial_refund_order(order: Order) -> ReturnRenderWith:
     return {
         'order': order,
         'form': OrderRefundForm(parent=order),

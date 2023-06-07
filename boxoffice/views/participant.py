@@ -2,7 +2,7 @@ from flask import request
 from werkzeug.datastructures import ImmutableMultiDict
 
 from baseframe import _
-from coaster.views import load_models, render_with
+from coaster.views import ReturnRenderWith, load_models, render_with
 
 from .. import app
 from ..forms import AssigneeForm
@@ -15,7 +15,7 @@ from .utils import xhr_only
 @xhr_only
 @render_with(json=True)
 @load_models((Order, {'access_token': 'access_token'}, 'order'))
-def assign(order: Order):
+def assign(order: Order) -> ReturnRenderWith:
     """Assign a line_item to a participant."""
     line_item = LineItem.query.get(request.json.get('line_item_id'))
     if line_item is None:

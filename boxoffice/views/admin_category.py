@@ -2,7 +2,7 @@ from flask import jsonify, request
 
 from baseframe import _
 from baseframe.forms import render_form
-from coaster.views import load_models, render_with
+from coaster.views import ReturnRenderWith, load_models, render_with
 
 from .. import app, lastuser
 from ..forms import CategoryForm
@@ -47,7 +47,7 @@ def jsonify_new_category(data_dict):
     {'text/html': 'index.html.jinja2', 'application/json': jsonify_new_category}
 )
 @load_models((ItemCollection, {'id': 'menu_id'}, 'menu'), permission='org_admin')
-def admin_new_category(menu: ItemCollection):
+def admin_new_category(menu: ItemCollection) -> ReturnRenderWith:
     return {'menu': menu}
 
 
@@ -84,5 +84,5 @@ def jsonify_edit_category(data_dict):
     {'text/html': 'index.html.jinja2', 'application/json': jsonify_edit_category}
 )
 @load_models((Category, {'id': 'category_id'}, 'category'), permission='org_admin')
-def admin_edit_category(category: Category):
+def admin_edit_category(category: Category) -> ReturnRenderWith:
     return {'category': category}

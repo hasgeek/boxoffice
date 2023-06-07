@@ -4,7 +4,7 @@ from flask import jsonify, request
 
 from baseframe import _, forms
 from baseframe.forms import render_form
-from coaster.views import load_models, render_with, requestargs
+from coaster.views import ReturnRenderWith, load_models, render_with, requestargs
 
 from .. import app, lastuser
 from ..forms import (
@@ -66,7 +66,7 @@ def jsonify_discount_policies(data_dict):
 @requestargs('search', ('page', int), ('size', int))
 def admin_discount_policies(
     organization: Organization, search: Optional[str] = None, page=1, size=None
-):
+) -> ReturnRenderWith:
     results_per_page = size or 20
 
     discount_policies = organization.discount_policies

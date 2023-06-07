@@ -5,7 +5,7 @@ from flask import g, jsonify, request, url_for
 from flask_babel import get_locale
 
 from baseframe import localize_timezone
-from coaster.views import load_models, render_with
+from coaster.views import ReturnRenderWith, load_models, render_with
 
 from .. import app, lastuser
 from ..extapi.razorpay import get_settled_transactions
@@ -26,7 +26,7 @@ def jsonify_report(data_dict):
 @lastuser.requires_login
 @render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_report})
 @load_models((ItemCollection, {'id': 'menu_id'}, 'menu'), permission='org_admin')
-def admin_report(menu: ItemCollection):
+def admin_report(menu: ItemCollection) -> ReturnRenderWith:
     return {'menu': menu}
 
 
@@ -42,7 +42,7 @@ def jsonify_org_report(data_dict):
 @load_models(
     (Organization, {'name': 'org_name'}, 'organization'), permission='org_admin'
 )
-def admin_org_report(organization: Organization):
+def admin_org_report(organization: Organization) -> ReturnRenderWith:
     return {
         'organization': organization,
         'siteadmin': lastuser.has_permission('siteadmin'),

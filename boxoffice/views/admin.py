@@ -3,7 +3,7 @@ import pytz
 
 from baseframe import _
 from coaster.utils import getbool
-from coaster.views import load_models, render_with
+from coaster.views import ReturnRenderWith, load_models, render_with
 
 from .. import app, lastuser
 from ..models import ItemCollection, Organization
@@ -31,7 +31,7 @@ def jsonify_dashboard(data):
 @app.route('/admin/')
 @lastuser.requires_login
 @render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_dashboard})
-def index():
+def index() -> ReturnRenderWith:
     return {'user': g.user}
 
 
@@ -52,7 +52,7 @@ def jsonify_org(data):
 @lastuser.requires_login
 @render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_org})
 @load_models((Organization, {'name': 'org'}, 'organization'), permission='org_admin')
-def org(organization: Organization):
+def org(organization: Organization) -> ReturnRenderWith:
     return {'org': organization, 'title': organization.title}
 
 

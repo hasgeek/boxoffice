@@ -5,7 +5,7 @@ from flask import jsonify, request
 from baseframe import _
 from baseframe.forms import render_form
 from coaster.utils import utcnow
-from coaster.views import load_models, render_with, requestargs
+from coaster.views import ReturnRenderWith, load_models, render_with, requestargs
 
 from .. import app, lastuser
 from ..forms import ItemForm, PriceForm
@@ -115,7 +115,7 @@ def jsonify_item(data_dict):
 @lastuser.requires_login
 @render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_item})
 @load_models((Item, {'id': 'ticket_id'}, 'ticket'), permission='org_admin')
-def admin_item(ticket: Item):
+def admin_item(ticket: Item) -> ReturnRenderWith:
     return {'ticket': ticket}
 
 
@@ -151,7 +151,7 @@ def jsonify_new_ticket(data_dict):
 @lastuser.requires_login
 @render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_new_ticket})
 @load_models((ItemCollection, {'id': 'menu_id'}, 'menu'), permission='org_admin')
-def admin_new_item(menu: ItemCollection):
+def admin_new_item(menu: ItemCollection) -> ReturnRenderWith:
     return {'menu': menu}
 
 
@@ -188,7 +188,7 @@ def jsonify_edit_ticket(data_dict):
     {'text/html': 'index.html.jinja2', 'application/json': jsonify_edit_ticket}
 )
 @load_models((Item, {'id': 'ticket_id'}, 'ticket'), permission='org_admin')
-def admin_edit_item(ticket: Item):
+def admin_edit_item(ticket: Item) -> ReturnRenderWith:
     return {'ticket': ticket}
 
 
@@ -225,7 +225,7 @@ def jsonify_new_price(data_dict):
 @lastuser.requires_login
 @render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_new_price})
 @load_models((Item, {'id': 'ticket_id'}, 'ticket'), permission='org_admin')
-def admin_new_price(ticket: Item):
+def admin_new_price(ticket: Item) -> ReturnRenderWith:
     return {'ticket': ticket}
 
 
@@ -257,5 +257,5 @@ def jsonify_edit_price(data_dict):
 @lastuser.requires_login
 @render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_edit_price})
 @load_models((Price, {'id': 'price_id'}, 'price'), permission='org_admin')
-def admin_edit_price(price: Price):
+def admin_edit_price(price: Price) -> ReturnRenderWith:
     return {'price': price}

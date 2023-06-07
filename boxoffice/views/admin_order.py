@@ -1,6 +1,6 @@
 from flask import jsonify, url_for
 
-from coaster.views import load_models, render_with
+from coaster.views import ReturnRenderWith, load_models, render_with
 
 from .. import app, lastuser
 from ..models import (
@@ -99,7 +99,7 @@ def jsonify_admin_orders(data_dict):
     {'text/html': 'index.html.jinja2', 'application/json': jsonify_admin_orders}
 )
 @load_models((ItemCollection, {'id': 'menu_id'}, 'menu'), permission='org_admin')
-def admin_orders(menu: ItemCollection):
+def admin_orders(menu: ItemCollection) -> ReturnRenderWith:
     return {
         'title': menu.title,
         'menu': menu,
@@ -153,7 +153,7 @@ def jsonify_order(order_dict):
     permission='org_admin',
 )
 @render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_order})
-def admin_org_order(org: Organization, order: Order):
+def admin_org_order(org: Organization, order: Order) -> ReturnRenderWith:
     line_items = LineItem.query.filter(
         LineItem.order == order,
         LineItem.status.in_(
