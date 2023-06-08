@@ -286,7 +286,7 @@ class DiscountPolicy(BaseScopedNameMixin, Model):
                 except MultipleResultsFound:
                     # ref: https://github.com/hasgeek/boxoffice/issues/290
                     policy = None
-            if bool(policy) and policy in ticket.discount_policies:
+            if policy is not None and policy in ticket.discount_policies:
                 return True
         return False
 

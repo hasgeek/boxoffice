@@ -204,9 +204,15 @@ class LineItem(BaseMixin, Model):
             else:
                 ticket = Item.query.get(line_item['ticket_id'])
                 # new line item, use the current price
-                base_amount = (
-                    ticket.current_price().amount if ticket.is_available else None
-                )
+                if ticket is None:
+                    base_amount = None
+                else:
+                    current_price = ticket.current_price()
+                    base_amount = (
+                        current_price.amount
+                        if current_price is not None and ticket.is_available
+                        else None
+                    )
                 line_item_id = None
 
             if not item_line_items.get(str(ticket.id)):
