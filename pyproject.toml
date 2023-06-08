@@ -43,16 +43,22 @@ required_plugins = [
   'pytest-cov',
   'pytest-dotenv',
   'pytest-env',
-  'pytest-remotedata',
   'pytest-rerunfailures',
+  'pytest-socket',
   'requests-mock',
 ]
-addopts = '--cov-report=term-missing'
-filterwarnings = ['ignore::DeprecationWarning', 'ignore::UserWarning']
-remote_data_strick = true
-env = ['FLASK_ENV=testing']
+addopts = [
+  '--allow-hosts=127.0.0.1,::1',  # Add Docker IPs here
+  '--allow-unix-socket',  # Required for Selenium driver when frontend tests are added
+  '--cov-report=term-missing',
+  '--strict-markers',
+  ]
+markers = [
+  'noclient: Disable Flask app client',
+]
+env = ['FLASK_ENV=testing', 'FLASK_TESTING=true']
 env_override_existing_values = false
-env_files = ['.env', '.env.testing']
+env_files = ['.env', '.testenv', '.env', '.env.testing']
 
 [tool.curlylint]
 include = '\.jinja2$'
