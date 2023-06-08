@@ -1,4 +1,5 @@
 from decimal import Decimal
+from typing import TYPE_CHECKING
 
 from flask import abort, jsonify, render_template, request, url_for
 from sqlalchemy.sql import func
@@ -402,6 +403,8 @@ def capture_payment(order: Order):
     A successful capture results in a `payment_transaction` registered against the
     order.
     """
+    if TYPE_CHECKING:
+        assert request.json is not None  # nosec B101
     if not request.json.get('pg_paymentid'):
         return api_error(message="Missing payment id", status_code=400)
 
@@ -507,6 +510,8 @@ def jsonify_invoice(invoice):
 @load_models((Order, {'access_token': 'access_token'}, 'order'))
 def edit_invoice_details(order: Order):
     """Update invoice with buyer's address and taxid."""
+    if TYPE_CHECKING:
+        assert request.json is not None  # nosec B101
     if not order.is_confirmed:
         abort(404)
     invoice_dict = request.json.get('invoice', {})

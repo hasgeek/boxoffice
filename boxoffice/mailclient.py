@@ -183,9 +183,14 @@ def send_ticket_reassignment_mail(
     """Send notice of reassignment of ticket."""
     with app.test_request_context():
         line_item = LineItem.query.get(line_item_id)
-        order = line_item.order
         old_assignee = Assignee.query.get(old_assignee_id)
         new_assignee = Assignee.query.get(new_assignee_id)
+        if line_item is None or old_assignee is None or new_assignee is None:
+            raise ValueError(
+                f"Unexpected None value in line_item={line_item!r},"
+                f" old_assignee={old_assignee!r}, new_assignee={new_assignee!r}"
+            )
+        order = line_item.order
 
         subject = _("{title}: Your ticket has been transfered to someone else").format(
             title=order.menu.title

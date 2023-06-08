@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from flask import jsonify, request
 
@@ -76,8 +76,10 @@ def admin_discount_policies(
             DiscountPolicy.title.ilike(f'%{search}%')
         )
     paginated_discount_policies = discount_policies.paginate(
-        page=page, per_page=results_per_page
+        page=page, per_page=results_per_page, count=True
     )
+    if TYPE_CHECKING:
+        assert paginated_discount_policies.total is not None  # nosec B101
 
     return {
         'org': organization,

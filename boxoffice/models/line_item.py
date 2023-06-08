@@ -3,7 +3,16 @@ from __future__ import annotations
 from collections import OrderedDict, namedtuple
 from datetime import date, datetime, timedelta, tzinfo
 from decimal import Decimal
-from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Union, cast, overload
+from typing import (
+    TYPE_CHECKING,
+    Dict,
+    Iterable,
+    Optional,
+    Sequence,
+    Union,
+    cast,
+    overload,
+)
 from uuid import UUID
 
 from flask import current_app
@@ -146,9 +155,9 @@ class LineItem(BaseMixin, Model):
     @classmethod
     def calculate(
         cls,
-        line_items: List[LineItem],
+        line_items: Sequence[LineItem],
         realculate: Literal[True],
-        coupons: Optional[List[str]] = None,
+        coupons: Optional[Sequence[str]] = None,
     ):
         ...
 
@@ -156,9 +165,9 @@ class LineItem(BaseMixin, Model):
     @classmethod
     def calculate(
         cls,
-        line_items: List[dict],
+        line_items: Sequence[dict],
         realculate: Literal[False],
-        coupons: Optional[List[str]] = None,
+        coupons: Optional[Sequence[str]] = None,
     ):
         ...
 
@@ -335,7 +344,7 @@ def counts_per_date_per_item(
 
 
 def sales_by_date(
-    sales_datetime: Union[date, datetime], ticket_ids: List[str], user_tz: tzinfo
+    sales_datetime: Union[date, datetime], ticket_ids: Sequence[str], user_tz: tzinfo
 ) -> Optional[Decimal]:
     """
     Return the sales amount accrued during the day.
@@ -364,7 +373,7 @@ def sales_by_date(
 
 
 def calculate_weekly_sales(
-    menu_ids: List[Union[str, UUID]], user_tz: tzinfo, year: int
+    menu_ids: Sequence[Union[str, UUID]], user_tz: Union[str, tzinfo], year: int
 ):
     """Calculate weekly sales for a year in the given menu_ids."""
     ordered_week_sales = OrderedDict()
@@ -403,7 +412,7 @@ def calculate_weekly_sales(
     return ordered_week_sales
 
 
-def sales_delta(user_tz: tzinfo, ticket_ids: List[str]):
+def sales_delta(user_tz: tzinfo, ticket_ids: Sequence[str]):
     """Calculate the percentage difference in sales between today and yesterday."""
     today = utcnow().date()
     yesterday = today - timedelta(days=1)

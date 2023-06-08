@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 from flask import request
 from werkzeug.datastructures import ImmutableMultiDict
 
@@ -17,6 +19,8 @@ from .utils import xhr_only
 @load_models((Order, {'access_token': 'access_token'}, 'order'))
 def assign(order: Order) -> ReturnRenderWith:
     """Assign a line_item to a participant."""
+    if TYPE_CHECKING:
+        assert request.json is not None  # nosec B101
     line_item = LineItem.query.get(request.json.get('line_item_id'))
     if line_item is None:
         return (
