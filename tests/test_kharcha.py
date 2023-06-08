@@ -30,18 +30,22 @@ def test_undiscounted_kharcha(client, all_data) -> None:
     assert resp.status_code == 200
     resp_json = json.loads(resp.get_data())
     # Test that the price is correct
+    current_price = first_item.current_price()
+    assert current_price is not None
     assert (
         resp_json.get('line_items')[str(first_item.id)].get('final_amount')
-        == undiscounted_quantity * first_item.current_price().amount
+        == undiscounted_quantity * current_price.amount
     )
 
     policy_ids = resp_json.get('line_items')[str(first_item.id)].get(
         'discount_policy_ids'
     )
     assert policy_ids == []
+    current_price = first_item.current_price()
+    assert current_price is not None
     assert (
         resp_json.get('line_items')[str(first_item.id)].get('final_amount')
-        == undiscounted_quantity * first_item.current_price().amount
+        == undiscounted_quantity * current_price.amount
     )
 
 
@@ -116,10 +120,15 @@ def test_discounted_bulk_kharcha(client, all_data) -> None:
     assert resp.status_code == 200
     resp_json = json.loads(resp.get_data())
 
-    base_amount = discounted_quantity * first_item.current_price().amount
-    discounted_amount = (
-        first_item.discount_policies[0].percentage * base_amount
-    ) / decimal.Decimal(100.0)
+    current_price = first_item.current_price()
+    assert current_price is not None
+    base_amount = discounted_quantity * current_price.amount
+    discount_policy = first_item.discount_policies.first()
+    assert discount_policy is not None
+    assert discount_policy.percentage is not None
+    discounted_amount = (discount_policy.percentage * base_amount) / decimal.Decimal(
+        100.0
+    )
     assert (
         resp_json.get('line_items')[str(first_item.id)].get('final_amount')
         == base_amount - discounted_amount
@@ -142,7 +151,7 @@ def test_discounted_bulk_kharcha(client, all_data) -> None:
 
 def test_discounted_coupon_kharcha(client, all_data) -> None:
     first_item = Item.query.filter_by(name='conference-ticket').one()
-    coupon = DiscountCoupon.query.filter_by(code='coupon1').one()
+    coupon: DiscountCoupon = DiscountCoupon.query.filter_by(code='coupon1').one()
     discounted_quantity = 1
     kharcha_req = {
         'line_items': [
@@ -162,10 +171,15 @@ def test_discounted_coupon_kharcha(client, all_data) -> None:
     assert resp.status_code == 200
     resp_json = json.loads(resp.get_data())
 
-    base_amount = discounted_quantity * first_item.current_price().amount
-    discounted_amount = (
-        coupon.discount_policy.percentage * base_amount
-    ) / decimal.Decimal(100.0)
+    current_price = first_item.current_price()
+    assert current_price is not None
+    base_amount = discounted_quantity * current_price.amount
+    discount_policy = coupon.discount_policy
+    assert discount_policy is not None
+    assert discount_policy.percentage is not None
+    discounted_amount = (discount_policy.percentage * base_amount) / decimal.Decimal(
+        100.0
+    )
     assert (
         resp_json.get('line_items')[str(first_item.id)].get('final_amount')
         == base_amount - discounted_amount
@@ -207,7 +221,10 @@ def test_signed_discounted_coupon_kharcha(client, all_data) -> None:
     assert resp.status_code == 200
     resp_json = json.loads(resp.get_data())
 
-    base_amount = discounted_quantity * first_item.current_price().amount
+    current_price = first_item.current_price()
+    assert current_price is not None
+    base_amount = discounted_quantity * current_price.amount
+    assert signed_policy.percentage is not None
     discounted_amount = (signed_policy.percentage * base_amount) / decimal.Decimal(
         100.0
     )
@@ -252,13 +269,15 @@ def test_unlimited_coupon_kharcha(client, all_data) -> None:
     resp_json = json.loads(resp.get_data())
     assert resp.status_code == 200
 
-    base_amount = discounted_quantity * first_item.current_price().amount
+    current_price = first_item.current_price()
+    assert current_price is not None
+    base_amount = discounted_quantity * current_price.amount
     discount_policy = DiscountPolicy.query.filter_by(
         name=make_name('Unlimited Geek')
     ).one()
     discounted_amount = discounted_quantity * (
         ((discount_policy.percentage or 0) / decimal.Decimal('100'))
-        * first_item.current_price().amount
+        * current_price.amount
     )
     assert (
         resp_json.get('line_items')[str(first_item.id)].get('final_amount')
@@ -299,9 +318,12 @@ def test_coupon_limit(client, all_data) -> None:
     assert resp.status_code == 200
     resp_json = json.loads(resp.get_data())
 
-    base_amount = discounted_quantity * first_item.current_price().amount
+    current_price = first_item.current_price()
+    assert current_price is not None
+    base_amount = discounted_quantity * current_price.amount
+    assert coupon.discount_policy.percentage is not None
     discounted_amount = (
-        coupon.discount_policy.percentage * first_item.current_price().amount
+        coupon.discount_policy.percentage * current_price.amount
     ) / decimal.Decimal(100.0)
     assert (
         resp_json.get('line_items')[str(first_item.id)].get('final_amount')
@@ -456,8 +478,10 @@ def test_discounted_complex_kharcha(client, all_data) -> None:
     assert resp.status_code == 200
     resp_json = json.loads(resp.get_data())
 
-    base_amount = discounted_quantity * first_item.current_price().amount
-    discounted_amount = 2 * first_item.current_price().amount
+    current_price = first_item.current_price()
+    assert current_price is not None
+    base_amount = discounted_quantity * current_price.amount
+    discounted_amount = 2 * current_price.amount
     assert (
         resp_json.get('line_items')[str(first_item.id)].get('final_amount')
         == base_amount - discounted_amount

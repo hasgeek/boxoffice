@@ -219,12 +219,16 @@ def test_signed_discounted_coupon_order(client, all_data) -> None:
     )
     assert resp.status_code == 201
     resp_data = json.loads(resp.data)['result']
-    assert resp_data['final_amount'] == first_item.current_price().amount - (
-        signed_policy.percentage * first_item.current_price().amount
+    current_price = first_item.current_price()
+    assert current_price is not None
+    assert signed_policy.percentage is not None
+    assert resp_data['final_amount'] == current_price.amount - (
+        signed_policy.percentage * current_price.amount
     ) / decimal.Decimal(100.0)
     line_item = LineItem.query.filter_by(
         customer_order_id=UUID(hex=resp_data['order_id'])
     ).one()
+    assert line_item.discount_coupon is not None
     assert line_item.discount_coupon.code == signed_code
 
 
@@ -261,8 +265,13 @@ def test_complex_discounted_item(client, all_data) -> None:
 def test_discounted_complex_order(client, all_data) -> None:
     conf = Item.query.filter_by(name='conference-ticket').one()
     tshirt = Item.query.filter_by(name='t-shirt').one()
-    conf_price = conf.current_price().amount
-    tshirt_price = tshirt.current_price().amount
+    conf_current_price = conf.current_price()
+    assert conf_current_price is not None
+    tshirt_current_price = tshirt.current_price()
+    assert tshirt_current_price is not None
+
+    conf_price = conf_current_price.amount
+    tshirt_price = tshirt_current_price.amount
     conf_quantity = 12
     tshirt_quantity = 5
     coupon2 = DiscountCoupon.query.filter_by(code='coupon2').one()
@@ -296,12 +305,14 @@ def test_discounted_complex_order(client, all_data) -> None:
     tshirt_policy = DiscountPolicy.query.filter_by(
         title='5% discount on 5 t-shirts'
     ).one()
+    assert tshirt_policy.percentage is not None
     tshirt_final_amount = (tshirt_price * tshirt_quantity) - (
         tshirt_quantity
         * (tshirt_policy.percentage * tshirt_price)
         / decimal.Decimal(100)
     )
     conf_policy = DiscountPolicy.query.filter_by(title='10% discount on rootconf').one()
+    assert conf_policy.percentage is not None
     conf_final_amount = (conf_price * (conf_quantity - 2)) - (
         (conf_quantity - 2)
         * (conf_policy.percentage * conf_price)
@@ -364,7 +375,9 @@ def test_free_order(client, all_data) -> None:
 def test_cancel_line_item_in_order(db_session, client, all_data, post_env) -> None:
     original_quantity = 2
     order_item = Item.query.filter_by(name='t-shirt').one()
-    total_amount = order_item.current_price().amount * original_quantity
+    current_price = order_item.current_price()
+    assert current_price is not None
+    total_amount = current_price.amount * original_quantity
     data = {
         'line_items': [
             {'ticket_id': str(order_item.id), 'quantity': original_quantity}
@@ -445,7 +458,9 @@ def test_cancel_line_item_in_order(db_session, client, all_data, post_env) -> No
 def test_cancel_line_item_in_bulk_order(db_session, client, all_data, post_env) -> None:
     original_quantity = 5
     discounted_item = Item.query.filter_by(name='t-shirt').one()
-    total_amount = discounted_item.current_price().amount * original_quantity
+    current_price = discounted_item.current_price()
+    assert current_price is not None
+    total_amount = current_price.amount * original_quantity
     data = {
         'line_items': [
             {'ticket_id': str(discounted_item.id), 'quantity': original_quantity}
@@ -584,7 +599,9 @@ def test_cancel_line_item_in_bulk_order(db_session, client, all_data, post_env) 
 def test_partial_refund_in_order(db_session, client, all_data, post_env) -> None:
     original_quantity = 5
     discounted_item = Item.query.filter_by(name='t-shirt').one()
-    total_amount = discounted_item.current_price().amount * original_quantity
+    current_price = discounted_item.current_price()
+    assert current_price is not None
+    total_amount = current_price.amount * original_quantity
     data = {
         'line_items': [
             {'ticket_id': str(discounted_item.id), 'quantity': original_quantity}
