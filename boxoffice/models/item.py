@@ -263,7 +263,10 @@ class Price(BaseScopedNameMixin, Model):
         self, actor: Optional[User] = None, anchors: Sequence[Any] = ()
     ) -> LazyRoleSet:
         roles = super().roles_for(actor, anchors)
-        if self.ticket.menu.organization.userid in actor.organizations_owned_ids():
+        if (
+            actor is not None
+            and self.ticket.menu.organization.userid in actor.organizations_owned_ids()
+        ):
             roles.add('price_owner')
         return roles
 

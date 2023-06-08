@@ -134,7 +134,10 @@ class DiscountPolicy(BaseScopedNameMixin, Model):
         self, actor: Optional[User] = None, anchors: Sequence[Any] = ()
     ) -> LazyRoleSet:
         roles = super().roles_for(actor, anchors)
-        if self.organization.userid in actor.organizations_owned_ids():
+        if (
+            actor is not None
+            and self.organization.userid in actor.organizations_owned_ids()
+        ):
             roles.add('dp_owner')
         return roles
 
