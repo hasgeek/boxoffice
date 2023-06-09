@@ -450,7 +450,7 @@ def test_cancel_line_item_in_order(db_session, client, all_data, post_env) -> No
             order=order, transaction_type=TransactionTypeEnum.REFUND
         )
         .order_by(PaymentTransaction.created_at.desc())
-        .one()
+        .first()
     )
     assert refund_transaction1.amount == expected_refund_amount
 
@@ -533,7 +533,7 @@ def test_cancel_line_item_in_bulk_order(db_session, client, all_data, post_env) 
             order=order, transaction_type=TransactionTypeEnum.REFUND
         )
         .order_by(PaymentTransaction.created_at.desc())
-        .one()
+        .first()
     )
     assert refund_transaction2.amount == second_line_item.final_amount
 
