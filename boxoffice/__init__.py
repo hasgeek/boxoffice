@@ -12,6 +12,7 @@ from pytz import timezone
 
 from baseframe import Version, assets, baseframe
 from baseframe.utils import JSONProvider
+from coaster.assets import WebpackManifest
 from flask_lastuser import Lastuser
 from flask_lastuser.sqlalchemy import UserManager
 import coaster.app
@@ -23,7 +24,7 @@ lastuser = Lastuser()
 
 mail = Mail()
 rq = RQ()
-
+manifest = WebpackManifest(app, filepath='static/build/manifest.json')
 
 # --- Assets ---------------------------------------------------------------------------
 
