@@ -205,7 +205,7 @@ class DiscountPriceForm(forms.Form):
         self.ticket.query = (
             Item.query.join(ItemCollection, Item.menu_id == ItemCollection.id)
             .filter(ItemCollection.organization_id == self.edit_parent.organization_id)
-            .options(sa.orm.load_only(ItemCollection.id, ItemCollection.title))
+            .options(sa.orm.load_only(Item.id, Item.title))
         )
 
 
