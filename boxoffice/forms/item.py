@@ -129,7 +129,9 @@ class ItemForm(forms.Form):
         ]
         self.place_supply_country_code.choices = [('', '')] + localized_country_list()
         self.category.query = (
-            Category.query.join(ItemCollection)
+            Category.query.join(
+                ItemCollection, Category.item_collection_id == ItemCollection.id
+            )
             .filter(Category.item_collection == self.edit_parent)
             .options(db.load_only(Category.id, Category.title))
         )
