@@ -199,7 +199,7 @@ class DiscountPriceForm(forms.Form):
                 ItemCollection, Item.item_collection_id == ItemCollection.id
             )
             .filter(ItemCollection.organization == self.edit_parent.organization)
-            .options(db.load_only(ItemCollection.id, ItemCollection.title))
+            .options(db.load_only(Item.id, Item.title))
         )
 
 
