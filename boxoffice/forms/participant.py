@@ -24,7 +24,7 @@ class AssigneeForm(forms.Form):
 
     def validate_email(self, field: forms.Field) -> None:
         existing_assignees = (
-            Assignee.query.join(LineItem)
+            Assignee.query.join(LineItem, Assignee.line_item_id == LineItem.id)
             .join(Item)
             .join(Order)
             .filter(LineItem.ticket_id == self.edit_parent.ticket_id)

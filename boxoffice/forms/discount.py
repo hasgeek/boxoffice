@@ -72,7 +72,7 @@ class AutomaticDiscountPolicyForm(DiscountPolicyForm):
 
     def set_queries(self) -> None:
         self.tickets.query = (
-            Item.query.join(ItemCollection)
+            Item.query.join(ItemCollection, Item.menu_id == ItemCollection.id)
             .filter(ItemCollection.organization == self.edit_parent)
             .options(sa.orm.load_only(Item.id, Item.title))
         )
@@ -123,7 +123,7 @@ class CouponBasedDiscountPolicyForm(DiscountPolicyForm):
 
     def set_queries(self) -> None:
         self.tickets.query = (
-            Item.query.join(ItemCollection)
+            Item.query.join(ItemCollection, Item.menu_id == ItemCollection.id)
             .filter(ItemCollection.organization == self.edit_parent)
             .options(sa.orm.load_only(Item.id, Item.title))
         )
@@ -203,7 +203,7 @@ class DiscountPriceForm(forms.Form):
 
     def set_queries(self) -> None:
         self.ticket.query = (
-            Item.query.join(ItemCollection)
+            Item.query.join(ItemCollection, Item.menu_id == ItemCollection.id)
             .filter(ItemCollection.organization_id == self.edit_parent.organization_id)
             .options(sa.orm.load_only(ItemCollection.id, ItemCollection.title))
         )
@@ -213,7 +213,9 @@ def validate_unique_discount_coupon_code(
     form: DiscountCouponForm, field: forms.Field
 ) -> None:
     if (
-        DiscountCoupon.query.join(DiscountPolicy)
+        DiscountCoupon.query.join(
+            DiscountPolicy, DiscountCoupon.discount_policy_id == DiscountPolicy.id
+        )
         .filter(
             DiscountPolicy.organization_id == form.edit_parent.organization_id,
             DiscountCoupon.code == field.data,
