@@ -248,7 +248,10 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
             else:
                 try:
                     policy = (
-                        cls.query.join(DiscountCoupon)
+                        cls.query.join(
+                            DiscountCoupon,
+                            DiscountCoupon.discount_policy_id == DiscountPolicy.id,
+                        )
                         .filter(
                             DiscountCoupon.code == code,
                             DiscountCoupon.used_count < DiscountCoupon.usage_limit,
