@@ -17,7 +17,7 @@ isoweek
 itsdangerous
 jsmin
 premailer
-psycopg2
+psycopg2-binary
 python-dateutil
 python-dotenv
 pytz
