@@ -70,7 +70,7 @@ class DecimalJsonProvider(JSONProvider):
 
 # --- Configure ------------------------------------------------------------------------
 
-coaster.app.init_app(app)
+coaster.app.init_app(app, ['py', 'env'], env_prefix=['FLASK', 'APP_BOXOFFICE'])
 db.init_app(app)
 migrate = Migrate(app, db)
 rq.init_app(app)
