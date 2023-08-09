@@ -19,3 +19,6 @@ node_modules
 boxoffice/static/build
 .pytest_cache
 boxoffice/static/img/fa5-packed.svg
+
+.env
+.env.testing
