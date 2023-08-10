@@ -5,14 +5,20 @@ import datetime
 import logging
 
 from flask import jsonify, make_response
+from flask.cli import load_dotenv
 
 from isoweek import Week
 import IPython
 
-from boxoffice import app
-from boxoffice.extapi import razorpay
-from boxoffice.mailclient import send_participant_assignment_mail, send_receipt_mail
-from boxoffice.models import (
+load_dotenv()
+
+from boxoffice import app  # noqa: E402
+from boxoffice.extapi import razorpay  # noqa: E402
+from boxoffice.mailclient import (  # noqa: E402
+    send_participant_assignment_mail,
+    send_receipt_mail,
+)
+from boxoffice.models import (  # noqa: E402
     CURRENCY,
     INVOICE_STATUS,
     LINE_ITEM_STATUS,
@@ -25,9 +31,9 @@ from boxoffice.models import (
     PaymentTransaction,
     db,
 )
-from boxoffice.views.custom_exceptions import PaymentGatewayError
-from boxoffice.views.order import process_partial_refund_for_order
-from coaster.utils import isoweek_datetime, midnight_to_utc, utcnow
+from boxoffice.views.custom_exceptions import PaymentGatewayError  # noqa: E402
+from boxoffice.views.order import process_partial_refund_for_order  # noqa: E402
+from coaster.utils import isoweek_datetime, midnight_to_utc, utcnow  # noqa: E402
 
 logging.basicConfig()
 logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
