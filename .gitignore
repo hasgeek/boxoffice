@@ -11,6 +11,7 @@ baseframe-packed.js
 baseframe-packed.css
 .vscode
 .coverage
+.python-version
 boxoffice/static/gen/*
 *.sql
 *.sql.gz
