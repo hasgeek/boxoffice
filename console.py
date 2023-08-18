@@ -7,10 +7,13 @@ import csv
 import datetime
 import logging
 
+from flask.cli import load_dotenv
 from flask.typing import ResponseReturnValue
 from isoweek import Week
 from typing_extensions import TypeAlias
 import IPython
+
+load_dotenv()
 
 from baseframe import _
 from coaster.sqlalchemy import MarkdownComposite

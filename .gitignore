@@ -21,3 +21,6 @@ boxoffice/static/build
 .pytest_cache
 boxoffice/static/img/fa5-packed.svg
 monkeytype.sqlite3
+
+.env
+.env.testing
