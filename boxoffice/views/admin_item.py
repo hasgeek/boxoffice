@@ -13,7 +13,7 @@ from ..models import Item, ItemCollection, Organization, Price, db, sa
 from .utils import api_error, api_success, json_date_format, xhr_only
 
 
-@app.route('/admin/o/<org>/items')
+@app.route('/admin/o/<org>/tickets')
 @lastuser.requires_login
 @xhr_only
 @load_models((Organization, {'name': 'org'}, 'organization'), permission='org_admin')
