@@ -70,7 +70,7 @@ export const DiscountPolicyTemplate = `
               </div>
               <div class="group clearfix">
                 <p class="field-title filled clearfix">What is the discount for?</p>
-                <select name="item" id="add-item" class="items-select2">
+                <select name="ticket" id="add-item" class="items-select2">
                 </select>
                 {{#newDiscountPolicy.errormsg.tickets}}<p class="form-error-msg">{{ newDiscountPolicy.errormsg.tickets }}</p>{{/}}
               </div>
@@ -83,7 +83,7 @@ export const DiscountPolicyTemplate = `
               </div>
               <p class="field-title filled">What is the discount for?</p>
               <div class="group">
-                <select name="items" id="add-items" multiple class="items-select2">
+                <select name="tickets" id="add-items" multiple class="items-select2">
                 </select>
                 {{#newDiscountPolicy.errormsg.tickets}}<p class="form-error-msg">{{ newDiscountPolicy.errormsg.tickets }}</p>{{/}}
               </div>
