@@ -9,7 +9,7 @@ from coaster.views import ReturnRenderWith, load_models, render_with
 
 from .. import app, lastuser
 from ..extapi.razorpay import get_settled_transactions
-from ..models import InvoiceStatus, ItemCollection, Organization
+from ..models import InvoiceStatus, ItemCollection, Order, Organization
 from .utils import api_error, check_api_access, csv_response
 
 
@@ -195,8 +195,17 @@ def orders_api(organization: Organization, menu: ItemCollection):
 )
 def invoices_report(organization: Organization):
     headers, rows = organization.fetch_invoices()
+    order_id_index = headers.index('order_id')
+    buyer_name_index = headers.index('buyer_taxid')
+    headers.insert(buyer_name_index, 'buyer_name')
+    buyer_email_index = headers.index('buyer_taxid')
+    headers.insert(buyer_email_index, 'buyer_email')
 
     def row_handler(row):
+        order = Order.query.filter(Order.id == row[order_id_index]).first()
+        row = list(row)
+        row.insert(buyer_name_index, order.buyer_fullname)
+        row.insert(buyer_email_index, order.buyer_email)
         dict_row = dict(list(zip(headers, row)))
         for enum_member in InvoiceStatus:
             if dict_row.get('status') == enum_member.value:

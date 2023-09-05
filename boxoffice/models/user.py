@@ -126,7 +126,7 @@ class Organization(ProfileBase, Model):
             .where(Invoice.organization == self)
             .select_from(Invoice)
             .join(Order)
-            .order_by(Invoice.invoice_no)
+            .order_by(Invoice.invoiced_at)
         )
         return HeadersAndDataTuple(
             headers, db.session.execute(invoices_query).fetchall()
