@@ -31,8 +31,6 @@ LASTUSER_SERVER = 'https://hasgeek.com/'
 LASTUSER_CLIENT_ID = ''
 #: Lastuser client secret
 LASTUSER_CLIENT_SECRET = ''  # nosec
-DEBUG = True
-ASSET_MANIFEST_PATH = "static/build/manifest.json"
 #: Cache settings
 CACHE_TYPE = 'redis'
 #: RQ settings

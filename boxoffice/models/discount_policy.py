@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, List, Optional, Sequence, Tuple
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, List, Optional, Sequence
 from uuid import UUID
 import secrets
 import string
@@ -203,8 +204,8 @@ class DiscountPolicy(BaseScopedNameMixin, Model):
 
     @classmethod
     def get_from_ticket(
-        cls, ticket: Item, qty, coupon_codes=()
-    ) -> List[Tuple[DiscountPolicy, Optional[DiscountCoupon]]]:
+        cls, ticket: Item, qty, coupon_codes: Sequence[str] = ()
+    ) -> List[PolicyCoupon]:
         """
         Return a list of (discount_policy, discount_coupon) tuples.
 
@@ -214,9 +215,7 @@ class DiscountPolicy(BaseScopedNameMixin, Model):
             cls.discount_type == DiscountTypeEnum.AUTOMATIC,
             cls.item_quantity_min <= qty,
         ).all()
-        policies: List[Tuple[DiscountPolicy, Optional[DiscountCoupon]]] = [
-            (discount, None) for discount in automatic_discounts
-        ]
+        policies = [PolicyCoupon(discount, None) for discount in automatic_discounts]
         if not coupon_codes:
             return policies
         coupon_policies = ticket.discount_policies.filter(
@@ -250,7 +249,7 @@ class DiscountPolicy(BaseScopedNameMixin, Model):
 
             for coupon in coupons:
                 if coupon.usage_limit > coupon.used_count:
-                    policies.append((coupon.discount_policy, coupon))
+                    policies.append(PolicyCoupon(coupon.discount_policy, coupon))
         return policies
 
     @property
@@ -346,6 +345,12 @@ class DiscountCoupon(IdMixin, Model):
             .where(LineItem.status == LineItemStatus.CONFIRMED)
             .as_scalar()
         )
+
+
+@dataclass
+class PolicyCoupon:
+    policy: DiscountPolicy
+    coupon: Optional[DiscountCoupon]
 
 
 create_title_trgm_trigger = sa.DDL(
