@@ -31,9 +31,7 @@ def admin_report(menu: ItemCollection) -> ReturnRenderWith:
 
 
 def jsonify_org_report(data_dict):
-    return jsonify(
-        account_title=data_dict['organization'].title, siteadmin=data_dict['siteadmin']
-    )
+    return jsonify(account_title=data_dict['organization'].title)
 
 
 @app.route('/admin/o/<org_name>/reports')
@@ -43,10 +41,7 @@ def jsonify_org_report(data_dict):
     (Organization, {'name': 'org_name'}, 'organization'), permission='org_admin'
 )
 def admin_org_report(organization: Organization) -> ReturnRenderWith:
-    return {
-        'organization': organization,
-        'siteadmin': lastuser.has_permission('siteadmin'),
-    }
+    return {'organization': organization}
 
 
 @app.route('/admin/menu/<menu_id>/tickets.csv')
@@ -194,7 +189,50 @@ def orders_api(organization: Organization, menu: ItemCollection):
     (Organization, {'name': 'org_name'}, 'organization'), permission='org_admin'
 )
 def invoices_report(organization: Organization):
-    headers, rows = organization.fetch_invoices()
+    today = date.today()
+    period_type = request.args.get('type', 'all')
+    invoice_filter = {}
+    if period_type == 'monthly':
+        period_month = request.args.get('month', None)
+        if period_month is not None:
+            [year, month] = [int(d) for d in period_month.split('-')]
+            try:
+                date(year, month, 1)
+            except (ValueError, TypeError):
+                return api_error(
+                    message='Invalid year/month',
+                    status_code=403,
+                    errors=['invalid_month'],
+                )
+        else:
+            year_rollback = date.month == 1
+            [year, month] = [
+                today.year - int(year_rollback),
+                today.month - 1 if not year_rollback else 12,
+            ]
+        invoice_filter['year'] = year
+        invoice_filter['month'] = month
+    elif period_type == 'custom':
+        period_from = date(today.year, today.month, 1)
+        period_to = date(today.year, today.month, today.day)
+        period_from = request.args.get('from', period_from)
+        try:
+            invoice_filter['from'] = datetime.strptime(period_from, '%Y-%m-%d')
+        except (ValueError, TypeError):
+            return api_error(
+                message='Invalid from date',
+                status_code=403,
+                errors=['invalid_from_date'],
+            )
+        period_to = request.args.get('to', period_to)
+        try:
+            invoice_filter['to'] = datetime.strptime(period_to, '%Y-%m-%d')
+        except (ValueError, TypeError):
+            return api_error(
+                message='Invalid to date', status_code=403, errors=['invalid_to_date']
+            )
+
+    headers, rows = organization.fetch_invoices(filters=invoice_filter)
     order_id_index = headers.index('order_id')
     buyer_name_index = headers.index('buyer_taxid')
     headers.insert(buyer_name_index, 'buyer_name')
@@ -223,7 +261,6 @@ def invoices_report(organization: Organization):
 
 
 @app.route('/admin/o/<org_name>/settlements.csv')
-@lastuser.requires_permission('siteadmin')
 @load_models((Organization, {'name': 'org_name'}, 'organization'))
 def settled_transactions(organization: Organization):
     today = date.today()

@@ -12,15 +12,30 @@ export const OrgReportTemplate = `
               <p class="field-title filled">Report type</p>
               <select name="report-type" value="{{ reportType }}">
                 <option value="invoices" selected="selected">Invoices</option>
-                {{#if siteadmin}}
-                  <option value="settlements">Settlements</option>
-                {{/if}}
+                <option value="settlements">Settlements</option>
               </select>
-              {{#if reportType == "settlements"}}
-                <p class='settlements-month-widget'>
-                  <input id="month" type="month" value="{{monthYear}}">
-                </p>
-              {{/if}}
+            </div>
+            <div class="group-select {{hideForSettlementsClass()}}">
+              <p class="field-title filled">Filter by period</p>
+              <select name="period-type" value="{{ periodType }}">
+                <option value="all" selected="selected">All</option>
+                <option value="monthly">Monthly</option>
+                <option value="custom">Custom</option>
+              </select>
+            </div>
+            <div class="report-period">
+              <p class="field-title filled {{periodMonthlyClass()}}">Month</p>
+              <p class="{{periodMonthlyClass()}}">
+                <input id="month" type="month" value="{{periodMonth}}" max="{{currentMonth}}">
+              </p>
+              <p class="field-title filled {{periodCustomClass()}}">From</p>
+              <p class="{{periodCustomClass()}}">
+                <input id="period-from" type="date" name="from" value="{{periodFrom}}" max="{{periodTo}}">
+              </p>
+              <p class="field-title filled {{periodCustomClass()}}">To</p>
+              <p class="{{periodCustomClass()}}">
+                <input id="period-to" type="date" name="to" value="{{periodTo}}" max="{{periodTo}}">
+              </p>
             </div>
             <div class="btn-wrapper">
               <a href="{{ reportsUrl() }}" download="{{ reportsFilename() }}" class="boxoffice-button boxoffice-button-action">Download</a>

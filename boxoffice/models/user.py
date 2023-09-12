@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, List, Optional
 
 from flask import g
+from sqlalchemy import extract
 
 from flask_lastuser.sqlalchemy import ProfileBase, UserBase2
 
@@ -82,8 +83,10 @@ class Organization(ProfileBase, Model):
             perms.add('org_admin')
         return perms
 
-    def fetch_invoices(self):
+    def fetch_invoices(self, filters=None):
         """Return invoices for an organization as a tuple of (row_headers, rows)."""
+        if filters is None:
+            filters = {}
         headers = [
             'order_id',
             'receipt_no',
@@ -128,6 +131,16 @@ class Organization(ProfileBase, Model):
             .join(Order)
             .order_by(Invoice.invoiced_at)
         )
+        if 'year' in filters and 'month' in filters:
+            invoices_query = invoices_query.filter(
+                extract('year', Invoice.invoiced_at) == filters['year']
+            ).filter(extract('month', Invoice.invoiced_at) == filters['month'])
+        if 'from' in filters:
+            invoices_query = invoices_query.filter(
+                Invoice.invoiced_at >= filters['from']
+            )
+        if 'to' in filters:
+            invoices_query = invoices_query.filter(Invoice.invoiced_at <= filters['to'])
         return HeadersAndDataTuple(
             headers, db.session.execute(invoices_query).fetchall()
         )
