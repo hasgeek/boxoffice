@@ -683,7 +683,6 @@ def update_order_on_line_item_cancellation(
     ]
     recalculated_line_item_tups = LineItem.calculate(
         active_line_items,
-        recalculate=True,
         coupons=get_coupon_codes_from_line_items(active_line_items),
     )
 

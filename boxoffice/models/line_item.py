@@ -1,23 +1,23 @@
 from __future__ import annotations
 
-from collections import OrderedDict, namedtuple
+from collections import OrderedDict
 from datetime import date, datetime, timedelta, tzinfo
 from decimal import Decimal
 from typing import (
     TYPE_CHECKING,
     Dict,
-    Iterable,
+    List,
+    NamedTuple,
     Optional,
     Sequence,
     Union,
     cast,
-    overload,
 )
 from uuid import UUID
 
 from flask import current_app
 from isoweek import Week
-from typing_extensions import Literal
+from typing_extensions import TypedDict
 
 from baseframe import localize_timezone
 from coaster.utils import isoweek_datetime, midnight_to_utc, utcnow
@@ -38,30 +38,20 @@ from .enums import LineItemStatus
 __all__ = ['LineItem', 'Assignee']
 
 
-LineItemTuple = namedtuple(
-    'LineItemTuple',
-    [
-        'ticket_id',
-        'id',
-        'base_amount',
-        'discount_policy_id',
-        'discount_coupon_id',
-        'discounted_amount',
-        'final_amount',
-    ],
-)
+class LineItemTuple(NamedTuple):
+    """Duck-type for LineItem."""
+
+    id: Optional[UUID]  # noqa: A003
+    ticket_id: UUID
+    base_amount: Optional[Decimal]
+    discount_policy_id: Optional[UUID] = None
+    discount_coupon_id: Optional[UUID] = None
+    discounted_amount: Optional[Decimal] = Decimal(0)
+    final_amount: Optional[Decimal] = None
 
 
-def make_ntuple(ticket_id, base_amount, **kwargs):
-    return LineItemTuple(
-        ticket_id,
-        kwargs.get('line_item_id', None),
-        base_amount,
-        kwargs.get('discount_policy_id', None),
-        kwargs.get('discount_coupon_id', None),
-        kwargs.get('discounted_amount', Decimal(0)),
-        kwargs.get('final_amount', None),
-    )
+class LineItemDict(TypedDict):
+    ticket_id: str
 
 
 class Assignee(BaseMixin, Model):
@@ -151,77 +141,51 @@ class LineItem(BaseMixin, Model):
             perms.add('org_admin')
         return perms
 
-    @overload
     @classmethod
     def calculate(
         cls,
-        line_items: Sequence[LineItem],
-        realculate: Literal[True],
+        line_items: Sequence[Union[LineItem, LineItemDict]],
         coupons: Optional[Sequence[str]] = None,
-    ):
-        ...
-
-    @overload
-    @classmethod
-    def calculate(
-        cls,
-        line_items: Sequence[dict],
-        realculate: Literal[False],
-        coupons: Optional[Sequence[str]] = None,
-    ):
-        ...
-
-    # TODO: Fix this classmethod's typing
-    @classmethod
-    def calculate(
-        cls,
-        line_items: Iterable[Union[LineItem, dict]],  # FIXME
-        recalculate=False,
-        coupons=None,
-    ):
+    ) -> Sequence[LineItemTuple]:
         """
         Return line item data tuples.
 
         For each line item, returns a tuple of base_amount, discounted_amount,
         final_amount, discount_policy and discount coupon populated
-
-        If the `recalculate` flag is set to `True`, the line_items will be considered
-        as SQLAlchemy objects.
         """
-        item_line_items = {}
-        calculated_line_items = []
+        base_amount: Optional[Decimal]
+        item_line_items: Dict[str, List[LineItemTuple]] = {}
+        calculated_line_items: List[LineItemTuple] = []
         coupon_list = list(set(coupons)) if coupons else []
         discounter = LineItemDiscounter()
 
         # make named tuples for line items,
         # assign the base_amount for each of them, None if a ticket is unavailable
         for line_item in line_items:
-            if recalculate:
+            ticket: Optional[Item]
+            if isinstance(line_item, LineItem):
                 ticket = line_item.ticket
-                # existing line item, use the original base amount
                 base_amount = line_item.base_amount
-                line_item_id = line_item.id
+                line_item_id = cast(UUID, line_item.id)
             else:
                 ticket = Item.query.get(line_item['ticket_id'])
-                # new line item, use the current price
                 if ticket is None:
-                    base_amount = None
-                else:
-                    current_price = ticket.current_price()
-                    base_amount = (
-                        current_price.amount
-                        if current_price is not None and ticket.is_available
-                        else None
-                    )
+                    continue
+                current_price = ticket.current_price()
+                base_amount = (
+                    current_price.amount
+                    if current_price is not None and ticket.is_available
+                    else None
+                )
                 line_item_id = None
 
             if not item_line_items.get(str(ticket.id)):
                 item_line_items[str(ticket.id)] = []
             item_line_items[str(ticket.id)].append(
-                make_ntuple(
-                    ticket_id=ticket.id,
+                LineItemTuple(
+                    id=line_item_id,
+                    ticket_id=cast(UUID, ticket.id),
                     base_amount=base_amount,
-                    line_item_id=line_item_id,
                 )
             )
 

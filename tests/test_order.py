@@ -369,7 +369,9 @@ def test_free_order(client, all_data) -> None:
     coupon = DiscountCoupon.query.filter_by(code='coupon2').one()
     assert coupon.used_count == 1
     assert order.status == OrderStatus.SALES_ORDER
-    assert order.line_items[0].status == LineItemStatus.CONFIRMED
+    assert order.line_items[0].status == (  # type: ignore[unreachable]
+        LineItemStatus.CONFIRMED
+    )
 
 
 def test_cancel_line_item_in_order(db_session, client, all_data, post_env) -> None:
@@ -452,6 +454,7 @@ def test_cancel_line_item_in_order(db_session, client, all_data, post_env) -> No
         .order_by(PaymentTransaction.created_at.desc())
         .first()
     )
+    assert refund_transaction1 is not None
     assert refund_transaction1.amount == expected_refund_amount
 
 
@@ -535,6 +538,7 @@ def test_cancel_line_item_in_bulk_order(db_session, client, all_data, post_env) 
         .order_by(PaymentTransaction.created_at.desc())
         .first()
     )
+    assert refund_transaction2 is not None
     assert refund_transaction2.amount == second_line_item.final_amount
 
     # test failed cancellation

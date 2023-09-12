@@ -1,4 +1,5 @@
 git+https://github.com/hasgeek/baseframe#egg=baseframe
+beartype
 click
 git+https://github.com/hasgeek/coaster#egg=coaster
 Flask
