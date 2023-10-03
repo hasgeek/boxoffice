@@ -8,6 +8,7 @@ from sqlalchemy import extract
 from flask_lastuser.sqlalchemy import ProfileBase, UserBase2
 
 from . import DynamicMapped, Mapped, Model, db, jsonb_dict, relationship, sa
+from .line_item import LineItem
 from .utils import HeadersAndDataTuple
 
 __all__ = ['User', 'Organization']
@@ -129,6 +130,90 @@ class Organization(ProfileBase, Model):
             .where(Invoice.organization == self)
             .select_from(Invoice)
             .join(Order)
+            .order_by(Invoice.invoiced_at)
+        )
+        if 'year' in filters and 'month' in filters:
+            invoices_query = invoices_query.filter(
+                extract('year', Invoice.invoiced_at) == filters['year']
+            ).filter(extract('month', Invoice.invoiced_at) == filters['month'])
+        if 'from' in filters:
+            invoices_query = invoices_query.filter(
+                Invoice.invoiced_at >= filters['from']
+            )
+        if 'to' in filters:
+            invoices_query = invoices_query.filter(Invoice.invoiced_at <= filters['to'])
+        return HeadersAndDataTuple(
+            headers, db.session.execute(invoices_query).fetchall()
+        )
+
+    def fetch_invoice_line_items(self, filters=None):
+        """
+        Return invoice line items for import into Zoho Books.
+
+        Return invoices for an organization as a tuple of (row_headers, rows) at line
+        items level keeping in mind columns required for import into Zoho Books.
+        """
+        if filters is None:
+            filters = {}
+        headers = [
+            'invoiced_at',
+            'invoice_no',
+            'order_id',
+            'receipt_no',
+            'boxoffice_status',
+            'buyer_taxid',
+            'seller_taxid',
+            'invoicee_name',
+            'invoicee_company',
+            'invoicee_email',
+            'street_address_1',
+            'street_address_2',
+            'city',
+            'state',
+            'state_code',
+            'country_code',
+            'postcode',
+            'line_item_id',
+            # TODO: Figure out outer join for item name
+            # 'item_name',
+            'item_price',
+            # TODO: Add the following fields
+            # 'project',
+        ]
+        invoices_query = (
+            sa.select(
+                Invoice.invoiced_at,
+                Invoice.invoice_no,
+                Order.id,
+                Order.receipt_no,
+                Invoice.status,
+                Invoice.buyer_taxid,
+                Invoice.seller_taxid,
+                Invoice.invoicee_name,
+                Invoice.invoicee_company,
+                Invoice.invoicee_email,
+                Invoice.street_address_1,
+                Invoice.street_address_2,
+                Invoice.city,
+                Invoice.state,
+                Invoice.state_code,
+                Invoice.country_code,
+                Invoice.postcode,
+                LineItem.id,
+                # ItemCollection.title,
+                LineItem.final_amount,
+            )
+            .where(Invoice.organization == self)
+            .select_from(Invoice)
+            .join(Order)
+            .join(LineItem)
+            # .outerjoin(
+            #     ItemCollection,
+            #     sa.and_(
+            #         LineItem.ticket_id == Item.id,
+            #         Item.menu_id == ItemCollection.id
+            #     )
+            # )
             .order_by(Invoice.invoiced_at)
         )
         if 'year' in filters and 'month' in filters:

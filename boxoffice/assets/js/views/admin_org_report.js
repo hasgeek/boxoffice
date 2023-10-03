@@ -81,12 +81,26 @@ export const OrgReportView = {
             return `${url}?${$.param(params)}`;
           },
           reportsFilename() {
+            let filename = `${accountName}_${this.get('reportType')}`;
             if (this.get('reportType') === 'settlements') {
-              return `${accountName}_${this.get('reportType')}_${this.get(
-                'periodMonth'
-              )}.csv`;
+              filename += `_${this.get('periodMonth')}`;
+            } else {
+              const periodType = this.get('periodType');
+              switch (periodType) {
+                case 'monthly':
+                  filename += `_${this.get('periodMonth')}`;
+                  break;
+                case 'custom':
+                  filename += `_${this.get('periodFrom')}_${this.get(
+                    'periodTo'
+                  )}`;
+                  break;
+                default:
+                  break;
+              }
             }
-            return `${accountName}_${this.get('reportType')}.csv`;
+            filename += '.csv';
+            return filename;
           },
         },
       });

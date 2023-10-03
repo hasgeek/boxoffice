@@ -13,6 +13,7 @@ export const OrgReportTemplate = `
               <select name="report-type" value="{{ reportType }}">
                 <option value="invoices" selected="selected">Invoices</option>
                 <option value="settlements">Settlements</option>
+                <option value="invoices_zoho_books">Zoho Books Invoices</option>
               </select>
             </div>
             <div class="group-select {{hideForSettlementsClass()}}">

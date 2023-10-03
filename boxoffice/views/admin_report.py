@@ -9,7 +9,7 @@ from coaster.views import ReturnRenderWith, load_models, render_with
 
 from .. import app, lastuser
 from ..extapi.razorpay import get_settled_transactions
-from ..models import InvoiceStatus, ItemCollection, Order, Organization
+from ..models import InvoiceStatus, ItemCollection, LineItem, Order, Organization
 from .utils import api_error, check_api_access, csv_response
 
 
@@ -248,6 +248,100 @@ def invoices_report(organization: Organization):
         for enum_member in InvoiceStatus:
             if dict_row.get('status') == enum_member.value:
                 dict_row['status'] = enum_member.name
+                break
+        if isinstance(dict_row.get('invoiced_at'), datetime):
+            dict_row['invoiced_at'] = format_datetime(
+                localize_timezone(dict_row['invoiced_at']),
+                format='long',
+                locale=get_locale() or 'en',
+            )
+        return dict_row
+
+    return csv_response(headers, rows, row_type='dict', row_handler=row_handler)
+
+
+@app.route('/admin/o/<org_name>/invoices_zoho_books.csv')
+@lastuser.requires_login
+@load_models(
+    (Organization, {'name': 'org_name'}, 'organization'), permission='org_admin'
+)
+def invoices_report_zb(organization: Organization):
+    today = date.today()
+    period_type = request.args.get('type', 'all')
+    invoice_filter = {}
+    if period_type == 'monthly':
+        period_month = request.args.get('month', None)
+        if period_month is not None:
+            [year, month] = [int(d) for d in period_month.split('-')]
+            try:
+                date(year, month, 1)
+            except (ValueError, TypeError):
+                return api_error(
+                    message='Invalid year/month',
+                    status_code=403,
+                    errors=['invalid_month'],
+                )
+        else:
+            year_rollback = date.month == 1
+            [year, month] = [
+                today.year - int(year_rollback),
+                today.month - 1 if not year_rollback else 12,
+            ]
+        invoice_filter['year'] = year
+        invoice_filter['month'] = month
+    elif period_type == 'custom':
+        period_from = date(today.year, today.month, 1)
+        period_to = date(today.year, today.month, today.day)
+        period_from = request.args.get('from', period_from)
+        try:
+            invoice_filter['from'] = datetime.strptime(period_from, '%Y-%m-%d')
+        except (ValueError, TypeError):
+            return api_error(
+                message='Invalid from date',
+                status_code=403,
+                errors=['invalid_from_date'],
+            )
+        period_to = request.args.get('to', period_to)
+        try:
+            invoice_filter['to'] = datetime.strptime(period_to, '%Y-%m-%d')
+        except (ValueError, TypeError):
+            return api_error(
+                message='Invalid to date', status_code=403, errors=['invalid_to_date']
+            )
+
+    headers, rows = organization.fetch_invoice_line_items(filters=invoice_filter)
+
+    order_id_index = headers.index('order_id')
+    buyer_name_index = headers.index('buyer_taxid')
+    headers.insert(buyer_name_index, 'buyer_name')
+    buyer_email_index = headers.index('buyer_taxid')
+    headers.insert(buyer_email_index, 'buyer_email')
+    gst_treatment_index = headers.index('buyer_taxid')
+    headers.insert(gst_treatment_index, 'gst_treatment')
+    line_item_id_index = headers.index('line_item_id')
+    item_name_index = headers.index('item_price')
+    headers.insert(item_name_index, 'item_name')
+    tax_inclusive_index = headers.index('item_price')
+    headers.insert(tax_inclusive_index, 'tax_inclusive')
+
+    def row_handler(row):
+        order = Order.query.filter(Order.id == row[order_id_index]).first()
+        row = list(row)
+        row.insert(buyer_name_index, order.buyer_fullname)
+        row.insert(buyer_email_index, order.buyer_email)
+        row.insert(
+            gst_treatment_index,
+            'business_gst' if row[gst_treatment_index] is not None else 'consumer',
+        )
+        line_item = LineItem.query.filter(
+            LineItem.id == row[line_item_id_index]
+        ).first()
+        row.insert(item_name_index, line_item.ticket.menu.title)
+        row.insert(tax_inclusive_index, 'true')
+        dict_row = dict(list(zip(headers, row)))
+        for enum_member in InvoiceStatus:
+            if dict_row.get('boxoffice_status') == enum_member.value:
+                dict_row['boxoffice_status'] = enum_member.name
                 break
         if isinstance(dict_row.get('invoiced_at'), datetime):
             dict_row['invoiced_at'] = format_datetime(
