@@ -41,6 +41,11 @@ export const OrgReportView = {
           hideForSettlementsClass() {
             return this.get('reportType') === 'settlements' ? 'hide' : '';
           },
+          showForZBInvoicesClass() {
+            return this.get('reportType') === 'invoices_zoho_books'
+              ? ''
+              : 'hide';
+          },
           periodMonthlyClass() {
             if (this.get('reportType') === 'settlements') return '';
             return this.get('periodType') !== 'monthly' ? 'hide' : '';

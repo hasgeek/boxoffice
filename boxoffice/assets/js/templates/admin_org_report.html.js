@@ -15,6 +15,40 @@ export const OrgReportTemplate = `
                 <option value="settlements">Settlements</option>
                 <option value="invoices_zoho_books">Zoho Books Invoices</option>
               </select>
+              <p class="{{showForZBInvoicesClass()}}">
+                <small>
+                  Following fields do not get automatically detected during import
+                  and need to be manually mapped:
+                  <ul>
+                    <li>Sales Order Number</li>
+                    <li>
+                      Contact Details
+                      <ul>
+                        <li>First Name</li>
+                        <li>Last Name</li>
+                        <li>Email</li>
+                      </ul>
+                    </li>
+                    <li>
+                      Item Details
+                      <ul>
+                        <li>Item Tax %</li>
+                      </ul>
+                    </li>
+                  </ul>
+                  Following fields need to be manually added to the exported file:
+                  <ul>
+                    <li>Place of Supply</li>
+                    <li>
+                      Item Details
+                      <ul>
+                        <li>Account</li>
+                        <li>HSN/SAC</li>
+                      </ul>
+                    </li>
+                  </ul>
+                </small>
+              </p>
             </div>
             <div class="group-select {{hideForSettlementsClass()}}">
               <p class="field-title filled">Filter by period</p>

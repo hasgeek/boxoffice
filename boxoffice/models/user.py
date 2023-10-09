@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, List, Optional
 
 from flask import g
 from sqlalchemy import extract
+from sqlalchemy.sql.expression import literal
 
 from flask_lastuser.sqlalchemy import ProfileBase, UserBase2
 
@@ -156,57 +157,67 @@ class Organization(ProfileBase, Model):
         if filters is None:
             filters = {}
         headers = [
-            'invoiced_at',
-            'invoice_no',
-            'order_id',
-            'receipt_no',
-            'boxoffice_status',
-            'buyer_taxid',
-            'seller_taxid',
-            'invoicee_name',
+            'Invoice Number',
+            'Invoice Date',
+            'Invoice Status',
+            'Sales Order Number',
+            'Invoice Status on Boxoffice',
+            'GST Identification Number (GSTIN)',
+            'Seller GSTIN',
+            'Currency Code',
+            # 'Place of Supply',
+            'Customer Name',
+            'Email',
             'invoicee_company',
-            'invoicee_email',
-            'street_address_1',
-            'street_address_2',
-            'city',
-            'state',
-            'state_code',
-            'country_code',
-            'postcode',
+            'Is Inclusive Tax',
+            'Item Type',
+            'Item Price',
+            'Item Tax %',
+            # 'Quantity',
+            'Billing Address',
+            'Billing Street2',
+            'Billing City',
+            'Billing State',
+            'Billing Country',
+            'Billing Code',
             'line_item_id',
             # TODO: Figure out outer join for item name
             # 'item_name',
-            'item_price',
             # TODO: Add the following fields
             # 'project',
         ]
         invoices_query = (
             sa.select(
-                Invoice.invoiced_at,
                 Invoice.invoice_no,
+                Invoice.invoiced_at,
+                literal('DRAFT'),
                 Order.id,
-                Order.receipt_no,
                 Invoice.status,
                 Invoice.buyer_taxid,
                 Invoice.seller_taxid,
+                literal('INR'),
                 Invoice.invoicee_name,
-                Invoice.invoicee_company,
                 Invoice.invoicee_email,
+                Invoice.invoicee_company,
+                literal('true'),
+                literal('service'),
+                LineItem.final_amount,
+                literal(18),
+                # count(LineItem.id),
                 Invoice.street_address_1,
                 Invoice.street_address_2,
                 Invoice.city,
-                Invoice.state,
                 Invoice.state_code,
                 Invoice.country_code,
                 Invoice.postcode,
                 LineItem.id,
                 # ItemCollection.title,
-                LineItem.final_amount,
             )
             .where(Invoice.organization == self)
             .select_from(Invoice)
             .join(Order)
             .join(LineItem)
+            # .group_by(LineItem.id)
             # .outerjoin(
             #     ItemCollection,
             #     sa.and_(
