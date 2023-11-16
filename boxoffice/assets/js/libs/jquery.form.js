@@ -355,8 +355,8 @@
         var doc = io.contentWindow
           ? io.contentWindow.document
           : io.contentDocument
-          ? io.contentDocument
-          : io.document;
+            ? io.contentDocument
+            : io.document;
         if (!doc || doc.location.href == s.iframeSrc) {
           // response not received yet
           return;
@@ -394,8 +394,8 @@
           xhr.responseText = doc.body
             ? doc.body.innerHTML
             : doc.documentElement
-            ? doc.documentElement.innerHTML
-            : null;
+              ? doc.documentElement.innerHTML
+              : null;
           xhr.responseXML = doc.XMLDocument ? doc.XMLDocument : doc;
           xhr.getResponseHeader = function (header) {
             var headers = { 'content-type': s.dataType };

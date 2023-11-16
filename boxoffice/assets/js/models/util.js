@@ -196,8 +196,8 @@ export const urlFor = function (action, params = {}) {
       url = params.page
         ? `${scope}${resource}${ext}?page=${params.page}&size=${params.size}`
         : params.size
-        ? `${scope}${resource}${ext}?size=${params.size}`
-        : `${scope}${resource}${ext}`;
+          ? `${scope}${resource}${ext}?size=${params.size}`
+          : `${scope}${resource}${ext}`;
       break;
     case 'view':
       url = scope

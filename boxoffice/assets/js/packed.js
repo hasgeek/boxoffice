@@ -127,8 +127,8 @@
         return num == null
           ? this.toArray()
           : num < 0
-          ? this[this.length + num]
-          : this[num];
+            ? this[this.length + num]
+            : this[num];
       },
       pushStack: function (elems, name, selector) {
         var ret = this.constructor();
@@ -1397,14 +1397,14 @@
             data === 'true'
               ? true
               : data === 'false'
-              ? false
-              : data === 'null'
-              ? null
-              : jQuery.isNumeric(data)
-              ? parseFloat(data)
-              : rbrace.test(data)
-              ? jQuery.parseJSON(data)
-              : data;
+                ? false
+                : data === 'null'
+                  ? null
+                  : jQuery.isNumeric(data)
+                    ? parseFloat(data)
+                    : rbrace.test(data)
+                      ? jQuery.parseJSON(data)
+                      : data;
         } catch (e) {}
         jQuery.data(elem, key, data);
       } else {
@@ -1743,8 +1743,8 @@
           return typeof ret === 'string'
             ? ret.replace(rreturn, '')
             : ret == null
-            ? ''
-            : ret;
+              ? ''
+              : ret;
         }
         return;
       }
@@ -2006,9 +2006,9 @@
           return attributeNode && attributeNode.specified
             ? parseInt(attributeNode.value, 10)
             : rfocusable.test(elem.nodeName) ||
-              (rclickable.test(elem.nodeName) && elem.href)
-            ? 0
-            : undefined;
+                (rclickable.test(elem.nodeName) && elem.href)
+              ? 0
+              : undefined;
         },
       },
     },
@@ -3766,35 +3766,37 @@
             result = Sizzle.attr
               ? Sizzle.attr(elem, name)
               : Expr.attrHandle[name]
-              ? Expr.attrHandle[name](elem)
-              : elem[name] != null
-              ? elem[name]
-              : elem.getAttribute(name),
+                ? Expr.attrHandle[name](elem)
+                : elem[name] != null
+                  ? elem[name]
+                  : elem.getAttribute(name),
             value = result + '',
             type = match[2],
             check = match[4];
           return result == null
             ? type === '!='
             : !type && Sizzle.attr
-            ? result != null
-            : type === '='
-            ? value === check
-            : type === '*='
-            ? value.indexOf(check) >= 0
-            : type === '~='
-            ? (' ' + value + ' ').indexOf(check) >= 0
-            : !check
-            ? value && result !== false
-            : type === '!='
-            ? value !== check
-            : type === '^='
-            ? value.indexOf(check) === 0
-            : type === '$='
-            ? value.substr(value.length - check.length) === check
-            : type === '|='
-            ? value === check ||
-              value.substr(0, check.length + 1) === check + '-'
-            : false;
+              ? result != null
+              : type === '='
+                ? value === check
+                : type === '*='
+                  ? value.indexOf(check) >= 0
+                  : type === '~='
+                    ? (' ' + value + ' ').indexOf(check) >= 0
+                    : !check
+                      ? value && result !== false
+                      : type === '!='
+                        ? value !== check
+                        : type === '^='
+                          ? value.indexOf(check) === 0
+                          : type === '$='
+                            ? value.substr(value.length - check.length) ===
+                              check
+                            : type === '|='
+                              ? value === check ||
+                                value.substr(0, check.length + 1) ===
+                                  check + '-'
+                              : false;
         },
         POS: function (elem, match, i, array) {
           var name = match[2],
@@ -5066,8 +5068,8 @@
                   tag === 'table' && !hasBody
                     ? div.firstChild && div.firstChild.childNodes
                     : wrap[1] === '<table>' && !hasBody
-                    ? div.childNodes
-                    : [];
+                      ? div.childNodes
+                      : [];
               for (j = tbody.length - 1; j >= 0; --j) {
                 if (
                   jQuery.nodeName(tbody[j], 'tbody') &&
@@ -5338,8 +5340,8 @@
         )
           ? parseFloat(RegExp.$1) / 100 + ''
           : computed
-          ? '1'
-          : '';
+            ? '1'
+            : '';
       },
       set: function (elem, value) {
         var style = elem.style,
@@ -5664,10 +5666,10 @@
           return val == null
             ? null
             : jQuery.isArray(val)
-            ? jQuery.map(val, function (val, i) {
-                return { name: elem.name, value: val.replace(rCRLF, '\r\n') };
-              })
-            : { name: elem.name, value: val.replace(rCRLF, '\r\n') };
+              ? jQuery.map(val, function (val, i) {
+                  return { name: elem.name, value: val.replace(rCRLF, '\r\n') };
+                })
+              : { name: elem.name, value: val.replace(rCRLF, '\r\n') };
         })
         .get();
     },
@@ -6711,10 +6713,10 @@
       opt.duration = jQuery.fx.off
         ? 0
         : typeof opt.duration === 'number'
-        ? opt.duration
-        : opt.duration in jQuery.fx.speeds
-        ? jQuery.fx.speeds[opt.duration]
-        : jQuery.fx.speeds._default;
+          ? opt.duration
+          : opt.duration in jQuery.fx.speeds
+            ? jQuery.fx.speeds[opt.duration]
+            : jQuery.fx.speeds._default;
       if (opt.queue == null || opt.queue === true) {
         opt.queue = 'fx';
       }
@@ -7195,8 +7197,8 @@
     return jQuery.isWindow(elem)
       ? elem
       : elem.nodeType === 9
-      ? elem.defaultView || elem.parentWindow
-      : false;
+        ? elem.defaultView || elem.parentWindow
+        : false;
   }
   jQuery.each(['Height', 'Width'], function (i, name) {
     var type = name.toLowerCase();
@@ -8130,8 +8132,8 @@
         var doc = frame.contentWindow
           ? frame.contentWindow.document
           : frame.contentDocument
-          ? frame.contentDocument
-          : frame.document;
+            ? frame.contentDocument
+            : frame.document;
         return doc;
       }
       var csrf_token = $('meta[name=csrf-token]').attr('content');
