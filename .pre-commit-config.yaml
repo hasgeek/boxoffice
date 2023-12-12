@@ -14,7 +14,7 @@ repos:
             '--remove-duplicate-keys',
           ]
   - repo: https://github.com/PyCQA/isort
-    rev: 5.12.0
+    rev: 5.13.0
     hooks:
       - id: isort
         additional_dependencies:
@@ -74,13 +74,13 @@ repos:
           - flake8-print
           - pep8-naming
   - repo: https://github.com/PyCQA/bandit
-    rev: 1.7.5
+    rev: 1.7.6
     hooks:
       - id: bandit
         language_version: python3
         exclude: (^tests|funnel/loginproviders/flask_oauth.py)
   - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v3.1.0
+    rev: v4.0.0-alpha.4
     hooks:
       - id: prettier
         args: ['--single-quote', '--trailing-comma', 'es5']
