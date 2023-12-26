@@ -40,6 +40,7 @@ CACHE_TYPE = 'redis'
 #: RQ settings
 RQ_REDIS_URL = 'redis://localhost:6379/0'
 RQ_SCHEDULER_INTERVAL = 1
-TELEGRAM_BOT_TOKEN = ''
-TELEGRAM_CHAT_ID = ''
-TELEGRAM_MESSAGE_THREAD_ID = ''
+#: Telegram settings
+TELEGRAM_APIKEY = ''  # nosec
+TELEGRAM_CHATID = ''  # nosec
+TELEGRAM_THREADID = ''
