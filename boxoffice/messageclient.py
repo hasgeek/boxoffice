@@ -4,12 +4,15 @@ from baseframe import _
 
 from . import app, rq
 
+from .models import Order
+
 
 @rq.job('boxoffice')
-def send_telegram_message(buyer_fullname, line_item_title):
+def send_telegram_message(order_id):
     with app.test_request_context():
+        order = Order.query.get(order_id)
         message_text = _("{user} purchased {title}").format(
-            user=buyer_fullname, title=line_item_title
+            user=order.buyer_fullname, title=order.line_item.item.title
         )
         send_text = (
             f'https://api.telegram.org/bot{app.config["TELEGRAM_APIKEY"]}/sendMessage'
