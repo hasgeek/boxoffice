@@ -439,7 +439,11 @@ def payment(order):
                 invoice_no=order.invoice_no,
             ),
         )
-        send_telegram_message.queue(order=order)
+        if app.config['TELEGRAM_BOT_TOKEN']:
+            send_telegram_message.queue(
+                buyer_fullname=order.buyer_fullname,
+                line_item_title=order.line_item.item.title,
+            )
         return api_success(
             result={'invoice_id': invoice.id},
             doc=_("Payment verified"),
