@@ -1,7 +1,9 @@
 import requests
 
-from . import app, rq
 from baseframe import _
+
+from . import app, rq
+
 
 @rq.job('boxoffice')
 def send_telegram_message(buyer_fullname, line_item_title):
