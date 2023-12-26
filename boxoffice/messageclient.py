@@ -1,7 +1,8 @@
 import requests
 
-from . import app, rq
 from baseframe import _
+
+from . import app, rq
 
 
 @rq.job('boxoffice')
