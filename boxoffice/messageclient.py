@@ -3,7 +3,6 @@ import requests
 from baseframe import _
 
 from . import app, rq
-
 from .models import Order
 
 
