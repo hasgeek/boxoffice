@@ -440,11 +440,7 @@ def payment(order):
             ),
         )
         if app.config['TELEGRAM_APIKEY'] and app.config['TELEGRAM_CHATID']:
-            send_telegram_message.queue(
-                order.id
-                buyer_fullname=order.buyer_fullname,
-                line_item_title=order.line_item.item.title,
-            )
+            send_telegram_message.queue(order_id=order.id)
         return api_success(
             result={'invoice_id': invoice.id},
             doc=_("Payment verified"),
