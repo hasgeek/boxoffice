@@ -439,7 +439,7 @@ def payment(order):
                 invoice_no=order.invoice_no,
             ),
         )
-        if app.config['TELEGRAM_APIKEY'] and app.config['TELEGRAM_CHATID']:
+        if app.config.get('TELEGRAM_APIKEY') and app.config.get('TELEGRAM_CHATID'):
             send_telegram_message.queue(order_id=order.id)
         return api_success(
             result={'invoice_id': invoice.id},
