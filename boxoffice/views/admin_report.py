@@ -64,10 +64,12 @@ def tickets_report(item_collection):
     def row_handler(row):
         # localize datetime
         row_list = [
-            v
-            if not isinstance(v, datetime)
-            else format_datetime(
-                localize_timezone(v), format='long', locale=get_locale()
+            (
+                v
+                if not isinstance(v, datetime)
+                else format_datetime(
+                    localize_timezone(v), format='long', locale=get_locale()
+                )
             )
             for v in row
         ]

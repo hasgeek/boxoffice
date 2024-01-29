@@ -133,9 +133,11 @@ def jsonify_order(data):
                 'assignee': jsonify_assignee(line_item.current_assignee),
                 'is_confirmed': line_item.is_confirmed,
                 'is_cancelled': line_item.is_cancelled,
-                'cancelled_at': json_date_format(line_item.cancelled_at)
-                if line_item.cancelled_at
-                else "",
+                'cancelled_at': (
+                    json_date_format(line_item.cancelled_at)
+                    if line_item.cancelled_at
+                    else ""
+                ),
                 'is_transferable': line_item.is_transferable,
             }
         )
@@ -595,9 +597,9 @@ def jsonify_orders(orders):
                 {
                     'assignee': format_assignee(line_item),
                     'line_item_seq': line_item.line_item_seq,
-                    'line_item_status': "confirmed"
-                    if line_item.is_confirmed
-                    else "cancelled",
+                    'line_item_status': (
+                        "confirmed" if line_item.is_confirmed else "cancelled"
+                    ),
                     'item': {'title': line_item.item.title},
                 }
             )
