@@ -41,21 +41,23 @@ def format_line_items(line_items):
                 'base_amount': line_item.base_amount,
                 'discounted_amount': line_item.discounted_amount,
                 'final_amount': line_item.final_amount,
-                'discount_policy': line_item.discount_policy.title
-                if line_item.discount_policy
-                else "",
-                'discount_coupon': line_item.discount_coupon.code
-                if line_item.discount_coupon
-                else "",
-                'cancelled_at': json_date_format(line_item.cancelled_at)
-                if line_item.cancelled_at
-                else "",
+                'discount_policy': (
+                    line_item.discount_policy.title if line_item.discount_policy else ""
+                ),
+                'discount_coupon': (
+                    line_item.discount_coupon.code if line_item.discount_coupon else ""
+                ),
+                'cancelled_at': (
+                    json_date_format(line_item.cancelled_at)
+                    if line_item.cancelled_at
+                    else ""
+                ),
                 'assignee_details': format_assignee(line_item.current_assignee),
-                'cancel_ticket_url': url_for(
-                    'cancel_line_item', line_item_id=line_item.id
-                )
-                if line_item.is_cancellable()
-                else "",
+                'cancel_ticket_url': (
+                    url_for('cancel_line_item', line_item_id=line_item.id)
+                    if line_item.is_cancellable()
+                    else ""
+                ),
             }
         )
     return line_item_dicts
@@ -164,20 +166,24 @@ def get_order_details(order):
         {
             'title': li.item.title,
             'category': li.item.category.title,
-            'event_date': li.item.event_date.isoformat()
-            if li.item.event_date
-            else None,
+            'event_date': (
+                li.item.event_date.isoformat() if li.item.event_date else None
+            ),
             'status': LINE_ITEM_STATUS[li.status],
             'base_amount': li.base_amount,
             'discounted_amount': li.discounted_amount,
             'final_amount': li.final_amount,
             'assignee': format_assignee(li.current_assignee),
-            'place_of_supply_city': li.item.place_supply_state_code
-            if li.item.place_supply_state_code
-            else li.item.item_collection.place_supply_state_code,
-            'place_of_supply_country': li.item.place_supply_country_code
-            if li.item.place_supply_country_code
-            else li.item.item_collection.place_supply_country_code,
+            'place_of_supply_city': (
+                li.item.place_supply_state_code
+                if li.item.place_supply_state_code
+                else li.item.item_collection.place_supply_state_code
+            ),
+            'place_of_supply_country': (
+                li.item.place_supply_country_code
+                if li.item.place_supply_country_code
+                else li.item.item_collection.place_supply_country_code
+            ),
             'tax_type': li.item.item_collection.tax_type,
         }
         for li in order.confirmed_and_cancelled_line_items

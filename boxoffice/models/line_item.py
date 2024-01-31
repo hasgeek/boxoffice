@@ -184,8 +184,7 @@ class LineItem(BaseMixin, db.Model):
         line_items: List[LineItem],
         realculate: Literal[True],
         coupons: Optional[List[str]] = None,
-    ):
-        ...
+    ): ...
 
     @overload
     @classmethod
@@ -194,8 +193,7 @@ class LineItem(BaseMixin, db.Model):
         line_items: List[dict],
         realculate: Literal[False],
         coupons: Optional[List[str]] = None,
-    ):
-        ...
+    ): ...
 
     # TODO: Fix this classmethod's typing
     @classmethod
@@ -264,9 +262,11 @@ class LineItem(BaseMixin, db.Model):
             return (
                 now < localize_timezone(self.item.transferable_until, tz)
                 if self.item.transferable_until is not None
-                else now.date() <= self.item.event_date
-                if self.item.event_date is not None
-                else True
+                else (
+                    now.date() <= self.item.event_date
+                    if self.item.event_date is not None
+                    else True
+                )
             )
 
     @property
