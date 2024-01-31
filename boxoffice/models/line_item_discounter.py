@@ -118,9 +118,11 @@ class LineItemDiscounter:
                         ticket_id=line_item.ticket_id,
                         base_amount=line_item.base_amount,
                         discount_policy_id=cast(UUID, policy_coupon.policy.id),
-                        discount_coupon_id=cast(UUID, policy_coupon.coupon.id)
-                        if policy_coupon.coupon
-                        else None,
+                        discount_coupon_id=(
+                            cast(UUID, policy_coupon.coupon.id)
+                            if policy_coupon.coupon
+                            else None
+                        ),
                         discounted_amount=discounted_amount,
                         final_amount=line_item.base_amount - discounted_amount,
                     )

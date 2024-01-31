@@ -67,9 +67,11 @@ def format_line_item(settlement_id, payment_id, line_item: LineItem, payment_sta
         'discounted_amount': line_item.discounted_amount,
         'final_amount': line_item.final_amount,
         'payment_status': payment_status,
-        'transaction_date': localize_timezone(transaction_date, 'Asia/Kolkata')
-        if transaction_date is not None
-        else None,
+        'transaction_date': (
+            localize_timezone(transaction_date, 'Asia/Kolkata')
+            if transaction_date is not None
+            else None
+        ),
     }
 
 
