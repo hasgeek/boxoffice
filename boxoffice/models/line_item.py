@@ -104,10 +104,8 @@ class LineItem(BaseMixin, Model):
         sa.ForeignKey('line_item.id'), unique=True
     )
     previous: Mapped[LineItem] = relationship(
-        # primaryjoin='line_item.c.id==line_item.c.previous_id',
         back_populates='revision',
         remote_side='LineItem.id',
-        # foreign_keys=[previous_id],
         uselist=False,
     )
     revision: Mapped[LineItem] = relationship(uselist=False, back_populates='previous')
@@ -225,9 +223,11 @@ class LineItem(BaseMixin, Model):
         return (
             now < localize_timezone(self.ticket.transferable_until, tz)
             if self.ticket.transferable_until is not None
-            else now.date() <= self.ticket.event_date
-            if self.ticket.event_date is not None
-            else True
+            else (
+                now.date() <= self.ticket.event_date
+                if self.ticket.event_date is not None
+                else True
+            )
         )
 
     @property

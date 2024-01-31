@@ -59,10 +59,12 @@ def tickets_report(menu: ItemCollection):
     def row_handler(row):
         # localize datetime
         row_list = [
-            v
-            if not isinstance(v, datetime)
-            else format_datetime(
-                localize_timezone(v), format='long', locale=get_locale() or 'en'
+            (
+                v
+                if not isinstance(v, datetime)
+                else format_datetime(
+                    localize_timezone(v), format='long', locale=get_locale() or 'en'
+                )
             )
             for v in row
         ]
@@ -166,7 +168,7 @@ def orders_api(organization: Organization, menu: ItemCollection):
         # Convert row to a dict
         dict_row = {}
         for idx, item in enumerate(row):
-            # 'assignee_details' is a dict already, so copy and include prefixs
+            # 'assignee_details' is a dict already, so copy and include prefixes
             if idx == attendee_details_index and isinstance(item, dict):
                 for key in item.keys():
                     dict_row['attendee_details_' + key] = item[key]
