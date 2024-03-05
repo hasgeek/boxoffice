@@ -101,7 +101,9 @@ class LineItemDiscounter:
                 and (
                     not line_item.discount_policy_id
                     or (
-                        combo and (line_item.discounted_amount or 0) < discounted_amount
+                        combo
+                        and cast(Decimal, line_item.discounted_amount)
+                        < discounted_amount
                     )
                 )
             ):
@@ -117,7 +119,8 @@ class LineItemDiscounter:
                             policy_coupon.coupon.id if policy_coupon.coupon else None
                         ),
                         discounted_amount=discounted_amount,
-                        final_amount=(line_item.base_amount or 0) - discounted_amount,
+                        final_amount=cast(Decimal, line_item.base_amount)
+                        - discounted_amount,
                     )
                 )
                 applied_to_count += 1
