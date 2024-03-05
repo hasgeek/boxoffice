@@ -1,19 +1,15 @@
 git+https://github.com/hasgeek/baseframe#egg=baseframe
-click
 git+https://github.com/hasgeek/coaster#egg=coaster
 Flask
-Flask-Assets
 git+https://github.com/hasgeek/flask-lastuser#egg=Flask-Lastuser
 Flask-Mail
 Flask-Migrate
 Flask-RQ2
 Flask-SQLAlchemy
-Flask-WTF
 gunicorn
 html2text
 isoweek
 itsdangerous
-jsmin
 premailer
 psycopg-binary
 python-dateutil
@@ -23,5 +19,4 @@ rq
 SQLAlchemy
 sqlalchemy-json
 SQLAlchemy-Utils
-tabulate
 typing-extensions
