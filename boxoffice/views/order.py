@@ -885,6 +885,7 @@ def partial_refund_order(order: Order) -> ReturnRenderWith:
     }
 
 
+@app.route('/api/1/ic/<menu_id>/orders', methods=['GET', 'OPTIONS'])
 @app.route('/api/1/menu/<menu_id>/orders', methods=['GET', 'OPTIONS'])
 @load_models((ItemCollection, {'id': 'menu_id'}, 'menu'))
 def menu_orders(menu: ItemCollection):
