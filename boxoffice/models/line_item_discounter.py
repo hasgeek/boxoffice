@@ -3,7 +3,6 @@ from __future__ import annotations
 from collections.abc import Sequence
 from decimal import Decimal
 from typing import cast
-from uuid import UUID
 import itertools
 
 from .discount_policy import DiscountCoupon, DiscountPolicy, PolicyCoupon
@@ -35,7 +34,7 @@ class LineItemDiscounter:
 
     def get_valid_discounts(
         self, line_items: Sequence[LineItemTuple], coupons: Sequence[str]
-    ) -> Sequence[PolicyCoupon]:
+    ) -> list[PolicyCoupon]:
         """Return available discounts given line items and coupon codes."""
         if not line_items:
             return []
@@ -66,7 +65,9 @@ class LineItemDiscounter:
                 # No discount, base_amount is cheaper
                 return Decimal(0)
             return line_item.base_amount - discounted_price.amount
-        return (discount_policy.percentage or 0) * line_item.base_amount / Decimal(100)
+        return (
+            cast(int, discount_policy.percentage) * line_item.base_amount / Decimal(100)
+        )
 
     def is_coupon_usable(self, coupon: DiscountCoupon, applied_to_count: int) -> bool:
         return (coupon.usage_limit - coupon.used_count) > applied_to_count
@@ -78,13 +79,11 @@ class LineItemDiscounter:
         combo: bool = False,
     ) -> Sequence[LineItemTuple]:
         """
-        Apply discounts on given line items.
+        Apply discounts to line items.
 
-        Return line_items with the given discount_policy and
-        the discounted amount assigned to each line item.
-
-        Assumes that the discount policies and discount coupons passed as arguments are
-        valid and usable.
+        Returns line_items with the given discount_policy and the discounted amount
+        assigned to each line item. Assumes that the discount policies and discount
+        coupons passed as arguments are valid and usable.
         """
         discounted_line_items: list[LineItemTuple] = []
         applied_to_count = 0
@@ -92,8 +91,8 @@ class LineItemDiscounter:
             discounted_amount = self.calculate_discounted_amount(
                 policy_coupon.policy, line_item
             )
-            if (
-                (  # pylint: disable=too-many-boolean-expressions
+            if (  # pylint: disable=too-many-boolean-expressions
+                (
                     policy_coupon.coupon
                     and self.is_coupon_usable(policy_coupon.coupon, applied_to_count)
                     or policy_coupon.policy.is_automatic
@@ -101,24 +100,24 @@ class LineItemDiscounter:
                 and discounted_amount > 0
                 and (
                     not line_item.discount_policy_id
-                    or (combo and line_item.discounted_amount < discounted_amount)
+                    or (
+                        combo and (line_item.discounted_amount or 0) < discounted_amount
+                    )
                 )
             ):
                 # if the line item's assigned discount is lesser than the current
                 # discount, assign the current discount to the line item
                 discounted_line_items.append(
                     LineItemTuple(
-                        id=cast(UUID, line_item.id) if line_item.id else None,
+                        id=line_item.id if line_item.id else None,
                         ticket_id=line_item.ticket_id,
                         base_amount=line_item.base_amount,
-                        discount_policy_id=cast(UUID, policy_coupon.policy.id),
+                        discount_policy_id=policy_coupon.policy.id,
                         discount_coupon_id=(
-                            cast(UUID, policy_coupon.coupon.id)
-                            if policy_coupon.coupon
-                            else None
+                            policy_coupon.coupon.id if policy_coupon.coupon else None
                         ),
                         discounted_amount=discounted_amount,
-                        final_amount=line_item.base_amount - discounted_amount,
+                        final_amount=(line_item.base_amount or 0) - discounted_amount,
                     )
                 )
                 applied_to_count += 1
@@ -143,7 +142,7 @@ class LineItemDiscounter:
 
     def apply_max_discount(
         self,
-        discounts: list[PolicyCoupon | Sequence[PolicyCoupon]],
+        discounts: Sequence[PolicyCoupon],
         line_items: Sequence[LineItemTuple],
     ) -> Sequence[LineItemTuple]:
         """
@@ -153,19 +152,15 @@ class LineItemDiscounter:
         combination that results in the maximum discount for the given list of
         line items.
         """
-        discounts.extend(self.get_combos(discounts, len(line_items)))
+        discount_combos = self.get_combos(discounts, len(line_items))
         discounted_line_items_list: list[Sequence[LineItemTuple]] = []
 
         for discount in discounts:
-            if isinstance(discount, list):
-                # Combo discount
-                discounted_line_items_list.append(
-                    self.apply_combo_discount(discount, line_items)
-                )
-            else:
-                discounted_line_items_list.append(
-                    self.apply_discount(discount, line_items)
-                )
+            discounted_line_items_list.append(self.apply_discount(discount, line_items))
+        for combo in discount_combos:
+            discounted_line_items_list.append(
+                self.apply_combo_discount(combo, line_items)
+            )
         return max(
             discounted_line_items_list,
             key=lambda line_item_list: sum(
@@ -176,7 +171,7 @@ class LineItemDiscounter:
         )
 
     def get_combos(
-        self, discounts: list[PolicyCoupon], qty: int
+        self, discounts: Sequence[PolicyCoupon], qty: int
     ) -> list[list[PolicyCoupon]]:
         """Return valid discount combinations given a list of discount policies."""
         valid_combos: list[list[PolicyCoupon]] = []

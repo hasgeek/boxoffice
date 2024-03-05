@@ -527,6 +527,7 @@ def test_cancel_line_item_in_bulk_order(db_session, client, all_data, post_env) 
     assert refund_transaction1.amount == expected_refund_amount
 
     second_line_item = order.confirmed_line_items[0]
+    assert isinstance(second_line_item, LineItem)
     with patch('boxoffice.extapi.razorpay.refund_payment') as mock:
         mock.return_value = MockResponse(response_data={'id': buid()})
         process_line_item_cancellation(second_line_item)

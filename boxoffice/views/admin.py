@@ -1,7 +1,4 @@
-from collections.abc import Sequence
 from datetime import date
-from typing import cast
-from uuid import UUID
 
 from flask import g, jsonify, request
 import pytz
@@ -77,7 +74,7 @@ def org_revenue(organization: Organization):
             message=_("Unknown timezone. Timezone is case-sensitive"), status_code=400
         )
 
-    menu_ids = cast(Sequence[UUID], [menu.id for menu in organization.menus])
+    menu_ids = [menu.id for menu in organization.menus]
     year = int(request.args.get('year') or date.today().year)
     user_timezone: str = request.args.get('timezone') or app.config['TIMEZONE']
 

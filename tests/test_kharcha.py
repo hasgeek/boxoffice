@@ -1,3 +1,4 @@
+from typing import cast
 import decimal
 import json
 
@@ -276,7 +277,7 @@ def test_unlimited_coupon_kharcha(client, all_data) -> None:
         name=make_name('Unlimited Geek')
     ).one()
     discounted_amount = discounted_quantity * (
-        ((discount_policy.percentage or 0) / decimal.Decimal('100'))
+        (cast(int, discount_policy.percentage) / decimal.Decimal('100'))
         * current_price.amount
     )
     assert (
