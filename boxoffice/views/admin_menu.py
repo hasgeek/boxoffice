@@ -9,7 +9,7 @@ from .. import app, lastuser
 from ..forms import MenuForm
 from ..models import Menu, Organization, db
 from ..models.line_item import counts_per_date_per_item, sales_by_date, sales_delta
-from .admin_item import format_ticket_details
+from .admin_ticket import format_ticket_details
 from .utils import api_error, api_success
 
 
