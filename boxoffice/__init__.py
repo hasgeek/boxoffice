@@ -4,7 +4,6 @@ from decimal import Decimal
 from typing import Any
 
 from flask import Flask
-from flask_admin import Admin
 from flask_mail import Mail
 from flask_migrate import Migrate
 from flask_rq2 import RQ
@@ -46,11 +45,6 @@ from .models import (  # NOQA  # isort:skip
     User,
     db,
 )
-from .siteadmin import (  # isort:skip
-    DiscountCouponModelView,
-    InvoiceModelView,
-    OrganizationModelView,
-)
 
 # --- Handle JSON quirk for Boxoffice --------------------------------------------------
 
@@ -91,16 +85,3 @@ app.json = DecimalJsonProvider(app)
 app.jinja_env.policies['json.dumps_function'] = app.json.dumps
 
 mail.init_app(app)
-
-
-# This is a temporary solution for an admin interface, only
-# to be used until the native admin interface is ready.
-try:
-    admin = Admin(
-        app, name="Boxoffice Admin", template_mode='bootstrap3', url='/siteadmin'
-    )
-    admin.add_view(OrganizationModelView(Organization, db.session))
-    admin.add_view(DiscountCouponModelView(DiscountCoupon, db.session))
-    admin.add_view(InvoiceModelView(Invoice, db.session))
-except AssertionError:
-    pass
