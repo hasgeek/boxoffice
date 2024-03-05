@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from collections import OrderedDict
 from decimal import Decimal
-from typing import TYPE_CHECKING, List, Optional
 from uuid import UUID
 
 from isoweek import Week
@@ -44,9 +43,9 @@ class OnlinePayment(BaseMixin, Model):
     pg_paymentid: Mapped[str] = sa.orm.mapped_column(sa.Unicode(80), unique=True)
     # Payment status issued by the payment gateway
     pg_payment_status: Mapped[int]
-    confirmed_at: Mapped[Optional[timestamptz]]
-    failed_at: Mapped[Optional[timestamptz]]
-    transactions: Mapped[List[PaymentTransaction]] = relationship(
+    confirmed_at: Mapped[timestamptz | None]
+    failed_at: Mapped[timestamptz | None]
+    transactions: Mapped[list[PaymentTransaction]] = relationship(
         cascade='all, delete-orphan', back_populates='online_payment'
     )
 
@@ -75,10 +74,10 @@ class PaymentTransaction(BaseMixin, Model):
         sa.ForeignKey('customer_order.id')
     )
     order: Mapped[Order] = relationship(back_populates='transactions')
-    online_payment_id: Mapped[Optional[UUID]] = sa.orm.mapped_column(
+    online_payment_id: Mapped[UUID | None] = sa.orm.mapped_column(
         sa.ForeignKey('online_payment.id')
     )
-    online_payment: Mapped[Optional[OnlinePayment]] = relationship(
+    online_payment: Mapped[OnlinePayment | None] = relationship(
         back_populates='transactions'
     )
     amount: Mapped[Decimal]
@@ -90,15 +89,13 @@ class PaymentTransaction(BaseMixin, Model):
         default=TransactionMethodEnum.ONLINE
     )
     # Eg: reference number for a bank transfer
-    transaction_ref: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(80))
-    refunded_at: Mapped[Optional[timestamptz]]
-    internal_note: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(250))
-    refund_description: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(250))
+    transaction_ref: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(80))
+    refunded_at: Mapped[timestamptz | None]
+    internal_note: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(250))
+    refund_description: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(250))
     note_to_user = MarkdownColumn('note_to_user', nullable=True)
     # Refund id issued by the payment gateway
-    pg_refundid: Mapped[Optional[str]] = sa.orm.mapped_column(
-        sa.Unicode(80), unique=True
-    )
+    pg_refundid: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(80), unique=True)
 
 
 def calculate_weekly_refunds(menu_ids, user_tz, year):
@@ -150,5 +147,5 @@ def calculate_weekly_refunds(menu_ids, user_tz, year):
     return ordered_week_refunds
 
 
-if TYPE_CHECKING:
-    from .order import Order
+# Tail imports
+from .order import Order

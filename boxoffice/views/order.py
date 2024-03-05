@@ -747,10 +747,9 @@ def process_line_item_cancellation(line_item):
             line_item.cancel()
             refund_amount = line_item.final_amount
 
-        if refund_amount > order.net_amount:
-            # since the refund amount is more than the net amount received
-            # only refund the remaining amount
-            refund_amount = order.net_amount
+        # If the refund amount exceeds the net amount received (after prior refunds),
+        # reduce the refund to the remaining net amount
+        refund_amount = min(refund_amount, order.net_amount)
 
     if refund_amount > Decimal('0'):
         payment = OnlinePayment.query.filter_by(

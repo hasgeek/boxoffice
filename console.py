@@ -1,7 +1,8 @@
 """Console script."""
 
+from collections.abc import Iterable
 from decimal import Decimal
-from typing import Dict, Iterable, Optional, Union
+from typing import TypeAlias, Union
 from uuid import UUID
 import csv
 import datetime
@@ -10,7 +11,6 @@ import logging
 from flask.cli import load_dotenv
 from flask.typing import ResponseReturnValue
 from isoweek import Week
-from typing_extensions import TypeAlias
 import IPython
 
 load_dotenv()
@@ -48,10 +48,10 @@ Timezone: TypeAlias = Union[str, datetime.tzinfo]
 
 
 def sales_by_date(
-    sales_datetime: Union[datetime.date, datetime.datetime],
+    sales_datetime: datetime.date | datetime.datetime,
     item_ids: Iterable[UUID],
     user_tz: Timezone,
-) -> Optional[Decimal]:
+) -> Decimal | None:
     """Return the sales amount accrued during the given day for given items."""
     if not item_ids:
         return None
@@ -75,9 +75,9 @@ def sales_by_date(
 
 def calculate_weekly_sales(
     menu_ids: Iterable[UUID], user_tz: Timezone, year: int
-) -> Dict[int, Decimal]:
+) -> dict[int, Decimal]:
     """Calculate sales per week for given menu_ids in a given year."""
-    ordered_week_sales: Dict[int, Decimal] = {}
+    ordered_week_sales: dict[int, Decimal] = {}
     for year_week in Week.weeks_of_year(year):
         ordered_week_sales[int(year_week.week)] = Decimal(0)
     start_at = isoweek_datetime(year, 1, user_tz)

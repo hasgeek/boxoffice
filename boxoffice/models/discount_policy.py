@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, List, Optional, Sequence
+from typing import TYPE_CHECKING, Any
 from uuid import UUID
 import secrets
 import string
@@ -87,12 +88,12 @@ class DiscountPolicy(BaseScopedNameMixin, Model):
     item_quantity_min: Mapped[int] = sa.orm.mapped_column(default=1)
 
     # TODO: Add check constraint requiring percentage if is_price_based is false
-    percentage: Mapped[Optional[int]]
+    percentage: Mapped[int | None]
     # price-based discount
     is_price_based: Mapped[bool] = sa.orm.mapped_column(default=False)
 
-    discount_code_base: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(20))
-    secret: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(50))
+    discount_code_base: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(20))
+    secret: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(50))
 
     # Coupons generated in bulk are not stored in the database during generation. This
     # field allows specifying the number of times a coupon, generated in bulk, can be
@@ -100,15 +101,15 @@ class DiscountPolicy(BaseScopedNameMixin, Model):
     # instance, one could generate a signed coupon and provide it to a user such that
     # the user can share the coupon `n` times `n` here is essentially
     # bulk_coupon_usage_limit.
-    bulk_coupon_usage_limit: Mapped[Optional[int]] = sa.orm.mapped_column(default=1)
+    bulk_coupon_usage_limit: Mapped[int | None] = sa.orm.mapped_column(default=1)
 
-    discount_coupons: Mapped[List[DiscountCoupon]] = relationship(
+    discount_coupons: Mapped[list[DiscountCoupon]] = relationship(
         cascade='all, delete-orphan', back_populates='discount_policy'
     )
-    tickets: Mapped[List[Item]] = relationship(
+    tickets: Mapped[list[Item]] = relationship(
         secondary=item_discount_policy, back_populates='discount_policies'
     )
-    prices: Mapped[List[Price]] = relationship(cascade='all, delete-orphan')
+    prices: Mapped[list[Price]] = relationship(cascade='all, delete-orphan')
     line_items: DynamicMapped[LineItem] = relationship(
         lazy='dynamic', back_populates='discount_policy'
     )
@@ -132,7 +133,7 @@ class DiscountPolicy(BaseScopedNameMixin, Model):
     }
 
     def roles_for(
-        self, actor: Optional[User] = None, anchors: Sequence[Any] = ()
+        self, actor: User | None = None, anchors: Sequence[Any] = ()
     ) -> LazyRoleSet:
         roles = super().roles_for(actor, anchors)
         if (
@@ -155,7 +156,7 @@ class DiscountPolicy(BaseScopedNameMixin, Model):
     def is_coupon(self) -> bool:
         return self.discount_type == DiscountTypeEnum.COUPON
 
-    def gen_signed_code(self, identifier: Optional[str] = None) -> str:
+    def gen_signed_code(self, identifier: str | None = None) -> str:
         """
         Generate a signed code.
 
@@ -175,7 +176,7 @@ class DiscountPolicy(BaseScopedNameMixin, Model):
         return len(code.split('.')) == 3 if code else False
 
     @classmethod
-    def get_from_signed_code(cls, code, organization_id) -> Optional[DiscountPolicy]:
+    def get_from_signed_code(cls, code, organization_id) -> DiscountPolicy | None:
         """Return a discount policy given a valid signed code, None otherwise."""
         if not cls.is_signed_code_format(code):
             return None
@@ -205,7 +206,7 @@ class DiscountPolicy(BaseScopedNameMixin, Model):
     @classmethod
     def get_from_ticket(
         cls, ticket: Item, qty, coupon_codes: Sequence[str] = ()
-    ) -> List[PolicyCoupon]:
+    ) -> list[PolicyCoupon]:
         """
         Return a list of (discount_policy, discount_coupon) tuples.
 
@@ -325,7 +326,7 @@ class DiscountCoupon(IdMixin, Model):
     discount_policy: Mapped[DiscountPolicy] = relationship(
         back_populates='discount_coupons'
     )
-    line_items: Mapped[List[LineItem]] = relationship(back_populates='discount_coupon')
+    line_items: Mapped[list[LineItem]] = relationship(back_populates='discount_coupon')
 
     @classmethod
     def is_signed_code_usable(cls, policy, code):
@@ -350,7 +351,7 @@ class DiscountCoupon(IdMixin, Model):
 @dataclass
 class PolicyCoupon:
     policy: DiscountPolicy
-    coupon: Optional[DiscountCoupon]
+    coupon: DiscountCoupon | None
 
 
 create_title_trgm_trigger = sa.DDL(

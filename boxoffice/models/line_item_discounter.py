@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from decimal import Decimal
-from typing import List, Sequence, Union, cast
+from typing import cast
 from uuid import UUID
 import itertools
 
@@ -92,7 +93,7 @@ class LineItemDiscounter:
         Assumes that the discount policies and discount coupons passed as arguments are
         valid and usable.
         """
-        discounted_line_items: List[LineItemTuple] = []
+        discounted_line_items: list[LineItemTuple] = []
         applied_to_count = 0
         for line_item in line_items:
             discounted_amount = self.calculate_discounted_amount(
@@ -136,7 +137,7 @@ class LineItemDiscounter:
     @beartype
     def apply_combo_discount(
         self,
-        discounts: List[PolicyCoupon],
+        discounts: list[PolicyCoupon],
         line_items: Sequence[LineItemTuple],
     ) -> Sequence[LineItemTuple]:
         """Apply multiple discounts to a list of line items recursively."""
@@ -151,12 +152,7 @@ class LineItemDiscounter:
     @beartype
     def apply_max_discount(
         self,
-        discounts: List[
-            Union[
-                PolicyCoupon,
-                Sequence[PolicyCoupon],
-            ]
-        ],
+        discounts: list[PolicyCoupon | Sequence[PolicyCoupon]],
         line_items: Sequence[LineItemTuple],
     ) -> Sequence[LineItemTuple]:
         """
@@ -167,7 +163,7 @@ class LineItemDiscounter:
         line items.
         """
         discounts.extend(self.get_combos(discounts, len(line_items)))
-        discounted_line_items_list: List[Sequence[LineItemTuple]] = []
+        discounted_line_items_list: list[Sequence[LineItemTuple]] = []
 
         for discount in discounts:
             if isinstance(discount, list):
@@ -182,16 +178,18 @@ class LineItemDiscounter:
         return max(
             discounted_line_items_list,
             key=lambda line_item_list: sum(
-                line_item.discounted_amount for line_item in line_item_list
+                line_item.discounted_amount
+                for line_item in line_item_list
+                if line_item.discounted_amount is not None
             ),
         )
 
     @beartype
     def get_combos(
-        self, discounts: List[PolicyCoupon], qty: int
-    ) -> List[List[PolicyCoupon]]:
+        self, discounts: list[PolicyCoupon], qty: int
+    ) -> list[list[PolicyCoupon]]:
         """Return valid discount combinations given a list of discount policies."""
-        valid_combos: List[List[PolicyCoupon]] = []
+        valid_combos: list[list[PolicyCoupon]] = []
         if len(discounts) < 2:
             return valid_combos
 

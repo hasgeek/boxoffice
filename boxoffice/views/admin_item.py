@@ -1,5 +1,3 @@
-from typing import Optional
-
 from flask import jsonify, request
 
 from baseframe import _
@@ -18,7 +16,7 @@ from .utils import api_error, api_success, json_date_format, xhr_only
 @xhr_only
 @load_models((Organization, {'name': 'org'}, 'organization'), permission='org_admin')
 @requestargs('search')
-def tickets(organization: Organization, search: Optional[str] = None):
+def tickets(organization: Organization, search: str | None = None):
     if search:
         filtered_tickets = (
             db.session.query(Item, ItemCollection)

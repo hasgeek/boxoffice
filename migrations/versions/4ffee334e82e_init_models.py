@@ -6,14 +6,12 @@ Create Date: 2016-02-25 16:35:04.042785
 
 """
 
-from typing import Optional
-
 from alembic import op
 from sqlalchemy.dialects import postgresql
 import sqlalchemy as sa
 
 revision = '4ffee334e82e'
-down_revision: Optional[str] = None
+down_revision: str | None = None
 
 
 def upgrade():

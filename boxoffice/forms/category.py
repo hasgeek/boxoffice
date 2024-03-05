@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Optional
-
 from baseframe import __, forms
 from baseframe.forms.validators import StopValidation
 
@@ -28,7 +26,7 @@ def available_seq(form: CategoryForm, field: forms.Field) -> None:
 
 
 class CategoryForm(forms.Form):
-    edit_obj: Optional[Category]
+    edit_obj: Category | None
 
     title = forms.StringField(
         __("Category title"),

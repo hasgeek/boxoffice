@@ -1,5 +1,3 @@
-from typing import List
-
 from typing_extensions import TypedDict
 
 
@@ -9,7 +7,7 @@ class StateList(TypedDict):
     short_code_text: str
 
 
-indian_states: List[StateList] = [
+indian_states: list[StateList] = [
     {'short_code': 1, 'name': 'Jammu and Kashmir', 'short_code_text': 'JK'},
     {'short_code': 2, 'name': 'Himachal Pradesh', 'short_code_text': 'HP'},
     {'short_code': 3, 'name': 'Punjab', 'short_code_text': 'PB'},

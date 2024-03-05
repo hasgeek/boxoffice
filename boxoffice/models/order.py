@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections import namedtuple
 from decimal import Decimal
 from functools import partial
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 import secrets
 
@@ -53,8 +53,8 @@ class Order(BaseMixin, Model):
     id: Mapped[UUID] = sa.orm.mapped_column(  # type: ignore[assignment]  # noqa: A003
         primary_key=True, default=uuid4
     )
-    user_id: Mapped[Optional[int]] = sa.orm.mapped_column(sa.ForeignKey('user.id'))
-    user: Mapped[Optional[User]] = relationship(back_populates='orders')
+    user_id: Mapped[int | None] = sa.orm.mapped_column(sa.ForeignKey('user.id'))
+    user: Mapped[User | None] = relationship(back_populates='orders')
     menu_id: Mapped[UUID] = sa.orm.mapped_column(
         'item_collection_id', sa.ForeignKey('item_collection.id')
     )
@@ -65,9 +65,9 @@ class Order(BaseMixin, Model):
     organization: Mapped[Organization] = relationship(back_populates='orders')
     status: Mapped[int] = sa.orm.mapped_column(default=OrderStatus.PURCHASE_ORDER)
     initiated_at: Mapped[timestamptz_now]
-    paid_at: Mapped[Optional[timestamptz]]
-    invoiced_at: Mapped[Optional[timestamptz]]
-    cancelled_at: Mapped[Optional[timestamptz]]
+    paid_at: Mapped[timestamptz | None]
+    invoiced_at: Mapped[timestamptz | None]
+    cancelled_at: Mapped[timestamptz | None]
     access_token: Mapped[str] = sa.orm.mapped_column(
         sa.Unicode(22), default=partial(secrets.token_urlsafe, 16)
     )
@@ -76,9 +76,9 @@ class Order(BaseMixin, Model):
     buyer_phone: Mapped[str] = sa.orm.mapped_column(sa.Unicode(16))
 
     # TODO: Rename column
-    receipt_no: Mapped[Optional[int]] = sa.orm.mapped_column('invoice_no')
+    receipt_no: Mapped[int | None] = sa.orm.mapped_column('invoice_no')
 
-    line_items: Mapped[List[LineItem]] = relationship(
+    line_items: Mapped[list[LineItem]] = relationship(
         cascade='all, delete-orphan',
         order_by='LineItem.line_item_seq',
         collection_class=ordering_list('line_item_seq', count_from=1),
@@ -87,13 +87,13 @@ class Order(BaseMixin, Model):
     session: Mapped[OrderSession] = relationship(
         cascade='all, delete-orphan', uselist=False, back_populates='order'
     )
-    online_payments: Mapped[List[OnlinePayment]] = relationship(
+    online_payments: Mapped[list[OnlinePayment]] = relationship(
         cascade='all, delete-orphan'
     )
     transactions: DynamicMapped[PaymentTransaction] = relationship(
         cascade='all, delete-orphan', lazy='dynamic', back_populates='order'
     )
-    invoices: Mapped[List[Invoice]] = relationship(
+    invoices: Mapped[list[Invoice]] = relationship(
         cascade='all, delete-orphan', back_populates='order'
     )
 
@@ -232,8 +232,8 @@ class OrderSession(BaseMixin, Model):
     )
     order: Mapped[Order] = relationship(back_populates='session')
 
-    referrer: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(2083))
-    host: Mapped[Optional[str]] = sa.orm.mapped_column(sa.UnicodeText)
+    referrer: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(2083))
+    host: Mapped[str | None] = sa.orm.mapped_column(sa.UnicodeText)
 
     # Google Analytics parameters
     utm_source: Mapped[str] = sa.orm.mapped_column(

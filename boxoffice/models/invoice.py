@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 from baseframe import _
@@ -37,25 +37,25 @@ class Invoice(UuidMixin, BaseMixin, Model):
     status: Mapped[int] = sa.orm.mapped_column(
         sa.SmallInteger, default=InvoiceStatus.DRAFT
     )
-    invoicee_name: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(255))
-    invoicee_company: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(255))
-    invoicee_email: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(254))
-    invoice_no: Mapped[Optional[int]]
+    invoicee_name: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(255))
+    invoicee_company: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(255))
+    invoicee_email: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(254))
+    invoice_no: Mapped[int | None]
     fy_start_at: Mapped[timestamptz]
     fy_end_at: Mapped[timestamptz]
-    invoiced_at: Mapped[Optional[timestamptz]]
-    street_address_1: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(255))
-    street_address_2: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(255))
-    city: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(255))
-    state: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(255))
+    invoiced_at: Mapped[timestamptz | None]
+    street_address_1: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(255))
+    street_address_2: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(255))
+    city: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(255))
+    state: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(255))
     # ISO 3166-2 code. Eg: KA for Karnataka
-    state_code: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(3))
+    state_code: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(3))
     # ISO country code
-    country_code: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(2))
-    postcode: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(8))
+    country_code: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(2))
+    postcode: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(8))
     # GSTIN in the case of India
-    buyer_taxid: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(255))
-    seller_taxid: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(255))
+    buyer_taxid: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(255))
+    seller_taxid: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(255))
 
     customer_order_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('customer_order.id'), index=True

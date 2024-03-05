@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from datetime import datetime, tzinfo
-from typing import List, NamedTuple, Optional, Sequence, Tuple, Union
+from typing import NamedTuple
 
 import pytz
 
@@ -11,13 +12,11 @@ __all__ = ['HeadersAndDataTuple', 'naive_to_utc', 'get_fiscal_year']
 
 
 class HeadersAndDataTuple(NamedTuple):
-    headers: List[str]
+    headers: list[str]
     data: Sequence[sa.engine.Row]
 
 
-def naive_to_utc(
-    dt: datetime, timezone: Optional[Union[str, tzinfo]] = None
-) -> datetime:
+def naive_to_utc(dt: datetime, timezone: str | tzinfo | None = None) -> datetime:
     """
     Return a UTC datetime for a given naive datetime or date object.
 
@@ -39,7 +38,7 @@ def naive_to_utc(
     return dt.astimezone(tz).astimezone(pytz.UTC)
 
 
-def get_fiscal_year(jurisdiction: str, dt: datetime) -> Tuple[datetime, datetime]:
+def get_fiscal_year(jurisdiction: str, dt: datetime) -> tuple[datetime, datetime]:
     """
     Return the financial year for a given jurisdiction and timestamp.
 

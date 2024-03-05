@@ -1,12 +1,12 @@
 # flake8: noqa
 
 from datetime import datetime
+from typing import Annotated, TypeAlias
 
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.orm import DeclarativeBase, Mapped
 from sqlalchemy_json import mutable_json_type
-from typing_extensions import Annotated, TypeAlias
 import sqlalchemy as sa
 
 from coaster.sqlalchemy import (

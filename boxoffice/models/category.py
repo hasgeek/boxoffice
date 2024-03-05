@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 from . import BaseScopedNameMixin, Mapped, Model, relationship, sa
@@ -22,7 +22,7 @@ class Category(BaseScopedNameMixin, Model):
     )
     menu: Mapped[ItemCollection] = relationship(back_populates='categories')
     seq: Mapped[int]
-    tickets: Mapped[List[Item]] = relationship(
+    tickets: Mapped[list[Item]] = relationship(
         cascade='all, delete-orphan', back_populates='category'
     )
     parent: Mapped[ItemCollection] = sa.orm.synonym('menu')

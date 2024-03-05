@@ -1,5 +1,6 @@
+from collections.abc import Sequence
 from datetime import date
-from typing import Sequence, cast
+from typing import cast
 from uuid import UUID
 
 from flask import g, jsonify, request

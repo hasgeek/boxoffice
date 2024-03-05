@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from datetime import date
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, List, Optional, Sequence, Tuple
+from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -53,17 +54,15 @@ class Item(BaseScopedNameMixin, Model):
         back_populates='tickets',
     )
     assignee_details: Mapped[jsonb_dict]
-    event_date: Mapped[Optional[date]]
-    cancellable_until: Mapped[Optional[timestamptz]]
-    transferable_until: Mapped[Optional[timestamptz]]
+    event_date: Mapped[date | None]
+    cancellable_until: Mapped[timestamptz | None]
+    transferable_until: Mapped[timestamptz | None]
     restricted_entry: Mapped[bool] = sa.orm.mapped_column(default=False)
     # ISO 3166-2 code. Eg: KA for Karnataka
-    place_supply_state_code: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(3))
+    place_supply_state_code: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(3))
     # ISO country code
-    place_supply_country_code: Mapped[Optional[str]] = sa.orm.mapped_column(
-        sa.Unicode(2)
-    )
-    prices: Mapped[List[Price]] = relationship(cascade='all, delete-orphan')
+    place_supply_country_code: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(2))
+    prices: Mapped[list[Price]] = relationship(cascade='all, delete-orphan')
     line_items: DynamicMapped[LineItem] = relationship(
         cascade='all, delete-orphan', lazy='dynamic', back_populates='ticket'
     )
@@ -89,7 +88,7 @@ class Item(BaseScopedNameMixin, Model):
             roles.add('item_owner')
         return roles
 
-    def current_price(self) -> Optional[Price]:
+    def current_price(self) -> Price | None:
         """Return the current price object for a ticket."""
         return self.price_at(utcnow())
 
@@ -101,7 +100,7 @@ class Item(BaseScopedNameMixin, Model):
             Price.discount_policy_id.is_(None),
         ).notempty()
 
-    def discounted_price(self, discount_policy) -> Optional[Price]:
+    def discounted_price(self, discount_policy) -> Price | None:
         """Return the discounted price for a ticket."""
         return Price.query.filter(
             Price.ticket == self, Price.discount_policy == discount_policy
@@ -112,7 +111,7 @@ class Item(BaseScopedNameMixin, Model):
             Price.ticket == self, Price.discount_policy_id.is_(None)
         ).order_by(Price.start_at.desc())
 
-    def price_at(self, timestamp) -> Optional[Price]:
+    def price_at(self, timestamp) -> Price | None:
         """Return the price object for a ticket at a given time."""
         return (
             Price.query.filter(
@@ -147,7 +146,7 @@ class Item(BaseScopedNameMixin, Model):
         return utcnow() < self.cancellable_until if self.cancellable_until else True
 
     @property
-    def active_price(self) -> Optional[Decimal]:
+    def active_price(self) -> Decimal | None:
         current_price = self.current_price()
         return current_price.amount if current_price else None
 
@@ -205,7 +204,7 @@ class Item(BaseScopedNameMixin, Model):
             items_dict[str(item_tup[0])] = item_tup[1:]
         return items_dict
 
-    def demand_curve(self) -> Sequence[sa.engine.Row[Tuple[Decimal, int]]]:
+    def demand_curve(self) -> Sequence[sa.engine.Row[tuple[Decimal, int]]]:
         """Return demand curve data of sale price and number of sales at that price."""
         return db.session.execute(
             sa.select(LineItem.final_amount, sa.func.count())
@@ -232,10 +231,10 @@ class Price(BaseScopedNameMixin, Model):
     ticket_id: Mapped[UUID] = sa.orm.mapped_column('item_id', sa.ForeignKey('item.id'))
     ticket: Mapped[Item] = relationship(back_populates='prices')
 
-    discount_policy_id: Mapped[Optional[UUID]] = sa.orm.mapped_column(
+    discount_policy_id: Mapped[UUID | None] = sa.orm.mapped_column(
         sa.ForeignKey('discount_policy.id')
     )
-    discount_policy: Mapped[Optional[DiscountPolicy]] = relationship(
+    discount_policy: Mapped[DiscountPolicy | None] = relationship(
         back_populates='prices'
     )
 
@@ -260,7 +259,7 @@ class Price(BaseScopedNameMixin, Model):
     }
 
     def roles_for(
-        self, actor: Optional[User] = None, anchors: Sequence[Any] = ()
+        self, actor: User | None = None, anchors: Sequence[Any] = ()
     ) -> LazyRoleSet:
         roles = super().roles_for(actor, anchors)
         if (

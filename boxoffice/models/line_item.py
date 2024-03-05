@@ -1,18 +1,10 @@
 from __future__ import annotations
 
 from collections import OrderedDict
+from collections.abc import Sequence
 from datetime import date, datetime, timedelta, tzinfo
 from decimal import Decimal
-from typing import (
-    TYPE_CHECKING,
-    Dict,
-    List,
-    NamedTuple,
-    Optional,
-    Sequence,
-    Union,
-    cast,
-)
+from typing import TYPE_CHECKING, NamedTuple, cast
 from uuid import UUID
 
 from flask import current_app
@@ -41,13 +33,13 @@ __all__ = ['LineItem', 'Assignee']
 class LineItemTuple(NamedTuple):
     """Duck-type for LineItem."""
 
-    id: Optional[UUID]  # noqa: A003
+    id: UUID | None  # noqa: A003
     ticket_id: UUID
-    base_amount: Optional[Decimal]
-    discount_policy_id: Optional[UUID] = None
-    discount_coupon_id: Optional[UUID] = None
-    discounted_amount: Optional[Decimal] = Decimal(0)
-    final_amount: Optional[Decimal] = None
+    base_amount: Decimal | None
+    discount_policy_id: UUID | None = None
+    discount_coupon_id: UUID | None = None
+    discounted_amount: Decimal | None = Decimal(0)
+    final_amount: Decimal | None = None
 
 
 class LineItemDict(TypedDict):
@@ -62,17 +54,17 @@ class Assignee(BaseMixin, Model):
     )
 
     # lastuser id
-    user_id: Mapped[Optional[int]] = sa.orm.mapped_column(sa.ForeignKey('user.id'))
-    user: Mapped[Optional[User]] = relationship(back_populates='assignees')
+    user_id: Mapped[int | None] = sa.orm.mapped_column(sa.ForeignKey('user.id'))
+    user: Mapped[User | None] = relationship(back_populates='assignees')
     line_item_id: Mapped[UUID] = sa.orm.mapped_column(sa.ForeignKey('line_item.id'))
     line_item: Mapped[LineItem] = relationship(back_populates='assignees')
     fullname: Mapped[str] = sa.orm.mapped_column(sa.Unicode(80))
     #: Unvalidated email address
     email: Mapped[str] = sa.orm.mapped_column(sa.Unicode(254))
     #: Unvalidated phone number
-    phone: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(16))
+    phone: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(16))
     details: Mapped[jsonb] = sa.orm.mapped_column(default={})
-    current: Mapped[Optional[bool]] = sa.orm.mapped_column()
+    current: Mapped[bool | None] = sa.orm.mapped_column()
 
 
 class LineItem(BaseMixin, Model):
@@ -100,7 +92,7 @@ class LineItem(BaseMixin, Model):
         'item_id', sa.ForeignKey('item.id'), index=True, unique=False
     )
     ticket: Mapped[Item] = relationship(back_populates='line_items')
-    previous_id: Mapped[Optional[UUID]] = sa.orm.mapped_column(
+    previous_id: Mapped[UUID | None] = sa.orm.mapped_column(
         sa.ForeignKey('line_item.id'), unique=True
     )
     previous: Mapped[LineItem] = relationship(
@@ -109,17 +101,17 @@ class LineItem(BaseMixin, Model):
         uselist=False,
     )
     revision: Mapped[LineItem] = relationship(uselist=False, back_populates='previous')
-    discount_policy_id: Mapped[Optional[UUID]] = sa.orm.mapped_column(
+    discount_policy_id: Mapped[UUID | None] = sa.orm.mapped_column(
         sa.ForeignKey('discount_policy.id'), index=True, unique=False
     )
-    discount_policy: Mapped[Optional[DiscountPolicy]] = relationship(
+    discount_policy: Mapped[DiscountPolicy | None] = relationship(
         back_populates='line_items'
     )
 
-    discount_coupon_id: Mapped[Optional[UUID]] = sa.orm.mapped_column(
+    discount_coupon_id: Mapped[UUID | None] = sa.orm.mapped_column(
         sa.ForeignKey('discount_coupon.id'), index=True, unique=False
     )
-    discount_coupon: Mapped[Optional[DiscountCoupon]] = relationship(
+    discount_coupon: Mapped[DiscountCoupon | None] = relationship(
         back_populates='line_items'
     )
 
@@ -127,8 +119,8 @@ class LineItem(BaseMixin, Model):
     discounted_amount: Mapped[Decimal] = sa.orm.mapped_column(default=Decimal(0))
     final_amount: Mapped[Decimal] = sa.orm.mapped_column(sa.Numeric, default=Decimal(0))
     status: Mapped[int] = sa.orm.mapped_column(default=LineItemStatus.PURCHASE_ORDER)
-    ordered_at: Mapped[Optional[timestamptz]]
-    cancelled_at: Mapped[Optional[timestamptz]]
+    ordered_at: Mapped[timestamptz | None]
+    cancelled_at: Mapped[timestamptz | None]
     assignees: DynamicMapped[Assignee] = relationship(
         cascade='all, delete-orphan', lazy='dynamic', back_populates='line_item'
     )
@@ -142,8 +134,8 @@ class LineItem(BaseMixin, Model):
     @classmethod
     def calculate(
         cls,
-        line_items: Sequence[Union[LineItem, LineItemDict]],
-        coupons: Optional[Sequence[str]] = None,
+        line_items: Sequence[LineItem | LineItemDict],
+        coupons: Sequence[str] | None = None,
     ) -> Sequence[LineItemTuple]:
         """
         Return line item data tuples.
@@ -151,16 +143,16 @@ class LineItem(BaseMixin, Model):
         For each line item, returns a tuple of base_amount, discounted_amount,
         final_amount, discount_policy and discount coupon populated
         """
-        base_amount: Optional[Decimal]
-        item_line_items: Dict[str, List[LineItemTuple]] = {}
-        calculated_line_items: List[LineItemTuple] = []
+        base_amount: Decimal | None
+        item_line_items: dict[str, list[LineItemTuple]] = {}
+        calculated_line_items: list[LineItemTuple] = []
         coupon_list = list(set(coupons)) if coupons else []
         discounter = LineItemDiscounter()
 
         # make named tuples for line items,
         # assign the base_amount for each of them, None if a ticket is unavailable
         for line_item in line_items:
-            ticket: Optional[Item]
+            ticket: Item | None
             if isinstance(line_item, LineItem):
                 ticket = line_item.ticket
                 base_amount = line_item.base_amount
@@ -197,7 +189,7 @@ class LineItem(BaseMixin, Model):
     def confirm(self):
         self.status = LineItemStatus.CONFIRMED
 
-    assignee: Mapped[Optional[Assignee]] = relationship(
+    assignee: Mapped[Assignee | None] = relationship(
         Assignee,
         primaryjoin='and_'
         '(Assignee.line_item_id == LineItem.id,'
@@ -211,7 +203,7 @@ class LineItem(BaseMixin, Model):
     # -- we want to imply that there can only be one assignee and the rest are
     # historical (and hence not 'assignees')
     @property
-    def current_assignee(self) -> Optional[Assignee]:
+    def current_assignee(self) -> Assignee | None:
         return self.assignees.filter(Assignee.current.is_(True)).one_or_none()
 
     @property
@@ -271,13 +263,13 @@ class LineItem(BaseMixin, Model):
 
 def counts_per_date_per_item(
     menu: ItemCollection, user_tz: tzinfo
-) -> Dict[date, Dict[str, int]]:
+) -> dict[date, dict[str, int]]:
     """
     Return number of line items sold per date per ticket.
 
     Eg: {'2016-01-01': {'item-xxx': 20}}
     """
-    date_ticket_counts: Dict[date, Dict[str, int]] = {}
+    date_ticket_counts: dict[date, dict[str, int]] = {}
     for ticket in menu.tickets:
         ticket_id = str(ticket.id)
 
@@ -314,8 +306,8 @@ def counts_per_date_per_item(
 
 
 def sales_by_date(
-    sales_datetime: Union[date, datetime], ticket_ids: Sequence[str], user_tz: tzinfo
-) -> Optional[Decimal]:
+    sales_datetime: date | datetime, ticket_ids: Sequence[str], user_tz: tzinfo
+) -> Decimal | None:
     """
     Return the sales amount accrued during the day.
 
@@ -343,7 +335,7 @@ def sales_by_date(
 
 
 def calculate_weekly_sales(
-    menu_ids: Sequence[Union[str, UUID]], user_tz: Union[str, tzinfo], year: int
+    menu_ids: Sequence[str | UUID], user_tz: str | tzinfo, year: int
 ):
     """Calculate weekly sales for a year in the given menu_ids."""
     ordered_week_sales = OrderedDict()

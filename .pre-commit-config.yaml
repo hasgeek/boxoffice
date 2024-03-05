@@ -2,7 +2,7 @@
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.0.278
+    rev: v0.3.0
     hooks:
       - id: ruff
         args: ['--fix', '--exit-non-zero-on-fix']
@@ -20,11 +20,10 @@ repos:
             '--remove-duplicate-keys',
           ]
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.9.0
+    rev: v3.15.1
     hooks:
       - id: pyupgrade
-        args:
-          ['--keep-runtime-typing', '--py3-plus', '--py36-plus', '--py37-plus']
+        args: ['--keep-runtime-typing', '--py311-plus']
   - repo: https://github.com/asottile/yesqa
     rev: v1.5.0
     hooks:
@@ -106,7 +105,7 @@ repos:
       - id: flake8
         additional_dependencies: *flake8deps
   - repo: https://github.com/PyCQA/pylint
-    rev: v3.0.0a6
+    rev: v3.1.0
     hooks:
       - id: pylint
         args: [

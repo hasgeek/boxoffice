@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING
 
 from flask import g
 
@@ -15,10 +15,10 @@ __all__ = ['User', 'Organization']
 class User(UserBase2, Model):
     __tablename__ = 'user'
 
-    assignees: Mapped[List[Assignee]] = relationship(
+    assignees: Mapped[list[Assignee]] = relationship(
         cascade='all, delete-orphan', back_populates='user'
     )
-    orders: Mapped[List[Order]] = relationship(cascade='all, delete-orphan')
+    orders: Mapped[list[Order]] = relationship(cascade='all, delete-orphan')
 
     def __repr__(self):
         """Return a representation."""
@@ -47,10 +47,10 @@ class Organization(ProfileBase, Model):
     contact_email: Mapped[str] = sa.orm.mapped_column(sa.Unicode(254))
     # This is to allow organizations to have their orders invoiced by the parent
     # organization
-    invoicer_id: Mapped[Optional[int]] = sa.orm.mapped_column(
+    invoicer_id: Mapped[int | None] = sa.orm.mapped_column(
         sa.ForeignKey('organization.id')
     )
-    invoicer: Mapped[Optional[Organization]] = relationship(
+    invoicer: Mapped[Organization | None] = relationship(
         remote_side='Organization.id',
         back_populates='subsidiaries',
     )
@@ -59,7 +59,7 @@ class Organization(ProfileBase, Model):
         cascade='all, delete-orphan',
         back_populates='invoicer',
     )
-    menus: Mapped[List[ItemCollection]] = relationship(
+    menus: Mapped[list[ItemCollection]] = relationship(
         cascade='all, delete-orphan', back_populates='organization'
     )
 

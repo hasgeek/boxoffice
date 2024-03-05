@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Callable, List, Optional
+from collections.abc import Callable
+from typing import Any
 
 from werkzeug.datastructures import ImmutableMultiDict
 
@@ -11,7 +12,7 @@ from ..data import indian_states_dict, short_codes
 __all__ = ['LineItemForm', 'BuyerForm', 'OrderSessionForm', 'InvoiceForm']
 
 
-def trim(length: int) -> Callable[[Optional[str]], str]:
+def trim(length: int) -> Callable[[str | None], str]:
     """
     Return data trimmed to the given length.
 
@@ -20,7 +21,7 @@ def trim(length: int) -> Callable[[Optional[str]], str]:
         field = forms.StringField(__("Some field"), filters=[trim(25)])
     """
 
-    def _inner(data: Optional[str]) -> str:
+    def _inner(data: str | None) -> str:
         return str((data or '')[0:length])
 
     return _inner
@@ -35,7 +36,7 @@ class LineItemForm(forms.Form):
     )
 
     @classmethod
-    def process_list(cls, line_items_json: List[Any]):
+    def process_list(cls, line_items_json: list[Any]):
         """
         Return a list of LineItemForm objects.
 
