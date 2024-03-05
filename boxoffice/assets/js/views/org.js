@@ -49,7 +49,7 @@ export const OrgView = {
   render({ accountName } = {}) {
     fetch({
       url: urlFor('view', { resource: 'o', id: accountName, root: true }),
-    }).then(({ id, title: accountTitle, menus, form }) => {
+    }).then(({ id, account_title: accountTitle, menus, form }) => {
       const orgComponent = new Ractive({
         el: '#main-content-area',
         template: orgTemplate,
