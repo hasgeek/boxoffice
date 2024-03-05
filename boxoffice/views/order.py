@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from flask import abort, jsonify, render_template, request, url_for
 from sqlalchemy.sql import func
@@ -314,8 +314,8 @@ def create_order(menu: ItemCollection):
                 ordered_at=utcnow(),
                 base_amount=line_item_tup.base_amount,
                 discounted_amount=line_item_tup.discounted_amount,
-                final_amount=line_item_tup.base_amount
-                - line_item_tup.discounted_amount,
+                final_amount=cast(Decimal, line_item_tup.base_amount)
+                - cast(Decimal, line_item_tup.discounted_amount),
             )
             db.session.add(line_item)
         else:
