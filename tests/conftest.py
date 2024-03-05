@@ -16,10 +16,10 @@ from boxoffice.models import (
     DiscountCoupon,
     DiscountPolicy,
     DiscountTypeEnum,
-    Item,
     Menu,
     Organization,
     Price,
+    Ticket,
     User,
     db,
 )
@@ -151,7 +151,7 @@ def all_data(db_session):
     db_session.commit()
 
     with db_session.no_autoflush:
-        conf_ticket = Item(
+        conf_ticket = Ticket(
             title='Conference ticket',
             description='<p><i class="fa fa-calendar"></i>14 - 15 April 2016'
             '</p><p><i class="fa fa-map-marker ticket-venue"></i>MLR Convention Center,'
@@ -164,7 +164,7 @@ def all_data(db_session):
         rc2016.tickets.append(conf_ticket)
         db_session.commit()
 
-        expired_ticket = Item(
+        expired_ticket = Ticket(
             title='Expired ticket',
             description='<p><i class="fa fa-calendar"></i>14 - 15 April 2016'
             '</p><p><i class="fa fa-map-marker ticket-venue"></i>MLR Convention Center,'
@@ -187,7 +187,7 @@ def all_data(db_session):
         db_session.add(price)
         db_session.commit()
 
-        single_day_conf_ticket = Item(
+        single_day_conf_ticket = Ticket(
             title='Single Day',
             description='<p><i class="fa fa-calendar"></i>14 April 2016'
             '</p><p><i class="fa fa-map-marker ticket-venue"></i>MLR Convention Center,'
@@ -210,7 +210,7 @@ def all_data(db_session):
         db_session.add(single_day_price)
         db_session.commit()
 
-        tshirt = Item(
+        tshirt = Ticket(
             title='T-shirt',
             description='Rootconf',
             menu=rc2016,
@@ -230,7 +230,7 @@ def all_data(db_session):
         db_session.add(tshirt_price)
         db_session.commit()
 
-        dns_workshop = Item(
+        dns_workshop = Ticket(
             title='DNSSEC workshop',
             description='<p><i class="fa fa-calendar"></i>12 April 2016'
             '</p><p><i class="fa fa-map-marker ticket-venue"></i>TERI, Domlur</p>'

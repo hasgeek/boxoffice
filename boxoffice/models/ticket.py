@@ -30,10 +30,10 @@ from .discount_policy import item_discount_policy
 from .enums import LineItemStatus
 from .user import User
 
-__all__ = ['Item', 'Price']
+__all__ = ['Ticket', 'Price']
 
 
-class Item(BaseScopedNameMixin[UUID, User], Model):
+class Ticket(BaseScopedNameMixin[UUID, User], Model):
     __tablename__ = 'item'
     __table_args__ = (sa.UniqueConstraint('item_collection_id', 'name'),)
 
@@ -128,8 +128,8 @@ class Item(BaseScopedNameMixin[UUID, User], Model):
         )
 
     @classmethod
-    def get_by_category(cls, category) -> Query[Item]:
-        return cls.query.filter(Item.category == category).order_by(cls.seq)
+    def get_by_category(cls, category) -> Query[Ticket]:
+        return cls.query.filter(Ticket.category == category).order_by(cls.seq)
 
     @hybrid_property
     def quantity_available(self) -> int:
@@ -231,7 +231,7 @@ class Price(BaseScopedNameMixin[UUID, User], Model):
     )
 
     ticket_id: Mapped[UUID] = sa.orm.mapped_column('item_id', sa.ForeignKey('item.id'))
-    ticket: Mapped[Item] = relationship(back_populates='prices')
+    ticket: Mapped[Ticket] = relationship(back_populates='prices')
 
     discount_policy_id: Mapped[UUID | None] = sa.orm.mapped_column(
         sa.ForeignKey('discount_policy.id')
@@ -240,7 +240,7 @@ class Price(BaseScopedNameMixin[UUID, User], Model):
         back_populates='prices'
     )
 
-    parent: Mapped[Item] = sa.orm.synonym('ticket')
+    parent: Mapped[Ticket] = sa.orm.synonym('ticket')
     start_at: Mapped[timestamptz_now]
     end_at: Mapped[timestamptz]
     amount: Mapped[Decimal] = sa.orm.mapped_column(default=Decimal(0))

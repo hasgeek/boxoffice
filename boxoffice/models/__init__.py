@@ -50,7 +50,7 @@ from .enums import *  # isort:skip
 from .category import *  # isort:skip
 from .discount_policy import *  # isort:skip
 from .invoice import *  # isort:skip
-from .item import *  # isort:skip
+from .ticket import *  # isort:skip
 from .menu import *  # isort:skip
 from .line_item import *  # isort:skip
 from .line_item_discounter import *  # isort:skip

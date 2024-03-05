@@ -26,7 +26,6 @@ from boxoffice.models import (
     CurrencyEnum,
     Invoice,
     InvoiceStatus,
-    Item,
     LineItem,
     LineItemStatus,
     Menu,
@@ -35,6 +34,7 @@ from boxoffice.models import (
     OrderStatus,
     Organization,
     PaymentTransaction,
+    Ticket,
     db,
     sa,
 )
@@ -92,12 +92,12 @@ def calculate_weekly_sales(
             sa.func.sum(LineItem.final_amount).label('sum'),
         )
         .select_from(LineItem)
-        .join(Item, LineItem.ticket_id == Item.id)
+        .join(Ticket, LineItem.ticket_id == Ticket.id)
         .where(
             LineItem.status.in_(
                 [LineItemStatus.CONFIRMED.value, LineItemStatus.CANCELLED.value]
             ),
-            Item.menu_id.in_(menu_ids),
+            Ticket.menu_id.in_(menu_ids),
             sa.func.timezone(user_tz, sa.func.timezone('UTC', LineItem.ordered_at))
             >= start_at,
             sa.func.timezone(user_tz, sa.func.timezone('UTC', LineItem.ordered_at))

@@ -4,7 +4,7 @@ import json
 from coaster.utils import utcnow
 
 from boxoffice import app
-from boxoffice.models import Item, Menu, Order, OrderStatus
+from boxoffice.models import Menu, Order, OrderStatus, Ticket
 
 
 def ajax_post(client, url, data):
@@ -20,7 +20,7 @@ def ajax_post(client, url, data):
 
 
 def test_assign(db_session, client, all_data) -> None:
-    ticket = Item.query.filter_by(name="conference-ticket").one()
+    ticket = Ticket.query.filter_by(name="conference-ticket").one()
     data = {
         'line_items': [{'ticket_id': str(ticket.id), 'quantity': 2}],
         'buyer': {

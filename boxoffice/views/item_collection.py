@@ -7,11 +7,18 @@ from coaster.views import load_models
 
 from .. import app
 from ..data import indian_states
-from ..models import Category, CurrencySymbol, DiscountPolicy, Item, Menu, Organization
+from ..models import (
+    Category,
+    CurrencySymbol,
+    DiscountPolicy,
+    Menu,
+    Organization,
+    Ticket,
+)
 from .utils import cors, sanitize_coupons, xhr_only
 
 
-def jsonify_ticket(ticket: Item):
+def jsonify_ticket(ticket: Ticket):
     if ticket.restricted_entry:
         code_list = (
             sanitize_coupons(request.args.getlist('code'))
@@ -55,7 +62,7 @@ def jsonify_ticket(ticket: Item):
 
 def jsonify_category(category: Category):
     category_items = []
-    for ticket in Item.get_by_category(category):
+    for ticket in Ticket.get_by_category(category):
         ticket_json = jsonify_ticket(ticket)
         if ticket_json:
             category_items.append(ticket_json)

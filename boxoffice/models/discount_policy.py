@@ -106,7 +106,7 @@ class DiscountPolicy(BaseScopedNameMixin[UUID, User], Model):
     discount_coupons: Mapped[list[DiscountCoupon]] = relationship(
         cascade='all, delete-orphan', back_populates='discount_policy'
     )
-    tickets: Mapped[list[Item]] = relationship(
+    tickets: Mapped[list[Ticket]] = relationship(
         secondary=item_discount_policy, back_populates='discount_policies'
     )
     prices: Mapped[list[Price]] = relationship(cascade='all, delete-orphan')
@@ -205,7 +205,7 @@ class DiscountPolicy(BaseScopedNameMixin[UUID, User], Model):
 
     @classmethod
     def get_from_ticket(
-        cls, ticket: Item, qty, coupon_codes: Sequence[str] = ()
+        cls, ticket: Ticket, qty, coupon_codes: Sequence[str] = ()
     ) -> list[PolicyCoupon]:
         """
         Return a list of (discount_policy, discount_coupon) tuples.
@@ -260,7 +260,7 @@ class DiscountPolicy(BaseScopedNameMixin[UUID, User], Model):
         ).count()
 
     @classmethod
-    def is_valid_access_coupon(cls, ticket: Item, code_list):
+    def is_valid_access_coupon(cls, ticket: Ticket, code_list):
         """
         Check if any of code_list is a valid access code for the specified ticket.
 
@@ -368,4 +368,4 @@ sa.event.listen(
 from .line_item import LineItem  # isort:skip
 
 if TYPE_CHECKING:
-    from .item import Item, Price
+    from .ticket import Price, Ticket

@@ -23,7 +23,7 @@ class Category(BaseScopedNameMixin[int, User], Model):
     )
     menu: Mapped[Menu] = relationship(back_populates='categories')
     seq: Mapped[int]
-    tickets: Mapped[list[Item]] = relationship(
+    tickets: Mapped[list[Ticket]] = relationship(
         cascade='all, delete-orphan', back_populates='category'
     )
     parent: Mapped[Menu] = sa.orm.synonym('menu')
@@ -38,5 +38,5 @@ class Category(BaseScopedNameMixin[int, User], Model):
 
 
 if TYPE_CHECKING:
-    from .item import Item
     from .menu import Menu
+    from .ticket import Ticket

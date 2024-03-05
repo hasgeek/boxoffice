@@ -38,7 +38,7 @@ from .models import (  # NOQA  # isort:skip
     DiscountCoupon,
     DiscountPolicy,
     Invoice,
-    Item,
+    Ticket,
     Menu,
     Organization,
     Price,

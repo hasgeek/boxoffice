@@ -32,7 +32,6 @@ from ..models import (
     DiscountCoupon,
     DiscountPolicy,
     Invoice,
-    Item,
     LineItem,
     LineItemStatus,
     Menu,
@@ -42,6 +41,7 @@ from ..models import (
     OrderStatus,
     PaymentTransaction,
     RazorpayPaymentStatus,
+    Ticket,
     TransactionTypeEnum,
     User,
     db,
@@ -75,7 +75,7 @@ def jsonify_line_items(line_items):
     """
     items_json = {}
     for line_item in line_items:
-        ticket = Item.query.get_or_404(line_item.ticket_id)
+        ticket = Ticket.query.get_or_404(line_item.ticket_id)
         if not items_json.get(str(line_item.ticket_id)):
             items_json[str(line_item.ticket_id)] = {
                 'is_available': ticket.is_available,
@@ -235,7 +235,7 @@ def create_order(menu: Menu):
         "Selected quantity for ‘{ticket}’ is not available. Please edit the order and"
         " update the quantity"
     )
-    ticket_dicts = Item.get_availability(
+    ticket_dicts = Ticket.get_availability(
         [line_item_form.data.get('ticket_id') for line_item_form in line_item_forms]
     )
 
@@ -252,7 +252,7 @@ def create_order(menu: Menu):
                     errors=['order calculation error'],
                 )
         else:
-            ticket = Item.query.get_or_404(line_item_form.data.get('ticket_id'))
+            ticket = Ticket.query.get_or_404(line_item_form.data.get('ticket_id'))
             if line_item_form.data.get('quantity') > ticket.quantity_total:
                 return api_error(
                     message=invalid_quantity_error_msg.format(ticket=ticket.title),
@@ -281,7 +281,7 @@ def create_order(menu: Menu):
     )
 
     for idx, line_item_tup in enumerate(line_item_tups):
-        ticket = Item.query.get_or_404(line_item_tup.ticket_id)
+        ticket = Ticket.query.get_or_404(line_item_tup.ticket_id)
 
         if ticket.restricted_entry and (
             not sanitized_coupon_codes
@@ -643,7 +643,7 @@ def regenerate_line_item(
 ):
     """Update a line item by marking the original as void and creating a replacement."""
     original_line_item.make_void()
-    ticket = Item.query.get_or_404(updated_line_item_tup.ticket_id)
+    ticket = Ticket.query.get_or_404(updated_line_item_tup.ticket_id)
     if updated_line_item_tup.discount_policy_id:
         policy = DiscountPolicy.query.get_or_404(
             updated_line_item_tup.discount_policy_id

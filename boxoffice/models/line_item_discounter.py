@@ -39,7 +39,7 @@ class LineItemDiscounter:
         if not line_items:
             return []
 
-        ticket = Item.query.get(line_items[0].ticket_id)
+        ticket = Ticket.query.get(line_items[0].ticket_id)
         if ticket is None or not ticket.is_available and not ticket.is_cancellable():
             # Ticket unavailable, no discounts
             return []
@@ -54,7 +54,7 @@ class LineItemDiscounter:
             return Decimal(0)
 
         if discount_policy.is_price_based:
-            ticket = Item.query.get(line_item.ticket_id)
+            ticket = Ticket.query.get(line_item.ticket_id)
             if ticket is None:  # Failsafe flagged by static type checker
                 return Decimal(0)
             discounted_price = ticket.discounted_price(discount_policy)
@@ -194,4 +194,4 @@ class LineItemDiscounter:
 
 
 # Tail imports
-from .item import Item  # isort:skip
+from .ticket import Ticket  # isort:skip
