@@ -283,13 +283,12 @@ def create_order(menu: ItemCollection):
     for idx, line_item_tup in enumerate(line_item_tups):
         ticket = Item.query.get_or_404(line_item_tup.ticket_id)
 
-        if ticket.restricted_entry:
-            if not sanitized_coupon_codes or not DiscountPolicy.is_valid_access_coupon(
-                ticket, sanitized_coupon_codes
-            ):
-                # Skip adding a restricted ticket to the cart without the proper access
-                # code
-                break
+        if ticket.restricted_entry and (
+            not sanitized_coupon_codes
+            or not DiscountPolicy.is_valid_access_coupon(ticket, sanitized_coupon_codes)
+        ):
+            # Skip adding a restricted ticket to cart without the proper access code
+            break
 
         if ticket.is_available:
             if line_item_tup.discount_policy_id:

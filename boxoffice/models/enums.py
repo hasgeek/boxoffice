@@ -59,7 +59,6 @@ class TransactionMethodEnum(IntEnum):
 class TransactionTypeEnum(IntEnum):
     PAYMENT = 0
     REFUND = 1
-    # CREDIT = 2
 
 
 class CurrencyEnum(str, Enum):
@@ -74,7 +73,7 @@ class RazorpayPaymentStatus(IntEnum):
     """
     Reflects payment statuses.
 
-    The list of states is as specifid in Razorpay documentation at
+    The list of states is as specified in Razorpay documentation at
     https://razorpay.com/docs/payment-gateway/payments/#payment-life-cycle
 
     The values are ours. Razorpay sends back string values.

@@ -95,9 +95,8 @@ class OrderSessionForm(forms.Form):
 
 def validate_state_code(form, field: forms.Field) -> None:
     # Note: state_code is only a required field if the chosen country is India
-    if form.country_code.data == "IN":
-        if field.data.upper() not in indian_states_dict:
-            raise forms.validators.StopValidation(__("Please select a state"))
+    if form.country_code.data == "IN" and field.data.upper() not in indian_states_dict:
+        raise forms.validators.StopValidation(__("Please select a state"))
 
 
 def validate_gstin(_form, field: forms.Field) -> None:
