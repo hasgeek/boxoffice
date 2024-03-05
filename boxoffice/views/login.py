@@ -6,7 +6,7 @@ from baseframe.forms import render_message
 from coaster.views import get_next_url
 
 from .. import app, lastuser
-from ..models import db
+from ..models import User, db
 
 
 @app.route('/login')
@@ -30,7 +30,7 @@ def lastuserauth():
 
 @app.route('/login/notify', methods=['POST'])
 @lastuser.notification_handler
-def lastusernotify(user):
+def lastusernotify(_user: User) -> None:
     # Perform operations here if required.
     # Warning: this *could* be a spoof call, so ignore all request data.
     # Only trust the 'user' parameter to this function.

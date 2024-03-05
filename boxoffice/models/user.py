@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flask import g
-
 from flask_lastuser.sqlalchemy import ProfileBase, UserBase2
 
 from . import DynamicMapped, Mapped, Model, db, jsonb_dict, relationship, sa
@@ -29,10 +27,6 @@ class User(UserBase2, Model):
         return Organization.query.filter(
             Organization.userid.in_(self.organizations_owned_ids())
         )
-
-
-def default_user(context):
-    return g.user.id if g.user else None
 
 
 class Organization(ProfileBase, Model):

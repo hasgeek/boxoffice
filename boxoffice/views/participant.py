@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from flask import request
+from flask import abort, request
 from werkzeug.datastructures import ImmutableMultiDict
 
 from baseframe import _
@@ -31,6 +31,8 @@ def assign(order: Order) -> ReturnRenderWith:
             },
             404,
         )
+    if line_item.order != order:
+        abort(403)
     if line_item.is_cancelled:
         return (
             {
@@ -55,7 +57,7 @@ def assign(order: Order) -> ReturnRenderWith:
                 'status': 'error',
                 'error': 'ticket_not_transferable',
                 'error_description': _(
-                    "Ticket transfer deadline is over. It can no longer be transfered."
+                    "Ticket transfer deadline is over. It can no longer be transferred."
                 ),
             },
             400,

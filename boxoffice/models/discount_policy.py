@@ -296,7 +296,7 @@ class DiscountPolicy(BaseScopedNameMixin[UUID, User], Model):
 
 @sa.event.listens_for(DiscountPolicy, 'before_update')
 @sa.event.listens_for(DiscountPolicy, 'before_insert')
-def validate_price_based_discount(mapper, connection, target: DiscountPolicy):
+def validate_price_based_discount(_mapper, _connection, target: DiscountPolicy):
     if target.is_price_based and len(target.tickets) > 1:
         raise ValueError("Price-based discounts MUST have only one associated ticket")
 

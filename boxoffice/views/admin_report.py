@@ -219,6 +219,7 @@ def invoices_report(organization: Organization):
 @lastuser.requires_permission('siteadmin')
 @load_models((Organization, {'name': 'org_name'}, 'organization'))
 def settled_transactions(organization: Organization):
+    # FIXME: This report is NOT filtered by organization; it has everything!
     today = date.today()
     year = int(request.args.get('year', today.year))
     month = int(request.args.get('month', today.month))
