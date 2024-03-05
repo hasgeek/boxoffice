@@ -1,5 +1,5 @@
 export const TicketAssignmentTemplate = `
-  {{#line_items:line_item}}
+  {{#lineItems:lineItem}}
     {{#if is_confirmed}}
       <div class="ticket col-sm-6 col-xs-12" id="item-{{ seq }}">
         <div class="heading">
@@ -107,8 +107,8 @@ export const TicketAssignmentTemplate = `
         </div>
       </div>
     {{/if}}
-  {{/line_item}}
-  {{#line_items:line_item}}
+  {{/lineItem}}
+  {{#lineItems:lineItem}}
     {{#if is_cancelled}}
       <div class="ticket col-sm-6 col-xs-12" id="item-{{ seq }}">
         <div class="heading">
@@ -129,5 +129,7 @@ export const TicketAssignmentTemplate = `
         </div>
       </div>
     {{/if}}
-  {{/line_item}}
+  {{/lineItem}}
 `;
+
+export { TicketAssignmentTemplate as default };

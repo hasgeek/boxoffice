@@ -6,13 +6,13 @@ Create Date: 2016-04-11 20:15:52.864916
 
 """
 
+from alembic import op
+from sqlalchemy.dialects import postgresql
+import sqlalchemy as sa
+
 # revision identifiers, used by Alembic.
 revision = '253e7b76eb8e'
 down_revision = '1ea1e8070ac8'
-
-from alembic import op
-import sqlalchemy as sa
-import sqlalchemy_utils
 
 
 def upgrade():
@@ -22,7 +22,7 @@ def upgrade():
         'assignee',
         sa.Column(
             'line_item_id',
-            sqlalchemy_utils.types.uuid.UUIDType(binary=False),
+            postgresql.UUID(),
             nullable=False,
         ),
     )

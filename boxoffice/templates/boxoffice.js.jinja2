@@ -98,7 +98,7 @@ $(function() {
 
   boxoffice.initResources = function(config) {
     this.config.resources = {
-      itemCollection: {
+      menu: {
         method: 'GET',
         urlFor: function(codes){
           if (codes.length > 0) {
@@ -109,9 +109,9 @@ $(function() {
                 codeParams += "&";
               }
             }
-            return boxoffice.config.baseURL + '/ic/' + config.ic + codeParams;
+            return boxoffice.config.baseURL + '/menu/' + config.menu + codeParams;
           }
-          return boxoffice.config.baseURL + '/ic/' + config.ic;
+          return boxoffice.config.baseURL + '/menu/' + config.menu;
         }
       },
       kharcha: {
@@ -123,7 +123,7 @@ $(function() {
       purchaseOrder: {
         method: 'POST',
         urlFor: function(){
-          return boxoffice.config.baseURL + '/ic/' + config.ic + '/order';
+          return boxoffice.config.baseURL + '/menu/' + config.menu + '/order';
         }
       },
       payment: {
@@ -162,39 +162,39 @@ $(function() {
     // Config variables provided by the client embedding the widget
     this.widgetConfig = widgetConfig;
     this.initResources({
-      ic: widgetConfig.itemCollection
+      menu: widgetConfig.menu
     });
     $.ajax({
-      url: boxoffice.config.resources.itemCollection.urlFor(boxoffice.util.getDiscountCodes()),
+      url: boxoffice.config.resources.menu.urlFor(boxoffice.util.getDiscountCodes()),
       crossDomain: true,
       headers: {'X-Requested-With': 'XMLHttpRequest'},
       dataType: 'json'
     }).done(function(data) {
       var lineItems = [];
-      var item_map = {};
+      var ticket_map = {};
       var categories = data.categories;
       var currency = data.currency;
 
       /* load inventory from server, initialize lineItems with
       their quantities set to 0 */
       data.categories.forEach(function(category) {
-        category.items.forEach(function(item) {
-          item_map[item.id] = item;
+        category.tickets.forEach(function(ticket) {
+          ticket_map[ticket.id] = ticket;
           lineItems.push({
-            'item_id': item.id,
-            'item_name': item.name,
+            'ticket_id': ticket.id,
+            'ticket_name': ticket.name,
             'quantity': 0,
-            'item_title': item.title,
-            'base_price': item.price,
+            'ticket_title': ticket.title,
+            'base_price': ticket.price,
             'unit_final_amount': undefined,
             'discounted_amount': undefined,
             'final_amount': undefined,
-            'item_description': item.description,
-            'price_valid_upto': boxoffice.util.formatDate(item.price_valid_upto),
-            'has_higher_price': item.has_higher_price,
-            'discount_policies': item.discount_policies,
-            'quantity_available': item.quantity_available,
-            'is_available': item.is_available,
+            'ticket_description': ticket.description,
+            'price_valid_upto': boxoffice.util.formatDate(ticket.price_valid_upto),
+            'has_higher_price': ticket.has_higher_price,
+            'discount_policies': ticket.discount_policies,
+            'quantity_available': ticket.quantity_available,
+            'is_available': ticket.is_available,
             'currency': currency,
           });
         });
@@ -205,8 +205,8 @@ $(function() {
           return {
             name: widget_category.name,
             title: widget_category.title,
-            items: widget_category.item_ids.map(function(item_id) {
-              return item_map[item_id];
+            tickets: widget_category.ticket_ids.map(function(ticket_id) {
+              return ticket_map[ticket_id];
             })
           }
         });
@@ -345,7 +345,7 @@ $(function() {
               line_items: boxoffice.ractive.get('order.line_items').map(function(line_item) {
                 return {
                   quantity: 1,
-                  item_id: line_item.item_id
+                  ticket_id: line_item.ticket_id
                 };
               }),
               discount_coupons: discount_coupons
@@ -357,12 +357,12 @@ $(function() {
               var discount_applicable = false;
               var line_items = boxoffice.ractive.get('order.line_items');
               line_items.forEach(function(line_item) {
-                if (data.line_items.hasOwnProperty(line_item.item_id)) {
-                  if (data.line_items[line_item.item_id].discounted_amount && line_item.quantity_available > 0) {
+                if (data.line_items.hasOwnProperty(line_item.ticket_id)) {
+                  if (data.line_items[line_item.ticket_id].discounted_amount && line_item.quantity_available > 0) {
                     discount_applicable = true;
-                    line_item.unit_final_amount = data.line_items[line_item.item_id].final_amount;
+                    line_item.unit_final_amount = data.line_items[line_item.ticket_id].final_amount;
                     line_item.discount_policies.forEach(function(discount_policy){
-                      if (data.line_items[line_item.item_id].discount_policy_ids.indexOf(discount_policy.id) >= 0) {
+                      if (data.line_items[line_item.ticket_id].discount_policy_ids.indexOf(discount_policy.id) >= 0) {
                         discount_policy.pre_applied = true;
                       }
                     });
@@ -383,20 +383,20 @@ $(function() {
             }
           });
         },
-        updateOrder: function(event, item_name, quantityAvailable, increment) {
+        updateOrder: function(event, ticket_name, quantityAvailable, increment) {
           // Increments or decrements a line item's quantity
           event.original.preventDefault();
           var lineItems = boxoffice.ractive.get('order.line_items');
           lineItems.forEach(function(lineItem) {
-            if (lineItem.item_name === item_name) {
+            if (lineItem.ticket_name === ticket_name) {
               if (increment) {
                 if (lineItem.quantity < quantityAvailable) {
                   lineItem.quantity += 1;
                 }
-                boxoffice.ractive.fire('eventAnalytics', 'add ticket', item_name, lineItem.base_price);
+                boxoffice.ractive.fire('eventAnalytics', 'add ticket', ticket_name, lineItem.base_price);
               } else if (lineItem.quantity !== 0) {
                 lineItem.quantity -= 1;
-                boxoffice.ractive.fire('eventAnalytics', 'remove ticket', item_name, 0);
+                boxoffice.ractive.fire('eventAnalytics', 'remove ticket', ticket_name, 0);
               }
             }
             if (lineItem.quantity === 0) {
@@ -435,7 +435,7 @@ $(function() {
                   }).map(function(line_item) {
                   return {
                     quantity: line_item.quantity,
-                    item_id: line_item.item_id
+                    ticket_id: line_item.ticket_id
                   };
                 }),
                 discount_coupons: boxoffice.util.getDiscountCodes()
@@ -448,24 +448,24 @@ $(function() {
                 var readyToCheckout = false;
                 line_items.forEach(function(line_item){
                   // TODO: Refactor this to iterate through data.line_items
-                  if (data.line_items.hasOwnProperty(line_item.item_id) && line_item.quantity ===  data.line_items[line_item.item_id].quantity) {
-                    line_item.final_amount = data.line_items[line_item.item_id].final_amount;
-                    line_item.discounted_amount = data.line_items[line_item.item_id].discounted_amount;
-                    line_item.quantity_available = data.line_items[line_item.item_id].quantity_available;
-                    line_item.is_available = data.line_items[line_item.item_id].is_available;
+                  if (data.line_items.hasOwnProperty(line_item.ticket_id) && line_item.quantity ===  data.line_items[line_item.ticket_id].quantity) {
+                    line_item.final_amount = data.line_items[line_item.ticket_id].final_amount;
+                    line_item.discounted_amount = data.line_items[line_item.ticket_id].discounted_amount;
+                    line_item.quantity_available = data.line_items[line_item.ticket_id].quantity_available;
+                    line_item.is_available = data.line_items[line_item.ticket_id].is_available;
                     if (!line_item.is_available) {
                       // This item is no longer available, force set the selected quantity to 0.
                       line_item.quantity = 0;
                     }
 
                     if (!readyToCheckout
-                      && data.line_items[line_item.item_id].quantity > 0
-                      && data.line_items[line_item.item_id].quantity <= data.line_items[line_item.item_id].quantity_available) {
+                      && data.line_items[line_item.ticket_id].quantity > 0
+                      && data.line_items[line_item.ticket_id].quantity <= data.line_items[line_item.ticket_id].quantity_available) {
                       readyToCheckout = true;
                     }
 
                     line_item.discount_policies.forEach(function(discount_policy){
-                      if (data.line_items[line_item.item_id].discount_policy_ids.indexOf(discount_policy.id) >= 0) {
+                      if (data.line_items[line_item.ticket_id].discount_policy_ids.indexOf(discount_policy.id) >= 0) {
                         discount_policy.activated = true;
                       } else {
                         discount_policy.activated = false;
@@ -592,7 +592,7 @@ $(function() {
                 return line_item.quantity > 0;
               }).map(function(line_item) {
                 return {
-                  item_id: line_item.item_id,
+                  ticket_id: line_item.ticket_id,
                   quantity: line_item.quantity
                 };
               }),
@@ -897,10 +897,10 @@ $(function() {
 
           var prices = [];
           var quantityAvailable = [];
-          lineItems.forEach(function(item) {
-            quantityAvailable.push(item.quantity_available);
-            if(item.is_available) {
-              prices.push(item.base_price);
+          lineItems.forEach(function(ticket) {
+            quantityAvailable.push(ticket.quantity_available);
+            if(ticket.is_available) {
+              prices.push(ticket.base_price);
             }
           });
           $(document).trigger('boxofficeShowPriceEvent', [prices, currency, quantityAvailable]);

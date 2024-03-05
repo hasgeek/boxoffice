@@ -1,32 +1,63 @@
-from . import BaseScopedNameMixin, MarkdownColumn, db
-from .user import Organization
+from __future__ import annotations
+
+from decimal import Decimal
+from typing import TYPE_CHECKING, cast
+from uuid import UUID
+
+from sqlalchemy.ext.orderinglist import ordering_list
+
+from . import (
+    BaseScopedNameMixin,
+    DynamicMapped,
+    Mapped,
+    MarkdownColumn,
+    Model,
+    db,
+    relationship,
+    sa,
+)
+from .enums import LineItemStatus, TransactionTypeEnum
+from .payment import PaymentTransaction
+from .user import Organization, User
 from .utils import HeadersAndDataTuple
 
 __all__ = ['ItemCollection']
 
 
-class ItemCollection(BaseScopedNameMixin, db.Model):
-    """Represent a collection of items or an inventory."""
+class ItemCollection(BaseScopedNameMixin[UUID, User], Model):
+    """Represent a collection of tickets."""
 
     __tablename__ = 'item_collection'
-    __uuid_primary_key__ = True
-    __table_args__ = (db.UniqueConstraint('organization_id', 'name'),)
+    __table_args__ = (sa.UniqueConstraint('organization_id', 'name'),)
 
     description = MarkdownColumn('description', default='', nullable=False)
 
-    organization_id = db.Column(
-        db.Integer, db.ForeignKey('organization.id'), nullable=False
+    organization_id: Mapped[int] = sa.orm.mapped_column(
+        sa.ForeignKey('organization.id')
     )
-    organization = db.relationship(
-        Organization,
-        backref=db.backref('item_collections', cascade='all, delete-orphan'),
-    )
-    parent = db.synonym('organization')
-    tax_type = db.Column(db.Unicode(80), nullable=True, default='GST')
+    organization: Mapped[Organization] = relationship(back_populates='menus')
+    parent: Mapped[Organization] = sa.orm.synonym('organization')
+    tax_type: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(80), default='GST')
     # ISO 3166-2 code. Eg: KA for Karnataka
-    place_supply_state_code = db.Column(db.Unicode(3), nullable=True)
+    place_supply_state_code: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(3))
     # ISO country code
-    place_supply_country_code = db.Column(db.Unicode(2), nullable=True)
+    place_supply_country_code: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(2))
+
+    categories: Mapped[list[Category]] = relationship(
+        cascade='all, delete-orphan',
+        order_by='Category.seq',
+        collection_class=ordering_list('seq', count_from=1),
+        back_populates='menu',
+    )
+    tickets: Mapped[list[Item]] = relationship(
+        cascade='all, delete-orphan',
+        order_by='Item.seq',
+        collection_class=ordering_list('seq', count_from=1),
+        back_populates='menu',
+    )
+    orders: DynamicMapped[Order] = relationship(
+        cascade='all, delete-orphan', lazy='dynamic', back_populates='menu'
+    )
 
     __roles__ = {'ic_owner': {'read': {'id', 'name', 'title', 'description'}}}
 
@@ -36,19 +67,19 @@ class ItemCollection(BaseScopedNameMixin, db.Model):
             roles.add('ic_owner')
         return roles
 
-    def fetch_all_details(self):
+    def fetch_all_details(self) -> HeadersAndDataTuple:
         """
-        Return details for all line items in a given item collection.
+        Return details for all order lineitems in a given menu.
 
         Also return the associated assignee (if any), discount policy (if any),
-        discount coupon (if any), item, order and order session (if any)
+        discount coupon (if any), ticket, order and order session (if any)
         as a tuple of (keys, rows).
         """
         line_item_join = (
-            db.outerjoin(
+            sa.outerjoin(
                 LineItem,
                 Assignee,
-                db.and_(
+                sa.and_(
                     LineItem.id == Assignee.line_item_id, Assignee.current.is_(True)
                 ),
             )
@@ -60,10 +91,10 @@ class ItemCollection(BaseScopedNameMixin, db.Model):
         )
 
         line_item_query = (
-            db.select(
+            sa.select(
                 LineItem.id,
                 LineItem.customer_order_id,
-                Order.invoice_no,
+                Order.receipt_no,
                 Item.title,
                 LineItem.base_amount,
                 LineItem.discounted_amount,
@@ -90,11 +121,12 @@ class ItemCollection(BaseScopedNameMixin, db.Model):
                 Order.paid_at,
             )
             .select_from(line_item_join)
-            .where(LineItem.status == LINE_ITEM_STATUS.CONFIRMED)
-            .where(Order.item_collection == self)
+            .where(LineItem.status == LineItemStatus.CONFIRMED)
+            .where(Order.menu_id == self.id)
             .order_by(LineItem.ordered_at)
         )
-        # TODO: Use label() instead of this hack https://github.com/hasgeek/boxoffice/pull/236#discussion_r223341927
+        # TODO: Use label() instead of this hack
+        # https://github.com/hasgeek/boxoffice/pull/236#discussion_r223341927
         return HeadersAndDataTuple(
             [
                 'ticket_id',
@@ -130,17 +162,17 @@ class ItemCollection(BaseScopedNameMixin, db.Model):
 
     def fetch_assignee_details(self):
         """
-        Return assignee details for all items in the item collection.
+        Return assignee details for all ordered tickets in the menu.
 
-        Includes invoice_no, ticket title, assignee fullname, assignee email, assignee
-        phone and assignee details for all the line items in a given item collection
-        as a tuple of (keys, rows).
+        Includes receipt_no, ticket title, assignee fullname, assignee email, assignee
+        phone and assignee details for all the ordered lineitem in a given menu as a
+        tuple of (keys, rows).
         """
         line_item_join = (
-            db.join(
+            sa.join(
                 LineItem,
                 Assignee,
-                db.and_(
+                sa.and_(
                     LineItem.id == Assignee.line_item_id, Assignee.current.is_(True)
                 ),
             )
@@ -148,8 +180,8 @@ class ItemCollection(BaseScopedNameMixin, db.Model):
             .join(Order)
         )
         line_item_query = (
-            db.select(
-                Order.invoice_no,
+            sa.select(
+                Order.receipt_no,
                 LineItem.line_item_seq,
                 LineItem.id,
                 Item.title,
@@ -159,8 +191,8 @@ class ItemCollection(BaseScopedNameMixin, db.Model):
                 Assignee.details,
             )
             .select_from(line_item_join)
-            .where(LineItem.status == LINE_ITEM_STATUS.CONFIRMED)
-            .where(Order.item_collection == self)
+            .where(LineItem.status == LineItemStatus.CONFIRMED)
+            .where(Order.menu == self)
             .order_by(LineItem.ordered_at)
         )
         return HeadersAndDataTuple(
@@ -177,9 +209,45 @@ class ItemCollection(BaseScopedNameMixin, db.Model):
             db.session.execute(line_item_query).fetchall(),
         )
 
+    def net_sales(self) -> Decimal:
+        """Return the net revenue for a menu."""
+        total_paid = cast(
+            Decimal,
+            db.session.scalar(
+                sa.select(sa.func.sum(PaymentTransaction.amount))
+                .select_from(PaymentTransaction)
+                .join(Order, PaymentTransaction.customer_order_id == Order.id)
+                .where(
+                    PaymentTransaction.transaction_type == TransactionTypeEnum.PAYMENT,
+                    Order.menu_id == self.id,
+                )
+            ),
+        )
+        total_refunded = cast(
+            Decimal,
+            db.session.scalar(
+                sa.select(sa.func.sum(PaymentTransaction.amount))
+                .select_from(PaymentTransaction)
+                .join(Order, PaymentTransaction.customer_order_id == Order.id)
+                .where(
+                    PaymentTransaction.transaction_type == TransactionTypeEnum.REFUND,
+                    Order.menu_id == self.id,
+                )
+            ),
+        )
+
+        if total_paid and total_refunded:
+            return total_paid - total_refunded
+        if total_paid:
+            return total_paid
+        return Decimal('0')
+
 
 # Tail imports
 from .discount_policy import DiscountCoupon, DiscountPolicy  # isort:skip
-from .line_item import LINE_ITEM_STATUS, Assignee, LineItem  # isort:skip
+from .line_item import Assignee, LineItem  # isort:skip
 from .item import Item  # isort:skip
 from .order import Order, OrderSession  # isort:skip
+
+if TYPE_CHECKING:
+    from .category import Category

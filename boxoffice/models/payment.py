@@ -1,70 +1,66 @@
+from __future__ import annotations
+
 from collections import OrderedDict
 from decimal import Decimal
-
-from sqlalchemy.sql import func
+from uuid import UUID
 
 from isoweek import Week
+from sqlalchemy.sql import func
 
-from baseframe import __
-from coaster.utils import LabeledEnum, isoweek_datetime
+from coaster.utils import isoweek_datetime
 
-from ..extapi.razorpay_status import RAZORPAY_PAYMENT_STATUS
-from . import BaseMixin, MarkdownColumn, db
-from .item_collection import ItemCollection
-from .order import ORDER_STATUS, Order
+from . import (
+    BaseMixin,
+    Mapped,
+    MarkdownColumn,
+    Model,
+    db,
+    relationship,
+    sa,
+    timestamptz,
+)
+from .enums import (
+    OrderStatus,
+    RazorpayPaymentStatus,
+    TransactionMethodEnum,
+    TransactionTypeEnum,
+)
+from .user import User
 
-__all__ = [
-    'OnlinePayment',
-    'PaymentTransaction',
-    'CURRENCY',
-    'CURRENCY_SYMBOL',
-    'TRANSACTION_TYPE',
-]
-
-
-class TRANSACTION_METHOD(LabeledEnum):  # NOQA: N801
-    ONLINE = (0, __("Online"))
-    CASH = (1, __("Cash"))
-    BANK_TRANSFER = (2, __("Bank Transfer"))
-
-
-class TRANSACTION_TYPE(LabeledEnum):  # NOQA: N801
-    PAYMENT = (0, __("Payment"))
-    REFUND = (1, __("Refund"))
-    # CREDIT = (2, __("Credit"))
+__all__ = ['OnlinePayment', 'PaymentTransaction']
 
 
-class OnlinePayment(BaseMixin, db.Model):
+class OnlinePayment(BaseMixin[UUID, User], Model):
     """Represents payments made through a payment gateway. Supports Razorpay only."""
 
     __tablename__ = 'online_payment'
-    __uuid_primary_key__ = True
-    customer_order_id = db.Column(
-        None, db.ForeignKey('customer_order.id'), nullable=False
+    customer_order_id: Mapped[UUID] = sa.orm.mapped_column(
+        sa.ForeignKey('customer_order.id')
     )
-    order = db.relationship(
-        Order, backref=db.backref('online_payments', cascade='all, delete-orphan')
-    )
+    order: Mapped[Order] = relationship(back_populates='online_payments')
 
     # Payment id issued by the payment gateway
-    pg_paymentid = db.Column(db.Unicode(80), nullable=False, unique=True)
+    pg_paymentid: Mapped[str] = sa.orm.mapped_column(sa.Unicode(80), unique=True)
     # Payment status issued by the payment gateway
-    pg_payment_status = db.Column(db.Integer, nullable=False)
-    confirmed_at = db.Column(db.TIMESTAMP(timezone=True), nullable=True)
-    failed_at = db.Column(db.TIMESTAMP(timezone=True), nullable=True)
+    pg_payment_status: Mapped[int]
+    confirmed_at: Mapped[timestamptz | None]
+    failed_at: Mapped[timestamptz | None]
+    transactions: Mapped[list[PaymentTransaction]] = relationship(
+        cascade='all, delete-orphan', back_populates='online_payment'
+    )
 
-    def confirm(self):
+    def confirm(self) -> None:
         """Confirm a payment, sets confirmed_at and pg_payment_status."""
         self.confirmed_at = func.utcnow()
-        self.pg_payment_status = RAZORPAY_PAYMENT_STATUS.CAPTURED
+        self.pg_payment_status = RazorpayPaymentStatus.CAPTURED
 
-    def fail(self):
+    def fail(self) -> None:
         """Fails a payment, sets failed_at."""
-        self.pg_payment_status = RAZORPAY_PAYMENT_STATUS.FAILED
+        self.pg_payment_status = RazorpayPaymentStatus.FAILED
         self.failed_at = func.utcnow()
 
 
-class PaymentTransaction(BaseMixin, db.Model):
+class PaymentTransaction(BaseMixin[UUID, User], Model):
     """
     Models transactions made by a customer.
 
@@ -72,169 +68,83 @@ class PaymentTransaction(BaseMixin, db.Model):
     """
 
     __tablename__ = 'payment_transaction'
-    __uuid_primary_key__ = True
 
-    customer_order_id = db.Column(
-        None, db.ForeignKey('customer_order.id'), nullable=False
+    customer_order_id: Mapped[UUID] = sa.orm.mapped_column(
+        sa.ForeignKey('customer_order.id')
     )
-    order = db.relationship(
-        Order,
-        backref=db.backref(
-            'transactions', cascade='all, delete-orphan', lazy="dynamic"
-        ),
+    order: Mapped[Order] = relationship(back_populates='transactions')
+    online_payment_id: Mapped[UUID | None] = sa.orm.mapped_column(
+        sa.ForeignKey('online_payment.id')
     )
-    online_payment_id = db.Column(
-        None, db.ForeignKey('online_payment.id'), nullable=True
+    online_payment: Mapped[OnlinePayment | None] = relationship(
+        back_populates='transactions'
     )
-    online_payment = db.relationship(
-        OnlinePayment, backref=db.backref('transactions', cascade='all, delete-orphan')
+    amount: Mapped[Decimal]
+    currency: Mapped[str] = sa.orm.mapped_column(sa.Unicode(3))
+    transaction_type: Mapped[int] = sa.orm.mapped_column(
+        default=TransactionTypeEnum.PAYMENT
     )
-    amount = db.Column(db.Numeric, nullable=False)
-    currency = db.Column(db.Unicode(3), nullable=False)
-    transaction_type = db.Column(
-        db.Integer, default=TRANSACTION_TYPE.PAYMENT, nullable=False
-    )
-    transaction_method = db.Column(
-        db.Integer, default=TRANSACTION_METHOD.ONLINE, nullable=False
+    transaction_method: Mapped[int] = sa.orm.mapped_column(
+        default=TransactionMethodEnum.ONLINE
     )
     # Eg: reference number for a bank transfer
-    transaction_ref = db.Column(db.Unicode(80), nullable=True)
-    refunded_at = db.Column(db.TIMESTAMP(timezone=True), nullable=True)
-    internal_note = db.Column(db.Unicode(250), nullable=True)
-    refund_description = db.Column(db.Unicode(250), nullable=True)
+    transaction_ref: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(80))
+    refunded_at: Mapped[timestamptz | None]
+    internal_note: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(250))
+    refund_description: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(250))
     note_to_user = MarkdownColumn('note_to_user', nullable=True)
     # Refund id issued by the payment gateway
-    pg_refundid = db.Column(db.Unicode(80), nullable=True, unique=True)
+    pg_refundid: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(80), unique=True)
 
 
-def get_refund_transactions(self):
-    return self.transactions.filter_by(transaction_type=TRANSACTION_TYPE.REFUND)
-
-
-Order.refund_transactions = property(get_refund_transactions)
-
-
-def get_payment_transactions(self):
-    return self.transactions.filter_by(transaction_type=TRANSACTION_TYPE.PAYMENT)
-
-
-Order.payment_transactions = property(get_payment_transactions)
-
-
-def order_paid_amount(self):
-    return sum(
-        [order_transaction.amount for order_transaction in self.payment_transactions]
-    )
-
-
-Order.paid_amount = property(order_paid_amount)
-
-
-def order_refunded_amount(self):
-    return sum(
-        [order_transaction.amount for order_transaction in self.refund_transactions]
-    )
-
-
-Order.refunded_amount = property(order_refunded_amount)
-
-
-def order_net_amount(self):
-    return self.paid_amount - self.refunded_amount
-
-
-Order.net_amount = property(order_net_amount)
-
-
-def item_collection_net_sales(self):
-    """Return the net revenue for an item collection."""
-    total_paid = (
-        db.session.query(db.column('sum'))
-        .from_statement(
-            db.text(
-                '''SELECT SUM(amount) FROM payment_transaction
-        INNER JOIN customer_order ON payment_transaction.customer_order_id = customer_order.id
-        WHERE transaction_type=:transaction_type
-        AND customer_order.item_collection_id = :item_collection_id
-        '''
-            )
-        )
-        .params(transaction_type=TRANSACTION_TYPE.PAYMENT, item_collection_id=self.id)
-        .scalar()
-    )
-
-    total_refunded = (
-        db.session.query(db.column('sum'))
-        .from_statement(
-            db.text(
-                '''SELECT SUM(amount) FROM payment_transaction
-        INNER JOIN customer_order ON payment_transaction.customer_order_id = customer_order.id
-        WHERE transaction_type=:transaction_type
-        AND customer_order.item_collection_id = :item_collection_id
-        '''
-            )
-        )
-        .params(transaction_type=TRANSACTION_TYPE.REFUND, item_collection_id=self.id)
-        .scalar()
-    )
-
-    if total_paid and total_refunded:
-        return total_paid - total_refunded
-    elif total_paid:
-        return total_paid
-    else:
-        return Decimal('0')
-
-
-ItemCollection.net_sales = property(item_collection_net_sales)
-
-
-class CURRENCY(LabeledEnum):  # NOQA: N801
-    INR = ("INR", __("INR"))
-
-
-class CURRENCY_SYMBOL(LabeledEnum):  # NOQA: N801
-    INR = ('INR', '₹')
-
-
-def calculate_weekly_refunds(item_collection_ids, user_tz, year):
-    """Calculate refunds per week of the year for given item_collection_ids."""
+def calculate_weekly_refunds(menu_ids, user_tz, year):
+    """Calculate refunds per week of the year for given menu_ids."""
     ordered_week_refunds = OrderedDict()
     for year_week in Week.weeks_of_year(year):
         ordered_week_refunds[year_week.week] = 0
     start_at = isoweek_datetime(year, 1, user_tz)
     end_at = isoweek_datetime(year + 1, 1, user_tz)
 
-    week_refunds = (
-        db.session.query(db.column('sales_week'), db.column('sum'))
-        .from_statement(
-            db.text(
-                '''
-        SELECT EXTRACT(WEEK FROM payment_transaction.created_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone)
-        AS sales_week, SUM(payment_transaction.amount) AS sum
-        FROM customer_order INNER JOIN payment_transaction on payment_transaction.customer_order_id = customer_order.id
-        WHERE customer_order.status IN :statuses AND customer_order.item_collection_id IN :item_collection_ids
-        AND payment_transaction.transaction_type = :transaction_type
-        AND payment_transaction.created_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone
-            >= :start_at
-        AND payment_transaction.created_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone
-            < :end_at
-        GROUP BY sales_week ORDER BY sales_week;
-        '''
+    week_refunds = db.session.execute(
+        sa.select(
+            sa.func.extract(
+                'WEEK',
+                sa.func.timezone(
+                    user_tz, sa.func.timezone('UTC', PaymentTransaction.created_at)
+                ),
+            ).label('sales_week'),
+            sa.func.sum(PaymentTransaction.amount).label('sum'),
+        )
+        .select_from(PaymentTransaction, Order)
+        .where(
+            PaymentTransaction.customer_order_id == Order.id,
+            Order.status.in_(
+                [
+                    OrderStatus.SALES_ORDER.value,
+                    OrderStatus.INVOICE.value,
+                    OrderStatus.CANCELLED.value,
+                ]
+            ),
+            Order.menu_id.in_(menu_ids),
+            PaymentTransaction.transaction_type == TransactionTypeEnum.REFUND,
+            sa.func.timezone(
+                user_tz, sa.func.timezone('UTC', PaymentTransaction.created_at)
             )
+            >= start_at,
+            sa.func.timezone(
+                user_tz, sa.func.timezone('UTC', PaymentTransaction.created_at)
+            )
+            < end_at,
         )
-        .params(
-            timezone=user_tz,
-            statuses=tuple(ORDER_STATUS.TRANSACTION),
-            transaction_type=TRANSACTION_TYPE.REFUND,
-            start_at=start_at,
-            end_at=end_at,
-            item_collection_ids=tuple(item_collection_ids),
-        )
-        .all()
-    )
+        .group_by('sales_week')
+        .order_by('sales_week')
+    ).all()
 
     for week_refund in week_refunds:
         ordered_week_refunds[int(week_refund.sales_week)] = week_refund.sum
 
     return ordered_week_refunds
+
+
+# Tail imports
+from .order import Order

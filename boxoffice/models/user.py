@@ -1,22 +1,26 @@
-from datetime import datetime
+from __future__ import annotations
 
-from flask import g
-
-import pytz
+from typing import TYPE_CHECKING
 
 from flask_lastuser.sqlalchemy import ProfileBase, UserBase2
 
-from . import JsonDict, db
+from . import DynamicMapped, Mapped, Model, db, jsonb_dict, relationship, sa
+from .utils import HeadersAndDataTuple
 
 __all__ = ['User', 'Organization']
 
 
-class User(UserBase2, db.Model):
+class User(UserBase2, Model):
     __tablename__ = 'user'
+
+    assignees: Mapped[list[Assignee]] = relationship(
+        cascade='all, delete-orphan', back_populates='user'
+    )
+    orders: Mapped[list[Order]] = relationship(cascade='all, delete-orphan')
 
     def __repr__(self):
         """Return a representation."""
-        return self.fullname
+        return str(self.fullname)
 
     @property
     def orgs(self):
@@ -25,79 +29,112 @@ class User(UserBase2, db.Model):
         )
 
 
-def default_user(context):
-    return g.user.id if g.user else None
-
-
-def naive_to_utc(dt, timezone=None):
-    """
-    Return a UTC datetime for a given naive datetime or date object.
-
-    Localizes it to the given timezone and converts it into a UTC datetime
-    """
-    if timezone:
-        if isinstance(timezone, str):
-            tz = pytz.timezone(timezone)
-        else:
-            tz = timezone
-    elif isinstance(dt, datetime) and dt.tzinfo:
-        tz = dt.tzinfo
-    else:
-        tz = pytz.UTC
-
-    return tz.localize(dt).astimezone(tz).astimezone(pytz.UTC)
-
-
-class Organization(ProfileBase, db.Model):
+class Organization(ProfileBase, Model):
     __tablename__ = 'organization'
-    __table_args__ = (db.UniqueConstraint('contact_email'),)
+    __table_args__ = (sa.UniqueConstraint('contact_email'),)
 
-    # The currently used fields in details are address(html)
-    # cin (Corporate Identity Number) or llpin (Limited Liability Partnership Identification Number),
-    # pan, service_tax_no, support_email,
-    # logo (image url), refund_policy (html), ticket_faq (html), website (url)
-    details = db.Column(JsonDict, nullable=False, server_default='{}')
-    contact_email = db.Column(db.Unicode(254), nullable=False)
-    # This is to allow organizations to have their orders invoiced by the parent organization
-    invoicer_id = db.Column(None, db.ForeignKey('organization.id'), nullable=True)
-    invoicer = db.relationship(
-        'Organization',
+    # The currently used fields in details are address(html) cin (Corporate Identity
+    # Number) or llpin (Limited Liability Partnership Identification Number), pan,
+    # service_tax_no, support_email, logo (image url), refund_policy (html), ticket_faq
+    # (html), website (url)
+    details: Mapped[jsonb_dict]
+    contact_email: Mapped[str] = sa.orm.mapped_column(sa.Unicode(254))
+    # This is to allow organizations to have their orders invoiced by the parent
+    # organization
+    invoicer_id: Mapped[int | None] = sa.orm.mapped_column(
+        sa.ForeignKey('organization.id')
+    )
+    invoicer: Mapped[Organization | None] = relationship(
         remote_side='Organization.id',
-        backref=db.backref(
-            'subsidiaries', cascade='all, delete-orphan', lazy='dynamic'
-        ),
+        back_populates='subsidiaries',
+    )
+    subsidiaries: DynamicMapped[Organization] = relationship(
+        lazy='dynamic',
+        cascade='all, delete-orphan',
+        back_populates='invoicer',
+    )
+    menus: Mapped[list[ItemCollection]] = relationship(
+        cascade='all, delete-orphan', back_populates='organization'
     )
 
-    def permissions(self, user, inherited=None):
-        perms = super().permissions(user, inherited)
-        if self.userid in user.organizations_owned_ids():
+    discount_policies: DynamicMapped[DiscountPolicy] = relationship(
+        order_by='DiscountPolicy.created_at.desc()',
+        lazy='dynamic',
+        cascade='all, delete-orphan',
+        back_populates='organization',
+    )
+    invoices: DynamicMapped[Invoice] = relationship(
+        cascade='all, delete-orphan', lazy='dynamic', back_populates='organization'
+    )
+    orders: DynamicMapped[Order] = relationship(
+        cascade='all, delete-orphan', lazy='dynamic', back_populates='organization'
+    )
+
+    def permissions(self, actor, inherited=None):
+        perms = super().permissions(actor, inherited)
+        if self.userid in actor.organizations_owned_ids():
             perms.add('org_admin')
         return perms
 
+    def fetch_invoices(self):
+        """Return invoices for an organization as a tuple of (row_headers, rows)."""
+        from .order import Order  # pylint: disable=import-outside-toplevel
 
-def get_fiscal_year(jurisdiction, dt):
-    """
-    Return the financial year for a given jurisdiction and timestamp.
+        headers = [
+            'order_id',
+            'receipt_no',
+            'invoice_no',
+            'status',
+            'buyer_taxid',
+            'seller_taxid',
+            'invoicee_name',
+            'invoicee_company',
+            'invoicee_email',
+            'street_address_1',
+            'street_address_2',
+            'city',
+            'state',
+            'state_code',
+            'country_code',
+            'postcode',
+            'invoiced_at',
+        ]
+        invoices_query = (
+            sa.select(
+                Order.id,
+                Order.receipt_no,
+                Invoice.invoice_no,
+                Invoice.status,
+                Invoice.buyer_taxid,
+                Invoice.seller_taxid,
+                Invoice.invoicee_name,
+                Invoice.invoicee_company,
+                Invoice.invoicee_email,
+                Invoice.street_address_1,
+                Invoice.street_address_2,
+                Invoice.city,
+                Invoice.state,
+                Invoice.state_code,
+                Invoice.country_code,
+                Invoice.postcode,
+                Invoice.invoiced_at,
+            )
+            .where(Invoice.organization == self)
+            .select_from(Invoice)
+            .join(Order)
+            .order_by(Invoice.invoice_no)
+        )
+        return HeadersAndDataTuple(
+            headers, db.session.execute(invoices_query).fetchall()
+        )
 
-    Returns start and end dates as tuple of timestamps. Recognizes April 1 as the start
-    date for India (jurisfiction code: 'in'), January 1 everywhere else.
 
-    Example::
+# Tail imports
+from .invoice import Invoice  # isort:skip
 
-        get_fiscal_year('IN', utcnow())
-    """
-    if jurisdiction.lower() == 'in':
-        if dt.month < 4:
-            start_year = dt.year - 1
-        else:
-            start_year = dt.year
-        # starts on April 1 XXXX
-        fy_start = datetime(start_year, 4, 1)
-        # ends on April 1 XXXX + 1
-        fy_end = datetime(start_year + 1, 4, 1)
-        timezone = 'Asia/Kolkata'
-        return (naive_to_utc(fy_start, timezone), naive_to_utc(fy_end, timezone))
-    return (
-        naive_to_utc(datetime(dt.year, 1, 1)),
-        naive_to_utc(datetime(dt.year + 1, 1, 1)),
-    )
+
+if TYPE_CHECKING:
+    from .discount_policy import DiscountPolicy
+    from .item_collection import ItemCollection
+    from .line_item import Assignee
+    from .order import Order

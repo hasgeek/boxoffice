@@ -6,13 +6,13 @@ import csv
 from pytz import timezone, utc
 
 from boxoffice.models import OnlinePayment, PaymentTransaction
-from boxoffice.models.payment import TRANSACTION_TYPE
+from boxoffice.models.payment import TransactionTypeEnum
 
 # init_for('dev')
 
 
 def csv_to_rows(csv_file, skip_header=True, delimiter=','):
-    with open(csv_file, 'rb') as csvfile:
+    with open(csv_file, 'rb', encoding='utf-8') as csvfile:
         reader = csv.reader(csvfile, delimiter=delimiter)
         if skip_header:
             next(reader)
@@ -20,7 +20,7 @@ def csv_to_rows(csv_file, skip_header=True, delimiter=','):
 
 
 def rows_to_csv(rows, filename):
-    with open(filename, 'wb') as csvfile:
+    with open(filename, 'wb', encoding='utf-8') as csvfile:
         writer = csv.writer(
             csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL
         )
@@ -45,11 +45,13 @@ def get_settlements(filename):
             if not settlements.get(trans[11]):
                 settlements[trans[11]] = []
             if trans[1] == 'payment':
-                payment = OnlinePayment.query.filter_by(pg_paymentid=trans[0]).first()
+                payment = OnlinePayment.query.filter_by(
+                    pg_paymentid=trans[0]
+                ).one_or_none()
                 if payment:
                     pt = PaymentTransaction.query.filter_by(
                         online_payment=payment,
-                        transaction_type=TRANSACTION_TYPE.PAYMENT,
+                        transaction_type=TransactionTypeEnum.PAYMENT,
                     ).one_or_none()
                     # Get settlement
                     settlement_amount = [
@@ -73,10 +75,13 @@ def get_settlements(filename):
                 else:
                     print(trans[0])  # noqa: T201
             elif trans[1] == 'refund':
-                payment = OnlinePayment.query.filter_by(pg_paymentid=trans[14]).first()
+                payment = OnlinePayment.query.filter_by(
+                    pg_paymentid=trans[14]
+                ).one_or_none()
                 if payment:
                     refund_transactions = PaymentTransaction.query.filter_by(
-                        online_payment=payment, transaction_type=TRANSACTION_TYPE.REFUND
+                        online_payment=payment,
+                        transaction_type=TransactionTypeEnum.REFUND,
                     ).all()
                     settlement_amount = [
                         tr for tr in transactions if tr[0] == trans[11]
@@ -136,31 +141,65 @@ def get_settlements(filename):
 
 # yoga_pay_orders = []
 # for yt in yoga_trans:
-#     pay = OnlinePayment.query.filter_by(pg_paymentid=yt[0]).first()
-#     yoga_pay_orders.append([yt[0], pay.order.buyer_fullname, float(yt[4]), float(yt[6])])
+#     pay = OnlinePayment.query.filter_by(pg_paymentid=yt[0]).one()
+#     yoga_pay_orders.append(
+#         [yt[0], pay.order.buyer_fullname, float(yt[4]), float(yt[6])]
+#     )
 
 # yoga_pay_orders = []
 # for yt in yoga_trans:
-#     pay = OnlinePayment.query.filter_by(pg_paymentid=yt[0]).first()
+#     pay = OnlinePayment.query.filter_by(pg_paymentid=yt[0]).one()
 #     for li in pay.order.line_items:
-#         yoga_pay_orders.append([yt[0], pay.order.buyer_fullname, float(yt[4]), float(yt[6]), li.item.title])
+#         yoga_pay_orders.append(
+#             [
+#                  yt[0],
+#                  pay.order.buyer_fullname,
+#                  float(yt[4]),
+#                  float(yt[6]),
+#                  li.ticket.title
+#             ]
+#         )
 
 # yoga_pay_orders = []
 # for yt in yoga_trans:
-#     pay = OnlinePayment.query.filter_by(pg_paymentid=yt[0]).first()
+#     pay = OnlinePayment.query.filter_by(pg_paymentid=yt[0]).one()
 #     for li in pay.order.line_items:
-#         yoga_pay_orders.append([yt[0], pay.order.id, pay.order.buyer_fullname, yt[4], yt[6], yt[7], li.item.title, unicode(li.final_amount), localize(pay.created_at)])
+#         yoga_pay_orders.append(
+#             [
+#                 yt[0],
+#                 pay.order.id,
+#                 pay.order.buyer_fullname,
+#                 yt[4],
+#                 yt[6],
+#                 yt[7],
+#                 li.ticket.title,
+#                 unicode(li.final_amount),
+#                 localize(pay.created_at),
+#             ]
+#         )
 
 # for oid in oids:
 #     oids_dict[oid] = {
 #         'amount': [yp[3] for yp in yoga_pay_orders if yp[1] == oid][0],
-#         'fee': [yp[4] for yp in yoga_pay_orders if yp[1] == oid][0]
+#         'fee': [yp[4] for yp in yoga_pay_orders if yp[1] == oid][0],
 #     }
 
 # yoga_pay_orders = []
 # for yt in yoga_trans:
-#     pay = OnlinePayment.query.filter_by(pg_paymentid=yt[0]).first()
+#     pay = OnlinePayment.query.filter_by(pg_paymentid=yt[0]).one()
 #     order_id = json.loads(yoga_trans[0][-2])
 #     order = Order.query.get(order_id['order_id'])
 #     for li in order.line_items:
-#         yoga_pay_orders.append([yt[0], order.id, order.buyer_fullname, yt[4], yt[6], yt[7], li.item.title, unicode(li.final_amount), localize(pay.created_at)])
+#         yoga_pay_orders.append(
+#             [
+#                 yt[0],
+#                 order.id,
+#                 order.buyer_fullname,
+#                 yt[4],
+#                 yt[6],
+#                 yt[7],
+#                 li.ticket.title,
+#                 unicode(li.final_amount),
+#                 localize(pay.created_at),
+#             ]
+#         )

@@ -1,52 +1,50 @@
 // A collection of utility functions
-var moment = require('moment');
-var Ractive = require('ractive');
-import { redirectTo } from '../views/main_admin.js';
+
+const moment = require('moment');
+const Backbone = require('backbone');
 
 export const Util = {
-  formatToIndianRupee: function (value) {
+  formatToIndianRupee(value) {
     // Takes a floating point value and formats it to the Indian currency format
     // with the rupee sign.
     // Taken from https://github.com/hasgeek/hasjob/blob/master/hasjob/static/js/app.js
     if (!value) return value;
-    value = value.toString();
-    value = value.replace(/[^0-9.]/g, ''); // Remove non-digits, assume . for decimals
-    var afterPoint = '';
-    if (value.indexOf('.') > 0)
-      afterPoint = value.substring(value.indexOf('.'), value.length);
-    value = Math.floor(value);
-    value = value.toString();
-    var lastThree = value.substring(value.length - 3);
-    var otherNumbers = value.substring(0, value.length - 3);
-    if (otherNumbers !== '') lastThree = ',' + lastThree;
-    var res =
-      '₹' +
-      otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ',') +
-      lastThree +
-      afterPoint;
+    let val = value.toString();
+    val = val.replace(/[^0-9.]/g, ''); // Remove non-digits, assume . for decimals
+    let afterPoint = '';
+    if (val.indexOf('.') > 0)
+      afterPoint = val.substring(val.indexOf('.'), val.length);
+    val = Math.floor(val);
+    val = val.toString();
+    let lastThree = val.substring(val.length - 3);
+    const otherNumbers = val.substring(0, val.length - 3);
+    if (otherNumbers !== '') lastThree = `,${lastThree}`;
+    const res = `₹${otherNumbers.replace(
+      /\B(?=(\d{2})+(?!\d))/g,
+      ','
+    )}${lastThree}${afterPoint}`;
     return res;
   },
-  formatDateTime: function (dateTimeString, formatString = '') {
+  formatDateTime(dateTimeString, formatString = '') {
     // Takes an date time string and returns a string in the specified format.
     if (formatString) {
       return moment(dateTimeString).format(formatString);
-    } else {
-      return moment(dateTimeString).toString();
     }
+    return moment(dateTimeString).toString();
   },
-  getElementId: function (htmlString) {
+  getElementId(htmlString) {
     return htmlString.match(/id="(.*?)"/)[1];
   },
 };
 
-export const fetch = function (config) {
+export function fetch(config) {
   return $.ajax({
     url: config.url,
     dataType: config.dataType ? config.dataType : 'json',
   });
-};
+}
 
-export const post = function (config) {
+export function post(config) {
   return $.ajax({
     url: config.url,
     type: 'POST',
@@ -55,44 +53,44 @@ export const post = function (config) {
       ? config.contentType
       : 'application/x-www-form-urlencoded; charset=UTF-8',
     dataType: config.dataType ? config.dataType : 'json',
-    beforeSend: function () {
+    beforeSend() {
       if (config.formId) {
         $(config.formId).find('button[type="submit"]').prop('disabled', true);
         $(config.formId).find('.loading').removeClass('hidden');
       }
     },
   });
-};
+}
 
-export const xhrRetry = function (
+export function xhrRetry(
   ajaxLoad,
   response,
   serverErrorCallback,
   networkErrorCallback
 ) {
   if (response.readyState === 4) {
-    //Server error
+    // Server error
     serverErrorCallback();
   } else if (response.readyState === 0) {
     if (ajaxLoad.retries < 0) {
-      //Network error
+      // Network error
       networkErrorCallback();
     } else {
-      setTimeout(function () {
+      setTimeout(() => {
         $.ajax(ajaxLoad);
       }, ajaxLoad.retryInterval);
     }
   }
-};
+}
 
-export const getFormParameters = function (form) {
+export function getFormParameters(form) {
   return $.param($(form).serializeArray());
-};
+}
 
-export const getFormJSObject = function (form) {
-  var formElements = $(form).serializeArray();
-  var formDetails = {};
-  $.each(formElements, function () {
+export function getFormJSObject(form) {
+  const formElements = $(form).serializeArray();
+  const formDetails = {};
+  $.each(formElements, function updateFormDetails() {
     if (formDetails[this.name] !== undefined) {
       if (!formDetails[this.name].push) {
         formDetails[this.name] = [formDetails[this.name]];
@@ -103,20 +101,20 @@ export const getFormJSObject = function (form) {
     }
   });
   return formDetails;
-};
+}
 
-export const getCsrfToken = function () {
+export function getCsrfToken() {
   return document.head.querySelector('[name=csrf-token]').content;
-};
+}
 
-export const formErrorHandler = function (formId, errorResponse) {
+export function formErrorHandler(formId, errorResponse) {
   let errorMsg = '';
   // xhr readyState '4' indicates server has received the request & response is ready
   if (errorResponse.readyState === 4) {
     if (errorResponse.status === 500) {
       errorMsg = 'Internal Server Error';
     } else {
-      Baseframe.Forms.showValidationErrors(
+      window.Baseframe.Forms.showValidationErrors(
         formId,
         errorResponse.responseJSON.errors
       );
@@ -125,30 +123,26 @@ export const formErrorHandler = function (formId, errorResponse) {
   } else {
     errorMsg = 'Unable to connect. Please try again.';
   }
-  $('#' + formId)
-    .find('button[type="submit"]')
-    .prop('disabled', false);
-  $('#' + formId)
-    .find('.loading')
-    .addClass('hidden');
+  $(`#${formId}`).find('button[type="submit"]').prop('disabled', false);
+  $(`#${formId}`).find('.loading').addClass('hidden');
   return errorMsg;
-};
+}
 
-export const scrollToElement = function (element, speed = 500) {
+export function scrollToElement(element, speed = 500) {
   $('html,body').animate(
     {
       scrollTop: $(element).offset().top,
     },
     speed
   );
-};
+}
 
-export const updateBrowserHistory = function (newUrl) {
+export function updateBrowserHistory(newUrl) {
   window.history.replaceState({ reloadOnPop: true }, '', window.location.href);
   window.history.pushState({ reloadOnPop: true }, '', newUrl);
-};
+}
 
-export const urlFor = function (action, params = {}) {
+export function urlFor(action, params = {}) {
   /*
   Returns a URL for a given resource and action.
 
@@ -173,7 +167,7 @@ export const urlFor = function (action, params = {}) {
   - size    : size of the payload, if paginated
   - root    : Boolean, in case the URL needs to be prefixed with root namespace eg: /admin
   */
-  let rootURL = Backbone.history.root;
+  const rootURL = Backbone.history.root;
   let scope = '';
   let ext = '';
   let resource = '';
@@ -193,11 +187,13 @@ export const urlFor = function (action, params = {}) {
 
   switch (action) {
     case 'index':
-      url = params.page
-        ? `${scope}${resource}${ext}?page=${params.page}&size=${params.size}`
-        : params.size
-          ? `${scope}${resource}${ext}?size=${params.size}`
-          : `${scope}${resource}${ext}`;
+      if (params.page) {
+        url = `${scope}${resource}${ext}?page=${params.page}&size=${params.size}`;
+      } else if (params.size) {
+        url = `${scope}${resource}${ext}?size=${params.size}`;
+      } else {
+        url = `${scope}${resource}${ext}`;
+      }
       break;
     case 'view':
       url = scope
@@ -226,11 +222,11 @@ export const urlFor = function (action, params = {}) {
   }
 
   return url;
-};
+}
 
-export const setPageTitle = function (...subTitles) {
+export function setPageTitle(...subTitles) {
   /* Takes an array of titles and returns a concatenated string separated by " — ".
   Eg:- "Orders — JSFoo 2016 — Boxoffice" */
   subTitles.push(window.boxofficeAdmin.siteTitle);
   $('title').html(subTitles.join(' — '));
-};
+}

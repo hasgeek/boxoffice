@@ -4,8 +4,7 @@ import pytz
 import requests
 
 from boxoffice import app
-from boxoffice.extapi.razorpay_status import RAZORPAY_PAYMENT_STATUS
-from boxoffice.models import OnlinePayment
+from boxoffice.models import OnlinePayment, RazorpayPaymentStatus
 
 
 def get_refunds(date_ranges):
@@ -48,7 +47,7 @@ def get_refunds(date_ranges):
             payment = OnlinePayment.query.filter(
                 OnlinePayment.pg_paymentid
                 == entity_dict[settlement_refund_id]['payment_id'],
-                OnlinePayment.pg_payment_status == RAZORPAY_PAYMENT_STATUS.CAPTURED,
+                OnlinePayment.pg_payment_status == RazorpayPaymentStatus.CAPTURED,
             ).one()
             order = payment.order
             for refund_transaction in order.refund_transactions:
@@ -73,7 +72,7 @@ def get_refunds(date_ranges):
 
 
 def write_refunds(filename, rows):
-    with open(filename, 'w') as csvfile:
+    with open(filename, 'w', encoding='utf-8') as csvfile:
         fieldnames = [
             'transaction_id',
             'refund_description',

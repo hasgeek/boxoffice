@@ -6,23 +6,19 @@ Create Date: 2016-03-31 15:29:51.897720
 
 """
 
+from alembic import op
+from sqlalchemy.dialects import postgresql
+import sqlalchemy as sa
+
 # revision identifiers, used by Alembic.
 revision = '45de268cd444'
 down_revision = '4d7f840202d2'
-
-from alembic import op
-import sqlalchemy as sa
-import sqlalchemy_utils
 
 
 def upgrade():
     op.add_column(
         'price',
-        sa.Column(
-            'discount_policy_id',
-            sqlalchemy_utils.types.uuid.UUIDType(binary=False),
-            nullable=True,
-        ),
+        sa.Column('discount_policy_id', postgresql.UUID(), nullable=True),
     )
     op.create_unique_constraint(
         'price_item_id_discount_policy_id_key',

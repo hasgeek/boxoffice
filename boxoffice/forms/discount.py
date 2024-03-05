@@ -1,15 +1,16 @@
-from baseframe import __
+from __future__ import annotations
+
+from baseframe import __, forms
 from coaster.utils import getbool
-import baseframe.forms as forms
 
 from ..models import (
-    CURRENCY,
-    DISCOUNT_TYPE,
+    CurrencyEnum,
     DiscountCoupon,
     DiscountPolicy,
+    DiscountTypeEnum,
     Item,
     ItemCollection,
-    db,
+    sa,
 )
 
 __all__ = [
@@ -33,9 +34,9 @@ class DiscountPolicyForm(forms.Form):
     )
     discount_type = forms.RadioField(
         __("Discount type"),
-        choices=list(DISCOUNT_TYPE.items()),
+        choices=[(e.value, e.title) for e in DiscountTypeEnum],
         coerce=int,
-        default=DISCOUNT_TYPE.COUPON,
+        default=DiscountTypeEnum.COUPON,
     )
     is_price_based = forms.RadioField(
         __("Price based discount"),
@@ -56,36 +57,36 @@ class AutomaticDiscountPolicyForm(DiscountPolicyForm):
             forms.validators.DataRequired(__("Please specify a discount percentage"))
         ],
     )
-    items = forms.QuerySelectMultipleField(
-        __("Items"),
+    tickets = forms.QuerySelectMultipleField(
+        __("Tickets"),
         get_label='title',
         validators=[
             forms.validators.DataRequired(
                 __(
-                    "Please select at least one item for which the discount is applicable"
+                    "Please select at least one ticket for which the discount is"
+                    " applicable"
                 )
             )
         ],
     )
 
-    def set_queries(self):
-        self.items.query = (
-            Item.query.join(
-                ItemCollection, Item.item_collection_id == ItemCollection.id
-            )
+    def __post_init__(self) -> None:
+        self.tickets.query = (
+            Item.query.join(ItemCollection, Item.menu_id == ItemCollection.id)
             .filter(ItemCollection.organization == self.edit_parent)
-            .options(db.load_only(Item.id, Item.title))
+            .options(sa.orm.load_only(Item.id, Item.title))
         )
 
 
 class CouponBasedDiscountPolicyForm(DiscountPolicyForm):
-    items = forms.QuerySelectMultipleField(
-        __("Items"),
+    tickets = forms.QuerySelectMultipleField(
+        __("Tickets"),
         get_label='title',
         validators=[
             forms.validators.DataRequired(
                 __(
-                    "Please select at least one item for which the discount is applicable"
+                    "Please select at least one ticket for which the discount is"
+                    " applicable"
                 )
             )
         ],
@@ -108,7 +109,10 @@ class CouponBasedDiscountPolicyForm(DiscountPolicyForm):
             forms.validators.Length(max=20),
             forms.AvailableAttr(
                 'discount_code_base',
-                message='This discount code base is already in use. Please pick a different code base.',
+                message=__(
+                    "This discount code base is already in use. Please pick a different"
+                    " code base"
+                ),
             ),
         ],
         filters=[forms.filters.strip(), forms.filters.none_if_empty()],
@@ -117,13 +121,11 @@ class CouponBasedDiscountPolicyForm(DiscountPolicyForm):
         __("Bulk coupon usage limit"), default=1
     )
 
-    def set_queries(self):
-        self.items.query = (
-            Item.query.join(
-                ItemCollection, Item.item_collection_id == ItemCollection.id
-            )
+    def __post_init__(self) -> None:
+        self.tickets.query = (
+            Item.query.join(ItemCollection, Item.menu_id == ItemCollection.id)
             .filter(ItemCollection.organization == self.edit_parent)
-            .options(db.load_only(Item.id, Item.title))
+            .options(sa.orm.load_only(Item.id, Item.title))
         )
 
 
@@ -135,7 +137,10 @@ class PriceBasedDiscountPolicyForm(DiscountPolicyForm):
             forms.validators.Length(max=20),
             forms.AvailableAttr(
                 'discount_code_base',
-                message='This discount code base is already in use. Please pick a different code base.',
+                message=__(
+                    "This discount code base is already in use. Please pick a different"
+                    " code base"
+                ),
             ),
         ],
         filters=[forms.filters.strip(), forms.filters.none_if_empty()],
@@ -143,6 +148,8 @@ class PriceBasedDiscountPolicyForm(DiscountPolicyForm):
 
 
 class DiscountPriceForm(forms.Form):
+    edit_parent: DiscountPolicy
+
     title = forms.StringField(
         __("Discount price title"),
         validators=[
@@ -160,8 +167,8 @@ class DiscountPriceForm(forms.Form):
     currency = forms.RadioField(
         __("Currency"),
         validators=[forms.validators.DataRequired(__("Please select the currency"))],
-        choices=list(CURRENCY.items()),
-        default=CURRENCY.INR,
+        choices=[(e.value, e.name) for e in CurrencyEnum],
+        default=CurrencyEnum.INR,
     )
     start_at = forms.DateTimeField(
         __("Price start date"),
@@ -177,51 +184,55 @@ class DiscountPriceForm(forms.Form):
             forms.validators.GreaterThan(
                 'start_at',
                 __(
-                    "Please specify an end date for the price that is greater than the start date"
+                    "Please specify an end date for the price that is greater than the"
+                    " start date"
                 ),
             ),
         ],
         naive=False,
     )
-    item = forms.QuerySelectField(
-        __("Item"),
+    ticket = forms.QuerySelectField(
+        __("Ticket"),
         get_label='title',
         validators=[
             forms.validators.DataRequired(
-                __("Please select a item for which the discount is to be applied")
+                __("Please select a ticket for which the discount is to be applied")
             )
         ],
     )
 
-    def set_queries(self):
-        self.item.query = (
-            Item.query.join(
-                ItemCollection, Item.item_collection_id == ItemCollection.id
-            )
-            .filter(ItemCollection.organization == self.edit_parent.organization)
-            .options(db.load_only(Item.id, Item.title))
+    def __post_init__(self) -> None:
+        self.ticket.query = (
+            Item.query.join(ItemCollection, Item.menu_id == ItemCollection.id)
+            .filter(ItemCollection.organization_id == self.edit_parent.organization_id)
+            .options(sa.orm.load_only(Item.id, Item.title))
         )
 
 
-def validate_unique_discount_coupon_code(form, field):
+def validate_unique_discount_coupon_code(
+    form: DiscountCouponForm, field: forms.Field
+) -> None:
     if (
         DiscountCoupon.query.join(
             DiscountPolicy, DiscountCoupon.discount_policy_id == DiscountPolicy.id
         )
         .filter(
-            DiscountPolicy.organization == form.edit_parent.organization,
+            DiscountPolicy.organization_id == form.edit_parent.organization_id,
             DiscountCoupon.code == field.data,
         )
         .notempty()
     ):
         raise forms.StopValidation(
             __(
-                "This discount coupon code already exists. Please enter a different coupon code"
+                "This discount coupon code already exists. Please enter a different"
+                " coupon code"
             )
         )
 
 
 class DiscountCouponForm(forms.Form):
+    edit_parent: DiscountPolicy
+
     count = forms.IntegerField(__("Number of coupons to be generated"), default=1)
     usage_limit = forms.IntegerField(
         __("Number of times each coupon can be used"), default=1

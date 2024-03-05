@@ -7,7 +7,7 @@ SQLALCHEMY_DATABASE_URI = 'sqlite:///test.db'
 #: Secret key
 SECRET_KEY = 'make this something random'  # nosec
 #: Timezone for displayed datetimes
-TIMEZONE = 'Asia/Calcutta'
+TIMEZONE = 'Asia/Kolkata'
 #: Mail settings
 #: MAIL_FAIL_SILENTLY : default True
 #: MAIL_SERVER : default 'localhost'
@@ -31,12 +31,15 @@ LASTUSER_SERVER = 'https://hasgeek.com/'
 LASTUSER_CLIENT_ID = ''
 #: Lastuser client secret
 LASTUSER_CLIENT_SECRET = ''  # nosec
-DEBUG = True
-ASSET_MANIFEST_PATH = "static/build/manifest.json"
-# no trailing slash
-ASSET_BASE_PATH = '/static/build'
 #: Cache settings
 CACHE_TYPE = 'redis'
 #: RQ settings
 RQ_REDIS_URL = 'redis://localhost:6379/0'
 RQ_SCHEDULER_INTERVAL = 1
+
+#: Allowed origins
+ALLOWED_ORIGINS = [
+    'http://boxoffice.test:6500',  # Own host must always be present
+    'http://funnel.test',
+    'http://funnel.test:3000',
+]

@@ -1,6 +1,8 @@
-import { fetch, urlFor } from './util.js';
+import { fetch, urlFor } from './util';
 
 export const IndexModel = {
-  fetch: fetch,
-  urlFor: urlFor,
+  fetch,
+  urlFor,
 };
+
+export { IndexModel as default };

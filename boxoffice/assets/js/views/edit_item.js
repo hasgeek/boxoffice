@@ -1,22 +1,29 @@
-import { urlFor } from '../models/util.js';
-import { FormView } from './form_view.js';
-import { navigateTo } from '../views/main_admin.js';
+/* eslint-disable no-unused-vars */
+import { urlFor } from '../models/util';
+import { FormView } from './form_view';
+import { navigateTo } from './navigate';
 
-export const EditItemView = {
-  render: function ({ item_id } = {}) {
+export const EditTicketView = {
+  render({ ticketId } = {}) {
     FormView.load({
-      url: urlFor('edit', { resource: 'item', id: item_id, root: true }),
-      title: 'Edit item',
-      onHide: function () {
+      url: urlFor('edit', {
+        resource: 'ticket',
+        id: ticketId,
+        root: true,
+      }),
+      title: 'Edit ticket',
+      onHide() {
         navigateTo(
-          urlFor('view', { resource: 'item', id: item_id, root: true })
+          urlFor('view', { resource: 'ticket', id: ticketId, root: true })
         );
       },
-      onSuccess: function (responseData) {
+      onSuccess(responseData) {
         navigateTo(
-          urlFor('view', { resource: 'item', id: item_id, root: true })
+          urlFor('view', { resource: 'ticket', id: ticketId, root: true })
         );
       },
     });
   },
 };
+
+export { EditTicketView as default };

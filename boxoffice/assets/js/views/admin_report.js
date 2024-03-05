@@ -1,50 +1,68 @@
-var NProgress = require('nprogress');
-var Ractive = require('ractive');
-import { fetch, urlFor, setPageTitle } from '../models/util.js';
-import { ReportTemplate } from '../templates/admin_report.html.js';
-import { SideBarView } from './sidebar.js';
+/* eslint-disable no-unused-vars */
+import { fetch, urlFor, setPageTitle } from '../models/util';
+import { ReportTemplate } from '../templates/admin_report.html';
+import { SideBarView } from './sidebar';
+
+const NProgress = require('nprogress');
+const Ractive = require('ractive');
+const fly = require('ractive-transitions-fly');
 
 export const ReportView = {
-  render: function ({ ic_id } = {}) {
+  render({ menuId } = {}) {
     fetch({
       url: urlFor('index', {
         resource: 'reports',
-        scope_ns: 'ic',
-        scope_id: ic_id,
+        scope_ns: 'menu',
+        scope_id: menuId,
         root: true,
       }),
-    }).done(({ org_name, org_title, ic_name, ic_title }) => {
-      // Initial render
-      let reportComponent = new Ractive({
-        el: '#main-content-area',
-        template: ReportTemplate,
-        data: {
-          icName: ic_name,
-          icTitle: ic_title,
-          reportType: 'tickets',
-          reportsUrl: function () {
-            let reportType = this.get('reportType');
-            return urlFor('index', {
-              resource: reportType,
-              scope_ns: 'ic',
-              scope_id: ic_id,
-              ext: 'csv',
-              root: true,
-            });
+    }).done(
+      ({
+        account_name: accountName,
+        account_title: accountTitle,
+        menu_name: menuName,
+        menu_title: menuTitle,
+      }) => {
+        // Initial render
+        const reportComponent = new Ractive({
+          el: '#main-content-area',
+          template: ReportTemplate,
+          transitions: { fly },
+          data: {
+            menuName,
+            menuTitle,
+            reportType: 'tickets',
+            reportsUrl() {
+              const reportType = this.get('reportType');
+              return urlFor('index', {
+                resource: reportType,
+                scope_ns: 'menu',
+                scope_id: menuId,
+                ext: 'csv',
+                root: true,
+              });
+            },
+            reportsFilename() {
+              return `${this.get('menuName')}_${this.get('reportType')}.csv`;
+            },
           },
-          reportsFilename: function () {
-            return this.get('icName') + '_' + this.get('reportType') + '.csv';
-          },
-        },
-      });
+        });
 
-      SideBarView.render('reports', { org_name, org_title, ic_id, ic_title });
-      setPageTitle('Reports', ic_title);
-      NProgress.done();
+        SideBarView.render('reports', {
+          accountName,
+          accountTitle,
+          menuId,
+          menuTitle,
+        });
+        setPageTitle('Reports', menuTitle);
+        NProgress.done();
 
-      window.addEventListener('popstate', (event) => {
-        NProgress.configure({ showSpinner: false }).start();
-      });
-    });
+        window.addEventListener('popstate', (event) => {
+          NProgress.configure({ showSpinner: false }).start();
+        });
+      }
+    );
   },
 };
+
+export { ReportView as default };

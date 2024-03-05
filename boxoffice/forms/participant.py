@@ -1,12 +1,16 @@
-from baseframe import __
-import baseframe.forms as forms
+from __future__ import annotations
 
-from ..models import ORDER_STATUS, Assignee, Item, LineItem, Order
+from baseframe import __, forms
+
+from ..models import Assignee, Item, LineItem, Order, OrderStatus
 
 __all__ = ["AssigneeForm"]
 
 
 class AssigneeForm(forms.Form):
+    edit_obj: Assignee
+    edit_parent: LineItem
+
     email = forms.EmailField(
         __("Email"),
         validators=[forms.validators.DataRequired(), forms.validators.Length(max=254)],
@@ -18,13 +22,13 @@ class AssigneeForm(forms.Form):
         __("Phone number"), validators=[forms.validators.DataRequired()]
     )
 
-    def validate_email(self, field):
+    def validate_email(self, field: forms.Field) -> None:
         existing_assignees = (
             Assignee.query.join(LineItem, Assignee.line_item_id == LineItem.id)
             .join(Item)
             .join(Order)
-            .filter(LineItem.item_id == self.edit_parent.item_id)
-            .filter(Order.status != ORDER_STATUS.CANCELLED)
+            .filter(LineItem.ticket_id == self.edit_parent.ticket_id)
+            .filter(Order.status != OrderStatus.CANCELLED)
             .filter(Assignee.current.is_(True))
             .filter(Assignee.email == field.data)
         )

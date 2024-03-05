@@ -1,34 +1,34 @@
 {% extends "layout.html.jinja2" %}
-{% block title %}{{ org.title }}{% endblock %}
+{% block title %}{{ org.title }}{% endblock title %}
 {% block headerbox %}
-{% endblock %}
+{% endblock headerbox %}
 
 {% block headline %}
-{% endblock %}
+{% endblock headline %}
 
 {% block content %}
   <div class="order">
     <div class="org-header">
       {%- if org.details.get('logo') %}
         <div class="organization-logo">
-         <img src="{{org.details.get('logo')}}" />
+         <img src="{{ org.details.get('logo') }}" />
         </div>
       {%- endif %}
-      <h1 class="item-collection-title">{{order.item_collection.title}} Ticket Assignment</h1>
-      <p class="item-collection-description">{{order.item_collection.description_text}}</p>
-      <p class="text-center">Receipt No: {{order.invoice_no}}</p>
+      <h1 class="item-collection-title">{{ order.menu.title }} Ticket Assignment</h1>
+      <p class="item-collection-description">{{ order.menu.description }}</p>
+      <p class="text-center">{% trans number=order.receipt_no %}Receipt No: {{ number }}{% endtrans %}</p>
     </div>
 
     <div class="row" id="boxoffice-order">
       <p class="text-center" id="notify-msg">
         <span id="error-description">{% trans %}Loading.{% endtrans %} </span>
         {% trans support_email=org.details.get('support_email', '') %}
-          If this takes too long, please mail {{ support_email }} with your receipt number.
+          If this takes too long, email {{ support_email }} with your receipt number.
         {% endtrans %}
       </p>
     </div>
   </div>
-{% endblock %}
+{% endblock content %}
 {% block footerscripts %}
-  <script src='{{ asset_path('main_order') | safe }}' type="text/javascript"></script>
-{% endblock %}
+  <script type="text/javascript" src="{{ manifest('main_order.js') }}"></script>
+{% endblock footerscripts %}

@@ -1,18 +1,17 @@
-import sqlalchemy as sa
+from __future__ import annotations
 
-from baseframe import _, __
-from coaster.utils import LabeledEnum, utcnow
+from typing import TYPE_CHECKING
+from uuid import UUID
 
-from . import BaseMixin, UuidMixin, db
-from .user import Organization, get_fiscal_year
-from .utils import HeadersAndDataTuple
+from baseframe import _
+from coaster.utils import utcnow
 
-__all__ = ['Invoice', 'INVOICE_STATUS']
+from . import BaseMixin, Mapped, Model, UuidMixin, relationship, sa, timestamptz
+from .enums import InvoiceStatus
+from .user import Organization, User
+from .utils import get_fiscal_year
 
-
-class INVOICE_STATUS(LabeledEnum):  # NOQA: N801
-    DRAFT = (0, __("Draft"))
-    FINAL = (1, __("Final"))
+__all__ = ['Invoice']
 
 
 def gen_invoice_no(organization, jurisdiction, invoice_dt):
@@ -27,51 +26,49 @@ def gen_invoice_no(organization, jurisdiction, invoice_dt):
     )
 
 
-class Invoice(UuidMixin, BaseMixin, db.Model):
+class Invoice(UuidMixin, BaseMixin[UUID, User], Model):
     __tablename__ = 'invoice'
-    __uuid_primary_key__ = True
     __table_args__ = (
-        db.UniqueConstraint(
+        sa.UniqueConstraint(
             'organization_id', 'fy_start_at', 'fy_end_at', 'invoice_no'
         ),
     )
 
-    status = db.Column(db.SmallInteger, default=INVOICE_STATUS.DRAFT, nullable=False)
-    invoicee_name = db.Column(db.Unicode(255), nullable=True)
-    invoicee_company = db.Column(db.Unicode(255), nullable=True)
-    invoicee_email = db.Column(db.Unicode(254), nullable=True)
-    invoice_no = db.Column(db.Integer(), nullable=True)
-    fy_start_at = db.Column(db.TIMESTAMP(timezone=True), nullable=False)
-    fy_end_at = db.Column(db.TIMESTAMP(timezone=True), nullable=False)
-    invoiced_at = db.Column(db.TIMESTAMP(timezone=True), nullable=True)
-    street_address_1 = db.Column(db.Unicode(255), nullable=True)
-    street_address_2 = db.Column(db.Unicode(255), nullable=True)
-    city = db.Column(db.Unicode(255), nullable=True)
-    state = db.Column(db.Unicode(255), nullable=True)
+    status: Mapped[int] = sa.orm.mapped_column(
+        sa.SmallInteger, default=InvoiceStatus.DRAFT
+    )
+    invoicee_name: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(255))
+    invoicee_company: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(255))
+    invoicee_email: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(254))
+    invoice_no: Mapped[int | None]
+    fy_start_at: Mapped[timestamptz]
+    fy_end_at: Mapped[timestamptz]
+    invoiced_at: Mapped[timestamptz | None]
+    street_address_1: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(255))
+    street_address_2: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(255))
+    city: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(255))
+    state: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(255))
     # ISO 3166-2 code. Eg: KA for Karnataka
-    state_code = db.Column(db.Unicode(3), nullable=True)
+    state_code: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(3))
     # ISO country code
-    country_code = db.Column(db.Unicode(2), nullable=True)
-    postcode = db.Column(db.Unicode(8), nullable=True)
+    country_code: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(2))
+    postcode: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(8))
     # GSTIN in the case of India
-    buyer_taxid = db.Column(db.Unicode(255), nullable=True)
-    seller_taxid = db.Column(db.Unicode(255), nullable=True)
+    buyer_taxid: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(255))
+    seller_taxid: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(255))
 
-    customer_order_id = db.Column(
-        None, db.ForeignKey('customer_order.id'), nullable=False, index=True
+    customer_order_id: Mapped[UUID] = sa.orm.mapped_column(
+        sa.ForeignKey('customer_order.id'), index=True
     )
-    order = db.relationship(
-        'Order', backref=db.backref('invoices', cascade='all, delete-orphan')
-    )
+    order: Mapped[Order] = relationship(back_populates='invoices')
 
-    # An invoice may be associated with a different organization as compared to its order
-    # to allow for the following use case. An invoice may be issued by a parent entity, while the order is booked through
-    # the child entity.
-    organization_id = db.Column(None, db.ForeignKey('organization.id'), nullable=False)
-    organization = db.relationship(
-        'Organization',
-        backref=db.backref('invoices', cascade='all, delete-orphan', lazy='dynamic'),
+    # An invoice may be associated with a different organization as compared to its
+    # order to allow for the following use case. An invoice may be issued by a parent
+    # entity, while the order is booked through the child entity.
+    organization_id: Mapped[int] = sa.orm.mapped_column(
+        sa.ForeignKey('organization.id')
     )
+    organization: Mapped[Organization] = relationship(back_populates='invoices')
 
     __roles__ = {
         'invoicer': {
@@ -116,7 +113,7 @@ class Invoice(UuidMixin, BaseMixin, db.Model):
 
     @property
     def is_final(self):
-        return self.status == INVOICE_STATUS.FINAL
+        return self.status == InvoiceStatus.FINAL
 
     @sa.orm.validates(
         'invoicee_name',
@@ -137,63 +134,12 @@ class Invoice(UuidMixin, BaseMixin, db.Model):
         'organization_id',
     )
     def validate_immutable_final_invoice(self, key, val):
-        if self.status == INVOICE_STATUS.FINAL:
+        if self.status == InvoiceStatus.FINAL:
             raise ValueError(
                 _("`{attr}` cannot be modified in a finalized invoice").format(attr=key)
             )
         return val
 
 
-def fetch_invoices(self):
-    """Return invoices for an organization as a tuple of (row_headers, rows)."""
-    headers = [
-        "order_id",
-        "receipt_no",
-        "invoice_no",
-        "status",
-        "buyer_taxid",
-        "seller_taxid",
-        "invoicee_name",
-        "invoicee_company",
-        "invoicee_email",
-        "street_address_1",
-        "street_address_2",
-        "city",
-        "state",
-        "state_code",
-        "country_code",
-        "postcode",
-        "invoiced_at",
-    ]
-    invoices_query = (
-        db.select(
-            Order.id,
-            Order.invoice_no,
-            Invoice.invoice_no,
-            Invoice.status,
-            Invoice.buyer_taxid,
-            Invoice.seller_taxid,
-            Invoice.invoicee_name,
-            Invoice.invoicee_company,
-            Invoice.invoicee_email,
-            Invoice.street_address_1,
-            Invoice.street_address_2,
-            Invoice.city,
-            Invoice.state,
-            Invoice.state_code,
-            Invoice.country_code,
-            Invoice.postcode,
-            Invoice.invoiced_at,
-        )
-        .where(Invoice.organization == self)
-        .select_from(Invoice)
-        .join(Order)
-        .order_by(Invoice.invoice_no)
-    )
-    return HeadersAndDataTuple(headers, db.session.execute(invoices_query).fetchall())
-
-
-Organization.fetch_invoices = fetch_invoices
-
-# Tail imports
-from .order import Order  # isort:skip
+if TYPE_CHECKING:
+    from .order import Order

@@ -1,45 +1,57 @@
-from collections import OrderedDict
+"""Console script."""
+
+from collections.abc import Iterable
 from decimal import Decimal
+from typing import TypeAlias, Union
+from uuid import UUID
 import csv
 import datetime
 import logging
 
-from flask import jsonify, make_response
 from flask.cli import load_dotenv
-
+from flask.typing import ResponseReturnValue
 from isoweek import Week
 import IPython
 
 load_dotenv()
 
-from boxoffice import app  # noqa: E402
-from boxoffice.extapi import razorpay  # noqa: E402
-from boxoffice.mailclient import (  # noqa: E402
-    send_participant_assignment_mail,
-    send_receipt_mail,
-)
-from boxoffice.models import (  # noqa: E402
-    CURRENCY,
-    INVOICE_STATUS,
-    LINE_ITEM_STATUS,
-    ORDER_STATUS,
+from baseframe import _
+from coaster.sqlalchemy import MarkdownComposite
+from coaster.utils import isoweek_datetime, midnight_to_utc, utcnow
+
+from boxoffice import app
+from boxoffice.extapi import razorpay
+from boxoffice.mailclient import send_participant_assignment_mail, send_receipt_mail
+from boxoffice.models import (
+    CurrencyEnum,
     Invoice,
+    InvoiceStatus,
+    Item,
     ItemCollection,
+    LineItem,
+    LineItemStatus,
     OnlinePayment,
     Order,
+    OrderStatus,
     Organization,
     PaymentTransaction,
     db,
+    sa,
 )
-from boxoffice.views.custom_exceptions import PaymentGatewayError  # noqa: E402
-from boxoffice.views.order import process_partial_refund_for_order  # noqa: E402
-from coaster.utils import isoweek_datetime, midnight_to_utc, utcnow  # noqa: E402
+from boxoffice.views.custom_exceptions import PaymentGatewayError
+from boxoffice.views.order import process_partial_refund_for_order
 
 logging.basicConfig()
 logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
+Timezone: TypeAlias = Union[str, datetime.tzinfo]
 
-def sales_by_date(sales_datetime, item_ids, user_tz):
+
+def sales_by_date(
+    sales_datetime: datetime.date | datetime.datetime,
+    item_ids: Iterable[UUID],
+    user_tz: Timezone,
+) -> Decimal | None:
     """Return the sales amount accrued during the given day for given items."""
     if not item_ids:
         return None
@@ -48,59 +60,52 @@ def sales_by_date(sales_datetime, item_ids, user_tz):
     end_at = midnight_to_utc(
         sales_datetime + datetime.timedelta(days=1), timezone=user_tz
     )
-    sales_on_date = (
-        db.session.query(db.column('sum'))
-        .from_statement(
-            db.text(
-                '''SELECT SUM(final_amount) FROM line_item
-        WHERE status=:status AND ordered_at >= :start_at AND ordered_at < :end_at
-        AND line_item.item_id IN :item_ids
-        '''
-            )
+    sales_on_date = db.session.scalar(
+        sa.select(sa.func.sum(LineItem.final_amount))
+        .select_from(LineItem)
+        .where(
+            LineItem.status == LineItemStatus.CONFIRMED,
+            LineItem.ordered_at >= start_at,
+            LineItem.ordered_at < end_at,
+            LineItem.ticket_id.in_(item_ids),
         )
-        .params(
-            status=LINE_ITEM_STATUS.CONFIRMED,
-            start_at=start_at,
-            end_at=end_at,
-            item_ids=tuple(item_ids),
-        )
-        .scalar()
     )
     return sales_on_date if sales_on_date else Decimal(0)
 
 
-def calculate_weekly_sales(item_collection_ids, user_tz, year):
-    """Calculate sales per week for given item_collection_ids in a given year."""
-    ordered_week_sales = OrderedDict()
+def calculate_weekly_sales(
+    menu_ids: Iterable[UUID], user_tz: Timezone, year: int
+) -> dict[int, Decimal]:
+    """Calculate sales per week for given menu_ids in a given year."""
+    ordered_week_sales: dict[int, Decimal] = {}
     for year_week in Week.weeks_of_year(year):
-        ordered_week_sales[year_week.week] = 0
+        ordered_week_sales[int(year_week.week)] = Decimal(0)
     start_at = isoweek_datetime(year, 1, user_tz)
     end_at = isoweek_datetime(year + 1, 1, user_tz)
 
-    week_sales = (
-        db.session.query(db.column('sales_week'), db.column('sum'))
-        .from_statement(
-            db.text(
-                '''
-        SELECT EXTRACT(WEEK FROM ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone)
-        AS sales_week, SUM(final_amount) AS sum
-        FROM line_item INNER JOIN item on line_item.item_id = item.id
-        WHERE status IN :statuses AND item_collection_id IN :item_collection_ids
-        AND ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone >= :start_at
-        AND ordered_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone < :end_at
-        GROUP BY sales_week ORDER BY sales_week;
-        '''
-            )
+    week_sales = db.session.execute(
+        sa.select(
+            sa.func.extract(
+                'WEEK',
+                sa.func.timezone(user_tz, sa.func.timezone('UTC', LineItem.ordered_at)),
+            ).label('sales_week'),
+            sa.func.sum(LineItem.final_amount).label('sum'),
         )
-        .params(
-            timezone=user_tz,
-            statuses=(LINE_ITEM_STATUS.CONFIRMED, LINE_ITEM_STATUS.CANCELLED),
-            start_at=start_at,
-            end_at=end_at,
-            item_collection_ids=tuple(item_collection_ids),
+        .select_from(LineItem)
+        .join(Item, LineItem.ticket_id == Item.id)
+        .where(
+            LineItem.status.in_(
+                [LineItemStatus.CONFIRMED.value, LineItemStatus.CANCELLED.value]
+            ),
+            Item.menu_id.in_(menu_ids),
+            sa.func.timezone(user_tz, sa.func.timezone('UTC', LineItem.ordered_at))
+            >= start_at,
+            sa.func.timezone(user_tz, sa.func.timezone('UTC', LineItem.ordered_at))
+            < end_at,
         )
-        .all()
-    )
+        .group_by('sales_week')
+        .order_by('sales_week')
+    ).all()
 
     for week_sale in week_sales:
         ordered_week_sales[int(week_sale.sales_week)] = week_sale.sum
@@ -108,24 +113,26 @@ def calculate_weekly_sales(item_collection_ids, user_tz, year):
     return ordered_week_sales
 
 
-def sales_delta(user_tz, item_ids):
+def sales_delta(user_tz: Timezone, item_ids: Iterable[UUID]) -> Decimal:
     """Calculate the percentage difference in sales between today and yesterday."""
     today = utcnow().date()
     yesterday = today - datetime.timedelta(days=1)
     today_sales = sales_by_date(today, item_ids, user_tz)
     yesterday_sales = sales_by_date(yesterday, item_ids, user_tz)
     if not today_sales or not yesterday_sales:
-        return 0
+        return Decimal(0)
     return round(Decimal('100') * (today_sales - yesterday_sales) / yesterday_sales, 2)
 
 
-def process_payment(order_id, pg_paymentid):
+def process_payment(order_id: UUID, pg_paymentid: str) -> ResponseReturnValue:
     order = Order.query.get(order_id)
-    order_amounts = order.get_amounts(LINE_ITEM_STATUS.PURCHASE_ORDER)
+    if order is None:
+        return {'message': "Unknown order"}, 404
+    order_amounts = order.get_amounts(LineItemStatus.PURCHASE_ORDER)
 
     online_payment = OnlinePayment.query.filter_by(
         pg_paymentid=pg_paymentid, order=order
-    ).first()
+    ).one_or_none()
     if online_payment is None:
         online_payment = OnlinePayment(pg_paymentid=pg_paymentid, order=order)
 
@@ -140,7 +147,7 @@ def process_payment(order_id, pg_paymentid):
             order=order,
             online_payment=online_payment,
             amount=order_amounts.final_amount,
-            currency=CURRENCY.INR,
+            currency=CurrencyEnum.INR,
         )
         db.session.add(transaction)
         order.confirm_sale()
@@ -162,26 +169,28 @@ def process_payment(order_id, pg_paymentid):
         db.session.commit()
         with app.test_request_context():
             send_receipt_mail.queue(order.id)
-            return make_response(jsonify(message="Payment verified"), 201)
+            return {'message': "Payment verified"}, 201
     else:
         online_payment.fail()
         db.session.add(online_payment)
         db.session.commit()
         raise PaymentGatewayError(
-            "Online payment failed for order - {order} with the following details - {msg}".format(
+            _("Online payment failed for order #{order}: {msg}").format(
                 order=order.id, msg=rp_resp.content
             ),
             424,
-            'Your payment failed. Please try again or contact us at {email}.'.format(
+            _("Your payment failed. Please try again or contact us at {email}").format(
                 email=order.organization.contact_email
             ),
         )
 
 
-def reprocess_successful_payment(order_id):
+def reprocess_successful_payment(order_id: UUID) -> ResponseReturnValue:
     order = Order.query.get(order_id)
+    if order is None:
+        return {'error': '404', 'message': "Unknown order"}, 404
     if not order.is_confirmed:
-        order_amounts = order.get_amounts(LINE_ITEM_STATUS.PURCHASE_ORDER)
+        order_amounts = order.get_amounts(LineItemStatus.PURCHASE_ORDER)
         online_payment = order.online_payments[0]
         online_payment.confirm()
         db.session.add(online_payment)
@@ -190,7 +199,7 @@ def reprocess_successful_payment(order_id):
             order=order,
             online_payment=online_payment,
             amount=order_amounts.final_amount,
-            currency=CURRENCY.INR,
+            currency=CurrencyEnum.INR,
         )
         db.session.add(transaction)
         order.confirm_sale()
@@ -212,58 +221,74 @@ def reprocess_successful_payment(order_id):
         db.session.commit()
         with app.test_request_context():
             send_receipt_mail.queue(order.id)
-            return make_response(jsonify(message="Payment verified"), 201)
+            return {'message': "Payment verified"}, 201
+
+    return {'message': "Order is not confirmed"}, 200
 
 
-def make_invoice_nos():
+def make_invoice_nos() -> None:
     orgs = Organization.query.all()
     for org in orgs:
         for order in Order.query.filter(
-            Order.organization == org, Order.paid_at >= '2017-06-30 18:30'
+            Order.organization_id == org.id, Order.paid_at >= '2017-06-30 18:30'
         ).all():
             if (
-                order.get_amounts(LINE_ITEM_STATUS.CONFIRMED).final_amount
-                or order.get_amounts(LINE_ITEM_STATUS.CANCELLED).final_amount
+                order.get_amounts(LineItemStatus.CONFIRMED).final_amount
+                or order.get_amounts(LineItemStatus.CANCELLED).final_amount
             ):
                 db.session.add(Invoice(order=order, organization=org))
     db.session.commit()
 
 
-def partial_refund(**kwargs):
+def partial_refund(
+    order_id: UUID,
+    amount: Decimal,
+    internal_note: str,
+    refund_description: str,
+    note_to_user: MarkdownComposite,
+) -> None:
     """
     Process a partial refund for an order.
 
     Params are order_id, amount, internal_note, refund_description, note_to_user.
     """
     form_dict = {
-        'amount': kwargs['amount'],
-        'internal_note': kwargs['internal_note'],
-        'refund_description': kwargs['refund_description'],
-        'note_to_user': kwargs['note_to_user'],
+        'amount': amount,
+        'internal_note': internal_note,
+        'refund_description': refund_description,
+        'note_to_user': note_to_user,
     }
-    order = Order.query.get(kwargs['order_id'])
+    order = Order.query.get(order_id)
+    if order is None:
+        raise ValueError("Unknown order")
 
     with app.test_request_context():
-        process_partial_refund_for_order(order, form_dict)
+        process_partial_refund_for_order({'order': order, 'form': form_dict})
 
 
-def finalize_invoices(org_name, start_at, end_at):
+def finalize_invoices(
+    org_name: str, start_at: datetime.datetime, end_at: datetime.datetime
+) -> None:
     org = Organization.query.filter_by(name=org_name).one()
     invoices = Invoice.query.filter(
-        Invoice.organization == org,
+        Invoice.organization_id == org.id,
         Invoice.created_at >= start_at,
         Invoice.created_at < end_at,
     ).all()
     for inv in invoices:
-        inv.status = INVOICE_STATUS.FINAL
+        inv.status = InvoiceStatus.FINAL
     db.session.commit()
 
 
 def resend_attendee_details_email(
-    item_collection_id, item_collection_title="", sender_team_member_name="Team Hasgeek"
-):
-    ic = ItemCollection.query.get(item_collection_id)
-    headers, rows = ic.fetch_all_details()
+    menu_id: UUID,
+    menu_title: str = "",
+    sender_team_member_name: str = "Team Hasgeek",
+) -> None:
+    menu = ItemCollection.query.get(menu_id)
+    if menu is None:
+        raise ValueError("Unknown item collection")
+    headers, rows = menu.fetch_all_details()
     attendee_name_index = headers.index('attendee_fullname')
     order_id_index = headers.index('order_id')
     unfilled_orders = set()
@@ -273,14 +298,16 @@ def resend_attendee_details_email(
 
     for order_id in unfilled_orders:
         send_participant_assignment_mail(
-            str(order_id), item_collection_title or ic.title, sender_team_member_name
+            str(order_id), menu_title or menu.title, sender_team_member_name
         )
 
 
-def order_report(org_name):
-    org = Organization.query.filter_by(name=org_name).first()
+def order_report(org_name: str) -> None:
+    org = Organization.query.filter_by(name=org_name).one_or_none()
+    if org is None:
+        raise ValueError("Unknown organization")
 
-    with open('order_report.csv', 'wb') as csvfile:
+    with open('order_report.csv', 'wb', encoding='utf-8') as csvfile:
         order_writer = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
         order_writer.writerow(
             [
@@ -291,7 +318,7 @@ def order_report(org_name):
                 "buyer_email",
                 "buyer_fullname",
                 "buyer_phone",
-                "invoice_no",
+                "receipt_no",
                 "net_amount",
             ]
         )
@@ -303,11 +330,11 @@ def order_report(org_name):
                         order.access_token,
                         order.paid_at,
                         order.invoiced_at,
-                        ORDER_STATUS[order.status],
+                        OrderStatus(order.status).name,
                         order.buyer_email,
                         order.buyer_fullname.encode('utf-8'),
                         order.buyer_phone,
-                        order.invoice_no,
+                        order.receipt_no,
                         order.net_amount,
                     ]
                 )

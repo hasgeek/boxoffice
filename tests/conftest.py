@@ -1,20 +1,21 @@
+# pylint: disable=redefined-outer-name
 from datetime import date
 from types import SimpleNamespace
 
+from dateutil.relativedelta import relativedelta
 from sqlalchemy.orm import close_all_sessions
+from werkzeug.test import EnvironBuilder
+import pytest
 import sqlalchemy as sa
 
-from werkzeug.test import EnvironBuilder
-
-from dateutil.relativedelta import relativedelta
-import pytest
+from coaster.utils import utcnow
 
 from boxoffice import app
 from boxoffice.models import (
-    DISCOUNT_TYPE,
     Category,
     DiscountCoupon,
     DiscountPolicy,
+    DiscountTypeEnum,
     Item,
     ItemCollection,
     Organization,
@@ -22,7 +23,6 @@ from boxoffice.models import (
     User,
     db,
 )
-from coaster.utils import utcnow
 
 
 @pytest.fixture(scope='session')
@@ -62,7 +62,7 @@ class RemoveIsRollback:
         self.session.remove = self.original_remove
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture()
 def db_session(database, db_connection):
     """Empty the database after each use of the fixture."""
     with RemoveIsRollback(database.session, lambda: database.session.rollback):
@@ -97,18 +97,18 @@ def client(request):
     if 'noclient' in request.keywords:
         # To use this, annotate a test with:
         # @pytest.mark.noclient
-        return None
+        yield None
     with app.test_client() as test_client:
         yield test_client
 
 
-@pytest.fixture
+@pytest.fixture()
 def post_env():
     builder = EnvironBuilder(method='POST')
     return builder.get_environ()
 
 
-@pytest.fixture
+@pytest.fixture()
 def all_data(db_session):
     user = User(userid="U3_JesHfQ2OUmdihAXaAGQ", email="test@hasgeek.com")
     db_session.add(user)
@@ -123,13 +123,16 @@ def all_data(db_session):
         contact_email='test@gmail.com',
         details={
             'service_tax_no': 'xx',
-            'address': '<h2 class="company-name">XYZ</h2> <p>Bangalore - 560034</p> <p>India</p>',
+            'address': '<h2 class="company-name">XYZ</h2> <p>Bangalore - 560034</p>'
+            ' <p>India</p>',
             'cin': '1234',
             'pan': 'abc',
             'website': 'https://www.test.com',
             'refund_policy': '<p>We offer full refund.</p>',
             'support_email': 'test@boxoffice.com',
-            'ticket_faq': '<p>To cancel your ticket, please mail <a href="mailto:test@boxoffice.com">test@boxoffice.com</a> with your receipt number.</p>',
+            'ticket_faq': '<p>To cancel your ticket, please mail <a '
+            'href="mailto:test@boxoffice.com">test@boxoffice.com</a> with your receipt'
+            ' number.</p>',
         },
     )
     db_session.add(rootconf)
@@ -139,37 +142,43 @@ def all_data(db_session):
     db_session.add(rc2016)
     db_session.commit()
 
-    category_conference = Category(title='Conference', item_collection=rc2016, seq=1)
+    category_conference = Category(title='Conference', menu=rc2016, seq=1)
     db_session.add(category_conference)
-    category_workshop = Category(title='Workshop', item_collection=rc2016, seq=2)
+    category_workshop = Category(title='Workshop', menu=rc2016, seq=2)
     db_session.add(category_workshop)
-    category_merch = Category(title='Merchandise', item_collection=rc2016, seq=3)
+    category_merch = Category(title='Merchandise', menu=rc2016, seq=3)
     db_session.add(category_merch)
     db_session.commit()
 
     with db_session.no_autoflush:
         conf_ticket = Item(
             title='Conference ticket',
-            description='<p><i class="fa fa-calendar"></i>14 - 15 April 2016</p><p><i class="fa fa-map-marker ticket-venue"></i>MLR Convention Center, JP Nagar</p><p>This ticket gets you access to rootconf conference on 14th and 15th April 2016.</p>',
-            item_collection=rc2016,
-            category=Category.query.filter_by(name='conference').first(),
+            description='<p><i class="fa fa-calendar"></i>14 - 15 April 2016'
+            '</p><p><i class="fa fa-map-marker ticket-venue"></i>MLR Convention Center,'
+            ' JP Nagar</p><p>This ticket gets you access to rootconf conference on 14th'
+            ' and 15th April 2016.</p>',
+            menu=rc2016,
+            category=Category.query.filter_by(name='conference').one(),
             quantity_total=1000,
         )
-        rc2016.items.append(conf_ticket)
+        rc2016.tickets.append(conf_ticket)
         db_session.commit()
 
         expired_ticket = Item(
             title='Expired ticket',
-            description='<p><i class="fa fa-calendar"></i>14 - 15 April 2016</p><p><i class="fa fa-map-marker ticket-venue"></i>MLR Convention Center, JP Nagar</p><p>This ticket gets you access to rootconf conference on 14th and 15th April 2016.</p>',
-            item_collection=rc2016,
-            category=Category.query.filter_by(name='conference').first(),
+            description='<p><i class="fa fa-calendar"></i>14 - 15 April 2016'
+            '</p><p><i class="fa fa-map-marker ticket-venue"></i>MLR Convention Center,'
+            ' JP Nagar</p><p>This ticket gets you access to rootconf conference on 14th'
+            ' and 15th April 2016.</p>',
+            menu=rc2016,
+            category=Category.query.filter_by(name='conference').one(),
             quantity_total=1000,
         )
-        rc2016.items.append(expired_ticket)
+        rc2016.tickets.append(expired_ticket)
         db_session.commit()
 
         price = Price(
-            item=conf_ticket,
+            ticket=conf_ticket,
             title='Super Early Geek',
             start_at=utcnow(),
             end_at=one_month_from_now,
@@ -180,16 +189,19 @@ def all_data(db_session):
 
         single_day_conf_ticket = Item(
             title='Single Day',
-            description='<p><i class="fa fa-calendar"></i>14 April 2016</p><p><i class="fa fa-map-marker ticket-venue"></i>MLR Convention Center, JP Nagar</p><p>This ticket gets you access to rootconf conference on 14th April 2016.</p>',
-            item_collection=rc2016,
-            category=Category.query.filter_by(name='conference').first(),
+            description='<p><i class="fa fa-calendar"></i>14 April 2016'
+            '</p><p><i class="fa fa-map-marker ticket-venue"></i>MLR Convention Center,'
+            ' JP Nagar</p><p>This ticket gets you access to rootconf conference on 14th'
+            ' April 2016.</p>',
+            menu=rc2016,
+            category=Category.query.filter_by(name='conference').one(),
             quantity_total=1000,
         )
-        rc2016.items.append(single_day_conf_ticket)
+        rc2016.tickets.append(single_day_conf_ticket)
         db_session.commit()
 
         single_day_price = Price(
-            item=single_day_conf_ticket,
+            ticket=single_day_conf_ticket,
             title='Single Day',
             start_at=utcnow(),
             end_at=one_month_from_now,
@@ -201,15 +213,15 @@ def all_data(db_session):
         tshirt = Item(
             title='T-shirt',
             description='Rootconf',
-            item_collection=rc2016,
-            category=Category.query.filter_by(name='merchandise').first(),
+            menu=rc2016,
+            category=Category.query.filter_by(name='merchandise').one(),
             quantity_total=1000,
         )
-        rc2016.items.append(tshirt)
+        rc2016.tickets.append(tshirt)
         db_session.commit()
 
         tshirt_price = Price(
-            item=tshirt,
+            ticket=tshirt,
             title='T-shirt',
             start_at=utcnow(),
             end_at=one_month_from_now,
@@ -220,16 +232,18 @@ def all_data(db_session):
 
         dns_workshop = Item(
             title='DNSSEC workshop',
-            description='<p><i class="fa fa-calendar"></i>12 April 2016</p><p><i class="fa fa-map-marker ticket-venue"></i>TERI, Domlur</p><p>This ticket gets you access to DNSSEC workshop 12th April 2016.</p>',
-            item_collection=rc2016,
-            category=Category.query.filter_by(name='workshop').first(),
+            description='<p><i class="fa fa-calendar"></i>12 April 2016'
+            '</p><p><i class="fa fa-map-marker ticket-venue"></i>TERI, Domlur</p>'
+            '<p>This ticket gets you access to DNSSEC workshop 12th April 2016.</p>',
+            menu=rc2016,
+            category=Category.query.filter_by(name='workshop').one(),
             quantity_total=1000,
         )
-        rc2016.items.append(dns_workshop)
+        rc2016.tickets.append(dns_workshop)
         db_session.commit()
 
         dns_workshop_price = Price(
-            item=dns_workshop,
+            ticket=dns_workshop,
             title='DNSSEC workshop early',
             start_at=utcnow(),
             end_at=one_month_from_now,
@@ -244,7 +258,7 @@ def all_data(db_session):
             percentage=10,
             organization=rootconf,
         )
-        policy.items.append(conf_ticket)
+        policy.tickets.append(conf_ticket)
         db_session.add(policy)
         db_session.commit()
 
@@ -254,7 +268,7 @@ def all_data(db_session):
             percentage=5,
             organization=rootconf,
         )
-        tshirt_policy.items.append(tshirt)
+        tshirt_policy.tickets.append(tshirt)
         db_session.add(tshirt_policy)
         db_session.commit()
 
@@ -263,9 +277,9 @@ def all_data(db_session):
             item_quantity_min=1,
             percentage=15,
             organization=rootconf,
-            discount_type=DISCOUNT_TYPE.COUPON,
+            discount_type=DiscountTypeEnum.COUPON,
         )
-        discount_coupon1.items.append(conf_ticket)
+        discount_coupon1.tickets.append(conf_ticket)
         db_session.add(discount_coupon1)
         db_session.commit()
 
@@ -278,9 +292,9 @@ def all_data(db_session):
             item_quantity_min=1,
             percentage=15,
             organization=rootconf,
-            discount_type=DISCOUNT_TYPE.COUPON,
+            discount_type=DiscountTypeEnum.COUPON,
         )
-        discount_coupon_expired_ticket.items.append(expired_ticket)
+        discount_coupon_expired_ticket.tickets.append(expired_ticket)
         db_session.add(discount_coupon_expired_ticket)
         db_session.commit()
 
@@ -295,9 +309,9 @@ def all_data(db_session):
             item_quantity_min=1,
             percentage=100,
             organization=rootconf,
-            discount_type=DISCOUNT_TYPE.COUPON,
+            discount_type=DiscountTypeEnum.COUPON,
         )
-        discount_coupon2.items.append(conf_ticket)
+        discount_coupon2.tickets.append(conf_ticket)
         db_session.add(discount_coupon1)
         db_session.commit()
 
@@ -313,10 +327,10 @@ def all_data(db_session):
             title='Forever Early Geek',
             item_quantity_min=1,
             is_price_based=True,
-            discount_type=DISCOUNT_TYPE.COUPON,
+            discount_type=DiscountTypeEnum.COUPON,
             organization=rootconf,
         )
-        forever_early_geek.items.append(conf_ticket)
+        forever_early_geek.tickets.append(conf_ticket)
         db_session.add(forever_early_geek)
         db_session.commit()
 
@@ -330,10 +344,10 @@ def all_data(db_session):
             title='noprice',
             item_quantity_min=1,
             is_price_based=True,
-            discount_type=DISCOUNT_TYPE.COUPON,
+            discount_type=DiscountTypeEnum.COUPON,
             organization=rootconf,
         )
-        noprice_discount.items.append(conf_ticket)
+        noprice_discount.tickets.append(conf_ticket)
         db_session.add(noprice_discount)
         db_session.commit()
 
@@ -350,7 +364,7 @@ def all_data(db_session):
         db_session.commit()
 
         discount_price = Price(
-            item=conf_ticket,
+            ticket=conf_ticket,
             discount_policy=forever_early_geek,
             title='Forever Early Geek',
             start_at=utcnow(),
@@ -363,11 +377,11 @@ def all_data(db_session):
         unlimited_geek = DiscountPolicy(
             title='Unlimited Geek',
             item_quantity_min=1,
-            discount_type=DISCOUNT_TYPE.COUPON,
+            discount_type=DiscountTypeEnum.COUPON,
             percentage=10,
             organization=rootconf,
         )
-        unlimited_geek.items.append(conf_ticket)
+        unlimited_geek.tickets.append(conf_ticket)
         db_session.add(unlimited_geek)
         db_session.commit()
 
@@ -381,10 +395,10 @@ def all_data(db_session):
             title='Zero Discount',
             item_quantity_min=1,
             is_price_based=True,
-            discount_type=DISCOUNT_TYPE.COUPON,
+            discount_type=DiscountTypeEnum.COUPON,
             organization=rootconf,
         )
-        zero_discount.items.append(conf_ticket)
+        zero_discount.tickets.append(conf_ticket)
         db_session.add(zero_discount)
         db_session.commit()
 
@@ -393,7 +407,7 @@ def all_data(db_session):
         db_session.commit()
 
         zero_discount_price = Price(
-            item=conf_ticket,
+            ticket=conf_ticket,
             discount_policy=zero_discount,
             title='Zero Discount',
             start_at=utcnow(),
@@ -410,7 +424,7 @@ def all_data(db_session):
             percentage=10,
             bulk_coupon_usage_limit=2,
         )
-        bulk.items.append(conf_ticket)
+        bulk.tickets.append(conf_ticket)
         db_session.add(bulk)
         db_session.commit()
 

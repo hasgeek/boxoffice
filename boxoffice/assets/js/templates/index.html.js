@@ -23,7 +23,7 @@ export const IndexTemplate = `
               <p class="section-title">Contact email</p>
               <div class="section-content">{{contact_email}}</div>
               <div class="btn-wrapper">
-                <a class="boxoffice-button boxoffice-button-action" href="javascript:void(0)" on-click="navigate">View item collections</a>
+                <a class="boxoffice-button boxoffice-button-action" href="javascript:void(0)" on-click="navigate">View menus</a>
               </div>
               {{#infoMsg}}
                 <p class="info-msg">{{ infoMsg }} <i class="fa fa-check"></i></p>
@@ -34,3 +34,5 @@ export const IndexTemplate = `
     </div>
   </div>
 `;
+
+export { IndexTemplate as default };

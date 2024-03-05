@@ -1,38 +1,42 @@
-from sqlalchemy.ext.orderinglist import ordering_list
+"""Category model."""
 
-from . import BaseScopedNameMixin, db
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+from uuid import UUID
+
+from . import BaseScopedNameMixin, Mapped, Model, relationship, sa
+from .user import User
 
 __all__ = ['Category']
 
 
-class Category(BaseScopedNameMixin, db.Model):
+class Category(BaseScopedNameMixin[int, User], Model):
     __tablename__ = 'category'
     __table_args__ = (
-        db.UniqueConstraint('item_collection_id', 'name'),
-        db.UniqueConstraint('item_collection_id', 'seq'),
+        sa.UniqueConstraint('item_collection_id', 'name'),
+        sa.UniqueConstraint('item_collection_id', 'seq'),
     )
 
-    item_collection_id = db.Column(
-        None, db.ForeignKey('item_collection.id'), nullable=False
+    menu_id: Mapped[UUID] = sa.orm.mapped_column(
+        'item_collection_id', sa.ForeignKey('item_collection.id')
     )
-    seq = db.Column(db.Integer, nullable=False)
-    item_collection = db.relationship(
-        'ItemCollection',
-        backref=db.backref(
-            'categories',
-            cascade='all, delete-orphan',
-            order_by=seq,
-            collection_class=ordering_list('seq', count_from=1),
-        ),
+    menu: Mapped[ItemCollection] = relationship(back_populates='categories')
+    seq: Mapped[int]
+    tickets: Mapped[list[Item]] = relationship(
+        cascade='all, delete-orphan', back_populates='category'
     )
-    parent = db.synonym('item_collection')
+    parent: Mapped[ItemCollection] = sa.orm.synonym('menu')
 
-    __roles__ = {
-        'category_owner': {'read': {'id', 'name', 'title', 'item_collection_id'}}
-    }
+    __roles__ = {'category_owner': {'read': {'id', 'name', 'title', 'menu_id'}}}
 
     def roles_for(self, actor=None, anchors=()):
         roles = super().roles_for(actor, anchors)
-        if self.item_collection.organization.userid in actor.organizations_owned_ids():
+        if self.menu.organization.userid in actor.organizations_owned_ids():
             roles.add('category_owner')
         return roles
+
+
+if TYPE_CHECKING:
+    from .item import Item
+    from .item_collection import ItemCollection

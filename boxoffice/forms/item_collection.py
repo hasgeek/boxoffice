@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from baseframe import __, forms, localized_country_list
 
 from ..data import indian_states, indian_states_dict
@@ -35,14 +37,14 @@ class ItemCollectionForm(forms.Form):
         validators=[forms.validators.DataRequired(__("Please select a country"))],
     )
 
-    def set_queries(self):
+    def __post_init__(self) -> None:
         self.place_supply_state_code.choices = [(0, '')] + [
             (state['short_code'], state['name'])
             for state in sorted(indian_states, key=lambda k: k['name'])
         ]
         self.place_supply_country_code.choices = [('', '')] + localized_country_list()
 
-    def validate_place_supply_state_code(self, field):
+    def validate_place_supply_state_code(self, field: forms.Field) -> None:
         if field.data <= 0:
             # state short codes start from 1,
             # and 0 means empty value as mentioned above in set_queries

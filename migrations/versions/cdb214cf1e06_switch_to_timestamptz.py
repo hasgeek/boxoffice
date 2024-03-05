@@ -6,12 +6,13 @@ Create Date: 2019-05-15 20:57:30.620521
 
 """
 
+from alembic import op
+import sqlalchemy as sa
+
 # revision identifiers, used by Alembic.
 revision = 'cdb214cf1e06'
 down_revision = '7d180b95fcbe'
 
-from alembic import op
-import sqlalchemy as sa
 
 migrate_table_columns = [
     ('assignee', 'created_at'),
@@ -65,7 +66,8 @@ def upgrade():
     for table, column in migrate_table_columns:
         op.execute(
             sa.DDL(
-                'ALTER TABLE "%(table)s" ALTER COLUMN "%(column)s" TYPE TIMESTAMP WITH TIME ZONE USING "%(column)s" AT TIME ZONE \'UTC\'',
+                'ALTER TABLE "%(table)s" ALTER COLUMN "%(column)s"'
+                'TYPE TIMESTAMP WITH TIME ZONE USING "%(column)s" AT TIME ZONE \'UTC\'',
                 context={'table': table, 'column': column},
             )
         )
@@ -75,7 +77,8 @@ def downgrade():
     for table, column in reversed(migrate_table_columns):
         op.execute(
             sa.DDL(
-                'ALTER TABLE "%(table)s" ALTER COLUMN "%(column)s" TYPE TIMESTAMP WITHOUT TIME ZONE',
+                'ALTER TABLE "%(table)s" ALTER COLUMN "%(column)s"'
+                ' TYPE TIMESTAMP WITHOUT TIME ZONE',
                 context={'table': table, 'column': column},
             )
         )

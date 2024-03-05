@@ -1,47 +1,37 @@
 {% extends "baseframe.html.jinja2" -%}
 
 {%- block layoutheaders %}
-  <script>
-      // (function(_,e,rr,s){_errs=[s];var c=_.onerror;_.onerror=function(){var a=arguments;_errs.push(a);
-      // c&&c.apply(this,a)};var b=function(){var c=e.createElement(rr),b=e.getElementsByTagName(rr)[0];
-      // c.src="//beacon.errorception.com/"+s+".js";c.async=!0;b.parentNode.insertBefore(c,b)};
-      // _.addEventListener?_.addEventListener("load",b,!1):_.attachEvent("onload",b)})
-      // (window,document,"script","56f13edc2777d31309000c21");
-  </script>
-{% endblock %}
+  <link rel="stylesheet" type="text/css" href="{{ manifest('css/app.scss') }}"/>
+{% endblock layoutheaders %}
 
 {% block headerbox %}
   {% block hgnav %}
     {% macro site_title() %}
       <div class="page-header">
-        <h1><a href="{{ url_for('index') }}">{{ config['SITE_TITLE'] }}</a></h1>
+        <h1><a href="{{ url_for('index') }}">{% trans %}Boxoffice{% endtrans %}</a></h1>
       </div>
     {% endmacro %}
     {% from "baseframe/components.html.jinja2" import hgnav with context %}
     {{ hgnav(site_title=site_title()) }}
-  {% endblock %}
-{% endblock %}
+  {% endblock hgnav %}
+{% endblock headerbox %}
 
 {% block baseheadline -%}
   {% block headline -%}
     <div class="page-header">
-      {% block top_title %}<h1>{{ config['SITE_TITLE'] }}</h1>{% endblock %}
+      {% block top_title %}<h1>{% trans %}Boxoffice{% endtrans %}</h1>{% endblock top_title %}
     </div>
-  {%- endblock %}
-{%- endblock %}
+  {%- endblock headline %}
+{%- endblock baseheadline %}
 
 {% block main -%}
 {% block basecontent -%}
   <div class="container" id="main-content">
-  {% block content %}{% endblock %}
+  {% block content %}{% endblock content %}
   </div>
-{%- endblock %}
-{%- endblock %}
+{%- endblock basecontent %}
+{%- endblock main %}
 
 {% block jquery -%}
-<script src="//ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
-<script type="text/javascript">
-  if (typeof jQuery === 'undefined')
-    document.write('<script type="text/javascript" src="{{ url_for("baseframe.static", filename="js/jquery-2.2.4.min.js") }}"><\/script>');
-</script>
-{%- endblock %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+{%- endblock jquery %}

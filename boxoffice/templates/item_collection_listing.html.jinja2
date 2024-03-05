@@ -1,45 +1,45 @@
 {% extends "layout.html.jinja2" %}
 
 {% block hgnav %}
-{% endblock %}
+{% endblock hgnav %}
 
 {%- block layoutheaders %}
-{% endblock %}
+{% endblock layoutheaders %}
 
-{% block title %}{% if title %} {{ title }}{% else %}{% trans %}Ticket listing{% endtrans %}{% endif %}{% endblock %}
+{% block title %}{% if title %}{{ title }}{% else %}{% trans %}Ticket listing{% endtrans %}{% endif %}{% endblock title %}
 
 {% block headline %}
-{% endblock %}
+{% endblock headline %}
 
 {% block main -%}
   <div id="sidebar"></div>
   <div id="main-content-area">
     {% if show_title %}
-      <div class='container'>
-        <div class='row'>
-          <div class='col-xs-12'>
-            <h1 class='boxoffice-listing'>
-              {{organization.title}}: {{item_collection.title}}
+      <div class="container">
+        <div class="row">
+          <div class="col-xs-12">
+            <h1 class="boxoffice-listing">
+              {{ organization.title }}: {{ menu.title }}
             </h1>
           </div>
         </div>
       </div>
     {% endif %}
-    <div id="boxoffice-widget"><p class="text-center regular col-sm-8 col-sm-offset-2 col-xs-12">Loading...</p></div>
+    <div id="boxoffice-widget"><p class="text-center regular col-sm-8 col-sm-offset-2 col-xs-12">{% trans %}Loading…{% endtrans %}</p></div>
   </div>
-{% endblock %}
+{% endblock main %}
 {% block footerscripts %}
   <script>
-    {{boxoffice_js}}
-    var organization_title = '{{organization.title}}';
-    var item_collection_id = '{{item_collection.id}}';
+    {{ boxoffice_js }}
+    var organization_title = {{ organization.title|tojson }};
+    var menu_id = {{ menu.id|tojson }};
 
     $(document).ready(function() {
       window.Boxoffice.init({
         org: organization_title, // Organisation to show
-        itemCollection: item_collection_id, // ItemCollection ID to show
+        menu: menu_id, // Menu ID to show
         paymentDesc: organization_title // Description for payments widget
       });
     });
   </script>
-{% endblock %}
+{% endblock footerscripts %}

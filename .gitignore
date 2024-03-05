@@ -11,6 +11,7 @@ baseframe-packed.js
 baseframe-packed.css
 .vscode
 .coverage
+.python-version
 boxoffice/static/gen/*
 *.sql
 *.sql.gz
@@ -19,6 +20,7 @@ node_modules
 boxoffice/static/build
 .pytest_cache
 boxoffice/static/img/fa5-packed.svg
-
+monkeytype.sqlite3
 .env
 .env.testing
+.envrc

@@ -1,24 +1,25 @@
 {% extends "layout.html.jinja2" %}
 
 {%- block layoutheaders %}
-  <link rel="stylesheet" href="/static/css/dist/admin_bundle.css">
-{% endblock %}
+  <link rel="stylesheet" type="text/css" href="{{ manifest('css/app.scss') }}"/>
+  <link rel="stylesheet" type="text/css" href="{{ manifest('css/admin.scss') }}"/>
+{% endblock layoutheaders %}
 
-{% block title %}{% if title %} {{ title }}{% else %}{% trans %}Admin{% endtrans %}{% endif %}{% endblock %}
+{% block title %}{% if title %} {{ title }}{% else %}{% trans %}Admin{% endtrans %}{% endif %}{% endblock title %}
 
 {% block headline %}
-{% endblock %}
+{% endblock headline %}
 
 {% block main -%}
   <div id="sidebar"></div>
   <div id="main-content-area"></div>
   <div id='form-view'></div>
-{% endblock %}
+{% endblock main %}
 {% block footerscripts %}
   <script type="text/javascript">
     window.boxofficeAdmin = {};
-    window.boxofficeAdmin.siteTitle = "{{ config['SITE_TITLE'] }}";
+    window.boxofficeAdmin.siteTitle = "{% trans %}Boxoffice{% endtrans %}";
     window.boxofficeFirstLoad = true;
   </script>
-  <script src='{{ asset_path('main_admin') | safe }}' type="text/javascript"></script>
-{% endblock %}
+  <script type="text/javascript" src="{{ manifest('main_admin.js') }}"></script>
+{% endblock footerscripts %}

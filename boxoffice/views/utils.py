@@ -96,7 +96,7 @@ def cors(f):
             and not origin
             or origin not in app.config['ALLOWED_ORIGINS']
         ):
-            abort(401)
+            abort(403)
 
         if request.method == 'OPTIONS':
             # pre-flight request, check CORS headers directly
@@ -133,7 +133,7 @@ def csv_response(headers, rows, row_type=None, row_handler=None):
     return Response(stream.getvalue(), mimetype='text/csv')
 
 
-def api_error(message, status_code, errors=[]):
+def api_error(message, status_code, errors=()):
     """
     Generate a HTTP response as a JSON object for a failure scenario.
 

@@ -1,6 +1,6 @@
 export const DiscountPolicyTemplate = `
   <div class="content-wrapper">
-    <h1 class="header">{{ orgTitle }}</h1>
+    <h1 class="header">{{ accountTitle }}</h1>
     <div class="title-wrapper col-sm-4 col-xs-12">
       <input type="text" autofocus class="form-control icon-placeholder" placeholder="&#xF002; Search discount policy" value="{{searchText}}" />
       {{#searchText}}<a on-click="clearSearchField()" class="clear-field"><i class="fa fa-close"></i></a>{{/}}
@@ -70,9 +70,9 @@ export const DiscountPolicyTemplate = `
               </div>
               <div class="group clearfix">
                 <p class="field-title filled clearfix">What is the discount for?</p>
-                <select name="item" id="add-item" class="items-select2">
+                <select name="ticket" id="add-item" class="items-select2">
                 </select>
-                {{#newDiscountPolicy.errormsg.items}}<p class="form-error-msg">{{ newDiscountPolicy.errormsg.items }}</p>{{/}}
+                {{#newDiscountPolicy.errormsg.tickets}}<p class="form-error-msg">{{ newDiscountPolicy.errormsg.tickets }}</p>{{/}}
               </div>
             {{else}}
               <div class="group">
@@ -83,9 +83,9 @@ export const DiscountPolicyTemplate = `
               </div>
               <p class="field-title filled">What is the discount for?</p>
               <div class="group">
-                <select name="items" id="add-items" multiple class="items-select2">
+                <select name="tickets" id="add-items" multiple class="items-select2">
                 </select>
-                {{#newDiscountPolicy.errormsg.items}}<p class="form-error-msg">{{ newDiscountPolicy.errormsg.items }}</p>{{/}}
+                {{#newDiscountPolicy.errormsg.tickets}}<p class="form-error-msg">{{ newDiscountPolicy.errormsg.tickets }}</p>{{/}}
               </div>
             {{/if}}
 
@@ -169,8 +169,8 @@ export const DiscountPolicyTemplate = `
                   {{#if dp_items}}
                     <p class="content-details"><b>This discount policy applies to:</b></p>
                     <ol class="content-list">
-                      {{#dp_items:item}}
-                        <li class="content-details">{{ dp_items[item].title }}</li>
+                      {{#dp_items:ticket}}
+                        <li class="content-details">{{ dp_items[ticket].title }}</li>
                       {{/}}
                     </ol>
                   {{/if}}
@@ -182,7 +182,7 @@ export const DiscountPolicyTemplate = `
                     <button class="boxoffice-button boxoffice-button-action btn-right btn-inline" on-click="showCouponForm(event)">Generate coupon</button>
                     <p class="error-msg">{{{ loadingCouponErrorMsg }}}</p>
                   {{/if}}
-                  <a class="boxoffice-button boxoffice-button-danger btn-right" href="/admin/o/{{orgName}}/discount_policy/{{id}}/delete" data-navigate>
+                  <a class="boxoffice-button boxoffice-button-danger btn-right" href="/admin/o/{{accountName}}/discount_policy/{{id}}/delete" data-navigate>
                     Delete discount policy
                   </a>
                 </div>
@@ -260,12 +260,12 @@ export const DiscountPolicyTemplate = `
 
                     <p class="field-title filled">What is the discount for?</p>
                     <div class="group">
-                      <select {{#if is_price_based}}name="item" id="add-item-{{ id }}"{{else}}name="items" id="add-items-{{ id }}" multiple{{/if}} class="items-select2">
-                        {{#dp_items:item}}
-                          <option value="{{ dp_items[item].id }}" selected title="{{ dp_items[item].title }}">{{ dp_items[item].title }}</option>
+                      <select {{#if is_price_based}}name="ticket" id="add-item-{{ id }}"{{else}}name="items" id="add-items-{{ id }}" multiple{{/if}} class="items-select2">
+                        {{#dp_items:ticket}}
+                          <option value="{{ dp_items[ticket].id }}" selected title="{{ dp_items[ticket].title }}">{{ dp_items[ticket].title }}</option>
                         {{/}}
                       </select>
-                      {{#errormsg.items}}<p class="form-error-msg">{{ errormsg.items }}</p>{{/}}
+                      {{#errormsg.tickets}}<p class="form-error-msg">{{ errormsg.tickets }}</p>{{/}}
                     </div>
 
                     <input type="hidden" name="csrf_token" value="{{ getCsrfToken() }}" />
@@ -443,3 +443,5 @@ export const DiscountPolicyTemplate = `
     {{/if}}
   </div>
 `;
+
+export { DiscountPolicyTemplate as default };

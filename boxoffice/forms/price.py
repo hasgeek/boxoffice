@@ -1,5 +1,6 @@
-from baseframe import __
-import baseframe.forms as forms
+from __future__ import annotations
+
+from baseframe import __, forms
 
 __all__ = ['PriceForm']
 

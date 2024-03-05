@@ -1,6 +1,7 @@
-from baseframe import __
+from __future__ import annotations
+
+from baseframe import __, forms
 from baseframe.forms.validators import StopValidation
-import baseframe.forms as forms
 
 from ..models import Category, db
 
@@ -8,9 +9,9 @@ __all__ = ['CategoryForm']
 
 
 # TODO: Add to baseframe.forms.validators.AvailableAttr?
-def available_seq(form, field):
+def available_seq(form: CategoryForm, field: forms.Field) -> None:
     basequery = db.session.query(Category.id).filter(
-        Category.item_collection == form.edit_parent, Category.seq == field.data
+        Category.menu == form.edit_parent, Category.seq == field.data
     )
     if form.edit_obj:
         basequery = basequery.filter(Category.id != form.edit_obj.id)
@@ -18,12 +19,15 @@ def available_seq(form, field):
     if basequery.scalar() is not None:
         raise StopValidation(
             __(
-                "This sequence number has already been used. Please pick a different number"
+                "This sequence number has already been used. Please pick a different"
+                " number"
             )
         )
 
 
 class CategoryForm(forms.Form):
+    edit_obj: Category | None
+
     title = forms.StringField(
         __("Category title"),
         validators=[

@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8" />
-  <title>{{order.item_collection.description}}</title>
+  <title>{{ order.menu.title }}</title>
   <style type="text/css">
     * {
       margin: 0;
@@ -146,79 +146,79 @@
 <body>
   <div>
 
-    <p>Hello {{ order.buyer_fullname }},</p>
+    <p>{% trans buyer=order.buyer_fullname %}Hello {{ buyer }},{% endtrans %}</p>
 
-    <p class="content">
-      Thanks for your interest in {{ order.item_collection.title }}.
+    <p class="content">{% trans title=order.menu.title -%}
+      Thanks for your interest in {{ title }}.
       Here is your order. To access the event, you must have a
       <a href="https://hasgeek.com/account">Hasgeek account</a>
-      with a verified email address matching your ticket.
-    </p>
+      with the same email address.
+    {%- endtrans %}</p>
 
     <p>
-      <a class="button" href={{"{base_url}/order/{access_token}/ticket".format(base_url=base_url, access_token=order.access_token)}} target="_blank">Fill attendee details</a>
+      <a class="button" href="{{ '{base_url}/order/{access_token}/ticket'.format(base_url=base_url, access_token=order.access_token) }}" target="_blank">{% trans %}Assign this ticket{% endtrans %}</a>
       {%- if order.paid_amount > 0 %}
-        <a class="button invoice-btn" href={{"{base_url}/order/{access_token}/invoice".format(base_url=base_url, access_token=order.access_token)}} target="_blank">Get GST invoice</a>
+        <a class="button invoice-btn" href="{{ '{base_url}/order/{access_token}/invoice'.format(base_url=base_url, access_token=order.access_token) }}" target="_blank">{% trans %}Get GST invoice{% endtrans %}</a>
       {%- endif %}
     </p>
 
-    <h1 class="header">Cash Receipt</h1>
+    <h1 class="header">{% trans %}Cash Receipt{% endtrans %}</h1>
 
     <div class="company-details">
       {%- if org.details.get('logo') %}
         <div class="logo">
-         <img src="{{org.details.get('logo')}}"/>
+         <img src="{{ org.details.get('logo') }}"/>
         </div>
       {%- endif %}
 
       <div class="address">
         {%- if org.details.get('address') %}
-          {{org.details.get('address') | safe}}
+          {{ org.details.get('address')|safe }}
         {%- endif %}
         {%- if org.details.get('cin') %}
-          <p>CIN: {{org.details.get('cin')}}</p>
+          <p>{% trans %}CIN:{% endtrans %} {{ org.details.get('cin') }}</p>
         {%- elif org.details.get('llpin') %}
-          <p>LLPIN: {{org.details.get('llpin')}}</p>
+          <p>{% trans %}LLPIN:{% endtrans %} {{ org.details.get('llpin') }}</p>
         {%- endif %}
         {%- if org.details.get('pan') %}
-          <p>PAN No: {{org.details.get('pan')}}</p>
+          <p>{% trans PAN:{% endtrans %} {{ org.details.get('pan') }}</p>
         {%- endif %}
         {%- if org.details.get('service_tax_no') %}
-          <p>Service Tax No: {{org.details.get('service_tax_no')}}</p>
+          <p>{% trans %}Service Tax No:{% endtrans %} {{ org.details.get('service_tax_no') }}</p>
         {%- endif %}
         {%- if org.details.get('website') %}
-          <p><a href="{{org.details.get('website')}}">{{org.details.get('website')}}</a></p>
+          <p><a href="{{ org.details.get('website')|tojson }}">{{ org.details.get('website') }}</a></p>
         {%- endif %}
-        <p><a href="mailto:{{org.contact_email}}">{{org.contact_email}}</a></p>
+        <p><a href="mailto:{{ org.contact_email }}">{{ org.contact_email }}</a></p>
       </div>
     </div>
 
     <div class="customer">
       <table class="customer-details">
         <tr>
-          <th class="gray" colspan="2">Bill To</th>
+          <th class="gray" colspan="2">{% trans %}Bill To{% endtrans %}</th>
         </tr>
         <tr>
-          <td class="gray">Name</td>
+          <td class="gray">{% trans %}Name{% endtrans %}</td>
           <td>{{ order.buyer_fullname }}</td>
         </tr>
         <tr>
-          <td class="gray">Email</td>
+          <td class="gray">{% trans %}Email{% endtrans %}</td>
           <td>{{ order.buyer_email }}</td>
         </tr>
         <tr>
-          <td class="gray">Phone</td>
+          <td class="gray">{% trans %}Phone{% endtrans %}</td>
           <td>{{ order.buyer_phone }}</td>
         </tr>
       </table>
 
       <table class="details">
         <tr>
-          <td class="gray">Receipt#</td>
-          <td>{{ order.invoice_no }}</td>
+          <td class="gray">{% trans %}Receipt#{% endtrans %}</td>
+          <td>{{ order.receipt_no }}</td>
         </tr>
         <tr>
-          <td class="gray">Date</td>
+          <td class="gray">{% trans %}Date{% endtrans %}</td>
           <td>{{ order.paid_at | longdate }}</td>
         </tr>
       </table>
@@ -226,18 +226,18 @@
 
     <table class="items">
       <tr>
-        <th>Ticket No:</th>
-        <th>Base Price</th>
-        <th>Discount</th>
-        <th>Final Price</th>
+        <th>{% trans %}Ticket No:{% endtrans %}</th>
+        <th>{% trans %}Base Price{% endtrans %}</th>
+        <th>{% trans %}Discount{% endtrans %}</th>
+        <th>{% trans %}Final Price{% endtrans %}</th>
       </tr>
 
       {% for line_item in line_items -%}
         <tr>
           <td class="center" rowspan="2" valign="top">{{ line_item.line_item_seq }}</td>
           <td colspan="3">
-            <span class="item-title">{{ line_item.item.title }}</span><br>
-            <span class="item-description">{{ line_item.item.description.text|safe }}</span>
+            <span class="item-title">{{ line_item.ticket.title }}</span><br/>
+            <span class="item-description">{{ line_item.ticket.description }}</span>
           </td>
         </tr>
         <tr>
@@ -258,7 +258,7 @@
           <tr>
             <td class="center" rowspan="2" valign="top"></td>
             <td colspan="3">
-               <span class="item-title">Refund: {{ line_item.item.title }}</span>
+               <span class="item-title">{% trans Refund:{% endtrans %} {{ line_item.ticket.title }}</span>
             </td>
           </tr>
           <tr>
@@ -271,17 +271,17 @@
 
       <tr>
           <td></td>
-          <td colspan="2" class="total gray">Total</td>
+          <td colspan="2" class="total gray">{% trans %}Total{% endtrans %}</td>
           <td class="total-amount gray center"><div id="total">{{ currency_symbol }} {{ order.paid_amount }}</div></td>
       </tr>
     </table>
 
     <div class="terms">
-      <div>{{org.details.get('refund_policy', '') | safe}}</div>
-      <p>Print your cash receipt <a href={{"{base_url}/order/{access_token}/receipt".format(base_url=base_url, access_token=order.access_token)}} target="_blank">here</a>.</p>
+      <div>{{ org.details.get('refund_policy', '')|safe }}</div>
+      <p><a href="{{ '{base_url}/order/{access_token}/receipt'.format(base_url=base_url, access_token=order.access_token) }}" target="_blank">{% trans %}Print your cash receipt here.{% endtrans %}</a></p>
     </div>
 
-    <p class="footer">Thank you,</p>
+    <p class="footer">{% trans %}Thank you,{% endtrans %}</p>
     <p>{{ org.title }}</p>
 
   </div>

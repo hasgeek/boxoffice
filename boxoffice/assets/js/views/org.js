@@ -1,24 +1,27 @@
-var Ractive = require('ractive');
-import { eventBus } from './main_admin.js';
-var NProgress = require('nprogress');
-import { fetch, urlFor, setPageTitle } from '../models/util.js';
-import { SideBarView } from './sidebar.js';
-import { navigateTo } from '../views/main_admin.js';
+/* eslint-disable no-unused-vars */
+import { navigateTo } from './navigate';
+
+import { fetch, urlFor, setPageTitle } from '../models/util';
+import { SideBarView } from './sidebar';
+
+const Ractive = require('ractive');
+const fly = require('ractive-transitions-fly');
+const NProgress = require('nprogress');
 
 const orgTemplate = `
   <div class="content-wrapper clearfix">
-    <h1 class="header col-xs-12">{{ orgTitle }}</h1>
+    <h1 class="header col-xs-12">{{ accountTitle }}</h1>
     <div class="title-wrapper col-xs-12 col-md-4">
       <form class="search-form" id='order-jump-form' method='post'>
         <input type="text" autofocus size="30" class="form-control icon-placeholder order-jump-input" id="order-receipt-no-input" placeholder="&#xF002; Search order with receipt no." />
       </form>
     </div>
     <div class="title-wrapper col-xs-12 col-md-8">
-      <a class="boxoffice-button boxoffice-button-action btn-right" href="/admin/o/{{orgName}}/ic/new" data-navigate>
-        New item collection
+      <a class="boxoffice-button boxoffice-button-action btn-right" href="/admin/o/{{accountName}}/menu/new" data-navigate>
+        New menu
       </a>
     </div>
-    {{#itemCollections:ic}}
+    {{#menus:menu}}
       <div class="box col-sm-6 col-xs-12" id="item-collection-{{ @index }}">
         <div class="heading">
           {{#title}}
@@ -27,45 +30,51 @@ const orgTemplate = `
         </div>
         <div class="content">
           <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
-            <p class="section-title">Item collection id</p>
+            <p class="section-title">Menu id</p>
             <p class="section-content">{{ id }}</p>
-            <p class="section-title">Item collection description</p>
+            <p class="section-title">Menu description</p>
             <div class="section-content">{{{ description.html }}}</div>
             <div class="btn-wrapper">
-              <a class="boxoffice-button boxoffice-button-info" href="/{{ orgName }}/{{ name }}">View listing</a>
-              <a class="boxoffice-button boxoffice-button-primary" href="/admin/ic/{{id}}" data-navigate>View dashboard</a>
+              <a class="boxoffice-button boxoffice-button-info" href="/{{ accountName }}/{{ name }}">View listing</a>
+              <a class="boxoffice-button boxoffice-button-primary" href="/admin/menu/{{id}}" data-navigate>View dashboard</a>
             </div>
           </div>
         </div>
       </div>
-    {{/itemCollections}}
+    {{/menus}}
   </div>
 `;
 
 export const OrgView = {
-  render: function ({ org_name } = {}) {
+  render({ accountName } = {}) {
     fetch({
-      url: urlFor('view', { resource: 'o', id: org_name, root: true }),
-    }).then(function ({ id, org_title, item_collections, form }) {
-      let orgComponent = new Ractive({
+      url: urlFor('view', { resource: 'o', id: accountName, root: true }),
+    }).then(({ id, account_title: accountTitle, menus, form }) => {
+      const orgComponent = new Ractive({
         el: '#main-content-area',
         template: orgTemplate,
+        transitions: { fly },
         data: {
-          orgName: org_name,
-          orgTitle: org_title,
-          itemCollections: item_collections,
+          accountName,
+          accountTitle,
+          menus,
         },
       });
 
-      $('#order-jump-form').submit(function (submitEvt) {
+      $('#order-jump-form').submit((submitEvt) => {
         submitEvt.preventDefault();
-        let order_receipt_no = $('#order-receipt-no-input').val();
-        navigateTo(`/admin/o/${org_name}/order/${order_receipt_no}`);
+        const orderReceiptNo = $('#order-receipt-no-input').val();
+        navigateTo(`/admin/o/${accountName}/order/${orderReceiptNo}`);
       });
 
-      SideBarView.render('org', { org_name, org_title });
-      setPageTitle(org_title);
+      SideBarView.render('org', {
+        accountName,
+        accountTitle,
+      });
+      setPageTitle(accountTitle);
       NProgress.done();
     });
   },
 };
+
+export { OrgView as default };

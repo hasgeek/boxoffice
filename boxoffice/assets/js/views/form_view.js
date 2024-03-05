@@ -1,8 +1,12 @@
-var _ = require('underscore');
-var Ractive = require('ractive');
-var NProgress = require('nprogress');
-import { fetch, Util, formErrorHandler } from '../models/util.js';
-import { BaseframeForm } from './baseframe_form.js';
+/* eslint-disable no-unused-vars */
+import { fetch, Util, formErrorHandler } from '../models/util';
+
+import { BaseframeForm } from './baseframe_form';
+
+const _ = require('underscore');
+const Ractive = require('ractive');
+const fly = require('ractive-transitions-fly');
+const NProgress = require('nprogress');
 
 /*
 ** `FormView` provides an interface to show a form to create or edit a resource.
@@ -22,7 +26,7 @@ import { BaseframeForm } from './baseframe_form.js';
 ** Register proxy events on `FormView` if necessary
 */
 
-let FormViewSliderTemplate = `
+const FormViewSliderTemplate = `
   {{#if shown}}
     <div class="modal-background"></div>
     <div class="content-slider" intro-outro='fly:{x:0,y:200,duration:200}'>
@@ -41,15 +45,16 @@ let FormViewSliderTemplate = `
 export const FormView = new Ractive({
   el: '#form-view',
   template: FormViewSliderTemplate,
-  components: { BaseframeForm: BaseframeForm },
+  components: { BaseframeForm },
+  transitions: { fly },
   data: {
     shown: false,
     title: '',
     formHTML: '',
     errors: '',
-    onHide: function () {},
+    onHide() {},
   },
-  load: function (options) {
+  load(options) {
     fetch({ url: options.url }).then((response) => {
       this.hide();
       this.set('title', options.title);
@@ -59,19 +64,19 @@ export const FormView = new Ractive({
       }
       this.show();
 
-      var formId = Util.getElementId(response.form_template);
-      var onSuccess = (responseData) => {
+      const formId = Util.getElementId(response.form_template);
+      const onSuccess = (responseData) => {
         this.hide();
         options.onSuccess(responseData);
       };
-      var onError = (response) => {
-        var errors = formErrorHandler(formId, response);
+      const onError = (errorResponse) => {
+        const errors = formErrorHandler(formId, errorResponse);
         this.set('errors', errors);
         if (_.isFunction(options.onError)) {
-          options.onError(response);
+          options.onError(errorResponse);
         }
       };
-      Baseframe.Forms.handleFormSubmit(
+      window.Baseframe.Forms.handleFormSubmit(
         formId,
         options.url,
         onSuccess,
@@ -81,18 +86,18 @@ export const FormView = new Ractive({
       NProgress.done();
     });
   },
-  show: function () {
+  show() {
     this.set('shown', true);
   },
-  hide: function () {
+  hide() {
     this.set('shown', false);
   },
-  oncomplete: function () {
+  oncomplete() {
     /* Close the form modal when user clicks outside the modal.
       jquery-timepicker adds a div.ui-timepicker-wrapper to the body, don't close the modal
       when user selects time from the timepicker dropdown.
     */
-    $(document).on('click', function (event) {
+    $(document).on('click', (event) => {
       if (
         !$(event.target).closest('#form-view .content-slider').length &&
         !$(event.target).is('#form-view .content-slider') &&
@@ -102,8 +107,8 @@ export const FormView = new Ractive({
       }
     });
 
-    //On pressing ESC, close the modal
-    $(document).keydown(function (event) {
+    // On pressing ESC, close the modal
+    $(document).keydown((event) => {
       if (event.keyCode === 27) {
         event.preventDefault();
         FormView.fire('hide');
@@ -112,9 +117,11 @@ export const FormView = new Ractive({
   },
 });
 
-FormView.on('hide', function (event) {
+FormView.on('hide', function toggleShowHide(event) {
   if (this.get('shown')) {
     this.hide();
     this.get('onHide')();
   }
 });
+
+export { FormView as default };

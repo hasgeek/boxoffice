@@ -12,6 +12,6 @@ if get_load_dotenv():
     load_dotenv()
 
 # pylint: disable=wrong-import-position
-from boxoffice import app as application  # isort:skip  # noqa: E402
+from boxoffice import app as application  # isort:skip
 
 application.wsgi_app = ProxyFix(application.wsgi_app)  # type: ignore[method-assign]

@@ -20,13 +20,13 @@
               <h1 class="category-heading">{{title}}</h1>
             </div>
             <div>
-            {{#items}}{{# { item: . } }}
+            {{#tickets}}{{# { ticket: . } }}
               {{#order.line_items}} {{# { line_item: . } }}
-                {{#if line_item.item_name === item.name }}
-                  <div class="ticket-booking boxoffice-clearfix {{#line_item.quantity}}ticket-selected{{/}}" id="{{line_item.item_name}}">
+                {{#if line_item.ticket_name === ticket.name }}
+                  <div class="ticket-booking boxoffice-clearfix {{#line_item.quantity}}ticket-selected{{/}}" id="{{line_item.ticket_name}}">
                     <div class="ticket-details">
-                      <p class="ticket-title">{{ line_item.item_title }}</p>
-                      <div class="ticket-description">{{{ line_item.item_description }}}</div>
+                      <p class="ticket-title">{{ line_item.ticket_title }}</p>
+                      <div class="ticket-description">{{{ line_item.ticket_description }}}</div>
                     </div>
                     <div class="ticket-price-qty">
                       {{#if line_item.is_available}}
@@ -44,9 +44,9 @@
                           </div>
                           <span class="multiplier">&#215;</span>
                           <div class="ticket-qty-wrapper">
-                            <button class="decrement" on-click="updateOrder(event, line_item.item_name, line_item.quantity_available, false)">&#8722;</button>
+                            <button class="decrement" on-click="updateOrder(event, line_item.ticket_name, line_item.quantity_available, false)">&#8722;</button>
                             <input type="number" class="ticket-qty" name="quantity" min="0" max="{{ line_item.quantity_available }}" value="{{ line_item.quantity }}" disabled>
-                            <button class="increment" on-click="updateOrder(event, line_item.item_name, line_item.quantity_available, true)">&#43;</button>
+                            <button class="increment" on-click="updateOrder(event, line_item.ticket_name, line_item.quantity_available, true)">&#43;</button>
                           </div>
                         </div>
                         <div class="item-amount">
@@ -83,7 +83,7 @@
                   </div>
                 {{/if}}
               {{/}}{{/order.line_items}}
-            {{/}}{{/items}}
+            {{/}}{{/tickets}}
             </div>
           </div>
         {{/section.categories}}
@@ -134,7 +134,7 @@
             {{#order.line_items}} {{# { line_item: . } }}
               {{#if line_item.quantity > 0 }}
                 <div class="item-summary">
-                  <p class="booked-ticket-title"><faicon icon='ticket-alt' icon_size='headline' baseline=false css_class='ticket-icon'></faicon>{{ line_item.item_title }}</p>
+                  <p class="booked-ticket-title"><faicon icon='ticket-alt' icon_size='headline' baseline=false css_class='ticket-icon'></faicon>{{ line_item.ticket_title }}</p>
                   <p class="booked-ticket-qty">Qty {{ line_item.quantity }} &times; &#8377;{{line_item.base_price}}</p>
                   {{#line_item.discounted_amount}}
                     <p class="booked-ticket-qty">Discount &#8377;{{line_item.discounted_amount}}</p>

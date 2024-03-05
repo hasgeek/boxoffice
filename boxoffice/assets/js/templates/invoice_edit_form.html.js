@@ -98,3 +98,5 @@ export const InvoiceEditFormTemplate = `
     </div>
   {{/each}}
 `;
+
+export { InvoiceEditFormTemplate as default };

@@ -1,7 +1,10 @@
-from flask import request
+from typing import TYPE_CHECKING
+
+from flask import abort, request
+from werkzeug.datastructures import ImmutableMultiDict
 
 from baseframe import _
-from coaster.views import load_models, render_with
+from coaster.views import ReturnRenderWith, load_models, render_with
 
 from .. import app
 from ..forms import AssigneeForm
@@ -14,8 +17,10 @@ from .utils import xhr_only
 @xhr_only
 @render_with(json=True)
 @load_models((Order, {'access_token': 'access_token'}, 'order'))
-def assign(order):
+def assign(order: Order) -> ReturnRenderWith:
     """Assign a line_item to a participant."""
+    if TYPE_CHECKING:
+        assert request.json is not None  # nosec B101
     line_item = LineItem.query.get(request.json.get('line_item_id'))
     if line_item is None:
         return (
@@ -26,7 +31,9 @@ def assign(order):
             },
             404,
         )
-    elif line_item.is_cancelled:
+    if line_item.order != order:
+        abort(403)
+    if line_item.is_cancelled:
         return (
             {
                 'status': 'error',
@@ -37,8 +44,8 @@ def assign(order):
         )
 
     assignee_dict = request.json.get('attendee')
-    assignee_form = AssigneeForm.from_json(
-        assignee_dict,
+    assignee_form = AssigneeForm(
+        formdata=ImmutableMultiDict(assignee_dict),
         obj=line_item.current_assignee,
         parent=line_item,
         csrf_token=request.json.get('csrf_token'),
@@ -50,17 +57,17 @@ def assign(order):
                 'status': 'error',
                 'error': 'ticket_not_transferable',
                 'error_description': _(
-                    "Ticket transfer deadline is over. It can no longer be transfered."
+                    "Ticket transfer deadline is over. It can no longer be transferred."
                 ),
             },
             400,
         )
 
     if assignee_form.validate_on_submit():
-        item_assignee_details = line_item.item.assignee_details
+        ticket_assignee_details = line_item.ticket.assignee_details
         assignee_details = {}
-        if item_assignee_details:
-            for key in item_assignee_details.keys():
+        if ticket_assignee_details:
+            for key in ticket_assignee_details.keys():
                 assignee_details[key] = assignee_dict.get(key)
         if (
             line_item.current_assignee
@@ -97,13 +104,12 @@ def assign(order):
                     line_item.id, old_assignee.id, new_assignee.id
                 )
         return {'status': 'ok', 'result': {'message': _("Ticket assigned")}}
-    else:
-        return (
-            {
-                'status': 'error',
-                'error': 'invalid_assignee_details',
-                'error_description': "Invalid form values. Please resubmit.",
-                'error_details': assignee_form.errors,
-            },
-            400,
-        )
+    return (
+        {
+            'status': 'error',
+            'error': 'invalid_assignee_details',
+            'error_description': "Invalid form values. Please resubmit.",
+            'error_details': assignee_form.errors,
+        },
+        400,
+    )

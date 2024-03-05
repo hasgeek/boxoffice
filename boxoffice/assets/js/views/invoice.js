@@ -1,24 +1,28 @@
-import { xhrRetry, getFormJSObject } from '../models/util.js';
-import { InvoiceEditFormTemplate } from '../templates/invoice_edit_form.html.js';
-var FormValidator = require('validate-js');
+/* eslint-disable no-unused-vars */
+import { xhrRetry, getFormJSObject } from '../models/util';
+import { InvoiceEditFormTemplate } from '../templates/invoice_edit_form.html';
+
+const Ractive = require('ractive');
+const fly = require('ractive-transitions-fly');
+const FormValidator = require('validate-js');
 
 export const Invoice = {
   config: {
     baseURL: window.location.origin,
     view: {
       method: 'GET',
-      urlFor: function () {
+      urlFor() {
         return window.location.href;
       },
     },
     submit: {
       method: 'POST',
-      urlFor: function (accessToken) {
-        return Invoice.config.baseURL + '/order/' + accessToken + '/invoice';
+      urlFor(accessToken) {
+        return `${Invoice.config.baseURL}/order/${accessToken}/invoice`;
       },
     },
   },
-  init: function () {
+  init() {
     $.ajax({
       url: Invoice.config.view.urlFor(),
       type: Invoice.config.view.method,
@@ -26,29 +30,30 @@ export const Invoice = {
       retries: 5,
       dataType: 'json',
       retryInterval: 5000,
-      success: function (data) {
+      success(data) {
         Invoice.view(data);
       },
-      error: function (response) {
-        var ajaxLoad = this;
-        var onServerError = function () {
-          var errorMsg = 'Server error. ';
+      error(response) {
+        const ajaxLoad = this;
+        function onServerError() {
+          const errorMsg = 'Server error. ';
           $('#error-description').html(errorMsg);
-        };
-        var onNetworkError = function () {
-          var errorMsg = 'Unable to connect. Please try again later.';
+        }
+        function onNetworkError() {
+          const errorMsg = 'Unable to connect. Please try again later.';
           $('#notify-msg').html(errorMsg);
-        };
+        }
         ajaxLoad.retries -= 1;
         xhrRetry(ajaxLoad, response, onServerError, onNetworkError);
       },
     });
   },
-  view: function (data) {
-    var invoice = this;
+  view(data) {
+    const invoice = this;
     invoice.formComponent = new Ractive({
       el: '#boxoffice-invoice',
       template: InvoiceEditFormTemplate,
+      transitions: { fly },
       data: {
         invoices: data.invoices,
         accessToken: data.access_token,
@@ -57,14 +62,14 @@ export const Invoice = {
           countries: data.countries,
         },
       },
-      scrollTop: function () {
+      scrollTop() {
         $('html,body').animate(
-          { scrollTop: $(invoiceComponent.el).offset().top },
+          { scrollTop: $(invoice.formComponent.el).offset().top },
           '300'
         );
       },
-      submitInvoiceDetails: function (event, invoice_item, invoice_id) {
-        var validationConfig = [
+      submitInvoiceDetails(event, invoiceItem, invoiceId) {
+        const validationConfig = [
           {
             name: 'invoicee_name',
             rules: 'required',
@@ -95,29 +100,26 @@ export const Invoice = {
           },
         ];
 
-        var invoiceForm = 'invoice-details-form-' + invoice_id;
+        const invoiceForm = `invoice-details-form-${invoiceId}`;
 
-        var formValidator = new FormValidator(
+        const formValidator = new FormValidator(
           invoiceForm,
           validationConfig,
-          function (errors, event) {
-            event.preventDefault();
-            invoice.formComponent.set(invoice_item + '.errormsg', '');
+          (errors, e) => {
+            e.preventDefault();
+            invoice.formComponent.set(`${invoiceItem}.errormsg`, '');
             if (errors.length > 0) {
               invoice.formComponent.set(
-                invoice_item + '.errormsg.' + errors[0].name,
+                `${invoiceItem}.errormsg.${errors[0].name}`,
                 errors[0].message
               );
               invoice.formComponent.scrollTop();
             } else {
               invoice.formComponent.set(
-                invoice_item + '.submittingInvoiceDetails',
+                `${invoiceItem}.submittingInvoiceDetails`,
                 true
               );
-              invoice.formComponent.postInvoiceDetails(
-                invoice_item,
-                invoice_id
-              );
+              invoice.formComponent.postInvoiceDetails(invoiceItem, invoiceId);
             }
           }
         );
@@ -125,9 +127,9 @@ export const Invoice = {
         formValidator.setMessage('required', 'Please fill out this field');
         formValidator.setMessage('valid_email', 'Please enter a valid email');
       },
-      postInvoiceDetails: function (invoice_item, invoice_id) {
-        var invoiceForm = '#' + 'invoice-' + invoice_id;
-        var invoiceDetails = getFormJSObject(invoiceForm);
+      postInvoiceDetails(invoiceItem, invoiceId) {
+        const invoiceForm = `#invoice-${invoiceId}`;
+        const invoiceDetails = getFormJSObject(invoiceForm);
 
         $.ajax({
           url: invoice.config.submit.urlFor(
@@ -138,56 +140,57 @@ export const Invoice = {
           contentType: 'application/json',
           data: JSON.stringify({
             invoice: invoiceDetails,
-            invoice_id: invoice_id,
+            invoice_id: invoiceId,
           }),
           timeout: 5000,
           retries: 5,
           retryInterval: 5000,
-          success: function (data) {
-            invoice.formComponent.set(invoice_item + '.errorMsg', '');
+          success(successData) {
+            invoice.formComponent.set(`${invoiceItem}.errorMsg`, '');
             invoice.formComponent.set(
-              invoice_item + '.submittingInvoiceDetails',
+              `${invoiceItem}.submittingInvoiceDetails`,
               false
             );
-            invoice.formComponent.set(invoice_item + '.hideForm', true);
+            invoice.formComponent.set(`${invoiceItem}.hideForm`, true);
           },
-          error: function (response) {
-            var ajaxLoad = this;
-            var onServerError = function () {
-              var errorTxt = '';
-              var errors = JSON.parse(response.responseText).errors;
+          error(response) {
+            const ajaxLoad = this;
+            function onServerError() {
+              let errorTxt = '';
+              const { errors } = JSON.parse(response.responseText);
               if (errors && !$.isEmptyObject(errors)) {
-                for (let error in errors) {
-                  errorTxt += '<p>' + errors[error] + '</p>';
-                }
+                errors.forEach((error) => {
+                  errorTxt += `<p>${errors[error]}</p>`;
+                });
               } else {
-                errorTxt =
-                  '<p>' + JSON.parse(response.responseText).message + '<p>';
+                errorTxt = `<p>${JSON.parse(response.responseText).message}<p>`;
               }
-              invoice.formComponent.set(invoice_item + '.errorMsg', errorTxt);
+              invoice.formComponent.set(`${invoiceItem}.errorMsg`, errorTxt);
               invoice.formComponent.set(
-                invoice_item + '.submittingInvoiceDetails',
+                `${invoiceItem}.submittingInvoiceDetails`,
                 false
               );
-            };
-            var onNetworkError = function () {
-              var errorTxt =
+            }
+            function onNetworkError() {
+              const errorTxt =
                 '<p>Unable to connect. Please write to us at support@hasgeek.com.<p>';
-              invoice.formComponent.set(invoice_item + '.errorMsg', errorTxt);
+              invoice.formComponent.set(`${invoiceItem}.errorMsg`, errorTxt);
               invoice.formComponent.set(
-                invoice_item + '.submittingInvoiceDetails',
+                `${invoiceItem}.submittingInvoiceDetails`,
                 false
               );
-            };
+            }
             ajaxLoad.retries -= 1;
             xhrRetry(ajaxLoad, response, onServerError, onNetworkError);
           },
         });
       },
-      showInvoiceForm: function (event, invoice_item) {
+      showInvoiceForm(event, invoiceItem) {
         event.original.preventDefault();
-        invoice.formComponent.set(invoice_item + '.hideForm', false);
+        invoice.formComponent.set(`${invoiceItem}.hideForm`, false);
       },
     });
   },
 };
+
+export { Invoice as default };

@@ -1,8 +1,12 @@
-var Ractive = require('ractive');
+const Ractive = require('ractive');
+const fly = require('ractive-transitions-fly');
 
 export const BaseframeForm = Ractive.extend({
   isolated: false,
-  template: function () {
+  template() {
     return this.get('html');
   },
+  transitions: { fly },
 });
+
+export { BaseframeForm as default };

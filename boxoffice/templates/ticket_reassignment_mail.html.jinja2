@@ -76,14 +76,14 @@
 <body>
   <div>
 
-    <p>Hello {{ old_assignee.fullname }},</p>
+    <p>{% trans assignee=old_assignee.fullname %}Hello {{ assignee }},{% endtrans %}</p>
 
     <div class="wrapper">
       <table class="ticket-table">
         <tr>
           <td class="ticket-title-wrapper">
-            <p class="text-center ticket-title">{{ line_item.item.title }}</p>
-            <p class="receipt-no">Receipt No: {{ order.invoice_no }}</p>
+            <p class="text-center ticket-title">{{ line_item.ticket.title }}</p>
+            <p class="receipt-no">{% trans numner=order.receipt_no %}Receipt No: {{ number }}{% endtrans %}</p>
           </td>
 
           <td class="details-wrapper">

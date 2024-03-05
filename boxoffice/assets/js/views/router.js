@@ -1,141 +1,143 @@
-var Backbone = require('backbone');
-import { IndexView } from './index.js';
-import { OrgView } from './org.js';
-import { OrgReportView } from './admin_org_report.js';
-import { DiscountPolicyView } from './admin_discount_policy.js';
-import { DeleteDiscountPolicyView } from './delete_discount_policy.js';
-import { ItemCollectionView } from './item_collection.js';
-import { ItemCollectionNewView } from './new_item_collection.js';
-import { ItemCollectionEditView } from './edit_item_collection.js';
-import { OrdersView } from './admin_orders.js';
-import { OrderView } from './admin_order.js';
-import { ReportView } from './admin_report.js';
-import { ItemView } from './admin_item.js';
-import { NewItemView } from './new_item.js';
-import { EditItemView } from './edit_item.js';
-import { NewPriceView } from './new_price.js';
-import { EditPriceView } from './edit_price.js';
-import { NewCategoryView } from './new_category.js';
-import { EditCategoryView } from './edit_category.js';
-import { PartialRefundOrderView } from './partial_refund_order.js';
+import { IndexView } from './index';
+import { OrgView } from './org';
+import { OrgReportView } from './admin_org_report';
+import { DiscountPolicyView } from './admin_discount_policy';
+import { DeleteDiscountPolicyView } from './delete_discount_policy';
+import { MenuView } from './item_collection';
+import { MenuNewView } from './new_item_collection';
+import { MenuEditView } from './edit_item_collection';
+import { OrdersView } from './admin_orders';
+import { OrderView } from './admin_order';
+import { ReportView } from './admin_report';
+import { TicketView } from './admin_item';
+import { NewTicketView } from './new_item';
+import { EditTicketView } from './edit_item';
+import { NewPriceView } from './new_price';
+import { EditPriceView } from './edit_price';
+import { NewCategoryView } from './new_category';
+import { EditCategoryView } from './edit_category';
+import { PartialRefundOrderView } from './partial_refund_order';
+
+const Backbone = require('backbone');
 
 export const Router = Backbone.Router.extend({
   url_root: '/admin/',
   routes: {
     '': 'index',
-    'o/:org_name': 'org',
-    'o/:org_name/reports': 'org_report',
-    'o/:org_name/discount_policy': 'discount_policy',
-    'o/:org_name/discount_policy/:id/delete': 'delete_discount_policy',
-    'o/:org_name/discount_policy?:params': 'discount_policy',
-    'ic/:ic_id': 'item_collection',
-    'ic/:ic_id/reports': 'report',
-    'o/:org_name/ic/new': 'new_item_collection',
-    'ic/:ic_id/edit': 'edit_item_collection',
-    'ic/:ic_id/orders': 'orders',
-    'o/:org_name/order/:order_receipt_no': 'order',
-    'ic/:ic_id/item/new': 'new_item',
-    'item/:item_id/edit': 'edit_item',
-    'item/:item_id': 'item',
-    'item/:item_id/price/new': 'new_price',
-    'item/:item_id/price/:price_id/edit': 'edit_price',
-    'ic/:ic_id/category/new': 'new_category',
-    'ic/:ic_id/category/:category_id/edit': 'edit_category',
-    'ic/:ic_id/order/:order_id/partial_refund': 'partial_refund_order',
+    'o/:accountName': 'org',
+    'o/:accountName/reports': 'org_report',
+    'o/:accountName/discount_policy': 'discount_policy',
+    'o/:accountName/discount_policy/:id/delete': 'delete_discount_policy',
+    'o/:accountName/discount_policy?:params': 'discount_policy',
+    'menu/:menuId': 'menu',
+    'menu/:menuId/reports': 'report',
+    'o/:accountName/menu/new': 'new_menu',
+    'menu/:menuId/edit': 'edit_menu',
+    'menu/:menuId/orders': 'orders',
+    'o/:accountName/order/:orderReceiptNo': 'order',
+    'menu/:menuId/ticket/new': 'new_ticket',
+    'ticket/:ticketId/edit': 'edit_ticket',
+    'ticket/:ticketId': 'ticket',
+    'ticket/:ticketId/price/new': 'new_price',
+    'ticket/:ticketId/price/:priceId/edit': 'edit_price',
+    'menu/:menuId/category/new': 'new_category',
+    'menu/:menuId/category/:categoryId/edit': 'edit_category',
+    'menu/:menuId/order/:orderId/partial_refund': 'partial_refund_order',
   },
-  index: function () {
+  index() {
     IndexView.render();
   },
-  org: function (org_name) {
-    OrgView.render({ org_name });
+  org(accountName) {
+    OrgView.render({ accountName });
   },
-  org_report: function (org_name) {
-    OrgReportView.render({ org_name });
+  org_report(accountName) {
+    OrgReportView.render({ accountName });
   },
-  discount_policy: function (org_name, { search, page, size } = {}) {
-    DiscountPolicyView.render({ org_name, search, page, size });
+  discount_policy(accountName, { search, page, size } = {}) {
+    DiscountPolicyView.render({ accountName, search, page, size });
   },
-  delete_discount_policy: function (org_name, id) {
-    DeleteDiscountPolicyView.render({ org_name, id });
+  delete_discount_policy(accountName, id) {
+    DeleteDiscountPolicyView.render({ accountName, id });
   },
-  item_collection: function (ic_id) {
-    ItemCollectionView.render({ ic_id });
+  menu(menuId) {
+    MenuView.render({ menuId });
   },
-  new_item_collection: function (org_name) {
+  new_menu(accountName) {
     if (window.boxofficeFirstLoad) {
-      OrgView.render({ org_name });
+      OrgView.render({ accountName });
     }
-    ItemCollectionNewView.render({ org_name });
+    MenuNewView.render({ accountName });
   },
-  edit_item_collection: function (ic_id) {
+  edit_menu(menuId) {
     if (window.boxofficeFirstLoad) {
-      ItemCollectionView.render({ ic_id });
+      MenuView.render({ menuId });
     }
-    ItemCollectionEditView.render({ ic_id });
+    MenuEditView.render({ menuId });
   },
-  new_item: function (ic_id) {
+  new_ticket(menuId) {
     if (window.boxofficeFirstLoad) {
-      ItemCollectionView.render({ ic_id });
+      MenuView.render({ menuId });
     }
-    NewItemView.render({ ic_id });
+    NewTicketView.render({ menuId });
   },
-  edit_item: function (item_id) {
+  edit_ticket(ticketId) {
     if (window.boxofficeFirstLoad) {
-      ItemView.render({ item_id });
+      TicketView.render({ ticketId });
     }
-    EditItemView.render({ item_id });
+    EditTicketView.render({ ticketId });
   },
-  new_price: function (item_id) {
+  new_price(ticketId) {
     if (window.boxofficeFirstLoad) {
-      ItemView.render({ item_id });
+      TicketView.render({ ticketId });
     }
-    NewPriceView.render({ item_id });
+    NewPriceView.render({ ticketId });
   },
-  edit_price: function (item_id, price_id) {
+  edit_price(ticketId, priceId) {
     if (window.boxofficeFirstLoad) {
-      ItemView.render({ item_id });
+      TicketView.render({ ticketId });
     }
-    EditPriceView.render({ item_id, price_id });
+    EditPriceView.render({ ticketId, priceId });
   },
-  new_category: function (ic_id) {
+  new_category(menuId) {
     if (window.boxofficeFirstLoad) {
-      ItemCollectionView.render({ ic_id });
+      MenuView.render({ menuId });
     }
-    NewCategoryView.render({ ic_id });
+    NewCategoryView.render({ menuId });
   },
-  edit_category: function (ic_id, category_id) {
+  edit_category(menuId, categoryId) {
     if (window.boxofficeFirstLoad) {
-      ItemCollectionView.render({ ic_id });
+      MenuView.render({ menuId });
     }
-    EditCategoryView.render({ ic_id, category_id });
+    EditCategoryView.render({ menuId, categoryId });
   },
-  orders: function (ic_id) {
-    OrdersView.render({ ic_id });
+  orders(menuId) {
+    OrdersView.render({ menuId });
   },
-  order: function (org_name, order_receipt_no) {
-    OrderView.render({ org_name, order_receipt_no });
+  order(accountName, orderReceiptNo) {
+    OrderView.render({ accountName, orderReceiptNo });
   },
-  report: function (ic_id) {
-    ReportView.render({ ic_id });
+  report(menuId) {
+    ReportView.render({ menuId });
   },
-  item: function (item_id) {
-    ItemView.render({ item_id });
+  ticket(ticketId) {
+    TicketView.render({ ticketId });
   },
-  partial_refund_order: function (ic_id, order_id) {
+  partial_refund_order(menuId, orderId) {
     if (window.boxofficeFirstLoad) {
-      ItemCollectionView.render({ ic_id });
+      MenuView.render({ menuId });
     }
-    PartialRefundOrderView.render({ ic_id, order_id });
+    PartialRefundOrderView.render({ menuId, orderId });
   },
-  _extractParameters: function (route, fragment) {
-    var result = route.exec(fragment).slice(1);
+  // eslint-disable-next-line no-underscore-dangle
+  _extractParameters(route, fragment) {
+    const result = route.exec(fragment).slice(1);
     if (result[result.length - 1]) {
-      var paramString = result[result.length - 1].split('&');
-      var params = {};
-      paramString.forEach(function (value) {
+      const paramString = result[result.length - 1].split('&');
+      const params = {};
+      paramString.forEach((value) => {
         if (value) {
-          var param = value.split('=');
-          params[param[0]] = param[1];
+          const [paramKey, paramValue] = value.split('=');
+          params[paramKey] = paramValue;
         }
       });
       result[result.length - 1] = params;
@@ -143,3 +145,5 @@ export const Router = Backbone.Router.extend({
     return result;
   },
 });
+
+export { Router as default };

@@ -1,63 +1,64 @@
-var NProgress = require('nprogress');
-var Ractive = require('ractive');
-import { fetch, urlFor, setPageTitle } from '../models/util.js';
-import { OrgReportTemplate } from '../templates/admin_org_report.html.js';
-import { SideBarView } from './sidebar.js';
+/* eslint-disable no-unused-vars */
+import { fetch, urlFor, setPageTitle } from '../models/util';
+import { OrgReportTemplate } from '../templates/admin_org_report.html';
+import { SideBarView } from './sidebar';
+
+const NProgress = require('nprogress');
+const Ractive = require('ractive');
+const fly = require('ractive-transitions-fly');
 
 export const OrgReportView = {
-  render: function ({ org_name } = {}) {
+  render({ accountName } = {}) {
     fetch({
       url: urlFor('index', {
         resource: 'reports',
         scope_ns: 'o',
-        scope_id: org_name,
+        scope_id: accountName,
         root: true,
       }),
-    }).done(({ org_title, siteadmin }) => {
+    }).done(({ account_title: accountTitle, siteadmin }) => {
       // Initial render
-      let currentDate = new Date();
-      let currentYear = currentDate.getFullYear();
+      const currentDate = new Date();
+      const currentYear = currentDate.getFullYear();
       // month starts from 0
-      let currentMonth = currentDate.getMonth() + 1;
-      let reportComponent = new Ractive({
+      const currentMonth = currentDate.getMonth() + 1;
+      const reportComponent = new Ractive({
         el: '#main-content-area',
         template: OrgReportTemplate,
+        transitions: { fly },
         data: {
-          orgTitle: org_title,
+          accountTitle,
           reportType: 'invoices',
           monthYear: `${currentYear}-${currentMonth}`,
-          siteadmin: siteadmin,
-          reportsUrl: function () {
-            let reportType = this.get('reportType');
-            let url = urlFor('index', {
+          siteadmin,
+          reportsUrl() {
+            const reportType = this.get('reportType');
+            const url = urlFor('index', {
               resource: reportType,
               scope_ns: 'o',
-              scope_id: org_name,
+              scope_id: accountName,
               ext: 'csv',
               root: true,
             });
             if (reportType === 'settlements') {
-              let year, month;
-              [year, month] = this.get('monthYear').split('-');
+              const [year, month] = this.get('monthYear').split('-');
               return `${url}?year=${year}&month=${month}`;
-            } else {
-              return url;
             }
+            return url;
           },
-          reportsFilename: function () {
+          reportsFilename() {
             if (this.get('reportType') === 'settlements') {
-              return `${org_name}_${this.get('reportType')}_${this.get(
+              return `${accountName}_${this.get('reportType')}_${this.get(
                 'monthYear'
               )}.csv`;
-            } else {
-              return `${org_name}_${this.get('reportType')}.csv`;
             }
+            return `${accountName}_${this.get('reportType')}.csv`;
           },
         },
       });
 
-      SideBarView.render('org_reports', { org_name, org_title });
-      setPageTitle('Organization reports', org_title);
+      SideBarView.render('org_reports', { accountName, accountTitle });
+      setPageTitle('Organization reports', accountTitle);
       NProgress.done();
 
       window.addEventListener('popstate', (event) => {
@@ -66,3 +67,5 @@ export const OrgReportView = {
     });
   },
 };
+
+export { OrgReportView as default };

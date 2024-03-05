@@ -1,25 +1,27 @@
-import { urlFor } from '../models/util.js';
-import { FormView } from './form_view.js';
-import { navigateTo } from '../views/main_admin.js';
+import { urlFor } from '../models/util';
+import { FormView } from './form_view';
+import { navigateTo } from './navigate';
 
-export const ItemCollectionNewView = {
-  render: function ({ org_name } = {}) {
+export const MenuNewView = {
+  render({ accountName } = {}) {
     FormView.load({
       url: urlFor('new', {
         scope_ns: 'o',
-        scope_id: org_name,
-        resource: 'ic',
+        scope_id: accountName,
+        resource: 'menu',
         root: true,
       }),
-      title: 'New item collection',
-      onHide: function () {
-        navigateTo(urlFor('view', { resource: 'o', id: org_name, root: true }));
+      title: 'New menu',
+      onHide() {
+        navigateTo(
+          urlFor('view', { resource: 'o', id: accountName, root: true })
+        );
       },
-      onSuccess: function (responseData) {
+      onSuccess(responseData) {
         navigateTo(
           urlFor('view', {
-            resource: 'ic',
-            id: responseData.result.item_collection.id,
+            resource: 'menu',
+            id: responseData.result.menu.id,
             root: true,
           })
         );
@@ -27,3 +29,5 @@ export const ItemCollectionNewView = {
     });
   },
 };
+
+export { MenuNewView as default };

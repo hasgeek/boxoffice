@@ -1,9 +1,10 @@
 from datetime import timedelta
 import json
 
-from boxoffice import app
-from boxoffice.models import ORDER_STATUS, Item, ItemCollection, Order
 from coaster.utils import utcnow
+
+from boxoffice import app
+from boxoffice.models import Item, ItemCollection, Order, OrderStatus
 
 
 def ajax_post(client, url, data):
@@ -18,30 +19,31 @@ def ajax_post(client, url, data):
     )
 
 
-def test_assign(db_session, client, all_data):
-    item = Item.query.filter_by(name="conference-ticket").first()
-
+def test_assign(db_session, client, all_data) -> None:
+    ticket = Item.query.filter_by(name="conference-ticket").one()
     data = {
-        'line_items': [{'item_id': str(item.id), 'quantity': 2}],
+        'line_items': [{'ticket_id': str(ticket.id), 'quantity': 2}],
         'buyer': {
             'fullname': 'Testing',
             'phone': '9814141414',
             'email': 'test@hasgeek.com',
         },
     }
-    ic = ItemCollection.query.first()
-    resp = ajax_post(client, '/ic/{ic}/order'.format(ic=ic.id), data)
+    menu = ItemCollection.query.one()
+    resp = ajax_post(client, f'/menu/{menu.id}/order', data)
 
     assert resp.status_code == 201
     resp_data = json.loads(resp.data)['result']
     order = Order.query.get(resp_data.get('order_id'))
-    assert order.status == ORDER_STATUS.PURCHASE_ORDER
+    assert isinstance(order, Order)
+    assert order.status == OrderStatus.PURCHASE_ORDER
 
     assert len(order.line_items) == 2
     li_one = order.line_items[0]
     li_two = order.line_items[1]
 
     # li_one has no assingee set yet, so it should be possible to set one
+    assert li_one.assignee is None
     assert li_one.current_assignee is None
     data = {
         'line_item_id': str(li_one.id),
@@ -53,11 +55,12 @@ def test_assign(db_session, client, all_data):
     }
     resp = ajax_post(
         client,
-        '/participant/{access_token}/assign'.format(access_token=order.access_token),
+        f'/participant/{order.access_token}/assign',
         data,
     )
     assert json.loads(resp.data)['status'] == 'ok'
-    assert li_one.current_assignee is not None
+    assert li_one.assignee is not None
+    assert li_one.current_assignee is not None  # type: ignore[unreachable]
 
     # Now assigning the other line item to same email address should fail
     data = {
@@ -70,7 +73,7 @@ def test_assign(db_session, client, all_data):
     }
     resp = ajax_post(
         client,
-        '/participant/{access_token}/assign'.format(access_token=order.access_token),
+        f'/participant/{order.access_token}/assign',
         data,
     )
     assert json.loads(resp.data)['status'] == 'error'
@@ -86,26 +89,26 @@ def test_assign(db_session, client, all_data):
     }
     resp = ajax_post(
         client,
-        '/participant/{access_token}/assign'.format(access_token=order.access_token),
+        f'/participant/{order.access_token}/assign',
         data,
     )
     assert json.loads(resp.data)['status'] == 'ok'
 
     # if no transferable_until is set, and no event_date is set,
     # transfer is allowed indefinitely.
-    item.transferable_until = None
-    item.event_date = None
+    ticket.transferable_until = None
+    ticket.event_date = None
     db_session.commit()
 
     assert li_one.is_transferable is True
 
-    item.transferable_until = utcnow() + timedelta(days=2)
-    item.event_date = utcnow() + timedelta(days=2)
+    ticket.transferable_until = utcnow() + timedelta(days=2)
+    ticket.event_date = utcnow() + timedelta(days=2)
     db_session.commit()
 
     # let's set transferable_until date to a past date,
     # so now another transfer of li_one should fail
-    item.transferable_until = utcnow() - timedelta(days=2)
+    ticket.transferable_until = utcnow() - timedelta(days=2)
     db_session.commit()
 
     data = {
@@ -118,20 +121,21 @@ def test_assign(db_session, client, all_data):
     }
     resp = ajax_post(
         client,
-        '/participant/{access_token}/assign'.format(access_token=order.access_token),
+        f'/participant/{order.access_token}/assign',
         data,
     )
     assert json.loads(resp.data)['status'] == 'error'
 
     # li_two still doesn't have an assignee
+    assert li_two.assignee is None
     assert li_two.current_assignee is None
 
-    # if `item.event_date` is in the past, and
+    # if `ticket.event_date` is in the past, and
     # `transferable_until` is not set,
     # ticket assign should still be allowed.
     # ticket assign doesn't have a deadline right now.
-    item.event_date = utcnow().date() - timedelta(days=2)
-    item.transferable_until = None
+    ticket.event_date = utcnow().date() - timedelta(days=2)
+    ticket.transferable_until = None
     db_session.commit()
 
     data = {
@@ -144,7 +148,7 @@ def test_assign(db_session, client, all_data):
     }
     resp = ajax_post(
         client,
-        '/participant/{access_token}/assign'.format(access_token=order.access_token),
+        f'/participant/{order.access_token}/assign',
         data,
     )
     assert json.loads(resp.data)['status'] == 'ok'
@@ -153,10 +157,11 @@ def test_assign(db_session, client, all_data):
     # absense of  'transferable_until' - `event_date`.
     # so, if `transferable_until` is not set and `event_date` is in the past,
     # ticket transfer should fail.
+    assert li_two.assignee is not None
     assert li_two.current_assignee is not None
 
-    item.event_date = utcnow().date() - timedelta(days=2)
-    item.transferable_until = None
+    ticket.event_date = utcnow().date() - timedelta(days=2)
+    ticket.transferable_until = None
     db_session.commit()
 
     data = {
@@ -169,7 +174,7 @@ def test_assign(db_session, client, all_data):
     }
     resp = ajax_post(
         client,
-        '/participant/{access_token}/assign'.format(access_token=order.access_token),
+        f'/participant/{order.access_token}/assign',
         data,
     )
     assert json.loads(resp.data)['status'] == 'error'

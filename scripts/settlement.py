@@ -5,13 +5,17 @@ import csv
 
 from pytz import timezone, utc
 
-from boxoffice.extapi.razorpay_status import RAZORPAY_PAYMENT_STATUS
-from boxoffice.models import LINE_ITEM_STATUS, OnlinePayment, PaymentTransaction
-from boxoffice.models.payment import TRANSACTION_TYPE
+from boxoffice.models import (
+    LineItemStatus,
+    OnlinePayment,
+    PaymentTransaction,
+    RazorpayPaymentStatus,
+    TransactionTypeEnum,
+)
 
 
 def csv_to_rows(csv_file, skip_header=True, delimiter=','):
-    with open(csv_file, 'rb') as csvfile:
+    with open(csv_file, 'rb', encoding='utf-8') as csvfile:
         reader = csv.reader(csvfile, delimiter=delimiter)
         if skip_header:
             next(reader)
@@ -19,7 +23,7 @@ def csv_to_rows(csv_file, skip_header=True, delimiter=','):
 
 
 def rows_to_csv(rows, filename):
-    with open(filename, 'wb') as csvfile:
+    with open(filename, 'wb', encoding='utf-8') as csvfile:
         writer = csv.writer(
             csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL
         )
@@ -48,15 +52,15 @@ def get_settlements(filename):
             if trans[1] == 'payment':
                 payment = OnlinePayment.query.filter_by(
                     pg_paymentid=trans[0],
-                    pg_payment_status=RAZORPAY_PAYMENT_STATUS.CAPTURED,
-                ).first()
+                    pg_payment_status=RazorpayPaymentStatus.CAPTURED,
+                ).one_or_none()
                 if payment:
                     pt = PaymentTransaction.query.filter_by(
                         online_payment=payment,
-                        transaction_type=TRANSACTION_TYPE.PAYMENT,
+                        transaction_type=TransactionTypeEnum.PAYMENT,
                     ).one_or_none()
-                    # Get settlement
-                    # settlement_amount = [tr for tr in transactions if tr[0] == trans[11]][0][4]
+                    # Get settlement. settlement_amount =
+                    # [tr for tr in transactions if tr[0] == trans[11]][0][4]
                     settlement = [tr for tr in transactions if tr[0] == trans[11]]
                     if settlement:
                         settlements[trans[11]].append(
@@ -92,25 +96,21 @@ def get_settlements(filename):
                                 'type': 'payment',
                             }
                         )
-                        print(  # noqa: T201
-                            "settlement not settled yet {settlement}".format(
-                                settlement=trans[11]
-                            )
-                        )
+                        print(f"settlement not settled yet {trans[11]}")  # noqa: T201
                 else:
-                    print(  # noqa: T201
-                        "payment not found {payment}".format(payment=trans[0])
-                    )
+                    print(f"payment not found {trans[0]}")  # noqa: T201
             elif trans[1] == 'refund':
                 payment = OnlinePayment.query.filter_by(
                     pg_paymentid=trans[14],
-                    pg_payment_status=RAZORPAY_PAYMENT_STATUS.CAPTURED,
-                ).first()
+                    pg_payment_status=RazorpayPaymentStatus.CAPTURED,
+                ).one_or_none()
                 if payment:
                     refund_transactions = PaymentTransaction.query.filter_by(
-                        online_payment=payment, transaction_type=TRANSACTION_TYPE.REFUND
+                        online_payment=payment,
+                        transaction_type=TransactionTypeEnum.REFUND,
                     ).all()
-                    # settlement_amount = [tr for tr in transactions if tr[0] == trans[11]][0][4]
+                    # settlement_amount = [tr for tr in transactions if tr[0] ==
+                    # trans[11]][0][4]
                     settlement = [tr for tr in transactions if tr[0] == trans[11]]
                     if settlement:
                         for rt in refund_transactions:
@@ -146,15 +146,9 @@ def get_settlements(filename):
                                     'type': 'refund',
                                 }
                             )
-                        print(  # noqa: T201
-                            "settlement not settled yet {settlement}".format(
-                                settlement=trans[11]
-                            )
-                        )
+                        print(f"settlement not settled yet {trans[11]}")  # noqa: T201
                 else:
-                    print(  # noqa: T201
-                        "payment not found {payment}".format(payment=trans[0])
-                    )
+                    print(f"payment not found {trans[0]}")  # noqa: T201
             elif trans[1] == 'adjustment':
                 settlement = [tr for tr in transactions if tr[0] == trans[11]]
                 if settlement:
@@ -173,11 +167,7 @@ def get_settlements(filename):
                         }
                     )
                 else:
-                    print(  # noqa: T201
-                        "settlement not settled yet {settlement}".format(
-                            settlement=trans[11]
-                        )
-                    )
+                    print(f"settlement not settled yet {trans[11]}")  # noqa: T201
 
     rows = []
     header = [
@@ -215,7 +205,7 @@ def get_settlements(filename):
 
 
 def get_line_items(filename):
-    # line_item_id, order_id, settlement_id, item_title
+    # line_item_id, order_id, settlement_id, line_item_title
     transactions = csv_to_rows(filename)
     line_items = []
     header = [
@@ -227,15 +217,15 @@ def get_line_items(filename):
     ]
     for trans in transactions:
         if trans[1] == 'payment':
-            payment = OnlinePayment.query.filter_by(pg_paymentid=trans[0]).first()
+            payment = OnlinePayment.query.filter_by(pg_paymentid=trans[0]).one()
             for line_item in payment.order.line_items:
                 line_items.append(
                     [
                         line_item.id,
                         line_item.order.id,
                         trans[11],
-                        line_item.item.title,
-                        line_item.status == LINE_ITEM_STATUS.CANCELLED,
+                        line_item.ticket.title,
+                        line_item.status == LineItemStatus.CANCELLED,
                     ]
                 )
 
@@ -246,7 +236,7 @@ def get_line_items(filename):
 def get_orders(settlement_filename):
     settlement_dicts = []
     # Load input data
-    with open(settlement_filename) as csvfile:
+    with open(settlement_filename, encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
             settlement_dicts.append(row)
@@ -259,10 +249,10 @@ def get_orders(settlement_filename):
         ] not in [pord['entity_id'] for pord in payment_orders]:
             payment = OnlinePayment.query.filter_by(
                 pg_paymentid=settlement_dict['entity_id'],
-                pg_payment_status=RAZORPAY_PAYMENT_STATUS.CAPTURED,
+                pg_payment_status=RazorpayPaymentStatus.CAPTURED,
             ).one()
             payment_transaction = PaymentTransaction.query.filter_by(
-                online_payment=payment, transaction_type=TRANSACTION_TYPE.PAYMENT
+                online_payment=payment, transaction_type=TransactionTypeEnum.PAYMENT
             ).one()
             payment_orders.append(
                 {
@@ -290,13 +280,13 @@ def get_orders(settlement_filename):
             try:
                 payment = OnlinePayment.query.filter_by(
                     pg_paymentid=settlement_dict['payment_id'],
-                    pg_payment_status=RAZORPAY_PAYMENT_STATUS.CAPTURED,
+                    pg_payment_status=RazorpayPaymentStatus.CAPTURED,
                 ).one()
                 payment_transaction = PaymentTransaction.query.filter_by(
                     amount=Decimal(settlement_dict['debit']),
                     online_payment=payment,
-                    transaction_type=TRANSACTION_TYPE.REFUND,
-                ).first()
+                    transaction_type=TransactionTypeEnum.REFUND,
+                ).one_or_none()
                 if payment_transaction:
                     payment_orders.append(
                         {
@@ -320,7 +310,7 @@ def get_orders(settlement_filename):
                     print(  # noqa: T201
                         "no transaction for " + settlement_dict['entity_id']
                     )
-            except:  # NOQA: E722
+            except:  # noqa: B001, E722  # pylint: disable=bare-except
                 # FIXME: Trap the correct exception
                 print(  # noqa: T201
                     "no payment found for "
@@ -336,18 +326,16 @@ def get_orders(settlement_filename):
         if settlement_dict['type'] == 'settlement'
     ]:
         if Decimal(settlement_dict['amount']) != sum(
-            [
-                payment_order['receivable_amount']
-                for payment_order in payment_orders
-                if payment_order['settlement_id'] == settlement_dict['entity_id']
-            ]
+            payment_order['receivable_amount']
+            for payment_order in payment_orders
+            if payment_order['settlement_id'] == settlement_dict['entity_id']
         ):
             print(  # noqa: T201
                 "Settlement not tallying for " + settlement_dict['entity_id']
             )
 
     # write result to csv
-    with open('settlement_orders.csv', 'w') as outputcsv:
+    with open('settlement_orders.csv', 'w', encoding='utf-8') as outputcsv:
         fieldnames = [
             'entity_id',
             'settlement_id',

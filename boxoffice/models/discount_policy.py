@@ -1,98 +1,118 @@
+"""Discount policy model."""
+
+from __future__ import annotations
+
+from collections.abc import Sequence
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any
+from uuid import UUID
 import secrets
 import string
 
-from sqlalchemy.orm.exc import MultipleResultsFound
-import sqlalchemy as sa
-
 from itsdangerous import BadSignature, Signer
+from sqlalchemy.orm.exc import MultipleResultsFound
 from werkzeug.utils import cached_property
 
-from baseframe import __
-from coaster.sqlalchemy import cached
-from coaster.utils import LabeledEnum, buid, uuid1mc
+from coaster.sqlalchemy import LazyRoleSet
+from coaster.utils import buid, uuid1mc
 
-from . import BaseScopedNameMixin, IdMixin, db
-from .user import Organization
+from . import (
+    BaseScopedNameMixin,
+    DynamicMapped,
+    IdMixin,
+    Mapped,
+    Model,
+    db,
+    relationship,
+    sa,
+)
+from .enums import DiscountTypeEnum, LineItemStatus
+from .user import Organization, User
 
-__all__ = ['DiscountPolicy', 'DiscountCoupon', 'item_discount_policy', 'DISCOUNT_TYPE']
-
-
-class DISCOUNT_TYPE(LabeledEnum):  # NOQA: N801
-    AUTOMATIC = (0, __("Automatic"))
-    COUPON = (1, __("Coupon"))
+__all__ = ['DiscountPolicy', 'DiscountCoupon', 'item_discount_policy']
 
 
 item_discount_policy = sa.Table(
     'item_discount_policy',
-    db.Model.metadata,
-    db.Column('item_id', None, db.ForeignKey('item.id'), primary_key=True),
-    db.Column(
+    Model.metadata,
+    sa.Column('item_id', sa.ForeignKey('item.id'), primary_key=True),
+    sa.Column(
         'discount_policy_id',
-        None,
-        db.ForeignKey('discount_policy.id'),
+        sa.ForeignKey('discount_policy.id'),
         primary_key=True,
     ),
-    db.Column(
+    sa.Column(
         'created_at',
-        db.TIMESTAMP(timezone=True),
-        default=db.func.utcnow(),
+        sa.TIMESTAMP(timezone=True),
+        default=sa.func.utcnow(),
         nullable=False,
     ),
 )
 
 
-class DiscountPolicy(BaseScopedNameMixin, db.Model):
+class DiscountPolicy(BaseScopedNameMixin[UUID, User], Model):
     """
-    Consists of the discount rules applicable on items.
+    Consists of the discount rules applicable on tickets.
 
     `title` has a GIN index to enable trigram matching.
     """
 
     __tablename__ = 'discount_policy'
-    __uuid_primary_key__ = True
     __table_args__ = (
-        db.UniqueConstraint('organization_id', 'name'),
-        db.UniqueConstraint('organization_id', 'discount_code_base'),
-        db.CheckConstraint(
+        sa.UniqueConstraint('organization_id', 'name'),
+        sa.UniqueConstraint('organization_id', 'discount_code_base'),
+        sa.CheckConstraint(
             'percentage > 0 and percentage <= 100', 'discount_policy_percentage_check'
         ),
-        db.CheckConstraint(
-            'discount_type = 0 or (discount_type = 1 and bulk_coupon_usage_limit IS NOT NULL)',
+        sa.CheckConstraint(
+            'discount_type = 0 or'
+            ' (discount_type = 1 and bulk_coupon_usage_limit IS NOT NULL)',
             'discount_policy_bulk_coupon_usage_limit_check',
         ),
     )
 
-    organization_id = db.Column(None, db.ForeignKey('organization.id'), nullable=False)
-    organization = db.relationship(
-        Organization,
-        backref=db.backref(
-            'discount_policies',
-            order_by='DiscountPolicy.created_at.desc()',
-            lazy='dynamic',
-            cascade='all, delete-orphan',
-        ),
+    organization_id: Mapped[int] = sa.orm.mapped_column(
+        sa.ForeignKey('organization.id')
     )
-    parent = db.synonym('organization')
+    organization: Mapped[Organization] = relationship(
+        back_populates='discount_policies'
+    )
+    parent: Mapped[Organization] = sa.orm.synonym('organization')
 
-    discount_type = db.Column(
-        db.Integer, default=DISCOUNT_TYPE.AUTOMATIC, nullable=False
+    discount_type: Mapped[int] = sa.orm.mapped_column(
+        default=DiscountTypeEnum.AUTOMATIC
     )
 
-    # Minimum number of a particular item that needs to be bought for this discount to apply
-    item_quantity_min = db.Column(db.Integer, default=1, nullable=False)
-    percentage = db.Column(db.Integer, nullable=True)
+    # Minimum number of a particular ticket that needs to be bought for this discount to
+    # apply
+    item_quantity_min: Mapped[int] = sa.orm.mapped_column(default=1)
+
+    # TODO: Add check constraint requiring percentage if is_price_based is false
+    percentage: Mapped[int | None]
     # price-based discount
-    is_price_based = db.Column(db.Boolean, default=False, nullable=False)
+    is_price_based: Mapped[bool] = sa.orm.mapped_column(default=False)
 
-    discount_code_base = db.Column(db.Unicode(20), nullable=True)
-    secret = db.Column(db.Unicode(50), nullable=True)
+    discount_code_base: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(20))
+    secret: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(50))
 
-    # Coupons generated in bulk are not stored in the database during generation.
-    # This field allows specifying the number of times a coupon, generated in bulk, can be used
-    # This is particularly useful for generating referral discount coupons. For instance, one could generate
-    # a signed coupon and provide it to a user such that the user can share the coupon `n` times
-    # `n` here is essentially bulk_coupon_usage_limit.
-    bulk_coupon_usage_limit = db.Column(db.Integer, nullable=True, default=1)
+    # Coupons generated in bulk are not stored in the database during generation. This
+    # field allows specifying the number of times a coupon, generated in bulk, can be
+    # used This is particularly useful for generating referral discount coupons. For
+    # instance, one could generate a signed coupon and provide it to a user such that
+    # the user can share the coupon `n` times `n` here is essentially
+    # bulk_coupon_usage_limit.
+    bulk_coupon_usage_limit: Mapped[int | None] = sa.orm.mapped_column(default=1)
+
+    discount_coupons: Mapped[list[DiscountCoupon]] = relationship(
+        cascade='all, delete-orphan', back_populates='discount_policy'
+    )
+    tickets: Mapped[list[Item]] = relationship(
+        secondary=item_discount_policy, back_populates='discount_policies'
+    )
+    prices: Mapped[list[Price]] = relationship(cascade='all, delete-orphan')
+    line_items: DynamicMapped[LineItem] = relationship(
+        lazy='dynamic', back_populates='discount_policy'
+    )
 
     __roles__ = {
         'dp_owner': {
@@ -112,43 +132,51 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
         }
     }
 
-    def roles_for(self, actor=None, anchors=()):
+    def roles_for(
+        self, actor: User | None = None, anchors: Sequence[Any] = ()
+    ) -> LazyRoleSet:
         roles = super().roles_for(actor, anchors)
-        if self.organization.userid in actor.organizations_owned_ids():
+        if (
+            actor is not None
+            and self.organization.userid in actor.organizations_owned_ids()
+        ):
             roles.add('dp_owner')
         return roles
 
-    def __init__(self, *args, **kwargs):
-        self.secret = kwargs.get('secret') if kwargs.get('secret') else buid()
+    def __init__(self, *args, **kwargs) -> None:
+        secret = kwargs.pop('secret', None)
         super().__init__(*args, **kwargs)
+        self.secret = secret or secrets.token_urlsafe(16)
 
     @cached_property
-    def is_automatic(self):
-        return self.discount_type == DISCOUNT_TYPE.AUTOMATIC
+    def is_automatic(self) -> bool:
+        return self.discount_type == DiscountTypeEnum.AUTOMATIC
 
     @cached_property
-    def is_coupon(self):
-        return self.discount_type == DISCOUNT_TYPE.COUPON
+    def is_coupon(self) -> bool:
+        return self.discount_type == DiscountTypeEnum.COUPON
 
-    def gen_signed_code(self, identifier=None):
+    def gen_signed_code(self, identifier: str | None = None) -> str:
         """
         Generate a signed code.
 
         Format: ``discount_code_base.randint.signature``
         """
+        if not self.secret:
+            raise TypeError("DiscountPolicy.secret is unset")
         if not identifier:
-            identifier = buid()
+            identifier = secrets.token_urlsafe(16)
         signer = Signer(self.secret)
         key = f'{self.discount_code_base}.{identifier}'
         return signer.sign(key).decode('utf-8')
 
     @staticmethod
-    def is_signed_code_format(code):
+    def is_signed_code_format(code) -> bool:
         """Check if the code is in the {x.y.z} format."""
         return len(code.split('.')) == 3 if code else False
 
     @classmethod
-    def get_from_signed_code(cls, code, organization_id):
+    def get_from_signed_code(cls, code, organization_id) -> DiscountPolicy | None:
         """Return a discount policy given a valid signed code, None otherwise."""
         if not cls.is_signed_code_format(code):
             return None
@@ -156,7 +184,7 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
         policy = cls.query.filter_by(
             discount_code_base=discount_code_base, organization_id=organization_id
         ).one_or_none()
-        if not policy:
+        if not policy or not policy.secret:
             return None
         signer = Signer(policy.secret)
         try:
@@ -166,73 +194,75 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
             return None
 
     @classmethod
-    def make_bulk(cls, discount_code_base, **kwargs):
+    def make_bulk(cls, discount_code_base, **kwargs) -> DiscountPolicy:
         """Return a discount policy for bulk discount coupons."""
         return cls(
-            discount_type=DISCOUNT_TYPE.COUPON,
+            discount_type=DiscountTypeEnum.COUPON,
             discount_code_base=discount_code_base,
             secret=buid(),
             **kwargs,
         )
 
     @classmethod
-    def get_from_item(cls, item, qty, coupon_codes=[]):
+    def get_from_ticket(
+        cls, ticket: Item, qty, coupon_codes: Sequence[str] = ()
+    ) -> list[PolicyCoupon]:
         """
         Return a list of (discount_policy, discount_coupon) tuples.
 
-        Applicable for an item, given the quantity of line items and coupons if any.
+        Applicable for a ticket, given the quantity of line items and coupons if any.
         """
-        automatic_discounts = item.discount_policies.filter(
-            cls.discount_type == DISCOUNT_TYPE.AUTOMATIC, cls.item_quantity_min <= qty
+        automatic_discounts = ticket.discount_policies.filter(
+            cls.discount_type == DiscountTypeEnum.AUTOMATIC,
+            cls.item_quantity_min <= qty,
         ).all()
-        policies = [(discount, None) for discount in automatic_discounts]
+        policies = [PolicyCoupon(discount, None) for discount in automatic_discounts]
         if not coupon_codes:
             return policies
-        else:
-            coupon_policies = item.discount_policies.filter(
-                cls.discount_type == DISCOUNT_TYPE.COUPON
-            ).all()
-            coupon_policy_ids = [cp.id for cp in coupon_policies]
-            for coupon_code in coupon_codes:
-                coupons = []
-                if cls.is_signed_code_format(coupon_code):
-                    policy = cls.get_from_signed_code(
-                        coupon_code, item.item_collection.organization_id
-                    )
-                    if policy and policy.id in coupon_policy_ids:
-                        coupon = DiscountCoupon.query.filter_by(
-                            discount_policy=policy, code=coupon_code
-                        ).one_or_none()
-                        if not coupon:
-                            coupon = DiscountCoupon(
-                                discount_policy=policy,
-                                code=coupon_code,
-                                usage_limit=policy.bulk_coupon_usage_limit,
-                                used_count=0,
-                            )
-                            db.session.add(coupon)
-                        coupons.append(coupon)
-                else:
-                    coupons = DiscountCoupon.query.filter(
-                        DiscountCoupon.discount_policy_id.in_(coupon_policy_ids),
-                        DiscountCoupon.code == coupon_code,
-                    ).all()
+        coupon_policies = ticket.discount_policies.filter(
+            cls.discount_type == DiscountTypeEnum.COUPON
+        ).all()
+        coupon_policy_ids = [cp.id for cp in coupon_policies]
+        for coupon_code in coupon_codes:
+            coupons = []
+            if cls.is_signed_code_format(coupon_code):
+                policy = cls.get_from_signed_code(
+                    coupon_code, ticket.menu.organization_id
+                )
+                if policy and policy.id in coupon_policy_ids:
+                    coupon = DiscountCoupon.query.filter_by(
+                        discount_policy=policy, code=coupon_code
+                    ).one_or_none()
+                    if not coupon:
+                        coupon = DiscountCoupon(
+                            discount_policy=policy,
+                            code=coupon_code,
+                            usage_limit=policy.bulk_coupon_usage_limit,
+                            used_count=0,
+                        )
+                        db.session.add(coupon)
+                    coupons.append(coupon)
+            else:
+                coupons = DiscountCoupon.query.filter(
+                    DiscountCoupon.discount_policy_id.in_(coupon_policy_ids),
+                    DiscountCoupon.code == coupon_code,
+                ).all()
 
-                for coupon in coupons:
-                    if coupon.usage_limit > coupon.used_count:
-                        policies.append((coupon.discount_policy, coupon))
+            for coupon in coupons:
+                if coupon.usage_limit > coupon.used_count:
+                    policies.append(PolicyCoupon(coupon.discount_policy, coupon))
         return policies
 
     @property
     def line_items_count(self):
         return self.line_items.filter(
-            LineItem.status == LINE_ITEM_STATUS.CONFIRMED
+            LineItem.status == LineItemStatus.CONFIRMED
         ).count()
 
     @classmethod
-    def is_valid_access_coupon(cls, item, code_list):
+    def is_valid_access_coupon(cls, ticket: Item, code_list):
         """
-        Check if any of code_list is a valid access code for the specified item.
+        Check if any of code_list is a valid access code for the specified ticket.
 
         A supplied coupon code can be either a signed coupon code or a custom code.
         Both cases are checked for. Used signed coupon codes are stored and rejected for
@@ -240,9 +270,7 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
         """
         for code in code_list:
             if cls.is_signed_code_format(code):
-                policy = cls.get_from_signed_code(
-                    code, item.item_collection.organization_id
-                )
+                policy = cls.get_from_signed_code(code, ticket.menu.organization_id)
                 if policy and not DiscountCoupon.is_signed_code_usable(policy, code):
                     break
             else:
@@ -261,43 +289,43 @@ class DiscountPolicy(BaseScopedNameMixin, db.Model):
                 except MultipleResultsFound:
                     # ref: https://github.com/hasgeek/boxoffice/issues/290
                     policy = None
-            if bool(policy) and policy in item.discount_policies:
+            if policy is not None and policy in ticket.discount_policies:
                 return True
         return False
 
 
 @sa.event.listens_for(DiscountPolicy, 'before_update')
 @sa.event.listens_for(DiscountPolicy, 'before_insert')
-def validate_price_based_discount(mapper, connection, target):
-    if target.is_price_based and len(target.items) > 1:
-        raise ValueError("Price-based discounts MUST have only one associated item")
+def validate_price_based_discount(_mapper, _connection, target: DiscountPolicy):
+    if target.is_price_based and len(target.tickets) > 1:
+        raise ValueError("Price-based discounts MUST have only one associated ticket")
 
 
 def generate_coupon_code(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(secrets.choice(chars) for _ in range(size))
 
 
-class DiscountCoupon(IdMixin, db.Model):
+class DiscountCoupon(IdMixin[UUID], Model):
     __tablename__ = 'discount_coupon'
-    __uuid_primary_key__ = True
-    __table_args__ = (db.UniqueConstraint('discount_policy_id', 'code'),)
+    __table_args__ = (sa.UniqueConstraint('discount_policy_id', 'code'),)
 
     def __init__(self, *args, **kwargs):
         self.id = uuid1mc()
         super().__init__(*args, **kwargs)
 
-    code = db.Column(db.Unicode(100), nullable=False, default=generate_coupon_code)
-    usage_limit = db.Column(db.Integer, nullable=False, default=1)
-
-    used_count = cached(db.Column(db.Integer, nullable=False, default=0))
-
-    discount_policy_id = db.Column(
-        None, db.ForeignKey('discount_policy.id'), nullable=False
+    code: Mapped[str] = sa.orm.mapped_column(
+        sa.Unicode(100), default=generate_coupon_code
     )
-    discount_policy = db.relationship(
-        DiscountPolicy,
-        backref=db.backref('discount_coupons', cascade='all, delete-orphan'),
+    usage_limit: Mapped[int] = sa.orm.mapped_column(default=1)
+    used_count: Mapped[int] = sa.orm.mapped_column(default=0)
+
+    discount_policy_id: Mapped[UUID] = sa.orm.mapped_column(
+        sa.ForeignKey('discount_policy.id')
     )
+    discount_policy: Mapped[DiscountPolicy] = relationship(
+        back_populates='discount_coupons'
+    )
+    line_items: Mapped[list[LineItem]] = relationship(back_populates='discount_coupon')
 
     @classmethod
     def is_signed_code_usable(cls, policy, code):
@@ -312,17 +340,22 @@ class DiscountCoupon(IdMixin, db.Model):
 
     def update_used_count(self):
         self.used_count = (
-            db.select(db.func.count())
+            sa.select(sa.func.count())
             .where(LineItem.discount_coupon == self)
-            .where(LineItem.status == LINE_ITEM_STATUS.CONFIRMED)
+            .where(LineItem.status == LineItemStatus.CONFIRMED)
             .as_scalar()
         )
 
 
+@dataclass
+class PolicyCoupon:
+    policy: DiscountPolicy
+    coupon: DiscountCoupon | None
+
+
 create_title_trgm_trigger = sa.DDL(
-    '''
-    CREATE INDEX idx_discount_policy_title_trgm on discount_policy USING gin (title gin_trgm_ops);
-    '''
+    'CREATE INDEX idx_discount_policy_title_trgm on discount_policy'
+    ' USING gin (title gin_trgm_ops);'
 )
 
 sa.event.listen(
@@ -332,4 +365,7 @@ sa.event.listen(
 )
 
 # Tail imports
-from .line_item import LINE_ITEM_STATUS, LineItem  # isort:skip
+from .line_item import LineItem  # isort:skip
+
+if TYPE_CHECKING:
+    from .item import Item, Price

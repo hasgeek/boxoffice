@@ -14,3 +14,5 @@ export const SideBarTemplate = `
     </div>
   {{/}}
 `;
+
+export { SideBarTemplate as default };

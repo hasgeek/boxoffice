@@ -1,10 +1,12 @@
-var Ractive = require('ractive');
-var NProgress = require('nprogress');
-var _ = require('underscore');
-var c3 = require('c3');
-import { eventBus } from './main_admin.js';
-import { Util, fetch, urlFor, setPageTitle } from '../models/util.js';
-import { SideBarView } from './sidebar.js';
+/* eslint-disable no-unused-vars */
+import { Util, fetch, urlFor, setPageTitle } from '../models/util';
+import { SideBarView } from './sidebar';
+
+const Ractive = require('ractive');
+const fly = require('ractive-transitions-fly');
+const NProgress = require('nprogress');
+const _ = require('underscore');
+const c3 = require('c3');
 
 export const TableTemplate = `
   <div class="col-xs-12">
@@ -25,16 +27,16 @@ export const TableTemplate = `
         </thead>
         <tbody>
           {{#categories}}{{# { category: . } }}
-            {{#category.items:index}}
+            {{#category.tickets:index}}
               <tr>
                 {{#if !index}}
-                  <td class="active" rowspan="{{category.items.length}}">
+                  <td class="active" rowspan="{{category.tickets.length}}">
                     {{ category.title }}<br />
-                    <a href='/admin/ic/{{ic_id}}/category/{{category.id}}/edit' data-navigate>Edit</a>
+                    <a href='/admin/menu/{{menuId}}/category/{{category.id}}/edit' data-navigate>Edit</a>
                   </td>
                 {{/if}}
                 <td>{{ index + 1 }}</td>
-                <td><a class="" href="/admin/item/{{id}}" data-navigate>{{ title }}</a></td>
+                <td><a class="" href="/admin/ticket/{{id}}" data-navigate>{{ title }}</a></td>
                 <td>{{ quantity_available }}</td>
                 <td>{{ sold_count }} <input type="checkbox" name="sold" on-click="onItemsSelected(event, 'sold_count')" /></td>
                 <td>{{ free_count }} <input type="checkbox" name="free" on-click="onItemsSelected(event, 'free_count')" /></td>
@@ -44,9 +46,9 @@ export const TableTemplate = `
                 {{else}}
                   <td>No active price</td>
                 {{/if}}
-                <td>{{ formatToIndianRupee(net_sales) }}</td>
+                <td>{{ formatToIndianRupee(netSales) }}</td>
               </tr>
-            {{/category.items}}
+            {{/category.tickets}}
           {{/}}{{/categories}}
           <tr>
             <td></td>
@@ -67,20 +69,20 @@ export const AggChartTemplate = `
   </div>
 `;
 
-export const ItemCollectionTemplate = `
+export const MenuTemplate = `
   <div class="content-wrapper clearfix">
-    <h1 class="header col-xs-12">{{ icTitle }}</h1>
+    <h1 class="header col-xs-12">{{ menuTitle }}</h1>
     <div class="title-wrapper col-xs-12">
-      <a class="boxoffice-button boxoffice-button-info btn-right" href="/{{ org_name }}/{{ ic_name }}">
+      <a class="boxoffice-button boxoffice-button-info btn-right" href="/{{ accountName }}/{{ menuName }}">
         View listing
       </a>
-      <a class="boxoffice-button boxoffice-button-primary btn-right btn-margin-right" href="/admin/ic/{{ic_id}}/edit" data-navigate>
-        Edit item collection
+      <a class="boxoffice-button boxoffice-button-primary btn-right btn-margin-right" href="/admin/menu/{{menuId}}/edit" data-navigate>
+        Edit menu
       </a>
-      <a class="boxoffice-button boxoffice-button-action btn-right btn-margin-right" href="/admin/ic/{{ic_id}}/item/new" data-navigate>
-        New item
+      <a class="boxoffice-button boxoffice-button-action btn-right btn-margin-right" href="/admin/menu/{{menuId}}/ticket/new" data-navigate>
+        New ticket
       </a>
-      <a class="boxoffice-button boxoffice-button-primary btn-right btn-margin-right" href="/admin/ic/{{ic_id}}/category/new" data-navigate>
+      <a class="boxoffice-button boxoffice-button-primary btn-right btn-margin-right" href="/admin/menu/{{menuId}}/category/new" data-navigate>
         New category
       </a>
     </div>
@@ -92,7 +94,7 @@ export const ItemCollectionTemplate = `
           </div>
           <div class="card-right">
             <h3 class="card-right-content">Net sales</h3>
-            <p class="card-right-content">{{ formatToIndianRupee(net_sales) }}</p>
+            <p class="card-right-content">{{ formatToIndianRupee(netSales) }}</p>
           </div>
         </div>
       </div>
@@ -103,16 +105,16 @@ export const ItemCollectionTemplate = `
           </div>
           <div class="card-right">
             <h3 class="card-right-content">Today's sales</h3>
-            <p class="card-right-content">{{ formatToIndianRupee(today_sales) }}</p>
+            <p class="card-right-content">{{ formatToIndianRupee(todaySales) }}</p>
           </div>
         </div>
       </div>
       <div class="col-md-4 col-sm-6 col-xs-12">
         <div class="card clearfix">
           <div class="card-left">
-            {{#if sales_delta > 0 }}
+            {{#if salesDelta > 0 }}
               <p class="card-left-content"><i class="fa fa-arrow-up"></i></p>
-            {{elseif sales_delta < 0 }}
+            {{elseif salesDelta < 0 }}
               <p class="card-left-content"><i class="fa fa-arrow-down"></i></p>
             {{else}}
               <p class="card-left-content"><i class="fa fa-minus"></i></p>
@@ -120,23 +122,23 @@ export const ItemCollectionTemplate = `
           </div>
           <div class="card-right">
             <h3 class="card-right-content">Sales since yesterday</h3>
-            <p class="card-right-content">{{ sales_delta }}%</p>
+            <p class="card-right-content">{{ salesDelta }}%</p>
           </div>
         </div>
       </div>
     </div>
-    {{#if date_item_counts}}
+    {{#if dateItemCounts}}
       <AggChartComponent></AggChartComponent>
     {{/if}}
     <TableComponent></TableComponent>
   </div>
 `;
 
-let TableComponent = Ractive.extend({
+const TableComponent = Ractive.extend({
   isolated: false,
   template: TableTemplate,
-  onItemsSelected: function (event, attribute) {
-    let totalSelected = this.parent.get('totalSelected');
+  onItemsSelected(event, attribute) {
+    const totalSelected = this.parent.get('totalSelected');
     if (event.node.checked) {
       this.parent.set(
         'totalSelected',
@@ -151,50 +153,54 @@ let TableComponent = Ractive.extend({
   },
 });
 
-let AggChartComponent = Ractive.extend({
+const AggChartComponent = Ractive.extend({
   template: AggChartTemplate,
-  format_columns: function () {
-    let date_item_counts = this.parent.get('date_item_counts');
-    const allItems = this.parent.get('categories').reduce(function (
-      allItems,
-      category
-    ) {
-      return allItems.concat(category.items);
-    }, []);
-    const date_sales = this.parent.get('date_sales');
-    let dates = ['x'];
-    let item_counts = {};
-    let date_sales_column = ['sales'];
-    for (let item_date in date_item_counts) {
-      dates.push(item_date);
-      date_sales_column.push(date_sales[item_date]);
-      allItems.forEach((item) => {
-        if (!item_counts[item.id]) {
-          item_counts[item.id] = [];
+  format_columns() {
+    const dateItemCounts = this.parent.get('dateItemCounts');
+    const allItems = this.parent
+      .get('categories')
+      .reduce((givenItems, category) => {
+        return givenItems.concat(category.tickets);
+      }, []);
+    const dateSales = this.parent.get('dateSales');
+    const dates = ['x'];
+    const itemCounts = {};
+    const dateSalesColumn = ['sales'];
+    Object.keys(dateItemCounts).forEach((itemDate) => {
+      dates.push(itemDate);
+      dateSalesColumn.push(dateSales[itemDate]);
+      allItems.forEach((ticket) => {
+        if (!itemCounts[ticket.id]) {
+          itemCounts[ticket.id] = [];
         }
-        if (date_item_counts[item_date].hasOwnProperty(item.id)) {
-          // If an item has been bought on this item_date
-          item_counts[item.id].push(date_item_counts[item_date][item.id]);
+        if (
+          Object.prototype.hasOwnProperty.call(
+            dateItemCounts[itemDate],
+            ticket.id
+          )
+        ) {
+          // If an item has been bought on this itemDate
+          itemCounts[ticket.id].push(dateItemCounts[itemDate][ticket.id]);
         } else {
           // Item not bought on this date
-          item_counts[item.id].push(0);
+          itemCounts[ticket.id].push(0);
         }
       });
-    }
-
-    let columns = [dates];
-    allItems.forEach((item) => {
-      columns.push([item.title].concat(item_counts[item.id]));
     });
 
-    // let bar_graph_headers = columns.map((col) => col[0]).filter((header) => header !== 'x');
+    const columns = [dates];
+    allItems.forEach((ticket) => {
+      columns.push([ticket.title].concat(itemCounts[ticket.id]));
+    });
 
-    columns.push(date_sales_column);
+    // let barGraphHeaders = columns.map((col) => col[0]).filter((header) => header !== 'x');
+
+    columns.push(dateSalesColumn);
     return columns;
   },
-  oncomplete: function () {
-    let columns = this.format_columns();
-    let bar_graph_headers = _.without(_.map(columns, _.first), 'x', 'sales');
+  oncomplete() {
+    const columns = this.format_columns();
+    const barGraphHeaders = _.without(_.map(columns, _.first), 'x', 'sales');
 
     this.chart = c3.generate({
       data: {
@@ -204,7 +210,7 @@ let AggChartComponent = Ractive.extend({
         types: {
           sales: 'line',
         },
-        groups: [bar_graph_headers],
+        groups: [barGraphHeaders],
         axes: {
           sales: 'y2',
         },
@@ -240,57 +246,56 @@ let AggChartComponent = Ractive.extend({
   },
 });
 
-export const ItemCollectionView = {
-  render: function ({ ic_id } = {}) {
+export const MenuView = {
+  render({ menuId } = {}) {
     fetch({
-      url: urlFor('view', { resource: 'ic', id: ic_id, root: true }),
+      url: urlFor('view', { resource: 'menu', id: menuId, root: true }),
     }).done(
       ({
-        org_name,
-        org_title,
-        ic_name,
-        ic_title,
+        account_name: accountName,
+        account_title: accountTitle,
+        menu_name: menuName,
+        menu_title: menuTitle,
         categories,
-        date_item_counts,
-        date_sales,
-        today_sales,
-        net_sales,
-        sales_delta,
+        date_item_counts: dateItemCounts,
+        date_sales: dateSales,
+        today_sales: todaySales,
+        net_sales: netSales,
+        sales_delta: salesDelta,
       }) => {
         // Initial render
-        let icComponent = new Ractive({
+        const icComponent = new Ractive({
           el: '#main-content-area',
-          template: ItemCollectionTemplate,
+          template: MenuTemplate,
+          transitions: { fly },
           data: {
-            ic_id: ic_id,
-            icTitle: ic_title,
-            org_name: org_name,
-            ic_name: ic_name,
-            categories: categories,
-            date_item_counts: _.isEmpty(date_item_counts)
-              ? null
-              : date_item_counts,
-            date_sales: date_sales,
-            net_sales: net_sales,
-            sales_delta: sales_delta,
-            today_sales: today_sales,
+            menuId,
+            menuTitle,
+            accountName,
+            menuName,
+            categories,
+            dateItemCounts: _.isEmpty(dateItemCounts) ? null : dateItemCounts,
+            dateSales,
+            netSales,
+            salesDelta,
+            todaySales,
             totalSelected: 0,
-            formatToIndianRupee: function (amount) {
+            formatToIndianRupee(amount) {
               return Util.formatToIndianRupee(amount);
             },
           },
           components: {
-            TableComponent: TableComponent,
-            AggChartComponent: AggChartComponent,
+            TableComponent,
+            AggChartComponent,
           },
         });
         SideBarView.render('dashboard', {
-          org_name,
-          org_title,
-          ic_id,
-          ic_title,
+          accountName,
+          accountTitle,
+          menuId,
+          menuTitle,
         });
-        setPageTitle(ic_title);
+        setPageTitle(menuTitle);
         NProgress.done();
       }
     );

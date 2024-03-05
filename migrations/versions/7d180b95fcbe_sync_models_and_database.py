@@ -6,12 +6,13 @@ Create Date: 2019-05-15 18:28:47.050549
 
 """
 
+from alembic import op
+import sqlalchemy as sa
+
 # revision identifiers, used by Alembic.
 revision = '7d180b95fcbe'
 down_revision = 'f78ca4cad5d6'
 
-from alembic import op
-import sqlalchemy as sa
 
 renames = [
     ('assignee', 'assignee_line_item_current_key', 'assignee_line_item_id_current_key'),
@@ -29,9 +30,7 @@ def upgrade():
     for table, oldname, newname in renames:
         op.execute(
             sa.DDL(
-                'ALTER TABLE "{table}" RENAME CONSTRAINT "{oldname}" TO "{newname}";'.format(
-                    table=table, oldname=oldname, newname=newname
-                )
+                f'ALTER TABLE "{table}" RENAME CONSTRAINT "{oldname}" TO "{newname}";'
             )
         )
 
@@ -111,8 +110,6 @@ def downgrade():
     for table, oldname, newname in reversed(renames):
         op.execute(
             sa.DDL(
-                'ALTER TABLE "{table}" RENAME CONSTRAINT "{newname}" TO "{oldname}";'.format(
-                    table=table, oldname=oldname, newname=newname
-                )
+                f'ALTER TABLE "{table}" RENAME CONSTRAINT "{newname}" TO "{oldname}";'
             )
         )

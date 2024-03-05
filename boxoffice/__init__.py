@@ -4,16 +4,14 @@ from decimal import Decimal
 from typing import Any
 
 from flask import Flask
+from flask_mail import Mail
 from flask_migrate import Migrate
 from flask_rq2 import RQ
-
-from flask_admin import Admin
-from flask_mail import Mail
 from pytz import timezone
-import wtforms_json
 
 from baseframe import Version, assets, baseframe
 from baseframe.utils import JSONProvider
+from coaster.assets import WebpackManifest
 from flask_lastuser import Lastuser
 from flask_lastuser.sqlalchemy import UserManager
 import coaster.app
@@ -25,12 +23,11 @@ lastuser = Lastuser()
 
 mail = Mail()
 rq = RQ()
-
+manifest = WebpackManifest(app, filepath='static/build/manifest.json')
 
 # --- Assets ---------------------------------------------------------------------------
 
 version = Version(__version__)
-assets['boxoffice.css'][version] = 'css/app.css'
 assets['boxoffice.js'][version] = 'js/scripts.js'
 
 # --- Import rest of the app -----------------------------------------------------------
@@ -47,11 +44,6 @@ from .models import (  # NOQA  # isort:skip
     Price,
     User,
     db,
-)
-from .siteadmin import (  # NOQA  # isort:skip
-    DiscountCouponModelView,
-    InvoiceModelView,
-    OrganizationModelView,
 )
 
 # --- Handle JSON quirk for Boxoffice --------------------------------------------------
@@ -86,23 +78,10 @@ baseframe.init_app(
         'fontawesome>=4.0.0',
         'baseframe-footable',
         'jquery.tinymce>=4.0.0',
+        'codemirror-json',
     ],
 )
 app.json = DecimalJsonProvider(app)
 app.jinja_env.policies['json.dumps_function'] = app.json.dumps
 
 mail.init_app(app)
-wtforms_json.init()
-
-
-# This is a temporary solution for an admin interface, only
-# to be used until the native admin interface is ready.
-try:
-    admin = Admin(
-        app, name="Boxoffice Admin", template_mode='bootstrap3', url='/siteadmin'
-    )
-    admin.add_view(OrganizationModelView(Organization, db.session))
-    admin.add_view(DiscountCouponModelView(DiscountCoupon, db.session))
-    admin.add_view(InvoiceModelView(Invoice, db.session))
-except AssertionError:
-    pass
