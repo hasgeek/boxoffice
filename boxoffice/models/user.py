@@ -84,6 +84,8 @@ class Organization(ProfileBase, Model):
 
     def fetch_invoices(self):
         """Return invoices for an organization as a tuple of (row_headers, rows)."""
+        from .order import Order  # pylint: disable=import-outside-toplevel
+
         headers = [
             'order_id',
             'receipt_no',
@@ -135,9 +137,10 @@ class Organization(ProfileBase, Model):
 
 # Tail imports
 from .invoice import Invoice  # isort:skip
-from .order import Order  # isort:skip
+
 
 if TYPE_CHECKING:
     from .discount_policy import DiscountPolicy
     from .item_collection import ItemCollection
     from .line_item import Assignee
+    from .order import Order

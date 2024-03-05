@@ -8,6 +8,7 @@ from coaster.utils import utcnow
 
 from . import BaseMixin, Mapped, Model, UuidMixin, relationship, sa, timestamptz
 from .enums import InvoiceStatus
+from .user import Organization, User
 from .utils import get_fiscal_year
 
 __all__ = ['Invoice']
@@ -25,9 +26,8 @@ def gen_invoice_no(organization, jurisdiction, invoice_dt):
     )
 
 
-class Invoice(UuidMixin, BaseMixin, Model):
+class Invoice(UuidMixin, BaseMixin[UUID, User], Model):
     __tablename__ = 'invoice'
-    __uuid_primary_key__ = True
     __table_args__ = (
         sa.UniqueConstraint(
             'organization_id', 'fy_start_at', 'fy_end_at', 'invoice_no'
@@ -143,4 +143,3 @@ class Invoice(UuidMixin, BaseMixin, Model):
 
 if TYPE_CHECKING:
     from .order import Order
-    from .user import Organization

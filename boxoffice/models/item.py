@@ -29,13 +29,13 @@ from . import (
 from .category import Category
 from .discount_policy import item_discount_policy
 from .enums import LineItemStatus
+from .user import User
 
 __all__ = ['Item', 'Price']
 
 
-class Item(BaseScopedNameMixin, Model):
+class Item(BaseScopedNameMixin[UUID, User], Model):
     __tablename__ = 'item'
-    __uuid_primary_key__ = True
     __table_args__ = (sa.UniqueConstraint('item_collection_id', 'name'),)
 
     description = MarkdownColumn('description', default='', nullable=False)
@@ -219,9 +219,8 @@ class Item(BaseScopedNameMixin, Model):
         ).fetchall()
 
 
-class Price(BaseScopedNameMixin, Model):
+class Price(BaseScopedNameMixin[UUID, User], Model):
     __tablename__ = 'price'
-    __uuid_primary_key__ = True
     __table_args__ = (
         sa.UniqueConstraint('item_id', 'name'),
         sa.CheckConstraint('start_at < end_at', 'price_start_at_lt_end_at_check'),
@@ -289,4 +288,3 @@ from .line_item import LineItem  # isort:skip
 if TYPE_CHECKING:
     from .discount_policy import DiscountPolicy
     from .item_collection import ItemCollection
-    from .user import User

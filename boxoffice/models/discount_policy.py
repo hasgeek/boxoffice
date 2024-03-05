@@ -27,6 +27,7 @@ from . import (
     sa,
 )
 from .enums import DiscountTypeEnum, LineItemStatus
+from .user import Organization, User
 
 __all__ = ['DiscountPolicy', 'DiscountCoupon', 'item_discount_policy']
 
@@ -49,7 +50,7 @@ item_discount_policy = sa.Table(
 )
 
 
-class DiscountPolicy(BaseScopedNameMixin, Model):
+class DiscountPolicy(BaseScopedNameMixin[UUID, User], Model):
     """
     Consists of the discount rules applicable on tickets.
 
@@ -57,7 +58,6 @@ class DiscountPolicy(BaseScopedNameMixin, Model):
     """
 
     __tablename__ = 'discount_policy'
-    __uuid_primary_key__ = True
     __table_args__ = (
         sa.UniqueConstraint('organization_id', 'name'),
         sa.UniqueConstraint('organization_id', 'discount_code_base'),
@@ -305,9 +305,8 @@ def generate_coupon_code(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(secrets.choice(chars) for _ in range(size))
 
 
-class DiscountCoupon(IdMixin, Model):
+class DiscountCoupon(IdMixin[UUID], Model):
     __tablename__ = 'discount_coupon'
-    __uuid_primary_key__ = True
     __table_args__ = (sa.UniqueConstraint('discount_policy_id', 'code'),)
 
     def __init__(self, *args, **kwargs):
@@ -370,4 +369,3 @@ from .line_item import LineItem  # isort:skip
 
 if TYPE_CHECKING:
     from .item import Item, Price
-    from .user import Organization, User

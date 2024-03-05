@@ -6,8 +6,6 @@ from typing import cast
 from uuid import UUID
 import itertools
 
-from beartype import beartype
-
 from .discount_policy import DiscountCoupon, DiscountPolicy, PolicyCoupon
 from .line_item import LineItemTuple
 
@@ -15,7 +13,6 @@ __all__ = ['LineItemDiscounter']
 
 
 class LineItemDiscounter:
-    @beartype
     def get_discounted_line_items(
         self,
         line_items: Sequence[LineItemTuple],
@@ -36,7 +33,6 @@ class LineItemDiscounter:
             return self.apply_discount(valid_discounts[0], line_items)
         return line_items
 
-    @beartype
     def get_valid_discounts(
         self, line_items: Sequence[LineItemTuple], coupons: Sequence[str]
     ) -> Sequence[PolicyCoupon]:
@@ -51,7 +47,6 @@ class LineItemDiscounter:
 
         return DiscountPolicy.get_from_ticket(ticket, len(line_items), coupons)
 
-    @beartype
     def calculate_discounted_amount(
         self, discount_policy: DiscountPolicy, line_item: LineItemTuple
     ) -> Decimal:
@@ -73,11 +68,9 @@ class LineItemDiscounter:
             return line_item.base_amount - discounted_price.amount
         return (discount_policy.percentage or 0) * line_item.base_amount / Decimal(100)
 
-    @beartype
     def is_coupon_usable(self, coupon: DiscountCoupon, applied_to_count: int) -> bool:
         return (coupon.usage_limit - coupon.used_count) > applied_to_count
 
-    @beartype
     def apply_discount(
         self,
         policy_coupon: PolicyCoupon,
@@ -134,7 +127,6 @@ class LineItemDiscounter:
                 discounted_line_items.append(line_item)
         return discounted_line_items
 
-    @beartype
     def apply_combo_discount(
         self,
         discounts: list[PolicyCoupon],
@@ -149,7 +141,6 @@ class LineItemDiscounter:
             [discounts[0]], self.apply_combo_discount(discounts[1:], line_items)
         )
 
-    @beartype
     def apply_max_discount(
         self,
         discounts: list[PolicyCoupon | Sequence[PolicyCoupon]],
@@ -184,7 +175,6 @@ class LineItemDiscounter:
             ),
         )
 
-    @beartype
     def get_combos(
         self, discounts: list[PolicyCoupon], qty: int
     ) -> list[list[PolicyCoupon]]:

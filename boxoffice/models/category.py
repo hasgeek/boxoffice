@@ -6,11 +6,12 @@ from typing import TYPE_CHECKING
 from uuid import UUID
 
 from . import BaseScopedNameMixin, Mapped, Model, relationship, sa
+from .user import User
 
 __all__ = ['Category']
 
 
-class Category(BaseScopedNameMixin, Model):
+class Category(BaseScopedNameMixin[int, User], Model):
     __tablename__ = 'category'
     __table_args__ = (
         sa.UniqueConstraint('item_collection_id', 'name'),

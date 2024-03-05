@@ -25,15 +25,15 @@ from .enums import (
     TransactionMethodEnum,
     TransactionTypeEnum,
 )
+from .user import User
 
 __all__ = ['OnlinePayment', 'PaymentTransaction']
 
 
-class OnlinePayment(BaseMixin, Model):
+class OnlinePayment(BaseMixin[UUID, User], Model):
     """Represents payments made through a payment gateway. Supports Razorpay only."""
 
     __tablename__ = 'online_payment'
-    __uuid_primary_key__ = True
     customer_order_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('customer_order.id')
     )
@@ -60,7 +60,7 @@ class OnlinePayment(BaseMixin, Model):
         self.failed_at = func.utcnow()
 
 
-class PaymentTransaction(BaseMixin, Model):
+class PaymentTransaction(BaseMixin[UUID, User], Model):
     """
     Models transactions made by a customer.
 
@@ -68,7 +68,6 @@ class PaymentTransaction(BaseMixin, Model):
     """
 
     __tablename__ = 'payment_transaction'
-    __uuid_primary_key__ = True
 
     customer_order_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('customer_order.id')

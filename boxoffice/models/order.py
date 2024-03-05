@@ -4,7 +4,7 @@ from collections import namedtuple
 from decimal import Decimal
 from functools import partial
 from typing import TYPE_CHECKING
-from uuid import UUID, uuid4
+from uuid import UUID
 import secrets
 
 from sqlalchemy.ext.orderinglist import ordering_list
@@ -24,6 +24,7 @@ from . import (
 )
 from .enums import LineItemStatus, OrderStatus, TransactionTypeEnum
 from .line_item import LineItem
+from .user import Organization, User
 
 __all__ = ['Order', 'OrderSession']
 
@@ -42,17 +43,13 @@ def gen_receipt_no(organization):
     )
 
 
-class Order(BaseMixin, Model):
+class Order(BaseMixin[UUID, User], Model):
     __tablename__ = 'customer_order'
-    __uuid_primary_key__ = True
     __table_args__ = (
         sa.UniqueConstraint('organization_id', 'invoice_no'),
         sa.UniqueConstraint('access_token'),
     )
 
-    id: Mapped[UUID] = sa.orm.mapped_column(  # type: ignore[assignment]  # noqa: A003
-        primary_key=True, default=uuid4
-    )
     user_id: Mapped[int | None] = sa.orm.mapped_column(sa.ForeignKey('user.id'))
     user: Mapped[User | None] = relationship(back_populates='orders')
     menu_id: Mapped[UUID] = sa.orm.mapped_column(
@@ -99,8 +96,8 @@ class Order(BaseMixin, Model):
 
     confirmed_line_items: DynamicMapped[LineItem] = relationship(
         lazy='dynamic',
-        primaryjoin=sa.and_(
-            LineItem.customer_order_id == id,
+        primaryjoin=lambda: sa.and_(
+            LineItem.customer_order_id == Order.id,
             LineItem.status == LineItemStatus.CONFIRMED,
         ),
         viewonly=True,
@@ -108,8 +105,8 @@ class Order(BaseMixin, Model):
 
     confirmed_and_cancelled_line_items: DynamicMapped[LineItem] = relationship(
         lazy='dynamic',
-        primaryjoin=sa.and_(
-            LineItem.customer_order_id == id,
+        primaryjoin=lambda: sa.and_(
+            LineItem.customer_order_id == Order.id,
             LineItem.status.in_(
                 [LineItemStatus.CONFIRMED.value, LineItemStatus.CANCELLED.value]
             ),
@@ -119,8 +116,8 @@ class Order(BaseMixin, Model):
 
     initial_line_items: DynamicMapped[LineItem] = relationship(
         lazy='dynamic',
-        primaryjoin=sa.and_(
-            LineItem.customer_order_id == id,
+        primaryjoin=lambda: sa.and_(
+            LineItem.customer_order_id == Order.id,
             LineItem.previous_id.is_(None),
             LineItem.status.in_(
                 [
@@ -221,11 +218,10 @@ class Order(BaseMixin, Model):
         return self.paid_amount - self.refunded_amount
 
 
-class OrderSession(BaseMixin, Model):
+class OrderSession(BaseMixin[UUID, User], Model):
     """Records the referrer and utm headers for an order."""
 
     __tablename__ = 'order_session'
-    __uuid_primary_key__ = True
 
     customer_order_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('customer_order.id'), index=True, unique=False
@@ -256,4 +252,3 @@ if TYPE_CHECKING:
     from .invoice import Invoice
     from .item_collection import ItemCollection
     from .payment import OnlinePayment, PaymentTransaction
-    from .user import Organization, User

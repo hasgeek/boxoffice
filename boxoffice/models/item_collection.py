@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from decimal import Decimal
 from typing import TYPE_CHECKING, cast
+from uuid import UUID
 
 from sqlalchemy.ext.orderinglist import ordering_list
 
@@ -17,17 +18,16 @@ from . import (
 )
 from .enums import LineItemStatus, TransactionTypeEnum
 from .payment import PaymentTransaction
-from .user import Organization
+from .user import Organization, User
 from .utils import HeadersAndDataTuple
 
 __all__ = ['ItemCollection']
 
 
-class ItemCollection(BaseScopedNameMixin, Model):
+class ItemCollection(BaseScopedNameMixin[UUID, User], Model):
     """Represent a collection of tickets."""
 
     __tablename__ = 'item_collection'
-    __uuid_primary_key__ = True
     __table_args__ = (sa.UniqueConstraint('organization_id', 'name'),)
 
     description = MarkdownColumn('description', default='', nullable=False)

@@ -26,6 +26,7 @@ from . import (
     timestamptz,
 )
 from .enums import LineItemStatus
+from .user import User
 
 __all__ = ['LineItem', 'Assignee']
 
@@ -46,7 +47,7 @@ class LineItemDict(TypedDict):
     ticket_id: str
 
 
-class Assignee(BaseMixin, Model):
+class Assignee(BaseMixin[int, User], Model):
     __tablename__ = 'assignee'
     __table_args__ = (
         sa.UniqueConstraint('line_item_id', 'current'),
@@ -67,7 +68,7 @@ class Assignee(BaseMixin, Model):
     current: Mapped[bool | None] = sa.orm.mapped_column()
 
 
-class LineItem(BaseMixin, Model):
+class LineItem(BaseMixin[UUID, User], Model):
     """
     A line item in a sale receipt.
 
@@ -76,7 +77,6 @@ class LineItem(BaseMixin, Model):
     """
 
     __tablename__ = 'line_item'
-    __uuid_primary_key__ = True
     __table_args__ = (
         sa.UniqueConstraint('customer_order_id', 'line_item_seq'),
         sa.UniqueConstraint('previous_id'),
@@ -393,4 +393,3 @@ if TYPE_CHECKING:
     from .discount_policy import DiscountCoupon, DiscountPolicy
     from .item_collection import ItemCollection
     from .order import Order
-    from .user import User
