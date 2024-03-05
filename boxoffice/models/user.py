@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from coaster.sqlalchemy import JsonDict
 from flask_lastuser.sqlalchemy import ProfileBase, UserBase2
 
-from . import DynamicMapped, Mapped, Model, db, jsonb_dict, relationship, sa
+from . import DynamicMapped, Mapped, Model, db, relationship, sa
 from .utils import HeadersAndDataTuple
 
 __all__ = ['User', 'Organization']
@@ -37,7 +38,9 @@ class Organization(ProfileBase, Model):
     # Number) or llpin (Limited Liability Partnership Identification Number), pan,
     # service_tax_no, support_email, logo (image url), refund_policy (html), ticket_faq
     # (html), website (url)
-    details: Mapped[jsonb_dict]
+    details: Mapped[dict] = sa.orm.mapped_column(
+        JsonDict, nullable=False, server_default=sa.text("'{}'::jsonb")
+    )
     contact_email: Mapped[str] = sa.orm.mapped_column(sa.Unicode(254))
     # This is to allow organizations to have their orders invoiced by the parent
     # organization

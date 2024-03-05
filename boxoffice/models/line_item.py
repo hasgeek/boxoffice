@@ -12,19 +12,10 @@ from isoweek import Week
 from typing_extensions import TypedDict
 
 from baseframe import localize_timezone
+from coaster.sqlalchemy import JsonDict
 from coaster.utils import isoweek_datetime, midnight_to_utc, utcnow
 
-from . import (
-    BaseMixin,
-    DynamicMapped,
-    Mapped,
-    Model,
-    db,
-    jsonb,
-    relationship,
-    sa,
-    timestamptz,
-)
+from . import BaseMixin, DynamicMapped, Mapped, Model, db, relationship, sa, timestamptz
 from .enums import LineItemStatus
 from .user import User
 
@@ -64,7 +55,7 @@ class Assignee(BaseMixin[int, User], Model):
     email: Mapped[str] = sa.orm.mapped_column(sa.Unicode(254))
     #: Unvalidated phone number
     phone: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(16))
-    details: Mapped[jsonb] = sa.orm.mapped_column(default={})
+    details: Mapped[dict] = sa.orm.mapped_column(JsonDict, default={})
     current: Mapped[bool | None] = sa.orm.mapped_column()
 
 
