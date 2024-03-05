@@ -5,7 +5,7 @@ from baseframe import __, forms, localized_country_list
 from ..data import indian_states, indian_states_dict
 from ..models import Category, Menu, sa
 
-__all__ = ['ItemForm']
+__all__ = ['TicketForm']
 
 
 ASSIGNEE_DETAILS_PLACEHOLDER = {
@@ -27,7 +27,7 @@ ASSIGNEE_DETAILS_PLACEHOLDER = {
 }
 
 
-class ItemForm(forms.Form):
+class TicketForm(forms.Form):
     title = forms.StringField(
         __("Item title"),
         validators=[

@@ -6,7 +6,7 @@ from coaster.utils import utcnow
 from coaster.views import ReturnRenderWith, load_models, render_with, requestargs
 
 from .. import app, lastuser
-from ..forms import ItemForm, PriceForm
+from ..forms import PriceForm, TicketForm
 from ..models import Menu, Organization, Price, Ticket, db, sa
 from .utils import api_error, api_success, json_date_format, xhr_only
 
@@ -117,7 +117,7 @@ def admin_item(ticket: Ticket) -> ReturnRenderWith:
 
 def jsonify_new_ticket(data_dict):
     menu = data_dict['menu']
-    ticket_form = ItemForm(parent=menu)
+    ticket_form = TicketForm(parent=menu)
     if request.method == 'GET':
         return jsonify(
             form_template=render_form(
@@ -153,7 +153,7 @@ def admin_new_item(menu: Menu) -> ReturnRenderWith:
 
 def jsonify_edit_ticket(data_dict):
     ticket = data_dict['ticket']
-    ticket_form = ItemForm(obj=ticket)
+    ticket_form = TicketForm(obj=ticket)
     if request.method == 'GET':
         return jsonify(
             form_template=render_form(
