@@ -3,7 +3,7 @@ beartype
 click
 git+https://github.com/hasgeek/coaster#egg=coaster
 Flask
-git+https://github.com/flask-admin/flask-admin#egg=Flask-Admin
+Flask-Admin
 Flask-Assets
 git+https://github.com/hasgeek/flask-lastuser#egg=Flask-Lastuser
 Flask-Mail
@@ -17,7 +17,7 @@ isoweek
 itsdangerous
 jsmin
 premailer
-psycopg2-binary
+psycopg-binary
 python-dateutil
 python-dotenv
 pytz

@@ -1,4 +1,5 @@
-from flask import Markup, escape, flash, redirect
+from flask import flash, redirect
+from markupsafe import Markup, escape
 
 from baseframe import _
 from baseframe.forms import render_message

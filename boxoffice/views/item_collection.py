@@ -1,4 +1,5 @@
-from flask import Markup, jsonify, render_template, request
+from flask import jsonify, render_template, request
+from markupsafe import Markup
 
 from baseframe import localized_country_list
 from coaster.utils import getbool
