@@ -40,26 +40,6 @@ timestamptz_now: TypeAlias = Annotated[
     datetime,
     sa.orm.mapped_column(sa.TIMESTAMP(timezone=True), default=sa.func.utcnow()),
 ]
-jsonb: TypeAlias = Annotated[
-    dict,
-    sa.orm.mapped_column(
-        # FIXME: mutable_json_type assumes `dict|list`, not just `dict`
-        mutable_json_type(
-            dbtype=sa.JSON().with_variant(postgresql.JSONB, 'postgresql'), nested=True
-        )
-    ),
-]
-jsonb_dict: TypeAlias = Annotated[
-    dict,
-    sa.orm.mapped_column(
-        # FIXME: mutable_json_type assumes `dict|list`, not just `dict`
-        mutable_json_type(
-            dbtype=sa.JSON().with_variant(postgresql.JSONB, 'postgresql'), nested=True
-        ),
-        nullable=False,
-        server_default=sa.text("'{}'::jsonb"),
-    ),
-]
 
 
 TimestampMixin.__with_timezone__ = True

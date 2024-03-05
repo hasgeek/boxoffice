@@ -9,7 +9,7 @@ from uuid import UUID
 from sqlalchemy.ext.hybrid import hybrid_property
 
 from baseframe import _
-from coaster.sqlalchemy import LazyRoleSet, Query, with_roles
+from coaster.sqlalchemy import JsonDict, LazyRoleSet, Query, with_roles
 from coaster.utils import utcnow
 
 from . import (
@@ -20,7 +20,6 @@ from . import (
     MarkdownColumn,
     Model,
     db,
-    jsonb_dict,
     relationship,
     sa,
     timestamptz,
@@ -53,7 +52,11 @@ class Item(BaseScopedNameMixin[UUID, User], Model):
         lazy='dynamic',
         back_populates='tickets',
     )
-    assignee_details: Mapped[jsonb_dict]
+    assignee_details: Mapped[dict] = sa.orm.mapped_column(
+        JsonDict,
+        nullable=False,
+        server_default=sa.text("'{}'::jsonb"),
+    )
     event_date: Mapped[date | None]
     cancellable_until: Mapped[timestamptz | None]
     transferable_until: Mapped[timestamptz | None]
