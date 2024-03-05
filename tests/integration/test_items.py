@@ -4,7 +4,7 @@ import json
 from coaster.utils import utcnow
 
 from boxoffice import app
-from boxoffice.models import Item, ItemCollection, Order, OrderStatus
+from boxoffice.models import Item, Menu, Order, OrderStatus
 
 
 def ajax_post(client, url, data):
@@ -29,7 +29,7 @@ def test_assign(db_session, client, all_data) -> None:
             'email': 'test@hasgeek.com',
         },
     }
-    menu = ItemCollection.query.one()
+    menu = Menu.query.one()
     resp = ajax_post(client, f'/menu/{menu.id}/order', data)
 
     assert resp.status_code == 201

@@ -39,7 +39,7 @@ from .models import (  # NOQA  # isort:skip
     DiscountPolicy,
     Invoice,
     Item,
-    ItemCollection,
+    Menu,
     Organization,
     Price,
     User,

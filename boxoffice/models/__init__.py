@@ -51,7 +51,7 @@ from .category import *  # isort:skip
 from .discount_policy import *  # isort:skip
 from .invoice import *  # isort:skip
 from .item import *  # isort:skip
-from .item_collection import *  # isort:skip
+from .menu import *  # isort:skip
 from .line_item import *  # isort:skip
 from .line_item_discounter import *  # isort:skip
 from .order import *  # isort:skip

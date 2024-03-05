@@ -56,7 +56,7 @@ class Organization(ProfileBase, Model):
         cascade='all, delete-orphan',
         back_populates='invoicer',
     )
-    menus: Mapped[list[ItemCollection]] = relationship(
+    menus: Mapped[list[Menu]] = relationship(
         cascade='all, delete-orphan', back_populates='organization'
     )
 
@@ -138,6 +138,6 @@ from .invoice import Invoice  # isort:skip
 
 if TYPE_CHECKING:
     from .discount_policy import DiscountPolicy
-    from .item_collection import ItemCollection
     from .line_item import Assignee
+    from .menu import Menu
     from .order import Order

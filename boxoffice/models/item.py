@@ -42,8 +42,8 @@ class Item(BaseScopedNameMixin[UUID, User], Model):
     menu_id: Mapped[UUID] = sa.orm.mapped_column(
         'item_collection_id', sa.ForeignKey('item_collection.id')
     )
-    menu: Mapped[ItemCollection] = relationship(back_populates='tickets')
-    parent: Mapped[ItemCollection] = sa.orm.synonym('menu')
+    menu: Mapped[Menu] = relationship(back_populates='tickets')
+    parent: Mapped[Menu] = sa.orm.synonym('menu')
     category_id: Mapped[int] = sa.orm.mapped_column(sa.ForeignKey('category.id'))
     category: Mapped[Category] = relationship(back_populates='tickets')
     quantity_total: Mapped[int] = sa.orm.mapped_column(default=0)
@@ -290,4 +290,4 @@ from .line_item import LineItem  # isort:skip
 
 if TYPE_CHECKING:
     from .discount_policy import DiscountPolicy
-    from .item_collection import ItemCollection
+    from .menu import Menu

@@ -7,7 +7,7 @@ from coaster.views import ReturnRenderWith, load_models, render_with, requestarg
 
 from .. import app, lastuser
 from ..forms import ItemForm, PriceForm
-from ..models import Item, ItemCollection, Organization, Price, db, sa
+from ..models import Item, Menu, Organization, Price, db, sa
 from .utils import api_error, api_success, json_date_format, xhr_only
 
 
@@ -19,22 +19,18 @@ from .utils import api_error, api_success, json_date_format, xhr_only
 def tickets(organization: Organization, search: str | None = None):
     if search:
         filtered_tickets = (
-            db.session.query(Item, ItemCollection)
+            db.session.query(Item, Menu)
             .filter(
-                ItemCollection.organization_id == organization.id,
+                Menu.organization_id == organization.id,
                 sa.or_(
                     sa.func.lower(Item.title).contains(search.lower(), autoescape=True),
-                    sa.func.lower(ItemCollection.title).contains(
-                        search.lower(), autoescape=True
-                    ),
+                    sa.func.lower(Menu.title).contains(search.lower(), autoescape=True),
                 ),
             )
             .join(Item.menu)
             .options(
                 sa.orm.Load(Item).load_only(Item.id, Item.title),
-                sa.orm.Load(ItemCollection).load_only(
-                    ItemCollection.id, ItemCollection.title
-                ),
+                sa.orm.Load(Menu).load_only(Menu.id, Menu.title),
             )
             .all()
         )
@@ -148,8 +144,8 @@ def jsonify_new_ticket(data_dict):
 @app.route('/admin/menu/<menu_id>/ticket/new', methods=['GET', 'POST'])
 @lastuser.requires_login
 @render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_new_ticket})
-@load_models((ItemCollection, {'id': 'menu_id'}, 'menu'), permission='org_admin')
-def admin_new_item(menu: ItemCollection) -> ReturnRenderWith:
+@load_models((Menu, {'id': 'menu_id'}, 'menu'), permission='org_admin')
+def admin_new_item(menu: Menu) -> ReturnRenderWith:
     return {'menu': menu}
 
 

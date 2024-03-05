@@ -9,7 +9,7 @@ from ..models import (
     DiscountPolicy,
     DiscountTypeEnum,
     Item,
-    ItemCollection,
+    Menu,
     sa,
 )
 
@@ -72,8 +72,8 @@ class AutomaticDiscountPolicyForm(DiscountPolicyForm):
 
     def __post_init__(self) -> None:
         self.tickets.query = (
-            Item.query.join(ItemCollection, Item.menu_id == ItemCollection.id)
-            .filter(ItemCollection.organization == self.edit_parent)
+            Item.query.join(Menu, Item.menu_id == Menu.id)
+            .filter(Menu.organization == self.edit_parent)
             .options(sa.orm.load_only(Item.id, Item.title))
         )
 
@@ -123,8 +123,8 @@ class CouponBasedDiscountPolicyForm(DiscountPolicyForm):
 
     def __post_init__(self) -> None:
         self.tickets.query = (
-            Item.query.join(ItemCollection, Item.menu_id == ItemCollection.id)
-            .filter(ItemCollection.organization == self.edit_parent)
+            Item.query.join(Menu, Item.menu_id == Menu.id)
+            .filter(Menu.organization == self.edit_parent)
             .options(sa.orm.load_only(Item.id, Item.title))
         )
 
@@ -203,8 +203,8 @@ class DiscountPriceForm(forms.Form):
 
     def __post_init__(self) -> None:
         self.ticket.query = (
-            Item.query.join(ItemCollection, Item.menu_id == ItemCollection.id)
-            .filter(ItemCollection.organization_id == self.edit_parent.organization_id)
+            Item.query.join(Menu, Item.menu_id == Menu.id)
+            .filter(Menu.organization_id == self.edit_parent.organization_id)
             .options(sa.orm.load_only(Item.id, Item.title))
         )
 

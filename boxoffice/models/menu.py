@@ -21,10 +21,10 @@ from .payment import PaymentTransaction
 from .user import Organization, User
 from .utils import HeadersAndDataTuple
 
-__all__ = ['ItemCollection']
+__all__ = ['Menu']
 
 
-class ItemCollection(BaseScopedNameMixin[UUID, User], Model):
+class Menu(BaseScopedNameMixin[UUID, User], Model):
     """Represent a collection of tickets."""
 
     __tablename__ = 'item_collection'

@@ -3,7 +3,7 @@ from __future__ import annotations
 from baseframe import __, forms, localized_country_list
 
 from ..data import indian_states, indian_states_dict
-from ..models import Category, ItemCollection, sa
+from ..models import Category, Menu, sa
 
 __all__ = ['ItemForm']
 
@@ -98,7 +98,7 @@ class ItemForm(forms.Form):
         ]
         self.place_supply_country_code.choices = [('', '')] + localized_country_list()
         self.category.query = (
-            Category.query.join(ItemCollection, Category.menu_id == ItemCollection.id)
+            Category.query.join(Menu, Category.menu_id == Menu.id)
             .filter(Category.menu == self.edit_parent)
             .options(sa.orm.load_only(Category.id, Category.title))
         )

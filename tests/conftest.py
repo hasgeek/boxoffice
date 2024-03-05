@@ -17,7 +17,7 @@ from boxoffice.models import (
     DiscountPolicy,
     DiscountTypeEnum,
     Item,
-    ItemCollection,
+    Menu,
     Organization,
     Price,
     User,
@@ -138,7 +138,7 @@ def all_data(db_session):
     db_session.add(rootconf)
     db_session.commit()
 
-    rc2016 = ItemCollection(title='2016', organization=rootconf)
+    rc2016 = Menu(title='2016', organization=rootconf)
     db_session.add(rc2016)
     db_session.commit()
 

@@ -9,7 +9,7 @@ from coaster.views import ReturnRenderWith, load_models, render_with
 
 from .. import app, lastuser
 from ..extapi.razorpay import get_settled_transactions
-from ..models import InvoiceStatus, ItemCollection, Organization
+from ..models import InvoiceStatus, Menu, Organization
 from .utils import api_error, check_api_access, csv_response
 
 
@@ -25,8 +25,8 @@ def jsonify_report(data_dict):
 @app.route('/admin/menu/<menu_id>/reports')
 @lastuser.requires_login
 @render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_report})
-@load_models((ItemCollection, {'id': 'menu_id'}, 'menu'), permission='org_admin')
-def admin_report(menu: ItemCollection) -> ReturnRenderWith:
+@load_models((Menu, {'id': 'menu_id'}, 'menu'), permission='org_admin')
+def admin_report(menu: Menu) -> ReturnRenderWith:
     return {'menu': menu}
 
 
@@ -51,8 +51,8 @@ def admin_org_report(organization: Organization) -> ReturnRenderWith:
 
 @app.route('/admin/menu/<menu_id>/tickets.csv')
 @lastuser.requires_login
-@load_models((ItemCollection, {'id': 'menu_id'}, 'menu'), permission='org_admin')
-def tickets_report(menu: ItemCollection):
+@load_models((Menu, {'id': 'menu_id'}, 'menu'), permission='org_admin')
+def tickets_report(menu: Menu):
     headers, rows = menu.fetch_all_details()
     assignee_url_index = headers.index('assignee_url')
 
@@ -81,8 +81,8 @@ def tickets_report(menu: ItemCollection):
 
 @app.route('/admin/menu/<menu_id>/attendees.csv')
 @lastuser.requires_login
-@load_models((ItemCollection, {'id': 'menu_id'}, 'menu'), permission='org_admin')
-def attendees_report(menu: ItemCollection):
+@load_models((Menu, {'id': 'menu_id'}, 'menu'), permission='org_admin')
+def attendees_report(menu: Menu):
     # Generated a unique list of headers for all 'assignee_details' keys in all items in
     # this menu. This flattens the 'assignee_details' dict. This will need to
     # be updated if we add additional dicts to our csv export.
@@ -135,12 +135,12 @@ def attendees_report(menu: ItemCollection):
 @load_models(
     (Organization, {'name': 'org'}, 'organization'),
     (
-        ItemCollection,
+        Menu,
         {'id': 'menu_id', 'organization': 'organization'},
         'menu',
     ),
 )
-def orders_api(organization: Organization, menu: ItemCollection):
+def orders_api(organization: Organization, menu: Menu):
     check_api_access(organization.details.get('access_token'))
 
     # Generated a unique list of headers for all 'assignee_details' keys in all items in

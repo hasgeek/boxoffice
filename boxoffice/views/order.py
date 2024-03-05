@@ -33,9 +33,9 @@ from ..models import (
     DiscountPolicy,
     Invoice,
     Item,
-    ItemCollection,
     LineItem,
     LineItemStatus,
+    Menu,
     OnlinePayment,
     Order,
     OrderSession,
@@ -206,8 +206,8 @@ def kharcha():
 @app.route('/menu/<menu_id>/order', methods=['GET', 'OPTIONS', 'POST'])
 @xhr_only
 @cors
-@load_models((ItemCollection, {'id': 'menu_id'}, 'menu'))
-def create_order(menu: ItemCollection):
+@load_models((Menu, {'id': 'menu_id'}, 'menu'))
+def create_order(menu: Menu):
     """
     Create an order.
 
@@ -886,8 +886,8 @@ def partial_refund_order(order: Order) -> ReturnRenderWith:
 
 
 @app.route('/api/1/menu/<menu_id>/orders', methods=['GET', 'OPTIONS'])
-@load_models((ItemCollection, {'id': 'menu_id'}, 'menu'))
-def menu_orders(menu: ItemCollection):
+@load_models((Menu, {'id': 'menu_id'}, 'menu'))
+def menu_orders(menu: Menu):
     organization = menu.organization
     # TODO: Replace with a better authentication system
     if not request.args.get('access_token') or request.args.get(

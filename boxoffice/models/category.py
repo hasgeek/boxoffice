@@ -21,12 +21,12 @@ class Category(BaseScopedNameMixin[int, User], Model):
     menu_id: Mapped[UUID] = sa.orm.mapped_column(
         'item_collection_id', sa.ForeignKey('item_collection.id')
     )
-    menu: Mapped[ItemCollection] = relationship(back_populates='categories')
+    menu: Mapped[Menu] = relationship(back_populates='categories')
     seq: Mapped[int]
     tickets: Mapped[list[Item]] = relationship(
         cascade='all, delete-orphan', back_populates='category'
     )
-    parent: Mapped[ItemCollection] = sa.orm.synonym('menu')
+    parent: Mapped[Menu] = sa.orm.synonym('menu')
 
     __roles__ = {'category_owner': {'read': {'id', 'name', 'title', 'menu_id'}}}
 
@@ -39,4 +39,4 @@ class Category(BaseScopedNameMixin[int, User], Model):
 
 if TYPE_CHECKING:
     from .item import Item
-    from .item_collection import ItemCollection
+    from .menu import Menu

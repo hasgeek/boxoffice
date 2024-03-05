@@ -27,9 +27,9 @@ from boxoffice.models import (
     Invoice,
     InvoiceStatus,
     Item,
-    ItemCollection,
     LineItem,
     LineItemStatus,
+    Menu,
     OnlinePayment,
     Order,
     OrderStatus,
@@ -285,7 +285,7 @@ def resend_attendee_details_email(
     menu_title: str = "",
     sender_team_member_name: str = "Team Hasgeek",
 ) -> None:
-    menu = ItemCollection.query.get(menu_id)
+    menu = Menu.query.get(menu_id)
     if menu is None:
         raise ValueError("Unknown item collection")
     headers, rows = menu.fetch_all_details()

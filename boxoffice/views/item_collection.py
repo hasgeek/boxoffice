@@ -7,14 +7,7 @@ from coaster.views import load_models
 
 from .. import app
 from ..data import indian_states
-from ..models import (
-    Category,
-    CurrencySymbol,
-    DiscountPolicy,
-    Item,
-    ItemCollection,
-    Organization,
-)
+from ..models import Category, CurrencySymbol, DiscountPolicy, Item, Menu, Organization
 from .utils import cors, sanitize_coupons, xhr_only
 
 
@@ -101,8 +94,8 @@ def boxofficejs():
 @app.route('/menu/<menu_id>', methods=['GET', 'OPTIONS'])
 @xhr_only
 @cors
-@load_models((ItemCollection, {'id': 'menu_id'}, 'menu'))
-def view_menu(menu: ItemCollection):
+@load_models((Menu, {'id': 'menu_id'}, 'menu'))
+def view_menu(menu: Menu):
     categories_json = []
     for category in menu.categories:
         category_json = jsonify_category(category)
@@ -120,12 +113,12 @@ def view_menu(menu: ItemCollection):
 @load_models(
     (Organization, {'name': 'org'}, 'organization'),
     (
-        ItemCollection,
+        Menu,
         {'name': 'menu_name', 'organization': 'organization'},
         'menu',
     ),
 )
-def menu_listing(organization: Organization, menu: ItemCollection):
+def menu_listing(organization: Organization, menu: Menu):
     show_title = getbool(request.args.get('show_title', True))
     return render_template(
         'item_collection_listing.html.jinja2',

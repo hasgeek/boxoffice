@@ -252,9 +252,7 @@ class LineItem(BaseMixin[UUID, User], Model):
         )
 
 
-def counts_per_date_per_item(
-    menu: ItemCollection, user_tz: tzinfo
-) -> dict[date, dict[str, int]]:
+def counts_per_date_per_item(menu: Menu, user_tz: tzinfo) -> dict[date, dict[str, int]]:
     """
     Return number of line items sold per date per ticket.
 
@@ -382,5 +380,5 @@ from .line_item_discounter import LineItemDiscounter  # isort:skip
 
 if TYPE_CHECKING:
     from .discount_policy import DiscountCoupon, DiscountPolicy
-    from .item_collection import ItemCollection
+    from .menu import Menu
     from .order import Order
