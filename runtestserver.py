@@ -24,7 +24,7 @@ def test_page() -> str:
 <body>
 <div id='boxoffice-widget'></div>
 <script>
-    $.getScript("http://boxoffice.travis.dev:6500/boxoffice.js").done(function(){
+    $.getScript("http://boxoffice.travis.dev:6500/api/1/boxoffice.js").done(function(){
       window.Boxoffice.init({
         org: 'rootconf',
         menu: '2016'
