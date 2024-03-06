@@ -181,7 +181,7 @@
           <p>{% trans %}LLPIN:{% endtrans %} {{ org.details.get('llpin') }}</p>
         {%- endif %}
         {%- if org.details.get('pan') %}
-          <p>{% trans PAN:{% endtrans %} {{ org.details.get('pan') }}</p>
+          <p>{% trans %}PAN:{% endtrans %} {{ org.details.get('pan') }}</p>
         {%- endif %}
         {%- if org.details.get('service_tax_no') %}
           <p>{% trans %}Service Tax No:{% endtrans %} {{ org.details.get('service_tax_no') }}</p>
@@ -258,7 +258,7 @@
           <tr>
             <td class="center" rowspan="2" valign="top"></td>
             <td colspan="3">
-               <span class="item-title">{% trans Refund:{% endtrans %} {{ line_item.ticket.title }}</span>
+               <span class="item-title">{% trans %}Refund:{% endtrans %} {{ line_item.ticket.title }}</span>
             </td>
           </tr>
           <tr>
