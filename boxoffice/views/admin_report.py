@@ -32,9 +32,7 @@ def admin_report(menu: ItemCollection) -> ReturnRenderWith:
 
 
 def jsonify_org_report(data_dict):
-    return jsonify(
-        account_title=data_dict['organization'].title, siteadmin=data_dict['siteadmin']
-    )
+    return jsonify(account_title=data_dict['organization'].title)
 
 
 @app.route('/admin/o/<org_name>/reports')
@@ -44,10 +42,7 @@ def jsonify_org_report(data_dict):
     (Organization, {'name': 'org_name'}, 'organization'), permission='org_admin'
 )
 def admin_org_report(organization: Organization) -> ReturnRenderWith:
-    return {
-        'organization': organization,
-        'siteadmin': lastuser.has_permission('siteadmin'),
-    }
+    return {'organization': organization}
 
 
 @app.route('/admin/menu/<menu_id>/tickets.csv')
