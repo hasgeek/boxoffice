@@ -147,7 +147,7 @@ class LineItem(BaseMixin[UUID, User], Model):
             if isinstance(line_item, LineItem):
                 ticket = line_item.ticket
                 base_amount = line_item.base_amount
-                line_item_id = cast(UUID, line_item.id)
+                line_item_id = line_item.id
             else:
                 ticket = Item.query.get(line_item['ticket_id'])
                 if ticket is None:
