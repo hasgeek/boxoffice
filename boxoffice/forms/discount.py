@@ -70,7 +70,7 @@ class AutomaticDiscountPolicyForm(DiscountPolicyForm):
         ],
     )
 
-    def set_queries(self) -> None:
+    def __post_init__(self) -> None:
         self.tickets.query = (
             Item.query.join(ItemCollection, Item.menu_id == ItemCollection.id)
             .filter(ItemCollection.organization == self.edit_parent)
@@ -121,7 +121,7 @@ class CouponBasedDiscountPolicyForm(DiscountPolicyForm):
         __("Bulk coupon usage limit"), default=1
     )
 
-    def set_queries(self) -> None:
+    def __post_init__(self) -> None:
         self.tickets.query = (
             Item.query.join(ItemCollection, Item.menu_id == ItemCollection.id)
             .filter(ItemCollection.organization == self.edit_parent)
@@ -201,7 +201,7 @@ class DiscountPriceForm(forms.Form):
         ],
     )
 
-    def set_queries(self) -> None:
+    def __post_init__(self) -> None:
         self.ticket.query = (
             Item.query.join(ItemCollection, Item.menu_id == ItemCollection.id)
             .filter(ItemCollection.organization_id == self.edit_parent.organization_id)

@@ -16,7 +16,7 @@ export const OrgReportView = {
         scope_id: accountName,
         root: true,
       }),
-    }).done(({ account_title: accountTitle }) => {
+    }).done(({ account_title: accountTitle, siteadmin }) => {
       // Initial render
       const currentDate = new Date();
       const currentYear = String(currentDate.getFullYear());

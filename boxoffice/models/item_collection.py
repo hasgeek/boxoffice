@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import TYPE_CHECKING, List, Optional, cast
+from typing import TYPE_CHECKING, cast
+from uuid import UUID
 
 from sqlalchemy.ext.orderinglist import ordering_list
 
@@ -17,17 +18,16 @@ from . import (
 )
 from .enums import LineItemStatus, TransactionTypeEnum
 from .payment import PaymentTransaction
-from .user import Organization
+from .user import Organization, User
 from .utils import HeadersAndDataTuple
 
 __all__ = ['ItemCollection']
 
 
-class ItemCollection(BaseScopedNameMixin, Model):
+class ItemCollection(BaseScopedNameMixin[UUID, User], Model):
     """Represent a collection of tickets."""
 
     __tablename__ = 'item_collection'
-    __uuid_primary_key__ = True
     __table_args__ = (sa.UniqueConstraint('organization_id', 'name'),)
 
     description = MarkdownColumn('description', default='', nullable=False)
@@ -37,23 +37,19 @@ class ItemCollection(BaseScopedNameMixin, Model):
     )
     organization: Mapped[Organization] = relationship(back_populates='menus')
     parent: Mapped[Organization] = sa.orm.synonym('organization')
-    tax_type: Mapped[Optional[str]] = sa.orm.mapped_column(
-        sa.Unicode(80), default='GST'
-    )
+    tax_type: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(80), default='GST')
     # ISO 3166-2 code. Eg: KA for Karnataka
-    place_supply_state_code: Mapped[Optional[str]] = sa.orm.mapped_column(sa.Unicode(3))
+    place_supply_state_code: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(3))
     # ISO country code
-    place_supply_country_code: Mapped[Optional[str]] = sa.orm.mapped_column(
-        sa.Unicode(2)
-    )
+    place_supply_country_code: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(2))
 
-    categories: Mapped[List[Category]] = relationship(
+    categories: Mapped[list[Category]] = relationship(
         cascade='all, delete-orphan',
         order_by='Category.seq',
         collection_class=ordering_list('seq', count_from=1),
         back_populates='menu',
     )
-    tickets: Mapped[List[Item]] = relationship(
+    tickets: Mapped[list[Item]] = relationship(
         cascade='all, delete-orphan',
         order_by='Item.seq',
         collection_class=ordering_list('seq', count_from=1),

@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from flask import abort, jsonify, render_template, request, url_for
 from sqlalchemy.sql import func
@@ -138,9 +138,11 @@ def jsonify_order(data):
                 'assignee': jsonify_assignee(line_item.current_assignee),
                 'is_confirmed': line_item.is_confirmed,
                 'is_cancelled': line_item.is_cancelled,
-                'cancelled_at': json_date_format(line_item.cancelled_at)
-                if line_item.cancelled_at
-                else "",
+                'cancelled_at': (
+                    json_date_format(line_item.cancelled_at)
+                    if line_item.cancelled_at
+                    else ""
+                ),
                 'is_transferable': line_item.is_transferable,
             }
         )
@@ -281,13 +283,12 @@ def create_order(menu: ItemCollection):
     for idx, line_item_tup in enumerate(line_item_tups):
         ticket = Item.query.get_or_404(line_item_tup.ticket_id)
 
-        if ticket.restricted_entry:
-            if not sanitized_coupon_codes or not DiscountPolicy.is_valid_access_coupon(
-                ticket, sanitized_coupon_codes
-            ):
-                # Skip adding a restricted ticket to the cart without the proper access
-                # code
-                break
+        if ticket.restricted_entry and (
+            not sanitized_coupon_codes
+            or not DiscountPolicy.is_valid_access_coupon(ticket, sanitized_coupon_codes)
+        ):
+            # Skip adding a restricted ticket to cart without the proper access code
+            break
 
         if ticket.is_available:
             if line_item_tup.discount_policy_id:
@@ -312,8 +313,8 @@ def create_order(menu: ItemCollection):
                 ordered_at=utcnow(),
                 base_amount=line_item_tup.base_amount,
                 discounted_amount=line_item_tup.discounted_amount,
-                final_amount=line_item_tup.base_amount
-                - line_item_tup.discounted_amount,
+                final_amount=cast(Decimal, line_item_tup.base_amount)
+                - cast(Decimal, line_item_tup.discounted_amount),
             )
             db.session.add(line_item)
         else:
@@ -610,9 +611,9 @@ def jsonify_orders(orders):
                 {
                     'assignee': format_assignee(line_item),
                     'line_item_seq': line_item.line_item_seq,
-                    'line_item_status': "confirmed"
-                    if line_item.is_confirmed
-                    else "cancelled",
+                    'line_item_status': (
+                        "confirmed" if line_item.is_confirmed else "cancelled"
+                    ),
                     'ticket': {'title': line_item.ticket.title},
                 }
             )
@@ -745,10 +746,9 @@ def process_line_item_cancellation(line_item):
             line_item.cancel()
             refund_amount = line_item.final_amount
 
-        if refund_amount > order.net_amount:
-            # since the refund amount is more than the net amount received
-            # only refund the remaining amount
-            refund_amount = order.net_amount
+        # If the refund amount exceeds the net amount received (after prior refunds),
+        # reduce the refund to the remaining net amount
+        refund_amount = min(refund_amount, order.net_amount)
 
     if refund_amount > Decimal('0'):
         payment = OnlinePayment.query.filter_by(
@@ -885,6 +885,7 @@ def partial_refund_order(order: Order) -> ReturnRenderWith:
     }
 
 
+@app.route('/api/1/ic/<menu_id>/orders', methods=['GET', 'OPTIONS'])
 @app.route('/api/1/menu/<menu_id>/orders', methods=['GET', 'OPTIONS'])
 @load_models((ItemCollection, {'id': 'menu_id'}, 'menu'))
 def menu_orders(menu: ItemCollection):

@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from flask import jsonify, request
 
@@ -65,7 +65,7 @@ def jsonify_discount_policies(data_dict):
 @load_models((Organization, {'name': 'org'}, 'organization'), permission='org_admin')
 @requestargs('search', ('page', int), ('size', int))
 def admin_discount_policies(
-    organization: Organization, search: Optional[str] = None, page=1, size=None
+    organization: Organization, search: str | None = None, page=1, size=None
 ) -> ReturnRenderWith:
     results_per_page = size or 20
 

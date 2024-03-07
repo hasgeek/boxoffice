@@ -80,7 +80,7 @@ def get_settled_transactions(date_range, tz=None):
         "Transaction external to Boxoffice. Credited directly to Razorpay?"
     )
 
-    for settled_transaction in settled_transactions['items']:
+    for settled_transaction in settled_transactions['tickets']:
         if settled_transaction['type'] == 'settlement':
             rows.append(
                 {

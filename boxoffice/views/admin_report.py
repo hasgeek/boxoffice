@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from typing import Any
 
 from babel.dates import format_datetime
 from flask import g, jsonify, request, url_for
@@ -31,7 +32,9 @@ def admin_report(menu: ItemCollection) -> ReturnRenderWith:
 
 
 def jsonify_org_report(data_dict):
-    return jsonify(account_title=data_dict['organization'].title)
+    return jsonify(
+        account_title=data_dict['organization'].title, siteadmin=data_dict['siteadmin']
+    )
 
 
 @app.route('/admin/o/<org_name>/reports')
@@ -41,7 +44,10 @@ def jsonify_org_report(data_dict):
     (Organization, {'name': 'org_name'}, 'organization'), permission='org_admin'
 )
 def admin_org_report(organization: Organization) -> ReturnRenderWith:
-    return {'organization': organization}
+    return {
+        'organization': organization,
+        'siteadmin': lastuser.has_permission('siteadmin'),
+    }
 
 
 @app.route('/admin/menu/<menu_id>/tickets.csv')
@@ -54,10 +60,12 @@ def tickets_report(menu: ItemCollection):
     def row_handler(row):
         # localize datetime
         row_list = [
-            v
-            if not isinstance(v, datetime)
-            else format_datetime(
-                localize_timezone(v), format='long', locale=get_locale() or 'en'
+            (
+                v
+                if not isinstance(v, datetime)
+                else format_datetime(
+                    localize_timezone(v), format='long', locale=get_locale() or 'en'
+                )
             )
             for v in row
         ]
@@ -161,7 +169,7 @@ def orders_api(organization: Organization, menu: ItemCollection):
         # Convert row to a dict
         dict_row = {}
         for idx, item in enumerate(row):
-            # 'assignee_details' is a dict already, so copy and include prefixs
+            # 'assignee_details' is a dict already, so copy and include prefixes
             if idx == attendee_details_index and isinstance(item, dict):
                 for key in item.keys():
                     dict_row['attendee_details_' + key] = item[key]
@@ -191,7 +199,7 @@ def orders_api(organization: Organization, menu: ItemCollection):
 def invoices_report(organization: Organization):
     today = date.today()
     period_type = request.args.get('type', 'all')
-    invoice_filter = {}
+    invoice_filter: dict[str, Any] = {}
     if period_type == 'monthly':
         period_month = request.args.get('month', None)
         if period_month is not None:
@@ -213,8 +221,8 @@ def invoices_report(organization: Organization):
         invoice_filter['year'] = year
         invoice_filter['month'] = month
     elif period_type == 'custom':
-        period_from = date(today.year, today.month, 1)
-        period_to = date(today.year, today.month, today.day)
+        period_from = date(today.year, today.month, 1).strftime('%Y-%m-%d')
+        period_to = date(today.year, today.month, today.day).strftime('%Y-%m-%d')
         period_from = request.args.get('from', period_from)
         try:
             invoice_filter['from'] = datetime.strptime(period_from, '%Y-%m-%d')
@@ -268,7 +276,7 @@ def invoices_report(organization: Organization):
 def invoices_report_zb(organization: Organization):
     today = date.today()
     period_type = request.args.get('type', 'all')
-    invoice_filter = {}
+    invoice_filter: dict[str, Any] = {}
     if period_type == 'monthly':
         period_month = request.args.get('month', None)
         if period_month is not None:
@@ -290,8 +298,8 @@ def invoices_report_zb(organization: Organization):
         invoice_filter['year'] = year
         invoice_filter['month'] = month
     elif period_type == 'custom':
-        period_from = date(today.year, today.month, 1)
-        period_to = date(today.year, today.month, today.day)
+        period_from = date(today.year, today.month, 1).strftime('%Y-%m-%d')
+        period_to = date(today.year, today.month, today.day).strftime('%Y-%m-%d')
         period_from = request.args.get('from', period_from)
         try:
             invoice_filter['from'] = datetime.strptime(period_from, '%Y-%m-%d')
@@ -321,7 +329,7 @@ def invoices_report_zb(organization: Organization):
     quantity_index = headers.index('Quantity')
 
     new_rows = []
-    new_rows_index = {}
+    new_rows_index: dict[str, int] = {}
 
     for row in rows:
         row = list(row)
@@ -331,9 +339,9 @@ def invoices_report_zb(organization: Organization):
         fy = f'{fy_base}{fy_base - 1999}'
         row[invoice_number_index] = f'{fy}{row[invoice_number_index]}'
         invoice_number = row[invoice_number_index]
-        line_item = LineItem.query.filter(
-            LineItem.id == row[line_item_id_index]
-        ).first()
+        line_item = LineItem.query.get(row[line_item_id_index])
+        if line_item is None:
+            continue
         item_name = line_item.ticket.menu.title
         item_key = str(invoice_number) + '^' + item_name
         if new_rows_index.get(item_key) is None:
@@ -405,6 +413,7 @@ def invoices_report_zb(organization: Organization):
 @app.route('/admin/o/<org_name>/settlements.csv')
 @load_models((Organization, {'name': 'org_name'}, 'organization'))
 def settled_transactions(organization: Organization):
+    # FIXME: This report is NOT filtered by organization; it has everything!
     today = date.today()
     year = int(request.args.get('year', today.year))
     month = int(request.args.get('month', today.month))

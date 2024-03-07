@@ -37,7 +37,7 @@ class ItemCollectionForm(forms.Form):
         validators=[forms.validators.DataRequired(__("Please select a country"))],
     )
 
-    def set_queries(self) -> None:
+    def __post_init__(self) -> None:
         self.place_supply_state_code.choices = [(0, '')] + [
             (state['short_code'], state['name'])
             for state in sorted(indian_states, key=lambda k: k['name'])

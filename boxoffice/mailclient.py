@@ -1,5 +1,4 @@
 from decimal import Decimal
-from typing import Optional
 from uuid import UUID
 
 from flask import render_template
@@ -17,7 +16,7 @@ from .models import Assignee, CurrencySymbol, LineItem, LineItemStatus, Order
 @rq.job('boxoffice')
 def send_receipt_mail(
     order_id: UUID,
-    subject: Optional[str] = None,
+    subject: str | None = None,
     template: str = 'order_confirmation_mail.html.jinja2',
 ):
     """Send buyer a link to fill attendee details and get cash receipt."""
@@ -59,7 +58,7 @@ def send_participant_assignment_mail(
     order_id: UUID,
     menu_title: str,
     team_member: str,
-    subject: Optional[str] = None,
+    subject: str | None = None,
 ):
     with app.test_request_context():
         if subject is None:
@@ -89,7 +88,7 @@ def send_participant_assignment_mail(
 
 @rq.job('boxoffice')
 def send_line_item_cancellation_mail(
-    line_item_id: UUID, refund_amount: Decimal, subject: Optional[str] = None
+    line_item_id: UUID, refund_amount: Decimal, subject: str | None = None
 ):
     with app.test_request_context():
         if subject is None:
@@ -206,7 +205,7 @@ def send_ticket_reassignment_mail(
             )
         order = line_item.order
 
-        subject = _("{title}: Your ticket has been transfered to someone else").format(
+        subject = _("{title}: Your ticket has been transferred to someone else").format(
             title=order.menu.title
         )
         msg = Message(

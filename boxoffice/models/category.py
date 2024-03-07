@@ -2,15 +2,16 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 from . import BaseScopedNameMixin, Mapped, Model, relationship, sa
+from .user import User
 
 __all__ = ['Category']
 
 
-class Category(BaseScopedNameMixin, Model):
+class Category(BaseScopedNameMixin[int, User], Model):
     __tablename__ = 'category'
     __table_args__ = (
         sa.UniqueConstraint('item_collection_id', 'name'),
@@ -22,7 +23,7 @@ class Category(BaseScopedNameMixin, Model):
     )
     menu: Mapped[ItemCollection] = relationship(back_populates='categories')
     seq: Mapped[int]
-    tickets: Mapped[List[Item]] = relationship(
+    tickets: Mapped[list[Item]] = relationship(
         cascade='all, delete-orphan', back_populates='category'
     )
     parent: Mapped[ItemCollection] = sa.orm.synonym('menu')

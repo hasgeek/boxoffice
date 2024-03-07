@@ -161,8 +161,9 @@ $(function() {
     widgetConfig.categories = widgetConfig.categories || [];
     // Config variables provided by the client embedding the widget
     this.widgetConfig = widgetConfig;
+    menu = widgetConfig.menu || widgetConfig.itemCollection;
     this.initResources({
-      menu: widgetConfig.menu
+      menu
     });
     $.ajax({
       url: boxoffice.config.resources.menu.urlFor(boxoffice.util.getDiscountCodes()),
