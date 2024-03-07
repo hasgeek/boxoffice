@@ -411,6 +411,7 @@ def invoices_report_zb(organization: Organization):
 
 
 @app.route('/admin/o/<org_name>/settlements.csv')
+@lastuser.requires_permission('siteadmin')
 @load_models((Organization, {'name': 'org_name'}, 'organization'))
 def settled_transactions(organization: Organization):
     # FIXME: This report is NOT filtered by organization; it has everything!
