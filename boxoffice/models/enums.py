@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from enum import Enum, IntEnum
+from enum import Enum, IntEnum, StrEnum
 
 from baseframe import __
 
@@ -61,11 +61,11 @@ class TransactionTypeEnum(IntEnum):
     REFUND = 1
 
 
-class CurrencyEnum(str, Enum):
+class CurrencyEnum(StrEnum):
     INR = "INR"
 
 
-class CurrencySymbol(str, Enum):
+class CurrencySymbol(StrEnum):
     INR = '₹'
 
 
