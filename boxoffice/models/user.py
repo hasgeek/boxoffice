@@ -79,9 +79,14 @@ class Organization(ProfileBase, Model):
             perms.add('org_admin')
         return perms
 
-    def fetch_invoices(self):
+    def fetch_invoices(self, filters: dict | None = None):
         """Return invoices for an organization as a tuple of (row_headers, rows)."""
-        from .order import Order  # pylint: disable=import-outside-toplevel
+        # pylint: disable=import-outside-toplevel
+        from .invoice import Invoice
+        from .order import Order
+
+        if filters is None:
+            filters = {}
 
         headers = [
             'order_id',
@@ -122,22 +127,132 @@ class Organization(ProfileBase, Model):
                 Invoice.postcode,
                 Invoice.invoiced_at,
             )
-            .where(Invoice.organization == self)
+            .where(Invoice.organization_id == self.id)
             .select_from(Invoice)
             .join(Order)
+            .order_by(Invoice.invoiced_at)
+        )
+        if 'year' in filters and 'month' in filters:
+            invoices_query = invoices_query.filter(
+                sa.extract('year', Invoice.invoiced_at) == filters['year']
+            ).filter(sa.extract('month', Invoice.invoiced_at) == filters['month'])
+        if 'from' in filters:
+            invoices_query = invoices_query.filter(
+                Invoice.invoiced_at >= filters['from']
+            )
+        if 'to' in filters:
+            invoices_query = invoices_query.filter(Invoice.invoiced_at <= filters['to'])
+        return HeadersAndDataTuple(
+            headers, db.session.execute(invoices_query).fetchall()
+        )
+
+    def fetch_invoice_line_items(self, filters: dict | None = None):
+        """
+        Return invoice line items for import into Zoho Books.
+
+        Return invoices for an organization as a tuple of (row_headers, rows) at line
+        items level keeping in mind columns required for import into Zoho Books.
+        """
+        # pylint: disable=import-outside-toplevel
+        from .invoice import Invoice
+        from .line_item import LineItem
+        from .order import Order
+
+        if filters is None:
+            filters = {}
+
+        headers = [
+            'Invoice Number',
+            'Invoice Date',
+            'Invoice Status',
+            'Sales Order Number',
+            'Invoice Status on Boxoffice',
+            'GST Identification Number (GSTIN)',
+            'Seller GSTIN',
+            'Currency Code',
+            # 'Place of Supply',
+            'Customer Name',
+            'Email',
+            'invoicee_company',
+            'Is Inclusive Tax',
+            'Item Type',
+            'Item Price',
+            'Item Tax %',
+            # 'Quantity',
+            'Billing Address',
+            'Billing Street2',
+            'Billing City',
+            'Billing State',
+            'Billing Country',
+            'Billing Code',
+            'line_item_id',
+            # TODO: Figure out outer join for item name
+            # 'item_name',
+            # TODO: Add the following fields
+            # 'project',
+        ]
+        invoices_query = (
+            sa.select(
+                Invoice.invoice_no,
+                Invoice.invoiced_at,
+                sa.literal('DRAFT'),
+                Order.id,
+                Invoice.status,
+                Invoice.buyer_taxid,
+                Invoice.seller_taxid,
+                sa.literal('INR'),
+                Invoice.invoicee_name,
+                Invoice.invoicee_email,
+                Invoice.invoicee_company,
+                sa.literal('true'),
+                sa.literal('service'),
+                LineItem.final_amount,
+                sa.literal(18),
+                # count(LineItem.id),
+                Invoice.street_address_1,
+                Invoice.street_address_2,
+                Invoice.city,
+                Invoice.state_code,
+                Invoice.country_code,
+                Invoice.postcode,
+                LineItem.id,
+                # ItemCollection.title,
+            )
+            .where(Invoice.organization_id == self.id)
+            .select_from(Invoice)
+            .join(Order)
+            .join(LineItem)
+            # .group_by(LineItem.id)
+            # .outerjoin(
+            #     ItemCollection,
+            #     sa.and_(
+            #         LineItem.ticket_id == Item.id,
+            #         Item.menu_id == ItemCollection.id
+            #     )
+            # )
+            .order_by(Invoice.invoiced_at)
             .order_by(Invoice.invoice_no)
         )
+        if 'year' in filters and 'month' in filters:
+            invoices_query = invoices_query.filter(
+                sa.extract('year', Invoice.invoiced_at) == filters['year']
+            ).filter(sa.extract('month', Invoice.invoiced_at) == filters['month'])
+        if 'from' in filters:
+            invoices_query = invoices_query.filter(
+                Invoice.invoiced_at >= filters['from']
+            )
+        if 'to' in filters:
+            invoices_query = invoices_query.filter(Invoice.invoiced_at <= filters['to'])
         return HeadersAndDataTuple(
             headers, db.session.execute(invoices_query).fetchall()
         )
 
 
 # Tail imports
-from .invoice import Invoice  # isort:skip
-
 
 if TYPE_CHECKING:
     from .discount_policy import DiscountPolicy
+    from .invoice import Invoice
     from .item_collection import ItemCollection
     from .line_item import Assignee
     from .order import Order

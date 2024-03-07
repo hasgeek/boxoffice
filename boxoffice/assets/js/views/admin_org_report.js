@@ -16,12 +16,16 @@ export const OrgReportView = {
         scope_id: accountName,
         root: true,
       }),
-    }).done(({ account_title: accountTitle, siteadmin }) => {
+    }).done(({ account_title: accountTitle }) => {
       // Initial render
       const currentDate = new Date();
-      const currentYear = currentDate.getFullYear();
+      const currentYear = String(currentDate.getFullYear());
       // month starts from 0
-      const currentMonth = currentDate.getMonth() + 1;
+      const currentMonth = String(currentDate.getMonth() + 1).padStart(2, '0');
+      const prevMonth = String(
+        ((currentDate.getMonth() + 11) % 12) + 1
+      ).padStart(2, '0');
+      const toDate = String(currentDate.getDate()).padStart(2, '0');
       const reportComponent = new Ractive({
         el: '#main-content-area',
         template: OrgReportTemplate,
@@ -29,8 +33,28 @@ export const OrgReportView = {
         data: {
           accountTitle,
           reportType: 'invoices',
-          monthYear: `${currentYear}-${currentMonth}`,
-          siteadmin,
+          periodType: 'all',
+          periodMonth: `${currentYear}-${prevMonth}`,
+          currentMonth: `${currentYear}-${currentMonth}`,
+          periodFrom: `${currentYear}-${currentMonth}-01`,
+          periodTo: `${currentYear}-${currentMonth}-${toDate}`,
+          hideForSettlementsClass() {
+            return this.get('reportType') === 'settlements' ? 'hide' : '';
+          },
+          showForZBInvoicesClass() {
+            return this.get('reportType') === 'invoices_zoho_books'
+              ? ''
+              : 'hide';
+          },
+          periodMonthlyClass() {
+            if (this.get('reportType') === 'settlements') return '';
+            return this.get('periodType') !== 'monthly' ? 'hide' : '';
+          },
+          periodCustomClass() {
+            return this.get('periodType') !== 'custom'
+              ? 'hide'
+              : this.get('hideForSettlementsClass')();
+          },
           reportsUrl() {
             const reportType = this.get('reportType');
             const url = urlFor('index', {
@@ -40,19 +64,48 @@ export const OrgReportView = {
               ext: 'csv',
               root: true,
             });
+            const params = {};
             if (reportType === 'settlements') {
-              const [year, month] = this.get('monthYear').split('-');
-              return `${url}?year=${year}&month=${month}`;
+              const periodMonth = this.get('periodMonth');
+              if (periodMonth)
+                [params.year, params.month] = periodMonth.split('-');
+            } else {
+              params.type = this.get('periodType');
+              switch (params.type) {
+                case 'monthly':
+                  params.month = this.get('periodMonth');
+                  break;
+                case 'custom':
+                  params.from = this.get('periodFrom');
+                  params.to = this.get('periodTo');
+                  break;
+                default:
+                  break;
+              }
             }
-            return url;
+            return `${url}?${$.param(params)}`;
           },
           reportsFilename() {
+            let filename = `${accountName}_${this.get('reportType')}`;
             if (this.get('reportType') === 'settlements') {
-              return `${accountName}_${this.get('reportType')}_${this.get(
-                'monthYear'
-              )}.csv`;
+              filename += `_${this.get('periodMonth')}`;
+            } else {
+              const periodType = this.get('periodType');
+              switch (periodType) {
+                case 'monthly':
+                  filename += `_${this.get('periodMonth')}`;
+                  break;
+                case 'custom':
+                  filename += `_${this.get('periodFrom')}_${this.get(
+                    'periodTo'
+                  )}`;
+                  break;
+                default:
+                  break;
+              }
             }
-            return `${accountName}_${this.get('reportType')}.csv`;
+            filename += '.csv';
+            return filename;
           },
         },
       });

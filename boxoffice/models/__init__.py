@@ -6,7 +6,6 @@ from typing import Annotated, TypeAlias
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.orm import DeclarativeBase, Mapped
-from sqlalchemy_json import mutable_json_type
 import sqlalchemy as sa
 
 from coaster.sqlalchemy import (
@@ -40,7 +39,6 @@ timestamptz_now: TypeAlias = Annotated[
     datetime,
     sa.orm.mapped_column(sa.TIMESTAMP(timezone=True), default=sa.func.utcnow()),
 ]
-
 
 TimestampMixin.__with_timezone__ = True
 db = SQLAlchemy(metadata=Model.metadata, query_class=Query)  # type: ignore[arg-type]

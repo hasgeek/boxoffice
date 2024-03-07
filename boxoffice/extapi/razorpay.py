@@ -80,12 +80,12 @@ def get_settled_transactions(date_range, tz=None):
         "Transaction external to Boxoffice. Credited directly to Razorpay?"
     )
 
-    for settled_transaction in settled_transactions['tickets']:
+    for settled_transaction in settled_transactions['items']:
         if settled_transaction['type'] == 'settlement':
             rows.append(
                 {
                     'settlement_id': settled_transaction['entity_id'],
-                    'settlement_amount': settled_transaction['amount'],
+                    'settlement_amount': settled_transaction['amount'] / 100,
                     'settled_at': settled_transaction['settled_at'],
                     'transaction_type': settled_transaction['type'],
                 }
@@ -102,9 +102,9 @@ def get_settled_transactions(date_range, tz=None):
                         'transaction_type': settled_transaction['type'],
                         'order_id': order.id,
                         'payment_id': settled_transaction['entity_id'],
-                        'razorpay_fees': settled_transaction['fee'],
+                        'razorpay_fees': settled_transaction['fee'] / 100,
                         'transaction_date': localize_timezone(order.paid_at, tz),
-                        'credit': settled_transaction['credit'],
+                        'credit': settled_transaction['credit'] / 100,
                         'buyer_fullname': order.buyer_fullname,
                         'menu': order.menu.title,
                     }
@@ -128,7 +128,7 @@ def get_settled_transactions(date_range, tz=None):
                     {
                         'settlement_id': settled_transaction['settlement_id'],
                         'payment_id': settled_transaction['entity_id'],
-                        'credit': settled_transaction['credit'],
+                        'credit': settled_transaction['credit'] / 100,
                         'description': external_transaction_msg,
                     }
                 )
@@ -149,11 +149,11 @@ def get_settled_transactions(date_range, tz=None):
                     'payment_id': settled_transaction['payment_id'],
                     'transaction_type': settled_transaction['type'],
                     'order_id': order.id,
-                    'razorpay_fees': settled_transaction['fee'],
-                    'debit': settled_transaction['debit'],
+                    'razorpay_fees': settled_transaction['fee'] / 100,
+                    'debit': settled_transaction['debit'] / 100,
                     'buyer_fullname': order.buyer_fullname,
                     'description': refund.refund_description,
-                    'amount': refund.amount,
+                    'amount': refund.amount / 100,
                     'menu': order.menu.title,
                 }
             )
