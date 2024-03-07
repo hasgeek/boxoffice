@@ -6,7 +6,6 @@ from typing import Annotated, TypeAlias
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.orm import DeclarativeBase, Mapped
-from sqlalchemy_json import mutable_json_type
 import sqlalchemy as sa
 
 from coaster.sqlalchemy import (
@@ -18,7 +17,6 @@ from coaster.sqlalchemy import (
     BaseScopedNameMixin,
     DynamicMapped,
     IdMixin,
-    JsonDict,
     MarkdownColumn,
     ModelBase,
     Query,
@@ -41,19 +39,6 @@ timestamptz_now: TypeAlias = Annotated[
     datetime,
     sa.orm.mapped_column(sa.TIMESTAMP(timezone=True), default=sa.func.utcnow()),
 ]
-jsonb: TypeAlias = Annotated[
-    dict,
-    sa.orm.mapped_column(JsonDict()),
-]
-jsonb_dict: TypeAlias = Annotated[
-    dict,
-    sa.orm.mapped_column(
-        JsonDict(),
-        nullable=False,
-        server_default=sa.text("'{}'::jsonb"),
-    ),
-]
-
 
 TimestampMixin.__with_timezone__ = True
 db = SQLAlchemy(metadata=Model.metadata, query_class=Query)  # type: ignore[arg-type]
