@@ -130,7 +130,7 @@ class Organization(ProfileBase, Model):
             .where(Invoice.organization_id == self.id)
             .select_from(Invoice)
             .join(Order)
-            .order_by(Invoice.invoice_no)
+            .order_by(Invoice.invoiced_at)
         )
         if 'year' in filters and 'month' in filters:
             invoices_query = invoices_query.filter(
