@@ -205,7 +205,7 @@ def send_ticket_reassignment_mail(
             )
         order = line_item.order
 
-        subject = _("{title}: Your ticket has been transfered to someone else").format(
+        subject = _("{title}: Your ticket has been transferred to someone else").format(
             title=order.menu.title
         )
         msg = Message(
