@@ -82,7 +82,7 @@ class LineItem(BaseMixin[UUID, User], Model):
     ticket_id: Mapped[UUID] = sa.orm.mapped_column(
         'item_id', sa.ForeignKey('item.id'), index=True, unique=False
     )
-    ticket: Mapped[Item] = relationship(back_populates='line_items')
+    ticket: Mapped[Ticket] = relationship(back_populates='line_items')
     previous_id: Mapped[UUID | None] = sa.orm.mapped_column(
         sa.ForeignKey('line_item.id'), unique=True
     )
@@ -143,13 +143,13 @@ class LineItem(BaseMixin[UUID, User], Model):
         # make named tuples for line items,
         # assign the base_amount for each of them, None if a ticket is unavailable
         for line_item in line_items:
-            ticket: Item | None
+            ticket: Ticket | None
             if isinstance(line_item, LineItem):
                 ticket = line_item.ticket
                 base_amount = line_item.base_amount
                 line_item_id = line_item.id
             else:
-                ticket = Item.query.get(line_item['ticket_id'])
+                ticket = Ticket.query.get(line_item['ticket_id'])
                 if ticket is None:
                     continue
                 current_price = ticket.current_price()
@@ -252,9 +252,7 @@ class LineItem(BaseMixin[UUID, User], Model):
         )
 
 
-def counts_per_date_per_item(
-    menu: ItemCollection, user_tz: tzinfo
-) -> dict[date, dict[str, int]]:
+def counts_per_date_per_item(menu: Menu, user_tz: tzinfo) -> dict[date, dict[str, int]]:
     """
     Return number of line items sold per date per ticket.
 
@@ -344,12 +342,12 @@ def calculate_weekly_sales(
             sa.func.sum(LineItem.final_amount).label('sum'),
         )
         .select_from(LineItem)
-        .join(Item, LineItem.ticket_id == Item.id)
+        .join(Ticket, LineItem.ticket_id == Ticket.id)
         .where(
             LineItem.status.in_(
                 [LineItemStatus.CONFIRMED.value, LineItemStatus.CANCELLED.value]
             ),
-            Item.menu_id.in_(menu_ids),
+            Ticket.menu_id.in_(menu_ids),
             sa.func.timezone(user_tz, sa.func.timezone('UTC', LineItem.ordered_at))
             >= start_at,
             sa.func.timezone(user_tz, sa.func.timezone('UTC', LineItem.ordered_at))
@@ -377,10 +375,10 @@ def sales_delta(user_tz: tzinfo, ticket_ids: Sequence[str]):
 
 
 # Tail import
-from .item import Item  # isort:skip
+from .ticket import Ticket  # isort:skip
 from .line_item_discounter import LineItemDiscounter  # isort:skip
 
 if TYPE_CHECKING:
     from .discount_policy import DiscountCoupon, DiscountPolicy
-    from .item_collection import ItemCollection
+    from .menu import Menu
     from .order import Order

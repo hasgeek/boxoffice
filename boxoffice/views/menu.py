@@ -11,14 +11,14 @@ from ..models import (
     Category,
     CurrencySymbol,
     DiscountPolicy,
-    Item,
-    ItemCollection,
+    Menu,
     Organization,
+    Ticket,
 )
 from .utils import cors, sanitize_coupons, xhr_only
 
 
-def jsonify_ticket(ticket: Item):
+def jsonify_ticket(ticket: Ticket):
     if ticket.restricted_entry:
         code_list = (
             sanitize_coupons(request.args.getlist('code'))
@@ -62,7 +62,7 @@ def jsonify_ticket(ticket: Item):
 
 def jsonify_category(category: Category):
     category_items = []
-    for ticket in Item.get_by_category(category):
+    for ticket in Ticket.get_by_category(category):
         ticket_json = jsonify_ticket(ticket)
         if ticket_json:
             category_items.append(ticket_json)
@@ -101,8 +101,8 @@ def boxofficejs():
 @app.route('/menu/<menu_id>', methods=['GET', 'OPTIONS'])
 @xhr_only
 @cors
-@load_models((ItemCollection, {'id': 'menu_id'}, 'menu'))
-def view_menu(menu: ItemCollection):
+@load_models((Menu, {'id': 'menu_id'}, 'menu'))
+def view_menu(menu: Menu):
     categories_json = []
     for category in menu.categories:
         category_json = jsonify_category(category)
@@ -120,12 +120,12 @@ def view_menu(menu: ItemCollection):
 @load_models(
     (Organization, {'name': 'org'}, 'organization'),
     (
-        ItemCollection,
+        Menu,
         {'name': 'menu_name', 'organization': 'organization'},
         'menu',
     ),
 )
-def menu_listing(organization: Organization, menu: ItemCollection):
+def menu_listing(organization: Organization, menu: Menu):
     show_title = getbool(request.args.get('show_title', True))
     return render_template(
         'item_collection_listing.html.jinja2',

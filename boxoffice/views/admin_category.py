@@ -6,7 +6,7 @@ from coaster.views import ReturnRenderWith, load_models, render_with
 
 from .. import app, lastuser
 from ..forms import CategoryForm
-from ..models import Category, ItemCollection, db
+from ..models import Category, Menu, db
 from .utils import api_error, api_success
 
 
@@ -46,8 +46,8 @@ def jsonify_new_category(data_dict):
 @render_with(
     {'text/html': 'index.html.jinja2', 'application/json': jsonify_new_category}
 )
-@load_models((ItemCollection, {'id': 'menu_id'}, 'menu'), permission='org_admin')
-def admin_new_category(menu: ItemCollection) -> ReturnRenderWith:
+@load_models((Menu, {'id': 'menu_id'}, 'menu'), permission='org_admin')
+def admin_new_category(menu: Menu) -> ReturnRenderWith:
     return {'menu': menu}
 
 

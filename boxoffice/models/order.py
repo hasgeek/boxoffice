@@ -55,7 +55,7 @@ class Order(BaseMixin[UUID, User], Model):
     menu_id: Mapped[UUID] = sa.orm.mapped_column(
         'item_collection_id', sa.ForeignKey('item_collection.id')
     )
-    menu: Mapped[ItemCollection] = relationship(back_populates='orders')
+    menu: Mapped[Menu] = relationship(back_populates='orders')
     organization_id: Mapped[int] = sa.orm.mapped_column(
         sa.ForeignKey('organization.id')
     )
@@ -250,5 +250,5 @@ class OrderSession(BaseMixin[UUID, User], Model):
 
 if TYPE_CHECKING:
     from .invoice import Invoice
-    from .item_collection import ItemCollection
+    from .menu import Menu
     from .payment import OnlinePayment, PaymentTransaction
