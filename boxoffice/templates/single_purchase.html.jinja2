@@ -1,0 +1,665 @@
+{%raw%}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<div class="payment-stages-wrapper">
+  {{#tabs:tab}}
+    {{#if id === 'boxoffice-selectItems' && id === activeTab}}
+      <div id='{{id}}' class="boxoffice-section ticket-selection-content boxoffice-clearfix" intro-outro='fly:{"x":0,"y":"0"}'>
+        {{#section.categories}}
+          <div id="{{name}}">
+            <div>
+            {{#tickets}}{{# { ticket: . } }}
+              {{#order.line_items}} {{# { line_item: . } }}
+                {{#if line_item.ticket_name === ticket.name }}
+                  <div class="ticket-booking boxoffice-clearfix {{#line_item.quantity}}ticket-selected{{/}}" id="{{line_item.ticket_name}}">
+                    <div class="ticket-details">
+                      <p class="ticket-title">{{ line_item.ticket_title }}</p>
+                      <div class="ticket-description">{{{ line_item.ticket_description }}}</div>
+                    </div>
+                    {{#refund_policy}}
+                      <div class="policy">
+                        <p class="policy-title">Cancellation and transfer</p>
+                        {{{refund_policy}}}
+                      </div>
+                    {{/}}
+                  </div>
+                {{/if}}
+              {{/}}{{/order.line_items}}
+            {{/}}{{/tickets}}
+            </div>
+          </div>
+        {{/section.categories}}
+        <div class="proceed-button-wrapper" intro='fly:{"x":200,"y":"0"}'>
+          <div class="ticket-total {{#loadingPrice}}grey-out{{/}} boxoffice-clearfix">
+            {{#loadingPrice && !isLoadingFail}}
+              <div class="loader"><faicon icon='spinner' icon_size='headline', baseline=true></faicon></div>
+            {{/}}
+            <p class="price"><span class="final-amount">&#8377;{{ order.final_amount }}</span></p>
+          </div>
+          <button id="stage1-proceed" class="boxoffice-button boxoffice-button-action" on-click="checkout(event)">Continue</button>
+        </div>
+        {{#errorMsg }}
+          <p class="stage-error-msg">{{ errorMsg }}</p>
+        {{/}}
+      </div>
+    {{elseif id === 'boxoffice-attendee-details' && id === activeTab}}
+      <div id='{{id}}' class="boxoffice-section clearfix" intro='fly:{"x":600,"y":"0"}'>
+        <p class="confirmation-icon"><faicon icon='id-card' icon_size='display1', baseline=true></faicon></p>
+        <p class="confirmation-header">Almost done!</p>
+        <div class="confirmation-msg">
+          <p>Your membership to The Fifth Elephant is being processed...</p>
+          <p class="processing-message"><faicon icon='clock' icon_size='caption', baseline=true></faicon>Please check back in 10 minutes.</p>
+        </div>
+        {{#refund_policy}}
+          <div class="policy">
+            {{{refund_policy}}}
+          </div>
+        {{/}}
+        <p>For any queries contact <b>support@hasgeek.com</b></p>
+      </div>
+    {{/if}}
+  {{/}}
+</div>
+{%endraw%}
+<style>
+  .fa5-icon {
+    width: 14px;
+    height: 14px;
+    fill: currentColor
+  }
+  .fa5--align-baseline {
+    position: relative;
+    top: .09em
+  }
+  .fa5-icon--caption {
+    width: 12px;
+    height: 12px
+  }
+  .fa5-icon--body {
+    width: 14px;
+    height: 14px
+  }
+  .fa5-icon--subhead {
+    width: 16px;
+    height: 16px
+  }
+  .fa5-icon--title {
+    width: 18px;
+    height: 18px
+  }
+  .fa5-icon--heading {
+    width: 20px;
+    height: 20px
+  }
+  .fa5-icon--headline {
+    width: 24px;
+    height: 24px
+  }
+  .fa5-icon--display1 {
+    width: 32px;
+    height: 32px
+  }
+  #boxoffice-widget {
+    max-width: 1000px;
+    margin: auto;
+    padding-top: 16px;
+  }
+  .boxoffice-button {
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 18px;
+    text-transform: uppercase;
+    color: #1f2d3d;
+    background-color: #fff;
+    transition: all .2s ease-in-out;
+    display: inline-block;
+    height: 36px;
+    padding: 0 26px;
+    margin: 6px 0;
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+    touch-action: manipulation;
+    background-image: none;
+    text-align: center;
+    line-height: 36px;
+    vertical-align: middle;
+    white-space: nowrap;
+    user-select: none;
+    font-size: 14px;
+    font-family: inherit;
+    letter-spacing: .03em;
+    position: relative;
+    overflow: hidden;
+  }
+  .boxoffice-button-action {
+    color: #fff;
+    background-color: #0f73ed;
+  }
+  .boxoffice-button-action:hover,
+  .boxoffice-button-action:active  {
+    color: #fff;
+    background-color: #2481f1;
+    text-decoration: none;
+  }
+  .boxoffice-button-info {
+    color: #fff;
+    background-color: #424242;
+  }
+  .boxoffice-button-info:hover,
+  .boxoffice-button-info:active {
+    color: #fff;
+    background-color: #4f4f4f;
+    text-decoration: none;
+  }
+  .boxoffice-clearfix:after, .boxoffice-clearfix:before {
+    display: table;
+    content: " ";
+    clear: both;
+  }
+  .boxoffice-hidden {
+    display: none !important;
+  }
+
+  .payment-progress-wrapper {
+    background-color: #fff;
+    padding: 16px;
+  }
+  .progress-indicator {
+      display: -webkit-box;
+      display: -moz-box;
+      display: -ms-flexbox;
+      display: -webkit-flex;
+      display: flex;
+      margin: 0;
+      padding: 0;
+      font-size: 0.8em;
+      text-transform: uppercase
+  }
+  .progress-indicator>li {
+      -ms-flex: 1;
+      -webkit-flex: 1;
+      -moz-flex: 1;
+      flex: 1;
+      list-style: none;
+      text-align: center;
+      width: auto;
+      padding: 0;
+      margin: 0;
+      position: relative;
+      text-overflow: ellipsis;
+      color: #1f2d3d;
+      display: block
+  }
+  .progress-indicator>li.completed,
+  .progress-indicator>li.completed .bubble {
+      color: #0f72ed
+  }
+  .progress-indicator>li .bubble {
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      background-color: #f1f1f1;
+      display: block;
+      margin: 0 auto 4px;
+  }
+  .progress-indicator>li .bubble:after,
+  .progress-indicator>li .bubble:before {
+      display: block;
+      position: absolute;
+      top: 9px;
+      width: 100%;
+      height: 3px;
+      content: '';
+      background-color: #f1f1f1
+  }
+  .progress-indicator>li.completed .bubble,
+  .progress-indicator>li.completed .bubble:after,
+  .progress-indicator>li.completed .bubble:before {
+      background-color: #0f72ed;
+  }
+  .progress-indicator>li .bubble:before {
+      left: 0
+  }
+  .progress-indicator>li .bubble:after {
+      right: 0
+  }
+  .progress-indicator>li.active,
+  .progress-indicator>li.active .bubble {
+      color: #0f72ed
+  }
+  .progress-indicator>li.active .bubble,
+  .progress-indicator>li.active .bubble:after,
+  .progress-indicator>li.active .bubble:before {
+      background-color: #0f72ed;
+  }
+  .payment-stages-wrapper {
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+  }
+  .boxoffice-section {
+    width: 100%;
+    padding: 0 24px 24px;
+    border-top-width: 0;
+    min-height: 450px;
+    margin-top: -12px;
+    box-sizing: border-box;
+  }
+  .category-heading {
+    background-color: #f1f1f1;
+    color: #1f2d3d  ;
+    position: relative;
+    font-size: 20px;
+    width: auto;
+    display: inline-block;
+    margin: 0 0 0 -16px;
+    padding: 16px 74px 16px 16px;
+    z-index: 1;
+    text-transform: uppercase;
+    line-height: 1;
+    font-weight: 500;
+  }
+  .category-heading:after {
+    content: "";
+    display: block;
+    position: absolute;
+    right: 0;
+    top: 0px;
+    border-style: solid;
+    border-color: #f1f1f1 #f9f9f9 #f1f1f1 #f1f1f1;
+    border-width: 25px;
+    z-index: 2;
+    background-color: #FFF;
+  }
+  .ticket-booking {
+    padding: 8px 16px;
+    margin: 0 -16px;
+    border-bottom: 1px solid rgba(77, 87, 99, 0.1);
+  }
+  .ticket-selected {
+    background-color: rgba(221, 163, 42, 0.09);
+  }
+  .ticket-details {
+    width: 100%;
+    word-break: break-word;
+    margin-top: 8px;
+    width: 100%;
+  }
+  .ticket-title {
+    font-size: 24px;
+    padding-bottom: 16px;
+    margin: 8px 0;
+    font-weight: bold;
+    border-bottom: 1px solid rgba(77, 87, 99, 0.1);
+  }
+  .discount {
+    margin: 4px 0;
+    font-style: italic;
+    color: #e42c42;
+    font-size: 14px;
+  }
+  .applied {
+    color: #008000;
+  }
+  .valid-upto {
+    font-style: italic;
+    margin: 4px 0;
+    color: #4d5763;
+    font-size: 14px;
+  }
+  .ticket-description p {
+    font-size: 16px;
+    margin: 8px 0;
+  }
+  .ticket-description ul {
+    list-style-type: disc;
+    list-style-position: outside;
+    padding-left: 1em;
+  }
+  .ticket-description .fa {
+    padding-right: 4px;
+  }
+  .few-ticket {
+    margin: 0 0 4px;
+    width: 200px;
+    font-size: 12px;
+    font-style: italic;
+  }
+  .available-count {
+    color: #e42c42;
+  }
+  .ticket-price-qty {
+    margin-top: 16px;
+    position: relative;
+    min-width: 190px;
+    width: 100%;
+  }
+  .price-details-wrapper {
+    margin: 0 0 8px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    width: 100%;
+  }
+  .ticket-price-wrapper {
+    position: relative;
+  }
+  .ticket-price {
+    font-size: 24px;
+    margin: 0;
+    padding-right: 16px;
+  }
+  .discount-price {
+    position: absolute;
+    bottom: 23px;
+    padding: 0;
+    line-height: 1;
+  }
+  .strike {
+    text-decoration: line-through;
+    color: #aaa;
+  }
+  .multiplier {
+    padding-right: 16px;
+    font-size: 18px;
+  }
+  .ticket-qty-wrapper {
+    border-radius: 8px;
+    outline: medium none;
+    color: #1f2d3d;
+    padding: 0;
+    overflow: hidden;
+    background: #fff;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+  }
+  .ticket-qty {
+    min-width: 32px;
+    border: 0px none;
+    background: #fff;
+    -webkit-text-fill-color: #1f2d3d;
+    color: #1f2d3d;
+    display: inline-block;
+    text-align: center;
+    vertical-align: middle;
+    font-size: 24px;
+  }
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type=number] {
+    -moz-appearance: textfield;
+  }
+  .increment, .decrement {
+    font-size: 18px;
+    background-color: #f1f1f1;
+    height: 100%;
+    border: 0;
+    padding: 8px 16px;
+    vertical-align: top;
+  }
+  .increment:focus, .decrement:focus {
+    outline:0;
+  }
+  .discount-amount, .subtotal {
+    margin: 4px 0;
+  }
+  .sold-out {
+    color: #fff;
+    background: #e42c42;
+    width: 100px;
+    border-radius: 0 10px 0 10px;
+    padding: 4px;
+    margin: 0;
+    text-align: center;
+    box-shadow: 1px 1px 1px rgba(0,0,0,0.3);
+    font-weight: bold;
+  }
+  .item-amount {
+    clear: both;
+    color: #888;
+    margin: 10px 0 0;
+  }
+  .item-amount .rupee-sign {
+    padding-left: 4px;
+  }
+  .ticket-total {
+    clear: both;
+    width: 100%;
+    max-width: 270px;
+    margin: 0;
+    padding: 0;
+    position: relative;
+  }
+  .grey-out {
+    opacity: 0.5;
+  }
+  .policy {
+    clear: both;
+    padding: 16px;
+    background: #f1f1f1;
+    border-radius: 16px;
+  }
+  .policy-title {
+    font-size: 18px !important;
+    font-weight: 600;
+    line-height: 24px;
+  }
+  .policy p {
+    margin: 4px 0;
+  }
+  .loader {
+    position: absolute;
+    right: 0px;
+    z-index: 1000;
+    height: 100%;
+    top: 0px;
+    left: 0px;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+  }
+  .stage-error-msg {
+    font-size: 0.9em;
+    clear: both;
+    margin: 0px 0 10px;
+    color: #b94a48;
+  }
+  .boxoffice-form {
+    max-width: 650px;
+    margin: auto;
+  }
+  .boxoffice-form.top-margin {
+    margin-top: 25px;
+  }
+  .boxoffice-form .group {
+    position: relative;
+    margin-bottom: 45px;
+    clear: both;
+  }
+  @media(min-width: 1200px) {
+    .boxoffice-form .inline-group.left-group {
+      width: 45%;
+      float: left;
+      clear: both;
+    }
+    .boxoffice-form .inline-group.right-group {
+      width: 45%;
+      float: right;
+      clear: none;
+    }
+  }
+  .boxoffice-form .group-input {
+    padding: 8px 8px 8px 0;
+    display: block;
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid #c0ccda;
+    box-shadow: none;
+    background: transparent;
+  }
+  .boxoffice-form .group-input:focus {
+    outline:none;
+  }
+  .boxoffice-form .group-label {
+    color: #c0ccda;
+    margin: 0;
+    font-weight: normal;
+    position: absolute;
+    pointer-events: none;
+    left: 0;
+    top: 6px;
+    transition: 0.2s ease all;
+    -moz-transition: 0.2s ease all;
+    -webkit-transition: 0.2s ease all;
+  }
+  .boxoffice-form .group-input:focus ~ .group-label,
+  .boxoffice-form .group-input.filled ~ .group-label {
+    top: -16px;
+    color: #0f73ed;
+  }
+  .boxoffice-form .group-select select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 100%;
+    padding: 10px 10px 10px 1px;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    border-bottom: 1px solid #0f73ed;
+    position: relative;
+    top: 2px;
+  }
+  .boxoffice-form .group-select select:-moz-focusring {
+    color: transparent;
+    text-shadow: 0 0 0 #000;
+  }
+  .boxoffice-form .group-select select:focus{
+    outline: 0;
+  }
+  .boxoffice-form .group-select{
+    position: relative;
+    margin-bottom: 45px;
+  }
+  .boxoffice-form .group-select:after {
+    position: absolute;
+    top: 22px;
+    right: 2px;
+    width: 0;
+    height: 0;
+    padding: 0;
+    content: '';
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid #757575;
+    pointer-events: none;
+  }
+  .boxoffice-form .form-help-text {
+    font-size: 0.9em;
+    color: #aaa;
+    margin: 10px 0;
+    position: relative;
+    top: -40px;
+    left: 5px;
+  }
+  .boxoffice-form .form-error-msg {
+    color: #fff;
+    margin: 8px 0 0;
+    background: #f04e45;
+    border: 1px solid rgba(240,78,69,0.2);
+    padding: 8px 16px;
+    position: relative;
+    box-shadow: 0 2px 4px 0 rgb(0 0 0 / 14%);
+    border-radius: 2px;
+    display: inline-block;
+    font-size: 12px;
+    width: auto;
+  }
+  .boxoffice-form .form-error-msg::before {
+    display: block;
+    content: '';
+    position: absolute;
+    border: 6px solid transparent;
+    border-bottom: 6px solid #f04e45;
+    top: -13px;
+    left: 20px;
+  }
+  .buyer-form-title, .summary {
+    text-align: center;
+    font-size: 16px;
+    margin: 16px 0;
+  }
+  .item-summary {
+    border-bottom: 1px dotted #CCC;
+    padding: 4px 0;
+  }
+  .booked-ticket-title {
+    font-size: 20px;
+  }
+  .booked-ticket-title .ticket-icon {
+    padding-right: 8px;
+    vertical-align: text-bottom;
+  }
+  .booked-ticket-qty,
+  .discount-applied {
+    text-align: right;
+    margin-bottom: 5px;
+  }
+  .discount-applied {
+    color: green;
+  }
+  .final-amount {
+    float: left;
+  }
+  .price {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 600;
+  }
+  .proceed-button-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+  }
+  .left-btn-margin {
+    margin-right: 8px;
+  }
+  .confirmation-icon {
+    color: green;
+    padding: 16px 0 0;
+    text-align: center;
+    margin: 0 auto;
+  }
+  .confirmation-header {
+    font-size: 24px;
+    color: green;
+    text-align: center;
+    margin: 8px 0 0;
+  }
+  .confirmation-msg {
+    font-size: 16px;
+    text-align: center;
+    clear: both;
+    max-width: 800px;
+    margin: 16px auto;
+  }
+  .confirmation-msg p {
+    margin: 8px 0;
+  }
+  .name {
+    text-align: left;
+    margin: 0;
+  }
+  .receipt-btn-wrapper {
+    text-align: center;
+    margin: 8px;
+  }
+</style>
