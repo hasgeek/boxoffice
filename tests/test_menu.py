@@ -4,7 +4,7 @@ import json
 import pytest
 
 from boxoffice import app
-from boxoffice.models import ItemCollection
+from boxoffice.models import Menu
 
 expected_keys = ['categories', 'currency', 'html', 'refund_policy']
 expected_categories_names = ['conference', 'workshop', 'merchandise']
@@ -57,7 +57,7 @@ expected_data = {
 
 @pytest.fixture()
 def resp(client, all_data):
-    menu = ItemCollection.query.one()
+    menu = Menu.query.one()
     return client.get(
         f'/menu/{menu.id}',
         headers=[

@@ -26,15 +26,15 @@ from boxoffice.models import (
     CurrencyEnum,
     Invoice,
     InvoiceStatus,
-    Item,
-    ItemCollection,
     LineItem,
     LineItemStatus,
+    Menu,
     OnlinePayment,
     Order,
     OrderStatus,
     Organization,
     PaymentTransaction,
+    Ticket,
     db,
     sa,
 )
@@ -92,12 +92,12 @@ def calculate_weekly_sales(
             sa.func.sum(LineItem.final_amount).label('sum'),
         )
         .select_from(LineItem)
-        .join(Item, LineItem.ticket_id == Item.id)
+        .join(Ticket, LineItem.ticket_id == Ticket.id)
         .where(
             LineItem.status.in_(
                 [LineItemStatus.CONFIRMED.value, LineItemStatus.CANCELLED.value]
             ),
-            Item.menu_id.in_(menu_ids),
+            Ticket.menu_id.in_(menu_ids),
             sa.func.timezone(user_tz, sa.func.timezone('UTC', LineItem.ordered_at))
             >= start_at,
             sa.func.timezone(user_tz, sa.func.timezone('UTC', LineItem.ordered_at))
@@ -285,7 +285,7 @@ def resend_attendee_details_email(
     menu_title: str = "",
     sender_team_member_name: str = "Team Hasgeek",
 ) -> None:
-    menu = ItemCollection.query.get(menu_id)
+    menu = Menu.query.get(menu_id)
     if menu is None:
         raise ValueError("Unknown item collection")
     headers, rows = menu.fetch_all_details()

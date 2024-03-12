@@ -25,3 +25,5 @@ monkeytype.sqlite3
 .env
 .env.testing
 .envrc
+.DS_Store
+.venv

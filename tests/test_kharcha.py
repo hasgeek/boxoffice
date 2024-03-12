@@ -7,11 +7,11 @@ from flask import url_for
 from coaster.utils import make_name
 
 from boxoffice import app
-from boxoffice.models import DiscountCoupon, DiscountPolicy, Item
+from boxoffice.models import DiscountCoupon, DiscountPolicy, Ticket
 
 
 def test_undiscounted_kharcha(client, all_data) -> None:
-    first_item = Item.query.filter_by(name='conference-ticket').one()
+    first_item = Ticket.query.filter_by(name='conference-ticket').one()
     undiscounted_quantity = 2
     kharcha_req = {
         'line_items': [
@@ -51,7 +51,7 @@ def test_undiscounted_kharcha(client, all_data) -> None:
 
 
 def test_expired_ticket_kharcha(client, all_data) -> None:
-    expired_ticket = Item.query.filter_by(name='expired-ticket').one()
+    expired_ticket = Ticket.query.filter_by(name='expired-ticket').one()
     quantity = 2
     kharcha_req = {
         'line_items': [{'ticket_id': str(expired_ticket.id), 'quantity': quantity}]
@@ -76,7 +76,7 @@ def test_expired_ticket_kharcha(client, all_data) -> None:
 
 
 def test_expired_discounted_item_kharcha(client, all_data) -> None:
-    expired_ticket = Item.query.filter_by(name='expired-ticket').one()
+    expired_ticket = Ticket.query.filter_by(name='expired-ticket').one()
     quantity = 2
     coupon = DiscountCoupon.query.filter_by(code='couponex').one()
     kharcha_req = {
@@ -102,7 +102,7 @@ def test_expired_discounted_item_kharcha(client, all_data) -> None:
 
 
 def test_discounted_bulk_kharcha(client, all_data) -> None:
-    first_item = Item.query.filter_by(name='conference-ticket').one()
+    first_item = Ticket.query.filter_by(name='conference-ticket').one()
     discounted_quantity = 10
     kharcha_req = {
         'line_items': [
@@ -151,7 +151,7 @@ def test_discounted_bulk_kharcha(client, all_data) -> None:
 
 
 def test_discounted_coupon_kharcha(client, all_data) -> None:
-    first_item = Item.query.filter_by(name='conference-ticket').one()
+    first_item = Ticket.query.filter_by(name='conference-ticket').one()
     coupon: DiscountCoupon = DiscountCoupon.query.filter_by(code='coupon1').one()
     discounted_quantity = 1
     kharcha_req = {
@@ -200,7 +200,7 @@ def test_discounted_coupon_kharcha(client, all_data) -> None:
 
 
 def test_signed_discounted_coupon_kharcha(client, all_data) -> None:
-    first_item = Item.query.filter_by(name='conference-ticket').one()
+    first_item = Ticket.query.filter_by(name='conference-ticket').one()
     signed_policy = DiscountPolicy.query.filter_by(name='signed').one()
     code = signed_policy.gen_signed_code()
     discounted_quantity = 2
@@ -248,7 +248,7 @@ def test_signed_discounted_coupon_kharcha(client, all_data) -> None:
 
 
 def test_unlimited_coupon_kharcha(client, all_data) -> None:
-    first_item = Item.query.filter_by(name='conference-ticket').one()
+    first_item = Ticket.query.filter_by(name='conference-ticket').one()
     coupon_code = 'unlimited'
     discounted_quantity = 5
     kharcha_req = {
@@ -298,7 +298,7 @@ def test_unlimited_coupon_kharcha(client, all_data) -> None:
 
 
 def test_coupon_limit(client, all_data) -> None:
-    first_item = Item.query.filter_by(name='conference-ticket').one()
+    first_item = Ticket.query.filter_by(name='conference-ticket').one()
     coupon = DiscountCoupon.query.filter_by(code='coupon1').one()
     discounted_quantity = 2
     kharcha_req = {
@@ -345,7 +345,7 @@ def test_coupon_limit(client, all_data) -> None:
 
 
 def test_discounted_price_kharcha(client, all_data) -> None:
-    first_item = Item.query.filter_by(name='conference-ticket').one()
+    first_item = Ticket.query.filter_by(name='conference-ticket').one()
     coupon = DiscountCoupon.query.filter_by(code='forever').one()
     discounted_quantity = 1
     kharcha_req = {
@@ -386,7 +386,7 @@ def test_discounted_price_kharcha(client, all_data) -> None:
 
 
 def test_discount_policy_without_price_kharcha(client, all_data) -> None:
-    first_item = Item.query.filter_by(name='conference-ticket').one()
+    first_item = Ticket.query.filter_by(name='conference-ticket').one()
     coupon = DiscountCoupon.query.filter_by(code='noprice').one()
     discounted_quantity = 1
     kharcha_req = {
@@ -415,7 +415,7 @@ def test_discount_policy_without_price_kharcha(client, all_data) -> None:
 
 
 def test_zero_discounted_price_kharcha(client, all_data) -> None:
-    first_item = Item.query.filter_by(name='conference-ticket').one()
+    first_item = Ticket.query.filter_by(name='conference-ticket').one()
     coupon = DiscountCoupon.query.filter_by(code='zerodi').one()
     discounted_quantity = 1
     kharcha_req = {
@@ -455,7 +455,7 @@ def test_zero_discounted_price_kharcha(client, all_data) -> None:
 
 
 def test_discounted_complex_kharcha(client, all_data) -> None:
-    first_item = Item.query.filter_by(name='conference-ticket').one()
+    first_item = Ticket.query.filter_by(name='conference-ticket').one()
     discounted_quantity = 9
     coupon2 = DiscountCoupon.query.filter_by(code='coupon2').one()
     coupon3 = DiscountCoupon.query.filter_by(code='coupon3').one()

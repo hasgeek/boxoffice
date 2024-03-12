@@ -21,10 +21,10 @@ from .payment import PaymentTransaction
 from .user import Organization, User
 from .utils import HeadersAndDataTuple
 
-__all__ = ['ItemCollection']
+__all__ = ['Menu']
 
 
-class ItemCollection(BaseScopedNameMixin[UUID, User], Model):
+class Menu(BaseScopedNameMixin[UUID, User], Model):
     """Represent a collection of tickets."""
 
     __tablename__ = 'item_collection'
@@ -49,9 +49,9 @@ class ItemCollection(BaseScopedNameMixin[UUID, User], Model):
         collection_class=ordering_list('seq', count_from=1),
         back_populates='menu',
     )
-    tickets: Mapped[list[Item]] = relationship(
+    tickets: Mapped[list[Ticket]] = relationship(
         cascade='all, delete-orphan',
-        order_by='Item.seq',
+        order_by=lambda: Ticket.seq,
         collection_class=ordering_list('seq', count_from=1),
         back_populates='menu',
     )
@@ -85,7 +85,7 @@ class ItemCollection(BaseScopedNameMixin[UUID, User], Model):
             )
             .outerjoin(DiscountCoupon, LineItem.discount_coupon_id == DiscountCoupon.id)
             .outerjoin(DiscountPolicy, LineItem.discount_policy_id == DiscountPolicy.id)
-            .join(Item)
+            .join(Ticket)
             .join(Order)
             .outerjoin(OrderSession)
         )
@@ -95,7 +95,7 @@ class ItemCollection(BaseScopedNameMixin[UUID, User], Model):
                 LineItem.id,
                 LineItem.customer_order_id,
                 Order.receipt_no,
-                Item.title,
+                Ticket.title,
                 LineItem.base_amount,
                 LineItem.discounted_amount,
                 LineItem.final_amount,
@@ -176,7 +176,7 @@ class ItemCollection(BaseScopedNameMixin[UUID, User], Model):
                     LineItem.id == Assignee.line_item_id, Assignee.current.is_(True)
                 ),
             )
-            .join(Item)
+            .join(Ticket)
             .join(Order)
         )
         line_item_query = (
@@ -184,7 +184,7 @@ class ItemCollection(BaseScopedNameMixin[UUID, User], Model):
                 Order.receipt_no,
                 LineItem.line_item_seq,
                 LineItem.id,
-                Item.title,
+                Ticket.title,
                 Assignee.fullname,
                 Assignee.email,
                 Assignee.phone,
@@ -246,7 +246,7 @@ class ItemCollection(BaseScopedNameMixin[UUID, User], Model):
 # Tail imports
 from .discount_policy import DiscountCoupon, DiscountPolicy  # isort:skip
 from .line_item import Assignee, LineItem  # isort:skip
-from .item import Item  # isort:skip
+from .ticket import Ticket  # isort:skip
 from .order import Order, OrderSession  # isort:skip
 
 if TYPE_CHECKING:

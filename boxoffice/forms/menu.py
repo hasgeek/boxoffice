@@ -4,10 +4,10 @@ from baseframe import __, forms, localized_country_list
 
 from ..data import indian_states, indian_states_dict
 
-__all__ = ['ItemCollectionForm']
+__all__ = ['MenuForm']
 
 
-class ItemCollectionForm(forms.Form):
+class MenuForm(forms.Form):
     title = forms.StringField(
         __("Item Collection title"),
         validators=[

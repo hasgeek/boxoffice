@@ -17,6 +17,5 @@ python-dotenv
 pytz
 rq
 SQLAlchemy
-sqlalchemy-json
 SQLAlchemy-Utils
 typing-extensions

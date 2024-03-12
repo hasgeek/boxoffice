@@ -6,9 +6,9 @@ from .. import app, lastuser
 from ..models import (
     CurrencySymbol,
     InvoiceStatus,
-    ItemCollection,
     LineItem,
     LineItemStatus,
+    Menu,
     Order,
     OrderStatus,
     Organization,
@@ -100,8 +100,8 @@ def jsonify_admin_orders(data_dict):
 @render_with(
     {'text/html': 'index.html.jinja2', 'application/json': jsonify_admin_orders}
 )
-@load_models((ItemCollection, {'id': 'menu_id'}, 'menu'), permission='org_admin')
-def admin_orders(menu: ItemCollection) -> ReturnRenderWith:
+@load_models((Menu, {'id': 'menu_id'}, 'menu'), permission='org_admin')
+def admin_orders(menu: Menu) -> ReturnRenderWith:
     return {
         'title': menu.title,
         'menu': menu,
