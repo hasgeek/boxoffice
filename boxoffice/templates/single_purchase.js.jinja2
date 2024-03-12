@@ -526,60 +526,11 @@ $(function() {
           });
           boxoffice.ractive.scrollTop();
 
-          var validationConfig = [{
-            name: 'fullname',
-            rules: 'required|max_length[80]'
-          },
-          {
-            name: 'email',
-            rules: 'required|valid_email'
-          },
-          {
-            name: 'phone',
-            rules: 'required|callback_validate_phone'
-          }];
-
-          var formValidator = new FormValidator('buyer-form', validationConfig, function(errors, event) {
-            event.preventDefault();
-            boxoffice.ractive.set('tabs.payment.errormsg', '');
-            if (errors.length > 0) {
-              boxoffice.ractive.set('tabs.payment.errormsg.' + errors[0].name, errors[0].message);
-              boxoffice.ractive.scrollTop();
-            } else {
-              boxoffice.ractive.set('tabs.payment.loadingOrder', true);
-              boxoffice.ractive.sendOrder();
-            }
-          });
-
-          formValidator.setMessage('required', 'Please fill out the %s field');
-          formValidator.setMessage('valid_email', 'Please enter a valid email');
-
-          formValidator.registerCallback('validate_phone', function(phone) {
-            //Remove all punctations (except +) and letters
-            phone = phone.replace(/[^0-9+]/g,'');
-            boxoffice.ractive.set('buyer.phone', phone);
-
-            var validPhone = /^\+[0-9]+$/;
-
-            if (phone.length > 16) {
-              formValidator.setMessage('validate_phone', "Please enter a valid mobile number");
-              return false;
-            } else if (phone.match(validPhone)) {
-              //Indian number starting with '+91'
-              if (phone.indexOf('+91') === 0 && phone.length != 13) {
-                formValidator.setMessage('validate_phone', "Please enter a valid Indian mobile number");
-                return false;
-              }
-            } else {
-              formValidator.setMessage('validate_phone', "Please prefix your phone number with '+' and country code.");
-              return false;
-            }
-          });
+          boxoffice.ractive.set('tabs.payment.loadingOrder', true);
+          boxoffice.ractive.sendOrder();
         },
         sendOrder: function() {
           boxoffice.ractive.fire('eventAnalytics', 'order creation', 'sendOrder', boxoffice.ractive.get('order.final_amount'));
-          var buyerForm = '#boxoffice-buyer-form';
-          var buyerDetails = boxoffice.ractive.getFormJSObject(buyerForm);
 
           $.post({
             url: boxoffice.config.resources.purchaseOrder.urlFor(),
@@ -587,19 +538,6 @@ $(function() {
             dataType: 'json',
             headers: {'X-Requested-With': 'XMLHttpRequest'},
             contentType: 'application/json',
-            data: JSON.stringify({
-              buyer: buyerDetails,
-              line_items: boxoffice.ractive.get('order.line_items').filter(function(line_item) {
-                return line_item.quantity > 0;
-              }).map(function(line_item) {
-                return {
-                  ticket_id: line_item.ticket_id,
-                  quantity: line_item.quantity
-                };
-              }),
-              order_session: boxoffice.util.getUtmHeaders(),
-              discount_coupons: boxoffice.util.getDiscountCodes()
-            }),
             timeout: 50000,
             retries: 5,
             retryInterval: 5000,
@@ -607,9 +545,6 @@ $(function() {
               boxoffice.ractive.set({
                 'tabs.payment.loadingOrder': false,
                 'tabs.payment.errorMsg' : '',
-                'order.order_id': data.result.order_id,
-                'order.access_token': data.result.order_access_token,
-                'order.final_amount': data.result.final_amount
               });
               if (boxoffice.ractive.get('order.final_amount') === 0){
                 boxoffice.ractive.completeFreeOrder(data.result.free_order_url);
@@ -674,7 +609,7 @@ $(function() {
               "contact": boxoffice.ractive.get('buyer.phone')
             },
             "theme": {
-              "color": "#F37254"
+              "color": "#FFF"
             },
             "modal": {
               "ondismiss": function() {
