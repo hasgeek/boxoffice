@@ -108,11 +108,18 @@ def view_menu(menu: ItemCollection):
         category_json = jsonify_category(category)
         if category_json:
             categories_json.append(category_json)
+    if len(menu.categories) == 1 and len(category_json['tickets']) == 1:
+        html = render_template('single_purchase.html.jinja2')
+        subscription_purchase = True
+    else:
+        html = render_template('boxoffice.html.jinja2')
+        subscription_purchase = False
     return jsonify(
-        html=render_template('single_purchase.html.jinja2'),
+        html=html,
         categories=categories_json,
         refund_policy=menu.organization.details.get('refund_policy', ''),
         currency=CurrencySymbol.INR,
+        subscription_purchase=subscription_purchase
     )
 
 
