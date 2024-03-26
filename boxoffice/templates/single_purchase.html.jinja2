@@ -16,6 +16,28 @@
                       <p class="ticket-title">{{ line_item.ticket_title }}</p>
                       <div class="ticket-description">{{{ line_item.ticket_description }}}</div>
                     </div>
+                    <div class="ticket-price-qty">
+                      {{#if line_item.is_available}}
+                        {{#if line_item.quantity >= line_item.quantity_available}}
+                          <p class="few-ticket"><span class="available-count">Only {{line_item.quantity_available}} available</span></p>
+                        {{elseif line_item.quantity_available < 5}}
+                          <p class="few-ticket"><span>Only a few tickets left</span></p>
+                        {{/if}}
+                        {{#line_item.discount_policies}}
+                          <div class="discount-box">
+                            {{#if is_automatic || activated || pre_applied }}
+                              <p class="discount {{#activated}}applied{{/}}">
+                                <faicon icon='gift-solid' baseline=true css_class='applied {{#if !activated && !isLoadingFail}}boxoffice-hidden{{/if}}'></faicon> {{ title }}  {{#if percentage}}<span>- {{ percentage }}% off</span>{{/if}}
+                              </p>
+                            {{/if}}
+                          </div>
+                        {{/line_item.discount_policies}}
+                      {{else}}
+                        <div class="sold-out-wrapper" intro='fly:{"x":100,"y":"0"}'>
+                          <p class="sold-out">Sold out</p>
+                        </div>
+                      {{/if}}
+                    </div>
                   </div>
                 {{/if}}
               {{/}}{{/order.line_items}}
@@ -34,7 +56,7 @@
             {{#loadingPrice && !isLoadingFail}}
               <div class="loader"><faicon icon='spinner' icon_size='headline', baseline=true></faicon></div>
             {{/}}
-            <p class="price"><span class="final-amount">&#8377;{{ order.final_amount }}</span></p>
+            <p class="price">Total: <span class="final-amount">&#8377;{{ order.final_amount }}</span></p>
           </div>
           {{#order.readyToCheckout}}
             <button id="stage1-proceed" class="boxoffice-button boxoffice-button-action" on-click="confirmOrder(event)" {{#loadingOrder}}disabled{{/}}>buy now {{#loadingOrder}}<faicon icon='spinner' icon_size='caption', baseline=true intro='fly:{"x":0,"y":"0"}'></faicon>{{/}}</button>
@@ -202,7 +224,7 @@
         <div class="confirmation-img">
           <img src="https://images.hasgeek.com/embed/file/c358d0930d00425da8a8f159e57b0138" />
         </div>
-        <p class="confirmation-header">Almost done!</p>
+        <p class="confirmation-header">Almost there!</p>
         <div class="confirmation-msg">
           {{#if invoice.isFilled}}<p>Thank you for submitting the details, we will mail you the invoice shortly. {{/if}}
           <p>To complete your registration, we need a few more details.</p>
@@ -210,6 +232,12 @@
         <div class="receipt-btn-wrapper">
           <a href="{{ buyer.attendeeAssignmentURL }}" target="_blank" class="boxoffice-button boxoffice-button-action" on-click="fire('eventAnalytics','fill attendee details', 'attendee details')">Fill attendee details</a>
         </div>
+        {{#refund_policy}}
+          <div class="policy">
+            <p class="policy-title">Cancellation and transfer</p>
+            {{{refund_policy}}}
+          </div>
+        {{/}}
       </div>
     {{/if}}
   {{/}}
@@ -366,13 +394,12 @@
     border-bottom: 1px solid rgba(77, 87, 99, 0.1);
   }
   .discount {
-    margin: 4px 0;
-    font-style: italic;
-    color: #e42c42;
-    font-size: 14px;
-  }
-  .applied {
-    color: #008000;
+    color: #21B685;
+    padding: 16px;
+    background: rgba(225, 253, 228, 0.75);
+    clear: both;
+    border-radius: 8px;
+    overflow-x: hidden;
   }
   .valid-upto {
     font-style: italic;
@@ -395,7 +422,7 @@
   .few-ticket {
     margin: 0 0 4px;
     width: 200px;
-    font-size: 12px;
+    font-size: 16px;
     font-style: italic;
   }
   .available-count {
@@ -687,9 +714,6 @@
   .discount-applied {
     color: green;
   }
-  .final-amount {
-    float: left;
-  }
   .price {
     margin: 0;
     font-size: 28px;
@@ -700,6 +724,9 @@
     justify-content: space-between;
     align-items: center;
     margin-top: 16px;
+  }
+  .booking-summary {
+     margin: 16px 0;
   }
   .booking-price {
     margin: 0;
@@ -718,8 +745,11 @@
     margin: 0 auto;
   }
   .confirmation-img {
-    width: 200px;
-    margin: 0 auto;
+    width: 160px;
+    margin: 24px auto;
+  }
+  .confirmation-img img {
+    width: 100%;
   }
   .confirmation-header {
     font-size: 24px;
@@ -743,6 +773,6 @@
   }
   .receipt-btn-wrapper {
     text-align: center;
-    margin: 8px;
+    margin: 8px 8px 24px;
   }
 </style>

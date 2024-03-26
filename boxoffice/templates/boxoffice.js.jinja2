@@ -719,13 +719,19 @@ $(function() {
               boxoffice.ractive.set({
                 'tabs.payment.loadingPaymentConfirmation': false,
                 'tabs.payment.complete': true,
-                'activeTab': boxoffice.ractive.get('tabs.invoice.id'),
-                'invoice.invoice_id': data.result.invoice_id,
-                'invoice.invoicee_name': boxoffice.ractive.get('buyer.fullname'),
-                'invoice.invoicee_email': boxoffice.ractive.get('buyer.email'),
                 'buyer.cashReceiptURL': boxoffice.config.resources.receipt.urlFor(boxoffice.ractive.get('order.access_token')),
                 'buyer.attendeeAssignmentURL': boxoffice.config.resources.attendeeAssignment.urlFor(boxoffice.ractive.get('order.access_token'))
               });
+              if(boxoffice.ractive.get('subscriptionPurchase')) {
+                boxoffice.ractive.set('activeTab',  boxoffice.ractive.get('tabs.attendeeDetails.id'));
+              } else {
+                boxoffice.ractive.set({
+                  'activeTab': boxoffice.ractive.get('tabs.invoice.id'),
+                  'invoice.invoice_id': data.result.invoice_id,
+                  'invoice.invoicee_name': boxoffice.ractive.get('buyer.fullname'),
+                  'invoice.invoicee_email': boxoffice.ractive.get('buyer.email')
+                });
+              }
               boxoffice.ractive.fire('eventAnalytics', 'booking complete', 'confirmPayment success', boxoffice.ractive.get('order.final_amount'));
             },
             error: function(response) {

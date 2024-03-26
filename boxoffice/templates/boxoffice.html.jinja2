@@ -26,7 +26,7 @@
                   <div class="ticket-booking boxoffice-clearfix {{#line_item.quantity}}ticket-selected{{/}}" id="{{line_item.ticket_name}}">
                     <div class="ticket-details">
                       <p class="ticket-title">{{ line_item.ticket_title }}</p>
-                      <div class="ticket-description">{{{ line_item.ticket_description }}}</div>
+                      <div class="ticket-description">{{{ line_item.ticket_description_text }}}</div>
                     </div>
                     <div class="ticket-price-qty">
                       {{#if line_item.is_available}}
@@ -103,6 +103,7 @@
         {{/}}
         {{#refund_policy}}
           <div class="policy">
+            <p class="policy-title">Cancellation and transfer</p>
             {{{refund_policy}}}
           </div>
         {{/}}
@@ -651,6 +652,11 @@
   .policy {
     clear: both;
     padding-top: 10px;
+  }
+  .policy-title {
+    font-size: 18px !important;
+    font-weight: 600;
+    line-height: 24px;
   }
   .policy p {
     margin: 4px 0;

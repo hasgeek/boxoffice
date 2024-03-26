@@ -60,6 +60,10 @@ class LineItemForm(forms.Form):
 class BuyerForm(forms.Form):
     email = forms.EmailField(
         __("Email"),
+        validators=[
+            forms.validators.DataRequired(__("Please enter an email address")),
+            forms.validators.Length(min=5, max=80),
+        ],
     )
     fullname = forms.StringField(
         __("Full name"),

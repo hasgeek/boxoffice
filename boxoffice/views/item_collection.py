@@ -54,6 +54,7 @@ def jsonify_ticket(ticket: Item):
                 'id': policy.id,
                 'title': policy.title,
                 'is_automatic': policy.is_automatic,
+                'percentage': policy.percentage,
             }
             for policy in ticket.discount_policies
         ],
