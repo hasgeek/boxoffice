@@ -3,13 +3,13 @@ from __future__ import annotations
 from collections.abc import Sequence
 from datetime import date
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 from sqlalchemy.ext.hybrid import hybrid_property
 
 from baseframe import _
-from coaster.sqlalchemy import JsonDict, LazyRoleSet, Query, with_roles
+from coaster.sqlalchemy import JsonDict, Query, role_check, with_roles
 from coaster.utils import utcnow
 
 from . import (
@@ -85,11 +85,12 @@ class Ticket(BaseScopedNameMixin[UUID, User], Model):
         }
     }
 
-    def roles_for(self, actor=None, anchors: Sequence[Any] = ()) -> LazyRoleSet:
-        roles = super().roles_for(actor, anchors)
-        if self.menu.organization.userid in actor.organizations_owned_ids():
-            roles.add('item_owner')
-        return roles
+    @role_check('item_owner')
+    def has_item_owner_role(self, actor: User | None, _anchors=()) -> bool:
+        return (
+            actor is not None
+            and self.menu.organization.userid in actor.organizations_owned_ids()
+        )
 
     def current_price(self) -> Price | None:
         """Return the current price object for a ticket."""
@@ -260,16 +261,12 @@ class Price(BaseScopedNameMixin[UUID, User], Model):
         }
     }
 
-    def roles_for(
-        self, actor: User | None = None, anchors: Sequence[Any] = ()
-    ) -> LazyRoleSet:
-        roles = super().roles_for(actor, anchors)
-        if (
+    @role_check('price_owner')
+    def has_price_owner_role(self, actor: User | None, _anchors=()) -> bool:
+        return (
             actor is not None
             and self.ticket.menu.organization.userid in actor.organizations_owned_ids()
-        ):
-            roles.add('price_owner')
-        return roles
+        )
 
     @property
     def discount_policy_title(self):
