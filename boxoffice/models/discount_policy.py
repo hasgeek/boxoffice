@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 from uuid import UUID
 import secrets
 import string
@@ -13,7 +13,7 @@ from itsdangerous import BadSignature, Signer
 from sqlalchemy.orm.exc import MultipleResultsFound
 from werkzeug.utils import cached_property
 
-from coaster.sqlalchemy import LazyRoleSet
+from coaster.sqlalchemy import role_check
 from coaster.utils import buid, uuid1mc
 
 from . import (
@@ -132,16 +132,12 @@ class DiscountPolicy(BaseScopedNameMixin[UUID, User], Model):
         }
     }
 
-    def roles_for(
-        self, actor: User | None = None, anchors: Sequence[Any] = ()
-    ) -> LazyRoleSet:
-        roles = super().roles_for(actor, anchors)
-        if (
+    @role_check('dp_owner')
+    def has_dp_owner_role(self, actor: User | None, _anchors=()) -> bool:
+        return (
             actor is not None
             and self.organization.userid in actor.organizations_owned_ids()
-        ):
-            roles.add('dp_owner')
-        return roles
+        )
 
     def __init__(self, *args, **kwargs) -> None:
         secret = kwargs.pop('secret', None)
