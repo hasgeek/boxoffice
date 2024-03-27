@@ -9,7 +9,7 @@ from flask_migrate import Migrate
 from flask_rq2 import RQ
 from pytz import timezone
 
-from baseframe import Version, assets, baseframe
+from baseframe import Version, baseframe
 from baseframe.utils import JSONProvider
 from coaster.assets import WebpackManifest
 from flask_lastuser import Lastuser
@@ -28,7 +28,6 @@ manifest = WebpackManifest(app, filepath='static/build/manifest.json')
 # --- Assets ---------------------------------------------------------------------------
 
 version = Version(__version__)
-assets['boxoffice.js'][version] = 'js/scripts.js'
 
 # --- Import rest of the app -----------------------------------------------------------
 
@@ -38,8 +37,8 @@ from .models import (  # NOQA  # isort:skip
     DiscountCoupon,
     DiscountPolicy,
     Invoice,
-    Item,
-    ItemCollection,
+    Ticket,
+    Menu,
     Organization,
     Price,
     User,

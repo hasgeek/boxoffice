@@ -8,7 +8,7 @@ from coaster.utils import getbool
 from coaster.views import ReturnRenderWith, load_models, render_with
 
 from .. import app, lastuser
-from ..models import ItemCollection, Organization
+from ..models import Menu, Organization
 from ..models.line_item import calculate_weekly_sales
 from ..models.payment import calculate_weekly_refunds
 from .utils import api_error, api_success, check_api_access
@@ -39,8 +39,8 @@ def index() -> ReturnRenderWith:
 
 def jsonify_org(data):
     menu_list = (
-        ItemCollection.query.filter(ItemCollection.organization == data['org'])
-        .order_by(ItemCollection.created_at.desc())
+        Menu.query.filter(Menu.organization == data['org'])
+        .order_by(Menu.created_at.desc())
         .all()
     )
     return jsonify(

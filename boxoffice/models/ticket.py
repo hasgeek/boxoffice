@@ -3,13 +3,13 @@ from __future__ import annotations
 from collections.abc import Sequence
 from datetime import date
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 from sqlalchemy.ext.hybrid import hybrid_property
 
 from baseframe import _
-from coaster.sqlalchemy import JsonDict, LazyRoleSet, Query, with_roles
+from coaster.sqlalchemy import JsonDict, Query, role_check, with_roles
 from coaster.utils import utcnow
 
 from . import (
@@ -30,10 +30,10 @@ from .discount_policy import item_discount_policy
 from .enums import LineItemStatus
 from .user import User
 
-__all__ = ['Item', 'Price']
+__all__ = ['Ticket', 'Price']
 
 
-class Item(BaseScopedNameMixin[UUID, User], Model):
+class Ticket(BaseScopedNameMixin[UUID, User], Model):
     __tablename__ = 'item'
     __table_args__ = (sa.UniqueConstraint('item_collection_id', 'name'),)
 
@@ -42,8 +42,8 @@ class Item(BaseScopedNameMixin[UUID, User], Model):
     menu_id: Mapped[UUID] = sa.orm.mapped_column(
         'item_collection_id', sa.ForeignKey('item_collection.id')
     )
-    menu: Mapped[ItemCollection] = relationship(back_populates='tickets')
-    parent: Mapped[ItemCollection] = sa.orm.synonym('menu')
+    menu: Mapped[Menu] = relationship(back_populates='tickets')
+    parent: Mapped[Menu] = sa.orm.synonym('menu')
     category_id: Mapped[int] = sa.orm.mapped_column(sa.ForeignKey('category.id'))
     category: Mapped[Category] = relationship(back_populates='tickets')
     quantity_total: Mapped[int] = sa.orm.mapped_column(default=0)
@@ -85,11 +85,12 @@ class Item(BaseScopedNameMixin[UUID, User], Model):
         }
     }
 
-    def roles_for(self, actor=None, anchors: Sequence[Any] = ()) -> LazyRoleSet:
-        roles = super().roles_for(actor, anchors)
-        if self.menu.organization.userid in actor.organizations_owned_ids():
-            roles.add('item_owner')
-        return roles
+    @role_check('item_owner')
+    def has_item_owner_role(self, actor: User | None, _anchors=()) -> bool:
+        return (
+            actor is not None
+            and self.menu.organization.userid in actor.organizations_owned_ids()
+        )
 
     def current_price(self) -> Price | None:
         """Return the current price object for a ticket."""
@@ -128,8 +129,8 @@ class Item(BaseScopedNameMixin[UUID, User], Model):
         )
 
     @classmethod
-    def get_by_category(cls, category) -> Query[Item]:
-        return cls.query.filter(Item.category == category).order_by(cls.seq)
+    def get_by_category(cls, category) -> Query[Ticket]:
+        return cls.query.filter(Ticket.category == category).order_by(cls.seq)
 
     @hybrid_property
     def quantity_available(self) -> int:
@@ -231,7 +232,7 @@ class Price(BaseScopedNameMixin[UUID, User], Model):
     )
 
     ticket_id: Mapped[UUID] = sa.orm.mapped_column('item_id', sa.ForeignKey('item.id'))
-    ticket: Mapped[Item] = relationship(back_populates='prices')
+    ticket: Mapped[Ticket] = relationship(back_populates='prices')
 
     discount_policy_id: Mapped[UUID | None] = sa.orm.mapped_column(
         sa.ForeignKey('discount_policy.id')
@@ -240,7 +241,7 @@ class Price(BaseScopedNameMixin[UUID, User], Model):
         back_populates='prices'
     )
 
-    parent: Mapped[Item] = sa.orm.synonym('ticket')
+    parent: Mapped[Ticket] = sa.orm.synonym('ticket')
     start_at: Mapped[timestamptz_now]
     end_at: Mapped[timestamptz]
     amount: Mapped[Decimal] = sa.orm.mapped_column(default=Decimal(0))
@@ -260,16 +261,12 @@ class Price(BaseScopedNameMixin[UUID, User], Model):
         }
     }
 
-    def roles_for(
-        self, actor: User | None = None, anchors: Sequence[Any] = ()
-    ) -> LazyRoleSet:
-        roles = super().roles_for(actor, anchors)
-        if (
+    @role_check('price_owner')
+    def has_price_owner_role(self, actor: User | None, _anchors=()) -> bool:
+        return (
             actor is not None
             and self.ticket.menu.organization.userid in actor.organizations_owned_ids()
-        ):
-            roles.add('price_owner')
-        return roles
+        )
 
     @property
     def discount_policy_title(self):
@@ -290,4 +287,4 @@ from .line_item import LineItem  # isort:skip
 
 if TYPE_CHECKING:
     from .discount_policy import DiscountPolicy
-    from .item_collection import ItemCollection
+    from .menu import Menu

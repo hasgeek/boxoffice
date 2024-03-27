@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from baseframe import __, forms
 
-from ..models import Assignee, Item, LineItem, Order, OrderStatus
+from ..models import Assignee, LineItem, Order, OrderStatus, Ticket
 
 __all__ = ["AssigneeForm"]
 
@@ -25,7 +25,7 @@ class AssigneeForm(forms.Form):
     def validate_email(self, field: forms.Field) -> None:
         existing_assignees = (
             Assignee.query.join(LineItem, Assignee.line_item_id == LineItem.id)
-            .join(Item)
+            .join(Ticket)
             .join(Order)
             .filter(LineItem.ticket_id == self.edit_parent.ticket_id)
             .filter(Order.status != OrderStatus.CANCELLED)

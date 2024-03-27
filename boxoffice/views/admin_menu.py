@@ -6,10 +6,10 @@ from coaster.utils import utcnow
 from coaster.views import ReturnRenderWith, load_models, render_with
 
 from .. import app, lastuser
-from ..forms import ItemCollectionForm
-from ..models import ItemCollection, Organization, db
+from ..forms import MenuForm
+from ..models import Menu, Organization, db
 from ..models.line_item import counts_per_date_per_item, sales_by_date, sales_delta
-from .admin_item import format_ticket_details
+from .admin_ticket import format_ticket_details
 from .utils import api_error, api_success
 
 
@@ -40,8 +40,8 @@ def jsonify_menu(menu_dict):
 @app.route('/admin/menu/<menu_id>')
 @lastuser.requires_login
 @render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_menu})
-@load_models((ItemCollection, {'id': 'menu_id'}, 'menu'), permission='org_admin')
-def admin_menu(menu: ItemCollection) -> ReturnRenderWith:
+@load_models((Menu, {'id': 'menu_id'}, 'menu'), permission='org_admin')
+def admin_menu(menu: Menu) -> ReturnRenderWith:
     ticket_ids = [str(ticket.id) for ticket in menu.tickets]
     date_ticket_counts = {}
     date_sales = {}
@@ -66,7 +66,7 @@ def admin_menu(menu: ItemCollection) -> ReturnRenderWith:
 
 
 def jsonify_new_menu(menu_dict):
-    ic_form = ItemCollectionForm()
+    ic_form = MenuForm()
     if request.method == 'GET':
         return jsonify(
             form_template=render_form(
@@ -78,7 +78,7 @@ def jsonify_new_menu(menu_dict):
             ).get_data(as_text=True)
         )
     if ic_form.validate_on_submit():
-        menu = ItemCollection(organization=menu_dict['organization'])
+        menu = Menu(organization=menu_dict['organization'])
         ic_form.populate_obj(menu)
         if not menu.name:
             menu.make_name()
@@ -106,7 +106,7 @@ def admin_new_ic(organization: Organization) -> ReturnRenderWith:
 
 def jsonify_edit_menu(menu_dict):
     menu = menu_dict['menu']
-    ic_form = ItemCollectionForm(obj=menu)
+    ic_form = MenuForm(obj=menu)
     if request.method == 'GET':
         return jsonify(
             form_template=render_form(
@@ -135,6 +135,6 @@ def jsonify_edit_menu(menu_dict):
 @app.route('/admin/menu/<menu_id>/edit', methods=['POST', 'GET'])
 @lastuser.requires_login
 @render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_edit_menu})
-@load_models((ItemCollection, {'id': 'menu_id'}, 'menu'), permission='org_admin')
-def admin_edit_ic(menu: ItemCollection) -> ReturnRenderWith:
+@load_models((Menu, {'id': 'menu_id'}, 'menu'), permission='org_admin')
+def admin_edit_ic(menu: Menu) -> ReturnRenderWith:
     return {'menu': menu}

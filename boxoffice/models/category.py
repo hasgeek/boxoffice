@@ -5,6 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from uuid import UUID
 
+from coaster.sqlalchemy import role_check
+
 from . import BaseScopedNameMixin, Mapped, Model, relationship, sa
 from .user import User
 
@@ -21,22 +23,23 @@ class Category(BaseScopedNameMixin[int, User], Model):
     menu_id: Mapped[UUID] = sa.orm.mapped_column(
         'item_collection_id', sa.ForeignKey('item_collection.id')
     )
-    menu: Mapped[ItemCollection] = relationship(back_populates='categories')
+    menu: Mapped[Menu] = relationship(back_populates='categories')
     seq: Mapped[int]
-    tickets: Mapped[list[Item]] = relationship(
+    tickets: Mapped[list[Ticket]] = relationship(
         cascade='all, delete-orphan', back_populates='category'
     )
-    parent: Mapped[ItemCollection] = sa.orm.synonym('menu')
+    parent: Mapped[Menu] = sa.orm.synonym('menu')
 
     __roles__ = {'category_owner': {'read': {'id', 'name', 'title', 'menu_id'}}}
 
-    def roles_for(self, actor=None, anchors=()):
-        roles = super().roles_for(actor, anchors)
-        if self.menu.organization.userid in actor.organizations_owned_ids():
-            roles.add('category_owner')
-        return roles
+    @role_check('category_owner')
+    def has_category_owner_role(self, actor: User | None, _anchors=()) -> bool:
+        return (
+            actor is not None
+            and self.menu.organization.userid in actor.organizations_owned_ids()
+        )
 
 
 if TYPE_CHECKING:
-    from .item import Item
-    from .item_collection import ItemCollection
+    from .menu import Menu
+    from .ticket import Ticket

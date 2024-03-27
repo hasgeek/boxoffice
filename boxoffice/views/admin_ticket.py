@@ -6,8 +6,8 @@ from coaster.utils import utcnow
 from coaster.views import ReturnRenderWith, load_models, render_with, requestargs
 
 from .. import app, lastuser
-from ..forms import ItemForm, PriceForm
-from ..models import Item, ItemCollection, Organization, Price, db, sa
+from ..forms import PriceForm, TicketForm
+from ..models import Menu, Organization, Price, Ticket, db, sa
 from .utils import api_error, api_success, json_date_format, xhr_only
 
 
@@ -19,22 +19,21 @@ from .utils import api_error, api_success, json_date_format, xhr_only
 def tickets(organization: Organization, search: str | None = None):
     if search:
         filtered_tickets = (
-            db.session.query(Item, ItemCollection)
+            # FIXME: Query one, join the other
+            db.session.query(Ticket, Menu)
             .filter(
-                ItemCollection.organization_id == organization.id,
+                Menu.organization_id == organization.id,
                 sa.or_(
-                    sa.func.lower(Item.title).contains(search.lower(), autoescape=True),
-                    sa.func.lower(ItemCollection.title).contains(
+                    sa.func.lower(Ticket.title).contains(
                         search.lower(), autoescape=True
                     ),
+                    sa.func.lower(Menu.title).contains(search.lower(), autoescape=True),
                 ),
             )
-            .join(Item.menu)
+            .join(Ticket.menu)
             .options(
-                sa.orm.Load(Item).load_only(Item.id, Item.title),
-                sa.orm.Load(ItemCollection).load_only(
-                    ItemCollection.id, ItemCollection.title
-                ),
+                sa.orm.Load(Ticket).load_only(Ticket.id, Ticket.title),
+                sa.orm.Load(Menu).load_only(Menu.id, Menu.title),
             )
             .all()
         )
@@ -60,7 +59,7 @@ def jsonify_price(price):
     return price_details
 
 
-def format_demand_curve(ticket: Item):
+def format_demand_curve(ticket: Ticket):
     result = {}
     demand_counter = 0
 
@@ -73,7 +72,7 @@ def format_demand_curve(ticket: Item):
     return result
 
 
-def format_ticket_details(ticket: Item):
+def format_ticket_details(ticket: Ticket):
     ticket_details = dict(ticket.current_access())
     ticket_details['sold_count'] = ticket.sold_count()
     ticket_details['free_count'] = ticket.free_count()
@@ -112,14 +111,14 @@ def jsonify_item(data_dict):
 @app.route('/admin/ticket/<ticket_id>', methods=['GET'])
 @lastuser.requires_login
 @render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_item})
-@load_models((Item, {'id': 'ticket_id'}, 'ticket'), permission='org_admin')
-def admin_item(ticket: Item) -> ReturnRenderWith:
+@load_models((Ticket, {'id': 'ticket_id'}, 'ticket'), permission='org_admin')
+def admin_item(ticket: Ticket) -> ReturnRenderWith:
     return {'ticket': ticket}
 
 
 def jsonify_new_ticket(data_dict):
     menu = data_dict['menu']
-    ticket_form = ItemForm(parent=menu)
+    ticket_form = TicketForm(parent=menu)
     if request.method == 'GET':
         return jsonify(
             form_template=render_form(
@@ -127,7 +126,7 @@ def jsonify_new_ticket(data_dict):
             ).get_data(as_text=True)
         )
     if ticket_form.validate_on_submit():
-        ticket = Item(menu=menu)
+        ticket = Ticket(menu=menu)
         ticket_form.populate_obj(ticket)
         if not ticket.name:
             ticket.make_name()
@@ -148,14 +147,14 @@ def jsonify_new_ticket(data_dict):
 @app.route('/admin/menu/<menu_id>/ticket/new', methods=['GET', 'POST'])
 @lastuser.requires_login
 @render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_new_ticket})
-@load_models((ItemCollection, {'id': 'menu_id'}, 'menu'), permission='org_admin')
-def admin_new_item(menu: ItemCollection) -> ReturnRenderWith:
+@load_models((Menu, {'id': 'menu_id'}, 'menu'), permission='org_admin')
+def admin_new_item(menu: Menu) -> ReturnRenderWith:
     return {'menu': menu}
 
 
 def jsonify_edit_ticket(data_dict):
     ticket = data_dict['ticket']
-    ticket_form = ItemForm(obj=ticket)
+    ticket_form = TicketForm(obj=ticket)
     if request.method == 'GET':
         return jsonify(
             form_template=render_form(
@@ -185,8 +184,8 @@ def jsonify_edit_ticket(data_dict):
 @render_with(
     {'text/html': 'index.html.jinja2', 'application/json': jsonify_edit_ticket}
 )
-@load_models((Item, {'id': 'ticket_id'}, 'ticket'), permission='org_admin')
-def admin_edit_item(ticket: Item) -> ReturnRenderWith:
+@load_models((Ticket, {'id': 'ticket_id'}, 'ticket'), permission='org_admin')
+def admin_edit_item(ticket: Ticket) -> ReturnRenderWith:
     return {'ticket': ticket}
 
 
@@ -222,8 +221,8 @@ def jsonify_new_price(data_dict):
 @app.route('/admin/ticket/<ticket_id>/price/new', methods=['GET', 'POST'])
 @lastuser.requires_login
 @render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_new_price})
-@load_models((Item, {'id': 'ticket_id'}, 'ticket'), permission='org_admin')
-def admin_new_price(ticket: Item) -> ReturnRenderWith:
+@load_models((Ticket, {'id': 'ticket_id'}, 'ticket'), permission='org_admin')
+def admin_new_price(ticket: Ticket) -> ReturnRenderWith:
     return {'ticket': ticket}
 
 

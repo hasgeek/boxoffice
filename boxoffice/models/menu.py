@@ -6,6 +6,8 @@ from uuid import UUID
 
 from sqlalchemy.ext.orderinglist import ordering_list
 
+from coaster.sqlalchemy import role_check
+
 from . import (
     BaseScopedNameMixin,
     DynamicMapped,
@@ -21,10 +23,10 @@ from .payment import PaymentTransaction
 from .user import Organization, User
 from .utils import HeadersAndDataTuple
 
-__all__ = ['ItemCollection']
+__all__ = ['Menu']
 
 
-class ItemCollection(BaseScopedNameMixin[UUID, User], Model):
+class Menu(BaseScopedNameMixin[UUID, User], Model):
     """Represent a collection of tickets."""
 
     __tablename__ = 'item_collection'
@@ -49,9 +51,9 @@ class ItemCollection(BaseScopedNameMixin[UUID, User], Model):
         collection_class=ordering_list('seq', count_from=1),
         back_populates='menu',
     )
-    tickets: Mapped[list[Item]] = relationship(
+    tickets: Mapped[list[Ticket]] = relationship(
         cascade='all, delete-orphan',
-        order_by='Item.seq',
+        order_by=lambda: Ticket.seq,
         collection_class=ordering_list('seq', count_from=1),
         back_populates='menu',
     )
@@ -61,11 +63,12 @@ class ItemCollection(BaseScopedNameMixin[UUID, User], Model):
 
     __roles__ = {'ic_owner': {'read': {'id', 'name', 'title', 'description'}}}
 
-    def roles_for(self, actor=None, anchors=()):
-        roles = super().roles_for(actor, anchors)
-        if self.organization.userid in actor.organizations_owned_ids():
-            roles.add('ic_owner')
-        return roles
+    @role_check('ic_owner')
+    def has_ic_owner_role(self, actor: User | None, _anchors=()) -> bool:
+        return (
+            actor is not None
+            and self.organization.userid in actor.organizations_owned_ids()
+        )
 
     def fetch_all_details(self) -> HeadersAndDataTuple:
         """
@@ -85,7 +88,7 @@ class ItemCollection(BaseScopedNameMixin[UUID, User], Model):
             )
             .outerjoin(DiscountCoupon, LineItem.discount_coupon_id == DiscountCoupon.id)
             .outerjoin(DiscountPolicy, LineItem.discount_policy_id == DiscountPolicy.id)
-            .join(Item)
+            .join(Ticket)
             .join(Order)
             .outerjoin(OrderSession)
         )
@@ -95,7 +98,7 @@ class ItemCollection(BaseScopedNameMixin[UUID, User], Model):
                 LineItem.id,
                 LineItem.customer_order_id,
                 Order.receipt_no,
-                Item.title,
+                Ticket.title,
                 LineItem.base_amount,
                 LineItem.discounted_amount,
                 LineItem.final_amount,
@@ -176,7 +179,7 @@ class ItemCollection(BaseScopedNameMixin[UUID, User], Model):
                     LineItem.id == Assignee.line_item_id, Assignee.current.is_(True)
                 ),
             )
-            .join(Item)
+            .join(Ticket)
             .join(Order)
         )
         line_item_query = (
@@ -184,7 +187,7 @@ class ItemCollection(BaseScopedNameMixin[UUID, User], Model):
                 Order.receipt_no,
                 LineItem.line_item_seq,
                 LineItem.id,
-                Item.title,
+                Ticket.title,
                 Assignee.fullname,
                 Assignee.email,
                 Assignee.phone,
@@ -246,7 +249,7 @@ class ItemCollection(BaseScopedNameMixin[UUID, User], Model):
 # Tail imports
 from .discount_policy import DiscountCoupon, DiscountPolicy  # isort:skip
 from .line_item import Assignee, LineItem  # isort:skip
-from .item import Item  # isort:skip
+from .ticket import Ticket  # isort:skip
 from .order import Order, OrderSession  # isort:skip
 
 if TYPE_CHECKING:

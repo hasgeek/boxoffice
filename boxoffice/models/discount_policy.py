@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 from uuid import UUID
 import secrets
 import string
@@ -13,7 +13,7 @@ from itsdangerous import BadSignature, Signer
 from sqlalchemy.orm.exc import MultipleResultsFound
 from werkzeug.utils import cached_property
 
-from coaster.sqlalchemy import LazyRoleSet
+from coaster.sqlalchemy import role_check
 from coaster.utils import buid, uuid1mc
 
 from . import (
@@ -106,7 +106,7 @@ class DiscountPolicy(BaseScopedNameMixin[UUID, User], Model):
     discount_coupons: Mapped[list[DiscountCoupon]] = relationship(
         cascade='all, delete-orphan', back_populates='discount_policy'
     )
-    tickets: Mapped[list[Item]] = relationship(
+    tickets: Mapped[list[Ticket]] = relationship(
         secondary=item_discount_policy, back_populates='discount_policies'
     )
     prices: Mapped[list[Price]] = relationship(cascade='all, delete-orphan')
@@ -132,16 +132,12 @@ class DiscountPolicy(BaseScopedNameMixin[UUID, User], Model):
         }
     }
 
-    def roles_for(
-        self, actor: User | None = None, anchors: Sequence[Any] = ()
-    ) -> LazyRoleSet:
-        roles = super().roles_for(actor, anchors)
-        if (
+    @role_check('dp_owner')
+    def has_dp_owner_role(self, actor: User | None, _anchors=()) -> bool:
+        return (
             actor is not None
             and self.organization.userid in actor.organizations_owned_ids()
-        ):
-            roles.add('dp_owner')
-        return roles
+        )
 
     def __init__(self, *args, **kwargs) -> None:
         secret = kwargs.pop('secret', None)
@@ -205,7 +201,7 @@ class DiscountPolicy(BaseScopedNameMixin[UUID, User], Model):
 
     @classmethod
     def get_from_ticket(
-        cls, ticket: Item, qty, coupon_codes: Sequence[str] = ()
+        cls, ticket: Ticket, qty, coupon_codes: Sequence[str] = ()
     ) -> list[PolicyCoupon]:
         """
         Return a list of (discount_policy, discount_coupon) tuples.
@@ -260,7 +256,7 @@ class DiscountPolicy(BaseScopedNameMixin[UUID, User], Model):
         ).count()
 
     @classmethod
-    def is_valid_access_coupon(cls, ticket: Item, code_list):
+    def is_valid_access_coupon(cls, ticket: Ticket, code_list):
         """
         Check if any of code_list is a valid access code for the specified ticket.
 
@@ -368,4 +364,4 @@ sa.event.listen(
 from .line_item import LineItem  # isort:skip
 
 if TYPE_CHECKING:
-    from .item import Item, Price
+    from .ticket import Price, Ticket
