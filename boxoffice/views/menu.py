@@ -120,7 +120,7 @@ def view_menu(menu: Menu):
         categories=categories_json,
         refund_policy=menu.organization.details.get('refund_policy', ''),
         currency=CurrencySymbol.INR,
-        subscription_purchase=subscription_purchase
+        subscription_purchase=subscription_purchase,
     )
 
 
