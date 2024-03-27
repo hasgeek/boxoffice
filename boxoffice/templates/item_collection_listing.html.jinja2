@@ -38,7 +38,10 @@
       window.Boxoffice.init({
         org: organization_title, // Organisation to show
         menu: menu_id, // Menu ID to show
-        paymentDesc: organization_title // Description for payments widget
+        paymentDesc: organization_title, // Description for payments widget
+        user_name: "{{current_auth.user.fullname }}",
+        user_email: "{{ current_auth.user.email }}",
+        user_phone:  "{{ current_auth.user.phone }}",
       });
     });
   </script>

@@ -1,5 +1,6 @@
 *.pyc
 .sass-cache
+.venv
 error.log
 error.log.*
 instance/settings.py
