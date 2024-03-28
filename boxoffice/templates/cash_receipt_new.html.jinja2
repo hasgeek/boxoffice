@@ -97,20 +97,35 @@
     {%- endfor %}
   </table>
   <hr/>
-  <tr>
-    <td class="center">
-      <p>{{ currency_symbol }} {{ line_item.base_amount }}</p>
-    </td>
-    <td class="center">
-      <p>{{ currency_symbol }} {{ line_item.discounted_amount }}</p>
-      {% if line_item.discount_policy %}
-        <p class="discount-policy">{{ line_item.discount_policy.title }}</p>
-      {% endif %}
-    </td>
-    <td class="center">
-      <p>{{ currency_symbol }} {{ line_item.final_amount }}</p>
-    </td>
-  </tr>
+  <table>
+    <tr>
+      <td>
+        <p>Sub-total</p>
+      </td>
+      <td>
+        <p>{{ currency_symbol }} {{ line_item.base_amount }}</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>Discount</p>
+      </td>
+      <td>
+        <p>{{ currency_symbol }} {{ line_item.discounted_amount }}</p>
+        {% if line_item.discount_policy %}
+          <p class="discount-policy">{{ line_item.discount_policy.title }}</p>
+        {% endif %}
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>Total</p>
+      </td>
+      <td class="center">
+        <p>{{ currency_symbol }} {{ line_item.final_amount }}</p>
+      </td>
+    </tr>
+  </table>
   {%- if order.refunded_amount %}
   <p class="table-title">{% trans %}Refunds{% endtrans %}</p>
   <table class="items-table">
