@@ -6,6 +6,8 @@ from uuid import UUID
 
 from sqlalchemy.ext.orderinglist import ordering_list
 
+from coaster.sqlalchemy import role_check
+
 from . import (
     BaseScopedNameMixin,
     DynamicMapped,
@@ -61,11 +63,12 @@ class Menu(BaseScopedNameMixin[UUID, User], Model):
 
     __roles__ = {'ic_owner': {'read': {'id', 'name', 'title', 'description'}}}
 
-    def roles_for(self, actor=None, anchors=()):
-        roles = super().roles_for(actor, anchors)
-        if self.organization.userid in actor.organizations_owned_ids():
-            roles.add('ic_owner')
-        return roles
+    @role_check('ic_owner')
+    def has_ic_owner_role(self, actor: User | None, _anchors=()) -> bool:
+        return (
+            actor is not None
+            and self.organization.userid in actor.organizations_owned_ids()
+        )
 
     def fetch_all_details(self) -> HeadersAndDataTuple:
         """

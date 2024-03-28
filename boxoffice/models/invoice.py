@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 from uuid import UUID
 
 from baseframe import _
+from coaster.sqlalchemy import role_check
 from coaster.utils import utcnow
 
 from . import BaseMixin, Mapped, Model, UuidMixin, relationship, sa, timestamptz
@@ -90,11 +91,12 @@ class Invoice(UuidMixin, BaseMixin[UUID, User], Model):
         }
     }
 
-    def roles_for(self, actor=None, anchors=()):
-        roles = super().roles_for(actor, anchors)
-        if self.organization.userid in actor.organizations_owned_ids():
-            roles.add('invoicer')
-        return roles
+    @role_check('invoicer')
+    def has_invoicer_role(self, actor: User | None, _anchors=()) -> bool:
+        return (
+            actor is not None
+            and self.organization.userid in actor.organizations_owned_ids()
+        )
 
     def __init__(self, *args, **kwargs):
         organization = kwargs.get('organization')

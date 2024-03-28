@@ -19,6 +19,7 @@ from .utils import api_error, api_success, json_date_format, xhr_only
 def tickets(organization: Organization, search: str | None = None):
     if search:
         filtered_tickets = (
+            # FIXME: Query one, join the other
             db.session.query(Ticket, Menu)
             .filter(
                 Menu.organization_id == organization.id,
