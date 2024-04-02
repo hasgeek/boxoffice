@@ -105,16 +105,15 @@ def boxofficejs():
 @load_models((Menu, {'id': 'menu_id'}, 'menu'))
 def view_menu(menu: Menu):
     categories_json = []
+    html = render_template('boxoffice.html.jinja2')
+    subscription_purchase = False
     for category in menu.categories:
         category_json = jsonify_category(category)
         if category_json:
             categories_json.append(category_json)
-    if len(menu.categories) == 1 and len(category_json['tickets']) == 1:
-        html = render_template('single_purchase.html.jinja2')
-        subscription_purchase = True
-    else:
-        html = render_template('boxoffice.html.jinja2')
-        subscription_purchase = False
+            if len(menu.categories) == 1 and len(category_json['tickets']) == 1:
+                html = render_template('single_purchase.html.jinja2')
+                subscription_purchase = True
     return jsonify(
         html=html,
         categories=categories_json,
