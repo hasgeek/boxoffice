@@ -128,39 +128,54 @@
   </table>
   {%- if order.refunded_amount %}
   <p class="table-title">{% trans %}Refunds{% endtrans %}</p>
-  <table class="items-table">
-    <tr>
-      <th>{% trans %}No.{% endtrans %}</th>
-      <th>{% trans %}Receipt#{% endtrans %}</th>
-      <th>{% trans %}Refund date{% endtrans %}</th>
-      <th>{% trans %}Refund reason{% endtrans %}</th>
-      <th>{% trans %}Amount{% endtrans %}</th>
-    </tr>
     {% for transaction in order.refund_transactions -%}
-      <tr>
-        <td class="center">{{ loop.index }}</td>
-        <td class="center">{{ order.receipt_no }}</td>
-        <td class="center">
-          {% if transaction.refunded_at %}
-            {{ transaction.refunded_at | longdate }}
-          {%- endif %}
-        </td>
-        {%- if transaction.refund_description %}
-          <td>{{ transaction.refund_description }}</td>
-        {%- elif transaction.refunded_at %}
-          <td>{% trans date=transaction.refunded_at|longdate %}Refunded on {{ date }}{% endtrans %}</td>
-        {%- else %}
-          <td>{% trans %}Refund{% endtrans %}</td>
-        {%- endif %}
-        <td class="total-amount center"><div id="total">{{ currency_symbol }} {{ transaction.amount }}</div></td>
-      </tr>
-    {%- endfor %}
-    <tr>
-      <td></td>
-      <td colspan="3" class="total gray">{% trans %}Total refund{% endtrans %}</td>
-      <td class="total gray center">{{ currency_symbol }} {{ order.refunded_amount }}</td>
-    </tr>
-  </table>
+      <table class="items-table">
+        <tr>
+          <td>
+            <p>{% trans %}Receipt no.{% endtrans %}</p>
+            <p>{{ order.receipt_no }}</p>
+          </td>
+          <td>
+            <p>{% trans %}Refund date{% endtrans %}</p>
+            <p>
+              {% if transaction.refunded_at %}
+                {{ transaction.refunded_at | longdate }}
+              {%- endif %}
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <th>{% trans %}Refund reason{% endtrans %}</th>
+          <th></th>
+          <th></th>
+          <th>{% trans %}Amount{% endtrans %}</th>
+        </tr>
+        <tr>
+          <td>
+            {%- if transaction.refund_description %}
+              <td>{{ transaction.refund_description }}</td>
+            {%- elif transaction.refunded_at %}
+              <td>{% trans date=transaction.refunded_at|longdate %}Refunded on {{ date }}{% endtrans %}</td>
+            {%- else %}
+              <td>{% trans %}Refund{% endtrans %}</td>
+            {%- endif %}
+          </td>
+          <td class="total-amount center"><p id="total">{{ currency_symbol }} {{ transaction.amount }}</p></td>
+        </tr>
+          <tr>
+            <td class="center">{{ loop.index }}</td>
+            <td class="center">{{ order.receipt_no }}</td>
+            <td class="center">
+            </td>
+            <td class="total-amount center"><div id="total">{{ currency_symbol }} {{ transaction.amount }}</div></td>
+          </tr>
+        {%- endfor %}
+        <tr>
+          <td></td>
+          <td colspan="3" class="total gray">{% trans %}Total refund{% endtrans %}</td>
+          <td class="total gray center">{{ currency_symbol }} {{ order.refunded_amount }}</td>
+        </tr>
+      </table>
   {%- endif %}
 
   {# Button : BEGIN #}
