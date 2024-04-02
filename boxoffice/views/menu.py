@@ -80,7 +80,7 @@ def jsonify_category(category: Category):
 
 def render_boxoffice_js():
     return render_template(
-        'single_purchase.js.jinja2',
+        'boxoffice.js.jinja2',
         base_url=request.url_root.rstrip('/'),
         razorpay_key_id=app.config['RAZORPAY_KEY_ID'],
         states=[
