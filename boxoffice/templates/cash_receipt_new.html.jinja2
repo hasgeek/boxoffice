@@ -1,131 +1,185 @@
 {%- extends "layout_email.html.jinja2" -%}
 {%- from "macros_email.html.jinja2" import cta_button -%}
 {%- block content -%}
-
   <br/>
+  <hr/>
   <tr align="right">
-    <td class="receipt-header">
+    <td class="receipt-header" colspan="4">
       <p>{%- trans %}Receipt no. {% endtrans -%}<span>{{ order.receipt_no }}</span></p>
     </td>
   </tr>
   <tr align="left">
-    <td class="invoice-header">
+    <td class="invoice-header" colspan="4">
       <p>{%- trans %}Hasgeek Learning Private Limited {% endtrans -%}</p>
     </td>
   </tr>
-  <tr align="left">
-    <td class="invoice-label">
-      <p>{%- trans %}Address {% endtrans -%}</p>
-    </td>
-    <td>
-      <p>
-        {%- if org.details.get('address') %}
-          {{ org.details.get('address')|safe }}
-        {%- endif %}
-      </p>
-    </td>
-    <td class="invoice-label">
-      <p>{%- trans %}CIN {% endtrans -%}</p>
-      <p>
-        {%- if org.details.get('cin') %}
-          <p>{{ org.details.get('cin') }}</p>
-        {%- endif %}
-      </p>
-    </td>
-    <td class="invoice-label">
-      <p>{%- trans %}LLPIN {% endtrans -%}</p>
-      <p>
-        {%- if org.details.get('llpin') %}
-          <p>{{ org.details.get('llpin') }}</p>
-        {%- endif %}
-      </p>
-    </td>
-    <td class="invoice-label">
-      <p>{%- trans %}PAN {% endtrans -%}</p>
-      <p>
-        {%- if org.details.get('pan') %}
-          <p>{{ org.details.get('pan') }}</p>
-        {%- endif %}
-      </p>
-    </td>
-  </tr>
-  <tr align="left">
-    <td class="invoice-header">
-      <p>{%- trans %}Buyer Details{% endtrans -%}</p>
-    </td>
-  </tr>
-  <tr align="left">
-    <td class="invoice-label">
-      <p>{%- trans %}Name {% endtrans -%}</p>
-      <p>{{ order.buyer_fullname }}</p>
-    </td>
-    <td class="invoice-label">
-      <p>{%- trans %}Phone {% endtrans -%}</p>
-      <p>{{ order.buyer_phone }}</p>
-    </td>
-    <td class="invoice-label">
-      <p>{%- trans %}Paid on {% endtrans -%}</p>
-      <p>{{ order.paid_at | longdate }}</p>
-    </td>
-    <td class="invoice-label">
-      <p>{%- trans %}Email {% endtrans -%}</p>
-      <p>{{ order.buyer_email }}</p>
+  <tr>
+    <td style="width: 100%;" align="left" valign="top" colspan="4">
+      <!--[if (gte mso 9)|(IE)]>
+      <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width: 100%;">
+      <tr>
+      <td valign="top" style="width: 49.5%;">
+      <![endif]-->
+        <div style="display:inline-block;vertical-align:top;width: auto; margin-right: 68px">
+          <table>
+            <tr align="left">
+              <td class="invoice-label">
+                <p>{%- trans %}Address {% endtrans -%}</p>
+                {%- if org.details.get('address') %}
+                  <p>{{ org.details.get('address')|safe }}<p>
+                {%- endif %}
+              </td>
+            </tr>
+            <tr>
+              <td class="invoice-label">
+                <p>{%- trans %}PAN{% endtrans -%}</p>
+                {%- if org.details.get('pan') %}
+                  <p>{{ org.details.get('pan') }}</p>
+                {%- endif %}
+              </td>
+            </tr>
+          </table>
+        </div>
+      <!--[if (gte mso 9)|(IE)]>
+      </td><td valign="top" style="width:49.5%;">
+      <![endif]-->
+        <div style="display:inline-block;vertical-align:top;width: auto">
+          <table>
+            <tr>
+              <td class="invoice-label">
+                <p>{%- trans %}CIN {% endtrans -%}</p>
+                {%- if org.details.get('cin') %}
+                  <p>{{ org.details.get('cin') }}</p>
+                {%- endif %}
+              </td>
+            </tr>
+            <tr>
+              <td class="invoice-label">
+                <p>{%- trans %}Email {% endtrans -%}</p>
+                <p>{{ org.contact_email }}</p>
+              </td>
+            </tr>
+          </table>
+        </div>
+      <!--[if (gte mso 9)|(IE)]>
+      </td>
+      </tr>
+      </table>
+      <![endif]-->
     </td>
   </tr>
   <tr align="left">
-    <td class="invoice-header">
+    <td class="invoice-header" colspan="4">
+      <p>{%- trans %}Buyer details{% endtrans -%}</p>
+    </td>
+  </tr>
+  <tr>
+    <td style="width: 100%;" align="left" valign="top" colspan="4">
+      <!--[if (gte mso 9)|(IE)]>
+      <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width: 100%;">
+      <tr>
+      <td valign="top" style="width: 300px;">
+      <![endif]-->
+        <div style="display:inline-block;vertical-align:top;width: 49.5%">
+          <table>
+            <tr align="left">
+              <td class="invoice-label">
+                <p>{%- trans %}Name {% endtrans -%}</p>
+                <p>{{ order.buyer_fullname }}</p>
+              </td>
+            </tr>
+            <tr>
+              <td class="invoice-label">
+                <p>{%- trans %}Phone {% endtrans -%}</p>
+                <p>{{ order.buyer_phone }}</p>
+              </td>
+            </tr>
+          </table>
+        </div>
+      <!--[if (gte mso 9)|(IE)]>
+      </td><td valign="top" style="width:300px;">
+      <![endif]-->
+        <div style="display:inline-block;vertical-align:top;width: auto">
+          <table>
+            <tr>
+              <td class="invoice-label">
+                <p>{%- trans %}Paid on {% endtrans -%}</p>
+                <p>{{ order.paid_at | longdate }}</p>
+              </td>
+            </tr>
+            <tr>
+              <td class="invoice-label">
+                <p>{%- trans %}Email {% endtrans -%}</p>
+                <p>{{ order.buyer_email }}</p>
+              </td>
+            </tr>
+          </table>
+        </div>
+      <!--[if (gte mso 9)|(IE)]>
+      </td>
+      </tr>
+      </table>
+      <![endif]-->
+    </td>
+  </tr>
+  <tr align="left">
+    <td class="invoice-header" colspan="4">
       <p>{%- trans %}Order Summary{% endtrans -%}</p>
     </td>
   </tr>
-    <tr>
-      <th>{% trans %}Item{% endtrans %}</th>
-      <th></th>
-      <th></th>
-      <th>{% trans %}Price{% endtrans %}</th>
+    <tr align="left" class="order-summary">
+      <th colspan="3">{% trans %}Item{% endtrans %}</th>
+      <th align="right">{% trans %}Price{% endtrans %}</th>
     </tr>
-    <hr/>
     {% for line_item in line_items -%}
       <tr>
-        <td colspan="3">
-          <span class="item-title">{{ line_item.ticket.title }}</span><br/>
-          <span class="item-description">{{ line_item.ticket.description }}</span>
+        <td colspan="3" class="order-description">
+          <p class="item-title">{{ line_item.ticket.title }}</p>
+          <p class="item-description">{{ line_item.ticket.description| safe}}</p>
         </td>
-        <td class="right">
+        <td align="right" valign="top" class="base-price">
           <p>{{ currency_symbol }} {{ line_item.base_amount }}</p>
         </td>
       </tr>
+      <tr>
+        <td colspan="4"><hr/><br/></td>
+      </tr>
+      <tr align="right">
+        <td colspan="4">
+          <table style="width:100%">
+            <tr align="right">
+              <td colspan="3">
+                <p>{% trans %}Sub-total{% endtrans %}</p>
+              </td>
+              <td>
+                <p>{{ currency_symbol }} {{ line_item.base_amount }}</p>
+              </td>
+            </tr>
+            <tr align="right">
+              <td colspan="3">
+                <p>{% trans %}Discount{% endtrans %}</p>
+              </td>
+              <td>
+                <p>{{ currency_symbol }} {{ line_item.discounted_amount }}</p>
+              </td>
+            </tr>
+            <tr align="right">
+              <td class="total-price" colspan="3">
+              <p>{% trans %}Total Paid{% endtrans %}</p>
+              </td>
+              <td class="total-price">
+                <p>{{ currency_symbol }} {{ line_item.final_amount }}</p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
     {%- endfor %}
-  </table>
-  <hr/>
-  <table>
     <tr>
-      <td>
-        <p>Sub-total</p>
-      </td>
-      <td>
-        <p>{{ currency_symbol }} {{ line_item.base_amount }}</p>
+      <td colspan="4">
+        <p>*To access the benefits of this ticket please ensure you are logged in to your Hasgeek account with this same email address.</p>
       </td>
     </tr>
-    <tr>
-      <td>
-        <p>Discount</p>
-      </td>
-      <td>
-        <p>{{ currency_symbol }} {{ line_item.discounted_amount }}</p>
-        {% if line_item.discount_policy %}
-          <p class="discount-policy">{{ line_item.discount_policy.title }}</p>
-        {% endif %}
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <p>Total</p>
-      </td>
-      <td class="center">
-        <p>{{ currency_symbol }} {{ line_item.final_amount }}</p>
-      </td>
-    </tr>
-  </table>
   {%- if order.refunded_amount %}
   <p class="table-title">{% trans %}Refunds{% endtrans %}</p>
     {% for transaction in order.refund_transactions -%}
@@ -177,28 +231,19 @@
         </tr>
       </table>
   {%- endif %}
-
-  {# Button : BEGIN #}
-  {{ cta_button(url_for('assign_ticket'), gettext("Assign ticket") )}}
-  {{ cta_button(url_for('gst'), gettext("GST invoice") )}}
-  {# Button : END #}
-  <table class="items-table">
-      <tr>
-        <td></td>
-        <td colspan="2" class="total gray">{% trans %}Total paid{% endtrans %}</td>
-        <td class="total-amount gray center"><div id="total">{{ currency_symbol }} {{ order.paid_amount }}</div></td>
-      </tr>
-      {% if order.refunded_amount > 0 %}
-        <tr>
-          <td></td>
-          <td colspan="2" class="total gray">{% trans %}Net paid (post refund){% endtrans %}</td>
-          <td class="total-amount gray center"><div id="net-amount">{{ currency_symbol }} {{ order.net_amount }}</div></td>
-        </tr>
-      {% endif %}
-    </table>
-
+  {{ cta_button('{base_url}/order/{access_token}/ticket'.format(base_url=base_url, access_token=order.access_token), gettext("Assign ticket") )}}
+  {{ cta_button('{base_url}/order/{access_token}/invoice'.format(base_url=base_url, access_token=order.access_token), gettext("GST invoice") )}}
+  <tr colspan="4">
+    <td colspan="4">
+      <div align="left" class="policy">
+        <p class="policy-title">Cancellation and transfer</p>
+        {{ org.details.get('refund_policy')|safe  }}
+      </div>
+    </td>
+  </tr>
 {%- endblock content -%}
 
+{#
 <!DOCTYPE html>
 <html lang="en">
 
@@ -509,3 +554,4 @@
 </body>
 
 </html>
+#}
