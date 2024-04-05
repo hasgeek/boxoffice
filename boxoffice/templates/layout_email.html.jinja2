@@ -159,15 +159,31 @@
             font-size: 15px;
             line-height: 15px;
             text-decoration: none;
+            width: 100%;
         }
         .button-a {
-            border: 1px solid #4d5763;
             padding: 13px 17px;
             color: #ffffff;
             display: block;
+            text-transform: uppercase;
+        }
+        .button-a-primary {
+            background-color: #0f73ed !important;
+            border-color: #0f73ed !important;
+            box-sizing: border-box;
+        }
+        .button-a-dark {
+            background-color: #4d5763 !important;
+            border-color: #4d5763 !important;
+            box-sizing: border-box;
         }
         .button-td-primary:hover,
         .button-a-primary:hover {
+            background-color: #0c55bf !important;
+            border-color: #0c55bf !important;
+        }
+        .button-td-secondary:hover,
+        .button-a-secondary:hover {
             background-color: #1f2d3d !important;
             border-color: #1f2d3d !important;
         }
@@ -391,7 +407,7 @@
         border-bottom: 1px solid #656565;
       }
       .order-description {
-        padding-bottom: 16px;
+        padding-bottom: 0;
       }
       .order-description > p:first-child {
         font-weight: 600;
@@ -405,6 +421,23 @@
         font-weight: 700;
         font-variant: all-small-caps;
         font-size: 21px !important;
+      }
+      .receipt-title {
+        padding-bottom: 16px;
+      }
+      .receipt-subtitle {
+        padding-top: 8px;
+      }
+      .item-description > p {
+        margin-top: 0;
+        padding-left: 16px;
+      }
+      .item-description > ul {
+        list-style: outside;
+        padding-left: 16px;
+        margin-left: 12px;
+        font-size: 14px;
+        padding-bottom: 16px;
       }
     </style>
 
