@@ -1,7 +1,6 @@
 {%- extends "layout_email.html.jinja2" -%}
 {%- from "macros_email.html.jinja2" import cta_button, line_break -%}
 {%- block content -%}
-  <br/>
   <tr>
     <td class ="receipt-title" colspan="4">
       <h1>
@@ -23,6 +22,8 @@
     </td>
   </tr>
 
+  {{ line_break(gettext('double_linebreak')) }}
+
   <tr align="left">
     <td class="invoice-header" colspan="4">
       <p>{{ org.details.get('name') }}</p>
@@ -37,6 +38,7 @@
       <![endif]-->
         <div style="display:inline-block;vertical-align:top;width: auto; margin-right: 68px">
           <table>
+            {{ line_break(gettext('linebreak')) }}
             {%- if org.details %}
             <tr align="left">
               <td class="invoice-label">
@@ -46,6 +48,7 @@
                 <p>{{ org.details.get('address')|safe }}<p>
               </td>
             </tr>
+            {{ line_break(gettext('linebreak')) }}
             <tr>
               <td class="invoice-label">
                 <p>
@@ -63,6 +66,7 @@
         <div style="display:inline-block;vertical-align:top;width: auto">
           <table>
             {%- if org.details %}
+            {{ line_break(gettext('linebreak')) }}
             <tr>
               <td class="invoice-label">
                 <p>
@@ -72,6 +76,7 @@
               </td>
             </tr>
             {%- endif %}
+            {{ line_break(gettext('linebreak')) }}
             <tr>
               <td class="invoice-label">
                 <p>
@@ -90,6 +95,8 @@
     </td>
   </tr>
 
+  {{ line_break(gettext('double_linebreak')) }}
+
   <tr align="left">
     <td class="invoice-header" colspan="4">
       <p>
@@ -106,6 +113,7 @@
       <![endif]-->
         <div style="display:inline-block;vertical-align:top;width: 49.5%">
           <table>
+            {{ line_break(gettext('linebreak')) }}
             <tr align="left">
               <td class="invoice-label">
                 <p>
@@ -114,6 +122,7 @@
                 <p>{{ order.buyer_fullname }}</p>
               </td>
             </tr>
+            {{ line_break(gettext('linebreak')) }}
             <tr>
               <td class="invoice-label">
                 <p>
@@ -130,6 +139,7 @@
         <div style="display:inline-block;vertical-align:top;width: auto">
           <table>
             <tr>
+              {{ line_break(gettext('linebreak')) }}
               <td class="invoice-label">
                 <p>
                   {%- trans %}Paid on{% endtrans -%}
@@ -137,6 +147,7 @@
                 <p>{{ order.paid_at | longdate }}</p>
               </td>
             </tr>
+            {{ line_break(gettext('linebreak')) }}
             <tr>
               <td class="invoice-label">
                 <p>
@@ -155,6 +166,8 @@
     </td>
   </tr>
 
+  {{ line_break(gettext('linebreak')) }}
+
   <tr align="left">
     <td class="invoice-header" colspan="4">
       <p>
@@ -162,6 +175,7 @@
       </p>
     </td>
   </tr>
+  {{ line_break(gettext('linebreak')) }}
   <tr align="left" class="order-summary">
     <th colspan="3">
       {%- trans %}Item{% endtrans -%}
@@ -170,6 +184,7 @@
       {%- trans %}Price{% endtrans -%}
     </th>
   </tr>
+  {{ line_break(gettext('linebreak')) }}
   {% for line_item in line_items -%}
     <tr>
       <td colspan="3" class="order-description">
@@ -179,12 +194,10 @@
         <p>{{ currency_symbol }} {{ line_item.base_amount }}</p>
       </td>
     </tr>
-    <tr>
+    <tr class="item-description-container">
       <td class="item-description" colspan="3">{{ line_item.ticket.description| safe}}</td>
     </tr>
-    <tr>
-      <td colspan="4"><hr/><br/></td>
-    </tr>
+    {{ line_break(gettext('linebreak')) }}
     <tr align="right">
       <td colspan="4">
         <table style="width:100%">
@@ -224,6 +237,7 @@
     {%- endfor %}
 
     {%- if order.refunded_amount %}
+    {{ line_break(gettext('double_linebreak')) }}
       <tr align="left">
         <td class="invoice-header" colspan="4">
           <p>
@@ -309,7 +323,7 @@
           </tr>
       </table>
     {%- endif %}
-    {{ line_break() }}
+    {{ line_break(gettext('linebreak')) }}
     <tr>
       <td colspan="4">
         <p>
@@ -317,14 +331,14 @@
         </p>
       </td>
     </tr>
-  {{ line_break() }}
+  {{ line_break(gettext('linebreak')) }}
   <tr>
     <td colspan="4">
       {{ cta_button('{base_url}/order/{access_token}/ticket'.format(base_url=base_url, access_token=order.access_token), gettext("Assign ticket"), gettext("primary") )}}
       {{ cta_button('{base_url}/order/{access_token}/invoice'.format(base_url=base_url, access_token=order.access_token), gettext("GST invoice"), gettext("dark") )}}
     </td>
   </tr>
-  {{ line_break() }}
+  {{ line_break(gettext('linebreak')) }}
   <tr colspan="4">
     <td colspan="4">
       <div align="left" class="policy">
