@@ -480,7 +480,7 @@ def receipt(order: Order):
         LineItem.order == order, LineItem.status == LineItemStatus.CONFIRMED
     ).all()
     return render_template(
-        'cash_receipt_new.html.jinja2',
+        'payment_receipt.html.jinja2',
         order=order,
         org=order.organization,
         line_items=line_items,
