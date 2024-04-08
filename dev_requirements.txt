@@ -1,8 +1,5 @@
 mypy
 types-python-dateutil
-types-python-dateutil
 types-pytz
-types-pytz
-types-requests
 types-requests
 types-setuptools
