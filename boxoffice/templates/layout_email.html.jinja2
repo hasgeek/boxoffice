@@ -628,11 +628,7 @@
             <tr>
                 <td class="footer">
                     <b>{% trans %}Hasgeek Learning Private Limited{% endtrans %}</b><br/>
-                    {% trans %}Need help?{% endtrans %} <a href="mailto:{{ config['SITE_SUPPORT_EMAIL'] }}">{{ config['SITE_SUPPORT_EMAIL'] }}</a> &bull; <a href="tel:{{ config['SITE_SUPPORT_PHONE'] }}">{{ config['SITE_SUPPORT_PHONE_FORMATTED'] }}</a>
-                    {%- if view %}{# Notification view #}
-                    <br/><br/>
-                    {% if view.reason_email %} {{ view.reason_email }} &bull; {% endif %}<a class="unsubscribe" href="{{ view.unsubscribe_url_email }}">{% trans %}Unsubscribe or manage preferences{% endtrans %}</a>
-                    {%- endif %}
+                    {% trans %}Need help?{% endtrans %} <a href="mailto:{{ config['SITE_SUPPORT_EMAIL'] }}">{{ config['SITE_SUPPORT_EMAIL'] }}</a> &bull; <a href="tel:{{ config['SITE_SUPPORT_PHONE'] }}">{{ config['SITE_SUPPORT_PHONE'] }}</a>
                 </td>
             </tr>
         {% endblock footer %}</table>

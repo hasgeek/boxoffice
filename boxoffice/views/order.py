@@ -479,8 +479,14 @@ def receipt(order: Order):
     line_items = LineItem.query.filter(
         LineItem.order == order, LineItem.status == LineItemStatus.CONFIRMED
     ).all()
+    total_base_amount = sum([line_item.base_amount for line_item in line_items])
+    total_item_discount = sum([line_item.discounted_amount for line_item in line_items])
+    final_amount = sum([line_item.final_amount for line_item in line_items])
     return render_template(
         'payment_receipt.html.jinja2',
+        total_base_amount=total_base_amount,
+        total_item_discount = total_item_discount,
+        final_amount=final_amount,
         order=order,
         org=order.organization,
         line_items=line_items,

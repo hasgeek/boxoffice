@@ -197,6 +197,7 @@
     <tr class="item-description-container">
       <td class="item-description" colspan="3">{{ line_item.ticket.description| safe}}</td>
     </tr>
+    {%- endfor %}
     {{ line_break(gettext('linebreak')) }}
     <tr align="right">
       <td colspan="4">
@@ -208,7 +209,7 @@
               </p>
             </td>
             <td>
-              <p>{{ currency_symbol }} {{ line_item.base_amount }}</p>
+              <p>{{ currency_symbol }} {{ total_base_amount }}</p>
             </td>
           </tr>
           <tr align="right">
@@ -218,7 +219,7 @@
               </p>
             </td>
             <td>
-              <p>{{ currency_symbol }} {{ line_item.discounted_amount }}</p>
+              <p>{{ currency_symbol }} {{ total_discount_amount }}</p>
             </td>
           </tr>
           <tr align="right">
@@ -228,13 +229,12 @@
               </p>
             </td>
             <td class="total-price">
-              <p>{{ currency_symbol }} {{ line_item.final_amount }}</p>
+              <p>{{ currency_symbol }} {{ final_amount }}</p>
             </td>
           </tr>
         </table>
       </td>
     </tr>
-    {%- endfor %}
 
     {%- if order.refunded_amount %}
     {{ line_break(gettext('double_linebreak')) }}
