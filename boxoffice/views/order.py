@@ -485,7 +485,7 @@ def receipt(order: Order):
     return render_template(
         'payment_receipt.html.jinja2',
         total_base_amount=total_base_amount,
-        total_item_discount = total_item_discount,
+        total_item_discount=total_item_discount,
         final_amount=final_amount,
         order=order,
         org=order.organization,
