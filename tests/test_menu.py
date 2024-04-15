@@ -55,7 +55,7 @@ expected_data = {
 }
 
 
-@pytest.fixture()
+@pytest.fixture
 def resp(client, all_data):
     menu = Menu.query.one()
     return client.get(
