@@ -62,7 +62,7 @@ class RemoveIsRollback:
         self.session.remove = self.original_remove
 
 
-@pytest.fixture()
+@pytest.fixture
 def db_session(database, db_connection):
     """Empty the database after each use of the fixture."""
     with RemoveIsRollback(database.session, lambda: database.session.rollback):
@@ -102,13 +102,13 @@ def client(request):
         yield test_client
 
 
-@pytest.fixture()
+@pytest.fixture
 def post_env():
     builder = EnvironBuilder(method='POST')
     return builder.get_environ()
 
 
-@pytest.fixture()
+@pytest.fixture
 def all_data(db_session):
     user = User(userid="U3_JesHfQ2OUmdihAXaAGQ", email="test@hasgeek.com")
     db_session.add(user)
