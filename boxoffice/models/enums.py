@@ -27,7 +27,7 @@ class DiscountTypeEnum(IntEnum):
     __titles__: Final = {AUTOMATIC: __("Automatic"), COUPON: __("Coupon")}
 
     def __init__(self, value: int) -> None:
-        self.title = self.__titles__[value]
+        self.title = self.__titles__[value]  # pylint: disable=unsubscriptable-object
 
 
 class InvoiceStatus(IntEnum):
