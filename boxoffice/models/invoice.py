@@ -102,15 +102,20 @@ class Invoice(UuidMixin, BaseMixin[UUID, User], Model):
         )
 
     def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        organization = kwargs.get('organization')
-        country_code = kwargs.get('country_code')
+        organization = kwargs.pop('organization', None)
+        country_code = kwargs.pop('country_code', None)
+        if kwargs.pop('invoiced_at', None):
+            msg = "Don't pass an invoiced_at value"
+            raise ValueError(msg)
         if not country_code:
             # Default to India
             country_code = 'IN'
         if not organization:
             msg = "Invoice MUST be initialized with an organization"
             raise ValueError(msg)
+        super().__init__(
+            *args, organization=organization, country_code=country_code, **kwargs
+        )
         self.invoiced_at = utcnow()
         self.fy_start_at, self.fy_end_at = get_fiscal_year(
             country_code, self.invoiced_at
