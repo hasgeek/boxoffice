@@ -1,7 +1,9 @@
-from logging.config import fileConfig
 import logging
+from logging.config import fileConfig
+from typing import Any
 
 from alembic import context
+from alembic.operations import MigrationScript
 from flask import current_app
 from sqlalchemy import engine_from_config, pool
 
@@ -33,8 +35,9 @@ target_metadata = current_app.extensions['migrate'].db.metadatas[None]
 # ... etc.
 
 
-def run_migrations_offline():
-    """Run migrations in 'offline' mode.
+def run_migrations_offline() -> None:
+    """
+    Run migrations in 'offline' mode.
 
     This configures the context with just a URL
     and not an Engine, though an Engine is acceptable
@@ -52,8 +55,9 @@ def run_migrations_offline():
         context.run_migrations()
 
 
-def run_migrations_online():
-    """Run migrations in 'online' mode.
+def run_migrations_online() -> None:
+    """
+    Run migrations in 'online' mode.
 
     In this scenario we need to create an Engine
     and associate a connection with the context.
@@ -63,17 +67,18 @@ def run_migrations_online():
     # this callback is used to prevent an auto-migration from being generated
     # when there are no changes to the schema
     # reference: http://alembic.readthedocs.org/en/latest/cookbook.html
-    def process_revision_directives(context, revision, directives):
+    def process_revision_directives(
+        _context: Any, _revision: Any, directives: list[MigrationScript]
+    ) -> None:
         if getattr(config.cmd_opts, 'autogenerate', False):
             script = directives[0]
-            if script.upgrade_ops.is_empty():
+            if not script.upgrade_ops or script.upgrade_ops.is_empty():
                 directives[:] = []
                 logger.info('No changes in schema detected.')
 
+    use_config = config.get_section(config.config_ini_section) or {}
     engine = engine_from_config(
-        config.get_section(config.config_ini_section),
-        prefix='sqlalchemy.',
-        poolclass=pool.NullPool,
+        use_config, prefix='sqlalchemy.', poolclass=pool.NullPool
     )
 
     connection = engine.connect()

@@ -1,12 +1,17 @@
 # pylint: disable=redefined-outer-name
+from collections.abc import Generator
 from datetime import date
 from types import SimpleNamespace
+from typing import Self
+from wsgiref.types import WSGIEnvironment
 
-from dateutil.relativedelta import relativedelta
-from sqlalchemy.orm import close_all_sessions
-from werkzeug.test import EnvironBuilder
 import pytest
 import sqlalchemy as sa
+from dateutil.relativedelta import relativedelta
+from flask.testing import FlaskClient
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import close_all_sessions
+from werkzeug.test import EnvironBuilder
 
 from coaster.utils import utcnow
 
@@ -26,13 +31,13 @@ from boxoffice.models import (
 
 
 @pytest.fixture(scope='session')
-def database(request):
+def database(request: pytest.FixtureRequest) -> SQLAlchemy:
     """Provide a database structure."""
     with app.app_context():
         db.create_all()
 
     @request.addfinalizer
-    def drop_tables():
+    def drop_tables() -> None:
         with app.app_context():
             db.drop_all()
 
@@ -40,7 +45,7 @@ def database(request):
 
 
 @pytest.fixture(scope='session')
-def db_connection(database):
+def db_connection(database: SQLAlchemy) -> Generator[sa.Connection, None, None]:
     """Return a database connection."""
     with app.app_context():
         yield database.engine.connect()
@@ -49,21 +54,24 @@ def db_connection(database):
 class RemoveIsRollback:
     """Change session.remove() to session.rollback()."""
 
-    def __init__(self, session, rollback_provider):
+    def __init__(self, session, rollback_provider) -> None:
         self.session = session
         self.original_remove = session.remove
         self.rollback_provider = rollback_provider
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         """Replace ``session.remove`` during the `with` context."""
+        return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self, exc_type, exc_value, traceback) -> None:
         """Restore ``session.remove`` after the `with` context."""
         self.session.remove = self.original_remove
 
 
 @pytest.fixture
-def db_session(database, db_connection):
+def db_session(
+    database: SQLAlchemy, db_connection: sa.Connection  # noqa: ARG001
+) -> Generator[sa.orm.scoped_session, None, None]:
     """Empty the database after each use of the fixture."""
     with RemoveIsRollback(database.session, lambda: database.session.rollback):
         yield database.session
@@ -71,7 +79,7 @@ def db_session(database, db_connection):
 
     # Iterate through all database engines and empty their tables
     with app.app_context():
-        for bind in [None] + list(app.config.get('SQLALCHEMY_BINDS') or ()):
+        for bind in [None, *list(app.config.get('SQLALCHEMY_BINDS') or ())]:
             engine = database.engines[bind]
             with engine.begin() as connection:
                 connection.execute(
@@ -92,25 +100,25 @@ def db_session(database, db_connection):
 # Enable autouse to guard against tests that have implicit database access, or assume
 # app context without a fixture
 @pytest.fixture(autouse=True)
-def client(request):
+def client(request: pytest.FixtureRequest) -> Generator[FlaskClient, None, None]:
     """Provide a test client."""
     if 'noclient' in request.keywords:
         # To use this, annotate a test with:
         # @pytest.mark.noclient
-        yield None
+        yield None  # type: ignore[misc]
     with app.test_client() as test_client:
         yield test_client
 
 
 @pytest.fixture
-def post_env():
+def post_env() -> WSGIEnvironment:
     builder = EnvironBuilder(method='POST')
     return builder.get_environ()
 
 
 @pytest.fixture
-def all_data(db_session):
-    user = User(userid="U3_JesHfQ2OUmdihAXaAGQ", email="test@hasgeek.com")
+def all_data(db_session) -> SimpleNamespace:
+    user = User(userid='U3_JesHfQ2OUmdihAXaAGQ', email='test@example.com')
     db_session.add(user)
     db_session.commit()
 
@@ -118,9 +126,9 @@ def all_data(db_session):
 
     rootconf = Organization(
         title='Rootconf',
-        userid="U3_JesHfQ2OUmdihAXaAGQ",
+        userid='U3_JesHfQ2OUmdihAXaAGQ',
         status=0,
-        contact_email='test@gmail.com',
+        contact_email='test@example.net',
         details={
             'service_tax_no': 'xx',
             'address': '<h2 class="company-name">XYZ</h2> <p>Bangalore - 560034</p>'
@@ -129,9 +137,9 @@ def all_data(db_session):
             'pan': 'abc',
             'website': 'https://www.test.com',
             'refund_policy': '<p>We offer full refund.</p>',
-            'support_email': 'test@boxoffice.com',
+            'support_email': 'test@example.org',
             'ticket_faq': '<p>To cancel your ticket, please mail <a '
-            'href="mailto:test@boxoffice.com">test@boxoffice.com</a> with your receipt'
+            'href="mailto:test@example.org">test@example.org</a> with your receipt'
             ' number.</p>',
         },
     )

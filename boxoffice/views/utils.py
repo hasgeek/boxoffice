@@ -1,27 +1,39 @@
+import csv
+from collections.abc import Callable, Sequence
+from datetime import datetime
 from functools import wraps
 from io import StringIO
+from typing import Any, Literal, ParamSpec, TypeVar, overload
 from urllib.parse import urlparse
-import csv
 
 from flask import Response, abort, jsonify, make_response, request
+from werkzeug.wrappers import Response as BaseResponse
 
 from baseframe import localize_timezone, request_is_xhr
 
 from .. import app
 
+_R_co = TypeVar('_R_co', covariant=True)
+_P = ParamSpec('_P')
 
-def sanitize_coupons(coupons):
+
+def sanitize_coupons(coupons: Any) -> list[str]:
     if not isinstance(coupons, list):
         return []
     # Remove falsy values and coerce the valid values into unicode
     return [str(coupon_code) for coupon_code in coupons if coupon_code]
 
 
-def xhr_only(f):
+def request_wants_json() -> bool:
+    """Request wants a JSON response."""
+    return request.accept_mimetypes.best == 'application/json'
+
+
+def xhr_only(f: Callable[_P, _R_co]) -> Callable[_P, _R_co]:
     """Abort if a request does not have the XMLHttpRequest header set."""
 
     @wraps(f)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: _P.args, **kwargs: _P.kwargs) -> _R_co:
         if request.method != 'OPTIONS' and not request_is_xhr():
             abort(400)
         return f(*args, **kwargs)
@@ -29,22 +41,32 @@ def xhr_only(f):
     return wrapper
 
 
-def check_api_access(api_token):
+def check_api_access(api_token: Any | None) -> None:
     """Abort if a request does not have the correct api_token."""
     if not request.args.get('api_token') or request.args.get('api_token') != api_token:
         abort(401)
 
 
-def json_date_format(dt):
-    return localize_timezone(dt).isoformat()
+@overload
+def json_date_format(dt: None) -> None: ...
+
+
+@overload
+def json_date_format(dt: datetime) -> str: ...
+
+
+def json_date_format(dt: datetime | None) -> str | None:
+    if dt is not None:
+        return localize_timezone(dt).isoformat()
+    return None
 
 
 @app.template_filter('longdate')
-def longdate(date):
+def longdate(date: datetime) -> str:
     return localize_timezone(date).strftime('%e %B %Y')
 
 
-def basepath(url):
+def basepath(url: str) -> str:
     """
     Return the base path of a given URL.
 
@@ -57,11 +79,12 @@ def basepath(url):
     """
     parsed_url = urlparse(url)
     if not (parsed_url.scheme or parsed_url.netloc):
-        raise ValueError("Invalid URL")
+        msg = "Invalid URL"
+        raise ValueError(msg)
     return f'{parsed_url.scheme}://{parsed_url.netloc}'
 
 
-def cors(f):
+def cors(f: Callable[_P, BaseResponse]) -> Callable[_P, BaseResponse]:
     """
     Add CORS headers to the decorated view function.
 
@@ -69,27 +92,26 @@ def cors(f):
     of permitted domains. Eg: app.config['ALLOWED_ORIGINS'] = ['https://example.com']
     """
 
-    def add_headers(resp, origin):
+    def add_headers(resp: BaseResponse, origin: str) -> BaseResponse:
         resp.headers['Access-Control-Allow-Origin'] = origin
         resp.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS, GET'
         # echo the request's headers
-        resp.headers['Access-Control-Allow-Headers'] = request.headers.get(
-            'Access-Control-Request-Headers'
-        )
+        if allow_headers := request.headers.get('Access-Control-Request-Headers'):
+            resp.headers['Access-Control-Allow-Headers'] = allow_headers
         # debugging only
         if app.debug:
             resp.headers['Access-Control-Max-Age'] = '1'
         return resp
 
     @wraps(f)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: _P.args, **kwargs: _P.kwargs) -> BaseResponse:
         origin = request.headers.get('Origin')
         if not origin:
-            # Firefox doesn't send the Origin header, so read the Referer header instead
-            # TODO: Remove this conditional when Firefox starts adding an Origin header
-            referer = request.referrer
-            if referer:
-                origin = basepath(referer)
+            # Firefox doesn't send the Origin header in some contexts, so read the
+            # Referrer header instead.
+            # https://wiki.mozilla.org/Security/Origin#Privacy-Sensitive_Contexts
+            referrer = request.referrer
+            origin = basepath(referrer) if referrer else 'null'
 
         if (
             request.method == 'POST'
@@ -100,7 +122,7 @@ def cors(f):
 
         if request.method == 'OPTIONS':
             # pre-flight request, check CORS headers directly
-            resp = app.make_default_options_response()
+            resp: BaseResponse = app.make_default_options_response()
         else:
             resp = f(*args, **kwargs)
         return add_headers(resp, origin)
@@ -108,7 +130,12 @@ def cors(f):
     return wrapper
 
 
-def csv_response(headers, rows, row_type=None, row_handler=None):
+def csv_response(
+    headers: list[str],
+    rows: Sequence[Any],
+    row_type: Literal['dict'] | None = None,
+    row_handler: Callable[[list[Any]], list[Any] | dict[str, Any]] | None = None,
+) -> Response:
     """
     Return a CSV response given a list of headers and rows of data.
 
@@ -117,6 +144,7 @@ def csv_response(headers, rows, row_type=None, row_handler=None):
 
     Accepts an optional row_handler function that can be used to transform the row.
     """
+    csv_writer: Any
     stream = StringIO()
     if row_type == 'dict':
         csv_writer = csv.DictWriter(
@@ -133,27 +161,28 @@ def csv_response(headers, rows, row_type=None, row_handler=None):
     return Response(stream.getvalue(), mimetype='text/csv')
 
 
-def api_error(message, status_code, errors=()):
+def api_error(
+    message: str, status_code: int = 400, errors: Sequence[str] = ()
+) -> Response:
     """
     Generate a HTTP response as a JSON object for a failure scenario.
 
-    :param string message: Human readable error message to be included as part of the
-        JSON response
-    :param string message: Error message to be included as part of the JSON response
-    :param list errors: Error messages to be included as part of the JSON response
-    :param int status_code: HTTP status code to be used for the response
+    :param message: Human readable error message to be included as part of the JSON
+        response
+    :param errors: Error messages to be included as part of the JSON response
+    :param status_code: HTTP status code to be used for the response
     """
     return make_response(
         jsonify(status='error', errors=errors, message=message), status_code
     )
 
 
-def api_success(result, doc, status_code):
+def api_success(result: Any, doc: str, status_code: int = 200) -> Response:
     """
     Generate a HTTP response as a JSON object for a success scenario.
 
-    :param any result: Top-level data to be encoded as JSON
-    :param string doc: Documentation to be included as part of the JSON response
-    :param int status_code: HTTP status code to be used for the response
+    :param result: Top-level data to be encoded as JSON
+    :param doc: Documentation to be included as part of the JSON response
+    :param status_code: HTTP status code to be used for the response
     """
     return make_response(jsonify(status='ok', doc=doc, result=result), status_code)

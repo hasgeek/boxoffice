@@ -1,5 +1,5 @@
-from decimal import Decimal
 import csv
+from decimal import Decimal
 
 from boxoffice.models import (
     LineItem,
@@ -178,7 +178,7 @@ def get_settled_orders(settlement_files):
                         )
                     )
                 )
-            except:  # noqa: B001, E722  # pylint: disable=bare-except
+            except:  # noqa: E722  # pylint: disable=bare-except
                 # FIXME: Add correct exception
                 print("Multiple line items found")  # noqa: T201
                 print(payment.pg_paymentid)  # noqa: T201
@@ -206,7 +206,7 @@ def get_settled_orders(settlement_files):
     return settled_orders
 
 
-def write_settled_orders(filename, rows):
+def write_settled_orders(filename, rows) -> None:
     with open(filename, 'w', encoding='utf-8') as csvfile:
         fieldnames = [
             'settlement_id',

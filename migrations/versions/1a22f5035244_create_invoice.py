@@ -1,4 +1,5 @@
-"""create_invoice.
+"""
+create_invoice.
 
 Revision ID: 1a22f5035244
 Revises: 36f458047cfd
@@ -6,16 +7,16 @@ Create Date: 2017-07-05 15:32:02.514565
 
 """
 
+import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
-import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '1a22f5035244'
 down_revision = '36f458047cfd'
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_table(
         'invoice',
         sa.Column('created_at', sa.DateTime(), nullable=False),
@@ -64,7 +65,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column('item_collection', 'tax_type')
     op.drop_index(op.f('ix_invoice_customer_order_id'), table_name='invoice')
     op.drop_table('invoice')

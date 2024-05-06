@@ -1,4 +1,5 @@
-"""rm quantity_available.
+"""
+rm quantity_available.
 
 Revision ID: dadc5748932
 Revises: 253e7b76eb8e
@@ -6,10 +7,10 @@ Create Date: 2016-06-10 17:53:52.113035
 
 """
 
+import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.sql import column, table
-import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'dadc5748932'
@@ -30,12 +31,12 @@ line_item = table(
 )
 
 
-def upgrade():
+def upgrade() -> None:
     op.drop_constraint('item_quantity_available_lte_quantity_total_check', 'item')
     op.drop_column('item', 'quantity_available')
 
 
-def downgrade():
+def downgrade() -> None:
     op.add_column(
         'item',
         sa.Column(
@@ -46,9 +47,11 @@ def downgrade():
         item.update().values(
             {
                 'quantity_available': item.c.quantity_total
-                - line_item.count()
+                - sa.select(sa.func.count())
+                .select_from(line_item)
                 .where(line_item.c.item_id == item.c.id)
                 .where(line_item.c.status == 0)
+                .scalar_subquery()
             }
         )
     )

@@ -1,17 +1,17 @@
 """Console script."""
 
-from collections.abc import Iterable
-from decimal import Decimal
-from typing import TypeAlias, Union
-from uuid import UUID
 import csv
 import datetime
 import logging
+from collections.abc import Iterable
+from decimal import Decimal
+from typing import TypeAlias
+from uuid import UUID
 
+import IPython
 from flask.cli import load_dotenv
 from flask.typing import ResponseReturnValue
 from isoweek import Week
-import IPython
 
 load_dotenv()
 
@@ -44,7 +44,7 @@ from boxoffice.views.order import process_partial_refund_for_order
 logging.basicConfig()
 logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
-Timezone: TypeAlias = Union[str, datetime.tzinfo]
+Timezone: TypeAlias = str | datetime.tzinfo
 
 
 def sales_by_date(
@@ -260,7 +260,8 @@ def partial_refund(
     }
     order = Order.query.get(order_id)
     if order is None:
-        raise ValueError("Unknown order")
+        msg = "Unknown order"
+        raise ValueError(msg)
 
     with app.test_request_context():
         process_partial_refund_for_order({'order': order, 'form': form_dict})
@@ -287,7 +288,8 @@ def resend_attendee_details_email(
 ) -> None:
     menu = Menu.query.get(menu_id)
     if menu is None:
-        raise ValueError("Unknown item collection")
+        msg = "Unknown item collection"
+        raise ValueError(msg)
     headers, rows = menu.fetch_all_details()
     attendee_name_index = headers.index('attendee_fullname')
     order_id_index = headers.index('order_id')
@@ -305,7 +307,8 @@ def resend_attendee_details_email(
 def order_report(org_name: str) -> None:
     org = Organization.query.filter_by(name=org_name).one_or_none()
     if org is None:
-        raise ValueError("Unknown organization")
+        msg = "Unknown organization"
+        raise ValueError(msg)
 
     with open('order_report.csv', 'wb', encoding='utf-8') as csvfile:
         order_writer = csv.writer(csvfile, quoting=csv.QUOTE_ALL)

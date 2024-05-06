@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from coaster.sqlalchemy import JsonDict
 from flask_lastuser.sqlalchemy import ProfileBase, UserBase2
 
-from . import DynamicMapped, Mapped, Model, db, relationship, sa
+from . import DynamicMapped, Mapped, Model, Query, db, relationship, sa
 from .utils import HeadersAndDataTuple
 
 __all__ = ['User', 'Organization']
@@ -19,12 +19,12 @@ class User(UserBase2, Model):
     )
     orders: Mapped[list[Order]] = relationship(cascade='all, delete-orphan')
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Return a representation."""
         return str(self.fullname)
 
     @property
-    def orgs(self):
+    def orgs(self) -> Query[Organization]:
         return Organization.query.filter(
             Organization.userid.in_(self.organizations_owned_ids())
         )
@@ -73,13 +73,13 @@ class Organization(ProfileBase, Model):
         cascade='all, delete-orphan', lazy='dynamic', back_populates='organization'
     )
 
-    def permissions(self, actor, inherited=None):
+    def permissions(self, actor: User, inherited: set[str] | None = None) -> set[str]:
         perms = super().permissions(actor, inherited)
         if self.userid in actor.organizations_owned_ids():
             perms.add('org_admin')
         return perms
 
-    def fetch_invoices(self, filters: dict | None = None):
+    def fetch_invoices(self, filters: dict | None = None) -> HeadersAndDataTuple:
         """Return invoices for an organization as a tuple of (row_headers, rows)."""
         # pylint: disable=import-outside-toplevel
         from .invoice import Invoice
@@ -146,7 +146,9 @@ class Organization(ProfileBase, Model):
             headers, db.session.execute(invoices_query).fetchall()
         )
 
-    def fetch_invoice_line_items(self, filters: dict | None = None):
+    def fetch_invoice_line_items(
+        self, filters: dict | None = None
+    ) -> HeadersAndDataTuple:
         """
         Return invoice line items for import into Zoho Books.
 

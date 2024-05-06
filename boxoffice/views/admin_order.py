@@ -1,9 +1,15 @@
-from flask import jsonify, url_for
+from collections.abc import Mapping
+from decimal import Decimal
+from typing import Any, TypedDict
+from uuid import UUID
+
+from flask import Response, jsonify, url_for
 
 from coaster.views import ReturnRenderWith, load_models, render_with
 
 from .. import app, lastuser
 from ..models import (
+    Assignee,
     CurrencySymbol,
     InvoiceStatus,
     LineItem,
@@ -16,7 +22,33 @@ from ..models import (
 from .utils import check_api_access, json_date_format, xhr_only
 
 
-def format_assignee(assignee):
+class AssigneeDict(TypedDict):
+    id: int
+    fullname: str
+    email: str
+    phone: str | None
+    details: dict[str, Any]
+
+
+class LineItemDict(TypedDict):
+    title: str
+    seq: int
+    id: UUID
+    category: str
+    description: str | None
+    description_html: str | None
+    currency: str
+    base_amount: Decimal
+    discounted_amount: Decimal
+    final_amount: Decimal
+    discount_policy: str
+    discount_coupon: str
+    cancelled_at: str
+    assignee_details: AssigneeDict | None
+    cancel_ticket_url: str
+
+
+def format_assignee(assignee: Assignee | None) -> AssigneeDict | None:
     if assignee:
         return {
             'id': assignee.id,
@@ -28,8 +60,8 @@ def format_assignee(assignee):
     return None
 
 
-def format_line_items(line_items):
-    line_item_dicts = []
+def format_line_items(line_items: list[LineItem]) -> list[LineItemDict]:
+    line_item_dicts: list[LineItemDict] = []
     for line_item in line_items:
         line_item_dicts.append(
             {
@@ -65,7 +97,7 @@ def format_line_items(line_items):
     return line_item_dicts
 
 
-def jsonify_admin_orders(data_dict):
+def jsonify_admin_orders(data_dict: Mapping[str, Any]) -> Response:
     menu_id = data_dict['menu'].id
     order_dicts = []
     for order in data_dict['orders']:
@@ -113,7 +145,7 @@ def admin_orders(menu: Menu) -> ReturnRenderWith:
 @lastuser.requires_login
 @xhr_only
 @load_models((Order, {'id': 'order_id'}, 'order'), permission='org_admin')
-def admin_order(order: Order):
+def admin_order(order: Order) -> Response:
     line_items = LineItem.query.filter(
         LineItem.order == order,
         LineItem.status.in_(
@@ -123,7 +155,7 @@ def admin_order(order: Order):
     return jsonify(line_items=format_line_items(line_items))
 
 
-def jsonify_order(order_dict):
+def jsonify_order(order_dict: Mapping[str, Any]) -> Response:
     org = {"title": order_dict['org'].title, "name": order_dict['org'].name}
     order = {
         'id': order_dict['order'].id,
@@ -165,7 +197,7 @@ def admin_org_order(org: Organization, order: Order) -> ReturnRenderWith:
     return {'org': org, 'order': order, 'line_items': line_items}
 
 
-def get_order_details(order):
+def get_order_details(order: Order) -> Response:
     line_items_list = [
         {
             'title': li.ticket.title,
@@ -245,7 +277,7 @@ def get_order_details(order):
     (Organization, {'name': 'org_name'}, 'org'),
     (Order, {'organization': 'org', 'receipt_no': 'receipt_no'}, 'order'),
 )
-def order_api(org: Organization, order: Order):
+def order_api(org: Organization, order: Order) -> Response:
     check_api_access(org.details.get('access_token'))
     return get_order_details(order)
 
@@ -257,6 +289,6 @@ def order_api(org: Organization, order: Order):
     (Organization, {'name': 'org_name'}, 'org'),
     (Order, {'organization': 'org', 'id': 'order_id'}, 'order'),
 )
-def order_id_api(org: Organization, order: Order):
+def order_id_api(org: Organization, order: Order) -> Response:
     check_api_access(org.details.get('access_token'))
     return get_order_details(order)

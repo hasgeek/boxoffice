@@ -1,4 +1,5 @@
-"""add index to line_item.
+"""
+add index to line_item.
 
 Revision ID: 10ac78260434
 Revises: 50f34bb47dc4
@@ -13,7 +14,7 @@ revision = '10ac78260434'
 down_revision = '50f34bb47dc4'
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_index(
         op.f('ix_line_item_customer_order_id'),
         'line_item',
@@ -37,7 +38,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_index(op.f('ix_line_item_customer_order_id'), table_name='line_item')
     op.drop_index(op.f('ix_line_item_item_id'), table_name='line_item')
     op.drop_index(op.f('ix_line_item_discount_policy_id'), table_name='line_item')

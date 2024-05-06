@@ -1,5 +1,5 @@
-from decimal import Decimal
 import datetime
+from decimal import Decimal
 
 import requests
 
@@ -39,7 +39,7 @@ def epoch_dt(dt):
     return (dt - epoch).total_seconds()
 
 
-def sync_refunds():
+def sync_refunds() -> None:
     def calc_correspongding_rp_refund(possible_rp_refunds, refund_epoch_dt):
         return min(
             possible_rp_refunds,
@@ -69,13 +69,14 @@ def sync_refunds():
                     or amount_in_paise(refund.amount)
                     != correspongding_rp_refund['amount']
                 ):
-                    raise RuntimeError(f"Oops! No refund found for {refund.id}")
+                    msg = f"Oops! No refund found for {refund.id}"
+                    raise RuntimeError(msg)
                 refund.pg_refundid = correspongding_rp_refund['id']
                 used_pg_refundids.append(correspongding_rp_refund['id'])
     db.session.commit()
 
 
-def remove_duplicate_payments():
+def remove_duplicate_payments() -> None:
     orders = Order.query.all()
     for order in orders:
         payments = OnlinePayment.query.filter(OnlinePayment.order == order).all()
@@ -109,7 +110,7 @@ def get_duplicate_payments():
     return dupes
 
 
-def import_missing_refunds():
+def import_missing_refunds() -> None:
     payments = OnlinePayment.query.all()
     for payment in payments:
         rp_refunds = get_refunds(payment.pg_paymentid)

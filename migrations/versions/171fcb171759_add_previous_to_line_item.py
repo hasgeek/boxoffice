@@ -1,4 +1,5 @@
-"""add_previous_to_line_item.
+"""
+add_previous_to_line_item.
 
 Revision ID: 171fcb171759
 Revises: 81f30d00706f
@@ -6,16 +7,16 @@ Create Date: 2017-10-24 18:40:39.183620
 
 """
 
+import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
-import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '171fcb171759'
 down_revision = '81f30d00706f'
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         'line_item',
         sa.Column('previous_id', postgresql.UUID(), nullable=True),
@@ -28,7 +29,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_constraint('line_item_id_fkey', 'line_item', type_='foreignkey')
     op.drop_index(op.f('ix_line_item_previous_id'), table_name='line_item')
     op.drop_column('line_item', 'previous_id')

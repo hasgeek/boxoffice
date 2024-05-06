@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Any
+from typing import Any, Self
 
 from werkzeug.datastructures import ImmutableMultiDict
 
 from baseframe import __, forms
 
-from ..data import indian_states_dict, short_codes
+from ..data import codes as gst_codes, indian_states_dict
 
 __all__ = ['LineItemForm', 'BuyerForm', 'OrderSessionForm', 'InvoiceForm']
 
@@ -36,7 +36,7 @@ class LineItemForm(forms.Form):
     )
 
     @classmethod
-    def process_list(cls, line_items_json: list[Any]):
+    def process_list(cls, line_items_json: list[Any]) -> list[Self]:
         """
         Return a list of LineItemForm objects.
 
@@ -88,18 +88,18 @@ class OrderSessionForm(forms.Form):
     utm_term = forms.StringField(__("UTM Term"), filters=[trim(250)])
     utm_content = forms.StringField(__("UTM Content"), filters=[trim(250)])
     utm_id = forms.StringField(__("UTM Id"), filters=[trim(250)])
-    gclid = forms.StringField(__("Gclid"), filters=[trim(250)])
+    gclid = forms.StringField(__("Google Click Id"), filters=[trim(250)])
     referrer = forms.StringField(__("Referrer"), filters=[trim(2083)])
     host = forms.StringField(__("Host"), filters=[trim(2083)])
 
 
-def validate_state_code(form, field: forms.Field) -> None:
+def validate_state_code(form: InvoiceForm, field: forms.Field) -> None:
     # Note: state_code is only a required field if the chosen country is India
     if form.country_code.data == "IN" and field.data.upper() not in indian_states_dict:
         raise forms.validators.StopValidation(__("Please select a state"))
 
 
-def validate_gstin(_form, field: forms.Field) -> None:
+def validate_gstin(_form: forms.Form, field: forms.Field) -> None:
     """
     Raise a StopValidation exception if the supplied field's data is not a valid GSTIN.
 
@@ -115,7 +115,7 @@ def validate_gstin(_form, field: forms.Field) -> None:
     # 15 length, first 2 digits, valid pan, checksum
     if (
         len(field.data) != 15
-        or int(field.data[:2]) not in short_codes
+        or int(field.data[:2]) not in gst_codes
         or not field.data[2:12].isalnum()
         or not field.data[-1].isalnum()
     ):

@@ -81,7 +81,7 @@ class TicketForm(forms.Form):
         __("State"),
         description=__("State of supply"),
         coerce=int,
-        default=indian_states_dict['KA']['short_code'],
+        default=indian_states_dict['KA'].code,
         validators=[forms.validators.DataRequired(__("Please select a state"))],
     )
     place_supply_country_code = forms.SelectField(
@@ -93,10 +93,9 @@ class TicketForm(forms.Form):
 
     def __post_init__(self) -> None:
         self.place_supply_state_code.choices = [(0, '')] + [
-            (state['short_code'], state['name'])
-            for state in sorted(indian_states, key=lambda k: k['name'])
+            (state.code, state.title) for state in indian_states
         ]
-        self.place_supply_country_code.choices = [('', '')] + localized_country_list()
+        self.place_supply_country_code.choices = [('', ''), *localized_country_list()]
         self.category.query = (
             Category.query.join(Menu, Category.menu_id == Menu.id)
             .filter(Category.menu == self.edit_parent)

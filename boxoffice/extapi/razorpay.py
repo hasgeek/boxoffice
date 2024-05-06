@@ -1,3 +1,7 @@
+from datetime import tzinfo
+from decimal import Decimal
+from typing import Any, TypedDict
+
 import requests
 
 from baseframe import localize_timezone
@@ -9,35 +13,38 @@ from ..models import OnlinePayment, PaymentTransaction, TransactionTypeEnum
 base_url = 'https://api.razorpay.com/v1'
 
 
-def capture_payment(paymentid, amount):
+class YearMonth(TypedDict):
+    year: int
+    month: int
+
+
+def capture_payment(paymentid: str, amount: Decimal) -> requests.Response:
     """Attempt to capture the payment from Razorpay."""
     verify_https = app.config.get('VERIFY_RAZORPAY_HTTPS', True)
     url = f'{base_url}/payments/{paymentid}/capture'
     # Razorpay requires the amount to be in paisa and of type integer
-    resp = requests.post(
+    return requests.post(
         url,
         data={'amount': int(amount * 100)},
         auth=(app.config['RAZORPAY_KEY_ID'], app.config['RAZORPAY_KEY_SECRET']),
         verify=verify_https,
         timeout=30,
     )
-    return resp
 
 
-def refund_payment(paymentid, amount):
+def refund_payment(paymentid: str, amount: Decimal) -> requests.Response:
     """Send a POST request to Razorpay to initiate a refund."""
     url = f'{base_url}/payments/{paymentid}/refund'
     # Razorpay requires the amount to be in paisa and of type integer
-    resp = requests.post(
+    return requests.post(
         url,
         data={'amount': int(amount * 100)},
         auth=(app.config['RAZORPAY_KEY_ID'], app.config['RAZORPAY_KEY_SECRET']),
         timeout=30,
     )
-    return resp
 
 
-def get_settlements(date_range):
+def get_settlements(date_range: YearMonth) -> Any:
     url = f'{base_url}/settlements/recon/combined'
     resp = requests.get(
         url,
@@ -48,7 +55,9 @@ def get_settlements(date_range):
     return resp.json()
 
 
-def get_settled_transactions(date_range, tz=None):
+def get_settled_transactions(
+    date_range: YearMonth, tz: str | tzinfo | None = None
+) -> tuple[list[str], list]:
     if not tz:
         tz = app.config['TIMEZONE']
     settled_transactions = get_settlements(date_range)
@@ -96,6 +105,7 @@ def get_settled_transactions(date_range, tz=None):
             ).one_or_none()
             if payment:
                 order = payment.order
+                assert order.paid_at is not None  # noqa: S101  # nosec B101
                 rows.append(
                     {
                         'settlement_id': settled_transaction['settlement_id'],

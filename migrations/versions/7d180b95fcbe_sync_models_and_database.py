@@ -1,4 +1,5 @@
-"""Sync models and database.
+"""
+Sync models and database.
 
 Revision ID: 7d180b95fcbe
 Revises: f78ca4cad5d6
@@ -6,8 +7,8 @@ Create Date: 2019-05-15 18:28:47.050549
 
 """
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = '7d180b95fcbe'
@@ -26,7 +27,7 @@ renames = [
 ]
 
 
-def upgrade():
+def upgrade() -> None:
     for table, oldname, newname in renames:
         op.execute(
             sa.DDL(
@@ -71,7 +72,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_constraint('line_item_previous_id_key', 'line_item', type_='unique')
     op.create_index(
         'ix_line_item_previous_id', 'line_item', ['previous_id'], unique=True

@@ -1,4 +1,9 @@
-from flask import jsonify, render_template, request
+from datetime import datetime
+from decimal import Decimal
+from typing import TypedDict
+from uuid import UUID
+
+from flask import Response, jsonify, render_template, request
 from markupsafe import Markup
 
 from baseframe import localized_country_list
@@ -18,7 +23,39 @@ from ..models import (
 from .utils import cors, sanitize_coupons, xhr_only
 
 
-def jsonify_ticket(ticket: Ticket):
+class DiscountPolicyDict(TypedDict):
+    id: UUID
+    title: str
+    is_automatic: bool
+
+
+class TicketDict(TypedDict):
+    name: str
+    title: str
+    id: UUID
+    description: str | None
+    description_html: str | None
+    quantity_available: int
+    is_available: bool
+    quantity_total: int
+    category_id: int
+    menu_id: UUID
+    price: Decimal
+    price_category: str
+    price_valid_upto: datetime
+    has_higher_price: bool
+    discount_policies: list[DiscountPolicyDict]
+
+
+class CategoryDict(TypedDict):
+    id: int
+    title: str
+    name: str
+    menu_id: UUID
+    tickets: list[TicketDict]
+
+
+def jsonify_ticket(ticket: Ticket) -> TicketDict | None:
     if ticket.restricted_entry:
         code_list = (
             sanitize_coupons(request.args.getlist('code'))
@@ -60,7 +97,7 @@ def jsonify_ticket(ticket: Ticket):
     }
 
 
-def jsonify_category(category: Category):
+def jsonify_category(category: Category) -> CategoryDict | None:
     category_items = []
     for ticket in Ticket.get_by_category(category):
         ticket_json = jsonify_ticket(ticket)
@@ -77,15 +114,12 @@ def jsonify_category(category: Category):
     return None
 
 
-def render_boxoffice_js():
+def render_boxoffice_js() -> str:
     return render_template(
         'boxoffice.js.jinja2',
         base_url=request.url_root.rstrip('/'),
         razorpay_key_id=app.config['RAZORPAY_KEY_ID'],
-        states=[
-            {'name': state['name'], 'code': state['short_code_text']}
-            for state in sorted(indian_states, key=lambda k: k['name'])
-        ],
+        states=[{'name': state.title, 'code': state.name} for state in indian_states],
         countries=[
             {'name': name, 'code': code} for code, name in localized_country_list()
         ],
@@ -94,7 +128,7 @@ def render_boxoffice_js():
 
 @app.route('/api/1/boxoffice.js')
 @cors
-def boxofficejs():
+def boxofficejs() -> Response:
     return jsonify({'script': render_boxoffice_js()})
 
 
@@ -102,7 +136,7 @@ def boxofficejs():
 @xhr_only
 @cors
 @load_models((Menu, {'id': 'menu_id'}, 'menu'))
-def view_menu(menu: Menu):
+def view_menu(menu: Menu) -> Response:
     categories_json = []
     for category in menu.categories:
         category_json = jsonify_category(category)
@@ -125,7 +159,7 @@ def view_menu(menu: Menu):
         'menu',
     ),
 )
-def menu_listing(organization: Organization, menu: Menu):
+def menu_listing(organization: Organization, menu: Menu) -> str:
     show_title = getbool(request.args.get('show_title', True))
     return render_template(
         'item_collection_listing.html.jinja2',

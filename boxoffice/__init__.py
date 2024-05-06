@@ -9,12 +9,12 @@ from flask_migrate import Migrate
 from flask_rq2 import RQ
 from pytz import timezone
 
+import coaster.app
 from baseframe import Version, baseframe
 from baseframe.utils import JSONProvider
 from coaster.assets import WebpackManifest
 from flask_lastuser import Lastuser
 from flask_lastuser.sqlalchemy import UserManager
-import coaster.app
 
 from ._version import __version__
 

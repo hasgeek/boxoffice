@@ -1,7 +1,9 @@
+from collections.abc import Mapping
 from datetime import date
+from typing import Any
 
-from flask import g, jsonify, request
 import pytz
+from flask import Response, g, jsonify, request
 
 from baseframe import _
 from coaster.utils import getbool
@@ -14,7 +16,7 @@ from ..models.payment import calculate_weekly_refunds
 from .utils import api_error, api_success, check_api_access
 
 
-def jsonify_dashboard(data):
+def jsonify_dashboard(data: Mapping[str, Any]) -> Response:
     return jsonify(
         orgs=[
             {
@@ -37,9 +39,9 @@ def index() -> ReturnRenderWith:
     return {'user': g.user}
 
 
-def jsonify_org(data):
+def jsonify_org(data: Mapping[str, Any]) -> Response:
     menu_list = (
-        Menu.query.filter(Menu.organization == data['org'])
+        Menu.query.filter(Menu.organization_id == data['org'].id)
         .order_by(Menu.created_at.desc())
         .all()
     )
@@ -60,7 +62,7 @@ def org(organization: Organization) -> ReturnRenderWith:
 
 @app.route('/api/1/organization/<org>/weekly_revenue', methods=['GET', 'OPTIONS'])
 @load_models((Organization, {'name': 'org'}, 'organization'))
-def org_revenue(organization: Organization):
+def org_revenue(organization: Organization) -> Response:
     check_api_access(organization.details.get('access_token'))
 
     if not request.args.get('year'):

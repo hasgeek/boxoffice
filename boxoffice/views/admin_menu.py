@@ -1,4 +1,7 @@
-from flask import g, jsonify, request
+from collections.abc import Mapping
+from typing import Any
+
+from flask import Response, g, jsonify, request
 
 from baseframe import _, localize_timezone
 from baseframe.forms import render_form
@@ -13,7 +16,7 @@ from .admin_ticket import format_ticket_details
 from .utils import api_error, api_success
 
 
-def jsonify_menu(menu_dict):
+def jsonify_menu(menu_dict: Mapping[str, Any]) -> Response:
     return jsonify(
         account_name=menu_dict['menu'].organization.name,
         account_title=menu_dict['menu'].organization.title,
@@ -65,14 +68,14 @@ def admin_menu(menu: Menu) -> ReturnRenderWith:
     }
 
 
-def jsonify_new_menu(menu_dict):
+def jsonify_new_menu(menu_dict: Mapping[str, Any]) -> Response:
     ic_form = MenuForm()
     if request.method == 'GET':
         return jsonify(
             form_template=render_form(
                 form=ic_form,
-                title="New menu",
-                submit="Create",
+                title=_("New menu"),
+                submit=_("Create"),
                 ajax=False,
                 with_chrome=False,
             ).get_data(as_text=True)
@@ -104,15 +107,15 @@ def admin_new_ic(organization: Organization) -> ReturnRenderWith:
     return {'organization': organization}
 
 
-def jsonify_edit_menu(menu_dict):
+def jsonify_edit_menu(menu_dict: Mapping[str, Any]) -> Response:
     menu = menu_dict['menu']
     ic_form = MenuForm(obj=menu)
     if request.method == 'GET':
         return jsonify(
             form_template=render_form(
                 form=ic_form,
-                title="Edit menu",
-                submit="Save",
+                title=_("Edit menu"),
+                submit=_("Save"),
                 ajax=False,
                 with_chrome=False,
             ).get_data(as_text=True)

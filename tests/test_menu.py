@@ -2,6 +2,7 @@
 import json
 
 import pytest
+from werkzeug.test import TestResponse
 
 from boxoffice import app
 from boxoffice.models import Menu
@@ -56,7 +57,7 @@ expected_data = {
 
 
 @pytest.fixture
-def resp(client, all_data):
+def resp(client, all_data) -> TestResponse:  # noqa: ARG001
     menu = Menu.query.one()
     return client.get(
         f'/menu/{menu.id}',
