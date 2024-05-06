@@ -70,7 +70,8 @@ class RemoveIsRollback:
 
 @pytest.fixture
 def db_session(
-    database: SQLAlchemy, db_connection: sa.Connection  # noqa: ARG001
+    database: SQLAlchemy,
+    db_connection: sa.Connection,  # noqa: ARG001
 ) -> Generator[sa.orm.scoped_session, None, None]:
     """Empty the database after each use of the fixture."""
     with RemoveIsRollback(database.session, lambda: database.session.rollback):

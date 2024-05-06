@@ -196,8 +196,12 @@ exclude = [
 # Same as Black.
 line-length = 88
 
-# Target Python 3.7
+# Target Python 3.11
 target-version = "py311"
+
+[tool.ruff.format]
+docstring-code-format = true
+quote-style = "preserve"
 
 [tool.ruff.lint]
 # Allow unused variables when underscore-prefixed.
@@ -257,6 +261,7 @@ ignore = [
   "D212",
   "E402",
   "E501",
+  "ISC001",
 ]
 
 # Allow autofix for all enabled rules (when `--fix`) is provided.

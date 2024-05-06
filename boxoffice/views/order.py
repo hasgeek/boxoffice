@@ -89,7 +89,7 @@ def jsonify_line_items(line_items: Iterable[LineItemTuple]) -> dict[str, LineIte
                 'quantity': Y,
                 'final_amount': Z,
                 'discounted_amount': Z,
-                'discount_policy_ids': ['d1', 'd2']
+                'discount_policy_ids': ['d1', 'd2'],
             }
         }
     """
@@ -203,7 +203,7 @@ def kharcha() -> Response:
                 "quantity": Y,
                 "final_amount": Z,
                 "discounted_amount": Z,
-                "discount_policy_ids": ["d1", "d2"]
+                "discount_policy_ids": ["d1", "d2"],
             }
         }
     """
