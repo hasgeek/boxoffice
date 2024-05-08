@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from collections import OrderedDict
+from collections.abc import Iterable
+from datetime import tzinfo
 from decimal import Decimal
 from uuid import UUID
 
@@ -97,7 +99,9 @@ class PaymentTransaction(BaseMixin[UUID, User], Model):
     pg_refundid: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(80), unique=True)
 
 
-def calculate_weekly_refunds(menu_ids, user_tz, year):
+def calculate_weekly_refunds(
+    menu_ids: Iterable[UUID], user_tz: str | tzinfo, year: int
+) -> OrderedDict[int, int]:
     """Calculate refunds per week of the year for given menu_ids."""
     ordered_week_refunds = OrderedDict()
     for year_week in Week.weeks_of_year(year):

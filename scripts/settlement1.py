@@ -1,7 +1,7 @@
 # settlements = {id: [{line_item_id, line_item_title, base_amount, final_amount}]}
 
-from decimal import Decimal
 import csv
+from decimal import Decimal
 
 from pytz import timezone, utc
 
@@ -19,7 +19,7 @@ def csv_to_rows(csv_file, skip_header=True, delimiter=','):
         return list(reader)
 
 
-def rows_to_csv(rows, filename):
+def rows_to_csv(rows, filename) -> bool:
     with open(filename, 'wb', encoding='utf-8') as csvfile:
         writer = csv.writer(
             csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL
@@ -54,9 +54,9 @@ def get_settlements(filename):
                         transaction_type=TransactionTypeEnum.PAYMENT,
                     ).one_or_none()
                     # Get settlement
-                    settlement_amount = [
+                    settlement_amount = next(
                         tr for tr in transactions if tr[0] == trans[11]
-                    ][0][4]
+                    )[4]
                     settlements[trans[11]].append(
                         {
                             'settlement_amount': settlement_amount,
@@ -83,9 +83,9 @@ def get_settlements(filename):
                         online_payment=payment,
                         transaction_type=TransactionTypeEnum.REFUND,
                     ).all()
-                    settlement_amount = [
+                    settlement_amount = next(
                         tr for tr in transactions if tr[0] == trans[11]
-                    ][0][4]
+                    )[4]
                     for rt in refund_transactions:
                         settlements[trans[11]].append(
                             {

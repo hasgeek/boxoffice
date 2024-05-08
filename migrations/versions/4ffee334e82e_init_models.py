@@ -1,4 +1,5 @@
-"""init models.
+"""
+init models.
 
 Revision ID: 4ffee334e82e
 Revises: None
@@ -6,15 +7,15 @@ Create Date: 2016-02-25 16:35:04.042785
 
 """
 
+import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
-import sqlalchemy as sa
 
 revision = '4ffee334e82e'
 down_revision: str | None = None
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_table(
         'organization',
         sa.Column('created_at', sa.DateTime(), nullable=False),
@@ -300,7 +301,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_table('price')
     op.drop_table('line_item')
     op.drop_table('item_discount_policy')

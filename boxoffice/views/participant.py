@@ -67,7 +67,7 @@ def assign(order: Order) -> ReturnRenderWith:
         ticket_assignee_details = line_item.ticket.assignee_details
         assignee_details = {}
         if ticket_assignee_details:
-            for key in ticket_assignee_details.keys():
+            for key in ticket_assignee_details:
                 assignee_details[key] = assignee_dict.get(key)
         if (
             line_item.current_assignee

@@ -1,4 +1,6 @@
+bandit
 mypy
+ruff
 types-python-dateutil
 types-pytz
 types-requests

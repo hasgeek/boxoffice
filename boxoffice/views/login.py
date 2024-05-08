@@ -1,4 +1,5 @@
 from flask import flash, redirect
+from flask.typing import ResponseReturnValue
 from markupsafe import Markup, escape
 
 from baseframe import _
@@ -11,20 +12,20 @@ from ..models import User, db
 
 @app.route('/login')
 @lastuser.login_handler
-def login():
+def login() -> dict[str, str]:
     return {'scope': 'id email phone organizations'}
 
 
 @app.route('/logout')
 @lastuser.logout_handler
-def logout():
+def logout() -> ResponseReturnValue:
     flash(_("You are now logged out"), category='success')
     return get_next_url()
 
 
 @app.route('/login/redirect')
 @lastuser.auth_handler
-def lastuserauth():
+def lastuserauth() -> ResponseReturnValue:
     return redirect(get_next_url())
 
 
@@ -38,7 +39,9 @@ def lastusernotify(_user: User) -> None:
 
 
 @lastuser.auth_error_handler
-def lastuser_error(error, error_description=None, error_uri=None):
+def lastuser_error(
+    error: str, error_description: str | None = None, error_uri: str | None = None
+) -> ResponseReturnValue:
     if error == 'access_denied':
         flash(_("You denied the request to login"), category='error')
         return redirect(get_next_url())

@@ -27,7 +27,7 @@ class MenuForm(forms.Form):
         __("State"),
         description=__("State of supply"),
         coerce=int,
-        default=indian_states_dict['KA']['short_code'],
+        default=indian_states_dict['KA'].code,
         validators=[forms.validators.DataRequired(__("Please select a state"))],
     )
     place_supply_country_code = forms.SelectField(
@@ -39,10 +39,9 @@ class MenuForm(forms.Form):
 
     def __post_init__(self) -> None:
         self.place_supply_state_code.choices = [(0, '')] + [
-            (state['short_code'], state['name'])
-            for state in sorted(indian_states, key=lambda k: k['name'])
+            (state.code, state.title) for state in indian_states
         ]
-        self.place_supply_country_code.choices = [('', '')] + localized_country_list()
+        self.place_supply_country_code.choices = [('', ''), *localized_country_list()]
 
     def validate_place_supply_state_code(self, field: forms.Field) -> None:
         if field.data <= 0:

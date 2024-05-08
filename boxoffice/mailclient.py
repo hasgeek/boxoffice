@@ -18,14 +18,15 @@ def send_receipt_mail(
     order_id: UUID,
     subject: str | None = None,
     template: str = 'order_confirmation_mail.html.jinja2',
-):
+) -> None:
     """Send buyer a link to fill attendee details and get cash receipt."""
     with app.test_request_context():
         if subject is None:
             subject = _("Thank you for your order!")
         order = Order.query.get(order_id)
         if order is None:
-            raise ValueError(f"Unable to find Order with id={order_id!r}")
+            err = f"Unable to find Order with id={order_id!r}"
+            raise ValueError(err)
         msg = Message(
             subject=subject,
             recipients=[order.buyer_email],
@@ -59,13 +60,14 @@ def send_participant_assignment_mail(
     menu_title: str,
     team_member: str,
     subject: str | None = None,
-):
+) -> None:
     with app.test_request_context():
         if subject is None:
             subject = _("Please tell us who's coming!")
         order = Order.query.get(order_id)
         if order is None:
-            raise ValueError(f"Unable to find Order with id={order_id!r}")
+            err = f"Unable to find Order with id={order_id!r}"
+            raise ValueError(err)
         msg = Message(
             subject=subject,
             recipients=[order.buyer_email],
@@ -89,13 +91,14 @@ def send_participant_assignment_mail(
 @rq.job('boxoffice')
 def send_line_item_cancellation_mail(
     line_item_id: UUID, refund_amount: Decimal, subject: str | None = None
-):
+) -> None:
     with app.test_request_context():
         if subject is None:
             subject = _("Ticket Cancellation")
         line_item = LineItem.query.get(line_item_id)
         if line_item is None:
-            raise ValueError(f"Unable to find LineItem with id={line_item_id!r}")
+            err = f"Unable to find LineItem with id={line_item_id!r}"
+            raise ValueError(err)
         ticket_title = line_item.ticket.title
         order = line_item.order
         is_paid = line_item.final_amount > Decimal('0')
@@ -126,11 +129,12 @@ def send_line_item_cancellation_mail(
 @rq.job('boxoffice')
 def send_order_refund_mail(
     order_id: UUID, refund_amount: Decimal, note_to_user: MarkdownComposite
-):
+) -> None:
     with app.test_request_context():
         order = Order.query.get(order_id)
         if order is None:
-            raise ValueError(f"Unable to find Order with id={order_id!r}")
+            err = f"Unable to find Order with id={order_id!r}"
+            raise ValueError(err)
         subject = _("{menu_title}: Refund for receipt no. {receipt_no}").format(
             menu_title=order.menu.title,
             receipt_no=order.receipt_no,
@@ -158,16 +162,16 @@ def send_order_refund_mail(
 
 
 @rq.job('boxoffice')
-def send_ticket_assignment_mail(line_item_id: UUID):
+def send_ticket_assignment_mail(line_item_id: UUID) -> None:
     """Send a confirmation email when ticket has been assigned."""
     with app.test_request_context():
         line_item = LineItem.query.get(line_item_id)
         if line_item is None:
-            raise ValueError(f"Unable to find LineItem with id={line_item_id!r}")
+            err = f"Unable to find LineItem with id={line_item_id!r}"
+            raise ValueError(err)
         if line_item.assignee is None:
-            raise ValueError(
-                f"LineItem.assignee is None for LineItem.id={line_item_id!r}"
-            )
+            err = f"LineItem.assignee is None for LineItem.id={line_item_id!r}"
+            raise ValueError(err)
         order = line_item.order
         subject = _("{title}: Here's your ticket").format(title=order.menu.title)
         msg = Message(
@@ -192,17 +196,18 @@ def send_ticket_assignment_mail(line_item_id: UUID):
 @rq.job('boxoffice')
 def send_ticket_reassignment_mail(
     line_item_id: UUID, old_assignee_id: UUID, new_assignee_id: UUID
-):
+) -> None:
     """Send notice of reassignment of ticket."""
     with app.test_request_context():
         line_item = LineItem.query.get(line_item_id)
         old_assignee = Assignee.query.get(old_assignee_id)
         new_assignee = Assignee.query.get(new_assignee_id)
         if line_item is None or old_assignee is None or new_assignee is None:
-            raise ValueError(
+            err = (
                 f"Unexpected None value in line_item={line_item!r},"
                 f" old_assignee={old_assignee!r}, new_assignee={new_assignee!r}"
             )
+            raise ValueError(err)
         order = line_item.order
 
         subject = _("{title}: Your ticket has been transferred to someone else").format(

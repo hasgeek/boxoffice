@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from enum import IntEnum, StrEnum
+from typing import Final
 
 from baseframe import __
 
@@ -23,10 +24,10 @@ class DiscountTypeEnum(IntEnum):
     AUTOMATIC = 0
     COUPON = 1
 
-    __titles__ = {AUTOMATIC: __("Automatic"), COUPON: __("Coupon")}
+    __titles__: Final = {AUTOMATIC: __("Automatic"), COUPON: __("Coupon")}
 
-    def __init__(self, value: int):
-        self.title = self.__titles__[value]
+    def __init__(self, value: int) -> None:
+        self.title = self.__titles__[value]  # pylint: disable=unsubscriptable-object
 
 
 class InvoiceStatus(IntEnum):

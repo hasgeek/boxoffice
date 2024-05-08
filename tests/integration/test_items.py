@@ -1,5 +1,9 @@
-from datetime import timedelta
 import json
+from datetime import timedelta
+from typing import Any
+
+import pytest
+from werkzeug.test import TestResponse
 
 from coaster.utils import utcnow
 
@@ -7,7 +11,7 @@ from boxoffice import app
 from boxoffice.models import Menu, Order, OrderStatus, Ticket
 
 
-def ajax_post(client, url, data):
+def ajax_post(client, url: str, data: Any) -> TestResponse:
     return client.post(
         url,
         data=json.dumps(data),
@@ -19,8 +23,9 @@ def ajax_post(client, url, data):
     )
 
 
-def test_assign(db_session, client, all_data) -> None:
-    ticket = Ticket.query.filter_by(name="conference-ticket").one()
+@pytest.mark.usefixtures('all_data')
+def test_assign(db_session, client) -> None:
+    ticket = Ticket.query.filter_by(name='conference-ticket').one()
     data = {
         'line_items': [{'ticket_id': str(ticket.id), 'quantity': 2}],
         'buyer': {
@@ -42,7 +47,7 @@ def test_assign(db_session, client, all_data) -> None:
     li_one = order.line_items[0]
     li_two = order.line_items[1]
 
-    # li_one has no assingee set yet, so it should be possible to set one
+    # li_one has no assignee set yet, so it should be possible to set one
     assert li_one.assignee is None
     assert li_one.current_assignee is None
     data = {
@@ -154,7 +159,7 @@ def test_assign(db_session, client, all_data) -> None:
     assert json.loads(resp.data)['status'] == 'ok'
 
     # but ticket transfer has a hard deadline in the
-    # absense of  'transferable_until' - `event_date`.
+    # absence of  'transferable_until' - `event_date`.
     # so, if `transferable_until` is not set and `event_date` is in the past,
     # ticket transfer should fail.
     assert li_two.assignee is not None

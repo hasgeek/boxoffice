@@ -1,4 +1,5 @@
-"""simplify_discounts.
+"""
+simplify_discounts.
 
 Revision ID: 32abb3608d9a
 Revises: 45de268cd444
@@ -6,16 +7,16 @@ Create Date: 2016-04-04 15:44:09.872938
 
 """
 
+import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.sql import column, table
-import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '32abb3608d9a'
 down_revision = '45de268cd444'
 
 
-def upgrade():
+def upgrade() -> None:
     discount_coupon = table(
         'discount_coupon',
         column('quantity_available', sa.Integer()),
@@ -43,7 +44,7 @@ def upgrade():
     op.drop_column('discount_policy', 'item_quantity_max')
 
 
-def downgrade():
+def downgrade() -> None:
     discount_coupon = table(
         'discount_coupon',
         column('quantity_total', sa.Integer()),

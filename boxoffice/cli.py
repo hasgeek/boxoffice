@@ -2,7 +2,7 @@ from . import app
 
 
 @app.cli.command('dbconfig')
-def dbconfig():
+def dbconfig() -> None:
     """Show required database configuration."""
     print(  # noqa: T201
         '''

@@ -1,4 +1,5 @@
-"""add seq to item.
+"""
+add seq to item.
 
 Revision ID: 74770336785
 Revises: 59d274a1682f
@@ -10,10 +11,10 @@ Create Date: 2016-07-06 10:09:49.553138
 revision = '74770336785'
 down_revision = '59d274a1682f'
 
+import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.sql import column, table
-import sqlalchemy as sa
 
 item_collection = table('item_collection', column('id', postgresql.UUID()))
 
@@ -26,7 +27,7 @@ item = table(
 )
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column('item', sa.Column('seq', sa.Integer(), nullable=True))
     connection = op.get_bind()
     item_collections = connection.execute(sa.select(item_collection.c.id))
@@ -45,5 +46,5 @@ def upgrade():
     op.alter_column('item', 'seq', existing_type=sa.Integer(), nullable=False)
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column('item', 'seq')
