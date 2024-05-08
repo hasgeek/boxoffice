@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
-from datetime import date
+from collections.abc import Iterable, Sequence
+from datetime import date, datetime
 from decimal import Decimal
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, ClassVar, NamedTuple
 from uuid import UUID
 
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -31,6 +31,12 @@ from .enums import LineItemStatus
 from .user import User
 
 __all__ = ['Ticket', 'Price']
+
+
+class AvailabilityData(NamedTuple):
+    title: str
+    quantity_total: int
+    line_item_count: int
 
 
 class Ticket(BaseScopedNameMixin[UUID, User], Model):
@@ -70,7 +76,7 @@ class Ticket(BaseScopedNameMixin[UUID, User], Model):
         cascade='all, delete-orphan', lazy='dynamic', back_populates='ticket'
     )
 
-    __roles__ = {
+    __roles__: ClassVar = {
         'item_owner': {
             'read': {
                 'id',
@@ -86,7 +92,7 @@ class Ticket(BaseScopedNameMixin[UUID, User], Model):
     }
 
     @role_check('item_owner')
-    def has_item_owner_role(self, actor: User | None, _anchors=()) -> bool:
+    def has_item_owner_role(self, actor: User | None, _anchors: Any = ()) -> bool:
         return (
             actor is not None
             and self.menu.organization.userid in actor.organizations_owned_ids()
@@ -96,7 +102,7 @@ class Ticket(BaseScopedNameMixin[UUID, User], Model):
         """Return the current price object for a ticket."""
         return self.price_at(utcnow())
 
-    def has_higher_price(self, current_price) -> bool:
+    def has_higher_price(self, current_price: Price) -> bool:
         """Check if ticket has a higher price than the given current price."""
         return Price.query.filter(
             Price.end_at > current_price.end_at,
@@ -104,7 +110,7 @@ class Ticket(BaseScopedNameMixin[UUID, User], Model):
             Price.discount_policy_id.is_(None),
         ).notempty()
 
-    def discounted_price(self, discount_policy) -> Price | None:
+    def discounted_price(self, discount_policy: DiscountPolicy) -> Price | None:
         """Return the discounted price for a ticket."""
         return Price.query.filter(
             Price.ticket == self, Price.discount_policy == discount_policy
@@ -115,7 +121,7 @@ class Ticket(BaseScopedNameMixin[UUID, User], Model):
             Price.ticket == self, Price.discount_policy_id.is_(None)
         ).order_by(Price.start_at.desc())
 
-    def price_at(self, timestamp) -> Price | None:
+    def price_at(self, timestamp: datetime) -> Price | None:
         """Return the price object for a ticket at a given time."""
         return (
             Price.query.filter(
@@ -129,7 +135,7 @@ class Ticket(BaseScopedNameMixin[UUID, User], Model):
         )
 
     @classmethod
-    def get_by_category(cls, category) -> Query[Ticket]:
+    def get_by_category(cls, category: Category) -> Query[Ticket]:
         return cls.query.filter(Ticket.category == category).order_by(cls.seq)
 
     @hybrid_property
@@ -160,15 +166,15 @@ class Ticket(BaseScopedNameMixin[UUID, User], Model):
         return self.line_items.filter(LineItem.status == LineItemStatus.CONFIRMED)
 
     @with_roles(call={'item_owner'})
-    def sold_count(self):
+    def sold_count(self) -> int:
         return self.confirmed_line_items.filter(LineItem.final_amount > 0).count()
 
     @with_roles(call={'item_owner'})
-    def free_count(self):
+    def free_count(self) -> int:
         return self.confirmed_line_items.filter(LineItem.final_amount == 0).count()
 
     @with_roles(call={'item_owner'})
-    def cancelled_count(self):
+    def cancelled_count(self) -> int:
         return self.line_items.filter(
             LineItem.status == LineItemStatus.CANCELLED
         ).count()
@@ -185,16 +191,19 @@ class Ticket(BaseScopedNameMixin[UUID, User], Model):
         )
 
     @classmethod
-    def get_availability(cls, item_ids):
+    def get_availability(cls, item_ids: Iterable[UUID]) -> dict[str, AvailabilityData]:
         """
         Return an availability dict.
 
         {'ticket_id': ('ticket)title', 'quantity_total', 'line_item_count')}
         """
         items_dict = {}
-        item_tups = (
+        rows = (
             db.session.query(
-                cls.id, cls.title, cls.quantity_total, sa.func.count(cls.id)
+                cls.id.label('id'),
+                cls.title.label('title'),
+                cls.quantity_total.label('quantity_total'),
+                sa.func.count(cls.id).label('ticket_count'),
             )
             .join(LineItem)
             .filter(
@@ -204,8 +213,10 @@ class Ticket(BaseScopedNameMixin[UUID, User], Model):
             .group_by(cls.id)
             .all()
         )
-        for item_tup in item_tups:
-            items_dict[str(item_tup[0])] = item_tup[1:]
+        for row in rows:
+            items_dict[str(row.id)] = AvailabilityData(
+                row.title, row.quantity_total, row.ticket_count
+            )
         return items_dict
 
     def demand_curve(self) -> Sequence[sa.engine.Row[tuple[Decimal, int]]]:
@@ -247,7 +258,7 @@ class Price(BaseScopedNameMixin[UUID, User], Model):
     amount: Mapped[Decimal] = sa.orm.mapped_column(default=Decimal(0))
     currency: Mapped[str] = sa.orm.mapped_column(sa.Unicode(3), default='INR')
 
-    __roles__ = {
+    __roles__: ClassVar = {
         'price_owner': {
             'read': {
                 'id',
@@ -262,18 +273,18 @@ class Price(BaseScopedNameMixin[UUID, User], Model):
     }
 
     @role_check('price_owner')
-    def has_price_owner_role(self, actor: User | None, _anchors=()) -> bool:
+    def has_price_owner_role(self, actor: User | None, _anchors: Any = ()) -> bool:
         return (
             actor is not None
             and self.ticket.menu.organization.userid in actor.organizations_owned_ids()
         )
 
     @property
-    def discount_policy_title(self):
+    def discount_policy_title(self) -> str | None:
         return self.discount_policy.title if self.discount_policy else None
 
     @with_roles(call={'price_owner'})
-    def tense(self):
+    def tense(self) -> str:
         now = utcnow()
         if self.end_at < now:
             return _("past")

@@ -1,4 +1,5 @@
-"""retroactively_migrate_previous_id_for_line_item.
+"""
+retroactively_migrate_previous_id_for_line_item.
 
 Revision ID: 66b67130c901
 Revises: 171fcb171759
@@ -7,11 +8,14 @@ Create Date: 2017-10-26 14:50:18.859247
 """
 
 from collections import OrderedDict
+from collections.abc import Iterable
+from datetime import datetime
+from typing import Any, Final
 
+import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.sql import column, table
-import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '66b67130c901'
@@ -31,19 +35,20 @@ class ORDER_STATUS:  # noqa: N801
     INVOICE = 2
     CANCELLED = 3
 
-    TRANSACTION = {SALES_ORDER, INVOICE, CANCELLED}
+    TRANSACTION: Final = {SALES_ORDER, INVOICE, CANCELLED}
 
 
-def find_nearest_timestamp(lst, timestamp):
+def find_nearest_timestamp(lst: list[datetime], timestamp: datetime) -> datetime | None:
     if not lst:
         return None
     nearest_ts = min(lst, key=lambda ts: abs(ts - timestamp).total_seconds())
     if abs(nearest_ts - timestamp).total_seconds() < 1:
         return nearest_ts
+    return None
 
 
-def set_previous_keys_for_line_items(line_items):
-    timestamped_line_items = OrderedDict()
+def set_previous_keys_for_line_items(line_items: Iterable[Any]) -> list[dict]:
+    timestamped_line_items: OrderedDict[datetime, list[Any]] = OrderedDict()
 
     # Assemble the `timestamped_line_items` dictionary with the timestamp at which the
     # line items were created as the key, and the line items that were created at that
@@ -72,7 +77,7 @@ def set_previous_keys_for_line_items(line_items):
     # timestamp with a void status with the same item_id. Find it and set it
     used_line_item_ids = set()
     for idx, (timestamp, _line_item_dicts) in enumerate(
-        timestamped_line_items.items()[1:]
+        list(timestamped_line_items.items())[1:]
     ):
         # 0th timestamps are root line items, so they're skipped since they don't need
         # their `previous_id` to be updated
@@ -80,7 +85,7 @@ def set_previous_keys_for_line_items(line_items):
             # timestamped_line_items.keys()[idx] and not
             # timestamped_line_items.keys()[idx-1] because the
             # timestamped_line_items.items() list is enumerated from index 1
-            previous_li_dict = [
+            previous_li_dict = next(
                 previous_li_dict
                 for previous_li_dict in timestamped_line_items[
                     list(timestamped_line_items.keys())[idx]
@@ -88,7 +93,7 @@ def set_previous_keys_for_line_items(line_items):
                 if previous_li_dict['item_id'] == li_dict['item_id']
                 and previous_li_dict['id'] not in used_line_item_ids
                 and previous_li_dict['status'] == LINE_ITEM_STATUS.VOID
-            ][0]
+            )
             li_dict['previous_id'] = previous_li_dict['id']
             used_line_item_ids.add(previous_li_dict['id'])
 
@@ -114,7 +119,7 @@ line_item_table = table(
 )
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     orders = conn.execute(
         sa.select(order_table.c.id)
@@ -124,12 +129,10 @@ def upgrade():
     for order_id in [order.id for order in orders]:
         line_items = conn.execute(
             sa.select(
-                [
-                    line_item_table.c.id,
-                    line_item_table.c.item_id,
-                    line_item_table.c.status,
-                    line_item_table.c.created_at,
-                ]
+                line_item_table.c.id,
+                line_item_table.c.item_id,
+                line_item_table.c.status,
+                line_item_table.c.created_at,
             )
             .where(line_item_table.c.customer_order_id == order_id)
             .order_by(sa.text('created_at'))
@@ -145,7 +148,7 @@ def upgrade():
                 )
 
 
-def downgrade():
+def downgrade() -> None:
     conn = op.get_bind()
     orders = conn.execute(
         sa.select(order_table.c.id)

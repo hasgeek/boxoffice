@@ -25,13 +25,16 @@ exclude = '''
 '''
 
 [tool.isort]
+# Some isort functionality is replicated in ruff, which should have matching config
+profile = 'black'
 multi_line_output = 3
 include_trailing_comma = true
 line_length = 88
 order_by_type = true
 use_parentheses = true
-from_first = true
-known_future_library = ['__future__', 'six']
+from_first = false
+combine_as_imports = true
+split_on_trailing_comma = false
 known_repo = ['boxoffice']
 known_first_party = ['baseframe', 'coaster', 'flask_lastuser']
 default_section = 'THIRDPARTY'
@@ -164,59 +167,7 @@ skips = ['**/*_test.py', '**/test_*.py', '**/conftest.py']
 # This is a slight customisation of the default rules
 # 1. Rule E402 (module-level import not top-level) is disabled as isort handles it
 # 2. Rule E501 (line too long) is left to Black; some strings are worse for wrapping
-
-# Enable pycodestyle (`E`) and Pyflakes (`F`) codes by default.
-lint.select = ["E", "F"]
-lint.ignore = ["E402"]
-
-# Allow autofix for all enabled rules (when `--fix`) is provided.
-lint.fixable = [
-  "A",
-  "B",
-  "C",
-  "D",
-  "E",
-  "F",
-  "G",
-  "I",
-  "N",
-  "Q",
-  "S",
-  "T",
-  "W",
-  "ANN",
-  "ARG",
-  "BLE",
-  "COM",
-  "DJ",
-  "DTZ",
-  "EM",
-  "ERA",
-  "EXE",
-  "FBT",
-  "ICN",
-  "INP",
-  "ISC",
-  "NPY",
-  "PD",
-  "PGH",
-  "PIE",
-  "PL",
-  "PT",
-  "PTH",
-  "PYI",
-  "RET",
-  "RSE",
-  "RUF",
-  "SIM",
-  "SLF",
-  "TCH",
-  "TID",
-  "TRY",
-  "UP",
-  "YTT",
-]
-lint.unfixable = []
+# 3. Rule S101 is disruptive in tests, so it's left to Bandit
 
 # Exclude a variety of commonly ignored directories.
 exclude = [
@@ -245,15 +196,108 @@ exclude = [
 # Same as Black.
 line-length = 88
 
-# Allow unused variables when underscore-prefixed.
-lint.dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
-
-# Target Python 3.7
+# Target Python 3.11
 target-version = "py311"
 
-[tool.ruff.lint.mccabe]
+[tool.ruff.format]
+docstring-code-format = true
+quote-style = "preserve"
+
+[tool.ruff.lint]
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+select = [
+  "A",     # flake8-builtins
+  "ANN",   # flake8-annotations
+  "ARG",   # flake8-unused-arguments
+  "ASYNC", # flake8-async
+  "B",     # flake8-bugbear
+  "BLE",   # flake8-blind-except
+  "C",     # pylint convention
+  "D",     # pydocstyle
+  "C4",    # flake8-comprehensions
+  "C90",   # mccabe
+  "E",     # Error
+  "EM",    # flake8-errmsg
+  "EXE",   # flake8-executable
+  "F",     # pyflakes
+  "FA",    # flake8-future-annotations
+  "G",     # flake8-logging-format
+  "I",     # isort
+  "INP",   # flake8-no-pep420
+  "INT",   # flake8-gettext
+  "ISC",   # flake8-implicit-str-concat
+  "N",     # pep8-naming
+  "PIE",   # flake8-pie
+  "PT",    # flake8-pytest-style
+  "PYI",   # flake8-pyi
+  "RET",   # flake8-return
+  "RUF",   # Ruff
+  "S",     # flake8-bandit
+  "SIM",   # flake8-simplify
+  "SLOT",  # flake8-slots
+  "T20",   # flake8-print
+  "TRIO",  # flake8-trio
+  "UP",    # pyupgrade
+  "W",     # Warnings
+  "YTT",   # flake8-2020
+]
+ignore = [
+  "ANN002",
+  "ANN003",
+  "ANN101",
+  "ANN102",
+  "ANN401",
+  "C901",
+  "D100",
+  "D101",
+  "D102",
+  "D103",
+  "D104",
+  "D105",
+  "D107",
+  "D203",
+  "D212",
+  "E402",
+  "E501",
+  "ISC001",
+]
+
+# Allow autofix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+# Allow these characters in strings
+allowed-confusables = ["‘", "’"]
+
 # Unlike Flake8, default to a complexity level of 10.
-max-complexity = 10
+mccabe.max-complexity = 10
+
+[tool.ruff.lint.extend-per-file-ignores]
+"__init__.py" = ["E402"]            # Allow non-top-level imports
+"tests/**.py" = ["S101", "ANN001"]  # Allow assert; don't require fixture typing
+"migrations/**.py" = ["INP001"]     # Not a package
+"scripts/**.py" = ["INP001", "ANN"] # Not a package; typing optional
+"instance/**.py" = ["INP001"]       # Not a package
+
+[tool.ruff.lint.isort]
+# These config options should match isort config above under [tool.isort]
+combine-as-imports = true
+split-on-trailing-comma = false
+relative-imports-order = 'furthest-to-closest'
+known-first-party = ['baseframe', 'coaster', 'flask_lastuser']
+section-order = [
+  'future',
+  'standard-library',
+  'third-party',
+  'first-party',
+  'repo',
+  'local-folder',
+]
+
+[tool.ruff.lint.isort.sections]
+repo = ['boxoffice']
 
 [tool.ruff.lint.flake8-pytest-style]
 fixture-parentheses = false

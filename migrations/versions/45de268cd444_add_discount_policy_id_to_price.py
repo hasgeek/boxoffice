@@ -1,4 +1,5 @@
-"""add discount_policy_id to price.
+"""
+add discount_policy_id to price.
 
 Revision ID: 45de268cd444
 Revises: 4d7f840202d2
@@ -6,16 +7,16 @@ Create Date: 2016-03-31 15:29:51.897720
 
 """
 
+import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
-import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '45de268cd444'
 down_revision = '4d7f840202d2'
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         'price',
         sa.Column('discount_policy_id', postgresql.UUID(), nullable=True),
@@ -40,7 +41,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_constraint('price_discount_policy_id_fkey', 'price', type_='foreignkey')
     op.drop_constraint('price_item_id_discount_policy_id_key', 'price', type_='unique')
     op.drop_column('price', 'discount_policy_id')

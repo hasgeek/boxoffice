@@ -1,4 +1,5 @@
-"""add_trigram_index_for_discount_policy_title.
+"""
+add_trigram_index_for_discount_policy_title.
 
 Revision ID: 3a585b8d5f8d
 Revises: 4246213b032b
@@ -6,15 +7,15 @@ Create Date: 2017-03-16 15:52:14.889764
 
 """
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = '3a585b8d5f8d'
 down_revision = '18576fdffd86'
 
 
-def upgrade():
+def upgrade() -> None:
     op.execute(
         sa.DDL(
             '''
@@ -26,5 +27,5 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_index('idx_discount_policy_title_trgm', 'discount_policy')

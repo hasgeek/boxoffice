@@ -1,9 +1,9 @@
 from __future__ import annotations
 
+import itertools
 from collections.abc import Sequence
 from decimal import Decimal
 from typing import cast
-import itertools
 
 from .discount_policy import DiscountCoupon, DiscountPolicy, PolicyCoupon
 from .line_item import LineItemTuple
@@ -21,7 +21,8 @@ class LineItemDiscounter:
         if not line_items:
             return []
         if len({line_item.ticket_id for line_item in line_items}) > 1:
-            raise ValueError("line_items must be of the same ticket_id")
+            msg = "line_items must be of the same ticket_id"
+            raise ValueError(msg)
 
         valid_discounts = self.get_valid_discounts(line_items, coupons)
         if len(valid_discounts) > 1:

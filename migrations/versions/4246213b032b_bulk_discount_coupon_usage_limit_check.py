@@ -1,4 +1,5 @@
-"""bulk_discount_coupon_usage_limit_check.
+"""
+bulk_discount_coupon_usage_limit_check.
 
 Revision ID: 4246213b032b
 Revises: 58f4f3c4fb01
@@ -6,9 +7,9 @@ Create Date: 2016-10-27 04:07:21.617514
 
 """
 
+import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.sql import column, table
-import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '4246213b032b'
@@ -22,7 +23,7 @@ discount_policy = table(
 )
 
 
-def upgrade():
+def upgrade() -> None:
     op.execute(
         discount_policy.update()
         .where(discount_policy.c.discount_type == 1)
@@ -37,7 +38,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_constraint(
         'discount_policy_bulk_coupon_usage_limit_check', 'discount_policy'
     )

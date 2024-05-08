@@ -1,7 +1,8 @@
-from typing import cast
 import decimal
 import json
+from typing import cast
 
+import pytest
 from flask import url_for
 
 from coaster.utils import make_name
@@ -10,7 +11,8 @@ from boxoffice import app
 from boxoffice.models import DiscountCoupon, DiscountPolicy, Ticket
 
 
-def test_undiscounted_kharcha(client, all_data) -> None:
+@pytest.mark.usefixtures('all_data')
+def test_undiscounted_kharcha(client) -> None:
     first_item = Ticket.query.filter_by(name='conference-ticket').one()
     undiscounted_quantity = 2
     kharcha_req = {
@@ -50,7 +52,8 @@ def test_undiscounted_kharcha(client, all_data) -> None:
     )
 
 
-def test_expired_ticket_kharcha(client, all_data) -> None:
+@pytest.mark.usefixtures('all_data')
+def test_expired_ticket_kharcha(client) -> None:
     expired_ticket = Ticket.query.filter_by(name='expired-ticket').one()
     quantity = 2
     kharcha_req = {
@@ -75,7 +78,8 @@ def test_expired_ticket_kharcha(client, all_data) -> None:
     )
 
 
-def test_expired_discounted_item_kharcha(client, all_data) -> None:
+@pytest.mark.usefixtures('all_data')
+def test_expired_discounted_item_kharcha(client) -> None:
     expired_ticket = Ticket.query.filter_by(name='expired-ticket').one()
     quantity = 2
     coupon = DiscountCoupon.query.filter_by(code='couponex').one()
@@ -101,7 +105,8 @@ def test_expired_discounted_item_kharcha(client, all_data) -> None:
     )
 
 
-def test_discounted_bulk_kharcha(client, all_data) -> None:
+@pytest.mark.usefixtures('all_data')
+def test_discounted_bulk_kharcha(client) -> None:
     first_item = Ticket.query.filter_by(name='conference-ticket').one()
     discounted_quantity = 10
     kharcha_req = {
@@ -150,7 +155,8 @@ def test_discounted_bulk_kharcha(client, all_data) -> None:
         assert expected_policy_id in policy_ids
 
 
-def test_discounted_coupon_kharcha(client, all_data) -> None:
+@pytest.mark.usefixtures('all_data')
+def test_discounted_coupon_kharcha(client) -> None:
     first_item = Ticket.query.filter_by(name='conference-ticket').one()
     coupon: DiscountCoupon = DiscountCoupon.query.filter_by(code='coupon1').one()
     discounted_quantity = 1
@@ -199,7 +205,8 @@ def test_discounted_coupon_kharcha(client, all_data) -> None:
         assert expected_policy_id in policy_ids
 
 
-def test_signed_discounted_coupon_kharcha(client, all_data) -> None:
+@pytest.mark.usefixtures('all_data')
+def test_signed_discounted_coupon_kharcha(client) -> None:
     first_item = Ticket.query.filter_by(name='conference-ticket').one()
     signed_policy = DiscountPolicy.query.filter_by(name='signed').one()
     code = signed_policy.gen_signed_code()
@@ -247,7 +254,8 @@ def test_signed_discounted_coupon_kharcha(client, all_data) -> None:
         assert expected_policy_id in policy_ids
 
 
-def test_unlimited_coupon_kharcha(client, all_data) -> None:
+@pytest.mark.usefixtures('all_data')
+def test_unlimited_coupon_kharcha(client) -> None:
     first_item = Ticket.query.filter_by(name='conference-ticket').one()
     coupon_code = 'unlimited'
     discounted_quantity = 5
@@ -297,7 +305,8 @@ def test_unlimited_coupon_kharcha(client, all_data) -> None:
         assert str(expected_policy_id) in policy_ids
 
 
-def test_coupon_limit(client, all_data) -> None:
+@pytest.mark.usefixtures('all_data')
+def test_coupon_limit(client) -> None:
     first_item = Ticket.query.filter_by(name='conference-ticket').one()
     coupon = DiscountCoupon.query.filter_by(code='coupon1').one()
     discounted_quantity = 2
@@ -344,7 +353,8 @@ def test_coupon_limit(client, all_data) -> None:
         assert expected_policy_id in policy_ids
 
 
-def test_discounted_price_kharcha(client, all_data) -> None:
+@pytest.mark.usefixtures('all_data')
+def test_discounted_price_kharcha(client) -> None:
     first_item = Ticket.query.filter_by(name='conference-ticket').one()
     coupon = DiscountCoupon.query.filter_by(code='forever').one()
     discounted_quantity = 1
@@ -366,9 +376,9 @@ def test_discounted_price_kharcha(client, all_data) -> None:
     assert resp.status_code == 200
     resp_json = json.loads(resp.get_data())
 
-    discounted_price = [
+    discounted_price = next(
         price for price in first_item.prices if price.name == 'forever-early-geek'
-    ][0]
+    )
     assert resp_json.get('line_items')[str(first_item.id)].get('final_amount') == int(
         discounted_price.amount
     )
@@ -385,7 +395,8 @@ def test_discounted_price_kharcha(client, all_data) -> None:
         assert expected_policy_id in policy_ids
 
 
-def test_discount_policy_without_price_kharcha(client, all_data) -> None:
+@pytest.mark.usefixtures('all_data')
+def test_discount_policy_without_price_kharcha(client) -> None:
     first_item = Ticket.query.filter_by(name='conference-ticket').one()
     coupon = DiscountCoupon.query.filter_by(code='noprice').one()
     discounted_quantity = 1
@@ -414,7 +425,8 @@ def test_discount_policy_without_price_kharcha(client, all_data) -> None:
     ) == decimal.Decimal(0)
 
 
-def test_zero_discounted_price_kharcha(client, all_data) -> None:
+@pytest.mark.usefixtures('all_data')
+def test_zero_discounted_price_kharcha(client) -> None:
     first_item = Ticket.query.filter_by(name='conference-ticket').one()
     coupon = DiscountCoupon.query.filter_by(code='zerodi').one()
     discounted_quantity = 1
@@ -435,9 +447,9 @@ def test_zero_discounted_price_kharcha(client, all_data) -> None:
     )
     assert resp.status_code == 200
     resp_json = json.loads(resp.get_data())
-    discounted_price = [
+    discounted_price = next(
         price for price in first_item.prices if price.name == 'zero-discount'
-    ][0]
+    )
     assert resp_json.get('line_items')[str(first_item.id)].get('final_amount') != int(
         discounted_price.amount
     )
@@ -454,7 +466,8 @@ def test_zero_discounted_price_kharcha(client, all_data) -> None:
         assert expected_policy_id not in policy_ids
 
 
-def test_discounted_complex_kharcha(client, all_data) -> None:
+@pytest.mark.usefixtures('all_data')
+def test_discounted_complex_kharcha(client) -> None:
     first_item = Ticket.query.filter_by(name='conference-ticket').one()
     discounted_quantity = 9
     coupon2 = DiscountCoupon.query.filter_by(code='coupon2').one()

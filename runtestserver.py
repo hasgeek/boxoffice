@@ -35,4 +35,4 @@ def test_page() -> str:
 </html>"""
 
 
-app.run('0.0.0.0', 6500, debug=True)  # nosec
+app.run('0.0.0.0', 6500, debug=True)  # nosec  # noqa: S104

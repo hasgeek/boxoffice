@@ -1,4 +1,5 @@
-"""Switch to timestamptz.
+"""
+Switch to timestamptz.
 
 Revision ID: cdb214cf1e06
 Revises: 7d180b95fcbe
@@ -6,8 +7,8 @@ Create Date: 2019-05-15 20:57:30.620521
 
 """
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = 'cdb214cf1e06'
@@ -62,7 +63,7 @@ migrate_table_columns = [
 ]
 
 
-def upgrade():
+def upgrade() -> None:
     for table, column in migrate_table_columns:
         op.execute(
             sa.DDL(
@@ -73,7 +74,7 @@ def upgrade():
         )
 
 
-def downgrade():
+def downgrade() -> None:
     for table, column in reversed(migrate_table_columns):
         op.execute(
             sa.DDL(

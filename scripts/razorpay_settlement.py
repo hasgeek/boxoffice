@@ -1,5 +1,5 @@
-from decimal import Decimal
 import csv
+from decimal import Decimal
 
 import requests
 
@@ -188,7 +188,7 @@ def get_settled_orders(date_ranges=(), filenames=()):
                     #         )
                     #     )
 
-            except Exception as error_msg:  # noqa: B902  # pylint: disable=W0718
+            except Exception as error_msg:  # noqa: BLE001  # pylint: disable=W0718
                 print(error_msg)  # noqa: T201
 
         settlement_refund_ids = [
@@ -237,7 +237,7 @@ def get_settled_orders(date_ranges=(), filenames=()):
                         )
                     )
                 )
-            except:  # noqa: B001, E722  # pylint: disable=bare-except
+            except:  # noqa: E722  # pylint: disable=bare-except
                 # FIXME: Add correct exception
                 cancelled_line_item = LineItem.query.filter(
                     LineItem.order == order,
@@ -263,7 +263,7 @@ def get_settled_orders(date_ranges=(), filenames=()):
     return settled_orders
 
 
-def write_settled_orders(filename, rows):
+def write_settled_orders(filename, rows) -> None:
     with open(filename, 'w', encoding='utf-8') as csvfile:
         fieldnames = [
             'settlement_id',
@@ -389,7 +389,7 @@ def get_settled_order_transactions(date_ranges=(), filenames=()):
                     #         )
                     #     )
 
-            except Exception as error_msg:  # noqa: B902  # pylint: disable=W0718
+            except Exception as error_msg:  # noqa: BLE001  # pylint: disable=W0718
                 print(error_msg)  # noqa: T201
 
         settlement_refund_ids = [
@@ -440,7 +440,7 @@ def get_settled_order_transactions(date_ranges=(), filenames=()):
                     )
                 )
                 refunded_line_item_ids.append(cancelled_line_item.id)
-            except:  # noqa: B001, E722  # pylint: disable=bare-except
+            except:  # noqa: E722  # pylint: disable=bare-except
                 # FIXME: Add correct exception
                 cancelled_line_item = LineItem.query.filter(
                     ~LineItem.id.in_(refunded_line_item_ids),

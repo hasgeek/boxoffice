@@ -1,10 +1,12 @@
-from unittest.mock import patch
-from uuid import UUID
 import datetime
 import decimal
 import json
+from typing import Any
+from unittest.mock import patch
+from uuid import UUID
 
 import pytest
+from werkzeug.test import TestResponse
 
 from coaster.utils import buid
 
@@ -32,15 +34,16 @@ from boxoffice.views.order import (
 
 
 class MockResponse:
-    def __init__(self, response_data, status_code=200):
+    def __init__(self, response_data: Any, status_code=200) -> None:
         self.response_data = response_data
         self.status_code = status_code
 
-    def json(self):
+    def json(self) -> Any:
         return self.response_data
 
 
-def test_basic(client, all_data) -> None:
+@pytest.mark.usefixtures('all_data')
+def test_basic(client) -> None:
     ticket = Ticket.query.filter_by(name='conference-ticket').one()
     data = {
         'line_items': [{'ticket_id': str(ticket.id), 'quantity': 2}],
@@ -69,7 +72,8 @@ def test_basic(client, all_data) -> None:
     assert resp_data['final_amount'] == 7000
 
 
-def test_basic_with_utm_headers(client, all_data) -> None:
+@pytest.mark.usefixtures('all_data')
+def test_basic_with_utm_headers(client) -> None:
     ticket = Ticket.query.filter_by(name='conference-ticket').one()
     utm_campaign = 'campaign'
     utm_medium = 'medium'
@@ -119,7 +123,8 @@ def test_basic_with_utm_headers(client, all_data) -> None:
     assert order_session.gclid == gclid
 
 
-def test_order_with_invalid_quantity(client, all_data) -> None:
+@pytest.mark.usefixtures('all_data')
+def test_order_with_invalid_quantity(client) -> None:
     ticket = Ticket.query.filter_by(name='conference-ticket').one()
     data = {
         'line_items': [{'ticket_id': str(ticket.id), 'quantity': 1001}],
@@ -142,7 +147,8 @@ def test_order_with_invalid_quantity(client, all_data) -> None:
     assert resp.status_code == 400
 
 
-def test_simple_discounted_item(client, all_data) -> None:
+@pytest.mark.usefixtures('all_data')
+def test_simple_discounted_item(client) -> None:
     discounted_item = Ticket.query.filter_by(name='t-shirt').one()
     data = {
         'line_items': [{'ticket_id': str(discounted_item.id), 'quantity': 5}],
@@ -167,7 +173,8 @@ def test_simple_discounted_item(client, all_data) -> None:
     assert resp_data['final_amount'] == 2375
 
 
-def test_expired_ticket_order(client, all_data) -> None:
+@pytest.mark.usefixtures('all_data')
+def test_expired_ticket_order(client) -> None:
     expired_ticket = Ticket.query.filter_by(name='expired-ticket').one()
     quantity = 2
     data = {
@@ -191,7 +198,8 @@ def test_expired_ticket_order(client, all_data) -> None:
     assert resp.status_code == 400
 
 
-def test_signed_discounted_coupon_order(client, all_data) -> None:
+@pytest.mark.usefixtures('all_data')
+def test_signed_discounted_coupon_order(client) -> None:
     first_item = Ticket.query.filter_by(name='conference-ticket').one()
     signed_policy = DiscountPolicy.query.filter_by(name='signed').one()
     signed_code = signed_policy.gen_signed_code()
@@ -232,7 +240,8 @@ def test_signed_discounted_coupon_order(client, all_data) -> None:
     assert line_item.discount_coupon.code == signed_code
 
 
-def test_complex_discounted_item(client, all_data) -> None:
+@pytest.mark.usefixtures('all_data')
+def test_complex_discounted_item(client) -> None:
     discounted_item1 = Ticket.query.filter_by(name='t-shirt').one()
     discounted_item2 = Ticket.query.filter_by(name='conference-ticket').one()
     data = {
@@ -262,7 +271,8 @@ def test_complex_discounted_item(client, all_data) -> None:
     assert resp_data['final_amount'] == 33875
 
 
-def test_discounted_complex_order(client, all_data) -> None:
+@pytest.mark.usefixtures('all_data')
+def test_discounted_complex_order(client) -> None:
     conf = Ticket.query.filter_by(name='conference-ticket').one()
     tshirt = Ticket.query.filter_by(name='t-shirt').one()
     conf_current_price = conf.current_price()
@@ -324,7 +334,7 @@ def test_discounted_complex_order(client, all_data) -> None:
     )
 
 
-def make_free_order(client):
+def make_free_order(client) -> TestResponse:
     ticket = Ticket.query.filter_by(name='conference-ticket').one()
     data = {
         'line_items': [{'ticket_id': str(ticket.id), 'quantity': 1}],
@@ -336,7 +346,7 @@ def make_free_order(client):
         'discount_coupons': ['coupon2'],
     }
     menu = Menu.query.one()
-    resp = client.post(
+    return client.post(
         f'/menu/{menu.id}/order',
         data=json.dumps(data),
         content_type='application/json',
@@ -345,10 +355,10 @@ def make_free_order(client):
             ('Origin', app.config['BASE_URL']),
         ],
     )
-    return resp
 
 
-def test_free_order(client, all_data) -> None:
+@pytest.mark.usefixtures('all_data')
+def test_free_order(client) -> None:
     resp = make_free_order(client)
     assert resp.status_code == 201
     resp_json = json.loads(resp.data)['result']
@@ -374,7 +384,8 @@ def test_free_order(client, all_data) -> None:
     )
 
 
-def test_cancel_line_item_in_order(db_session, client, all_data, post_env) -> None:
+@pytest.mark.usefixtures('all_data')
+def test_cancel_line_item_in_order(db_session, client, post_env) -> None:
     original_quantity = 2
     order_item = Ticket.query.filter_by(name='t-shirt').one()
     current_price = order_item.current_price()
@@ -458,7 +469,8 @@ def test_cancel_line_item_in_order(db_session, client, all_data, post_env) -> No
     assert refund_transaction1.amount == expected_refund_amount
 
 
-def test_cancel_line_item_in_bulk_order(db_session, client, all_data, post_env) -> None:
+@pytest.mark.usefixtures('all_data')
+def test_cancel_line_item_in_bulk_order(db_session, client, post_env) -> None:
     original_quantity = 5
     discounted_item = Ticket.query.filter_by(name='t-shirt').one()
     current_price = discounted_item.current_price()
@@ -543,7 +555,8 @@ def test_cancel_line_item_in_bulk_order(db_session, client, all_data, post_env) 
     assert refund_transaction2.amount == second_line_item.final_amount
 
     # test failed cancellation
-    third_line_item = order.confirmed_line_items[0]
+    third_line_item = order.confirmed_line_items.first()
+    assert third_line_item is not None
     with patch('boxoffice.extapi.razorpay.refund_payment') as mock:
         mock.return_value = MockResponse(
             response_data={
@@ -584,7 +597,8 @@ def test_cancel_line_item_in_bulk_order(db_session, client, all_data, post_env) 
         with app.request_context(post_env):
             process_partial_refund_for_order(partial_refund_args)
 
-    third_line_item = order.confirmed_line_items[0]
+    third_line_item = order.confirmed_line_items.first()
+    assert third_line_item is not None
     pre_cancellation_transactions_count = order.refund_transactions.count()
     cancelled_refund_amount = process_line_item_cancellation(third_line_item)
     assert cancelled_refund_amount == decimal.Decimal(0)
@@ -601,7 +615,8 @@ def test_cancel_line_item_in_bulk_order(db_session, client, all_data, post_env) 
     assert free_order.transactions.count() == 0
 
 
-def test_partial_refund_in_order(db_session, client, all_data, post_env) -> None:
+@pytest.mark.usefixtures('all_data')
+def test_partial_refund_in_order(db_session, client, post_env) -> None:
     original_quantity = 5
     discounted_item = Ticket.query.filter_by(name='t-shirt').one()
     current_price = discounted_item.current_price()

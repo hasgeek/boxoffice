@@ -1,7 +1,8 @@
 # settlements = {id: [{line_item_id, line_item_title, base_amount, final_amount}]}
 
-from decimal import Decimal
 import csv
+from decimal import Decimal
+from typing import Any
 
 from pytz import timezone, utc
 
@@ -22,7 +23,7 @@ def csv_to_rows(csv_file, skip_header=True, delimiter=','):
         return list(reader)
 
 
-def rows_to_csv(rows, filename):
+def rows_to_csv(rows, filename) -> bool:
     with open(filename, 'wb', encoding='utf-8') as csvfile:
         writer = csv.writer(
             csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL
@@ -233,7 +234,8 @@ def get_line_items(filename):
     return line_items
 
 
-def get_orders(settlement_filename):
+def get_orders(settlement_filename: str) -> None:
+    payment_transaction: PaymentTransaction | None
     settlement_dicts = []
     # Load input data
     with open(settlement_filename, encoding='utf-8') as csvfile:
@@ -242,7 +244,7 @@ def get_orders(settlement_filename):
             settlement_dicts.append(row)
 
     # parse through input data
-    payment_orders = []
+    payment_orders: list[dict[str, Any]] = []
     for settlement_dict in settlement_dicts:
         if settlement_dict['type'] == 'payment' and settlement_dict[
             'entity_id'
@@ -254,6 +256,7 @@ def get_orders(settlement_filename):
             payment_transaction = PaymentTransaction.query.filter_by(
                 online_payment=payment, transaction_type=TransactionTypeEnum.PAYMENT
             ).one()
+            assert payment_transaction is not None  # noqa: S101  # nosec B101
             payment_orders.append(
                 {
                     'entity_id': settlement_dict['entity_id'],
@@ -310,7 +313,7 @@ def get_orders(settlement_filename):
                     print(  # noqa: T201
                         "no transaction for " + settlement_dict['entity_id']
                     )
-            except:  # noqa: B001, E722  # pylint: disable=bare-except
+            except:  # noqa: E722  # pylint: disable=bare-except
                 # FIXME: Trap the correct exception
                 print(  # noqa: T201
                     "no payment found for "

@@ -1,4 +1,7 @@
-from flask import jsonify, request
+from collections.abc import Mapping
+from typing import Any, TypedDict
+
+from flask import Response, jsonify, request
 
 from baseframe import _
 from baseframe.forms import render_form
@@ -16,7 +19,7 @@ from .utils import api_error, api_success, json_date_format, xhr_only
 @xhr_only
 @load_models((Organization, {'name': 'org'}, 'organization'), permission='org_admin')
 @requestargs('search')
-def tickets(organization: Organization, search: str | None = None):
+def tickets(organization: Organization, search: str | None = None) -> Response:
     if search:
         filtered_tickets = (
             # FIXME: Query one, join the other
@@ -47,20 +50,25 @@ def tickets(organization: Organization, search: str | None = None):
                     for ticket_tuple in filtered_tickets
                 ]
             },
-            doc="Filtered tickets",
+            doc=_("Filtered tickets"),
             status_code=200,
         )
     return api_error(message=_("Missing search query"), status_code=400)
 
 
-def jsonify_price(price):
+def jsonify_price(price: Price) -> dict[str, Any]:
     price_details = dict(price.current_access())
     price_details['tense'] = price.tense()
     return price_details
 
 
-def format_demand_curve(ticket: Ticket):
-    result = {}
+class DemandData(TypedDict):
+    quantity_demanded: int
+    demand: int
+
+
+def format_demand_curve(ticket: Ticket) -> dict[str, DemandData]:
+    result: dict[str, DemandData] = {}
     demand_counter = 0
 
     for amount, quantity_demanded in reversed(ticket.demand_curve()):
@@ -72,7 +80,7 @@ def format_demand_curve(ticket: Ticket):
     return result
 
 
-def format_ticket_details(ticket: Ticket):
+def format_ticket_details(ticket: Ticket) -> dict[str, Any]:
     ticket_details = dict(ticket.current_access())
     ticket_details['sold_count'] = ticket.sold_count()
     ticket_details['free_count'] = ticket.free_count()
@@ -83,7 +91,7 @@ def format_ticket_details(ticket: Ticket):
     return ticket_details
 
 
-def jsonify_item(data_dict):
+def jsonify_item(data_dict: Mapping[str, Any]) -> Response:
     ticket = data_dict['ticket']
     discount_policies_list = []
     for policy in ticket.discount_policies:
@@ -116,13 +124,16 @@ def admin_item(ticket: Ticket) -> ReturnRenderWith:
     return {'ticket': ticket}
 
 
-def jsonify_new_ticket(data_dict):
+def jsonify_new_ticket(data_dict: Mapping[str, Any]) -> Response:
     menu = data_dict['menu']
     ticket_form = TicketForm(parent=menu)
     if request.method == 'GET':
         return jsonify(
             form_template=render_form(
-                form=ticket_form, title="New ticket", submit="Create", with_chrome=False
+                form=ticket_form,
+                title=_("New ticket"),
+                submit=_("Create"),
+                with_chrome=False,
             ).get_data(as_text=True)
         )
     if ticket_form.validate_on_submit():
@@ -152,15 +163,15 @@ def admin_new_item(menu: Menu) -> ReturnRenderWith:
     return {'menu': menu}
 
 
-def jsonify_edit_ticket(data_dict):
+def jsonify_edit_ticket(data_dict: Mapping[str, Any]) -> Response:
     ticket = data_dict['ticket']
     ticket_form = TicketForm(obj=ticket)
     if request.method == 'GET':
         return jsonify(
             form_template=render_form(
                 form=ticket_form,
-                title="Update ticket",
-                submit="Update",
+                title=_("Update ticket"),
+                submit=_("Update"),
                 with_chrome=False,
             ).get_data(as_text=True)
         )
@@ -189,13 +200,16 @@ def admin_edit_item(ticket: Ticket) -> ReturnRenderWith:
     return {'ticket': ticket}
 
 
-def jsonify_new_price(data_dict):
+def jsonify_new_price(data_dict: Mapping[str, Any]) -> Response:
     ticket = data_dict['ticket']
     price_form = PriceForm(parent=ticket)
     if request.method == 'GET':
         return jsonify(
             form_template=render_form(
-                form=price_form, title="New price", submit="Save", with_chrome=False
+                form=price_form,
+                title=_("New price"),
+                submit=_("Save"),
+                with_chrome=False,
             ).get_data(as_text=True)
         )
     if price_form.validate_on_submit():
@@ -226,13 +240,16 @@ def admin_new_price(ticket: Ticket) -> ReturnRenderWith:
     return {'ticket': ticket}
 
 
-def jsonify_edit_price(data_dict):
+def jsonify_edit_price(data_dict: Mapping[str, Any]) -> Response:
     price = data_dict['price']
     price_form = PriceForm(obj=price)
     if request.method == 'GET':
         return jsonify(
             form_template=render_form(
-                form=price_form, title="Update price", submit="Save", with_chrome=False
+                form=price_form,
+                title=_("Update price"),
+                submit=_("Save"),
+                with_chrome=False,
             ).get_data(as_text=True)
         )
     if price_form.validate_on_submit():

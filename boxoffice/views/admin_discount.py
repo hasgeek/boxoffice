@@ -1,6 +1,7 @@
-from typing import TYPE_CHECKING
+from collections.abc import Mapping
+from typing import TYPE_CHECKING, Any
 
-from flask import jsonify, request
+from flask import Response, jsonify, request
 
 from baseframe import _, forms
 from baseframe.forms import render_form
@@ -26,7 +27,7 @@ from ..models import (
 from .utils import api_error, api_success, xhr_only
 
 
-def jsonify_discount_policy(discount_policy: DiscountPolicy):
+def jsonify_discount_policy(discount_policy: DiscountPolicy) -> dict[str, Any]:
     details = dict(discount_policy.current_access())
     details['price_details'] = {}
     if discount_policy.is_price_based:
@@ -42,7 +43,7 @@ def jsonify_discount_policy(discount_policy: DiscountPolicy):
     return details
 
 
-def jsonify_discount_policies(data_dict):
+def jsonify_discount_policies(data_dict: Mapping[str, Any]) -> Response:
     discount_policies_list = []
     for discount_policy in data_dict['discount_policies']:
         discount_policies_list.append(jsonify_discount_policy(discount_policy))
@@ -65,7 +66,10 @@ def jsonify_discount_policies(data_dict):
 @load_models((Organization, {'name': 'org'}, 'organization'), permission='org_admin')
 @requestargs('search', ('page', int), ('size', int))
 def admin_discount_policies(
-    organization: Organization, search: str | None = None, page=1, size=None
+    organization: Organization,
+    search: str | None = None,
+    page: int = 1,
+    size: int | None = None,
 ) -> ReturnRenderWith:
     results_per_page = size or 20
 
@@ -95,7 +99,7 @@ def admin_discount_policies(
 @lastuser.requires_login
 @xhr_only
 @load_models((Organization, {'name': 'org'}, 'organization'), permission='org_admin')
-def admin_new_discount_policy(organization: Organization):
+def admin_new_discount_policy(organization: Organization) -> Response:
     discount_policy = DiscountPolicy(organization=organization)
     discount_policy_form = DiscountPolicyForm(model=DiscountPolicy)
     discount_policy_form.populate_obj(discount_policy)
@@ -176,7 +180,7 @@ def admin_new_discount_policy(organization: Organization):
     (DiscountPolicy, {'id': 'discount_policy_id'}, 'discount_policy'),
     permission='org_admin',
 )
-def admin_edit_discount_policy(discount_policy: DiscountPolicy):
+def admin_edit_discount_policy(discount_policy: DiscountPolicy) -> Response:
     discount_policy_error_msg = _(
         "The discount could not be updated. Please rectify the indicated issues"
     )
@@ -243,14 +247,14 @@ def admin_edit_discount_policy(discount_policy: DiscountPolicy):
     (DiscountPolicy, {'id': 'discount_policy_id'}, 'discount_policy'),
     permission='org_admin',
 )
-def admin_delete_discount_policy(discount_policy: DiscountPolicy):
+def admin_delete_discount_policy(discount_policy: DiscountPolicy) -> Response:
     form = forms.Form()
     if request.method == 'GET':
         return jsonify(
             form_template=render_form(
                 form=form,
-                title="Delete discount policy",
-                submit="Delete",
+                title=_("Delete discount policy"),
+                submit=_("Delete"),
                 with_chrome=False,
             ).get_data(as_text=True)
         )
@@ -264,7 +268,7 @@ def admin_delete_discount_policy(discount_policy: DiscountPolicy):
 
     db.session.delete(discount_policy)
     db.session.commit()
-    return api_success(result={}, doc="Discount policy deleted.", status_code=200)
+    return api_success(result={}, doc=_("Discount policy deleted."), status_code=200)
 
 
 @app.route('/admin/discount_policy/<discount_policy_id>/coupons/new', methods=['POST'])
@@ -274,7 +278,7 @@ def admin_delete_discount_policy(discount_policy: DiscountPolicy):
     (DiscountPolicy, {'id': 'discount_policy_id'}, 'discount_policy'),
     permission='org_admin',
 )
-def admin_new_coupon(discount_policy: DiscountPolicy):
+def admin_new_coupon(discount_policy: DiscountPolicy) -> Response:
     coupon_form = DiscountCouponForm(parent=discount_policy)
 
     if not coupon_form.validate_on_submit():
@@ -309,7 +313,7 @@ def admin_new_coupon(discount_policy: DiscountPolicy):
     (DiscountPolicy, {'id': 'discount_policy_id'}, 'discount_policy'),
     permission='org_admin',
 )
-def admin_discount_coupons(discount_policy: DiscountPolicy):
+def admin_discount_coupons(discount_policy: DiscountPolicy) -> Response:
     coupons_list = [
         {
             'code': coupon.code,

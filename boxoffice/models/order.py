@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from collections import namedtuple
+import secrets
+from dataclasses import dataclass
 from decimal import Decimal
 from functools import partial
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, NamedTuple
 from uuid import UUID
-import secrets
 
 from sqlalchemy.ext.orderinglist import ordering_list
 
@@ -28,17 +28,27 @@ from .user import Organization, User
 
 __all__ = ['Order', 'OrderSession']
 
-OrderAmounts = namedtuple(
-    'OrderAmounts',
-    ['base_amount', 'discounted_amount', 'final_amount', 'confirmed_amount'],
-)
+
+class OrderAmounts(NamedTuple):
+    base_amount: Decimal
+    discounted_amount: Decimal
+    final_amount: Decimal
+    confirmed_amount: Decimal
 
 
-def gen_receipt_no(organization):
+@dataclass
+class LineItemGroup:
+    # This dataclass uses Any types as the actual types are not imported yet
+    ticket: Any
+    count: int
+    total_price: Decimal
+
+
+def gen_receipt_no(organization: Organization) -> sa.ScalarSelect[int]:
     """Generate a sequential invoice number for an order, given an organization."""
     return (
         sa.select(sa.func.coalesce(sa.func.max(Order.receipt_no + 1), 1))
-        .where(Order.organization == organization)
+        .where(Order.organization_id == organization.id)
         .scalar_subquery()
     )
 
@@ -130,10 +140,7 @@ class Order(BaseMixin[UUID, User], Model):
         viewonly=True,
     )
 
-    # These 3 properties are defined below the LineItem model -
-    # confirmed_line_items, initial_line_items, confirmed_and_cancelled_line_items
-
-    def permissions(self, actor, inherited=None) -> set:
+    def permissions(self, actor: User, inherited: set[str] | None = None) -> set:
         perms = super().permissions(actor, inherited)
         if self.organization.userid in actor.organizations_owned_ids():
             perms.add('org_admin')
@@ -154,7 +161,7 @@ class Order(BaseMixin[UUID, User], Model):
         self.invoiced_at = utcnow()
         self.status = OrderStatus.INVOICE
 
-    def get_amounts(self, line_item_status) -> OrderAmounts:
+    def get_amounts(self, line_item_status: LineItemStatus) -> OrderAmounts:
         """Calculate and return the order's amounts as an OrderAmounts tuple."""
         base_amount = Decimal(0)
         discounted_amount = Decimal(0)

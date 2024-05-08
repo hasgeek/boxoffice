@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from datetime import datetime
+from typing import TYPE_CHECKING, Any, ClassVar
 from uuid import UUID
 
 from baseframe import _
@@ -15,12 +16,14 @@ from .utils import get_fiscal_year
 __all__ = ['Invoice']
 
 
-def gen_invoice_no(organization, jurisdiction, invoice_dt):
+def gen_invoice_no(
+    organization: Organization, jurisdiction: str, invoice_dt: datetime
+) -> sa.ScalarSelect[int]:
     """Generate a sequential invoice number for the organization and financial year."""
     fy_start_at, fy_end_at = get_fiscal_year(jurisdiction, invoice_dt)
     return (
         sa.select(sa.func.coalesce(sa.func.max(Invoice.invoice_no + 1), 1))
-        .where(Invoice.organization == organization)
+        .where(Invoice.organization_id == organization.id)
         .where(Invoice.invoiced_at >= fy_start_at)
         .where(Invoice.invoiced_at < fy_end_at)
         .scalar_subquery()
@@ -44,7 +47,7 @@ class Invoice(UuidMixin, BaseMixin[UUID, User], Model):
     invoice_no: Mapped[int | None]
     fy_start_at: Mapped[timestamptz]
     fy_end_at: Mapped[timestamptz]
-    invoiced_at: Mapped[timestamptz | None]
+    invoiced_at: Mapped[timestamptz]
     street_address_1: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(255))
     street_address_2: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(255))
     city: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(255))
@@ -71,7 +74,7 @@ class Invoice(UuidMixin, BaseMixin[UUID, User], Model):
     )
     organization: Mapped[Organization] = relationship(back_populates='invoices')
 
-    __roles__ = {
+    __roles__: ClassVar = {
         'invoicer': {
             'read': {
                 'status',
@@ -92,29 +95,35 @@ class Invoice(UuidMixin, BaseMixin[UUID, User], Model):
     }
 
     @role_check('invoicer')
-    def has_invoicer_role(self, actor: User | None, _anchors=()) -> bool:
+    def has_invoicer_role(self, actor: User | None, _anchors: Any = ()) -> bool:
         return (
             actor is not None
             and self.organization.userid in actor.organizations_owned_ids()
         )
 
-    def __init__(self, *args, **kwargs):
-        organization = kwargs.get('organization')
-        country_code = kwargs.get('country_code')
+    def __init__(self, *args, **kwargs) -> None:
+        organization = kwargs.pop('organization', None)
+        country_code = kwargs.pop('country_code', None)
+        if kwargs.pop('invoiced_at', None):
+            msg = "Don't pass an invoiced_at value"
+            raise ValueError(msg)
         if not country_code:
             # Default to India
             country_code = 'IN'
         if not organization:
-            raise ValueError("Invoice MUST be initialized with an organization")
+            msg = "Invoice MUST be initialized with an organization"
+            raise ValueError(msg)
+        super().__init__(
+            *args, organization=organization, country_code=country_code, **kwargs
+        )
         self.invoiced_at = utcnow()
         self.fy_start_at, self.fy_end_at = get_fiscal_year(
             country_code, self.invoiced_at
         )
         self.invoice_no = gen_invoice_no(organization, country_code, self.invoiced_at)
-        super().__init__(*args, **kwargs)
 
     @property
-    def is_final(self):
+    def is_final(self) -> bool:
         return self.status == InvoiceStatus.FINAL
 
     @sa.orm.validates(
@@ -135,11 +144,12 @@ class Invoice(UuidMixin, BaseMixin[UUID, User], Model):
         'customer_order_id',
         'organization_id',
     )
-    def validate_immutable_final_invoice(self, key, val):
+    def validate_immutable_final_invoice(self, key: str, val: Any) -> Any:
         if self.status == InvoiceStatus.FINAL:
-            raise ValueError(
-                _("`{attr}` cannot be modified in a finalized invoice").format(attr=key)
+            msg = _("`{attr}` cannot be modified in a finalized invoice").format(
+                attr=key
             )
+            raise ValueError(msg)
         return val
 
 
