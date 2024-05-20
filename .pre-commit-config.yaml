@@ -57,7 +57,7 @@ repos:
           - types-setuptools
           - typing-extensions
   - repo: https://github.com/PyCQA/pylint
-    rev: v3.1.0
+    rev: v3.2.2
     hooks:
       - id: pylint
         args: [
