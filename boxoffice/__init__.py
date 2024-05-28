@@ -23,7 +23,9 @@ lastuser = Lastuser()
 
 mail = Mail()
 rq = RQ()
-manifest = WebpackManifest(app, filepath='static/build/manifest.json')
+webpack = WebpackManifest(
+    app, filepath='static/build/manifest.json', jinja_global='webpack'
+)
 
 # --- Assets ---------------------------------------------------------------------------
 

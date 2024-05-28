@@ -1,8 +1,8 @@
 {% extends "layout.html.jinja2" %}
 
 {%- block layoutheaders %}
-  <link rel="stylesheet" type="text/css" href="{{ manifest('css/app.scss') }}"/>
-  <link rel="stylesheet" type="text/css" href="{{ manifest('css/admin.scss') }}"/>
+  <link rel="stylesheet" type="text/css" href="{{ webpack('css/app.scss') }}"/>
+  <link rel="stylesheet" type="text/css" href="{{ webpack('css/admin.scss') }}"/>
 {% endblock layoutheaders %}
 
 {% block title %}{% if title %} {{ title }}{% else %}{% trans %}Admin{% endtrans %}{% endif %}{% endblock title %}
@@ -21,5 +21,5 @@
     window.boxofficeAdmin.siteTitle = "{% trans %}Boxoffice{% endtrans %}";
     window.boxofficeFirstLoad = true;
   </script>
-  <script type="text/javascript" src="{{ manifest('main_admin.js') }}"></script>
+  <script type="text/javascript" src="{{ webpack('main_admin.js') }}"></script>
 {% endblock footerscripts %}
