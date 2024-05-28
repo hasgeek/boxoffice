@@ -58,19 +58,6 @@ class DiscountPolicy(BaseScopedNameMixin[UUID, User], Model):
     """
 
     __tablename__ = 'discount_policy'
-    __table_args__ = (
-        sa.UniqueConstraint('organization_id', 'name'),
-        sa.UniqueConstraint('organization_id', 'discount_code_base'),
-        sa.CheckConstraint(
-            'percentage > 0 and percentage <= 100', 'discount_policy_percentage_check'
-        ),
-        sa.CheckConstraint(
-            'discount_type = 0 or'
-            ' (discount_type = 1 and bulk_coupon_usage_limit IS NOT NULL)',
-            'discount_policy_bulk_coupon_usage_limit_check',
-        ),
-    )
-
     organization_id: Mapped[int] = sa.orm.mapped_column(
         sa.ForeignKey('organization.id')
     )
@@ -88,7 +75,7 @@ class DiscountPolicy(BaseScopedNameMixin[UUID, User], Model):
     item_quantity_min: Mapped[int] = sa.orm.mapped_column(default=1)
 
     # TODO: Add check constraint requiring percentage if is_price_based is false
-    percentage: Mapped[int | None]
+    percentage: Mapped[int | None] = sa.orm.mapped_column()
     # price-based discount
     is_price_based: Mapped[bool] = sa.orm.mapped_column(default=False)
 
@@ -112,6 +99,39 @@ class DiscountPolicy(BaseScopedNameMixin[UUID, User], Model):
     prices: Mapped[list[Price]] = relationship(cascade='all, delete-orphan')
     line_items: DynamicMapped[LineItem] = relationship(
         lazy='dynamic', back_populates='discount_policy'
+    )
+
+    __table_args__ = (
+        sa.UniqueConstraint(organization_id, 'name'),
+        sa.UniqueConstraint(organization_id, discount_code_base),
+        sa.CheckConstraint(
+            sa.or_(
+                sa.and_(is_price_based.is_(True), percentage.is_(None)),
+                sa.and_(
+                    is_price_based.is_(False),
+                    percentage.isnot(None),
+                    percentage > 0,
+                    percentage <= 100,
+                ),
+            ),
+            'discount_policy_percentage_check',
+        ),
+        sa.CheckConstraint(
+            sa.or_(
+                discount_type == int(DiscountTypeEnum.AUTOMATIC),
+                sa.and_(
+                    discount_type == int(DiscountTypeEnum.COUPON),
+                    bulk_coupon_usage_limit.isnot(None),
+                ),
+            ),
+            'discount_policy_bulk_coupon_usage_limit_check',
+        ),
+        sa.Index(
+            'idx_discount_policy_title_trgm',
+            'title',
+            postgresql_using='gin',
+            postgresql_ops={'title': 'gin_trgm_ops'},
+        ),
     )
 
     __roles__: ClassVar = {
@@ -311,7 +331,6 @@ def generate_coupon_code(
 
 class DiscountCoupon(IdMixin[UUID], Model):
     __tablename__ = 'discount_coupon'
-    __table_args__ = (sa.UniqueConstraint('discount_policy_id', 'code'),)
 
     def __init__(self, *args, **kwargs) -> None:
         self.id = uuid1mc()
@@ -330,6 +349,8 @@ class DiscountCoupon(IdMixin[UUID], Model):
         back_populates='discount_coupons'
     )
     line_items: Mapped[list[LineItem]] = relationship(back_populates='discount_coupon')
+
+    __table_args__ = (sa.UniqueConstraint(discount_policy_id, code),)
 
     @classmethod
     def is_signed_code_usable(cls, policy: DiscountPolicy, code: str) -> bool:
@@ -356,17 +377,6 @@ class PolicyCoupon:
     policy: DiscountPolicy
     coupon: DiscountCoupon | None
 
-
-create_title_trgm_trigger = sa.DDL(
-    'CREATE INDEX idx_discount_policy_title_trgm on discount_policy'
-    ' USING gin (title gin_trgm_ops);'
-)
-
-sa.event.listen(
-    DiscountPolicy.__table__,
-    'after_create',
-    create_title_trgm_trigger.execute_if(dialect='postgresql'),
-)
 
 # Tail imports
 from .line_item import LineItem  # isort:skip

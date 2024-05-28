@@ -40,11 +40,6 @@ class LineItemDict(TypedDict):
 
 class Assignee(BaseMixin[int, User], Model):
     __tablename__ = 'assignee'
-    __table_args__ = (
-        sa.UniqueConstraint('line_item_id', 'current'),
-        sa.CheckConstraint('current <> false', 'assignee_current_check'),
-    )
-
     # lastuser id
     user_id: Mapped[int | None] = sa.orm.mapped_column(sa.ForeignKey('user.id'))
     user: Mapped[User | None] = relationship(back_populates='assignees')
@@ -58,6 +53,11 @@ class Assignee(BaseMixin[int, User], Model):
     details: Mapped[dict] = sa.orm.mapped_column(JsonDict, default={})
     current: Mapped[bool | None] = sa.orm.mapped_column()
 
+    __table_args__ = (
+        sa.UniqueConstraint(line_item_id, current),
+        sa.CheckConstraint(current.isnot(False), 'assignee_current_check'),
+    )
+
 
 class LineItem(BaseMixin[UUID, User], Model):
     """
@@ -68,13 +68,8 @@ class LineItem(BaseMixin[UUID, User], Model):
     """
 
     __tablename__ = 'line_item'
-    __table_args__ = (
-        sa.UniqueConstraint('customer_order_id', 'line_item_seq'),
-        sa.UniqueConstraint('previous_id'),
-    )
-
     # line_item_seq is the relative number of the line item per order.
-    line_item_seq: Mapped[int]
+    line_item_seq: Mapped[int] = sa.orm.mapped_column()
     customer_order_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('customer_order.id'), index=True, unique=False
     )
@@ -115,6 +110,8 @@ class LineItem(BaseMixin[UUID, User], Model):
     assignees: DynamicMapped[Assignee] = relationship(
         cascade='all, delete-orphan', lazy='dynamic', back_populates='line_item'
     )
+
+    __table_args__ = (sa.UniqueConstraint(customer_order_id, line_item_seq),)
 
     def permissions(self, actor: User, inherited: set[str] | None = None) -> set[str]:
         perms = super().permissions(actor, inherited)

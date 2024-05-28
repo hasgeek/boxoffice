@@ -30,8 +30,6 @@ class Menu(BaseScopedNameMixin[UUID, User], Model):
     """Represent a collection of tickets."""
 
     __tablename__ = 'item_collection'
-    __table_args__ = (sa.UniqueConstraint('organization_id', 'name'),)
-
     description = MarkdownColumn('description', default='', nullable=False)
 
     organization_id: Mapped[int] = sa.orm.mapped_column(
@@ -60,6 +58,8 @@ class Menu(BaseScopedNameMixin[UUID, User], Model):
     orders: DynamicMapped[Order] = relationship(
         cascade='all, delete-orphan', lazy='dynamic', back_populates='menu'
     )
+
+    __table_args__ = (sa.UniqueConstraint(organization_id, 'name'),)
 
     __roles__: ClassVar = {'ic_owner': {'read': {'id', 'name', 'title', 'description'}}}
 

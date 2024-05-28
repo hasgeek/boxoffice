@@ -32,21 +32,15 @@ def gen_invoice_no(
 
 class Invoice(UuidMixin, BaseMixin[UUID, User], Model):
     __tablename__ = 'invoice'
-    __table_args__ = (
-        sa.UniqueConstraint(
-            'organization_id', 'fy_start_at', 'fy_end_at', 'invoice_no'
-        ),
-    )
-
     status: Mapped[int] = sa.orm.mapped_column(
         sa.SmallInteger, default=InvoiceStatus.DRAFT
     )
     invoicee_name: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(255))
     invoicee_company: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(255))
     invoicee_email: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(254))
-    invoice_no: Mapped[int | None]
-    fy_start_at: Mapped[timestamptz]
-    fy_end_at: Mapped[timestamptz]
+    invoice_no: Mapped[int | None] = sa.orm.mapped_column()
+    fy_start_at: Mapped[timestamptz] = sa.orm.mapped_column()
+    fy_end_at: Mapped[timestamptz] = sa.orm.mapped_column()
     invoiced_at: Mapped[timestamptz]
     street_address_1: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(255))
     street_address_2: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(255))
@@ -73,6 +67,10 @@ class Invoice(UuidMixin, BaseMixin[UUID, User], Model):
         sa.ForeignKey('organization.id')
     )
     organization: Mapped[Organization] = relationship(back_populates='invoices')
+
+    __table_args__ = (
+        sa.UniqueConstraint(organization_id, fy_start_at, fy_end_at, invoice_no),
+    )
 
     __roles__: ClassVar = {
         'invoicer': {
