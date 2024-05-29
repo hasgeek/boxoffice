@@ -21,8 +21,8 @@ __all__ = [
 
 
 class DiscountTypeEnum(IntEnum):
-    AUTOMATIC = 0
-    COUPON = 1
+    AUTOMATIC = 1
+    COUPON = 2
 
     __titles__: Final = {AUTOMATIC: __("Automatic"), COUPON: __("Coupon")}
 
@@ -31,35 +31,35 @@ class DiscountTypeEnum(IntEnum):
 
 
 class InvoiceStatus(IntEnum):
-    DRAFT = 0
-    FINAL = 1
+    DRAFT = 1
+    FINAL = 2
 
 
 class LineItemStatus(IntEnum):
-    CONFIRMED = 0
-    CANCELLED = 1
-    PURCHASE_ORDER = 2
+    CONFIRMED = 1
+    CANCELLED = 2
+    PURCHASE_ORDER = 3
     # A line item can be made void by the system to invalidate it. Eg: a discount no
     # longer applicable on a line item as a result of a cancellation
-    VOID = 3
+    VOID = 4
 
 
 class OrderStatus(IntEnum):
-    PURCHASE_ORDER = 0
-    SALES_ORDER = 1
-    INVOICE = 2
-    CANCELLED = 3
+    PURCHASE_ORDER = 1
+    SALES_ORDER = 2
+    INVOICE = 3
+    CANCELLED = 4
 
 
 class TransactionMethodEnum(IntEnum):
-    ONLINE = 0
-    CASH = 1
-    BANK_TRANSFER = 2
+    ONLINE = 1
+    CASH = 2
+    BANK_TRANSFER = 3
 
 
 class TransactionTypeEnum(IntEnum):
-    PAYMENT = 0
-    REFUND = 1
+    PAYMENT = 1
+    REFUND = 2
 
 
 class CurrencyEnum(StrEnum):
@@ -80,8 +80,8 @@ class RazorpayPaymentStatus(IntEnum):
     The values are ours. Razorpay sends back string values.
     """
 
-    CREATED = 0
-    AUTHORIZED = 1
-    CAPTURED = 2
-    REFUNDED = 3  # Only fully refunded payments
-    FAILED = 4
+    CREATED = 1
+    AUTHORIZED = 2
+    CAPTURED = 3
+    REFUNDED = 4  # Only fully refunded payments
+    FAILED = 5

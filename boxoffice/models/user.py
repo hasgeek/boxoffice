@@ -32,7 +32,6 @@ class User(UserBase2, Model):
 
 class Organization(ProfileBase, Model):
     __tablename__ = 'organization'
-    __table_args__ = (sa.UniqueConstraint('contact_email'),)
 
     # The currently used fields in details are address(html) cin (Corporate Identity
     # Number) or llpin (Limited Liability Partnership Identification Number), pan,
@@ -41,7 +40,7 @@ class Organization(ProfileBase, Model):
     details: Mapped[dict] = sa.orm.mapped_column(
         JsonDict, nullable=False, server_default=sa.text("'{}'::jsonb")
     )
-    contact_email: Mapped[str] = sa.orm.mapped_column(sa.Unicode(254))
+    contact_email: Mapped[str] = sa.orm.mapped_column(sa.Unicode(254), unique=True)
     # This is to allow organizations to have their orders invoiced by the parent
     # organization
     invoicer_id: Mapped[int | None] = sa.orm.mapped_column(

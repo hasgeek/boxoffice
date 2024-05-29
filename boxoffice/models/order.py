@@ -55,11 +55,6 @@ def gen_receipt_no(organization: Organization) -> sa.ScalarSelect[int]:
 
 class Order(BaseMixin[UUID, User], Model):
     __tablename__ = 'customer_order'
-    __table_args__ = (
-        sa.UniqueConstraint('organization_id', 'invoice_no'),
-        sa.UniqueConstraint('access_token'),
-    )
-
     user_id: Mapped[int | None] = sa.orm.mapped_column(sa.ForeignKey('user.id'))
     user: Mapped[User | None] = relationship(back_populates='orders')
     menu_id: Mapped[UUID] = sa.orm.mapped_column(
@@ -138,6 +133,11 @@ class Order(BaseMixin[UUID, User], Model):
             ),
         ),
         viewonly=True,
+    )
+
+    __table_args__ = (
+        sa.UniqueConstraint(organization_id, receipt_no),
+        sa.UniqueConstraint(access_token),
     )
 
     def permissions(self, actor: User, inherited: set[str] | None = None) -> set:

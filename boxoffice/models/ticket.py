@@ -41,7 +41,6 @@ class AvailabilityData(NamedTuple):
 
 class Ticket(BaseScopedNameMixin[UUID, User], Model):
     __tablename__ = 'item'
-    __table_args__ = (sa.UniqueConstraint('item_collection_id', 'name'),)
 
     description = MarkdownColumn('description', default='', nullable=False)
     seq: Mapped[int]
@@ -76,6 +75,7 @@ class Ticket(BaseScopedNameMixin[UUID, User], Model):
         cascade='all, delete-orphan', lazy='dynamic', back_populates='ticket'
     )
 
+    __table_args__ = (sa.UniqueConstraint(menu_id, 'name'),)
     __roles__: ClassVar = {
         'item_owner': {
             'read': {
@@ -236,12 +236,6 @@ class Ticket(BaseScopedNameMixin[UUID, User], Model):
 
 class Price(BaseScopedNameMixin[UUID, User], Model):
     __tablename__ = 'price'
-    __table_args__ = (
-        sa.UniqueConstraint('item_id', 'name'),
-        sa.CheckConstraint('start_at < end_at', 'price_start_at_lt_end_at_check'),
-        sa.UniqueConstraint('item_id', 'discount_policy_id'),
-    )
-
     ticket_id: Mapped[UUID] = sa.orm.mapped_column('item_id', sa.ForeignKey('item.id'))
     ticket: Mapped[Ticket] = relationship(back_populates='prices')
 
@@ -253,10 +247,16 @@ class Price(BaseScopedNameMixin[UUID, User], Model):
     )
 
     parent: Mapped[Ticket] = sa.orm.synonym('ticket')
-    start_at: Mapped[timestamptz_now]
-    end_at: Mapped[timestamptz]
+    start_at: Mapped[timestamptz_now] = sa.orm.mapped_column()
+    end_at: Mapped[timestamptz] = sa.orm.mapped_column()
     amount: Mapped[Decimal] = sa.orm.mapped_column(default=Decimal(0))
     currency: Mapped[str] = sa.orm.mapped_column(sa.Unicode(3), default='INR')
+
+    __table_args__ = (
+        sa.UniqueConstraint(ticket_id, 'name'),
+        sa.CheckConstraint(start_at < end_at, name='price_start_at_lt_end_at_check'),
+        sa.UniqueConstraint(ticket_id, discount_policy_id),
+    )
 
     __roles__: ClassVar = {
         'price_owner': {

@@ -261,6 +261,8 @@ ignore = [
   "D212",
   "E402",
   "E501",
+  "EM101",   # Allow Exception("string")
+  "EM102",   # Allow Exception(f"string")
   "ISC001",
 ]
 

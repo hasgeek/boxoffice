@@ -15,10 +15,6 @@ __all__ = ['Category']
 
 class Category(BaseScopedNameMixin[int, User], Model):
     __tablename__ = 'category'
-    __table_args__ = (
-        sa.UniqueConstraint('item_collection_id', 'name'),
-        sa.UniqueConstraint('item_collection_id', 'seq'),
-    )
 
     menu_id: Mapped[UUID] = sa.orm.mapped_column(
         'item_collection_id', sa.ForeignKey('item_collection.id')
@@ -30,6 +26,10 @@ class Category(BaseScopedNameMixin[int, User], Model):
     )
     parent: Mapped[Menu] = sa.orm.synonym('menu')
 
+    __table_args__ = (
+        sa.UniqueConstraint('item_collection_id', 'name'),
+        sa.UniqueConstraint('item_collection_id', 'seq'),
+    )
     __roles__: ClassVar = {
         'category_owner': {'read': {'id', 'name', 'title', 'menu_id'}}
     }
