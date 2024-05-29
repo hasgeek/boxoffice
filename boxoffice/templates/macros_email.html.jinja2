@@ -1,0 +1,29 @@
+{% macro cta_button(btn_url, btn_text, btn_style) %}
+    <div align="center" style="display: inline-block; width: 230px; padding: 0 8px">
+    <!--[if mso]>
+        <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="{{ btn_url }}" style="height:40px;v-text-anchor:middle;width:200px;" arcsize="10%" strokecolor="#4d5763" fillcolor="#4d5763">
+        <w:anchorlock/>
+        <center style="color:#ffffff;font-family:sans-serif;font-size:15px;font-weight:bold;">{{ btn_text }}</center>
+        </v:roundrect>
+    <![endif]-->
+    <!--[if !mso]> <!-->
+    <table align="center" role="presentation" cellspacing="0" cellpadding="0" border="0" colspan="2" style="width: 100%">
+        <tr>
+            <td align="center" class="button-td button-td-{{ btn_style }}">
+                <div>
+                    <a class="button-a button-a-{{ btn_style }}" href="{{ btn_url }}">{{ btn_text }}</a>
+                </div>
+            </td>
+        </tr>
+    </table>
+    <!-- <![endif]-->
+    </div>
+{% endmacro %}
+
+{% macro line_break(ln_break) %}
+    <tr>
+    <td class={{ ln_break }}>
+            <br>
+        </td>
+    </tr>
+{% endmacro %}
