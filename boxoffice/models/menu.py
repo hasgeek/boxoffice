@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, ClassVar, cast
 from uuid import UUID
 
 from sqlalchemy.ext.orderinglist import ordering_list
@@ -30,8 +30,6 @@ class Menu(BaseScopedNameMixin[UUID, User], Model):
     """Represent a collection of tickets."""
 
     __tablename__ = 'item_collection'
-    __table_args__ = (sa.UniqueConstraint('organization_id', 'name'),)
-
     description = MarkdownColumn('description', default='', nullable=False)
 
     organization_id: Mapped[int] = sa.orm.mapped_column(
@@ -61,10 +59,12 @@ class Menu(BaseScopedNameMixin[UUID, User], Model):
         cascade='all, delete-orphan', lazy='dynamic', back_populates='menu'
     )
 
-    __roles__ = {'ic_owner': {'read': {'id', 'name', 'title', 'description'}}}
+    __table_args__ = (sa.UniqueConstraint(organization_id, 'name'),)
+
+    __roles__: ClassVar = {'ic_owner': {'read': {'id', 'name', 'title', 'description'}}}
 
     @role_check('ic_owner')
-    def has_ic_owner_role(self, actor: User | None, _anchors=()) -> bool:
+    def has_ic_owner_role(self, actor: User | None, _anchors: Any = ()) -> bool:
         return (
             actor is not None
             and self.organization.userid in actor.organizations_owned_ids()
@@ -163,12 +163,12 @@ class Menu(BaseScopedNameMixin[UUID, User], Model):
             db.session.execute(line_item_query).fetchall(),
         )
 
-    def fetch_assignee_details(self):
+    def fetch_assignee_details(self) -> HeadersAndDataTuple:
         """
         Return assignee details for all ordered tickets in the menu.
 
         Includes receipt_no, ticket title, assignee fullname, assignee email, assignee
-        phone and assignee details for all the ordered lineitem in a given menu as a
+        phone and assignee details for all the ordered line items in a given menu as a
         tuple of (keys, rows).
         """
         line_item_join = (
@@ -195,7 +195,7 @@ class Menu(BaseScopedNameMixin[UUID, User], Model):
             )
             .select_from(line_item_join)
             .where(LineItem.status == LineItemStatus.CONFIRMED)
-            .where(Order.menu == self)
+            .where(Order.menu_id == self.id)
             .order_by(LineItem.ordered_at)
         )
         return HeadersAndDataTuple(

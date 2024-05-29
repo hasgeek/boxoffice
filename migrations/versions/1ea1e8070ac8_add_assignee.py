@@ -1,4 +1,5 @@
-"""add assignee.
+"""
+add assignee.
 
 Revision ID: 1ea1e8070ac8
 Revises: adb90a264e3
@@ -6,16 +7,16 @@ Create Date: 2016-04-09 11:53:52.668646
 
 """
 
+import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
-import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '1ea1e8070ac8'
 down_revision = 'adb90a264e3'
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_table(
         'assignee',
         sa.Column('created_at', sa.DateTime(), nullable=False),
@@ -51,7 +52,7 @@ def upgrade():
     op.create_index(op.f('assignee_email_key'), 'assignee', ['email'], unique=True)
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_index(op.f('assignee_email_key'), table_name='assignee')
     op.drop_constraint('line_item_assignee_id_fkey', 'line_item', type_='foreignkey')
     op.drop_column('item', 'assignee_details')

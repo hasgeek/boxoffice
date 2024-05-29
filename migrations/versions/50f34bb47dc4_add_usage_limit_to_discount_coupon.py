@@ -1,4 +1,5 @@
-"""add usage limit to discount coupon.
+"""
+add usage limit to discount coupon.
 
 Revision ID: 50f34bb47dc4
 Revises: 2f6a3bb460b8
@@ -6,10 +7,10 @@ Create Date: 2016-04-05 18:46:20.160324
 
 """
 
+import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.sql import column, table
-import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '50f34bb47dc4'
@@ -30,7 +31,7 @@ line_item = table(
 )
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         'discount_coupon',
         sa.Column('usage_limit', sa.Integer(), nullable=False, server_default='1'),
@@ -49,7 +50,7 @@ def upgrade():
     op.drop_column('discount_coupon', 'used')
 
 
-def downgrade():
+def downgrade() -> None:
     op.add_column(
         'discount_coupon',
         sa.Column('used', sa.Boolean(), nullable=False, server_default='0'),

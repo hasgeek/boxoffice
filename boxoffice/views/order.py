@@ -1,8 +1,9 @@
+from collections.abc import Iterable, Mapping
 from decimal import Decimal
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, Literal, NotRequired, TypedDict, cast, overload
+from uuid import UUID
 
-from flask import abort, jsonify, render_template, request, url_for
-from sqlalchemy.sql import func
+from flask import Response, abort, jsonify, render_template, request, url_for
 from werkzeug.datastructures import ImmutableMultiDict
 
 from baseframe import _, localized_country_list
@@ -34,6 +35,7 @@ from ..models import (
     Invoice,
     LineItem,
     LineItemStatus,
+    LineItemTuple,
     Menu,
     OnlinePayment,
     Order,
@@ -58,7 +60,25 @@ from .utils import (
 )
 
 
-def jsonify_line_items(line_items):
+class LineItemData(TypedDict):
+    is_available: bool
+    quantity: int
+    base_amount: NotRequired[Decimal]
+    final_amount: Decimal | None
+    discounted_amount: Decimal | None
+    discount_policy_ids: list[UUID]
+    quantity_available: NotRequired[int]
+
+
+class AssigneeDict(TypedDict):
+    id: int
+    fullname: str
+    email: str
+    phone: str | None
+    details: dict
+
+
+def jsonify_line_items(line_items: Iterable[LineItemTuple]) -> dict[str, LineItemData]:
     """
     Serialize and return line items.
 
@@ -69,15 +89,16 @@ def jsonify_line_items(line_items):
                 'quantity': Y,
                 'final_amount': Z,
                 'discounted_amount': Z,
-                'discount_policy_ids': ['d1', 'd2']
+                'discount_policy_ids': ['d1', 'd2'],
             }
         }
     """
-    items_json = {}
+    items_json: dict[str, LineItemData] = {}
     for line_item in line_items:
         ticket = Ticket.query.get_or_404(line_item.ticket_id)
-        if not items_json.get(str(line_item.ticket_id)):
-            items_json[str(line_item.ticket_id)] = {
+        ticket_id = str(line_item.ticket_id)
+        if ticket_id not in items_json:
+            items_json[ticket_id] = {
                 'is_available': ticket.is_available,
                 'quantity': 0,
                 'final_amount': Decimal(0),
@@ -85,33 +106,40 @@ def jsonify_line_items(line_items):
                 'discount_policy_ids': [],
             }
         if line_item.base_amount is not None:
-            items_json[str(line_item.ticket_id)]['base_amount'] = line_item.base_amount
-            items_json[str(line_item.ticket_id)]['final_amount'] += (
-                line_item.base_amount - line_item.discounted_amount
-            )
-            items_json[str(line_item.ticket_id)][
-                'discounted_amount'
-            ] += line_item.discounted_amount
+            items_json[ticket_id]['base_amount'] = line_item.base_amount
+            items_json[ticket_id]['final_amount'] = (
+                items_json[ticket_id]['final_amount'] or Decimal('0')
+            ) + (line_item.base_amount - (line_item.discounted_amount or Decimal('0')))
+            items_json[ticket_id]['discounted_amount'] = (
+                items_json[ticket_id]['discounted_amount'] or Decimal('0')
+            ) + (line_item.discounted_amount or Decimal('0'))
+            items_json[ticket_id]['quantity_available'] = ticket.quantity_available
         else:
-            items_json[str(line_item.ticket_id)]['final_amount'] = None
-            items_json[str(line_item.ticket_id)]['discounted_amount'] = None
-        items_json[str(line_item.ticket_id)]['quantity'] += 1
-        items_json[str(line_item.ticket_id)][
-            'quantity_available'
-        ] = ticket.quantity_available
+            items_json[ticket_id]['final_amount'] = None
+            items_json[ticket_id]['discounted_amount'] = None
+
+        items_json[ticket_id]['quantity'] += 1
         if (
             line_item.discount_policy_id
             and line_item.discount_policy_id
-            not in items_json[str(line_item.ticket_id)]['discount_policy_ids']
+            not in items_json[ticket_id]['discount_policy_ids']
         ):
-            items_json[str(line_item.ticket_id)]['discount_policy_ids'].append(
+            items_json[ticket_id]['discount_policy_ids'].append(
                 line_item.discount_policy_id
             )
     return items_json
 
 
-def jsonify_assignee(assignee):
-    if assignee:
+@overload
+def jsonify_assignee(assignee: None) -> None: ...
+
+
+@overload
+def jsonify_assignee(assignee: Assignee) -> AssigneeDict: ...
+
+
+def jsonify_assignee(assignee: Assignee | None) -> AssigneeDict | None:
+    if assignee is not None:
         return {
             'id': assignee.id,
             'fullname': assignee.fullname,
@@ -122,7 +150,7 @@ def jsonify_assignee(assignee):
     return None
 
 
-def jsonify_order(data):
+def jsonify_order(data: Mapping[str, Any]) -> Response:
     order = data['order']
     line_items = []
     for line_item in order.line_items:
@@ -161,7 +189,7 @@ def jsonify_order(data):
 @app.route('/order/kharcha', methods=['OPTIONS', 'POST'])
 @xhr_only
 @cors
-def kharcha():
+def kharcha() -> Response:
     """
     Calculate rates for an order of items and quantities.
 
@@ -175,7 +203,7 @@ def kharcha():
                 "quantity": Y,
                 "final_amount": Z,
                 "discounted_amount": Z,
-                "discount_policy_ids": ["d1", "d2"]
+                "discount_policy_ids": ["d1", "d2"],
             }
         }
     """
@@ -207,7 +235,7 @@ def kharcha():
 @xhr_only
 @cors
 @load_models((Menu, {'id': 'menu_id'}, 'menu'))
-def create_order(menu: Menu):
+def create_order(menu: Menu) -> Response:
     """
     Create an order.
 
@@ -218,17 +246,19 @@ def create_order(menu: Menu):
     and the URL to be used to register a payment against the order.
     """
     if not request.json or not request.json.get('line_items'):
-        return api_error(message="Missing line items", status_code=400)
+        return api_error(message=_("Missing line items"), status_code=400)
     line_item_forms = LineItemForm.process_list(request.json.get('line_items', []))
     if not line_item_forms:
-        return api_error(message="Invalid line items", status_code=400)
+        return api_error(message=_("Invalid line items"), status_code=400)
     # See comment in LineItemForm about CSRF
     buyer_form = BuyerForm(
         formdata=ImmutableMultiDict(request.json.get('buyer')), meta={'csrf': False}
     )
     if not buyer_form.validate():
         return api_error(
-            message="Invalid buyer details", status_code=400, errors=buyer_form.errors
+            message=_("Invalid buyer details"),
+            status_code=400,
+            errors=buyer_form.errors,
         )
 
     invalid_quantity_error_msg = _(
@@ -359,7 +389,7 @@ def create_order(menu: Menu):
 @xhr_only
 @cors
 @load_models((Order, {'id': 'order'}, 'order'))
-def free(order: Order):
+def free(order: Order) -> Response:
     """Complete a order which has a final_amount of 0."""
     order_amounts = order.get_amounts(LineItemStatus.PURCHASE_ORDER)
     if order_amounts.final_amount == 0:
@@ -386,14 +416,14 @@ def free(order: Order):
             status_code=201,
         )
 
-    return api_error(message="Free order confirmation failed", status_code=422)
+    return api_error(message=_("Free order confirmation failed"), status_code=422)
 
 
 @app.route('/order/<order>/payment', methods=['GET', 'OPTIONS', 'POST'])
 @xhr_only
 @cors
 @load_models((Order, {'id': 'order'}, 'order'))
-def capture_payment(order: Order):
+def capture_payment(order: Order) -> Response:
     """
     Capture a payment.
 
@@ -407,7 +437,7 @@ def capture_payment(order: Order):
     if TYPE_CHECKING:
         assert request.json is not None  # nosec B101
     if not request.json.get('pg_paymentid'):
-        return api_error(message="Missing payment id", status_code=400)
+        return api_error(message=_("Missing payment id"), status_code=400)
 
     order_amounts = order.get_amounts(LineItemStatus.PURCHASE_ORDER)
     online_payment = OnlinePayment(
@@ -473,7 +503,7 @@ def capture_payment(order: Order):
 
 @app.route('/order/<access_token>/receipt', methods=['GET'])
 @load_models((Order, {'access_token': 'access_token'}, 'order'))
-def receipt(order: Order):
+def receipt(order: Order) -> str:
     if not order.is_confirmed:
         abort(404)
     line_items = LineItem.query.filter(
@@ -498,7 +528,22 @@ def receipt(order: Order):
     )
 
 
-def jsonify_invoice(invoice):
+class InvoiceDict(TypedDict):
+    id: UUID
+    buyer_taxid: str | None
+    invoicee_name: str | None
+    invoicee_company: str | None
+    invoicee_email: str | None
+    street_address_1: str | None
+    street_address_2: str | None
+    city: str | None
+    postcode: str | None
+    country_code: str | None
+    state_code: str | None
+    state: str | None
+
+
+def jsonify_invoice(invoice: Invoice) -> InvoiceDict:
     return {
         'id': invoice.id,
         'buyer_taxid': invoice.buyer_taxid,
@@ -519,8 +564,8 @@ def jsonify_invoice(invoice):
 @xhr_only
 @cors
 @load_models((Order, {'access_token': 'access_token'}, 'order'))
-def edit_invoice_details(order: Order):
-    """Update invoice with buyer's address and taxid."""
+def edit_invoice_details(order: Order) -> Response:
+    """Update invoice with buyer's address and tax id."""
     if TYPE_CHECKING:
         assert request.json is not None  # nosec B101
     if not order.is_confirmed:
@@ -554,17 +599,14 @@ def edit_invoice_details(order: Order):
     )
 
 
-def jsonify_invoices(data_dict):
+def jsonify_invoices(data_dict: Mapping[str, Any]) -> Response:
     invoices_list = []
     for invoice in data_dict['invoices']:
         invoices_list.append(jsonify_invoice(invoice))
     return jsonify(
         invoices=invoices_list,
         access_token=data_dict['order'].access_token,
-        states=[
-            {'name': state['name'], 'code': state['short_code_text']}
-            for state in sorted(indian_states, key=lambda k: k['name'])
-        ],
+        states=[{'name': state.title, 'code': state.name} for state in indian_states],
         countries=[
             {'name': name, 'code': code} for code, name in localized_country_list()
         ],
@@ -598,24 +640,41 @@ def order_ticket(order: Order) -> ReturnRenderWith:
     return {'order': order, 'org': order.organization}
 
 
-def jsonify_orders(orders):
+class TicketDict(TypedDict):
+    title: str
+
+
+class LineItemDict(TypedDict):
+    assignee: dict[str, Any]
+    line_item_seq: int
+    line_item_status: Literal['confirmed', 'cancelled']
+    ticket: TicketDict
+
+
+class OrdersDict(TypedDict):
+    receipt_no: int | None
+    line_items: list[LineItemDict]
+
+
+def format_assignee(line_item: LineItem) -> dict[str, Any]:
+    if not line_item.current_assignee:
+        return {}
+    assignee = {
+        'fullname': line_item.current_assignee.fullname,
+        'email': line_item.current_assignee.email,
+        'phone': line_item.current_assignee.phone,
+    }
+
+    for key in line_item.ticket.assignee_details:
+        assignee[key] = line_item.current_assignee.details.get(key)
+    return assignee
+
+
+def jsonify_orders(orders: Iterable[Order]) -> list[OrdersDict]:
     api_orders = []
 
-    def format_assignee(line_item):
-        if not line_item.current_assignee:
-            return {}
-        assignee = {
-            'fullname': line_item.current_assignee.fullname,
-            'email': line_item.current_assignee.email,
-            'phone': line_item.current_assignee.phone,
-        }
-
-        for key in line_item.ticket.assignee_details:
-            assignee[key] = line_item.current_assignee.details.get(key)
-        return assignee
-
     for order in orders:
-        order_dict = {'receipt_no': order.receipt_no, 'line_items': []}
+        order_dict: OrdersDict = {'receipt_no': order.receipt_no, 'line_items': []}
         for line_item in order.line_items:
             order_dict['line_items'].append(
                 {
@@ -631,7 +690,7 @@ def jsonify_orders(orders):
     return api_orders
 
 
-def get_coupon_codes_from_line_items(line_items):
+def get_coupon_codes_from_line_items(line_items: Iterable[LineItem]) -> list[str]:
     coupon_ids = [
         line_item.discount_coupon.id
         for line_item in line_items
@@ -649,9 +708,16 @@ def get_coupon_codes_from_line_items(line_items):
 
 
 def regenerate_line_item(
-    order: Order, original_line_item: LineItem, updated_line_item_tup, line_item_seq
-):
+    order: Order,
+    original_line_item: LineItem,
+    updated_line_item_tup: LineItemTuple,
+    line_item_seq: int,
+) -> LineItem:
     """Update a line item by marking the original as void and creating a replacement."""
+    assert updated_line_item_tup.base_amount is not None  # noqa: S101  # nosec B101
+    assert (  # noqa: S101  # nosec B101
+        updated_line_item_tup.discounted_amount is not None
+    )
     original_line_item.make_void()
     ticket = Ticket.query.get_or_404(updated_line_item_tup.ticket_id)
     if updated_line_item_tup.discount_policy_id:
@@ -684,9 +750,11 @@ def regenerate_line_item(
 
 
 def update_order_on_line_item_cancellation(
-    order, pre_cancellation_line_items, cancelled_line_item
-):
-    """Cancel the given line item and updates the order."""
+    order: Order,
+    pre_cancellation_line_items: Iterable[LineItem],
+    cancelled_line_item: LineItem,
+) -> Order:
+    """Cancel the given line item and update the order."""
     active_line_items = [
         pre_cancellation_line_item
         for pre_cancellation_line_item in pre_cancellation_line_items
@@ -702,11 +770,11 @@ def update_order_on_line_item_cancellation(
         recalculated_line_item_tups, start=last_line_item_seq + 1
     ):
         # Fetch the line item object
-        pre_cancellation_line_item = [
+        pre_cancellation_line_item = next(
             pre_cancellation_line_item
             for pre_cancellation_line_item in pre_cancellation_line_items
             if pre_cancellation_line_item.id == line_item_tup.id
-        ][0]
+        )
         # Check if the line item's amount has changed post-cancellation
         if line_item_tup.final_amount != pre_cancellation_line_item.final_amount:
             # Amount has changed, void this line item and regenerate the line item
@@ -729,7 +797,7 @@ def update_order_on_line_item_cancellation(
     return order
 
 
-def process_line_item_cancellation(line_item):
+def process_line_item_cancellation(line_item: LineItem) -> Decimal:
     order = line_item.order
     # initialize refund_amount to 0
     refund_amount = Decimal(0)
@@ -775,7 +843,7 @@ def process_line_item_cancellation(line_item):
                     online_payment=payment,
                     amount=refund_amount,
                     currency=CurrencyEnum.INR,
-                    refunded_at=func.utcnow(),
+                    refunded_at=sa.func.utcnow(),
                     refund_description=_("Refund: {line_item_title}").format(
                         line_item_title=line_item.ticket.title
                     ),
@@ -805,7 +873,7 @@ def process_line_item_cancellation(line_item):
 @app.route('/line_item/<line_item_id>/cancel', methods=['POST'])
 @lastuser.requires_login
 @load_models((LineItem, {'id': 'line_item_id'}, 'line_item'), permission='org_admin')
-def cancel_line_item(line_item: LineItem):
+def cancel_line_item(line_item: LineItem) -> Response:
     if not line_item.is_cancellable():
         return api_error(
             message='This ticket is not cancellable',
@@ -822,7 +890,7 @@ def cancel_line_item(line_item: LineItem):
     )
 
 
-def process_partial_refund_for_order(data_dict):
+def process_partial_refund_for_order(data_dict: Mapping[str, Any]) -> Response:
     order = data_dict['order']
     form = data_dict['form']
     request_method = data_dict['request_method']
@@ -830,7 +898,10 @@ def process_partial_refund_for_order(data_dict):
     if request_method == 'GET':
         return jsonify(
             form_template=render_form(
-                form=form, title="Partial refund", submit="Refund", with_chrome=False
+                form=form,
+                title=_("Partial refund"),
+                submit=_("Refund"),
+                with_chrome=False,
             ).get_data(as_text=True)
         )
     if form.validate_on_submit():
@@ -847,7 +918,7 @@ def process_partial_refund_for_order(data_dict):
                 online_payment=payment,
                 currency=CurrencyEnum.INR,
                 pg_refundid=rp_refund['id'],
-                refunded_at=func.utcnow(),
+                refunded_at=sa.func.utcnow(),
             )
             form.populate_obj(transaction)
             db.session.add(transaction)
@@ -898,7 +969,7 @@ def partial_refund_order(order: Order) -> ReturnRenderWith:
 @app.route('/api/1/ic/<menu_id>/orders', methods=['GET', 'OPTIONS'])
 @app.route('/api/1/menu/<menu_id>/orders', methods=['GET', 'OPTIONS'])
 @load_models((Menu, {'id': 'menu_id'}, 'menu'))
-def menu_orders(menu: Menu):
+def menu_orders(menu: Menu) -> Response:
     organization = menu.organization
     # TODO: Replace with a better authentication system
     if not request.args.get('access_token') or request.args.get(

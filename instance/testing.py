@@ -1,7 +1,7 @@
 import os
 
 #: Database backend
-SECRET_KEY = 'testkey'  # nosec
+SECRET_KEY = 'testkey'  # noqa: S105  # nosec
 SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg:///boxoffice_testing'  # nosec
 SERVER_NAME = 'boxoffice.test:6500'
 BASE_URL = 'http://' + SERVER_NAME

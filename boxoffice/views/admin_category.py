@@ -1,4 +1,7 @@
-from flask import jsonify, request
+from collections.abc import Mapping
+from typing import Any
+
+from flask import Response, jsonify, request
 
 from baseframe import _
 from baseframe.forms import render_form
@@ -10,15 +13,15 @@ from ..models import Category, Menu, db
 from .utils import api_error, api_success
 
 
-def jsonify_new_category(data_dict):
+def jsonify_new_category(data_dict: Mapping[str, Any]) -> Response:
     menu = data_dict['menu']
     category_form = CategoryForm(parent=menu)
     if request.method == 'GET':
         return jsonify(
             form_template=render_form(
                 form=category_form,
-                title="New Ticket",
-                submit="Create",
+                title=_("New Ticket"),
+                submit=_("Create"),
                 with_chrome=False,
             ).get_data(as_text=True)
         )
@@ -51,15 +54,15 @@ def admin_new_category(menu: Menu) -> ReturnRenderWith:
     return {'menu': menu}
 
 
-def jsonify_edit_category(data_dict):
+def jsonify_edit_category(data_dict: Mapping[str, Any]) -> Response:
     category = data_dict['category']
     category_form = CategoryForm(obj=category)
     if request.method == 'GET':
         return jsonify(
             form_template=render_form(
                 form=category_form,
-                title="Edit category",
-                submit="Update",
+                title=_("Edit category"),
+                submit=_("Update"),
                 with_chrome=False,
             ).get_data(as_text=True)
         )

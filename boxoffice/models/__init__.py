@@ -3,10 +3,10 @@
 from datetime import datetime
 from typing import Annotated, TypeAlias
 
+import sqlalchemy as sa
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.orm import DeclarativeBase, Mapped
-import sqlalchemy as sa
 
 from coaster.sqlalchemy import (
     AppenderQuery,

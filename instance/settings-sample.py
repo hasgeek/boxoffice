@@ -5,7 +5,7 @@ TYPEKIT_CODE = ''
 #: Database backend
 SQLALCHEMY_DATABASE_URI = 'sqlite:///test.db'
 #: Secret key
-SECRET_KEY = 'make this something random'  # nosec
+SECRET_KEY = 'make this something random'  # nosec  # noqa: S105
 #: Timezone for displayed datetimes
 TIMEZONE = 'Asia/Kolkata'
 #: Mail settings

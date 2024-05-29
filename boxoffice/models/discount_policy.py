@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
-from dataclasses import dataclass
-from typing import TYPE_CHECKING
-from uuid import UUID
 import secrets
 import string
+from collections.abc import Sequence
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, ClassVar, Self
+from uuid import UUID
 
 from itsdangerous import BadSignature, Signer
 from sqlalchemy.orm.exc import MultipleResultsFound
@@ -58,19 +58,6 @@ class DiscountPolicy(BaseScopedNameMixin[UUID, User], Model):
     """
 
     __tablename__ = 'discount_policy'
-    __table_args__ = (
-        sa.UniqueConstraint('organization_id', 'name'),
-        sa.UniqueConstraint('organization_id', 'discount_code_base'),
-        sa.CheckConstraint(
-            'percentage > 0 and percentage <= 100', 'discount_policy_percentage_check'
-        ),
-        sa.CheckConstraint(
-            'discount_type = 0 or'
-            ' (discount_type = 1 and bulk_coupon_usage_limit IS NOT NULL)',
-            'discount_policy_bulk_coupon_usage_limit_check',
-        ),
-    )
-
     organization_id: Mapped[int] = sa.orm.mapped_column(
         sa.ForeignKey('organization.id')
     )
@@ -88,7 +75,7 @@ class DiscountPolicy(BaseScopedNameMixin[UUID, User], Model):
     item_quantity_min: Mapped[int] = sa.orm.mapped_column(default=1)
 
     # TODO: Add check constraint requiring percentage if is_price_based is false
-    percentage: Mapped[int | None]
+    percentage: Mapped[int | None] = sa.orm.mapped_column()
     # price-based discount
     is_price_based: Mapped[bool] = sa.orm.mapped_column(default=False)
 
@@ -114,7 +101,40 @@ class DiscountPolicy(BaseScopedNameMixin[UUID, User], Model):
         lazy='dynamic', back_populates='discount_policy'
     )
 
-    __roles__ = {
+    __table_args__ = (
+        sa.UniqueConstraint(organization_id, 'name'),
+        sa.UniqueConstraint(organization_id, discount_code_base),
+        sa.CheckConstraint(
+            sa.or_(
+                sa.and_(is_price_based.is_(True), percentage.is_(None)),
+                sa.and_(
+                    is_price_based.is_(False),
+                    percentage.isnot(None),
+                    percentage > 0,
+                    percentage <= 100,
+                ),
+            ),
+            'discount_policy_percentage_check',
+        ),
+        sa.CheckConstraint(
+            sa.or_(
+                discount_type == int(DiscountTypeEnum.AUTOMATIC),
+                sa.and_(
+                    discount_type == int(DiscountTypeEnum.COUPON),
+                    bulk_coupon_usage_limit.isnot(None),
+                ),
+            ),
+            'discount_policy_bulk_coupon_usage_limit_check',
+        ),
+        sa.Index(
+            'idx_discount_policy_title_trgm',
+            'title',
+            postgresql_using='gin',
+            postgresql_ops={'title': 'gin_trgm_ops'},
+        ),
+    )
+
+    __roles__: ClassVar = {
         'dp_owner': {
             'read': {
                 'id',
@@ -133,7 +153,7 @@ class DiscountPolicy(BaseScopedNameMixin[UUID, User], Model):
     }
 
     @role_check('dp_owner')
-    def has_dp_owner_role(self, actor: User | None, _anchors=()) -> bool:
+    def has_dp_owner_role(self, actor: User | None, _anchors: Any = ()) -> bool:
         return (
             actor is not None
             and self.organization.userid in actor.organizations_owned_ids()
@@ -159,7 +179,8 @@ class DiscountPolicy(BaseScopedNameMixin[UUID, User], Model):
         Format: ``discount_code_base.randint.signature``
         """
         if not self.secret:
-            raise TypeError("DiscountPolicy.secret is unset")
+            msg = "DiscountPolicy.secret is unset"
+            raise TypeError(msg)
         if not identifier:
             identifier = secrets.token_urlsafe(16)
         signer = Signer(self.secret)
@@ -167,12 +188,14 @@ class DiscountPolicy(BaseScopedNameMixin[UUID, User], Model):
         return signer.sign(key).decode('utf-8')
 
     @staticmethod
-    def is_signed_code_format(code) -> bool:
+    def is_signed_code_format(code: str) -> bool:
         """Check if the code is in the {x.y.z} format."""
         return len(code.split('.')) == 3 if code else False
 
     @classmethod
-    def get_from_signed_code(cls, code, organization_id) -> DiscountPolicy | None:
+    def get_from_signed_code(
+        cls, code: str, organization_id: int
+    ) -> DiscountPolicy | None:
         """Return a discount policy given a valid signed code, None otherwise."""
         if not cls.is_signed_code_format(code):
             return None
@@ -190,7 +213,7 @@ class DiscountPolicy(BaseScopedNameMixin[UUID, User], Model):
             return None
 
     @classmethod
-    def make_bulk(cls, discount_code_base, **kwargs) -> DiscountPolicy:
+    def make_bulk(cls, discount_code_base: str | None, **kwargs) -> Self:
         """Return a discount policy for bulk discount coupons."""
         return cls(
             discount_type=DiscountTypeEnum.COUPON,
@@ -201,7 +224,7 @@ class DiscountPolicy(BaseScopedNameMixin[UUID, User], Model):
 
     @classmethod
     def get_from_ticket(
-        cls, ticket: Ticket, qty, coupon_codes: Sequence[str] = ()
+        cls, ticket: Ticket, qty: int, coupon_codes: Sequence[str] = ()
     ) -> list[PolicyCoupon]:
         """
         Return a list of (discount_policy, discount_coupon) tuples.
@@ -250,13 +273,13 @@ class DiscountPolicy(BaseScopedNameMixin[UUID, User], Model):
         return policies
 
     @property
-    def line_items_count(self):
+    def line_items_count(self) -> int:
         return self.line_items.filter(
             LineItem.status == LineItemStatus.CONFIRMED
         ).count()
 
     @classmethod
-    def is_valid_access_coupon(cls, ticket: Ticket, code_list):
+    def is_valid_access_coupon(cls, ticket: Ticket, code_list: list[str]) -> bool:
         """
         Check if any of code_list is a valid access code for the specified ticket.
 
@@ -292,20 +315,24 @@ class DiscountPolicy(BaseScopedNameMixin[UUID, User], Model):
 
 @sa.event.listens_for(DiscountPolicy, 'before_update')
 @sa.event.listens_for(DiscountPolicy, 'before_insert')
-def validate_price_based_discount(_mapper, _connection, target: DiscountPolicy):
+def validate_price_based_discount(
+    _mapper: Any, _connection: Any, target: DiscountPolicy
+) -> None:
     if target.is_price_based and len(target.tickets) > 1:
-        raise ValueError("Price-based discounts MUST have only one associated ticket")
+        msg = "Price-based discounts MUST have only one associated ticket"
+        raise ValueError(msg)
 
 
-def generate_coupon_code(size=6, chars=string.ascii_uppercase + string.digits):
+def generate_coupon_code(
+    size: int = 6, chars: str = string.ascii_uppercase + string.digits
+) -> str:
     return ''.join(secrets.choice(chars) for _ in range(size))
 
 
 class DiscountCoupon(IdMixin[UUID], Model):
     __tablename__ = 'discount_coupon'
-    __table_args__ = (sa.UniqueConstraint('discount_policy_id', 'code'),)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         self.id = uuid1mc()
         super().__init__(*args, **kwargs)
 
@@ -323,8 +350,10 @@ class DiscountCoupon(IdMixin[UUID], Model):
     )
     line_items: Mapped[list[LineItem]] = relationship(back_populates='discount_coupon')
 
+    __table_args__ = (sa.UniqueConstraint(discount_policy_id, code),)
+
     @classmethod
-    def is_signed_code_usable(cls, policy, code):
+    def is_signed_code_usable(cls, policy: DiscountPolicy, code: str) -> bool:
         obj = cls.query.filter(
             cls.discount_policy == policy,
             cls.code == code,
@@ -334,10 +363,10 @@ class DiscountCoupon(IdMixin[UUID], Model):
             return False
         return True
 
-    def update_used_count(self):
+    def update_used_count(self) -> None:
         self.used_count = (
             sa.select(sa.func.count())
-            .where(LineItem.discount_coupon == self)
+            .where(LineItem.discount_coupon_id == self.id)
             .where(LineItem.status == LineItemStatus.CONFIRMED)
             .as_scalar()
         )
@@ -348,17 +377,6 @@ class PolicyCoupon:
     policy: DiscountPolicy
     coupon: DiscountCoupon | None
 
-
-create_title_trgm_trigger = sa.DDL(
-    'CREATE INDEX idx_discount_policy_title_trgm on discount_policy'
-    ' USING gin (title gin_trgm_ops);'
-)
-
-sa.event.listen(
-    DiscountPolicy.__table__,
-    'after_create',
-    create_title_trgm_trigger.execute_if(dialect='postgresql'),
-)
 
 # Tail imports
 from .line_item import LineItem  # isort:skip

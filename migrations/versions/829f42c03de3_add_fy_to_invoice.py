@@ -1,4 +1,5 @@
-"""add_fy_to_invoice.
+"""
+add_fy_to_invoice.
 
 Revision ID: 829f42c03de3
 Revises: 23fc9e293ac3
@@ -8,37 +9,36 @@ Create Date: 2018-04-01 15:44:20.230030
 
 from datetime import datetime
 
+import pytz
+import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.sql import column, table
-import pytz
-import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '829f42c03de3'
 down_revision = '23fc9e293ac3'
 
 
-def naive_to_utc(dt, timezone=None):
+def naive_to_utc(
+    dt: datetime, timezone: str | pytz.BaseTzInfo | None = None
+) -> datetime:
     """
     Return a UTC datetime for a given naive datetime or date object.
 
     Localizes it to the given timezone and converts it into a UTC datetime
     """
     if timezone:
-        if isinstance(timezone, str):
-            tz = pytz.timezone(timezone)
-        else:
-            tz = timezone
+        tz = pytz.timezone(timezone) if isinstance(timezone, str) else timezone
     elif isinstance(dt, datetime) and dt.tzinfo:
-        tz = dt.tzinfo
+        tz = dt.tzinfo  # type: ignore[assignment]
     else:
         tz = pytz.UTC
 
     return tz.localize(dt).astimezone(tz).astimezone(pytz.UTC)
 
 
-def get_fiscal_year(jurisdiction, dt):
+def get_fiscal_year(jurisdiction: str, dt: datetime) -> tuple[datetime, datetime]:
     """
     Return the financial year for a given jurisdiction and timestamp.
 
@@ -50,10 +50,7 @@ def get_fiscal_year(jurisdiction, dt):
         get_fiscal_year('IN', utcnow())
     """
     if jurisdiction.lower() == 'in':
-        if dt.month < 4:
-            start_year = dt.year - 1
-        else:
-            start_year = dt.year
+        start_year = dt.year - 1 if dt.month < 4 else dt.year
         # starts on April 1 XXXX
         fy_start = datetime(start_year, 4, 1)
         # ends on April 1 XXXX + 1
@@ -76,7 +73,7 @@ invoice_table = table(
 )
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     op.add_column('invoice', sa.Column('fy_end_at', sa.DateTime(), nullable=True))
     op.add_column('invoice', sa.Column('fy_start_at', sa.DateTime(), nullable=True))
@@ -106,7 +103,7 @@ def upgrade():
     op.alter_column('invoice', 'fy_end_at', existing_type=sa.DateTime(), nullable=False)
 
 
-def downgrade():
+def downgrade() -> None:
     conn = op.get_bind()
     op.alter_column('invoice', 'fy_end_at', existing_type=sa.DateTime(), nullable=True)
     op.alter_column(

@@ -1,4 +1,5 @@
-"""modify assignee.
+"""
+modify assignee.
 
 Revision ID: 253e7b76eb8e
 Revises: 1ea1e8070ac8
@@ -6,16 +7,16 @@ Create Date: 2016-04-11 20:15:52.864916
 
 """
 
+import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
-import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '253e7b76eb8e'
 down_revision = '1ea1e8070ac8'
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column('assignee', sa.Column('current', sa.Boolean(), nullable=True))
     op.create_check_constraint('assignee_current_check', 'assignee', "current != '0'")
     op.add_column(
@@ -39,7 +40,7 @@ def upgrade():
     op.drop_column('line_item', 'assignee_id')
 
 
-def downgrade():
+def downgrade() -> None:
     op.add_column(
         'line_item',
         sa.Column('assignee_id', sa.INTEGER(), autoincrement=False, nullable=True),

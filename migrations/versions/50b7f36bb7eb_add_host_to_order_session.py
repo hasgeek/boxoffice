@@ -1,4 +1,5 @@
-"""add_host_to_order_session.
+"""
+add_host_to_order_session.
 
 Revision ID: 50b7f36bb7eb
 Revises: ca40e4eda72c
@@ -6,17 +7,17 @@ Create Date: 2019-12-06 10:38:43.256529
 
 """
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = '50b7f36bb7eb'
 down_revision = 'ca40e4eda72c'
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column('order_session', sa.Column('host', sa.UnicodeText(), nullable=True))
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column('order_session', 'host')

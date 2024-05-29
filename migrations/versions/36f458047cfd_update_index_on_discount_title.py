@@ -1,4 +1,5 @@
-"""update_index_on_discount_policy_discount_code_base.
+"""
+update_index_on_discount_policy_discount_code_base.
 
 Revision ID: 36f458047cfd
 Revises: 3a585b8d5f8d
@@ -13,7 +14,7 @@ revision = '36f458047cfd'
 down_revision = '3a585b8d5f8d'
 
 
-def upgrade():
+def upgrade() -> None:
     op.drop_constraint(
         'discount_policy_discount_code_base_key', 'discount_policy', type_='unique'
     )
@@ -24,7 +25,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_constraint(
         'discount_policy_organization_id_discount_code_base_key',
         'discount_policy',

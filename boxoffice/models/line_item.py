@@ -19,13 +19,13 @@ from . import BaseMixin, DynamicMapped, Mapped, Model, db, relationship, sa, tim
 from .enums import LineItemStatus
 from .user import User
 
-__all__ = ['LineItem', 'Assignee']
+__all__ = ['LineItemTuple', 'LineItem', 'Assignee']
 
 
 class LineItemTuple(NamedTuple):
     """Duck-type for LineItem."""
 
-    id: UUID | None  # noqa: A003
+    id: UUID | None
     ticket_id: UUID
     base_amount: Decimal | None
     discount_policy_id: UUID | None = None
@@ -40,11 +40,6 @@ class LineItemDict(TypedDict):
 
 class Assignee(BaseMixin[int, User], Model):
     __tablename__ = 'assignee'
-    __table_args__ = (
-        sa.UniqueConstraint('line_item_id', 'current'),
-        sa.CheckConstraint('current <> false', 'assignee_current_check'),
-    )
-
     # lastuser id
     user_id: Mapped[int | None] = sa.orm.mapped_column(sa.ForeignKey('user.id'))
     user: Mapped[User | None] = relationship(back_populates='assignees')
@@ -58,6 +53,11 @@ class Assignee(BaseMixin[int, User], Model):
     details: Mapped[dict] = sa.orm.mapped_column(JsonDict, default={})
     current: Mapped[bool | None] = sa.orm.mapped_column()
 
+    __table_args__ = (
+        sa.UniqueConstraint(line_item_id, current),
+        sa.CheckConstraint(current.isnot(False), 'assignee_current_check'),
+    )
+
 
 class LineItem(BaseMixin[UUID, User], Model):
     """
@@ -68,13 +68,8 @@ class LineItem(BaseMixin[UUID, User], Model):
     """
 
     __tablename__ = 'line_item'
-    __table_args__ = (
-        sa.UniqueConstraint('customer_order_id', 'line_item_seq'),
-        sa.UniqueConstraint('previous_id'),
-    )
-
     # line_item_seq is the relative number of the line item per order.
-    line_item_seq: Mapped[int]
+    line_item_seq: Mapped[int] = sa.orm.mapped_column()
     customer_order_id: Mapped[UUID] = sa.orm.mapped_column(
         sa.ForeignKey('customer_order.id'), index=True, unique=False
     )
@@ -116,7 +111,9 @@ class LineItem(BaseMixin[UUID, User], Model):
         cascade='all, delete-orphan', lazy='dynamic', back_populates='line_item'
     )
 
-    def permissions(self, actor, inherited=None):
+    __table_args__ = (sa.UniqueConstraint(customer_order_id, line_item_seq),)
+
+    def permissions(self, actor: User, inherited: set[str] | None = None) -> set[str]:
         perms = super().permissions(actor, inherited)
         if self.order.organization.userid in actor.organizations_owned_ids():
             perms.add('org_admin')
@@ -177,7 +174,7 @@ class LineItem(BaseMixin[UUID, User], Model):
 
         return calculated_line_items
 
-    def confirm(self):
+    def confirm(self) -> None:
         self.status = LineItemStatus.CONFIRMED
 
     assignee: Mapped[Assignee | None] = relationship(
@@ -198,7 +195,7 @@ class LineItem(BaseMixin[UUID, User], Model):
         return self.assignees.filter(Assignee.current.is_(True)).one_or_none()
 
     @property
-    def is_transferable(self):
+    def is_transferable(self) -> bool:
         tz = current_app.config['tz']
         now = localize_timezone(utcnow(), tz)
         if self.assignee is None:
@@ -214,27 +211,27 @@ class LineItem(BaseMixin[UUID, User], Model):
         )
 
     @property
-    def is_confirmed(self):
+    def is_confirmed(self) -> bool:
         return self.status == LineItemStatus.CONFIRMED
 
     @property
-    def is_cancelled(self):
+    def is_cancelled(self) -> bool:
         return self.status == LineItemStatus.CANCELLED
 
     @property
-    def is_free(self):
+    def is_free(self) -> bool:
         return self.final_amount == Decimal('0')
 
-    def cancel(self):
+    def cancel(self) -> None:
         """Set status and cancelled_at."""
         self.status = LineItemStatus.CANCELLED
         self.cancelled_at = sa.func.utcnow()
 
-    def make_void(self):
+    def make_void(self) -> None:
         self.status = LineItemStatus.VOID
         self.cancelled_at = sa.func.utcnow()
 
-    def is_cancellable(self):
+    def is_cancellable(self) -> bool:
         tz = current_app.config['tz']
         now = localize_timezone(utcnow(), tz)
         return self.is_confirmed and (
@@ -325,7 +322,7 @@ def sales_by_date(
 
 def calculate_weekly_sales(
     menu_ids: Sequence[str | UUID], user_tz: str | tzinfo, year: int
-):
+) -> OrderedDict[int, int]:
     """Calculate weekly sales for a year in the given menu_ids."""
     ordered_week_sales = OrderedDict()
     for year_week in Week.weeks_of_year(year):
@@ -363,14 +360,14 @@ def calculate_weekly_sales(
     return ordered_week_sales
 
 
-def sales_delta(user_tz: tzinfo, ticket_ids: Sequence[str]):
+def sales_delta(user_tz: tzinfo, ticket_ids: Sequence[str]) -> Decimal:
     """Calculate the percentage difference in sales between today and yesterday."""
     today = utcnow().date()
     yesterday = today - timedelta(days=1)
     today_sales = sales_by_date(today, ticket_ids, user_tz)
     yesterday_sales = sales_by_date(yesterday, ticket_ids, user_tz)
     if not today_sales or not yesterday_sales:
-        return 0
+        return Decimal('0')
     return round(Decimal('100') * (today_sales - yesterday_sales) / yesterday_sales, 2)
 
 

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, ClassVar
 from uuid import UUID
 
 from coaster.sqlalchemy import role_check
@@ -15,10 +15,6 @@ __all__ = ['Category']
 
 class Category(BaseScopedNameMixin[int, User], Model):
     __tablename__ = 'category'
-    __table_args__ = (
-        sa.UniqueConstraint('item_collection_id', 'name'),
-        sa.UniqueConstraint('item_collection_id', 'seq'),
-    )
 
     menu_id: Mapped[UUID] = sa.orm.mapped_column(
         'item_collection_id', sa.ForeignKey('item_collection.id')
@@ -30,10 +26,16 @@ class Category(BaseScopedNameMixin[int, User], Model):
     )
     parent: Mapped[Menu] = sa.orm.synonym('menu')
 
-    __roles__ = {'category_owner': {'read': {'id', 'name', 'title', 'menu_id'}}}
+    __table_args__ = (
+        sa.UniqueConstraint('item_collection_id', 'name'),
+        sa.UniqueConstraint('item_collection_id', 'seq'),
+    )
+    __roles__: ClassVar = {
+        'category_owner': {'read': {'id', 'name', 'title', 'menu_id'}}
+    }
 
     @role_check('category_owner')
-    def has_category_owner_role(self, actor: User | None, _anchors=()) -> bool:
+    def has_category_owner_role(self, actor: User | None, _anchors: Any = ()) -> bool:
         return (
             actor is not None
             and self.menu.organization.userid in actor.organizations_owned_ids()

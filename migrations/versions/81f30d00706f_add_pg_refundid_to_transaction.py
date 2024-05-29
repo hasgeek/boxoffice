@@ -1,4 +1,5 @@
-"""add_pg_refundid_to_transaction.
+"""
+add_pg_refundid_to_transaction.
 
 Revision ID: 81f30d00706f
 Revises: 1a22f5035244
@@ -6,15 +7,15 @@ Create Date: 2017-10-19 03:39:48.608087
 
 """
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = '81f30d00706f'
 down_revision = '1a22f5035244'
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         'payment_transaction',
         sa.Column('pg_refundid', sa.Unicode(length=80), nullable=True),
@@ -33,7 +34,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_index(
         op.f('ix_payment_transaction_pg_refundid'), table_name='payment_transaction'
     )

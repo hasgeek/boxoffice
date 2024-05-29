@@ -24,10 +24,7 @@ def naive_to_utc(dt: datetime, timezone: str | tzinfo | None = None) -> datetime
     """
     tz: tzinfo
     if timezone:
-        if isinstance(timezone, str):
-            tz = pytz.timezone(timezone)
-        else:
-            tz = timezone
+        tz = pytz.timezone(timezone) if isinstance(timezone, str) else timezone
     elif isinstance(dt, datetime) and dt.tzinfo:
         tz = dt.tzinfo
     else:
@@ -43,17 +40,14 @@ def get_fiscal_year(jurisdiction: str, dt: datetime) -> tuple[datetime, datetime
     Return the financial year for a given jurisdiction and timestamp.
 
     Returns start and end dates as tuple of timestamps. Recognizes April 1 as the start
-    date for India (jurisfiction code: 'in'), January 1 everywhere else.
+    date for India (jurisdiction code: 'in'), January 1 everywhere else.
 
     Example::
 
         get_fiscal_year('IN', utcnow())
     """
     if jurisdiction.lower() == 'in':
-        if dt.month < 4:
-            start_year = dt.year - 1
-        else:
-            start_year = dt.year
+        start_year = dt.year - 1 if dt.month < 4 else dt.year
         # starts on April 1 XXXX
         fy_start = datetime(start_year, 4, 1)
         # ends on April 1 XXXX + 1

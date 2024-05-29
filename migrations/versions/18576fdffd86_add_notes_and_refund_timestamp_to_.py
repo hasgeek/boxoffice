@@ -1,4 +1,5 @@
-"""add_notes_and_refund_timestamp_to_transaction.
+"""
+add_notes_and_refund_timestamp_to_transaction.
 
 Revision ID: 18576fdffd86
 Revises: 4246213b032b
@@ -6,15 +7,15 @@ Create Date: 2017-03-25 12:16:09.459952
 
 """
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = '18576fdffd86'
 down_revision = '4246213b032b'
 
 
-def upgrade():
+def upgrade() -> None:
     op.add_column(
         'payment_transaction',
         sa.Column('internal_note', sa.Unicode(length=250), nullable=True),
@@ -36,7 +37,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_column('payment_transaction', 'refunded_at')
     op.drop_column('payment_transaction', 'note_to_user_text')
     op.drop_column('payment_transaction', 'note_to_user_html')

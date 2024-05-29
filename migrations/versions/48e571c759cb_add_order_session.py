@@ -1,4 +1,5 @@
-"""add_order_session.
+"""
+add_order_session.
 
 Revision ID: 48e571c759cb
 Revises: 510d2db2b008
@@ -6,16 +7,16 @@ Create Date: 2016-09-09 20:43:26.331871
 
 """
 
+import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
-import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '48e571c759cb'
 down_revision = '510d2db2b008'
 
 
-def upgrade():
+def upgrade() -> None:
     op.create_table(
         'order_session',
         sa.Column('created_at', sa.DateTime(), nullable=False),
@@ -68,7 +69,7 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     op.drop_index(op.f('ix_order_session_utm_source'), table_name='order_session')
     op.drop_index(op.f('ix_order_session_utm_medium'), table_name='order_session')
     op.drop_index(op.f('ix_order_session_utm_id'), table_name='order_session')
