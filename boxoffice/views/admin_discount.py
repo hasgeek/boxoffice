@@ -1,11 +1,13 @@
-from collections.abc import Mapping
+"""Organization level discount policy management views."""
+
 from typing import TYPE_CHECKING, Any
 
-from flask import Response, jsonify, request
+from flask import Response, render_template, request
+from flask.typing import ResponseReturnValue
 
 from baseframe import _, forms
 from baseframe.forms import render_form
-from coaster.views import ReturnRenderWith, load_models, render_with, requestargs
+from coaster.views import load_models, requestargs
 
 from .. import app, lastuser
 from ..forms import (
@@ -24,9 +26,10 @@ from ..models import (
     Price,
     db,
 )
-from .utils import api_error, api_success, xhr_only
+from .utils import api_error, api_success, request_wants_json, xhr_only
 
 
+# TODO: Return TypedDict
 def jsonify_discount_policy(discount_policy: DiscountPolicy) -> dict[str, Any]:
     details = dict(discount_policy.current_access())
     details['price_details'] = {}
@@ -43,26 +46,8 @@ def jsonify_discount_policy(discount_policy: DiscountPolicy) -> dict[str, Any]:
     return details
 
 
-def jsonify_discount_policies(data_dict: Mapping[str, Any]) -> Response:
-    discount_policies_list = []
-    for discount_policy in data_dict['discount_policies']:
-        discount_policies_list.append(jsonify_discount_policy(discount_policy))
-    return jsonify(
-        account_name=data_dict['org'].name,
-        account_title=data_dict['org'].title,
-        discount_policies=discount_policies_list,
-        currency=[e.value for e in CurrencyEnum],
-        total_pages=data_dict['total_pages'],
-        paginated=data_dict['total_pages'] > 1,
-        current_page=data_dict['current_page'],
-    )
-
-
 @app.route('/admin/o/<org>/discount_policy')
 @lastuser.requires_login
-@render_with(
-    {'text/html': 'index.html.jinja2', 'application/json': jsonify_discount_policies}
-)
 @load_models((Organization, {'name': 'org'}, 'organization'), permission='org_admin')
 @requestargs('search', ('page', int), ('size', int))
 def admin_discount_policies(
@@ -70,7 +55,7 @@ def admin_discount_policies(
     search: str | None = None,
     page: int = 1,
     size: int | None = None,
-) -> ReturnRenderWith:
+) -> ResponseReturnValue:
     results_per_page = size or 20
 
     discount_policies = organization.discount_policies
@@ -85,12 +70,18 @@ def admin_discount_policies(
     if TYPE_CHECKING:
         assert paginated_discount_policies.total is not None  # nosec B101
 
+    if not request_wants_json():
+        return render_template('index.html.jinja2', title=organization.title)
     return {
-        'org': organization,
-        'title': organization.title,
-        'discount_policies': paginated_discount_policies.items,
+        'account_name': organization.name,
+        'account_title': organization.title,
+        'discount_policies': [
+            jsonify_discount_policy(discount_policy)
+            for discount_policy in paginated_discount_policies.items
+        ],
+        'currency': [e.value for e in CurrencyEnum],
         'total_pages': paginated_discount_policies.pages,
-        'paginated': (paginated_discount_policies.total > results_per_page),
+        'paginated': paginated_discount_policies.pages > 1,
         'current_page': page,
     }
 
@@ -247,17 +238,19 @@ def admin_edit_discount_policy(discount_policy: DiscountPolicy) -> Response:
     (DiscountPolicy, {'id': 'discount_policy_id'}, 'discount_policy'),
     permission='org_admin',
 )
-def admin_delete_discount_policy(discount_policy: DiscountPolicy) -> Response:
+def admin_delete_discount_policy(
+    discount_policy: DiscountPolicy,
+) -> ResponseReturnValue:
     form = forms.Form()
     if request.method == 'GET':
-        return jsonify(
-            form_template=render_form(
+        return {
+            'form_template': render_form(
                 form=form,
                 title=_("Delete discount policy"),
                 submit=_("Delete"),
                 with_chrome=False,
             ).get_data(as_text=True)
-        )
+        }
 
     if not form.validate_on_submit():
         return api_error(

@@ -17,9 +17,9 @@ from . import (
     BaseScopedNameMixin,
     DynamicMapped,
     Mapped,
-    MarkdownColumn,
     Model,
     db,
+    markdown_column,
     relationship,
     sa,
     timestamptz,
@@ -42,7 +42,7 @@ class AvailabilityData(NamedTuple):
 class Ticket(BaseScopedNameMixin[UUID, User], Model):
     __tablename__ = 'item'
 
-    description = MarkdownColumn('description', default='', nullable=False)
+    description = markdown_column('description', default='', nullable=False)
     seq: Mapped[int]
     menu_id: Mapped[UUID] = sa.orm.mapped_column(
         'item_collection_id', sa.ForeignKey('item_collection.id')

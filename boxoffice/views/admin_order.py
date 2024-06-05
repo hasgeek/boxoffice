@@ -1,11 +1,11 @@
-from collections.abc import Mapping
 from decimal import Decimal
 from typing import Any, TypedDict
 from uuid import UUID
 
-from flask import Response, jsonify, url_for
+from flask import render_template, url_for
+from flask.typing import ResponseReturnValue
 
-from coaster.views import ReturnRenderWith, load_models, render_with
+from coaster.views import load_models
 
 from .. import app, lastuser
 from ..models import (
@@ -19,7 +19,7 @@ from ..models import (
     OrderStatus,
     Organization,
 )
-from .utils import check_api_access, json_date_format, xhr_only
+from .utils import check_api_access, json_date_format, request_wants_json, xhr_only
 
 
 class AssigneeDict(TypedDict):
@@ -97,47 +97,35 @@ def format_line_items(line_items: list[LineItem]) -> list[LineItemDict]:
     return line_item_dicts
 
 
-def jsonify_admin_orders(data_dict: Mapping[str, Any]) -> Response:
-    menu_id = data_dict['menu'].id
-    order_dicts = []
-    for order in data_dict['orders']:
-        if order.is_confirmed:
-            order_dicts.append(
-                {
-                    'receipt_no': order.receipt_no,
-                    'id': order.id,
-                    'order_date': json_date_format(order.paid_at),
-                    'buyer_fullname': order.buyer_fullname,
-                    'buyer_email': order.buyer_email,
-                    'buyer_phone': order.buyer_phone,
-                    'currency': CurrencySymbol.INR,
-                    'amount': order.net_amount,
-                    'url': '/menu/' + str(menu_id) + '/' + str(order.id),
-                    'receipt_url': url_for('receipt', access_token=order.access_token),
-                    'assignee_url': url_for(
-                        'order_ticket', access_token=order.access_token
-                    ),
-                }
-            )
-    return jsonify(
-        account_name=data_dict['menu'].organization.name,
-        account_title=data_dict['menu'].organization.title,
-        menu_title=data_dict['menu'].title,
-        orders=order_dicts,
-    )
-
-
 @app.route('/admin/menu/<menu_id>/orders')
 @lastuser.requires_login
-@render_with(
-    {'text/html': 'index.html.jinja2', 'application/json': jsonify_admin_orders}
-)
 @load_models((Menu, {'id': 'menu_id'}, 'menu'), permission='org_admin')
-def admin_orders(menu: Menu) -> ReturnRenderWith:
+def admin_orders(menu: Menu) -> ResponseReturnValue:
+    if not request_wants_json():
+        return render_template('index.html.jinja2', title=menu.title)
     return {
-        'title': menu.title,
-        'menu': menu,
-        'orders': menu.orders,
+        'account_name': menu.organization.name,
+        'account_title': menu.organization.title,
+        'menu_title': menu.title,
+        'orders': [
+            {
+                'receipt_no': order.receipt_no,
+                'id': order.id,
+                'order_date': json_date_format(order.paid_at),
+                'buyer_fullname': order.buyer_fullname,
+                'buyer_email': order.buyer_email,
+                'buyer_phone': order.buyer_phone,
+                'currency': CurrencySymbol.INR,
+                'amount': order.net_amount,
+                'url': '/menu/' + str(menu.id) + '/' + str(order.id),
+                'receipt_url': url_for('receipt', access_token=order.access_token),
+                'assignee_url': url_for(
+                    'order_ticket', access_token=order.access_token
+                ),
+            }
+            for order in menu.orders
+            if order.is_confirmed
+        ],
     }
 
 
@@ -145,38 +133,14 @@ def admin_orders(menu: Menu) -> ReturnRenderWith:
 @lastuser.requires_login
 @xhr_only
 @load_models((Order, {'id': 'order_id'}, 'order'), permission='org_admin')
-def admin_order(order: Order) -> Response:
+def admin_order(order: Order) -> ResponseReturnValue:
     line_items = LineItem.query.filter(
         LineItem.order == order,
         LineItem.status.in_(
             [LineItemStatus.CONFIRMED.value, LineItemStatus.CANCELLED.value]
         ),
     ).all()
-    return jsonify(line_items=format_line_items(line_items))
-
-
-def jsonify_order(order_dict: Mapping[str, Any]) -> Response:
-    org = {"title": order_dict['org'].title, "name": order_dict['org'].name}
-    order = {
-        'id': order_dict['order'].id,
-        'buyer_fullname': order_dict['order'].buyer_fullname,
-        'buyer_email': order_dict['order'].buyer_email,
-        'buyer_phone': order_dict['order'].buyer_phone,
-        'receipt_no': order_dict['order'].receipt_no,
-        'receipt_url': url_for(
-            'receipt', access_token=order_dict['order'].access_token
-        ),
-        'assignee_url': url_for(
-            'order_ticket', access_token=order_dict['order'].access_token
-        ),
-    }
-    menu = {'id': order_dict['order'].menu_id}
-    return jsonify(
-        org=org,
-        menu=menu,
-        order=order,
-        line_items=format_line_items(order_dict['line_items']),
-    )
+    return {'line_items': format_line_items(line_items)}
 
 
 @app.route('/admin/o/<org_name>/order/<int:receipt_no>', methods=['GET', 'POST'])
@@ -186,18 +150,32 @@ def jsonify_order(order_dict: Mapping[str, Any]) -> Response:
     (Order, {'organization': 'org', 'receipt_no': 'receipt_no'}, 'order'),
     permission='org_admin',
 )
-@render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_order})
-def admin_org_order(org: Organization, order: Order) -> ReturnRenderWith:
+def admin_org_order(org: Organization, order: Order) -> ResponseReturnValue:
     line_items = LineItem.query.filter(
         LineItem.order == order,
         LineItem.status.in_(
             [LineItemStatus.CONFIRMED.value, LineItemStatus.CANCELLED.value]
         ),
     ).all()
-    return {'org': org, 'order': order, 'line_items': line_items}
+    if not request_wants_json():
+        return render_template('index.html.jinja2')
+    return {
+        'org': {'title': org.title, 'name': org.name},
+        'menu': {'id': order.menu_id},
+        'order': {
+            'id': order.id,
+            'buyer_fullname': order.buyer_fullname,
+            'buyer_email': order.buyer_email,
+            'buyer_phone': order.buyer_phone,
+            'receipt_no': order.receipt_no,
+            'receipt_url': url_for('receipt', access_token=order.access_token),
+            'assignee_url': url_for('order_ticket', access_token=order.access_token),
+        },
+        'line_items': format_line_items(line_items),
+    }
 
 
-def get_order_details(order: Order) -> Response:
+def get_order_details(order: Order) -> ResponseReturnValue:
     line_items_list = [
         {
             'title': li.ticket.title,
@@ -255,19 +233,19 @@ def get_order_details(order: Order) -> Response:
         for refund in order.refund_transactions
     ]
 
-    return jsonify(
-        order_id=order.id,
-        receipt_no=order.receipt_no,
-        status=OrderStatus(order.status).name,
-        final_amount=order.net_amount,
-        line_items=line_items_list,
-        title=order.menu.title,
-        invoices=invoices_list,
-        refunds=refunds_list,
-        buyer_name=order.buyer_fullname,
-        buyer_email=order.buyer_email,
-        buyer_phone=order.buyer_phone,
-    )
+    return {
+        'order_id': order.id,
+        'receipt_no': order.receipt_no,
+        'status': OrderStatus(order.status).name,
+        'final_amount': order.net_amount,
+        'line_items': line_items_list,
+        'title': order.menu.title,
+        'invoices': invoices_list,
+        'refunds': refunds_list,
+        'buyer_name': order.buyer_fullname,
+        'buyer_email': order.buyer_email,
+        'buyer_phone': order.buyer_phone,
+    }
 
 
 # This endpoint has been added to fetch details of an order to generate invoice outside
@@ -277,7 +255,7 @@ def get_order_details(order: Order) -> Response:
     (Organization, {'name': 'org_name'}, 'org'),
     (Order, {'organization': 'org', 'receipt_no': 'receipt_no'}, 'order'),
 )
-def order_api(org: Organization, order: Order) -> Response:
+def order_api(org: Organization, order: Order) -> ResponseReturnValue:
     check_api_access(org.details.get('access_token'))
     return get_order_details(order)
 
@@ -289,6 +267,6 @@ def order_api(org: Organization, order: Order) -> Response:
     (Organization, {'name': 'org_name'}, 'org'),
     (Order, {'organization': 'org', 'id': 'order_id'}, 'order'),
 )
-def order_id_api(org: Organization, order: Order) -> Response:
+def order_id_api(org: Organization, order: Order) -> ResponseReturnValue:
     check_api_access(org.details.get('access_token'))
     return get_order_details(order)

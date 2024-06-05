@@ -3,15 +3,14 @@ from collections.abc import Generator
 from datetime import date
 from types import SimpleNamespace
 from typing import Self
-from wsgiref.types import WSGIEnvironment
 
 import pytest
 import sqlalchemy as sa
 from dateutil.relativedelta import relativedelta
 from flask.testing import FlaskClient
 from flask_sqlalchemy import SQLAlchemy
+from flask_wtf.csrf import generate_csrf
 from sqlalchemy.orm import close_all_sessions
-from werkzeug.test import EnvironBuilder
 
 from coaster.utils import utcnow
 
@@ -112,9 +111,10 @@ def client(request: pytest.FixtureRequest) -> Generator[FlaskClient, None, None]
 
 
 @pytest.fixture
-def post_env() -> WSGIEnvironment:
-    builder = EnvironBuilder(method='POST')
-    return builder.get_environ()
+def csrf_token() -> str:
+    """Supply a CSRF token for use in form submissions."""
+    with app.test_request_context():
+        return generate_csrf()
 
 
 @pytest.fixture

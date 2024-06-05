@@ -12,9 +12,9 @@ from . import (
     BaseScopedNameMixin,
     DynamicMapped,
     Mapped,
-    MarkdownColumn,
     Model,
     db,
+    markdown_column,
     relationship,
     sa,
 )
@@ -30,7 +30,7 @@ class Menu(BaseScopedNameMixin[UUID, User], Model):
     """Represent a collection of tickets."""
 
     __tablename__ = 'item_collection'
-    description = MarkdownColumn('description', default='', nullable=False)
+    description = markdown_column('description', default='', nullable=False)
 
     organization_id: Mapped[int] = sa.orm.mapped_column(
         sa.ForeignKey('organization.id')

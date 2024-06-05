@@ -1,30 +1,34 @@
-from collections.abc import Mapping
-from typing import Any
+"""Menu category management views."""
 
-from flask import Response, jsonify, request
+from flask import render_template, request
+from flask.typing import ResponseReturnValue
 
 from baseframe import _
 from baseframe.forms import render_form
-from coaster.views import ReturnRenderWith, load_models, render_with
+from coaster.views import load_models
 
 from .. import app, lastuser
 from ..forms import CategoryForm
 from ..models import Category, Menu, db
-from .utils import api_error, api_success
+from .utils import api_error, api_success, request_wants_json
 
 
-def jsonify_new_category(data_dict: Mapping[str, Any]) -> Response:
-    menu = data_dict['menu']
+@app.route('/admin/menu/<menu_id>/category/new', methods=['GET', 'POST'])
+@lastuser.requires_login
+@load_models((Menu, {'id': 'menu_id'}, 'menu'), permission='org_admin')
+def admin_new_category(menu: Menu) -> ResponseReturnValue:
+    if not request_wants_json():
+        return render_template('index.html.jinja2')
     category_form = CategoryForm(parent=menu)
     if request.method == 'GET':
-        return jsonify(
-            form_template=render_form(
+        return {
+            'form_template': render_form(
                 form=category_form,
                 title=_("New Ticket"),
                 submit=_("Create"),
                 with_chrome=False,
             ).get_data(as_text=True)
-        )
+        }
     if category_form.validate_on_submit():
         category = Category(menu=menu)
         category_form.populate_obj(category)
@@ -44,28 +48,22 @@ def jsonify_new_category(data_dict: Mapping[str, Any]) -> Response:
     )
 
 
-@app.route('/admin/menu/<menu_id>/category/new', methods=['GET', 'POST'])
+@app.route('/admin/menu/<menu_id>/category/<category_id>/edit', methods=['GET', 'POST'])
 @lastuser.requires_login
-@render_with(
-    {'text/html': 'index.html.jinja2', 'application/json': jsonify_new_category}
-)
-@load_models((Menu, {'id': 'menu_id'}, 'menu'), permission='org_admin')
-def admin_new_category(menu: Menu) -> ReturnRenderWith:
-    return {'menu': menu}
-
-
-def jsonify_edit_category(data_dict: Mapping[str, Any]) -> Response:
-    category = data_dict['category']
+@load_models((Category, {'id': 'category_id'}, 'category'), permission='org_admin')
+def admin_edit_category(category: Category) -> ResponseReturnValue:
+    if not request_wants_json():
+        return render_template('index.html.jinja2')
     category_form = CategoryForm(obj=category)
     if request.method == 'GET':
-        return jsonify(
-            form_template=render_form(
+        return {
+            'form_template': render_form(
                 form=category_form,
                 title=_("Edit category"),
                 submit=_("Update"),
                 with_chrome=False,
             ).get_data(as_text=True)
-        )
+        }
     if category_form.validate_on_submit():
         category_form.populate_obj(category)
         db.session.commit()
@@ -79,13 +77,3 @@ def jsonify_edit_category(data_dict: Mapping[str, Any]) -> Response:
         errors=category_form.errors,
         status_code=400,
     )
-
-
-@app.route('/admin/menu/<menu_id>/category/<category_id>/edit', methods=['GET', 'POST'])
-@lastuser.requires_login
-@render_with(
-    {'text/html': 'index.html.jinja2', 'application/json': jsonify_edit_category}
-)
-@load_models((Category, {'id': 'category_id'}, 'category'), permission='org_admin')
-def admin_edit_category(category: Category) -> ReturnRenderWith:
-    return {'category': category}

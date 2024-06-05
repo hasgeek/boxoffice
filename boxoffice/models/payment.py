@@ -14,9 +14,9 @@ from coaster.utils import isoweek_datetime
 from . import (
     BaseMixin,
     Mapped,
-    MarkdownColumn,
     Model,
     db,
+    markdown_column,
     relationship,
     sa,
     timestamptz,
@@ -94,7 +94,7 @@ class PaymentTransaction(BaseMixin[UUID, User], Model):
     refunded_at: Mapped[timestamptz | None]
     internal_note: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(250))
     refund_description: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(250))
-    note_to_user = MarkdownColumn('note_to_user', nullable=True)
+    note_to_user = markdown_column('note_to_user', nullable=True)
     # Refund id issued by the payment gateway
     pg_refundid: Mapped[str | None] = sa.orm.mapped_column(sa.Unicode(80), unique=True)
 

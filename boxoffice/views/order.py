@@ -1,15 +1,16 @@
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Literal, NotRequired, TypedDict, cast, overload
 from uuid import UUID
 
-from flask import Response, abort, jsonify, render_template, request, url_for
+from flask import Response, abort, render_template, request, url_for
+from flask.typing import ResponseReturnValue
 from werkzeug.datastructures import ImmutableMultiDict
 
 from baseframe import _, localized_country_list
 from baseframe.forms import render_form
 from coaster.utils import utcnow
-from coaster.views import ReturnRenderWith, load_models, render_with
+from coaster.views import load_models
 
 from .. import app, lastuser
 from ..data import indian_states
@@ -55,6 +56,7 @@ from .utils import (
     api_success,
     cors,
     json_date_format,
+    request_wants_json,
     sanitize_coupons,
     xhr_only,
 )
@@ -150,46 +152,10 @@ def jsonify_assignee(assignee: Assignee | None) -> AssigneeDict | None:
     return None
 
 
-def jsonify_order(data: Mapping[str, Any]) -> Response:
-    order = data['order']
-    line_items = []
-    for line_item in order.line_items:
-        line_items.append(
-            {
-                'seq': line_item.line_item_seq,
-                'id': line_item.id,
-                'title': line_item.ticket.title,
-                'description': line_item.ticket.description.text,
-                'description_html': line_item.ticket.description.html,
-                'final_amount': line_item.final_amount,
-                'assignee_details': line_item.ticket.assignee_details,
-                'assignee': jsonify_assignee(line_item.current_assignee),
-                'is_confirmed': line_item.is_confirmed,
-                'is_cancelled': line_item.is_cancelled,
-                'cancelled_at': (
-                    json_date_format(line_item.cancelled_at)
-                    if line_item.cancelled_at
-                    else ""
-                ),
-                'is_transferable': line_item.is_transferable,
-            }
-        )
-    return jsonify(
-        order_id=order.id,
-        access_token=order.access_token,
-        menu_name=order.menu.name,
-        menu_title=order.menu.title,
-        buyer_name=order.buyer_fullname,
-        buyer_email=order.buyer_email,
-        buyer_phone=order.buyer_phone,
-        line_items=line_items,
-    )
-
-
 @app.route('/order/kharcha', methods=['OPTIONS', 'POST'])
 @xhr_only
 @cors
-def kharcha() -> Response:
+def kharcha() -> ResponseReturnValue:
     """
     Calculate rates for an order of items and quantities.
 
@@ -228,14 +194,14 @@ def kharcha() -> Response:
         for values in items_json.values()
         if values['final_amount'] is not None
     )
-    return jsonify(line_items=items_json, order={'final_amount': order_final_amount})
+    return {'line_items': items_json, 'order': {'final_amount': order_final_amount}}
 
 
 @app.route('/menu/<menu_id>/order', methods=['GET', 'OPTIONS', 'POST'])
 @xhr_only
 @cors
 @load_models((Menu, {'id': 'menu_id'}, 'menu'))
-def create_order(menu: Menu) -> Response:
+def create_order(menu: Menu) -> ResponseReturnValue:
     """
     Create an order.
 
@@ -389,7 +355,7 @@ def create_order(menu: Menu) -> Response:
 @xhr_only
 @cors
 @load_models((Order, {'id': 'order'}, 'order'))
-def free(order: Order) -> Response:
+def free(order: Order) -> ResponseReturnValue:
     """Complete a order which has a final_amount of 0."""
     order_amounts = order.get_amounts(LineItemStatus.PURCHASE_ORDER)
     if order_amounts.final_amount == 0:
@@ -423,7 +389,7 @@ def free(order: Order) -> Response:
 @xhr_only
 @cors
 @load_models((Order, {'id': 'order'}, 'order'))
-def capture_payment(order: Order) -> Response:
+def capture_payment(order: Order) -> ResponseReturnValue:
     """
     Capture a payment.
 
@@ -589,26 +555,9 @@ def edit_invoice_details(order: Order) -> Response:
     )
 
 
-def jsonify_invoices(data_dict: Mapping[str, Any]) -> Response:
-    invoices_list = []
-    for invoice in data_dict['invoices']:
-        invoices_list.append(jsonify_invoice(invoice))
-    return jsonify(
-        invoices=invoices_list,
-        access_token=data_dict['order'].access_token,
-        states=[{'name': state.title, 'code': state.name} for state in indian_states],
-        countries=[
-            {'name': name, 'code': code} for code, name in localized_country_list()
-        ],
-    )
-
-
 @app.route('/order/<access_token>/invoice', methods=['GET'])
-@render_with(
-    {'text/html': 'invoice_form.html.jinja2', 'application/json': jsonify_invoices}
-)
 @load_models((Order, {'access_token': 'access_token'}, 'order'))
-def invoice_details_form(order: Order) -> ReturnRenderWith:
+def invoice_details_form(order: Order) -> ResponseReturnValue:
     """View all invoices of an order."""
     if not order.is_confirmed:
         abort(404)
@@ -618,16 +567,59 @@ def invoice_details_form(order: Order) -> ReturnRenderWith:
         db.session.commit()
     invoices = order.invoices
 
-    return {'order': order, 'org': order.organization, 'invoices': invoices}
+    if not request_wants_json():
+        return render_template(
+            'invoice_form.html.jinja2', order=order, org=order.organization
+        )
+
+    invoices_list = [jsonify_invoice(invoice) for invoice in invoices]
+    return {
+        'invoices': invoices_list,
+        'access_token': order.access_token,
+        'states': [
+            {'name': state.title, 'code': state.name} for state in indian_states
+        ],
+        'countries': [
+            {'name': name, 'code': code} for code, name in localized_country_list()
+        ],
+    }
 
 
 @app.route('/order/<access_token>/ticket', methods=['GET', 'POST'])
-@render_with(
-    {'text/html': 'order.html.jinja2', 'application/json': jsonify_order}, json=True
-)
 @load_models((Order, {'access_token': 'access_token'}, 'order'))
-def order_ticket(order: Order) -> ReturnRenderWith:
-    return {'order': order, 'org': order.organization}
+def order_ticket(order: Order) -> ResponseReturnValue:
+    if not request_wants_json():
+        return render_template('order.html.jinja2', order=order, org=order.organization)
+    return {
+        'order_id': order.id,
+        'access_token': order.access_token,
+        'menu_name': order.menu.name,
+        'menu_title': order.menu.title,
+        'buyer_name': order.buyer_fullname,
+        'buyer_email': order.buyer_email,
+        'buyer_phone': order.buyer_phone,
+        'line_items': [
+            {
+                'seq': line_item.line_item_seq,
+                'id': line_item.id,
+                'title': line_item.ticket.title,
+                'description': line_item.ticket.description.text,
+                'description_html': line_item.ticket.description.html,
+                'final_amount': line_item.final_amount,
+                'assignee_details': line_item.ticket.assignee_details,
+                'assignee': jsonify_assignee(line_item.current_assignee),
+                'is_confirmed': line_item.is_confirmed,
+                'is_cancelled': line_item.is_cancelled,
+                'cancelled_at': (
+                    json_date_format(line_item.cancelled_at)
+                    if line_item.cancelled_at
+                    else ""
+                ),
+                'is_transferable': line_item.is_transferable,
+            }
+            for line_item in order.line_items
+        ],
+    }
 
 
 class TicketDict(TypedDict):
@@ -661,23 +653,23 @@ def format_assignee(line_item: LineItem) -> dict[str, Any]:
 
 
 def jsonify_orders(orders: Iterable[Order]) -> list[OrdersDict]:
-    api_orders = []
-
-    for order in orders:
-        order_dict: OrdersDict = {'receipt_no': order.receipt_no, 'line_items': []}
-        for line_item in order.line_items:
-            order_dict['line_items'].append(
+    return [
+        {
+            'receipt_no': order.receipt_no,
+            'line_items': [
                 {
                     'assignee': format_assignee(line_item),
                     'line_item_seq': line_item.line_item_seq,
                     'line_item_status': (
-                        "confirmed" if line_item.is_confirmed else "cancelled"
+                        'confirmed' if line_item.is_confirmed else 'cancelled'
                     ),
                     'ticket': {'title': line_item.ticket.title},
                 }
-            )
-        api_orders.append(order_dict)
-    return api_orders
+                for line_item in order.line_items
+            ],
+        }
+        for order in orders
+    ]
 
 
 def get_coupon_codes_from_line_items(line_items: Iterable[LineItem]) -> list[str]:
@@ -880,20 +872,24 @@ def cancel_line_item(line_item: LineItem) -> Response:
     )
 
 
-def process_partial_refund_for_order(data_dict: Mapping[str, Any]) -> Response:
-    order = data_dict['order']
-    form = data_dict['form']
-    request_method = data_dict['request_method']
-
-    if request_method == 'GET':
-        return jsonify(
-            form_template=render_form(
+@app.route(
+    '/admin/menu/<menu_id>/order/<order_id>/partial_refund', methods=['GET', 'POST']
+)
+@lastuser.requires_login
+@load_models((Order, {'id': 'order_id'}, 'order'), permission='org_admin')
+def partial_refund_order(order: Order) -> ResponseReturnValue:
+    if not request_wants_json():
+        return render_template('index.html.jinja2')
+    form = OrderRefundForm(parent=order)
+    if request.method == 'GET':
+        return {
+            'form_template': render_form(
                 form=form,
                 title=_("Partial refund"),
                 submit=_("Refund"),
                 with_chrome=False,
             ).get_data(as_text=True)
-        )
+        }
     if form.validate_on_submit():
         requested_refund_amount = form.amount.data
         payment = OnlinePayment.query.filter_by(
@@ -937,29 +933,10 @@ def process_partial_refund_for_order(data_dict: Mapping[str, Any]) -> Response:
     return api_error(message='Invalid input', status_code=403, errors=form.errors)
 
 
-@app.route(
-    '/admin/menu/<menu_id>/order/<order_id>/partial_refund', methods=['GET', 'POST']
-)
-@lastuser.requires_login
-@render_with(
-    {
-        'text/html': 'index.html.jinja2',
-        'application/json': process_partial_refund_for_order,
-    }
-)
-@load_models((Order, {'id': 'order_id'}, 'order'), permission='org_admin')
-def partial_refund_order(order: Order) -> ReturnRenderWith:
-    return {
-        'order': order,
-        'form': OrderRefundForm(parent=order),
-        'request_method': request.method,
-    }
-
-
 @app.route('/api/1/ic/<menu_id>/orders', methods=['GET', 'OPTIONS'])
 @app.route('/api/1/menu/<menu_id>/orders', methods=['GET', 'OPTIONS'])
 @load_models((Menu, {'id': 'menu_id'}, 'menu'))
-def menu_orders(menu: Menu) -> Response:
+def menu_orders(menu: Menu) -> ResponseReturnValue:
     organization = menu.organization
     # TODO: Replace with a better authentication system
     if not request.args.get('access_token') or request.args.get(
@@ -969,4 +946,4 @@ def menu_orders(menu: Menu) -> Response:
     orders = menu.orders.filter(
         Order.status.in_([OrderStatus.SALES_ORDER.value, OrderStatus.INVOICE.value])
     ).all()
-    return jsonify(orders=jsonify_orders(orders))
+    return {'orders': jsonify_orders(orders)}

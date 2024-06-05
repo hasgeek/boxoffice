@@ -3,7 +3,8 @@ from decimal import Decimal
 from typing import TypedDict
 from uuid import UUID
 
-from flask import Response, jsonify, render_template, request
+from flask import render_template, request
+from flask.typing import ResponseReturnValue
 from markupsafe import Markup
 
 from baseframe import localized_country_list
@@ -98,11 +99,11 @@ def jsonify_ticket(ticket: Ticket) -> TicketDict | None:
 
 
 def jsonify_category(category: Category) -> CategoryDict | None:
-    category_items = []
-    for ticket in Ticket.get_by_category(category):
-        ticket_json = jsonify_ticket(ticket)
-        if ticket_json:
-            category_items.append(ticket_json)
+    category_items = [
+        ticket_json
+        for ticket in Ticket.get_by_category(category)
+        if (ticket_json := jsonify_ticket(ticket))
+    ]
     if category_items:
         return {
             'id': category.id,
@@ -127,27 +128,28 @@ def render_boxoffice_js() -> str:
 
 
 @app.route('/api/1/boxoffice.js')
+@app.route('/api/1/boxoffice.json')
 @cors
-def boxofficejs() -> Response:
-    return jsonify({'script': render_boxoffice_js()})
+def boxofficejs() -> ResponseReturnValue:
+    return {'script': render_boxoffice_js()}
 
 
 @app.route('/menu/<menu_id>', methods=['GET', 'OPTIONS'])
 @xhr_only
 @cors
 @load_models((Menu, {'id': 'menu_id'}, 'menu'))
-def view_menu(menu: Menu) -> Response:
-    categories_json = []
-    for category in menu.categories:
-        category_json = jsonify_category(category)
-        if category_json:
-            categories_json.append(category_json)
-    return jsonify(
-        html=render_template('boxoffice.html.jinja2'),
-        categories=categories_json,
-        refund_policy=menu.organization.details.get('refund_policy', ''),
-        currency=CurrencySymbol.INR,
-    )
+def view_menu(menu: Menu) -> ResponseReturnValue:
+    categories_json = [
+        category_json
+        for category in menu.categories
+        if (category_json := jsonify_category(category))
+    ]
+    return {
+        'html': render_template('boxoffice.html.jinja2'),
+        'categories': categories_json,
+        'refund_policy': menu.organization.details.get('refund_policy', ''),
+        'currency': CurrencySymbol.INR,
+    }
 
 
 @app.route('/<org>/<menu_name>', methods=['GET', 'OPTIONS'])

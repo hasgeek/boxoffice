@@ -6,7 +6,8 @@ from io import StringIO
 from typing import Any, Literal, ParamSpec, TypeVar, overload
 from urllib.parse import urlparse
 
-from flask import Response, abort, jsonify, make_response, request
+from flask import Response, abort, after_this_request, make_response, request
+from flask.typing import ResponseReturnValue
 from werkzeug.wrappers import Response as BaseResponse
 
 from baseframe import localize_timezone, request_is_xhr
@@ -24,8 +25,15 @@ def sanitize_coupons(coupons: Any) -> list[str]:
     return [str(coupon_code) for coupon_code in coupons if coupon_code]
 
 
+def vary_accept(response: Response) -> Response:
+    """Vary request on the Accept header."""
+    response.vary.add('Accept')
+    return response
+
+
 def request_wants_json() -> bool:
     """Request wants a JSON response."""
+    after_this_request(vary_accept)
     return request.accept_mimetypes.best == 'application/json'
 
 
@@ -78,13 +86,13 @@ def basepath(url: str) -> str:
     :param url: A valid URL unicode string. Eg: https://hasgeek.com
     """
     parsed_url = urlparse(url)
-    if not (parsed_url.scheme or parsed_url.netloc):
-        msg = "Invalid URL"
-        raise ValueError(msg)
+    if not parsed_url.scheme or not parsed_url.netloc:
+        raise ValueError(f"URL is missing scheme or netloc: {url}")
     return f'{parsed_url.scheme}://{parsed_url.netloc}'
 
 
-def cors(f: Callable[_P, BaseResponse]) -> Callable[_P, BaseResponse]:
+# TODO: Replace this with Coaster's `@cors` decorator
+def cors(f: Callable[_P, ResponseReturnValue]) -> Callable[_P, BaseResponse]:
     """
     Add CORS headers to the decorated view function.
 
@@ -124,7 +132,7 @@ def cors(f: Callable[_P, BaseResponse]) -> Callable[_P, BaseResponse]:
             # pre-flight request, check CORS headers directly
             resp: BaseResponse = app.make_default_options_response()
         else:
-            resp = f(*args, **kwargs)
+            resp = make_response(f(*args, **kwargs))
         return add_headers(resp, origin)
 
     return wrapper
@@ -173,7 +181,7 @@ def api_error(
     :param status_code: HTTP status code to be used for the response
     """
     return make_response(
-        jsonify(status='error', errors=errors, message=message), status_code
+        {'status': 'error', 'errors': errors, 'message': message}, status_code
     )
 
 
@@ -185,4 +193,4 @@ def api_success(result: Any, doc: str, status_code: int = 200) -> Response:
     :param doc: Documentation to be included as part of the JSON response
     :param status_code: HTTP status code to be used for the response
     """
-    return make_response(jsonify(status='ok', doc=doc, result=result), status_code)
+    return make_response({'status': 'ok', 'doc': doc, 'result': result}, status_code)
