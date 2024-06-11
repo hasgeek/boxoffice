@@ -1,24 +1,12 @@
 {%raw%}
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
-<div class="payment-progress-wrapper payment-stages-bg" id="payment-stages">
-  <ul class="progress-indicator">
-    {{#tabs:tab}}
-      <li class="indicator {{#if id === activeTab}}active{{/if}} {{#if complete}}completed{{/if}}">
-        <span class="bubble"></span>{{ label }}<br>
-      </li>
-    {{/}}
-  </ul>
-</div><!--eof payment-box-progress-wrapper -->
 <div class="payment-stages-wrapper">
   {{#tabs:tab}}
     {{#if id === 'boxoffice-selectItems' && id === activeTab}}
       <div id='{{id}}' class="boxoffice-section ticket-selection-content boxoffice-clearfix" intro-outro='fly:{"x":0,"y":"0"}'>
         {{#section.categories}}
-          <div id="{{name}}">
-            <div>
-              <h1 class="category-heading">{{title}}</h1>
-            </div>
+          <div id="{{name}}" class="tickets">
             <div>
             {{#tickets}}{{# { ticket: . } }}
               {{#order.line_items}} {{# { line_item: . } }}
@@ -26,7 +14,7 @@
                   <div class="ticket-booking boxoffice-clearfix {{#line_item.quantity}}ticket-selected{{/}}" id="{{line_item.ticket_name}}">
                     <div class="ticket-details">
                       <p class="ticket-title">{{ line_item.ticket_title }}</p>
-                      <div class="ticket-description">{{{ line_item.ticket_description_text }}}</div>
+                      <div class="ticket-description">{{{ line_item.ticket_description }}}</div>
                     </div>
                     <div class="ticket-price-qty">
                       {{#if line_item.is_available}}
@@ -35,44 +23,14 @@
                         {{elseif line_item.quantity_available < 5}}
                           <p class="few-ticket"><span>Only a few tickets left</span></p>
                         {{/if}}
-                        <div class="price-details-wrapper">
-                          <div class="ticket-price-wrapper">
-                            {{#if line_item.unit_final_amount >= 0 && line_item.quantity <= 1}}
-                              <p class="discount-price ticket-price">&#8377;{{ line_item.unit_final_amount }}</p>
-                            {{/if}}
-                            <p class="ticket-price {{#if line_item.unit_final_amount >= 0 && line_item.quantity <= 1}}strike{{/if}}">&#8377;{{ line_item.base_price }}</p>
-                          </div>
-                          <span class="multiplier">&#215;</span>
-                          <div class="ticket-qty-wrapper">
-                            <button class="decrement" on-click="updateOrder(event, line_item.ticket_name, line_item.quantity_available, false)">&#8722;</button>
-                            <input type="number" class="ticket-qty" name="quantity" min="0" max="{{ line_item.quantity_available }}" value="{{ line_item.quantity }}" disabled>
-                            <button class="increment" on-click="updateOrder(event, line_item.ticket_name, line_item.quantity_available, true)">&#43;</button>
-                          </div>
-                        </div>
-                        <div class="item-amount">
-                          {{#line_item.discounted_amount && !isLoadingFail}}
-                            <p intro-outro='fly:{"x":10,"y":"0"}' class="discount-amount">Discount <span>&#8377;{{line_item.discounted_amount}}</span></p>
-                          {{/}}
-                          {{#line_item.discounted_amount || line_item.final_amount && !isLoadingFail}}
-                            <p intro-outro='fly:{"x":10,"y":"0"}' class="subtotal">Subtotal <span>&#8377;{{line_item.final_amount}}</span></p>
-                          {{/}}
-                        </div>
-                        {{#if line_item.quantity_available > 0}}
-                          <p class="valid-upto">
-                            {{#if line_item.has_higher_price}}
-                              <faicon icon='long-arrow-up' baseline=true></faicon>
-                              Price goes up on {{line_item.price_valid_upto}}
-                            {{else}}
-                              Sale at this price closes on {{line_item.price_valid_upto}}
-                            {{/if}}
-                          </p>
-                        {{/if}}
                         {{#line_item.discount_policies}}
-                          {{#if is_automatic || activated || pre_applied }}
-                            <p class="discount {{#activated}}applied{{/}}">
-                              {{ title }} <faicon icon='check' baseline=true css_class='applied {{#if !activated && !isLoadingFail}}boxoffice-hidden{{/if}}'></faicon>
-                            </p>
-                          {{/if}}
+                          <div class="discount-box">
+                            {{#if is_automatic || activated || pre_applied }}
+                              <p class="discount {{#activated}}applied{{/}}">
+                                <faicon icon='gift-solid' baseline=true css_class='applied {{#if !activated && !isLoadingFail}}boxoffice-hidden{{/if}}'></faicon> {{ title }}  {{#if percentage}}<span>- {{ percentage }}% off</span>{{/if}}
+                              </p>
+                            {{/if}}
+                          </div>
                         {{/line_item.discount_policies}}
                       {{else}}
                         <div class="sold-out-wrapper" intro='fly:{"x":100,"y":"0"}'>
@@ -87,25 +45,25 @@
             </div>
           </div>
         {{/section.categories}}
-        <div class="ticket-total {{#loadingPrice}}grey-out{{/}} boxoffice-clearfix">
-          {{#loadingPrice && !isLoadingFail}}
-            <div class="loader"><faicon icon='spinner' icon_size='headline', baseline=true></faicon></div>
-          {{/}}
-          <p class="price">Total <span class="final-amount">&#8377;{{ order.final_amount }}</span></p>
-        </div>
-        {{#order.readyToCheckout}}
-          <div class="proceed-button-wrapper" intro='fly:{"x":200,"y":"0"}'>
-            <button id="stage1-proceed" class="boxoffice-button boxoffice-button-action" on-click="checkout(event)">Continue</button>
-          </div>
-        {{/order.readyToCheckout}}
-        {{#errorMsg }}
-          <p class="stage-error-msg">{{ errorMsg }}</p>
-        {{/}}
         {{#refund_policy}}
           <div class="policy">
             <p class="policy-title">Cancellation and transfer</p>
             {{{refund_policy}}}
           </div>
+        {{/}}
+        <div class="proceed-button-wrapper" intro='fly:{"x":200,"y":"0"}'>
+          <div class="ticket-total {{#loadingPrice}}grey-out{{/}} boxoffice-clearfix">
+            {{#loadingPrice && !isLoadingFail}}
+              <div class="loader"><faicon icon='spinner' icon_size='headline', baseline=true></faicon></div>
+            {{/}}
+            <p class="price">Total: <span class="final-amount">&#8377;{{ order.final_amount }}</span></p>
+          </div>
+          {{#order.readyToCheckout}}
+            <button id="stage1-proceed" class="boxoffice-button boxoffice-button-action" on-click="confirmOrder(event)" {{#loadingOrder}}disabled{{/}}>buy now {{#loadingOrder}}<faicon icon='spinner' icon_size='caption', baseline=true intro='fly:{"x":0,"y":"0"}'></faicon>{{/}}</button>
+          {{/order.readyToCheckout}}
+        </div>
+        {{#errorMsg }}
+          <p class="stage-error-msg">{{ errorMsg }}</p>
         {{/}}
       </div>
     {{elseif id === 'boxoffice-payment' && id === activeTab}}
@@ -135,7 +93,7 @@
             {{#order.line_items}} {{# { line_item: . } }}
               {{#if line_item.quantity > 0 }}
                 <div class="item-summary">
-                  <p class="booked-ticket-title"><faicon icon='ticket-alt' icon_size='headline' baseline=false css_class='ticket-icon'></faicon>{{ line_item.ticket_title }}</p>
+                  <p class="booked-ticket-title"><faicon icon='ticket-alt' icon_size='title' baseline=false css_class='ticket-icon'></faicon>{{ line_item.ticket_title }}</p>
                   <p class="booked-ticket-qty">Qty {{ line_item.quantity }} &times; &#8377;{{line_item.base_price}}</p>
                   {{#line_item.discounted_amount}}
                     <p class="booked-ticket-qty">Discount &#8377;{{line_item.discounted_amount}}</p>
@@ -149,8 +107,8 @@
                 </div>
               {{/if}}
             {{/}}{{/order.line_items}}
-            <div class="proceed-button-wrapper">
-              <p class="price">Amount Payable <span class="final-amount"><b>&#8377;{{ order.final_amount }}</b></span></p>
+            <div class="booking-summary">
+              <p class="booking-price">Amount Payable <span class="booking-amount"><b>&#8377;{{ order.final_amount }}</b></span></p>
             </div>
           </div>
           <div class="proceed-button-wrapper">
@@ -166,7 +124,9 @@
       </div>
     {{elseif id === 'boxoffice-invoice' && id === activeTab}}
       <div id='{{id}}' class="boxoffice-section clearfix" intro='fly:{"x":600,"y":"0"}'>
-        <p class="confirmation-icon"><faicon icon='check-circle-solid' icon_size='display1', baseline=true, css_class='confirmation-icon'></faicon></p>
+        <div class="confirmation-icon">
+          <faicon icon='check-circle-solid' icon_size='display1', baseline=true, css_class='confirmation-icon'></faicon>
+        </div>
         <p class="confirmation-header">Thank you for your order!</p>
         <div class="confirmation-msg">
           <p>We’ve mailed you the <a href="{{ buyer.cashReceiptURL }}" target="_blank">cash receipt</a>.</p>
@@ -261,8 +221,10 @@
       </div>
     {{elseif id === 'boxoffice-attendee-details' && id === activeTab}}
       <div id='{{id}}' class="boxoffice-section clearfix" intro='fly:{"x":600,"y":"0"}'>
-        <p class="confirmation-icon"><faicon icon='id-card' icon_size='display1', baseline=true></faicon></p>
-        <p class="confirmation-header">Almost done!</p>
+        <div class="confirmation-img">
+          <img src="https://images.hasgeek.com/embed/file/c358d0930d00425da8a8f159e57b0138" />
+        </div>
+        <p class="confirmation-header">Almost there!</p>
         <div class="confirmation-msg">
           {{#if invoice.isFilled}}<p>Thank you for submitting the details, we will mail you the invoice shortly. {{/if}}
           <p>To complete your registration, we need a few more details.</p>
@@ -270,6 +232,12 @@
         <div class="receipt-btn-wrapper">
           <a href="{{ buyer.attendeeAssignmentURL }}" target="_blank" class="boxoffice-button boxoffice-button-action" on-click="fire('eventAnalytics','fill attendee details', 'attendee details')">Fill attendee details</a>
         </div>
+        {{#refund_policy}}
+          <div class="policy">
+            <p class="policy-title">Cancellation and transfer</p>
+            {{{refund_policy}}}
+          </div>
+        {{/}}
       </div>
     {{/if}}
   {{/}}
@@ -374,88 +342,13 @@
   .boxoffice-hidden {
     display: none !important;
   }
-
-  .payment-progress-wrapper {
-    background-color: #fff;
-    padding: 16px;
-  }
-  .progress-indicator {
-      display: -webkit-box;
-      display: -moz-box;
-      display: -ms-flexbox;
-      display: -webkit-flex;
-      display: flex;
-      margin: 0;
-      padding: 0;
-      font-size: 0.8em;
-      text-transform: uppercase
-  }
-  .progress-indicator>li {
-      -ms-flex: 1;
-      -webkit-flex: 1;
-      -moz-flex: 1;
-      flex: 1;
-      list-style: none;
-      text-align: center;
-      width: auto;
-      padding: 0;
-      margin: 0;
-      position: relative;
-      text-overflow: ellipsis;
-      color: #1f2d3d;
-      display: block
-  }
-  .progress-indicator>li.completed,
-  .progress-indicator>li.completed .bubble {
-      color: #0f72ed
-  }
-  .progress-indicator>li .bubble {
-      border-radius: 50%;
-      width: 20px;
-      height: 20px;
-      background-color: #f1f1f1;
-      display: block;
-      margin: 0 auto 4px;
-  }
-  .progress-indicator>li .bubble:after,
-  .progress-indicator>li .bubble:before {
-      display: block;
-      position: absolute;
-      top: 9px;
-      width: 100%;
-      height: 3px;
-      content: '';
-      background-color: #f1f1f1
-  }
-  .progress-indicator>li.completed .bubble,
-  .progress-indicator>li.completed .bubble:after,
-  .progress-indicator>li.completed .bubble:before {
-      background-color: #0f72ed;
-  }
-  .progress-indicator>li .bubble:before {
-      left: 0
-  }
-  .progress-indicator>li .bubble:after {
-      right: 0
-  }
-  .progress-indicator>li.active,
-  .progress-indicator>li.active .bubble {
-      color: #0f72ed
-  }
-  .progress-indicator>li.active .bubble,
-  .progress-indicator>li.active .bubble:after,
-  .progress-indicator>li.active .bubble:before {
-      background-color: #0f72ed;
-  }
-  .payment-stages-wrapper {
-    overflow: hidden;
-    position: relative;
-  }
   .boxoffice-section {
-    padding: 0 16px 16px;
+    width: 100%;
+    padding: 0 24px 24px;
     border-top-width: 0;
     min-height: 450px;
-    background: #f9f9f9;
+    margin-top: -12px;
+    box-sizing: border-box;
   }
   .category-heading {
     background-color: #f1f1f1;
@@ -486,10 +379,6 @@
   .ticket-booking {
     padding: 8px 16px;
     margin: 0 -16px;
-    border-bottom: 1px solid rgba(77, 87, 99, 0.1);
-  }
-  .ticket-selected {
-    background-color: rgba(221, 163, 42, 0.09);
   }
   .ticket-details {
     width: 100%;
@@ -498,18 +387,19 @@
     width: 100%;
   }
   .ticket-title {
-    font-size: 20px
+    font-size: 24px;
+    padding-bottom: 16px;
     margin: 8px 0;
     font-weight: bold;
+    border-bottom: 1px solid rgba(77, 87, 99, 0.1);
   }
   .discount {
-    margin: 4px 0;
-    font-style: italic;
-    color: #e42c42;
-    font-size: 14px;
-  }
-  .applied {
-    color: #008000;
+    color: #21B685;
+    padding: 16px;
+    background: rgba(225, 253, 228, 0.75);
+    clear: both;
+    border-radius: 8px;
+    overflow-x: hidden;
   }
   .valid-upto {
     font-style: italic;
@@ -523,8 +413,8 @@
   }
   .ticket-description ul {
     list-style-type: disc;
-    list-style-position: inside;
-    padding-left: 4px;
+    list-style-position: outside;
+    padding-left: 1em;
   }
   .ticket-description .fa {
     padding-right: 4px;
@@ -532,7 +422,7 @@
   .few-ticket {
     margin: 0 0 4px;
     width: 200px;
-    font-size: 12px;
+    font-size: 16px;
     font-style: italic;
   }
   .available-count {
@@ -619,9 +509,9 @@
   }
   .sold-out {
     color: #fff;
-    background: #e42c42;
+    background: #f04e45
     width: 100px;
-    border-radius: 0 10px 0 10px;
+    border-radius: 8px;
     padding: 4px;
     margin: 0;
     text-align: center;
@@ -640,10 +530,8 @@
     clear: both;
     width: 100%;
     max-width: 270px;
-    margin: 16px 0;
-    padding: 16px;
-    border-radius: 8px;
-    background: #fff;
+    margin: 0;
+    padding: 0;
     position: relative;
   }
   .grey-out {
@@ -651,7 +539,9 @@
   }
   .policy {
     clear: both;
-    padding-top: 10px;
+    padding: 16px;
+    background: #f1f1f1;
+    border-radius: 16px;
   }
   .policy-title {
     font-size: 18px !important;
@@ -810,7 +700,7 @@
     padding: 4px 0;
   }
   .booked-ticket-title {
-    font-size: 20px;
+    font-size: 16px;
   }
   .booked-ticket-title .ticket-icon {
     padding-right: 8px;
@@ -824,16 +714,26 @@
   .discount-applied {
     color: green;
   }
-  .final-amount {
-    float: right;
-  }
   .price {
     margin: 0;
-    font-size: 24px;
+    font-size: 28px;
+    font-weight: 600;
   }
   .proceed-button-wrapper {
-    clear: both;
-    margin: 16px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 32px;
+  }
+  .booking-summary {
+     margin: 16px 0;
+  }
+  .booking-price {
+    margin: 0;
+    font-size: 20px;
+  }
+  .booking-amount {
+    float: right;
   }
   .left-btn-margin {
     margin-right: 8px;
@@ -844,8 +744,16 @@
     text-align: center;
     margin: 0 auto;
   }
+  .confirmation-img {
+    width: 160px;
+    margin: 24px auto;
+  }
+  .confirmation-img img {
+    width: 100%;
+  }
   .confirmation-header {
     font-size: 24px;
+    font-weight: 500;
     color: green;
     text-align: center;
     margin: 8px 0 0;
@@ -866,6 +774,6 @@
   }
   .receipt-btn-wrapper {
     text-align: center;
-    margin: 8px;
+    margin: 8px 8px 24px;
   }
 </style>

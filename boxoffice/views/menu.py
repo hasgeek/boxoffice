@@ -91,6 +91,7 @@ def jsonify_ticket(ticket: Ticket) -> TicketDict | None:
                 'id': policy.id,
                 'title': policy.title,
                 'is_automatic': policy.is_automatic,
+                'percentage': policy.percentage,
             }
             for policy in ticket.discount_policies
         ],
@@ -138,15 +139,21 @@ def boxofficejs() -> Response:
 @load_models((Menu, {'id': 'menu_id'}, 'menu'))
 def view_menu(menu: Menu) -> Response:
     categories_json = []
+    html = render_template('boxoffice.html.jinja2')
+    subscription_purchase = False
     for category in menu.categories:
         category_json = jsonify_category(category)
         if category_json:
             categories_json.append(category_json)
+            if len(menu.categories) == 1 and len(category_json['tickets']) == 1:
+                html = render_template('single_purchase.html.jinja2')
+                subscription_purchase = True
     return jsonify(
-        html=render_template('boxoffice.html.jinja2'),
+        html=html,
         categories=categories_json,
         refund_policy=menu.organization.details.get('refund_policy', ''),
         currency=CurrencySymbol.INR,
+        subscription_purchase=subscription_purchase,
     )
 
 
