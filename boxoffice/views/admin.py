@@ -1,24 +1,28 @@
-from collections.abc import Mapping
 from datetime import date
-from typing import Any
 
 import pytz
-from flask import Response, g, jsonify, request
+from flask import Response, render_template, request
+from flask.typing import ResponseReturnValue
 
 from baseframe import _
+from coaster.auth import current_auth
 from coaster.utils import getbool
-from coaster.views import ReturnRenderWith, load_models, render_with
+from coaster.views import load_models
 
 from .. import app, lastuser
 from ..models import Menu, Organization
 from ..models.line_item import calculate_weekly_sales
 from ..models.payment import calculate_weekly_refunds
-from .utils import api_error, api_success, check_api_access
+from .utils import api_error, api_success, check_api_access, request_wants_json
 
 
-def jsonify_dashboard(data: Mapping[str, Any]) -> Response:
-    return jsonify(
-        orgs=[
+@app.route('/admin/')
+@lastuser.requires_login
+def index() -> ResponseReturnValue:
+    if not request_wants_json():
+        return render_template('index.html.jinja2')
+    return {
+        'orgs': [
             {
                 'id': org.id,
                 'name': org.name,
@@ -27,37 +31,27 @@ def jsonify_dashboard(data: Mapping[str, Any]) -> Response:
                 'contact_email': org.contact_email,
                 'details': org.details,
             }
-            for org in data['user'].orgs
+            for org in current_auth.user.orgs
         ]
-    )
-
-
-@app.route('/admin/')
-@lastuser.requires_login
-@render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_dashboard})
-def index() -> ReturnRenderWith:
-    return {'user': g.user}
-
-
-def jsonify_org(data: Mapping[str, Any]) -> Response:
-    menu_list = (
-        Menu.query.filter(Menu.organization_id == data['org'].id)
-        .order_by(Menu.created_at.desc())
-        .all()
-    )
-    return jsonify(
-        id=data['org'].id,
-        account_title=data['org'].title,
-        menus=[dict(menu.current_access()) for menu in menu_list],
-    )
+    }
 
 
 @app.route('/admin/o/<org>')
 @lastuser.requires_login
-@render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_org})
 @load_models((Organization, {'name': 'org'}, 'organization'), permission='org_admin')
-def org(organization: Organization) -> ReturnRenderWith:
-    return {'org': organization, 'title': organization.title}
+def org(organization: Organization) -> ResponseReturnValue:
+    if not request_wants_json():
+        return render_template('index.html.jinja2', title=organization.title)
+    menu_list = (
+        Menu.query.filter(Menu.organization_id == organization.id)
+        .order_by(Menu.created_at.desc())
+        .all()
+    )
+    return {
+        'id': organization.id,
+        'account_title': organization.title,
+        'menus': [dict(menu.current_access()) for menu in menu_list],
+    }
 
 
 @app.route('/api/1/organization/<org>/weekly_revenue', methods=['GET', 'OPTIONS'])

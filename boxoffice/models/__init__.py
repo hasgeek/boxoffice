@@ -17,7 +17,7 @@ from coaster.sqlalchemy import (
     BaseScopedNameMixin,
     DynamicMapped,
     IdMixin,
-    MarkdownColumn,
+    markdown_column,
     ModelBase,
     Query,
     TimestampMixin,

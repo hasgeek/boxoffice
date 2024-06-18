@@ -11,7 +11,6 @@ from werkzeug.test import TestResponse
 from coaster.utils import buid
 
 from boxoffice import app
-from boxoffice.forms import OrderRefundForm
 from boxoffice.models import (
     CurrencyEnum,
     DiscountCoupon,
@@ -27,10 +26,7 @@ from boxoffice.models import (
 )
 from boxoffice.models.payment import TransactionTypeEnum
 from boxoffice.views.custom_exceptions import PaymentGatewayError
-from boxoffice.views.order import (
-    process_line_item_cancellation,
-    process_partial_refund_for_order,
-)
+from boxoffice.views.order import partial_refund_order, process_line_item_cancellation
 
 
 class MockResponse:
@@ -385,7 +381,7 @@ def test_free_order(client) -> None:
 
 
 @pytest.mark.usefixtures('all_data')
-def test_cancel_line_item_in_order(db_session, client, post_env) -> None:
+def test_cancel_line_item_in_order(db_session, client, csrf_token) -> None:
     original_quantity = 2
     order_item = Ticket.query.filter_by(name='t-shirt').one()
     current_price = order_item.current_price()
@@ -439,17 +435,15 @@ def test_cancel_line_item_in_order(db_session, client, post_env) -> None:
         'internal_note': 'internal reference',
         'refund_description': 'receipt description',
         'note_to_user': 'price has been halved',
-    }
-    refund_form = OrderRefundForm(data=formdata, parent=order, meta={'csrf': False})
-    partial_refund_args = {
-        'order': order,
-        'form': refund_form,
-        'request_method': 'POST',
+        'csrf_token': csrf_token,
     }
     with patch('boxoffice.extapi.razorpay.refund_payment') as mock:
         mock.return_value = MockResponse(response_data={'id': buid()})
-        with app.request_context(post_env):
-            process_partial_refund_for_order(partial_refund_args)
+        with app.test_request_context(
+            method='POST', headers={'Accept': 'application/json'}, data=formdata
+        ):
+            partial_refund_order.__wrapped__.__wrapped__(order)
+
     assert pre_refund_transactions_count + 1 == order.refund_transactions.count()
 
     first_line_item = order.line_items[0]
@@ -470,7 +464,7 @@ def test_cancel_line_item_in_order(db_session, client, post_env) -> None:
 
 
 @pytest.mark.usefixtures('all_data')
-def test_cancel_line_item_in_bulk_order(db_session, client, post_env) -> None:
+def test_cancel_line_item_in_bulk_order(db_session, client, csrf_token) -> None:
     original_quantity = 5
     discounted_item = Ticket.query.filter_by(name='t-shirt').one()
     current_price = discounted_item.current_price()
@@ -585,17 +579,14 @@ def test_cancel_line_item_in_bulk_order(db_session, client, post_env) -> None:
         'internal_note': 'internal reference',
         'refund_description': 'receipt description',
         'note_to_user': 'price has been halved',
-    }
-    refund_form = OrderRefundForm(data=formdata, parent=order, meta={'csrf': False})
-    partial_refund_args = {
-        'order': order,
-        'form': refund_form,
-        'request_method': 'POST',
+        'csrf_token': csrf_token,
     }
     with patch('boxoffice.extapi.razorpay.refund_payment') as mock:
         mock.return_value = MockResponse(response_data=refund_dict)
-        with app.request_context(post_env):
-            process_partial_refund_for_order(partial_refund_args)
+        with app.test_request_context(
+            method='POST', headers={'Accept': 'application/json'}, data=formdata
+        ):
+            partial_refund_order.__wrapped__.__wrapped__(order)
 
     third_line_item = order.confirmed_line_items.first()
     assert third_line_item is not None
@@ -616,7 +607,7 @@ def test_cancel_line_item_in_bulk_order(db_session, client, post_env) -> None:
 
 
 @pytest.mark.usefixtures('all_data')
-def test_partial_refund_in_order(db_session, client, post_env) -> None:
+def test_partial_refund_in_order(db_session, client, csrf_token) -> None:
     original_quantity = 5
     discounted_item = Ticket.query.filter_by(name='t-shirt').one()
     current_price = discounted_item.current_price()
@@ -672,17 +663,14 @@ def test_partial_refund_in_order(db_session, client, post_env) -> None:
         'internal_note': 'internal reference',
         'note_to_user': 'you get a refund!',
         'refund_description': 'test refund',
-    }
-    refund_form = OrderRefundForm(data=formdata, parent=order, meta={'csrf': False})
-    partial_refund_args = {
-        'order': order,
-        'form': refund_form,
-        'request_method': 'POST',
+        'csrf_token': csrf_token,
     }
     with patch('boxoffice.extapi.razorpay.refund_payment') as mock:
         mock.return_value = MockResponse(response_data={'id': buid()})
-        with app.request_context(post_env):
-            process_partial_refund_for_order(partial_refund_args)
+        with app.test_request_context(
+            method='POST', headers={'Accept': 'application/json'}, data=formdata
+        ):
+            partial_refund_order.__wrapped__.__wrapped__(order)
 
     refund_transactions = order.transactions.filter_by(
         transaction_type=TransactionTypeEnum.REFUND
@@ -694,17 +682,11 @@ def test_partial_refund_in_order(db_session, client, post_env) -> None:
     assert refund_transactions[0].refund_description == formdata['refund_description']
 
     invalid_refund_amount = 100000000
-    formdata = {
-        'amount': invalid_refund_amount,
-    }
-    refund_form = OrderRefundForm(data=formdata, parent=order, meta={'csrf': False})
-    partial_refund_args = {
-        'order': order,
-        'form': refund_form,
-        'request_method': 'POST',
-    }
-    with app.request_context(post_env):
-        resp = process_partial_refund_for_order(partial_refund_args)
+    formdata = {'amount': invalid_refund_amount, 'csrf_token': csrf_token}
+    with app.test_request_context(
+        method='POST', headers={'Accept': 'application/json'}, data=formdata
+    ):
+        resp = partial_refund_order.__wrapped__.__wrapped__(order)
 
     assert resp.status_code == 403
     refund_transactions = order.transactions.filter_by(
@@ -719,16 +701,10 @@ def test_partial_refund_in_order(db_session, client, post_env) -> None:
     assert isinstance(order, Order)
     invalid_refund_amount = 100000000
 
-    formdata = {
-        'amount': invalid_refund_amount,
-    }
-    refund_form = OrderRefundForm(data=formdata, parent=order, meta={'csrf': False})
-    partial_refund_args = {
-        'order': order,
-        'form': refund_form,
-        'request_method': 'POST',
-    }
-    with app.request_context(post_env):
-        refund_resp = process_partial_refund_for_order(partial_refund_args)
+    formdata = {'amount': invalid_refund_amount, 'csrf_token': csrf_token}
+    with app.test_request_context(
+        method='POST', headers={'Accept': 'application/json'}, data=formdata
+    ):
+        refund_resp = partial_refund_order.__wrapped__.__wrapped__(order)
 
     assert refund_resp.status_code == 403

@@ -11,6 +11,7 @@ from uuid import UUID
 import IPython
 from flask.cli import load_dotenv
 from flask.typing import ResponseReturnValue
+from flask_wtf.csrf import generate_csrf
 from isoweek import Week
 
 load_dotenv()
@@ -39,7 +40,7 @@ from boxoffice.models import (
     sa,
 )
 from boxoffice.views.custom_exceptions import PaymentGatewayError
-from boxoffice.views.order import process_partial_refund_for_order
+from boxoffice.views.order import partial_refund_order
 
 logging.basicConfig()
 logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
@@ -252,19 +253,18 @@ def partial_refund(
 
     Params are order_id, amount, internal_note, refund_description, note_to_user.
     """
-    form_dict = {
-        'amount': amount,
-        'internal_note': internal_note,
-        'refund_description': refund_description,
-        'note_to_user': note_to_user,
-    }
-    order = Order.query.get(order_id)
-    if order is None:
-        msg = "Unknown order"
-        raise ValueError(msg)
-
     with app.test_request_context():
-        process_partial_refund_for_order({'order': order, 'form': form_dict})
+        form_dict = {
+            'amount': amount,
+            'internal_note': internal_note,
+            'refund_description': refund_description,
+            'note_to_user': note_to_user,
+            'csrf_token': generate_csrf(),
+        }
+    with app.test_request_context(
+        method='POST', data=form_dict, headers={'Accept': 'application/json'}
+    ):
+        partial_refund_order.__wrapped__(order=order_id)
 
 
 def finalize_invoices(

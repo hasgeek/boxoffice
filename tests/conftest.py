@@ -3,15 +3,14 @@ from collections.abc import Generator
 from datetime import date
 from types import SimpleNamespace
 from typing import Self
-from wsgiref.types import WSGIEnvironment
 
 import pytest
 import sqlalchemy as sa
 from dateutil.relativedelta import relativedelta
 from flask.testing import FlaskClient
 from flask_sqlalchemy import SQLAlchemy
+from flask_wtf.csrf import generate_csrf
 from sqlalchemy.orm import close_all_sessions
-from werkzeug.test import EnvironBuilder
 
 from coaster.utils import utcnow
 
@@ -54,13 +53,13 @@ def db_connection(database: SQLAlchemy) -> Generator[sa.Connection, None, None]:
 class RemoveIsRollback:
     """Change session.remove() to session.rollback()."""
 
-    def __init__(self, session, rollback_provider) -> None:
+    def __init__(self, session) -> None:
         self.session = session
         self.original_remove = session.remove
-        self.rollback_provider = rollback_provider
 
     def __enter__(self) -> Self:
         """Replace ``session.remove`` during the `with` context."""
+        self.session.remove = self.session.rollback
         return self
 
     def __exit__(self, exc_type, exc_value, traceback) -> None:
@@ -74,7 +73,7 @@ def db_session(
     db_connection: sa.Connection,  # noqa: ARG001
 ) -> Generator[sa.orm.scoped_session, None, None]:
     """Empty the database after each use of the fixture."""
-    with RemoveIsRollback(database.session, lambda: database.session.rollback):
+    with RemoveIsRollback(database.session):
         yield database.session
     close_all_sessions()
 
@@ -112,9 +111,10 @@ def client(request: pytest.FixtureRequest) -> Generator[FlaskClient, None, None]
 
 
 @pytest.fixture
-def post_env() -> WSGIEnvironment:
-    builder = EnvironBuilder(method='POST')
-    return builder.get_environ()
+def csrf_token() -> str:
+    """Supply a CSRF token for use in form submissions."""
+    with app.test_request_context():
+        return generate_csrf()
 
 
 @pytest.fixture

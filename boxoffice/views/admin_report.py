@@ -1,49 +1,44 @@
-from collections.abc import Mapping
 from datetime import date, datetime
 from typing import Any
 
 from babel.dates import format_datetime
-from flask import Response, g, jsonify, request, url_for
+from flask import Response, render_template, request, url_for
+from flask.typing import ResponseReturnValue
 from flask_babel import get_locale
 
 from baseframe import localize_timezone
-from coaster.views import ReturnRenderWith, load_models, render_with
+from coaster.auth import current_auth
+from coaster.views import load_models
 
 from .. import app, lastuser
 from ..extapi.razorpay import get_settled_transactions
 from ..models import InvoiceStatus, LineItem, Menu, Order, Organization
-from .utils import api_error, check_api_access, csv_response
-
-
-def jsonify_report(data_dict: Mapping[str, Any]) -> Response:
-    return jsonify(
-        account_name=data_dict['menu'].organization.name,
-        account_title=data_dict['menu'].organization.title,
-        menu_name=data_dict['menu'].name,
-        menu_title=data_dict['menu'].title,
-    )
+from .utils import api_error, check_api_access, csv_response, request_wants_json
 
 
 @app.route('/admin/menu/<menu_id>/reports')
 @lastuser.requires_login
-@render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_report})
 @load_models((Menu, {'id': 'menu_id'}, 'menu'), permission='org_admin')
-def admin_report(menu: Menu) -> ReturnRenderWith:
-    return {'menu': menu}
-
-
-def jsonify_org_report(data_dict: Mapping[str, Any]) -> Response:
-    return jsonify(account_title=data_dict['organization'].title)
+def admin_report(menu: Menu) -> ResponseReturnValue:
+    if not request_wants_json():
+        return render_template('index.html.jinja2')
+    return {
+        'account_name': menu.organization.name,
+        'account_title': menu.organization.title,
+        'menu_name': menu.name,
+        'menu_title': menu.title,
+    }
 
 
 @app.route('/admin/o/<org_name>/reports')
 @lastuser.requires_login
-@render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_org_report})
 @load_models(
     (Organization, {'name': 'org_name'}, 'organization'), permission='org_admin'
 )
-def admin_org_report(organization: Organization) -> ReturnRenderWith:
-    return {'organization': organization}
+def admin_org_report(organization: Organization) -> ResponseReturnValue:
+    if not request_wants_json():
+        return render_template('index.html.jinja2')
+    return {'account_title': organization.title}
 
 
 @app.route('/admin/menu/<menu_id>/tickets.csv')
@@ -422,6 +417,6 @@ def settled_transactions(organization: Organization) -> Response:  # noqa: ARG00
             message='Invalid year/month', status_code=403, errors=['invalid_date']
         )
     headers, rows = get_settled_transactions(
-        {'year': year, 'month': month}, g.user.timezone
+        {'year': year, 'month': month}, current_auth.user.timezone
     )
     return csv_response(headers, rows, row_type='dict')

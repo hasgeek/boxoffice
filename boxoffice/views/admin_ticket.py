@@ -1,17 +1,23 @@
-from collections.abc import Mapping
 from typing import Any, TypedDict
 
-from flask import Response, jsonify, request
+from flask import Response, render_template, request
+from flask.typing import ResponseReturnValue
 
 from baseframe import _
 from baseframe.forms import render_form
 from coaster.utils import utcnow
-from coaster.views import ReturnRenderWith, load_models, render_with, requestargs
+from coaster.views import load_models, requestargs
 
 from .. import app, lastuser
 from ..forms import PriceForm, TicketForm
 from ..models import Menu, Organization, Price, Ticket, db, sa
-from .utils import api_error, api_success, json_date_format, xhr_only
+from .utils import (
+    api_error,
+    api_success,
+    json_date_format,
+    request_wants_json,
+    xhr_only,
+)
 
 
 @app.route('/admin/o/<org>/tickets')
@@ -56,6 +62,7 @@ def tickets(organization: Organization, search: str | None = None) -> Response:
     return api_error(message=_("Missing search query"), status_code=400)
 
 
+# TODO: Use TypedDict
 def jsonify_price(price: Price) -> dict[str, Any]:
     price_details = dict(price.current_access())
     price_details['tense'] = price.tense()
@@ -91,8 +98,12 @@ def format_ticket_details(ticket: Ticket) -> dict[str, Any]:
     return ticket_details
 
 
-def jsonify_item(data_dict: Mapping[str, Any]) -> Response:
-    ticket = data_dict['ticket']
+@app.route('/admin/ticket/<ticket_id>', methods=['GET'])
+@lastuser.requires_login
+@load_models((Ticket, {'id': 'ticket_id'}, 'ticket'), permission='org_admin')
+def admin_item(ticket: Ticket) -> ResponseReturnValue:
+    if not request_wants_json():
+        return render_template('index.html.jinja2')
     discount_policies_list = []
     for policy in ticket.discount_policies:
         details = dict(policy.current_access())
@@ -101,41 +112,35 @@ def jsonify_item(data_dict: Mapping[str, Any]) -> Response:
             details['price_details'] = {'amount': dp_price.amount}
         discount_policies_list.append(details)
 
-    return jsonify(
-        account_name=data_dict['ticket'].menu.organization.name,
-        demand_curve=format_demand_curve(ticket),
-        account_title=data_dict['ticket'].menu.organization.title,
-        menu_id=data_dict['ticket'].menu.id,
-        menu_name=data_dict['ticket'].menu.name,
-        menu_title=data_dict['ticket'].menu.title,
-        ticket=format_ticket_details(data_dict['ticket']),
-        prices=[
-            jsonify_price(price) for price in data_dict['ticket'].standard_prices()
-        ],
-        discount_policies=discount_policies_list,
-    )
+    return {
+        'account_name': ticket.menu.organization.name,
+        'demand_curve': format_demand_curve(ticket),
+        'account_title': ticket.menu.organization.title,
+        'menu_id': ticket.menu.id,
+        'menu_name': ticket.menu.name,
+        'menu_title': ticket.menu.title,
+        'ticket': format_ticket_details(ticket),
+        'prices': [jsonify_price(price) for price in ticket.standard_prices()],
+        'discount_policies': discount_policies_list,
+    }
 
 
-@app.route('/admin/ticket/<ticket_id>', methods=['GET'])
+@app.route('/admin/menu/<menu_id>/ticket/new', methods=['GET', 'POST'])
 @lastuser.requires_login
-@render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_item})
-@load_models((Ticket, {'id': 'ticket_id'}, 'ticket'), permission='org_admin')
-def admin_item(ticket: Ticket) -> ReturnRenderWith:
-    return {'ticket': ticket}
-
-
-def jsonify_new_ticket(data_dict: Mapping[str, Any]) -> Response:
-    menu = data_dict['menu']
+@load_models((Menu, {'id': 'menu_id'}, 'menu'), permission='org_admin')
+def admin_new_item(menu: Menu) -> ResponseReturnValue:
+    if not request_wants_json():
+        return render_template('index.html.jinja2')
     ticket_form = TicketForm(parent=menu)
     if request.method == 'GET':
-        return jsonify(
-            form_template=render_form(
+        return {
+            'form_template': render_form(
                 form=ticket_form,
                 title=_("New ticket"),
                 submit=_("Create"),
                 with_chrome=False,
             ).get_data(as_text=True)
-        )
+        }
     if ticket_form.validate_on_submit():
         ticket = Ticket(menu=menu)
         ticket_form.populate_obj(ticket)
@@ -155,26 +160,22 @@ def jsonify_new_ticket(data_dict: Mapping[str, Any]) -> Response:
     )
 
 
-@app.route('/admin/menu/<menu_id>/ticket/new', methods=['GET', 'POST'])
+@app.route('/admin/ticket/<ticket_id>/edit', methods=['GET', 'POST'])
 @lastuser.requires_login
-@render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_new_ticket})
-@load_models((Menu, {'id': 'menu_id'}, 'menu'), permission='org_admin')
-def admin_new_item(menu: Menu) -> ReturnRenderWith:
-    return {'menu': menu}
-
-
-def jsonify_edit_ticket(data_dict: Mapping[str, Any]) -> Response:
-    ticket = data_dict['ticket']
+@load_models((Ticket, {'id': 'ticket_id'}, 'ticket'), permission='org_admin')
+def admin_edit_item(ticket: Ticket) -> ResponseReturnValue:
+    if not request_wants_json():
+        return render_template('index.html.jinja2')
     ticket_form = TicketForm(obj=ticket)
     if request.method == 'GET':
-        return jsonify(
-            form_template=render_form(
+        return {
+            'form_template': render_form(
                 form=ticket_form,
                 title=_("Update ticket"),
                 submit=_("Update"),
                 with_chrome=False,
             ).get_data(as_text=True)
-        )
+        }
     if ticket_form.validate_on_submit():
         ticket_form.populate_obj(ticket)
         db.session.commit()
@@ -190,28 +191,22 @@ def jsonify_edit_ticket(data_dict: Mapping[str, Any]) -> Response:
     )
 
 
-@app.route('/admin/ticket/<ticket_id>/edit', methods=['GET', 'POST'])
+@app.route('/admin/ticket/<ticket_id>/price/new', methods=['GET', 'POST'])
 @lastuser.requires_login
-@render_with(
-    {'text/html': 'index.html.jinja2', 'application/json': jsonify_edit_ticket}
-)
 @load_models((Ticket, {'id': 'ticket_id'}, 'ticket'), permission='org_admin')
-def admin_edit_item(ticket: Ticket) -> ReturnRenderWith:
-    return {'ticket': ticket}
-
-
-def jsonify_new_price(data_dict: Mapping[str, Any]) -> Response:
-    ticket = data_dict['ticket']
+def admin_new_price(ticket: Ticket) -> ResponseReturnValue:
+    if not request_wants_json():
+        return render_template('index.html.jinja2')
     price_form = PriceForm(parent=ticket)
     if request.method == 'GET':
-        return jsonify(
-            form_template=render_form(
+        return {
+            'form_template': render_form(
                 form=price_form,
                 title=_("New price"),
                 submit=_("Save"),
                 with_chrome=False,
             ).get_data(as_text=True)
-        )
+        }
     if price_form.validate_on_submit():
         price = Price(ticket=ticket)
         price_form.populate_obj(price)
@@ -232,26 +227,22 @@ def jsonify_new_price(data_dict: Mapping[str, Any]) -> Response:
     )
 
 
-@app.route('/admin/ticket/<ticket_id>/price/new', methods=['GET', 'POST'])
+@app.route('/admin/ticket/<ticket_id>/price/<price_id>/edit', methods=['GET', 'POST'])
 @lastuser.requires_login
-@render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_new_price})
-@load_models((Ticket, {'id': 'ticket_id'}, 'ticket'), permission='org_admin')
-def admin_new_price(ticket: Ticket) -> ReturnRenderWith:
-    return {'ticket': ticket}
-
-
-def jsonify_edit_price(data_dict: Mapping[str, Any]) -> Response:
-    price = data_dict['price']
+@load_models((Price, {'id': 'price_id'}, 'price'), permission='org_admin')
+def admin_edit_price(price: Price) -> ResponseReturnValue:
+    if not request_wants_json():
+        return render_template('index.html.jinja2')
     price_form = PriceForm(obj=price)
     if request.method == 'GET':
-        return jsonify(
-            form_template=render_form(
+        return {
+            'form_template': render_form(
                 form=price_form,
                 title=_("Update price"),
                 submit=_("Save"),
                 with_chrome=False,
             ).get_data(as_text=True)
-        )
+        }
     if price_form.validate_on_submit():
         price_form.populate_obj(price)
         db.session.commit()
@@ -265,11 +256,3 @@ def jsonify_edit_price(data_dict: Mapping[str, Any]) -> Response:
         status_code=400,
         errors=price_form.errors,
     )
-
-
-@app.route('/admin/ticket/<ticket_id>/price/<price_id>/edit', methods=['GET', 'POST'])
-@lastuser.requires_login
-@render_with({'text/html': 'index.html.jinja2', 'application/json': jsonify_edit_price})
-@load_models((Price, {'id': 'price_id'}, 'price'), permission='org_admin')
-def admin_edit_price(price: Price) -> ReturnRenderWith:
-    return {'price': price}

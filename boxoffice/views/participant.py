@@ -1,10 +1,11 @@
 from typing import TYPE_CHECKING
 
 from flask import abort, request
+from flask.typing import ResponseReturnValue
 from werkzeug.datastructures import ImmutableMultiDict
 
 from baseframe import _
-from coaster.views import ReturnRenderWith, load_models, render_with
+from coaster.views import load_models
 
 from .. import app
 from ..forms import AssigneeForm
@@ -15,9 +16,8 @@ from .utils import xhr_only
 
 @app.route('/participant/<access_token>/assign', methods=['GET', 'OPTIONS', 'POST'])
 @xhr_only
-@render_with(json=True)
 @load_models((Order, {'access_token': 'access_token'}, 'order'))
-def assign(order: Order) -> ReturnRenderWith:
+def assign(order: Order) -> ResponseReturnValue:
     """Assign a line_item to a participant."""
     if TYPE_CHECKING:
         assert request.json is not None  # nosec B101
