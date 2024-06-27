@@ -33,15 +33,16 @@ export const DiscountPolicyTemplate = `
               </label>
             </div>
 
+            // DiscountTypeEnum [AUTOMATIC = 1,COUPON = 2]
             {{#if newDiscountPolicy.is_price_based == 0}}
               <div class="group">
                 <p class="field-title filled">How is this discount going to be availed?</p>
                 <label class="radio-inline">
-                  <input type="radio" name="discount_type" value=1 on-click="onPolicyTypeChange(event)" checked />
+                  <input type="radio" name="discount_type" value=2 on-click="onPolicyTypeChange(event)" checked />
                   Coupon based
                 </label>
                   <label class="radio-inline">
-                    <input type="radio" name="discount_type" value=0 on-click="onPolicyTypeChange(event)" />
+                    <input type="radio" name="discount_type" value=1 on-click="onPolicyTypeChange(event)" />
                     Automatic
                   </label>
               </div>
