@@ -18,7 +18,7 @@ export const TicketAssignmentTemplate = `
         <div class="content">
           {{#if !toAssign}}
             <div class="content-box clearfix" intro='fly:{"x":20,"y":"0"}'>
-              <div class="item-description">{{{ description }}}</div>
+              <div class="item-description">{{{ description_html }}}</div>
               <p class="price center">&#8377;{{ final_amount }}</p>
               {{#if assignee.id || isTicketAssigned}}
                 <p class="confirmation-msg"><i class="fa fa-check"></i> This ticket has been assigned to {{assignee.fullname}}</p>
