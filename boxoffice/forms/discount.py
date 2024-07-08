@@ -204,7 +204,7 @@ class DiscountPriceForm(forms.Form):
     def __post_init__(self) -> None:
         self.ticket.query = (
             Ticket.query.join(Menu, Ticket.menu_id == Menu.id)
-            .filter(Menu.organization_id == self.edit_parent.organization_id)
+            .filter(Menu.organization_id == self.edit_parent.organization.id)
             .options(sa.orm.load_only(Ticket.id, Ticket.title))
         )
 

@@ -51,7 +51,7 @@ export const DiscountPolicyView = {
       showLoader: true,
       hideLoader: false,
       priceBasedDiscount: 1,
-      couponBasedDiscount: 1,
+      couponBasedDiscount: 2,
       usageCount: 1,
       empty: '',
     };
@@ -366,7 +366,7 @@ export const DiscountPolicyView = {
                           errorMsg = 'Internal Server Error';
                         } else {
                           const errorDescription = response.responseJSON.errors;
-                          errorDescription.forEach((error) => {
+                          Object.keys(errorDescription).forEach((error) => {
                             errorMsg += `<p>${errorDescription[error]}</p>`;
                           });
                         }
@@ -382,8 +382,8 @@ export const DiscountPolicyView = {
               }
             );
 
-            formValidator.setMessage('required', 'Please fill out the this field');
-            formValidator.setMessage('numeric', 'Please enter a numberic value');
+            formValidator.setMessage('required', 'Please fill out this field');
+            formValidator.setMessage('numeric', 'Please enter a numeric value');
           },
           hideNewPolicyForm(event) {
             discountPolicyComponent.set('showAddPolicyForm', DEFAULT.hideForm);
@@ -456,7 +456,7 @@ export const DiscountPolicyView = {
                           errorMsg = 'Internal Server Error';
                         } else {
                           const errorDescription = response.responseJSON.errors;
-                          errorDescription.forEach((error) => {
+                          Object.keys(errorDescription).forEach((error) => {
                             errorMsg += `<p>${errorDescription[error]}</p>`;
                           });
                         }
@@ -476,8 +476,8 @@ export const DiscountPolicyView = {
               }
             );
 
-            formValidator.setMessage('required', 'Please fill out the this field');
-            formValidator.setMessage('numeric', 'Please enter a numberic value');
+            formValidator.setMessage('required', 'Please fill out this field');
+            formValidator.setMessage('numeric', 'Please enter a numeric value');
           },
           hideEditPolicyForm(event) {
             const discountPolicy = event.keypath;
@@ -564,7 +564,7 @@ export const DiscountPolicyView = {
                           errorMsg = 'Internal Server Error';
                         } else {
                           const errorDescription = response.responseJSON.errors;
-                          errorDescription.forEach((error) => {
+                          Object.keys(errorDescription).forEach((error) => {
                             errorMsg += `<p>${errorDescription[error]}</p>`;
                           });
                         }
@@ -583,7 +583,7 @@ export const DiscountPolicyView = {
                 }
               }
             );
-            formValidator.setMessage('required', 'Please fill out the this field');
+            formValidator.setMessage('required', 'Please fill out this field');
           },
           hideCouponForm(event) {
             const discountPolicy = event.keypath;

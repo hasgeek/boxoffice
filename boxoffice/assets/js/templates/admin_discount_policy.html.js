@@ -33,7 +33,7 @@ export const DiscountPolicyTemplate = `
               </label>
             </div>
 
-            // DiscountTypeEnum [AUTOMATIC = 1,COUPON = 2]
+            {{! DiscountTypeEnum [AUTOMATIC = 1,COUPON = 2] }}
             {{#if newDiscountPolicy.is_price_based == 0}}
               <div class="group">
                 <p class="field-title filled">How is this discount going to be availed?</p>
@@ -233,8 +233,9 @@ export const DiscountPolicyTemplate = `
 
                     {{/if}}
 
+                    {{! DiscountTypeEnum [AUTOMATIC = 1,COUPON = 2] }}
                     {{#if is_automatic}}
-                      <input type="hidden" name="discount_type" value=0 />
+                      <input type="hidden" name="discount_type" value=1 />
                       <div class="group">
                         <input type="number" name="item_quantity_min" value="{{ item_quantity_min }}" min="1" twoway="false" class="group-input {{#if item_quantity_min != ""}}filled{{/if}} longer-labeltxt" />
                         <span class="bar"></span>
@@ -242,7 +243,7 @@ export const DiscountPolicyTemplate = `
                         {{#errormsg.item_quantity_min}}<p class="form-error-msg">{{ errormsg.item_quantity_min }}</p>{{/}}
                       </div>
                     {{else}}
-                      <input type="hidden" name="discount_type" value=1 />
+                      <input type="hidden" name="discount_type" value=2 />
                       <div class="group">
                         <input type="text" name="discount_code_base" value="{{ discount_code_base }}" twoway="false" class="group-input {{#discount_code_base}}filled{{/}}" />
                         <span class="bar"></span>
