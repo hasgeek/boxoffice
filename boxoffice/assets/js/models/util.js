@@ -12,8 +12,7 @@ export const Util = {
     let val = value.toString();
     val = val.replace(/[^0-9.]/g, ''); // Remove non-digits, assume . for decimals
     let afterPoint = '';
-    if (val.indexOf('.') > 0)
-      afterPoint = val.substring(val.indexOf('.'), val.length);
+    if (val.indexOf('.') > 0) afterPoint = val.substring(val.indexOf('.'), val.length);
     val = Math.floor(val);
     val = val.toString();
     let lastThree = val.substring(val.length - 3);

@@ -40,18 +40,9 @@ module.exports = {
   },
   devtool: 'source-map',
   entry: {
-    main_admin: path.resolve(
-      __dirname,
-      'boxoffice/assets/js/views/main_admin.js'
-    ),
-    main_order: path.resolve(
-      __dirname,
-      'boxoffice/assets/js/views/main_order.js'
-    ),
-    main_invoice: path.resolve(
-      __dirname,
-      'boxoffice/assets/js/views/main_invoice.js'
-    ),
+    main_admin: path.resolve(__dirname, 'boxoffice/assets/js/views/main_admin.js'),
+    main_order: path.resolve(__dirname, 'boxoffice/assets/js/views/main_order.js'),
+    main_invoice: path.resolve(__dirname, 'boxoffice/assets/js/views/main_invoice.js'),
     app_css: path.resolve(__dirname, 'boxoffice/assets/sass/app.scss'),
     admin_css: path.resolve(__dirname, 'boxoffice/assets/sass/admin.scss'),
   },

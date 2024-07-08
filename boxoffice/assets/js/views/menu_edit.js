@@ -9,14 +9,10 @@ export const MenuEditView = {
       url: urlFor('edit', { resource: 'menu', id: menuId, root: true }),
       title: 'Edit menu',
       onHide() {
-        navigateTo(
-          urlFor('view', { resource: 'menu', id: menuId, root: true })
-        );
+        navigateTo(urlFor('view', { resource: 'menu', id: menuId, root: true }));
       },
       onSuccess(responseData) {
-        navigateTo(
-          urlFor('view', { resource: 'menu', id: menuId, root: true })
-        );
+        navigateTo(urlFor('view', { resource: 'menu', id: menuId, root: true }));
       },
     });
   },

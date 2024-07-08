@@ -70,8 +70,7 @@ export const OrdersView = {
         $('#orders-table').on('footable_filtering', (e) => {
           const selected = $('#filter-status').find(':selected').val();
           if (selected && selected.length > 0) {
-            e.filter +=
-              e.filter && e.filter.length > 0 ? ` ${selected}` : selected;
+            e.filter += e.filter && e.filter.length > 0 ? ` ${selected}` : selected;
             e.clear = !e.filter;
           }
         });

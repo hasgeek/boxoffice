@@ -14,14 +14,10 @@ export const NewCategoryView = {
       }),
       title: 'New category',
       onHide() {
-        navigateTo(
-          urlFor('view', { resource: 'menu', id: menuId, root: true })
-        );
+        navigateTo(urlFor('view', { resource: 'menu', id: menuId, root: true }));
       },
       onSuccess(responseData) {
-        navigateTo(
-          urlFor('view', { resource: 'menu', id: menuId, root: true })
-        );
+        navigateTo(urlFor('view', { resource: 'menu', id: menuId, root: true }));
       },
     });
   },

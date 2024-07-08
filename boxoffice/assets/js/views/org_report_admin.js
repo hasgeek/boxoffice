@@ -22,9 +22,10 @@ export const OrgReportView = {
       const currentYear = String(currentDate.getFullYear());
       // month starts from 0
       const currentMonth = String(currentDate.getMonth() + 1).padStart(2, '0');
-      const prevMonth = String(
-        ((currentDate.getMonth() + 11) % 12) + 1
-      ).padStart(2, '0');
+      const prevMonth = String(((currentDate.getMonth() + 11) % 12) + 1).padStart(
+        2,
+        '0'
+      );
       const toDate = String(currentDate.getDate()).padStart(2, '0');
       const reportComponent = new Ractive({
         el: '#main-content-area',
@@ -42,9 +43,7 @@ export const OrgReportView = {
             return this.get('reportType') === 'settlements' ? 'hide' : '';
           },
           showForZBInvoicesClass() {
-            return this.get('reportType') === 'invoices_zoho_books'
-              ? ''
-              : 'hide';
+            return this.get('reportType') === 'invoices_zoho_books' ? '' : 'hide';
           },
           periodMonthlyClass() {
             if (this.get('reportType') === 'settlements') return '';
@@ -67,8 +66,7 @@ export const OrgReportView = {
             const params = {};
             if (reportType === 'settlements') {
               const periodMonth = this.get('periodMonth');
-              if (periodMonth)
-                [params.year, params.month] = periodMonth.split('-');
+              if (periodMonth) [params.year, params.month] = periodMonth.split('-');
             } else {
               params.type = this.get('periodType');
               switch (params.type) {
@@ -96,9 +94,7 @@ export const OrgReportView = {
                   filename += `_${this.get('periodMonth')}`;
                   break;
                 case 'custom':
-                  filename += `_${this.get('periodFrom')}_${this.get(
-                    'periodTo'
-                  )}`;
+                  filename += `_${this.get('periodFrom')}_${this.get('periodTo')}`;
                   break;
                 default:
                   break;

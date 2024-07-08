@@ -140,15 +140,9 @@ const TableComponent = Ractive.extend({
   onItemsSelected(event, attribute) {
     const totalSelected = this.parent.get('totalSelected');
     if (event.node.checked) {
-      this.parent.set(
-        'totalSelected',
-        totalSelected + event.context[attribute]
-      );
+      this.parent.set('totalSelected', totalSelected + event.context[attribute]);
     } else {
-      this.parent.set(
-        'totalSelected',
-        totalSelected - event.context[attribute]
-      );
+      this.parent.set('totalSelected', totalSelected - event.context[attribute]);
     }
   },
 });
@@ -157,11 +151,9 @@ const AggChartComponent = Ractive.extend({
   template: AggChartTemplate,
   format_columns() {
     const dateItemCounts = this.parent.get('dateItemCounts');
-    const allItems = this.parent
-      .get('categories')
-      .reduce((givenItems, category) => {
-        return givenItems.concat(category.tickets);
-      }, []);
+    const allItems = this.parent.get('categories').reduce((givenItems, category) => {
+      return givenItems.concat(category.tickets);
+    }, []);
     const dateSales = this.parent.get('dateSales');
     const dates = ['x'];
     const itemCounts = {};
@@ -173,12 +165,7 @@ const AggChartComponent = Ractive.extend({
         if (!itemCounts[ticket.id]) {
           itemCounts[ticket.id] = [];
         }
-        if (
-          Object.prototype.hasOwnProperty.call(
-            dateItemCounts[itemDate],
-            ticket.id
-          )
-        ) {
+        if (Object.prototype.hasOwnProperty.call(dateItemCounts[itemDate], ticket.id)) {
           // If an item has been bought on this itemDate
           itemCounts[ticket.id].push(dateItemCounts[itemDate][ticket.id]);
         } else {

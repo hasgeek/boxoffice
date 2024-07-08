@@ -175,9 +175,7 @@ export const Order = {
         const attendeeDetails = getFormJSObject(attendeeForm);
 
         $.ajax({
-          url: Order.config.assign.urlFor(
-            order.ticketComponent.get('access_token')
-          ),
+          url: Order.config.assign.urlFor(order.ticketComponent.get('access_token')),
           type: Order.config.assign.method,
           contentType: 'application/json',
           data: JSON.stringify({

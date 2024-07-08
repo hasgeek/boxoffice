@@ -183,11 +183,7 @@ export const DiscountPolicyView = {
           },
           paginate(event, givenPage) {
             event.original.preventDefault();
-            discountPolicyComponent.refresh(
-              this.get('searchText'),
-              givenPage,
-              size
-            );
+            discountPolicyComponent.refresh(this.get('searchText'), givenPage, size);
           },
           clearSearchField() {
             discountPolicyComponent.set('searchText', DEFAULT.empty);
@@ -254,9 +250,7 @@ export const DiscountPolicyView = {
               let addItemsSelector;
 
               if (discountPolicy) {
-                const dpId = discountPolicyComponent.get(
-                  `${discountPolicy}.id`
-                );
+                const dpId = discountPolicyComponent.get(`${discountPolicy}.id`);
                 addItemsSelector = `#add-items-${dpId}`;
               } else {
                 addItemsSelector = '#add-items';
@@ -388,14 +382,8 @@ export const DiscountPolicyView = {
               }
             );
 
-            formValidator.setMessage(
-              'required',
-              'Please fill out the this field'
-            );
-            formValidator.setMessage(
-              'numeric',
-              'Please enter a numberic value'
-            );
+            formValidator.setMessage('required', 'Please fill out the this field');
+            formValidator.setMessage('numeric', 'Please enter a numberic value');
           },
           hideNewPolicyForm(event) {
             discountPolicyComponent.set('showAddPolicyForm', DEFAULT.hideForm);
@@ -406,10 +394,7 @@ export const DiscountPolicyView = {
               `${discountPolicy}.showPolicyForm`,
               DEFAULT.showForm
             );
-            discountPolicyComponent.set(
-              `${discountPolicy}.errormsg`,
-              DEFAULT.empty
-            );
+            discountPolicyComponent.set(`${discountPolicy}.errormsg`, DEFAULT.empty);
             discountPolicyComponent.addFormFields(
               discountPolicyComponent.get(`${discountPolicy}.is_price_based`),
               discountPolicy
@@ -491,14 +476,8 @@ export const DiscountPolicyView = {
               }
             );
 
-            formValidator.setMessage(
-              'required',
-              'Please fill out the this field'
-            );
-            formValidator.setMessage(
-              'numeric',
-              'Please enter a numberic value'
-            );
+            formValidator.setMessage('required', 'Please fill out the this field');
+            formValidator.setMessage('numeric', 'Please enter a numberic value');
           },
           hideEditPolicyForm(event) {
             const discountPolicy = event.keypath;
@@ -509,10 +488,7 @@ export const DiscountPolicyView = {
           },
           showCouponForm(event) {
             const discountPolicy = event.keypath;
-            discountPolicyComponent.set(
-              `${discountPolicy}.count`,
-              DEFAULT.usageCount
-            );
+            discountPolicyComponent.set(`${discountPolicy}.count`, DEFAULT.usageCount);
             discountPolicyComponent.set(
               `${discountPolicy}.showCouponForm`,
               DEFAULT.showForm
@@ -607,10 +583,7 @@ export const DiscountPolicyView = {
                 }
               }
             );
-            formValidator.setMessage(
-              'required',
-              'Please fill out the this field'
-            );
+            formValidator.setMessage('required', 'Please fill out the this field');
           },
           hideCouponForm(event) {
             const discountPolicy = event.keypath;

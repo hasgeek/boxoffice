@@ -13,14 +13,10 @@ export const EditTicketView = {
       }),
       title: 'Edit ticket',
       onHide() {
-        navigateTo(
-          urlFor('view', { resource: 'ticket', id: ticketId, root: true })
-        );
+        navigateTo(urlFor('view', { resource: 'ticket', id: ticketId, root: true }));
       },
       onSuccess(responseData) {
-        navigateTo(
-          urlFor('view', { resource: 'ticket', id: ticketId, root: true })
-        );
+        navigateTo(urlFor('view', { resource: 'ticket', id: ticketId, root: true }));
       },
     });
   },
