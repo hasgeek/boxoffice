@@ -382,8 +382,8 @@ export const DiscountPolicyView = {
               }
             );
 
-            formValidator.setMessage('required', 'Please fill out the this field');
-            formValidator.setMessage('numeric', 'Please enter a numberic value');
+            formValidator.setMessage('required', 'Please fill out this field');
+            formValidator.setMessage('numeric', 'Please enter a numeric value');
           },
           hideNewPolicyForm(event) {
             discountPolicyComponent.set('showAddPolicyForm', DEFAULT.hideForm);
@@ -476,8 +476,8 @@ export const DiscountPolicyView = {
               }
             );
 
-            formValidator.setMessage('required', 'Please fill out the this field');
-            formValidator.setMessage('numeric', 'Please enter a numberic value');
+            formValidator.setMessage('required', 'Please fill out this field');
+            formValidator.setMessage('numeric', 'Please enter a numeric value');
           },
           hideEditPolicyForm(event) {
             const discountPolicy = event.keypath;
@@ -583,7 +583,7 @@ export const DiscountPolicyView = {
                 }
               }
             );
-            formValidator.setMessage('required', 'Please fill out the this field');
+            formValidator.setMessage('required', 'Please fill out this field');
           },
           hideCouponForm(event) {
             const discountPolicy = event.keypath;
