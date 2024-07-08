@@ -132,9 +132,7 @@ export const Invoice = {
         const invoiceDetails = getFormJSObject(invoiceForm);
 
         $.ajax({
-          url: invoice.config.submit.urlFor(
-            invoice.formComponent.get('accessToken')
-          ),
+          url: invoice.config.submit.urlFor(invoice.formComponent.get('accessToken')),
           type: invoice.config.submit.method,
           dataType: 'json',
           contentType: 'application/json',
@@ -147,10 +145,7 @@ export const Invoice = {
           retryInterval: 5000,
           success(successData) {
             invoice.formComponent.set(`${invoiceItem}.errorMsg`, '');
-            invoice.formComponent.set(
-              `${invoiceItem}.submittingInvoiceDetails`,
-              false
-            );
+            invoice.formComponent.set(`${invoiceItem}.submittingInvoiceDetails`, false);
             invoice.formComponent.set(`${invoiceItem}.hideForm`, true);
           },
           error(response) {

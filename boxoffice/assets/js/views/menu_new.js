@@ -13,9 +13,7 @@ export const MenuNewView = {
       }),
       title: 'New menu',
       onHide() {
-        navigateTo(
-          urlFor('view', { resource: 'o', id: accountName, root: true })
-        );
+        navigateTo(urlFor('view', { resource: 'o', id: accountName, root: true }));
       },
       onSuccess(responseData) {
         navigateTo(

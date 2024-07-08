@@ -45,10 +45,7 @@ var DD_belatedPNG = {
       );
       a = a.styleSheet;
       a.addRule(this.ns + '\\:*', '{display: none !important;}');
-      a.addRule(
-        'img.' + this.ns + '_sizeFinder',
-        '{display: none !important;}'
-      );
+      a.addRule('img.' + this.ns + '_sizeFinder', '{display: none !important;}');
     }
   },
   readPropertyChange: function () {
@@ -78,9 +75,7 @@ var DD_belatedPNG = {
   vmlOpacity: function (b) {
     if (b.currentStyle.filter.search('lpha') != -1) {
       var a = b.currentStyle.filter;
-      a =
-        parseInt(a.substring(a.lastIndexOf('=') + 1, a.lastIndexOf(')')), 10) /
-        100;
+      a = parseInt(a.substring(a.lastIndexOf('=') + 1, a.lastIndexOf(')')), 10) / 100;
       b.vml.color.shape.style.filter = b.currentStyle.filter;
       b.vml.image.fill.opacity = a;
     }
@@ -260,15 +255,7 @@ var DD_belatedPNG = {
         i.B = n.H;
       }
       d.vml.image.shape.style.clip =
-        'rect(' +
-        i.T +
-        'px ' +
-        (i.R + a) +
-        'px ' +
-        i.B +
-        'px ' +
-        (i.L + a) +
-        'px)';
+        'rect(' + i.T + 'px ' + (i.R + a) + 'px ' + i.B + 'px ' + (i.L + a) + 'px)';
     } else {
       d.vml.image.shape.style.clip =
         'rect(' + f.T + 'px ' + f.R + 'px ' + f.B + 'px ' + f.L + 'px)';

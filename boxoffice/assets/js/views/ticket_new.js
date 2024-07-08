@@ -13,9 +13,7 @@ export const NewTicketView = {
       }),
       title: 'New ticket',
       onHide() {
-        navigateTo(
-          urlFor('view', { resource: 'menu', id: menuId, root: true })
-        );
+        navigateTo(urlFor('view', { resource: 'menu', id: menuId, root: true }));
       },
       onSuccess(responseData) {
         navigateTo(

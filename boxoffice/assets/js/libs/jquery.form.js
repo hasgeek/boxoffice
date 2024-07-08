@@ -83,10 +83,7 @@
     }
 
     // provide opportunity to alter form data before it is serialized
-    if (
-      options.beforeSerialize &&
-      options.beforeSerialize(this, options) === false
-    ) {
+    if (options.beforeSerialize && options.beforeSerialize(this, options) === false) {
       log('ajaxSubmit: submit aborted via beforeSerialize callback');
       return this;
     }
@@ -110,10 +107,7 @@
     }
 
     // give pre-submit callback an opportunity to abort the submit
-    if (
-      options.beforeSubmit &&
-      options.beforeSubmit(a, this, options) === false
-    ) {
+    if (options.beforeSubmit && options.beforeSubmit(a, this, options) === false) {
       log('ajaxSubmit: submit aborted via beforeSubmit callback');
       return this;
     }
@@ -173,10 +167,7 @@
 
     // options.iframe allows user to force iframe mode
     // 06-NOV-09: now defaulting to iframe mode if file input is detected
-    if (
-      options.iframe !== false &&
-      (fileInputs || options.iframe || multipart)
-    ) {
+    if (options.iframe !== false && (fileInputs || options.iframe || multipart)) {
       // hack to fix Safari hang (thanks to Tim Molendijk for this)
       // see:  http://groups.google.com/group/jquery-dev/browse_thread/thread/36395b7ab510dd5d
       if (options.closeKeepAlive) {
@@ -500,10 +491,7 @@
         if (typeof data === 'string') {
           if (type === 'json' || (!type && ct.indexOf('json') >= 0)) {
             data = parseJSON(data);
-          } else if (
-            type === 'script' ||
-            (!type && ct.indexOf('javascript') >= 0)
-          ) {
+          } else if (type === 'script' || (!type && ct.indexOf('javascript') >= 0)) {
             $.globalEval(data);
           }
         }

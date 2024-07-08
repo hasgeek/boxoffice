@@ -58,9 +58,7 @@ export const OrderView = {
                   if (response.status === 500) {
                     errorText = 'Server Error';
                   } else {
-                    errorText = JSON.parse(
-                      response.responseText
-                    ).error_description;
+                    errorText = JSON.parse(response.responseText).error_description;
                   }
                 } else {
                   errorText = 'Unable to connect. Please try again later.';
