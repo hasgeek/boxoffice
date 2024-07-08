@@ -51,7 +51,7 @@ export const DiscountPolicyView = {
       showLoader: true,
       hideLoader: false,
       priceBasedDiscount: 1,
-      couponBasedDiscount: 1,
+      couponBasedDiscount: 2,
       usageCount: 1,
       empty: '',
     };
@@ -366,7 +366,7 @@ export const DiscountPolicyView = {
                           errorMsg = 'Internal Server Error';
                         } else {
                           const errorDescription = response.responseJSON.errors;
-                          errorDescription.forEach((error) => {
+                          Object.keys(errorDescription).forEach((error) => {
                             errorMsg += `<p>${errorDescription[error]}</p>`;
                           });
                         }
@@ -456,7 +456,7 @@ export const DiscountPolicyView = {
                           errorMsg = 'Internal Server Error';
                         } else {
                           const errorDescription = response.responseJSON.errors;
-                          errorDescription.forEach((error) => {
+                          Object.keys(errorDescription).forEach((error) => {
                             errorMsg += `<p>${errorDescription[error]}</p>`;
                           });
                         }
@@ -564,7 +564,7 @@ export const DiscountPolicyView = {
                           errorMsg = 'Internal Server Error';
                         } else {
                           const errorDescription = response.responseJSON.errors;
-                          errorDescription.forEach((error) => {
+                          Object.keys(errorDescription).forEach((error) => {
                             errorMsg += `<p>${errorDescription[error]}</p>`;
                           });
                         }
