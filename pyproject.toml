@@ -208,40 +208,40 @@ quote-style = "preserve"
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 select = [
-  "A",     # flake8-builtins
-  "ANN",   # flake8-annotations
-  "ARG",   # flake8-unused-arguments
-  "ASYNC", # flake8-async
-  "B",     # flake8-bugbear
-  "BLE",   # flake8-blind-except
-  "C",     # pylint convention
-  "D",     # pydocstyle
-  "C4",    # flake8-comprehensions
-  "C90",   # mccabe
-  "E",     # Error
-  "EM",    # flake8-errmsg
-  "EXE",   # flake8-executable
-  "F",     # pyflakes
-  "FA",    # flake8-future-annotations
-  "G",     # flake8-logging-format
-  "I",     # isort
-  "INP",   # flake8-no-pep420
-  "INT",   # flake8-gettext
-  "ISC",   # flake8-implicit-str-concat
-  "N",     # pep8-naming
-  "PIE",   # flake8-pie
-  "PT",    # flake8-pytest-style
-  "PYI",   # flake8-pyi
-  "RET",   # flake8-return
-  "RUF",   # Ruff
-  "S",     # flake8-bandit
-  "SIM",   # flake8-simplify
-  "SLOT",  # flake8-slots
-  "T20",   # flake8-print
-  "TRIO",  # flake8-trio
-  "UP",    # pyupgrade
-  "W",     # Warnings
-  "YTT",   # flake8-2020
+  "A",      # flake8-builtins
+  "ANN",    # flake8-annotations
+  "ARG",    # flake8-unused-arguments
+  "ASYNC",  # flake8-async
+  "ASYNC1", # flake8-trio
+  "B",      # flake8-bugbear
+  "BLE",    # flake8-blind-except
+  "C",      # pylint convention
+  "D",      # pydocstyle
+  "C4",     # flake8-comprehensions
+  "C90",    # mccabe
+  "E",      # Error
+  "EM",     # flake8-errmsg
+  "EXE",    # flake8-executable
+  "F",      # pyflakes
+  "FA",     # flake8-future-annotations
+  "G",      # flake8-logging-format
+  "I",      # isort
+  "INP",    # flake8-no-pep420
+  "INT",    # flake8-gettext
+  "ISC",    # flake8-implicit-str-concat
+  "N",      # pep8-naming
+  "PIE",    # flake8-pie
+  "PT",     # flake8-pytest-style
+  "PYI",    # flake8-pyi
+  "RET",    # flake8-return
+  "RUF",    # Ruff
+  "S",      # flake8-bandit
+  "SIM",    # flake8-simplify
+  "SLOT",   # flake8-slots
+  "T20",    # flake8-print
+  "UP",     # pyupgrade
+  "W",      # Warnings
+  "YTT",    # flake8-2020
 ]
 ignore = [
   "ANN002",
@@ -261,8 +261,8 @@ ignore = [
   "D212",
   "E402",
   "E501",
-  "EM101",   # Allow Exception("string")
-  "EM102",   # Allow Exception(f"string")
+  "EM101",  # Allow Exception("string")
+  "EM102",  # Allow Exception(f"string")
   "ISC001",
 ]
 

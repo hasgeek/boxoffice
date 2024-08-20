@@ -359,9 +359,7 @@ class DiscountCoupon(IdMixin[UUID], Model):
             cls.code == code,
             cls.used_count == cls.usage_limit,
         ).one_or_none()
-        if obj:
-            return False
-        return True
+        return not obj
 
     def update_used_count(self) -> None:
         self.used_count = (
