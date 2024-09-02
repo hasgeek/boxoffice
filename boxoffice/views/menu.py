@@ -137,7 +137,7 @@ def boxofficejs() -> ResponseReturnValue:
 @app.route('/menu/<menu_id>', methods=['GET', 'OPTIONS'])
 @xhr_only
 @cors
-@load_models((Menu, {'id': 'menu_id'}, 'menu'))
+@load_models((Menu, {'uuid_hex': 'menu_id'}, 'menu'))
 def view_menu(menu: Menu) -> ResponseReturnValue:
     categories_json = [
         category_json

@@ -13,6 +13,7 @@ from . import (
     DynamicMapped,
     Mapped,
     Model,
+    UuidMixin,
     db,
     markdown_column,
     relationship,
@@ -26,7 +27,7 @@ from .utils import HeadersAndDataTuple
 __all__ = ['Menu']
 
 
-class Menu(BaseScopedNameMixin[UUID, User], Model):
+class Menu(UuidMixin, BaseScopedNameMixin[UUID, User], Model):
     """Represent a collection of tickets."""
 
     __tablename__ = 'item_collection'

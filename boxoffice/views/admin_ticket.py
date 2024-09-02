@@ -100,7 +100,7 @@ def format_ticket_details(ticket: Ticket) -> dict[str, Any]:
 
 @app.route('/admin/ticket/<ticket_id>', methods=['GET'])
 @lastuser.requires_login
-@load_models((Ticket, {'id': 'ticket_id'}, 'ticket'), permission='org_admin')
+@load_models((Ticket, {'uuid_hex': 'ticket_id'}, 'ticket'), permission='org_admin')
 def admin_item(ticket: Ticket) -> ResponseReturnValue:
     if not request_wants_json():
         return render_template('index.html.jinja2')
@@ -127,7 +127,7 @@ def admin_item(ticket: Ticket) -> ResponseReturnValue:
 
 @app.route('/admin/menu/<menu_id>/ticket/new', methods=['GET', 'POST'])
 @lastuser.requires_login
-@load_models((Menu, {'id': 'menu_id'}, 'menu'), permission='org_admin')
+@load_models((Menu, {'uuid_hex': 'menu_id'}, 'menu'), permission='org_admin')
 def admin_new_item(menu: Menu) -> ResponseReturnValue:
     if not request_wants_json():
         return render_template('index.html.jinja2')
@@ -162,7 +162,7 @@ def admin_new_item(menu: Menu) -> ResponseReturnValue:
 
 @app.route('/admin/ticket/<ticket_id>/edit', methods=['GET', 'POST'])
 @lastuser.requires_login
-@load_models((Ticket, {'id': 'ticket_id'}, 'ticket'), permission='org_admin')
+@load_models((Ticket, {'uuid_hex': 'ticket_id'}, 'ticket'), permission='org_admin')
 def admin_edit_item(ticket: Ticket) -> ResponseReturnValue:
     if not request_wants_json():
         return render_template('index.html.jinja2')
@@ -193,7 +193,7 @@ def admin_edit_item(ticket: Ticket) -> ResponseReturnValue:
 
 @app.route('/admin/ticket/<ticket_id>/price/new', methods=['GET', 'POST'])
 @lastuser.requires_login
-@load_models((Ticket, {'id': 'ticket_id'}, 'ticket'), permission='org_admin')
+@load_models((Ticket, {'uuid_hex': 'ticket_id'}, 'ticket'), permission='org_admin')
 def admin_new_price(ticket: Ticket) -> ResponseReturnValue:
     if not request_wants_json():
         return render_template('index.html.jinja2')
@@ -229,7 +229,7 @@ def admin_new_price(ticket: Ticket) -> ResponseReturnValue:
 
 @app.route('/admin/ticket/<ticket_id>/price/<price_id>/edit', methods=['GET', 'POST'])
 @lastuser.requires_login
-@load_models((Price, {'id': 'price_id'}, 'price'), permission='org_admin')
+@load_models((Price, {'uuid_hex': 'price_id'}, 'price'), permission='org_admin')
 def admin_edit_price(price: Price) -> ResponseReturnValue:
     if not request_wants_json():
         return render_template('index.html.jinja2')

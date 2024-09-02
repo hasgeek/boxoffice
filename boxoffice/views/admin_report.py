@@ -18,7 +18,7 @@ from .utils import api_error, check_api_access, csv_response, request_wants_json
 
 @app.route('/admin/menu/<menu_id>/reports')
 @lastuser.requires_login
-@load_models((Menu, {'id': 'menu_id'}, 'menu'), permission='org_admin')
+@load_models((Menu, {'uuid_hex': 'menu_id'}, 'menu'), permission='org_admin')
 def admin_report(menu: Menu) -> ResponseReturnValue:
     if not request_wants_json():
         return render_template('index.html.jinja2')
@@ -43,7 +43,7 @@ def admin_org_report(organization: Organization) -> ResponseReturnValue:
 
 @app.route('/admin/menu/<menu_id>/tickets.csv')
 @lastuser.requires_login
-@load_models((Menu, {'id': 'menu_id'}, 'menu'), permission='org_admin')
+@load_models((Menu, {'uuid_hex': 'menu_id'}, 'menu'), permission='org_admin')
 def tickets_report(menu: Menu) -> Response:
     headers, rows = menu.fetch_all_details()
     assignee_url_index = headers.index('assignee_url')
@@ -73,7 +73,7 @@ def tickets_report(menu: Menu) -> Response:
 
 @app.route('/admin/menu/<menu_id>/attendees.csv')
 @lastuser.requires_login
-@load_models((Menu, {'id': 'menu_id'}, 'menu'), permission='org_admin')
+@load_models((Menu, {'uuid_hex': 'menu_id'}, 'menu'), permission='org_admin')
 def attendees_report(menu: Menu) -> Response:
     # Generated a unique list of headers for all 'assignee_details' keys in all items in
     # this menu. This flattens the 'assignee_details' dict. This will need to
@@ -128,7 +128,7 @@ def attendees_report(menu: Menu) -> Response:
     (Organization, {'name': 'org'}, 'organization'),
     (
         Menu,
-        {'id': 'menu_id', 'organization': 'organization'},
+        {'uuid_hex': 'menu_id', 'organization': 'organization'},
         'menu',
     ),
 )

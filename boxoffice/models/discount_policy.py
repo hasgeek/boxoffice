@@ -22,6 +22,7 @@ from . import (
     IdMixin,
     Mapped,
     Model,
+    UuidMixin,
     db,
     relationship,
     sa,
@@ -50,7 +51,7 @@ item_discount_policy = sa.Table(
 )
 
 
-class DiscountPolicy(BaseScopedNameMixin[UUID, User], Model):
+class DiscountPolicy(UuidMixin, BaseScopedNameMixin[UUID, User], Model):
     """
     Consists of the discount rules applicable on tickets.
 
@@ -329,7 +330,7 @@ def generate_coupon_code(
     return ''.join(secrets.choice(chars) for _ in range(size))
 
 
-class DiscountCoupon(IdMixin[UUID], Model):
+class DiscountCoupon(UuidMixin, IdMixin[UUID], Model):
     __tablename__ = 'discount_coupon'
 
     def __init__(self, *args, **kwargs) -> None:

@@ -17,6 +17,7 @@ from . import (
     DynamicMapped,
     Mapped,
     Model,
+    UuidMixin,
     relationship,
     sa,
     timestamptz,
@@ -53,7 +54,7 @@ def gen_receipt_no(organization: Organization) -> sa.ScalarSelect[int]:
     )
 
 
-class Order(BaseMixin[UUID, User], Model):
+class Order(UuidMixin, BaseMixin[UUID, User], Model):
     __tablename__ = 'customer_order'
     user_id: Mapped[int | None] = sa.orm.mapped_column(sa.ForeignKey('user.id'))
     user: Mapped[User | None] = relationship(back_populates='orders')
@@ -225,7 +226,7 @@ class Order(BaseMixin[UUID, User], Model):
         return self.paid_amount - self.refunded_amount
 
 
-class OrderSession(BaseMixin[UUID, User], Model):
+class OrderSession(UuidMixin, BaseMixin[UUID, User], Model):
     """Records the referrer and utm headers for an order."""
 
     __tablename__ = 'order_session'

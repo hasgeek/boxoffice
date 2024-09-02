@@ -15,6 +15,7 @@ from . import (
     BaseMixin,
     Mapped,
     Model,
+    UuidMixin,
     db,
     markdown_column,
     relationship,
@@ -32,7 +33,7 @@ from .user import User
 __all__ = ['OnlinePayment', 'PaymentTransaction']
 
 
-class OnlinePayment(BaseMixin[UUID, User], Model):
+class OnlinePayment(UuidMixin, BaseMixin[UUID, User], Model):
     """Represents payments made through a payment gateway. Supports Razorpay only."""
 
     __tablename__ = 'online_payment'
@@ -62,7 +63,7 @@ class OnlinePayment(BaseMixin[UUID, User], Model):
         self.failed_at = func.utcnow()
 
 
-class PaymentTransaction(BaseMixin[UUID, User], Model):
+class PaymentTransaction(UuidMixin, BaseMixin[UUID, User], Model):
     """
     Models transactions made by a customer.
 
