@@ -168,7 +168,7 @@ def admin_new_discount_policy(organization: Organization) -> Response:
 @lastuser.requires_login
 @xhr_only
 @load_models(
-    (DiscountPolicy, {'id': 'discount_policy_id'}, 'discount_policy'),
+    (DiscountPolicy, {'uuid_hex': 'discount_policy_id'}, 'discount_policy'),
     permission='org_admin',
 )
 def admin_edit_discount_policy(discount_policy: DiscountPolicy) -> Response:
@@ -235,7 +235,7 @@ def admin_edit_discount_policy(discount_policy: DiscountPolicy) -> Response:
 @lastuser.requires_login
 @xhr_only
 @load_models(
-    (DiscountPolicy, {'id': 'discount_policy_id'}, 'discount_policy'),
+    (DiscountPolicy, {'uuid_hex': 'discount_policy_id'}, 'discount_policy'),
     permission='org_admin',
 )
 def admin_delete_discount_policy(
@@ -268,7 +268,7 @@ def admin_delete_discount_policy(
 @lastuser.requires_login
 @xhr_only
 @load_models(
-    (DiscountPolicy, {'id': 'discount_policy_id'}, 'discount_policy'),
+    (DiscountPolicy, {'uuid_hex': 'discount_policy_id'}, 'discount_policy'),
     permission='org_admin',
 )
 def admin_new_coupon(discount_policy: DiscountPolicy) -> Response:

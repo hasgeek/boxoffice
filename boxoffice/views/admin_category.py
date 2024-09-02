@@ -15,7 +15,7 @@ from .utils import api_error, api_success, request_wants_json
 
 @app.route('/admin/menu/<menu_id>/category/new', methods=['GET', 'POST'])
 @lastuser.requires_login
-@load_models((Menu, {'id': 'menu_id'}, 'menu'), permission='org_admin')
+@load_models((Menu, {'uuid_hex': 'menu_id'}, 'menu'), permission='org_admin')
 def admin_new_category(menu: Menu) -> ResponseReturnValue:
     if not request_wants_json():
         return render_template('index.html.jinja2')

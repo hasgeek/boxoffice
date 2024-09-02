@@ -99,7 +99,7 @@ def format_line_items(line_items: list[LineItem]) -> list[LineItemDict]:
 
 @app.route('/admin/menu/<menu_id>/orders')
 @lastuser.requires_login
-@load_models((Menu, {'id': 'menu_id'}, 'menu'), permission='org_admin')
+@load_models((Menu, {'uuid_hex': 'menu_id'}, 'menu'), permission='org_admin')
 def admin_orders(menu: Menu) -> ResponseReturnValue:
     if not request_wants_json():
         return render_template('index.html.jinja2', title=menu.title)
@@ -132,7 +132,7 @@ def admin_orders(menu: Menu) -> ResponseReturnValue:
 @app.route('/admin/order/<order_id>')
 @lastuser.requires_login
 @xhr_only
-@load_models((Order, {'id': 'order_id'}, 'order'), permission='org_admin')
+@load_models((Order, {'uuid_hex': 'order_id'}, 'order'), permission='org_admin')
 def admin_order(order: Order) -> ResponseReturnValue:
     line_items = LineItem.query.filter(
         LineItem.order == order,

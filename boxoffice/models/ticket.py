@@ -18,6 +18,7 @@ from . import (
     DynamicMapped,
     Mapped,
     Model,
+    UuidMixin,
     db,
     markdown_column,
     relationship,
@@ -39,7 +40,7 @@ class AvailabilityData(NamedTuple):
     line_item_count: int
 
 
-class Ticket(BaseScopedNameMixin[UUID, User], Model):
+class Ticket(UuidMixin, BaseScopedNameMixin[UUID, User], Model):
     __tablename__ = 'item'
 
     description = markdown_column('description', default='', nullable=False)
@@ -234,7 +235,7 @@ class Ticket(BaseScopedNameMixin[UUID, User], Model):
         ).fetchall()
 
 
-class Price(BaseScopedNameMixin[UUID, User], Model):
+class Price(UuidMixin, BaseScopedNameMixin[UUID, User], Model):
     __tablename__ = 'price'
     ticket_id: Mapped[UUID] = sa.orm.mapped_column('item_id', sa.ForeignKey('item.id'))
     ticket: Mapped[Ticket] = relationship(back_populates='prices')

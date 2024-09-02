@@ -200,7 +200,7 @@ def kharcha() -> ResponseReturnValue:
 @app.route('/menu/<menu_id>/order', methods=['GET', 'OPTIONS', 'POST'])
 @xhr_only
 @cors
-@load_models((Menu, {'id': 'menu_id'}, 'menu'))
+@load_models((Menu, {'uuid_hex': 'menu_id'}, 'menu'))
 def create_order(menu: Menu) -> ResponseReturnValue:
     """
     Create an order.
@@ -354,7 +354,7 @@ def create_order(menu: Menu) -> ResponseReturnValue:
 @app.route('/order/<order>/free', methods=['GET', 'OPTIONS', 'POST'])
 @xhr_only
 @cors
-@load_models((Order, {'id': 'order'}, 'order'))
+@load_models((Order, {'uuid_hex': 'order'}, 'order'))
 def free(order: Order) -> ResponseReturnValue:
     """Complete a order which has a final_amount of 0."""
     order_amounts = order.get_amounts(LineItemStatus.PURCHASE_ORDER)
@@ -388,7 +388,7 @@ def free(order: Order) -> ResponseReturnValue:
 @app.route('/order/<order>/payment', methods=['GET', 'OPTIONS', 'POST'])
 @xhr_only
 @cors
-@load_models((Order, {'id': 'order'}, 'order'))
+@load_models((Order, {'uuid_hex': 'order'}, 'order'))
 def capture_payment(order: Order) -> ResponseReturnValue:
     """
     Capture a payment.
@@ -854,7 +854,9 @@ def process_line_item_cancellation(line_item: LineItem) -> Decimal:
 
 @app.route('/line_item/<line_item_id>/cancel', methods=['POST'])
 @lastuser.requires_login
-@load_models((LineItem, {'id': 'line_item_id'}, 'line_item'), permission='org_admin')
+@load_models(
+    (LineItem, {'uuid_hex': 'line_item_id'}, 'line_item'), permission='org_admin'
+)
 def cancel_line_item(line_item: LineItem) -> Response:
     if not line_item.is_cancellable():
         return api_error(
@@ -876,7 +878,7 @@ def cancel_line_item(line_item: LineItem) -> Response:
     '/admin/menu/<menu_id>/order/<order_id>/partial_refund', methods=['GET', 'POST']
 )
 @lastuser.requires_login
-@load_models((Order, {'id': 'order_id'}, 'order'), permission='org_admin')
+@load_models((Order, {'uuid_hex': 'order_id'}, 'order'), permission='org_admin')
 def partial_refund_order(order: Order) -> ResponseReturnValue:
     if not request_wants_json():
         return render_template('index.html.jinja2')
@@ -935,7 +937,7 @@ def partial_refund_order(order: Order) -> ResponseReturnValue:
 
 @app.route('/api/1/ic/<menu_id>/orders', methods=['GET', 'OPTIONS'])
 @app.route('/api/1/menu/<menu_id>/orders', methods=['GET', 'OPTIONS'])
-@load_models((Menu, {'id': 'menu_id'}, 'menu'))
+@load_models((Menu, {'uuid_hex': 'menu_id'}, 'menu'))
 def menu_orders(menu: Menu) -> ResponseReturnValue:
     organization = menu.organization
     # TODO: Replace with a better authentication system
