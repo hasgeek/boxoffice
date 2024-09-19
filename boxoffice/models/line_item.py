@@ -15,7 +15,17 @@ from baseframe import localize_timezone
 from coaster.sqlalchemy import JsonDict
 from coaster.utils import isoweek_datetime, midnight_to_utc, utcnow
 
-from . import BaseMixin, DynamicMapped, Mapped, Model, db, relationship, sa, timestamptz
+from . import (
+    BaseMixin,
+    DynamicMapped,
+    Mapped,
+    Model,
+    UuidMixin,
+    db,
+    relationship,
+    sa,
+    timestamptz,
+)
 from .enums import LineItemStatus
 from .user import User
 
@@ -59,7 +69,7 @@ class Assignee(BaseMixin[int, User], Model):
     )
 
 
-class LineItem(BaseMixin[UUID, User], Model):
+class LineItem(UuidMixin, BaseMixin[UUID, User], Model):
     """
     A line item in a sale receipt.
 
