@@ -8,7 +8,7 @@ from flask_lastuser.sqlalchemy import ProfileBase, UserBase2
 from . import DynamicMapped, Mapped, Model, Query, db, relationship, sa
 from .utils import HeadersAndDataTuple
 
-__all__ = ['User', 'Organization']
+__all__ = ['Organization', 'User']
 
 
 class User(UserBase2, Model):

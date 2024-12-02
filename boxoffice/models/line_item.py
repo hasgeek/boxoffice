@@ -29,7 +29,7 @@ from . import (
 from .enums import LineItemStatus
 from .user import User
 
-__all__ = ['LineItemTuple', 'LineItem', 'Assignee']
+__all__ = ['Assignee', 'LineItem', 'LineItemTuple']
 
 
 class LineItemTuple(NamedTuple):

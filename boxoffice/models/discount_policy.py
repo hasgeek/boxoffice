@@ -30,7 +30,7 @@ from . import (
 from .enums import DiscountTypeEnum, LineItemStatus
 from .user import Organization, User
 
-__all__ = ['DiscountPolicy', 'DiscountCoupon', 'item_discount_policy']
+__all__ = ['DiscountCoupon', 'DiscountPolicy', 'item_discount_policy']
 
 
 item_discount_policy = sa.Table(

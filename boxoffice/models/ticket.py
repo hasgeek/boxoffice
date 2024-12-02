@@ -31,7 +31,7 @@ from .discount_policy import item_discount_policy
 from .enums import LineItemStatus
 from .user import User
 
-__all__ = ['Ticket', 'Price']
+__all__ = ['Price', 'Ticket']
 
 
 class AvailabilityData(NamedTuple):

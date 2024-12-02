@@ -121,11 +121,9 @@ def cors(f: Callable[_P, ResponseReturnValue]) -> Callable[_P, BaseResponse]:
             referrer = request.referrer
             origin = basepath(referrer) if referrer else 'null'
 
-        if (
-            request.method == 'POST'
-            and not origin
-            or origin not in app.config['ALLOWED_ORIGINS']
-        ):
+        if (request.method == 'POST' and not origin) or origin not in app.config[
+            'ALLOWED_ORIGINS'
+        ]:
             abort(403)
 
         if request.method == 'OPTIONS':
