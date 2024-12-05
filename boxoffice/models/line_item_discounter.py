@@ -41,7 +41,7 @@ class LineItemDiscounter:
             return []
 
         ticket = Ticket.query.get(line_items[0].ticket_id)
-        if ticket is None or not ticket.is_available and not ticket.is_cancellable():
+        if ticket is None or (not ticket.is_available and not ticket.is_cancellable()):
             # Ticket unavailable, no discounts
             return []
 
@@ -94,8 +94,12 @@ class LineItemDiscounter:
             )
             if (  # pylint: disable=too-many-boolean-expressions
                 (
-                    policy_coupon.coupon
-                    and self.is_coupon_usable(policy_coupon.coupon, applied_to_count)
+                    (
+                        policy_coupon.coupon
+                        and self.is_coupon_usable(
+                            policy_coupon.coupon, applied_to_count
+                        )
+                    )
                     or policy_coupon.policy.is_automatic
                 )
                 and discounted_amount > 0

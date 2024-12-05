@@ -8,7 +8,7 @@ import pytz
 
 from . import sa
 
-__all__ = ['HeadersAndDataTuple', 'naive_to_utc', 'get_fiscal_year']
+__all__ = ['HeadersAndDataTuple', 'get_fiscal_year', 'naive_to_utc']
 
 
 class HeadersAndDataTuple(NamedTuple):

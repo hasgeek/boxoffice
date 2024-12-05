@@ -14,12 +14,12 @@ from ..models import (
 )
 
 __all__ = [
-    'DiscountPolicyForm',
-    'PriceBasedDiscountPolicyForm',
-    'DiscountPriceForm',
-    'DiscountCouponForm',
     'AutomaticDiscountPolicyForm',
     'CouponBasedDiscountPolicyForm',
+    'DiscountCouponForm',
+    'DiscountPolicyForm',
+    'DiscountPriceForm',
+    'PriceBasedDiscountPolicyForm',
 ]
 
 

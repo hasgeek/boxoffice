@@ -9,7 +9,7 @@ from baseframe import __, forms
 
 from ..data import codes as gst_codes, indian_states_dict
 
-__all__ = ['LineItemForm', 'BuyerForm', 'OrderSessionForm', 'InvoiceForm']
+__all__ = ['BuyerForm', 'InvoiceForm', 'LineItemForm', 'OrderSessionForm']
 
 
 def trim(length: int) -> Callable[[str | None], str]:
