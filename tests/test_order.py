@@ -228,7 +228,7 @@ def test_signed_discounted_coupon_order(client) -> None:
     assert signed_policy.percentage is not None
     assert resp_data['final_amount'] == current_price.amount - (
         signed_policy.percentage * current_price.amount
-    ) / decimal.Decimal(100.0)
+    ) / decimal.Decimal(100)
     line_item = LineItem.query.filter_by(
         customer_order_id=UUID(hex=resp_data['order_id'])
     ).one()

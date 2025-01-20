@@ -133,7 +133,7 @@ def test_discounted_bulk_kharcha(client) -> None:
     assert discount_policy is not None
     assert discount_policy.percentage is not None
     discounted_amount = (discount_policy.percentage * base_amount) / decimal.Decimal(
-        100.0
+        100
     )
     assert (
         resp_json.get('line_items')[str(first_item.id)].get('final_amount')
@@ -185,7 +185,7 @@ def test_discounted_coupon_kharcha(client) -> None:
     assert discount_policy is not None
     assert discount_policy.percentage is not None
     discounted_amount = (discount_policy.percentage * base_amount) / decimal.Decimal(
-        100.0
+        100
     )
     assert (
         resp_json.get('line_items')[str(first_item.id)].get('final_amount')
@@ -233,9 +233,7 @@ def test_signed_discounted_coupon_kharcha(client) -> None:
     assert current_price is not None
     base_amount = discounted_quantity * current_price.amount
     assert signed_policy.percentage is not None
-    discounted_amount = (signed_policy.percentage * base_amount) / decimal.Decimal(
-        100.0
-    )
+    discounted_amount = (signed_policy.percentage * base_amount) / decimal.Decimal(100)
     assert (
         resp_json.get('line_items')[str(first_item.id)].get('final_amount')
         == base_amount - discounted_amount
@@ -285,7 +283,7 @@ def test_unlimited_coupon_kharcha(client) -> None:
         name=make_name('Unlimited Geek')
     ).one()
     discounted_amount = discounted_quantity * (
-        (cast(int, discount_policy.percentage) / decimal.Decimal('100'))
+        (cast(int, discount_policy.percentage) / decimal.Decimal(100))
         * current_price.amount
     )
     assert (
@@ -334,7 +332,7 @@ def test_coupon_limit(client) -> None:
     assert coupon.discount_policy.percentage is not None
     discounted_amount = (
         coupon.discount_policy.percentage * current_price.amount
-    ) / decimal.Decimal(100.0)
+    ) / decimal.Decimal(100)
     assert (
         resp_json.get('line_items')[str(first_item.id)].get('final_amount')
         == base_amount - discounted_amount
