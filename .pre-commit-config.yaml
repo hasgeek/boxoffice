@@ -7,7 +7,7 @@ repos:
       - id: pyupgrade
         args: ['--keep-runtime-typing', '--py311-plus']
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.9.1
+    rev: v0.9.6
     hooks:
       - id: ruff
         args: ['--fix', '--exit-non-zero-on-fix']
@@ -40,7 +40,7 @@ repos:
       - id: requirements-txt-fixer
       - id: trailing-whitespace
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.14.1
+    rev: v1.15.0
     hooks:
       - id: mypy
         # warn-unused-ignores is unsafe with pre-commit, see
@@ -57,7 +57,7 @@ repos:
           - types-setuptools
           - typing-extensions
   - repo: https://github.com/PyCQA/pylint
-    rev: v3.3.3
+    rev: v3.3.4
     hooks:
       - id: pylint
         args: [
@@ -77,6 +77,6 @@ repos:
         additional_dependencies:
           - 'bandit[toml]'
   - repo: https://github.com/pycontribs/mirrors-prettier
-    rev: v3.4.2
+    rev: v3.5.0
     hooks:
       - id: prettier
