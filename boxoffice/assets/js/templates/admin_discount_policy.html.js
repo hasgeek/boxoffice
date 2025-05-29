@@ -262,7 +262,7 @@ export const DiscountPolicyTemplate = `
 
                     <p class="field-title filled">What is the discount for?</p>
                     <div class="group">
-                      <select {{#if is_price_based}}name="ticket" id="add-item-{{ id }}"{{else}}name="items" id="add-items-{{ id }}" multiple{{/if}} class="items-select2">
+                      <select {{#if is_price_based}}name="ticket" id="add-item-{{ id }}"{{else}}name="tickets" id="add-items-{{ id }}" multiple{{/if}} class="items-select2">
                         {{#dp_items:ticket}}
                           <option value="{{ dp_items[ticket].id }}" selected title="{{ dp_items[ticket].title }}">{{ dp_items[ticket].title }}</option>
                         {{/}}

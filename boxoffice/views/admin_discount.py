@@ -194,6 +194,8 @@ def admin_edit_discount_policy(discount_policy: DiscountPolicy) -> Response:
                 status_code=400,
                 errors=discount_price_form.errors,
             )
+        # FIXME: What's happening here? It's creating a Price object and associating it
+        # with which ticket? What if the policy applies to multiple tickets?
         discount_price_form.populate_obj(discount_price)
         if (
             discount_policy.tickets
